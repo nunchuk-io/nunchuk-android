@@ -1,0 +1,25 @@
+apply from: '../configs/dependencies.gradle'
+apply from: '../configs/submodule-config.gradle'
+
+android {
+    compileSdkVersion androidConfig.compileSdkVersion
+
+    defaultConfig {
+        minSdkVersion androidConfig.minSdkVersion
+        targetSdkVersion androidConfig.targetSdkVersion
+
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++11 -stdlib=libc++"
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/native/CMakeLists.txt"
+            version "3.10.2"
+        }
+    }
+
+}

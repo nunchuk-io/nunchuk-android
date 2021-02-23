@@ -1,0 +1,79 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
+android {
+    compileSdkVersion androidConfig.compileSdkVersion
+
+    defaultConfig {
+        minSdkVersion androidConfig.minSdkVersion
+        targetSdkVersion androidConfig.targetSdkVersion
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = ["library": "true"]
+            }
+        }
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    flavorDimensions 'cpuArch'
+    productFlavors {
+        arm8 {
+            dimension 'cpuArch'
+            ndk {
+                abiFilters 'arm64-v8a', 'armeabi-v7a'
+            }
+        }
+        arm64_v8a {
+            dimension 'cpuArch'
+            ndk {
+                abiFilters 'arm64-v8a'
+            }
+        }
+        x86 {
+            dimension 'cpuArch'
+            ndk {
+                abiFilters 'x86'
+            }
+        }
+        universal {
+            dimension 'cpuArch'
+            // include all default ABIs. with NDK-r16,  it is:
+            //   armeabi-v7a, arm64-v8a, x86, x86_64
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/ASL2.0'
+    }
+}
+
+dependencies {
+    // Dagger
+    kapt daggerDeps.compiler
+    api daggerDeps.dagger
+    kapt daggerDeps.processor
+    implementation daggerDeps.support
+    implementation daggerDeps.jbAnnotations
+}

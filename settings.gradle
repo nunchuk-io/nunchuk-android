@@ -1,0 +1,3 @@
+include ':nunchuk-app'
+include ':nunchuk-arch'
+include ':nunchuk-nativelib'

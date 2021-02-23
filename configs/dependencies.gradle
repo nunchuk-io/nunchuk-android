@@ -1,0 +1,172 @@
+ext {
+    //Library Version
+    androidxVersion = '1.0.0'
+    supportLibrary = '28.0.0'
+    mutlidexVersion = '2.0.0'
+    constraintLayoutVersion = '1.1.3'
+    playServiceVersion = '16.0.0'
+    daggerVersion = '2.30.1'
+    powerMockVersion = '1.6.6'
+    mockitoVersion = '2.8.9'
+    robolectricVersion = '4.0.2'
+    espressoVersion = '3.1.0'
+    dexMakerVersion = '1.4'
+    androidDebugDatabaseVersion = '1.0.6'
+    zxingVersion = '3.2.0'
+    gsonVersion = '2.8.2'
+    androidTestVersion = '1.1.0'
+
+    roomVersion = '2.2.5'
+    archLifecycleVersion = '1.1.1'
+    workMangerVersion = '2.0.0'
+    lifecycleVersion = '2.1.0'
+
+    //Plugins versions
+    gradleVersion = '4.0.2'
+    googleServiceVersion = '4.3.4'
+    gradleCpdVersion = '1.2'
+    jacocoReportVersion = '0.8.1'
+    detektGradleVersion = '1.1.1'
+    kotlinGradlePluginversion = '1.4.20'
+    kotlinStdlibVersion = '1.4.21'
+    buildInfoExtractorVersion = '4.4.18'
+
+    MAJOR_VERSION = 1
+    MINOR_VERSION = 0
+    PATCH_VERSION = 0
+
+    VERSION_CODE = 01
+
+    androidConfig = [
+            applicationId    : "com.nunchuk.android",
+            compileSdkVersion: 30,
+            targetSdkVersion : 30,
+            minSdkVersion    : 21,
+            buildToolsVersion: "30.0.3",
+            versionName      : "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}",
+            versionCode      : VERSION_CODE,
+
+    ]
+
+    // all jacoco core newer than 0.8.1 is incompatible with instant run, don't upgrade yet
+    pluginsDeps = [
+            gradleAndroid           : "com.android.tools.build:gradle:${gradleVersion}",
+            googleServices          : "com.google.gms:google-services:${googleServiceVersion}",
+            playServicesAds         : "com.google.android.gms:play-services-ads:${playServiceVersion}",
+            gradleCpd               : "de.aaschmid:gradle-cpd-plugin:${gradleCpdVersion}",
+            jacocoReport            : "org.jacoco:org.jacoco.core:${jacocoReportVersion}",
+            detektGradlePlugin      : "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:${detektGradleVersion}",
+            buildInfoExtractorPlugin: "org.jfrog.buildinfo:build-info-extractor-gradle:${buildInfoExtractorVersion}"
+    ]
+
+    kotlinDeps = [
+            plugin: "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinGradlePluginversion}",
+            stdlib: "org.jetbrains.kotlin:kotlin-stdlib:${kotlinStdlibVersion}"
+    ]
+
+    androidxDeps = [
+            design               : "com.google.android.material:material:1.0.0",
+            supportV4            : "androidx.legacy:legacy-support-v4:${androidxVersion}",
+            recyclerView         : "androidx.recyclerview:recyclerview:${androidxVersion}",
+            cardView             : "androidx.cardview:cardview:${androidxVersion}",
+            appCompat            : "androidx.appcompat:appcompat:${androidxVersion}",
+            palette              : "androidx.palette:palette:${androidxVersion}",
+            supportAnnotation    : "androidx.annotation:annotation:${androidxVersion}",
+            coreUtils            : "androidx.legacy:legacy-support-core-utils:${androidxVersion}",
+            constraintLayout     : "androidx.constraintlayout:constraintlayout:${constraintLayoutVersion}",
+            multidex             : "androidx.multidex:multidex:${mutlidexVersion}",
+            localbroadcastManager: "androidx.localbroadcastmanager:localbroadcastmanager:${androidxVersion}",
+    ]
+
+    espressoDeps = [
+            runner     : "androidx.test:runner:${androidTestVersion}",
+            rules      : "androidx.test:rules:${androidTestVersion}",
+            core       : "androidx.test.espresso:espresso-core:${espressoVersion}",
+            intents    : "androidx.test.espresso:espresso-intents:${espressoVersion}",
+            contrib    : "androidx.test.espresso:espresso-contrib:${espressoVersion}",
+            uiautomator: "androidx.test.uiautomator:uiautomator:2.2.0"
+    ]
+
+    playServices = [
+            location: "com.google.android.gms:play-services-location:${playServiceVersion}",
+            maps    : "com.google.android.gms:play-services-maps:${playServiceVersion}",
+    ]
+
+    daggerDeps = [
+            compiler     : "com.google.dagger:dagger-compiler:${daggerVersion}",
+            processor    : "com.google.dagger:dagger-android-processor:${daggerVersion}",
+            support      : "com.google.dagger:dagger-android-support:${daggerVersion}",
+            dagger       : "com.google.dagger:dagger:${daggerVersion}",
+            javax        : "javax.annotation:jsr250-api:1.0",
+            jbAnnotations: "org.jetbrains:annotations:15.0",
+    ]
+
+    powerMockDeps = [
+            junit4    : "org.powermock:powermock-module-junit4:${powerMockVersion}",
+            ruleAgent : "org.powermock:powermock-module-junit4-rule-agent:${powerMockVersion}",
+            apiMockito: "org.powermock:powermock-api-mockito:${powerMockVersion}",
+            xstream   : "org.powermock:powermock-classloading-xstream:${powerMockVersion}",
+    ]
+
+    robolectricDeps = [
+            robolectric    : "org.robolectric:robolectric:${robolectricVersion}",
+            shadowsSupport : "org.robolectric:shadows-supportv4:${robolectricVersion}",
+            shadowsMultidex: "org.robolectric:shadows-multidex:${robolectricVersion}",
+    ]
+
+    dexMaker = [
+            dexmaker  : "com.crittercism.dexmaker:dexmaker:${dexMakerVersion}",
+            dexmakerDx: "com.crittercism.dexmaker:dexmaker-dx:${dexMakerVersion}",
+            mockito   : "com.crittercism.dexmaker:dexmaker-mockito:${dexMakerVersion}",
+    ]
+
+    googleDeps = [
+            gson: "com.google.code.gson:gson:${gsonVersion}",
+    ]
+
+    debugDatabaseDeps = [
+            androidDebugDatabase: "com.amitshekhar.android:debug-db:${androidDebugDatabaseVersion}"
+    ]
+
+    roomArch = [
+            room        : "androidx.room:room-runtime:${roomVersion}",
+            roomCompiler: "androidx.room:room-compiler:${roomVersion}",
+            roomRxJava2 : "androidx.room:room-rxjava2:${roomVersion}",
+            roomTest    : "androidx.room:room-testing:${roomVersion}"
+    ]
+
+    workMangerDeps = [
+            workManger   : "androidx.work:work-runtime:${workMangerVersion}",
+            workMangerKtx: "androidx.work:work-runtime-ktx:${workMangerVersion}",
+            workRxJava2  : "androidx.work:work-rxjava2:${workMangerVersion}",
+            testing      : "androidx.work:work-testing:${workMangerVersion}"
+    ]
+
+    otherDeps = [
+            rxandroid2      : "io.reactivex.rxjava2:rxandroid:2.1.1",
+            zxingCore       : "com.google.zxing:core:${zxingVersion}@jar",
+            zxingAndroidCore: "com.google.zxing:android-core:${zxingVersion}",
+    ]
+
+    archDeps = [
+            lifeCycle               : "androidx.lifecycle:lifecycle-extensions:${lifecycleVersion}",
+            lifecycleLivedata       : "androidx.lifecycle:lifecycle-livedata:${lifecycleVersion}",
+            lifecycleReactiveStreams: "androidx.lifecycle:lifecycle-reactivestreams:${lifecycleVersion}"
+    ]
+
+    otherTestDeps = [
+            junit      : "junit:junit:4.12",
+            spoonClient: "com.squareup.spoon:spoon-client:1.6.4",
+            daggerMock : "com.github.fabioCollini:DaggerMock:0.6.2",
+    ]
+
+    kotlinSupportTestDeps = [
+            mockitoInline       : "org.mockito:mockito-inline:${mockitoVersion}",
+            mockitoCore2        : "org.mockito:mockito-core:${mockitoVersion}",
+            powermockApiMockito2: "org.powermock:powermock-api-mockito2:1.7.0RC2",
+            powermockModule     : "org.powermock:powermock-module-junit4:1.7.0",
+            powermockCore       : "org.powermock:powermock-core:1.7.0",
+            powermockModuleRule : "org.powermock:powermock-module-junit4-rule:1.7.0",
+    ]
+
+}

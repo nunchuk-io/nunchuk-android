@@ -1,0 +1,27 @@
+apply from: 'configs/dependencies.gradle'
+
+buildscript {
+    apply from: 'configs/dependencies.gradle'
+    repositories {
+        google()
+        jcenter()
+        maven { url "https://maven.google.com" }
+    }
+    dependencies {
+        classpath pluginsDeps.gradleAndroid
+        classpath pluginsDeps.gradleCpd
+        classpath kotlinDeps.plugin
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+        maven { url "https://maven.google.com" }
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

@@ -1,0 +1,80 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+apply from: '../configs/dependencies.gradle'
+
+android {
+    compileSdkVersion androidConfig.compileSdkVersion
+    ndkVersion '21.0.6113669'
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    defaultConfig {
+        applicationId androidConfig.applicationId
+        minSdkVersion androidConfig.minSdkVersion
+        targetSdkVersion androidConfig.targetSdkVersion
+        versionCode androidConfig.versionCode
+        versionName androidConfig.versionName
+        multiDexEnabled true
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+            debuggable true
+            applicationIdSuffix ".dev"
+        }
+        release {
+            minifyEnabled true
+            debuggable false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard.conf'
+        }
+    }
+
+    flavorDimensions 'cpuArch'
+    productFlavors {
+        arm8 {
+            dimension 'cpuArch'
+            ndk {
+                abiFilters 'arm64-v8a', 'armeabi-v7a'
+            }
+        }
+        arm64_v8a {
+            dimension 'cpuArch'
+            ndk {
+                abiFilters 'arm64-v8a'
+            }
+        }
+        x86 {
+            dimension 'cpuArch'
+            ndk {
+                abiFilters 'x86'
+            }
+        }
+        universal {
+            dimension 'cpuArch'
+            // include all default ABIs. with NDK-r16,  it is:
+            //   armeabi-v7a, arm64-v8a, x86, x86_64
+        }
+
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinStdlibVersion"
+
+    implementation project(':nunchuk-arch')
+    implementation project(':nunchuk-nativelib')
+
+    // Dagger
+    kapt daggerDeps.compiler
+    api daggerDeps.dagger
+    kapt daggerDeps.processor
+    implementation daggerDeps.support
+    implementation daggerDeps.jbAnnotations
+
+    implementation androidxDeps.values()
+}
