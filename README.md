@@ -2,7 +2,7 @@
 
 ## Getting Started
 
-### Installing
+## Installing
 
 1. Android Build Systems (https://developer.android.com/ndk/guides/other_build_systems)
     - ```armeabi-v7a```: ```armv7a-linux-androideabi```
@@ -12,14 +12,14 @@
 
 
 2. Add libnunchuk to nunchuk-nativelib module
-    1. path to ```nunchuk-nativelib>src>main>native```
-    2. ```git submodule add -b android https://github.com/nunchuk-io/libnunchuk```
-    3. ```git submodule update --init --recursive```
+    - path to ```nunchuk-nativelib/src/main/native```
+    - ```git submodule add -b android git@gitlab.com:nunchuck/libnunchuk.git```
+    - ```git submodule update --init --recursive```
 
 
 3. Build bitcoin deps:
-    1. path to ```nunchuk-nativelib/src/main/native/libnunchuk/contrib/bitcoin/depends```
-    2. ```ANDROID_SDK=/usr/local/android-sdk ANDROID_NDK=/usr/local/android-sdk/ndk/21.0.6113669 make HOST=arm-linux-androideabi ANDROID_API_LEVEL=29 ANDROID_TOOLCHAIN_BIN=/usr/local/android-sdk/ndk/21.0.6113669/toolchains/llvm/prebuilt/darwin-x86_64/bin NO_QT=1 NO_ZMQ=1 NO_QR=1 NO_UPNP=1```
+    - path to ```nunchuk-nativelib/src/main/native/libnunchuk/contrib/bitcoin/depends```
+    -  ```ANDROID_SDK=/usr/local/android-sdk ANDROID_NDK=/usr/local/android-sdk/ndk/21.0.6113669 make HOST=arm-linux-androideabi ANDROID_API_LEVEL=29 ANDROID_TOOLCHAIN_BIN=/usr/local/android-sdk/ndk/21.0.6113669/toolchains/llvm/prebuilt/darwin-x86_64/bin NO_QT=1 NO_ZMQ=1 NO_QR=1 NO_UPNP=1```
 
 
 4. Build bitcoin deps:
@@ -41,3 +41,9 @@
     - NDK: ```21.0.6113669```
     - Boost: ```1.70.0```
     - API: ```29```
+
+
+## Auto build deps
+   - ```nunchuk-nativelib/src/main/native```
+   - ```.install_deps.sh```
+
