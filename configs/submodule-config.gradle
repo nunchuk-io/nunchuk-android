@@ -1,6 +1,5 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
 android {
@@ -9,11 +8,13 @@ android {
     defaultConfig {
         minSdkVersion androidConfig.minSdkVersion
         targetSdkVersion androidConfig.targetSdkVersion
-
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["library": "true"]
             }
+        }
+        ndk {
+            'x86_64'
         }
     }
 
@@ -41,6 +42,12 @@ android {
                 abiFilters 'x86'
             }
         }
+        x86_64 {
+            dimension 'cpuArch'
+            ndk {
+                abiFilters 'x86_64'
+            }
+        }
         universal {
             dimension 'cpuArch'
             // include all default ABIs. with NDK-r16,  it is:
@@ -66,6 +73,7 @@ android {
         exclude 'META-INF/NOTICE.txt'
         exclude 'META-INF/notice.txt'
         exclude 'META-INF/ASL2.0'
+        exclude 'META-INF/versions/9/module-info.class'
     }
 }
 

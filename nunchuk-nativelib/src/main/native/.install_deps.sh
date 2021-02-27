@@ -19,12 +19,40 @@ export API=21
 pwd=$(pwd)
 echo "pwd::$pwd"
 
+export ANDROID_ABI_ARMEABI_V7A="armeabi-v7a"
+export ANDROID_ABI_ARM64_V8A="arm64-v8a"
+export ANDROID_ABI_X86_64="x86_64"
+export ANDROID_ABI_X86="x86"
+
+export ANDROID_TARGET_ARMEABI_V7A="armv7a-linux-androideabi"
+export ANDROID_TARGET_ARM64_V8A="aarch64-linux-android"
+export ANDROID_TARGET_X86_64="x86_64-linux-android"
+export ANDROID_TARGET_X86="i686-linux-android"
+
+export ANDROID_ABI=$1
+ANDROID_TARGET=""
+
+parseArgs() {
+  if [ "$ANDROID_ABI" == $ANDROID_ABI_ARMEABI_V7A ]; then
+    ANDROID_TARGET=$ANDROID_TARGET_ARMEABI_V7A
+  elif [ "$ANDROID_ABI" == $ANDROID_ABI_ARM64_V8A ]; then
+    ANDROID_TARGET=$ANDROID_TARGET_ARM64_V8A
+  elif [ "$ANDROID_ABI" == $ANDROID_ABI_X86_64 ]; then
+    ANDROID_TARGET=$ANDROID_TARGET_X86_64
+  elif [ "$ANDROID_ABI" == $ANDROID_ABI_X86 ]; then
+    TARGET=$ANDROID_TARGET_X86
+  else
+    echo "Invalid ABI argument $ANDROID_ABI"
+    exit 1
+  fi
+}
+parseArgs
 #########################################################################################
 ####                                Bitcoin Deps                                     ####
 #########################################################################################
 installBitcoinDeps() {
-  abi=$1
-  target=$2
+  abi=$ANDROID_ABI
+  target=$ANDROID_TARGET
 
   echo "-------------------------------------------------------------------------------"
   echo "                          Installing deps for $abi                              "
@@ -44,18 +72,15 @@ installBitcoinDeps() {
 }
 #
 pushd libnunchuk/contrib/bitcoin/depends || exit
-#installBitcoinDeps arm64-v8a aarch64-linux-android
-installBitcoinDeps x86-64 x86_64-linux-android
-#installBitcoinDeps x86         i686-linux-android
-#installBitcoinDeps armeabi-v7a armv7a-linux-androideabi
+installBitcoinDeps
 popd || exit
 
 #########################################################################################
 ####                                 Bitcoin Core                                    ####
 #########################################################################################
 installBitcoinCore() {
-  abi=$1
-  target=$2
+  abi=$ANDROID_ABI
+  target=$ANDROID_TARGET
   echo "-------------------------------------------------------------------------------"
   echo "                           Installing core for $abi                             "
   echo "-------------------------------------------------------------------------------"
@@ -75,10 +100,7 @@ installBitcoinCore() {
 }
 
 pushd libnunchuk/contrib/bitcoin || exit
-#installBitcoinCore arm64-v8a aarch64-linux-android
-installBitcoinCore x86-64 x86_64-linux-android
-#installBitcoinCore x86 i686-linux-android
-#installBitcoinCore armeabi-v7a armv7a-linux-androideabi
+installBitcoinCore
 popd || exit
 
 #########################################################################################
@@ -86,8 +108,15 @@ popd || exit
 #########################################################################################
 
 installOpenSSL() {
-  abi=$1
-  target=$2
+  if [ "$ANDROID_ABI" == $ANDROID_ABI_ARM64_V8A ]; then
+    abi="arm64"
+  elif [ "$ANDROID_ABI" == $ANDROID_ABI_ARMEABI_V7A ]; then
+    abi="armv7a"
+  else
+    abi="$ANDROID_ABI"
+  fi
+
+  target=$ANDROID_TARGET
   echo "-------------------------------------------------------------------------------"
   echo "                       Installing OpenSSL for $abi                             "
   echo "-------------------------------------------------------------------------------"
@@ -107,10 +136,7 @@ installOpenSSL() {
 }
 
 pushd libnunchuk/contrib/openssl || exit
-#installOpenSSL arm64-v8a aarch64-linux-android
-installOpenSSL x86_64 x86_64-linux-android
-#installOpenSSL x86 i686-linux-android
-#installOpenSSL armeabi-v7a armv7a-linux-androideabi
+installOpenSSL
 popd || exit
 
 echo "done"

@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 apply from: '../configs/dependencies.gradle'
 
@@ -19,13 +18,15 @@ android {
         versionCode androidConfig.versionCode
         versionName androidConfig.versionName
         multiDexEnabled true
+        ndk {
+            'x86_64'
+        }
     }
 
     buildTypes {
         debug {
             minifyEnabled false
             debuggable true
-            applicationIdSuffix ".dev"
         }
         release {
             minifyEnabled true
@@ -48,6 +49,12 @@ android {
                 abiFilters 'arm64-v8a'
             }
         }
+        x86_64 {
+            dimension 'cpuArch'
+            ndk {
+                abiFilters 'x86_64'
+            }
+        }
         x86 {
             dimension 'cpuArch'
             ndk {
@@ -60,6 +67,18 @@ android {
             //   armeabi-v7a, arm64-v8a, x86, x86_64
         }
 
+    }
+
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/ASL2.0'
+        exclude 'META-INF/versions/9/module-info.class'
     }
 }
 
@@ -75,6 +94,7 @@ dependencies {
     kapt daggerDeps.processor
     implementation daggerDeps.support
     implementation daggerDeps.jbAnnotations
+    implementation otherDeps.rxandroid2
 
     implementation androidxDeps.values()
 }

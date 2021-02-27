@@ -45,5 +45,5 @@
 
 ## Auto build deps
    - ```nunchuk-nativelib/src/main/native```
-   - ```.install_deps.sh```
+   - ```.install_deps.sh ${abi}```
 
