@@ -54,11 +54,11 @@ before_script:
   - chmod +x ./gradlew
   
   # Add libnunchuk and build deps
-  - echo ${PWD}
-  #- pushd /nunchuk-nativelib/src/main/native 
-  #- git submodule add -b android git@gitlab.com:nunchuck/libnunchuk.git
-  #- git submodule update --init --recursive
-  #- sh .install_deps.dh x86_64
+  - echo "${PWD}"
+  - pushd ${PWD}/nunchuk-nativelib/src/main/native 
+  - git submodule add -b android git@gitlab.com:nunchuck/libnunchuk.git
+  - git submodule update --init --recursive
+  - sh .install_deps.dh x86_64
 
 # Basic android and gradle stuff
 # Check linting
