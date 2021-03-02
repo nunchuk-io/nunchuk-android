@@ -19,19 +19,13 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_retrieveData(
     settings.set_testnet_servers({"testnet.nunchuk.io:50001"});
     settings.set_backend_type(BackendType::ELECTRUM);
     auto nunchuk = MakeNunchuk(settings);
-    AddressType address_type = AddressType::NATIVE_SEGWIT;
 
-    // Nunchuk supports multisig, singlesig and escrow wallets
-    WalletType wallet_type = WalletType::MULTI_SIG;
-
-    syslog(LOG_DEBUG, "wallet_type::${wallet_type}");
-    auto wallet = nunchuk->ImportWalletConfigFile("/data/user/0/com.nunchuk.android/files/nunchuk/Config.txt");
-    // Log wallet.get_id()
-    nunchuk->AddBalanceListener([](std::string wid, Amount amount) {
-        syslog(LOG_DEBUG, "Receive callback");
-    });
-    auto wallets = nunchuk->GetWallets();
-    // Check if wallets contain wallet
-
+    auto remoteSigners = nunchuk->GetRemoteSigners();
+    if (remoteSigners.empty()) {
+        syslog(LOG_DEBUG, "No remote signers");
+    } else {
+        syslog(LOG_DEBUG, "Remote signers found");
+    }
+    syslog(LOG_DEBUG, "Remote signer create success.");
     syslog(LOG_DEBUG, "retrieveData::end");
 }

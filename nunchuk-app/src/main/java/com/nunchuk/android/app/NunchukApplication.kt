@@ -2,7 +2,6 @@ package com.nunchuk.android.app
 
 import android.app.Application
 import android.content.Context
-import android.util.Log
 import androidx.multidex.MultiDex
 import com.nunchuk.android.app.di.BootstrapInjectors
 import dagger.android.AndroidInjector

@@ -1,6 +1,8 @@
 package com.nunchuk.android.nativelib
 
-class LibNunchukFacade {
+import javax.inject.Inject
+
+internal class LibNunchukFacade @Inject constructor() {
 
     private val impl = LibNunchukAndroid()
 
