@@ -6,7 +6,7 @@ import com.nunchuk.android.type.WalletType
 
 interface GetSignerFromMasterSignerUseCase {
     fun execute(
-            mastersignerId: String,
+            masterSignerId: String,
             walletType: WalletType,
             addressType: AddressType,
             index: Int = 0

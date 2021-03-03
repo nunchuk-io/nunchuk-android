@@ -1,11 +1,19 @@
 package com.nunchuk.android.nativelib
 
-/**
- * Jni external methods here
- */
-internal class LibNunchukAndroid {
+import com.nunchuk.android.model.SingleSigner
+import javax.inject.Inject
 
-    external fun retrieveData()
+class LibNunchukAndroid @Inject constructor() {
+
+    external fun createSigner(
+            name: String,
+            xpub: String,
+            publicKey: String,
+            derivationPath: String,
+            masterFingerprint: String
+    ): SingleSigner
+
+    external fun getFirstRemoteSigner(): SingleSigner
 
     companion object {
         init {
