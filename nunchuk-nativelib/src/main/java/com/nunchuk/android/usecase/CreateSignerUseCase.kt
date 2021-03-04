@@ -3,6 +3,7 @@ package com.nunchuk.android.usecase
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nativelib.LibNunchukAndroid
 import com.nunchuk.android.nativelib.LibNunchukFacade
+import io.reactivex.Single
 import javax.inject.Inject
 
 interface CreateSignerUseCase {
@@ -12,7 +13,7 @@ interface CreateSignerUseCase {
             publicKey: String,
             derivationPath: String,
             masterFingerprint: String
-    ): SingleSigner
+    ): Single<SingleSigner>
 }
 
 internal class CreateSignerUseCaseImpl @Inject constructor(
@@ -25,13 +26,15 @@ internal class CreateSignerUseCaseImpl @Inject constructor(
             publicKey: String,
             derivationPath: String,
             masterFingerprint: String
-    ) = nunchukFacade.createSigner(
-            name = name,
-            xpub = xpub,
-            publicKey = publicKey,
-            derivationPath = derivationPath,
-            masterFingerprint = masterFingerprint
-    )
+    ) = Single.fromCallable {
+        nunchukFacade.createSigner(
+                name = name,
+                xpub = xpub,
+                publicKey = publicKey,
+                derivationPath = derivationPath,
+                masterFingerprint = masterFingerprint
+        )
+    }
 }
 
 fun createCreateSignerUseCase(): CreateSignerUseCase = CreateSignerUseCaseImpl(LibNunchukFacade(LibNunchukAndroid()))

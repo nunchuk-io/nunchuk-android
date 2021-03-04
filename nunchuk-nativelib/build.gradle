@@ -84,4 +84,5 @@ dependencies {
     kapt daggerDeps.processor
     implementation daggerDeps.support
     implementation daggerDeps.jbAnnotations
+    implementation otherDeps.rxandroid2
 }

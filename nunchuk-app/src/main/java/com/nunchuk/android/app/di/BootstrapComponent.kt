@@ -2,6 +2,7 @@ package com.nunchuk.android.app.di
 
 import android.content.Context
 import com.nunchuk.android.app.NunchukApplication
+import com.nunchuk.android.nativelib.di.NativeLibProxyModule
 import dagger.Binds
 import dagger.Component
 import dagger.Module
@@ -17,9 +18,11 @@ abstract class BootstrapModule {
 
 @Singleton
 @Component(
-    modules = [
-        BootstrapModule::class
-    ]
+        modules = [
+            BootstrapModule::class,
+            AppProxyModule::class,
+            NativeLibProxyModule::class
+        ]
 )
 interface BootstrapComponent : AndroidInjector<NunchukApplication> {
 
