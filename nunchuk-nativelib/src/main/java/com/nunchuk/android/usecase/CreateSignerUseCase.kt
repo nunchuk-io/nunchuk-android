@@ -1,7 +1,6 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.nativelib.LibNunchukAndroid
 import com.nunchuk.android.nativelib.LibNunchukFacade
 import io.reactivex.Single
 import javax.inject.Inject
@@ -36,5 +35,3 @@ internal class CreateSignerUseCaseImpl @Inject constructor(
         )
     }
 }
-
-fun createCreateSignerUseCase(): CreateSignerUseCase = CreateSignerUseCaseImpl(LibNunchukFacade(LibNunchukAndroid()))

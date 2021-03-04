@@ -2,8 +2,10 @@ package com.nunchuk.android.nativelib
 
 import com.nunchuk.android.model.SingleSigner
 import javax.inject.Inject
+import javax.inject.Singleton
 
-class LibNunchukAndroid @Inject constructor() {
+@Singleton
+internal class LibNunchukAndroid @Inject constructor() {
 
     external fun createSigner(
             name: String,
@@ -13,7 +15,7 @@ class LibNunchukAndroid @Inject constructor() {
             masterFingerprint: String
     ): SingleSigner
 
-    external fun getFirstRemoteSigner(): SingleSigner
+    external fun getRemoteSigner(): SingleSigner
 
     companion object {
         init {

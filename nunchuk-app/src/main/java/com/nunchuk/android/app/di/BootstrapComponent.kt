@@ -11,7 +11,7 @@ import dagger.android.AndroidInjector
 import javax.inject.Singleton
 
 @Module(includes = [AndroidInjectionModule::class])
-abstract class BootstrapModule {
+internal abstract class BootstrapModule {
     @Binds
     abstract fun application(app: NunchukApplication): Context
 }
@@ -24,14 +24,14 @@ abstract class BootstrapModule {
             NativeLibProxyModule::class
         ]
 )
-interface BootstrapComponent : AndroidInjector<NunchukApplication> {
+internal interface BootstrapComponent : AndroidInjector<NunchukApplication> {
 
     @Component.Factory
     abstract class Factory : AndroidInjector.Factory<NunchukApplication>
 
 }
 
-object BootstrapInjectors {
+internal object BootstrapInjectors {
 
     @JvmStatic
     fun inject(app: NunchukApplication) {

@@ -97,4 +97,5 @@ dependencies {
     implementation otherDeps.rxandroid2
 
     implementation androidxDeps.values()
+    implementation googleDeps.values()
 }

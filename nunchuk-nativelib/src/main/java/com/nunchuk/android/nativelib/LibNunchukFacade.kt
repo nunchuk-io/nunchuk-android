@@ -1,7 +1,9 @@
 package com.nunchuk.android.nativelib
 
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 internal class LibNunchukFacade @Inject constructor(
         private val nunchukAndroid: LibNunchukAndroid
 ) {
@@ -19,5 +21,7 @@ internal class LibNunchukFacade @Inject constructor(
             derivationPath = derivationPath,
             masterFingerprint = masterFingerprint
     )
+
+    fun getRemoteSigner() = nunchukAndroid.getRemoteSigner()
 
 }
