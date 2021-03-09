@@ -36,7 +36,7 @@ public:
 
 jobject translate(JNIEnv *pEnv, SingleSigner signer);
 
-void newwallet();
+void newWallet();
 
 NunchukProvider *NunchukProvider::_instance = nullptr;
 
@@ -63,9 +63,14 @@ extern "C"
 JNIEXPORT jobject JNICALL
 Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getRemoteSigner(JNIEnv *env, jobject thiz) {
     syslog(LOG_DEBUG, "[JNI]getRemoteSigner()");
-    newwallet();
     syslog(LOG_DEBUG, "[JNI]newwallet()");
     auto signers = NunchukProvider::get()->nu->GetRemoteSigners();
+    try {
+        newWallet();
+    }
+    catch (StorageException &exception) {
+        syslog(LOG_CRIT, "[JNI]create signer error %s", exception.what());
+    }
     syslog(LOG_DEBUG, "[JNI]nu->GetRemoteSigners()");
     if (signers.empty()) {
         syslog(LOG_DEBUG, "[JNI]There is no signer");
@@ -77,7 +82,7 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getRemoteSigner(JNIEnv *env
     }
 }
 
-void newwallet() {
+void newWallet() {
     try {
         auto signers = NunchukProvider::get()->nu->GetRemoteSigners();
         if (signers.empty()) {

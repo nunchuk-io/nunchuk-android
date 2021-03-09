@@ -1,8 +1,8 @@
 package com.nunchuk.android.model
 
 data class MasterSigner(
-        val id: String,
-        val name: String,
-        val device: Device,
+        val id: String = "",
+        val name: String = "",
+        val device: Device = Device(),
         val lastHealthCheck: Long
 )

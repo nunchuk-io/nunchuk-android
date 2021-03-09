@@ -59,9 +59,23 @@ internal class SplashActivity : BaseActivity() {
         }
     }
 
-    @SuppressLint("CheckResult")
     private fun retrieveData() {
         FileUtil.createNunchukRootDir()
+        createRemoteSigner()
+    }
+
+    @SuppressLint("CheckResult")
+    private fun retrieveRemoteSigner() {
+        remoteSignerUseCase.execute()
+                .delay(2, TimeUnit.SECONDS).defaultSchedulers().subscribe({
+                    binding.signerInfo.text = "Signer Info ${gson.toJson(it)}"
+                }, {
+                    binding.signerInfo.text = "Signer retrieve error ${it.message}"
+                })
+    }
+
+    @SuppressLint("CheckResult")
+    private fun createRemoteSigner() {
         createSignerUseCase.execute(
                 "TESTER",
                 "xpub6Gs9Gp1P7ov2Xy6XmVBawLUwRgifGMK93K6bYuMdi9PfmJ6y6e7ffzD7JKCjWgJn71YGCQMozL1284Ywoaptv8UGRsua635k8yELEKk9nhh",
@@ -69,13 +83,9 @@ internal class SplashActivity : BaseActivity() {
                 "m/48'/0'/0'/7",
                 "0b93c52e"
         )
-                .defaultSchedulers().subscribe({
-                    binding.signerInfo.text = "Signer Info ${gson.toJson(it)}"
-                }, {
-                    binding.signerInfo.text = "Signer retrieve error ${it.message}"
-                })
-        remoteSignerUseCase.execute()
-                .delay(2, TimeUnit.SECONDS).defaultSchedulers().subscribe({
+                .defaultSchedulers()
+                .doAfterTerminate(::retrieveRemoteSigner)
+                .subscribe({
                     binding.signerInfo.text = "Signer Info ${gson.toJson(it)}"
                 }, {
                     binding.signerInfo.text = "Signer retrieve error ${it.message}"

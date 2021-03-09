@@ -98,4 +98,6 @@ dependencies {
 
     implementation androidxDeps.values()
     implementation googleDeps.values()
+
+    debugImplementation debugDatabaseDeps.values()
 }

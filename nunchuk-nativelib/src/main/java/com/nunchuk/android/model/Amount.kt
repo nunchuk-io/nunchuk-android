@@ -1,3 +1,3 @@
 package com.nunchuk.android.model
 
-data class Amount(val value: Int)
+data class Amount(val value: Int = 0)
