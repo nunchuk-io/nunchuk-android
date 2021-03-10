@@ -78,11 +78,12 @@ android {
 }
 
 dependencies {
+    implementation project(':nunchuk-model')
     // Dagger
     kapt daggerDeps.compiler
     api daggerDeps.dagger
     kapt daggerDeps.processor
     implementation daggerDeps.support
     implementation daggerDeps.jbAnnotations
-    implementation otherDeps.rxandroid2
+    implementation reactiveDeps.rxAndroid2
 }

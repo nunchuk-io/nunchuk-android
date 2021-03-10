@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="nc_primary_color">#031F2B</color>
+    <color name="nc_primary_dark_color">#031F2B</color>
+    <color name="nc_accent_color">#C1C1C1</color>
+</resources>

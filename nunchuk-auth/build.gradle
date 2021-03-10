@@ -2,8 +2,5 @@ apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 
 dependencies {
-
-    implementation lifecycleDeps.values()
-    implementation reactiveDeps.rxAndroid2
-
+    implementation androidxDeps.values()
 }
