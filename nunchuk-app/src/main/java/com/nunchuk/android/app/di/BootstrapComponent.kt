@@ -8,6 +8,10 @@ import dagger.Component
 import dagger.Module
 import dagger.android.AndroidInjectionModule
 import dagger.android.AndroidInjector
+import com.nunchuk.android.auth.di.AuthProxyModule
+import com.nunchuk.android.core.di.CoreProxyModule
+import com.nunchuk.android.database.di.DatabaseProxyModule
+import com.nunchuk.android.network.di.NetworkProxyModule
 import javax.inject.Singleton
 
 @Module(includes = [AndroidInjectionModule::class])
@@ -18,11 +22,15 @@ internal abstract class BootstrapModule {
 
 @Singleton
 @Component(
-        modules = [
-            BootstrapModule::class,
-            AppProxyModule::class,
-            NativeLibProxyModule::class
-        ]
+    modules = [
+        BootstrapModule::class,
+        AppProxyModule::class,
+        AuthProxyModule::class,
+        CoreProxyModule::class,
+        DatabaseProxyModule::class,
+        NetworkProxyModule::class,
+        NativeLibProxyModule::class
+    ]
 )
 internal interface BootstrapComponent : AndroidInjector<NunchukApplication> {
 

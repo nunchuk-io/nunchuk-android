@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="nc_padding_1">1dp</dimen>
+    <dimen name="nc_padding_2">2dp</dimen>
+    <dimen name="nc_padding_4">4dp</dimen>
+    <dimen name="nc_padding_6">6dp</dimen>
+    <dimen name="nc_padding_8">8dp</dimen>
+    <dimen name="nc_padding_10">10dp</dimen>
+    <dimen name="nc_padding_12">12dp</dimen>
+    <dimen name="nc_padding_14">14dp</dimen>
+    <dimen name="nc_padding_16">16dp</dimen>
+    <dimen name="nc_padding_18">18dp</dimen>
+    <dimen name="nc_padding_20">20dp</dimen>
+    <dimen name="nc_padding_22">22dp</dimen>
+    <dimen name="nc_padding_24">24dp</dimen>
+    <dimen name="nc_padding_26">26dp</dimen>
+    <dimen name="nc_padding_32">32dp</dimen>
+
+    <dimen name="nc_text_size_8">8sp</dimen>
+    <dimen name="nc_text_size_9">9sp</dimen>
+    <dimen name="nc_text_size_10">10sp</dimen>
+    <dimen name="nc_text_size_11">11sp</dimen>
+    <dimen name="nc_text_size_12">12sp</dimen>
+    <dimen name="nc_text_size_13">13sp</dimen>
+    <dimen name="nc_text_size_14">14sp</dimen>
+    <dimen name="nc_text_size_15">15sp</dimen>
+    <dimen name="nc_text_size_16">16sp</dimen>
+    <dimen name="nc_text_size_17">17sp</dimen>
+    <dimen name="nc_text_size_18">18sp</dimen>
+    <dimen name="nc_text_size_19">19sp</dimen>
+    <dimen name="nc_text_size_20">20sp</dimen>
+    <dimen name="nc_text_size_21">21sp</dimen>
+    <dimen name="nc_text_size_22">22sp</dimen>
+    <dimen name="nc_text_size_23">23sp</dimen>
+    <dimen name="nc_text_size_24">24sp</dimen>
+    <dimen name="nc_text_size_30">30sp</dimen>
+</resources>

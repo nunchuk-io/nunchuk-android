@@ -21,15 +21,16 @@ ext {
     workMangerVersion = '2.0.0'
     lifecycleVersion = '2.1.0'
 
+    retrofitVersion = '2.9.0'
+
     //Plugins versions
     gradleVersion = '4.0.2'
     googleServiceVersion = '4.3.4'
     gradleCpdVersion = '1.2'
     jacocoReportVersion = '0.8.1'
     detektGradleVersion = '1.1.1'
-    kotlinGradlePluginversion = '1.4.20'
+    kotlinGradlePluginVersion = '1.4.30'
     kotlinStdlibVersion = '1.4.21'
-    buildInfoExtractorVersion = '4.4.18'
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 0
@@ -50,17 +51,17 @@ ext {
 
     // all jacoco core newer than 0.8.1 is incompatible with instant run, don't upgrade yet
     pluginsDeps = [
-            gradleAndroid           : "com.android.tools.build:gradle:${gradleVersion}",
-            googleServices          : "com.google.gms:google-services:${googleServiceVersion}",
-            playServicesAds         : "com.google.android.gms:play-services-ads:${playServiceVersion}",
-            gradleCpd               : "de.aaschmid:gradle-cpd-plugin:${gradleCpdVersion}",
-            jacocoReport            : "org.jacoco:org.jacoco.core:${jacocoReportVersion}",
-            detektGradlePlugin      : "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:${detektGradleVersion}",
-            buildInfoExtractorPlugin: "org.jfrog.buildinfo:build-info-extractor-gradle:${buildInfoExtractorVersion}"
+            gradleAndroid     : "com.android.tools.build:gradle:${gradleVersion}",
+            googleServices    : "com.google.gms:google-services:${googleServiceVersion}",
+            playServicesAds   : "com.google.android.gms:play-services-ads:${playServiceVersion}",
+            gradleCpd         : "de.aaschmid:gradle-cpd-plugin:${gradleCpdVersion}",
+            jacocoReport      : "org.jacoco:org.jacoco.core:${jacocoReportVersion}",
+            detektGradlePlugin: "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:${detektGradleVersion}",
+            crashlytics       : "com.google.firebase:firebase-crashlytics-gradle:2.5.1"
     ]
 
     kotlinDeps = [
-            plugin: "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinGradlePluginversion}",
+            plugin: "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinGradlePluginVersion}",
             stdlib: "org.jetbrains.kotlin:kotlin-stdlib:${kotlinStdlibVersion}"
     ]
 
@@ -88,8 +89,11 @@ ext {
     ]
 
     playServices = [
-            location: "com.google.android.gms:play-services-location:${playServiceVersion}",
-            maps    : "com.google.android.gms:play-services-maps:${playServiceVersion}",
+            location           : "com.google.android.gms:play-services-location:${playServiceVersion}",
+            maps               : "com.google.android.gms:play-services-maps:${playServiceVersion}",
+            firebaseBom        : "com.google.firebase:firebase-bom:26.6.0",
+            firebaseAnalytics  : "com.google.firebase:firebase-analytics-ktx",
+            firebaseCrashlytics: "com.google.firebase:firebase-crashlytics-ktx"
     ]
 
     daggerDeps = [
@@ -106,6 +110,16 @@ ext {
             ruleAgent : "org.powermock:powermock-module-junit4-rule-agent:${powerMockVersion}",
             apiMockito: "org.powermock:powermock-api-mockito:${powerMockVersion}",
             xstream   : "org.powermock:powermock-classloading-xstream:${powerMockVersion}",
+    ]
+
+    leakDetectionDeps = [
+            leakCanary: "com.squareup.leakcanary:leakcanary-android:2.3"
+    ]
+
+    networkDeps = [
+            retrofit      : "com.squareup.retrofit2:retrofit:${retrofitVersion}",
+            gsonConverter : "com.squareup.retrofit2:converter-gson:${retrofitVersion}",
+            rxJava2Adapter: "com.squareup.retrofit2:adapter-rxjava2:${retrofitVersion}"
     ]
 
     robolectricDeps = [
@@ -142,14 +156,17 @@ ext {
             testing      : "androidx.work:work-testing:${workMangerVersion}"
     ]
 
-    otherDeps = [
-            rxandroid2      : "io.reactivex.rxjava2:rxandroid:2.1.1",
+    reactiveDeps = [
+            rxAndroid2: "io.reactivex.rxjava2:rxandroid:2.1.1",
+    ]
+
+    zxingDeps = [
             zxingCore       : "com.google.zxing:core:${zxingVersion}@jar",
             zxingAndroidCore: "com.google.zxing:android-core:${zxingVersion}",
     ]
 
-    archDeps = [
-            lifeCycle               : "androidx.lifecycle:lifecycle-extensions:${lifecycleVersion}",
+    lifecycleDeps = [
+            lifeCycleExtensions     : "androidx.lifecycle:lifecycle-extensions:${lifecycleVersion}",
             lifecycleLivedata       : "androidx.lifecycle:lifecycle-livedata:${lifecycleVersion}",
             lifecycleReactiveStreams: "androidx.lifecycle:lifecycle-reactivestreams:${lifecycleVersion}"
     ]
@@ -157,7 +174,6 @@ ext {
     otherTestDeps = [
             junit      : "junit:junit:4.12",
             spoonClient: "com.squareup.spoon:spoon-client:1.6.4",
-            daggerMock : "com.github.fabioCollini:DaggerMock:0.6.2",
     ]
 
     kotlinSupportTestDeps = [
