@@ -112,6 +112,8 @@ dependencies {
     implementation playServices.firebaseCrashlytics
     implementation playServices.firebaseAnalytics
 
+    implementation lifecycleDeps.values()
+
     // Dagger
     kapt daggerDeps.compiler
     api daggerDeps.dagger

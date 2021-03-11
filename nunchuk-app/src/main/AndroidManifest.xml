@@ -20,7 +20,7 @@
         android:theme="@style/NunchukTheme">
         <activity
             android:name=".app.splash.SplashActivity"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
