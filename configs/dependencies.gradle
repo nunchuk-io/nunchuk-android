@@ -22,6 +22,8 @@ ext {
     lifecycleVersion = '2.1.0'
 
     retrofitVersion = '2.9.0'
+    okhttpVersion = '3.13.1'
+    coroutinesVersion = '1.4.3'
 
     //Plugins versions
     gradleVersion = '4.0.2'
@@ -42,7 +44,7 @@ ext {
             applicationId    : "com.nunchuk.android",
             compileSdkVersion: 30,
             targetSdkVersion : 30,
-            minSdkVersion    : 21,
+            minSdkVersion    : 24,
             buildToolsVersion: "30.0.3",
             versionName      : "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}",
             versionCode      : VERSION_CODE,
@@ -63,6 +65,11 @@ ext {
     kotlinDeps = [
             plugin: "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinGradlePluginVersion}",
             stdlib: "org.jetbrains.kotlin:kotlin-stdlib:${kotlinStdlibVersion}"
+    ]
+
+    coroutineDeps = [
+            coroutinesCore   : "org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}",
+            coroutinesAndroid: "org.jetbrains.kotlinx:kotlinx-coroutines-android:${coroutinesVersion}"
     ]
 
     androidxDeps = [
@@ -118,7 +125,9 @@ ext {
 
     networkDeps = [
             retrofit      : "com.squareup.retrofit2:retrofit:${retrofitVersion}",
+            okhttp3       : "com.squareup.okhttp3:okhttp:${okhttpVersion}",
             gsonConverter : "com.squareup.retrofit2:converter-gson:${retrofitVersion}",
+            logging       : "com.squareup.okhttp3:logging-interceptor:${okhttpVersion}",
             rxJava2Adapter: "com.squareup.retrofit2:adapter-rxjava2:${retrofitVersion}"
     ]
 
@@ -168,7 +177,8 @@ ext {
     lifecycleDeps = [
             lifeCycleExtensions     : "androidx.lifecycle:lifecycle-extensions:${lifecycleVersion}",
             lifecycleLivedata       : "androidx.lifecycle:lifecycle-livedata:${lifecycleVersion}",
-            lifecycleReactiveStreams: "androidx.lifecycle:lifecycle-reactivestreams:${lifecycleVersion}"
+            lifecycleReactiveStreams: "androidx.lifecycle:lifecycle-reactivestreams:${lifecycleVersion}",
+            lifecycleViewModelKtx   : "androidx.lifecycle:lifecycle-viewmodel-ktx:${lifecycleVersion}"
     ]
 
     otherTestDeps = [

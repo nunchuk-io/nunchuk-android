@@ -52,7 +52,7 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getRemoteSigner(
         syslog(LOG_DEBUG, "[JNI]There is no signer");
         return nullptr;
     } else {
-        syslog(LOG_DEBUG, "There is existing signers:: %lu", signers.size());
+        syslog(LOG_DEBUG, "There is existing signers:: %i", signers.size());
         SingleSigner signer = *(signers.begin());
         return Deserializer::translateSingleSigner(env, signer);
     }

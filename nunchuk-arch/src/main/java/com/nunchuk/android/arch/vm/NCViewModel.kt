@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 
-abstract class MviViewModel<State, Event> : ViewModel() {
+abstract class NCViewModel<State, Event> : ViewModel() {
 
     private val disposables = CompositeDisposable()
 
@@ -17,9 +17,9 @@ abstract class MviViewModel<State, Event> : ViewModel() {
 
     protected abstract val initialState: State
 
-    val state: LiveData<State> = stateMutable
+    val state: LiveData<State> get() = stateMutable
 
-    val event: LiveData<Event> = eventMutable
+    val event: LiveData<Event> get() = eventMutable
 
     override fun onCleared() {
         disposables.dispose()

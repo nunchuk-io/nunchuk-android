@@ -4,4 +4,5 @@ apply from: '../configs/submodule-config.gradle'
 dependencies {
     implementation project(':nunchuk-model')
     implementation reactiveDeps.rxAndroid2
+    implementation networkDeps.values()
 }

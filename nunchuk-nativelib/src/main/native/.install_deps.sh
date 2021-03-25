@@ -14,7 +14,7 @@ for source in arm-linux-androideabi-*; do
 done
 cd -
 
-export API=21
+export API=24
 
 pwd=$(pwd)
 echo "pwd::$pwd"
@@ -40,7 +40,7 @@ parseArgs() {
   elif [ "$ANDROID_ABI" == $ANDROID_ABI_X86_64 ]; then
     ANDROID_TARGET=$ANDROID_TARGET_X86_64
   elif [ "$ANDROID_ABI" == $ANDROID_ABI_X86 ]; then
-    TARGET=$ANDROID_TARGET_X86
+    ANDROID_TARGET=$ANDROID_TARGET_X86
   else
     echo "Invalid ABI argument $ANDROID_ABI"
     exit 1
@@ -55,7 +55,7 @@ installBitcoinDeps() {
   target=$ANDROID_TARGET
 
   echo "-------------------------------------------------------------------------------"
-  echo "                          Installing deps for $abi                              "
+  echo "                     Installing deps for $abi $target                          "
   echo "-------------------------------------------------------------------------------"
 
   export TARGET=$target
@@ -68,7 +68,7 @@ installBitcoinDeps() {
   export RANLIB=$TOOLCHAIN/bin/$TARGET-ranlib
   export STRIP=$TOOLCHAIN/bin/$TARGET-strip
 
-  ANDROID_NDK=$ANDROID_NDK ANDROID_NDK=$ANDROID_NDK make HOST=$TARGET ANDROID_TOOLCHAIN_BIN=$TOOLCHAIN ANDROID_API_LEVEL=$API NO_QT=1 NO_ZMQ=1 NO_QR=1 NO_UPNP=1
+  ANDROID_SDK=$ANDROID_SDK ANDROID_NDK=$ANDROID_NDK make HOST=$TARGET ANDROID_TOOLCHAIN_BIN=$TOOLCHAIN ANDROID_API_LEVEL=$API NO_QT=1 NO_ZMQ=1 NO_QR=1 NO_UPNP=1
 }
 #
 pushd libnunchuk/contrib/bitcoin/depends || exit
@@ -82,7 +82,7 @@ installBitcoinCore() {
   abi=$ANDROID_ABI
   target=$ANDROID_TARGET
   echo "-------------------------------------------------------------------------------"
-  echo "                           Installing core for $abi                             "
+  echo "                        Installing core for $abi $target                       "
   echo "-------------------------------------------------------------------------------"
 
   export TARGET=$target
@@ -111,14 +111,14 @@ installOpenSSL() {
   if [ "$ANDROID_ABI" == $ANDROID_ABI_ARM64_V8A ]; then
     abi="arm64"
   elif [ "$ANDROID_ABI" == $ANDROID_ABI_ARMEABI_V7A ]; then
-    abi="armv7a"
+    abi="arm"
   else
     abi="$ANDROID_ABI"
   fi
 
   target=$ANDROID_TARGET
   echo "-------------------------------------------------------------------------------"
-  echo "                       Installing OpenSSL for $abi                             "
+  echo "                    Installing OpenSSL for $abi $target                        "
   echo "-------------------------------------------------------------------------------"
 
   export TARGET=$target

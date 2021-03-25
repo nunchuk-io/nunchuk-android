@@ -2,8 +2,14 @@ package com.nunchuk.android.app.splash
 
 sealed class SplashEvent {
 
-    object InitNunchukCompleted : SplashEvent()
+    object NavCreateAccountEvent : SplashEvent()
 
-    data class InitNunchukError(val error: String?) : SplashEvent()
+    object NavActivateAccountEvent : SplashEvent()
+
+    object NavSignInEvent : SplashEvent()
+
+    object NavHomeScreenEvent : SplashEvent()
+
+    data class InitErrorEvent(val error: String?) : SplashEvent()
 
 }
