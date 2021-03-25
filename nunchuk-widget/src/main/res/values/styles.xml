@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <style name="NunchukTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/nc_primary_color</item>
         <item name="colorPrimaryDark">@color/nc_primary_dark_color</item>

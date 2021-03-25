@@ -1,36 +1,46 @@
 package com.nunchuk.android.app.splash
 
 import android.util.Log
+import com.nunchuk.android.app.splash.SplashEvent.*
 import com.nunchuk.android.arch.ext.defaultSchedulers
-import com.nunchuk.android.arch.vm.MviViewModel
+import com.nunchuk.android.arch.vm.NCViewModel
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.GetAppSettingsUseCase
 import com.nunchuk.android.usecase.GetRemoteSignerUseCase
 import com.nunchuk.android.usecase.InitNunchukUseCase
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 internal class SplashViewModel @Inject constructor(
     private val getAppSettingUseCase: GetAppSettingsUseCase,
     private val initNunchukUseCase: InitNunchukUseCase,
     private val createSignerUseCase: CreateSignerUseCase,
-    private val getRemoteSignerUseCase: GetRemoteSignerUseCase
-) : MviViewModel<Unit, SplashEvent>() {
+    private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
+    private val accountManager: AccountManager
+) : NCViewModel<Unit, SplashEvent>() {
 
     override val initialState = Unit
 
-    fun initNunchuk() {
+    fun initFlow() {
         getAppSettingUseCase.execute()
             .flatMapCompletable(initNunchukUseCase::execute)
+            .delay(2, TimeUnit.SECONDS)
             .defaultSchedulers()
             .doAfterTerminate(::createRemoteSigner)
-            .subscribe({
-                event(SplashEvent.InitNunchukCompleted)
-                Log.i(TAG, "init nunchuk completed")
-            }, {
-                event(SplashEvent.InitNunchukError(it.message))
-                Log.e(TAG, "init nunchuk error", it)
-            })
+            .subscribe(::handleNavigation) {
+                event(InitErrorEvent(it.message))
+            }
             .addToDisposables()
+    }
+
+    private fun handleNavigation() {
+        when {
+            !accountManager.isAccountExisted() -> event(NavCreateAccountEvent)
+            !accountManager.isAccountActivated() -> event(NavActivateAccountEvent)
+            !accountManager.isStaySignedIn() -> event(NavSignInEvent)
+            else -> event(NavHomeScreenEvent)
+        }
     }
 
     private fun createRemoteSigner() {

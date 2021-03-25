@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="FontTextView">
+        <attr name="fontTextName" format="string" />
+        <attr name="fontTextStyle" format="enum">
+            <enum name="normal" value="0" />
+            <enum name="italic" value="1" />
+            <enum name="semi_bold" value="2" />
+            <enum name="semi_bold_italic" value="3" />
+            <enum name="light" value="4" />
+            <enum name="bold" value="5" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="NCEditTextView">
+        <attr name="edit_title" format="reference|string" />
+        <attr name="edit_title_color" format="color" />
+        <attr name="edit_title_text_size" format="dimension" />
+        <attr name="edit_hint" format="reference|string" />
+        <attr name="edit_hint_color" format="color" />
+        <attr name="edit_background" format="reference" />
+        <attr name="edit_text_color" format="color" />
+        <attr name="edit_text_size" format="dimension" />
+        <attr name="edit_height" format="dimension" />
+        <attr name="edit_theme" format="integer">
+            <enum name="normal" value="0" />
+            <enum name="scanner" value="1" />
+        </attr>
+        <attr name="edit_input_type" format="integer">
+            <enum name="text" value="0" />
+            <enum name="number" value="1" />
+            <enum name="multi_lines" value="2" />
+            <enum name="read_only" value="3" />
+        </attr>
+        <attr name="edit_gravity" format="integer">
+            <enum name="center_vertical" value="10" />
+            <enum name="top" value="11" />
+        </attr>
+    </declare-styleable>
+
+</resources>

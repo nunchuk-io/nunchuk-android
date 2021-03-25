@@ -5,16 +5,16 @@
 ## Installing
 
 1. Android Build Systems (https://developer.android.com/ndk/guides/other_build_systems)
-    - ```armeabi-v7a```: ```armv7a-linux-androideabi```
-    - ```arm64-v8a```: ```aarch64-linux-android```
-    - ```x86```: ```i686-linux-android```
-    - ```x86-64```: ```x86_64-linux-android```
+    - ```armeabi-v7a``` : ```armv7a-linux-androideabi```
+    - ```arm64-v8a```   : ```aarch64-linux-android```
+    - ```x86```         : ```i686-linux-android```
+    - ```x86-64```      : ```x86_64-linux-android```
 
 
 2. Add libnunchuk to nunchuk-nativelib module
     - path to ```nunchuk-nativelib/src/main/native```
-    - ```git submodule add -b android git@gitlab.com:nunchuck/libnunchuk.git```
-    - ```git submodule update --init --recursive```
+    - ```git submodule add --force -b android_experimental git@gitlab.com:nunchuck/libnunchuk.git```
+    - ```git submodule update --init --recursive --depth=1```
 
 
 3. Build bitcoin deps:
@@ -31,7 +31,7 @@
 5. Build openssl: (https://github.com/openssl/openssl/blob/master/NOTES-ANDROID.md)
     - ```export ANDROID_NDK_ROOT=/usr/local/android-sdk/ndk/21.0.6113669```
     - ```PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/i686-linux-android/bin:$ANDROID_NDK_ROOT/toolchains/x86-4.9/prebuilt/darwin-x86_64/bin:$PATH```
-    - ```./Configure android-x86 -D__ANDROID_API__=29```
+    - ```./Configure android-x86 -D__ANDROID_API__=24```
     - ```make```
    
 

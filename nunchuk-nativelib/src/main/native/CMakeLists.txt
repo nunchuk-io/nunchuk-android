@@ -6,9 +6,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 if (${ANDROID_ABI} STREQUAL "arm64-v8a")
     set(ANDROID_TARGET "aarch64-linux-android")
+elseif (${ANDROID_ABI} STREQUAL "armeabi-v7a")
+    set(ANDROID_TARGET "armv7a-linux-androideabi")
 else ()
     set(ANDROID_TARGET "${ANDROID_ABI}-linux-android")
 endif ()
+
+message("ANDROID_ABI::${ANDROID_ABI},ANDROID_TARGET::${ANDROID_TARGET}")
 
 set(UR__DISABLE_TESTS ON)
 

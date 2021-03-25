@@ -3,15 +3,19 @@ package com.nunchuk.android.app.splash
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.os.Bundle
-import android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModelProviders
+import com.nunchuk.android.app.intro.IntroActivity
+import com.nunchuk.android.app.splash.SplashEvent.*
 import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.ViewModelFactory
+import com.nunchuk.android.auth.components.changepass.ChangePasswordActivity
+import com.nunchuk.android.auth.components.signin.SignInActivity
+import com.nunchuk.android.auth.util.showToast
 import com.nunchuk.android.core.util.isPermissionGranted
 import com.nunchuk.android.core.util.observe
 import com.nunchuk.android.databinding.ActivitySplashBinding
+import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
 
 internal class SplashActivity : BaseActivity() {
@@ -27,23 +31,29 @@ internal class SplashActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Set Transparent Status Bar
-        window.setFlags(FLAG_LAYOUT_NO_LIMITS, FLAG_LAYOUT_NO_LIMITS)
+        setTransparentStatusBar()
 
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        requestPermissions()
-
         subscribeEvents()
     }
 
+    override fun onResume() {
+        super.onResume()
+        requestPermissions()
+    }
+
     private fun subscribeEvents() {
+        val activityContext = this
         viewModel.event.observe(owner = this) {
-            if (this == SplashEvent.InitNunchukCompleted) {
-                Toast.makeText(this@SplashActivity, "Going to main screen", Toast.LENGTH_SHORT).show()
-            } else if (this is SplashEvent.InitNunchukError) {
-                Toast.makeText(this@SplashActivity, this.error ?: "Internal error", Toast.LENGTH_SHORT).show()
+            finish()
+            when (this) {
+                NavCreateAccountEvent -> IntroActivity.start(activityContext)
+                NavActivateAccountEvent -> ChangePasswordActivity.start(activityContext)
+                NavSignInEvent -> SignInActivity.start(activityContext)
+                NavHomeScreenEvent -> showToast("Home Screen")
+                is InitErrorEvent -> showToast(error ?: "Internal error")
             }
         }
     }
@@ -57,7 +67,7 @@ internal class SplashActivity : BaseActivity() {
                 ActivityCompat.requestPermissions(this, arrayOf(WRITE_EXTERNAL_STORAGE), REQUEST_PERMISSION_CODE)
             }
             else -> {
-                viewModel.initNunchuk()
+                viewModel.initFlow()
             }
         }
     }

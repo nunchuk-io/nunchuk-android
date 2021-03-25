@@ -3,4 +3,19 @@
     <color name="nc_primary_color">#031F2B</color>
     <color name="nc_primary_dark_color">#031F2B</color>
     <color name="nc_accent_color">#C1C1C1</color>
+    <color name="nc_white_color">#FFFFFF</color>
+
+    <color name="nc_blue_color">#1a9cb7</color>
+    <color name="nc_grey_color">#808080</color>
+    <color name="nc_whisper_color">#EAEAEA</color>
+    <color name="nc_red_color">#d2232a</color>
+
+    <color name="nc_black_color">#000000</color>
+    <color name="nc_main_color">#333333</color>
+    <color name="nc_second_color">#666666</color>
+    <color name="nc_third_color">#999999</color>
+    <color name="nc_line_color">#EEEEEE</color>
+
+    <color name="nc_edit_text_stroke_color">#CCCCCC</color>
+    <color name="nc_edit_text_stroke_error_color">#FFD7D9</color>
 </resources>

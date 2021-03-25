@@ -17,25 +17,30 @@ abstract class BaseActivity : AppCompatActivity(), HasAndroidInjector {
     override fun androidInjector(): AndroidInjector<Any> = androidInjector
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        setupStrictMode()
         AndroidInjection.inject(this)
+        setupStrictMode()
         super.onCreate(savedInstanceState)
+        overridePendingTransition(R.anim.enter, R.anim.exit)
     }
 
     private fun setupStrictMode() {
         if (BuildConfig.DEBUG) {
-            StrictMode.setThreadPolicy(StrictMode.ThreadPolicy.Builder()
+            StrictMode.setThreadPolicy(
+                StrictMode.ThreadPolicy.Builder()
                     .detectCustomSlowCalls()
                     .penaltyLog()
-                    .build())
-            StrictMode.setVmPolicy(StrictMode.VmPolicy.Builder()
+                    .build()
+            )
+            StrictMode.setVmPolicy(
+                StrictMode.VmPolicy.Builder()
                     .detectLeakedSqlLiteObjects()
                     .detectLeakedClosableObjects()
                     .detectActivityLeaks()
                     .detectLeakedRegistrationObjects()
                     .detectFileUriExposure()
                     .penaltyLog()
-                    .build())
+                    .build()
+            )
         }
     }
 

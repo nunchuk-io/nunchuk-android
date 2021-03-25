@@ -27,9 +27,9 @@ before_script:
   
   # Add libnunchuk and build deps
   - pushd ${PWD}/nunchuk-nativelib/src/main/native 
-  - git submodule add -b android_experimental https://gitlab.com/nunchuck/libnunchuk.git
+  - git submodule add --force -b android_experimental https://gitlab.com/nunchuck/libnunchuk.git
   - git submodule update --init --recursive --depth=1
-  - sh .install_deps.sh x86_64
+  - sh .install_deps.sh armeabi-v7a
   - popd
   - echo ${PWD}
 # Make Project
@@ -37,7 +37,7 @@ assembleDebug:
   interruptible: true
   stage: build
   script:
-    - ./gradlew clean assembleX86_64Debug --stacktrace
+    - ./gradlew clean assembleArmeabi_v7aDebug --stacktrace
   artifacts:
    paths:
      - nunchuk-app/build/outputs/

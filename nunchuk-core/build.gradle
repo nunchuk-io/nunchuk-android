@@ -2,8 +2,10 @@ apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 
 dependencies {
-    implementation project(path: ':nunchuk-arch')
+    implementation project(':nunchuk-arch')
+    implementation project(':nunchuk-network')
 
     implementation lifecycleDeps.values()
     implementation reactiveDeps.rxAndroid2
+    implementation networkDeps.values()
 }

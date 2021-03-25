@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_font_regular">Lato-Regular.ttf</string>
+    <string name="default_font_italic">Lato-Italic.ttf</string>
+    <string name="default_font_semibold">Lato-SemiBold.ttf</string>
+    <string name="default_font_bold">Lato-Bold.ttf</string>
+    <string name="default_font_semibold_italic">Lato-SemiBoldItalic.ttf</string>
+    <string name="default_font_light">Lato-Light.ttf</string>
+</resources>

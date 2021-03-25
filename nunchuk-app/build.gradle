@@ -21,7 +21,7 @@ android {
         versionName androidConfig.versionName
         multiDexEnabled true
         ndk {
-            'x86_64'
+            'armeabi-v7a'
         }
     }
 
@@ -54,6 +54,12 @@ android {
                 abiFilters 'arm64-v8a'
             }
         }
+        armeabi_v7a {
+            dimension 'cpuArch'
+            ndk {
+                abiFilters 'armeabi-v7a'
+            }
+        }
         x86_64 {
             dimension 'cpuArch'
             ndk {
@@ -72,6 +78,15 @@ android {
             //   armeabi-v7a, arm64-v8a, x86, x86_64
         }
 
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
     }
 
     packagingOptions {
@@ -121,7 +136,8 @@ dependencies {
     implementation daggerDeps.support
     implementation daggerDeps.jbAnnotations
     implementation reactiveDeps.rxAndroid2
-    implementation "io.reactivex.rxjava2:rxandroid:2.1.1"
+
+    implementation networkDeps.values()
 
     implementation androidxDeps.values()
     implementation googleDeps.values()
