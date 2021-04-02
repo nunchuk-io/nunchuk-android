@@ -1,6 +1,6 @@
 package com.nunchuk.android.auth.components.signin
 
-sealed class SignInEvent {
+internal sealed class SignInEvent {
     object EmailRequiredEvent : SignInEvent()
     object EmailValidEvent : SignInEvent()
     object EmailInvalidEvent : SignInEvent()

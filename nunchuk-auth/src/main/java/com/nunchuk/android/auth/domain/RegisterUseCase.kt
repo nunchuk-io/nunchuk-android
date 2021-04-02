@@ -5,8 +5,7 @@ import com.nunchuk.android.auth.data.AuthRepository
 import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.model.Result
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.nunchuk.android.usecase.BaseUseCase
 import javax.inject.Inject
 
 interface RegisterUseCase {
@@ -16,15 +15,12 @@ interface RegisterUseCase {
 internal class RegisterUseCaseImpl @Inject constructor(
     private val authRepository: AuthRepository,
     private val accountManager: AccountManager
-) : RegisterUseCase {
+) : BaseUseCase(), RegisterUseCase {
 
-    override suspend fun execute(name: String, email: String) = withContext(Dispatchers.IO) {
-        try {
-            val result = authRepository.register(name = name, email = email)
-            accountManager.storeAccount(AccountInfo(email = email, token = result.token.value))
-            Result.Success(result)
-        } catch (e: Exception) {
-            Result.Error(e)
+    override suspend fun execute(name: String, email: String) = exe {
+        val userTokenResponse = authRepository.register(name = name, email = email)
+        userTokenResponse.also {
+            accountManager.storeAccount(AccountInfo(email = email, token = it.tokenId))
         }
     }
 }

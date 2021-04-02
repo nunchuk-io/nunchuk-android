@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardUseCompatPadding="true"
+    app:cardCornerRadius="@dimen/nc_padding_8"
+    app:cardElevation="@dimen/nc_padding_4">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/nc_padding_16">
+
+        <ImageView
+            android:id="@+id/icPin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/nc_text_signer_spec"
+            android:src="@drawable/ic_pin"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/signerName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/nc_padding_16"
+            android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_16"
+            app:fontTextStyle="semi_bold"
+            app:layout_constraintStart_toEndOf="@+id/icPin"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Tom’s Trezor Model T" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/signerType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/nc_padding_16"
+            android:layout_marginTop="@dimen/nc_padding_12"
+            android:background="@drawable/nc_rounded_whisper_background"
+            android:paddingHorizontal="@dimen/nc_padding_8"
+            android:paddingVertical="@dimen/nc_padding_4"
+            android:text="@string/nc_signer_type_air_gapped"
+            android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_14"
+            app:layout_constraintStart_toEndOf="@+id/icPin"
+            app:layout_constraintTop_toBottomOf="@+id/signerName" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/xpf"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/nc_padding_16"
+            android:layout_marginTop="@dimen/nc_padding_12"
+            android:text="XFP: 79EB35F4"
+            android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_14"
+            app:layout_constraintStart_toEndOf="@+id/icPin"
+            app:layout_constraintTop_toBottomOf="@+id/signerType" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

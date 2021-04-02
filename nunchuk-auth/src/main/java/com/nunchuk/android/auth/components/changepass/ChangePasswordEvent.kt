@@ -1,6 +1,6 @@
 package com.nunchuk.android.auth.components.changepass
 
-sealed class ChangePasswordEvent {
+internal sealed class ChangePasswordEvent {
     data class ShowEmailSentEvent(val email: String) : ChangePasswordEvent()
     object OldPasswordRequiredEvent : ChangePasswordEvent()
     object NewPasswordRequiredEvent : ChangePasswordEvent()

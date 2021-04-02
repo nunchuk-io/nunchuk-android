@@ -1,6 +1,7 @@
 package com.nunchuk.android.nativelib
 
 import com.nunchuk.android.model.AppSettings
+import com.nunchuk.android.model.SingleSigner
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,5 +36,13 @@ internal class LibNunchukFacade @Inject constructor(
     )
 
     fun getRemoteSigner() = nunchukAndroid.getRemoteSigner()
+
+    fun getRemoteSigners(): List<SingleSigner> = nunchukAndroid.getRemoteSigners(ArrayList())
+
+    fun getWallets() = nunchukAndroid.getWallets(ArrayList())
+
+    fun updateSigner(signer: SingleSigner): Boolean {
+        return true
+    }
 
 }

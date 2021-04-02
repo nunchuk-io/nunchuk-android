@@ -1,17 +1,16 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.core.util.FileHelper
-import io.reactivex.Single
 import javax.inject.Inject
 
 interface GetOrCreateRootDirUseCase {
-    fun execute(): Single<String>
+    suspend fun execute(): String
 }
 
 internal class GetOrCreateRootDirUseCaseImpl @Inject constructor(
     private val filerHelper: FileHelper
 ) : GetOrCreateRootDirUseCase {
 
-    override fun execute() = Single.fromCallable(filerHelper::getOrCreateNunchukRootDir)
+    override suspend fun execute() = filerHelper.getOrCreateNunchukRootDir()
 
 }

@@ -2,16 +2,17 @@ package com.nunchuk.android.app.di
 
 import android.content.Context
 import com.nunchuk.android.app.NunchukApplication
+import com.nunchuk.android.auth.di.AuthProxyModule
+import com.nunchuk.android.core.di.CoreProxyModule
+import com.nunchuk.android.database.di.DatabaseProxyModule
+import com.nunchuk.android.main.di.MainProxyModule
 import com.nunchuk.android.nativelib.di.NativeLibProxyModule
+import com.nunchuk.android.network.di.NetworkProxyModule
 import dagger.Binds
 import dagger.Component
 import dagger.Module
 import dagger.android.AndroidInjectionModule
 import dagger.android.AndroidInjector
-import com.nunchuk.android.auth.di.AuthProxyModule
-import com.nunchuk.android.core.di.CoreProxyModule
-import com.nunchuk.android.database.di.DatabaseProxyModule
-import com.nunchuk.android.network.di.NetworkProxyModule
 import javax.inject.Singleton
 
 @Module(includes = [AndroidInjectionModule::class])
@@ -28,6 +29,7 @@ internal abstract class BootstrapModule {
         AuthProxyModule::class,
         CoreProxyModule::class,
         DatabaseProxyModule::class,
+        MainProxyModule::class,
         NetworkProxyModule::class,
         NativeLibProxyModule::class
     ]

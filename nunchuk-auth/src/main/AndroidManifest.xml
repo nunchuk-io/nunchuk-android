@@ -14,5 +14,13 @@
         <activity
             android:name=".components.signin.SignInActivity"
             android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".components.forgot.ForgotPasswordActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".components.recover.RecoverPasswordActivity"
+            android:screenOrientation="portrait" />
     </application>
 </manifest>

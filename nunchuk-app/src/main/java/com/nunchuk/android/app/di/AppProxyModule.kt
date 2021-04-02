@@ -4,7 +4,8 @@ import dagger.Module
 
 @Module(
     includes = [
-        AppActivityModule::class
+        AppActivityModule::class,
+        NunchukNavigatorModule::class
     ]
 )
 interface AppProxyModule

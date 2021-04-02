@@ -1,6 +1,6 @@
 package com.nunchuk.android.auth.components.signup
 
-sealed class SignUpEvent {
+internal sealed class SignUpEvent {
     object NameRequiredEvent : SignUpEvent()
     object EmailRequiredEvent : SignUpEvent()
     object NameInvalidEvent : SignUpEvent()
@@ -9,5 +9,6 @@ sealed class SignUpEvent {
     object EmailValidEvent : SignUpEvent()
     object LoadingEvent : SignUpEvent()
     data class SignUpErrorEvent(val errorMessage: String?) : SignUpEvent()
+    data class AccountExistedEvent(val errorMessage: String?) : SignUpEvent()
     object SignUpSuccessEvent : SignUpEvent()
 }

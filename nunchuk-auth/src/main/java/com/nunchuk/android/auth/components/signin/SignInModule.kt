@@ -7,11 +7,11 @@ import dagger.Module
 import dagger.multibindings.IntoMap
 
 @Module
-internal abstract class SignInModule {
+internal interface SignInModule {
 
     @Binds
     @IntoMap
     @ViewModelKey(SignInViewModel::class)
-    abstract fun bindSignInViewModel(viewModel: SignInViewModel): ViewModel
+    fun bindSignInViewModel(viewModel: SignInViewModel): ViewModel
 
 }

@@ -2,6 +2,10 @@ package com.nunchuk.android.auth.di
 
 import com.nunchuk.android.auth.components.changepass.ChangePasswordActivity
 import com.nunchuk.android.auth.components.changepass.ChangePasswordModule
+import com.nunchuk.android.auth.components.forgot.ForgotPasswordActivity
+import com.nunchuk.android.auth.components.forgot.ForgotPasswordModule
+import com.nunchuk.android.auth.components.recover.RecoverPasswordActivity
+import com.nunchuk.android.auth.components.recover.RecoverPasswordModule
 import com.nunchuk.android.auth.components.signin.SignInActivity
 import com.nunchuk.android.auth.components.signin.SignInModule
 import com.nunchuk.android.auth.components.signup.SignUpActivity
@@ -10,15 +14,21 @@ import dagger.Module
 import dagger.android.ContributesAndroidInjector
 
 @Module
-internal abstract class AuthActivityModule {
+internal interface AuthActivityModule {
 
     @ContributesAndroidInjector(modules = [SignUpModule::class])
-    abstract fun signUpActivity(): SignUpActivity
-
-    @ContributesAndroidInjector(modules = [ChangePasswordModule::class])
-    abstract fun changePasswordActivity(): ChangePasswordActivity
+    fun signUpActivity(): SignUpActivity
 
     @ContributesAndroidInjector(modules = [SignInModule::class])
-    abstract fun signInActivity(): SignInActivity
+    fun signInActivity(): SignInActivity
+
+    @ContributesAndroidInjector(modules = [ChangePasswordModule::class])
+    fun changePasswordActivity(): ChangePasswordActivity
+
+    @ContributesAndroidInjector(modules = [ForgotPasswordModule::class])
+    fun forgotPasswordActivity(): ForgotPasswordActivity
+
+    @ContributesAndroidInjector(modules = [RecoverPasswordModule::class])
+    fun recoverPasswordActivity(): RecoverPasswordActivity
 
 }
