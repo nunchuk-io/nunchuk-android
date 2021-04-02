@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="nc_text_create_account">Create an account</string>
+    <string name="nc_text_change_password">Change password</string>
+    <string name="nc_text_recover_password">Recover password</string>
     <string name="nc_text_sign_in">Sign-in</string>
+    <string name="nc_text_send_temporary_password">Send a new temporary password</string>
+    <string name="nc_text_forgot_password_guide_line">Enter the email address you used to register with Nunchuk and we\'ll send you a new temporary password for you to sign-in.</string>
 
     <string name="nc_text_your_name">Your name</string>
     <string name="nc_text_email_address">Email address</string>

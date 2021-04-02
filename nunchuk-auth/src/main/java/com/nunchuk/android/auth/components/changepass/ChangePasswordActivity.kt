@@ -9,11 +9,10 @@ import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.*
-import com.nunchuk.android.auth.components.signin.SignInActivity
 import com.nunchuk.android.auth.databinding.ActivityChangePasswordBinding
 import com.nunchuk.android.auth.util.orUnknownError
-import com.nunchuk.android.auth.util.showToast
-import com.nunchuk.android.widget.util.SimpleTextWatcher
+import com.nunchuk.android.core.util.showToast
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
 
@@ -21,6 +20,9 @@ class ChangePasswordActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: ViewModelFactory
+
+    @Inject
+    lateinit var navigator: NunchukNavigator
 
     private val viewModel: ChangePasswordViewModel by lazy {
         ViewModelProviders.of(this, factory).get(ChangePasswordViewModel::class.java)
@@ -67,38 +69,20 @@ class ChangePasswordActivity : BaseActivity() {
         binding.oldPassword.getEditTextView().transformationMethod = passwordInputType
         binding.newPassword.getEditTextView().transformationMethod = passwordInputType
         binding.confirmPassword.getEditTextView().transformationMethod = passwordInputType
-
-        binding.oldPassword.addTextChangedListener(object : SimpleTextWatcher() {
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                viewModel.validateOldPassword("$s")
-            }
-        })
-        binding.newPassword.addTextChangedListener(object : SimpleTextWatcher() {
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                viewModel.validateNewPassword("$s")
-            }
-        })
-
-        binding.confirmPassword.addTextChangedListener(object : SimpleTextWatcher() {
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                viewModel.validateConfirmPassword("$s")
-            }
-        })
-
-        binding.signUp.setOnClickListener { onRegisterClicked() }
+        binding.changePassword.setOnClickListener { onChangePasswordClicked() }
         binding.signIn.setOnClickListener { openLoginScreen() }
     }
 
     private fun openLoginScreen() {
         finish()
-        SignInActivity.start(this)
+        navigator.openSignInScreen(this)
     }
 
     private fun showChangePasswordError(errorMessage: String) {
         showToast(errorMessage)
     }
 
-    private fun onRegisterClicked() {
+    private fun onChangePasswordClicked() {
         viewModel.handleChangePassword(
             oldPassword = binding.oldPassword.getEditText(),
             newPassword = binding.newPassword.getEditText(),

@@ -1,13 +1,16 @@
 package com.nunchuk.android.auth.components.signup
 
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.vm.NCViewModel
+import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.auth.components.signup.SignUpEvent.*
 import com.nunchuk.android.auth.domain.RegisterUseCase
 import com.nunchuk.android.auth.validator.EmailValidator
 import com.nunchuk.android.auth.validator.NameValidator
 import com.nunchuk.android.auth.validator.doAfterValidate
-import com.nunchuk.android.model.Result
+import com.nunchuk.android.model.Result.Error
+import com.nunchuk.android.model.Result.Success
+import com.nunchuk.android.network.NunchukApiException
+import com.nunchuk.android.network.accountExisted
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -15,7 +18,7 @@ internal class SignUpViewModel @Inject constructor(
     private val nameValidator: NameValidator,
     private val emailValidator: EmailValidator,
     private val registerUseCase: RegisterUseCase
-) : NCViewModel<Unit, SignUpEvent>() {
+) : NunchukViewModel<Unit, SignUpEvent>() {
 
     override val initialState = Unit
 
@@ -25,11 +28,19 @@ internal class SignUpViewModel @Inject constructor(
         if (isNameValid && isEmailValid) {
             viewModelScope.launch {
                 when (val result = registerUseCase.execute(name = name, email = email)) {
-                    is Result.Success -> event(SignUpSuccessEvent)
-                    is Result.Error -> event(SignUpErrorEvent(result.exception.message))
-                    else -> event(LoadingEvent)
+                    is Success -> event(SignUpSuccessEvent)
+                    is Error -> handleException(result)
                 }
             }
+        }
+    }
+
+    private fun handleException(result: Error) {
+        val exception = result.exception
+        if (exception is NunchukApiException && exception.accountExisted()) {
+            event(AccountExistedEvent(exception.message))
+        } else {
+            event(SignUpErrorEvent(exception.message))
         }
     }
 

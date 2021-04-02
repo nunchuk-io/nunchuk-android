@@ -11,5 +11,7 @@ using namespace nunchuk;
 class Deserializer {
 
 public:
-    static jobject translateSingleSigner(JNIEnv *pEnv, const SingleSigner &signer);
+    static jobject convert2JSigner(JNIEnv *env, const SingleSigner &signer);
+
+    static jobject convert2JSigners(JNIEnv *env, const std::vector<SingleSigner> &signers, jobject result);
 };

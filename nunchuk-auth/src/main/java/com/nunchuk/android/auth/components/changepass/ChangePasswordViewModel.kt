@@ -1,21 +1,20 @@
 package com.nunchuk.android.auth.components.changepass
 
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.vm.NCViewModel
+import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.*
 import com.nunchuk.android.auth.domain.ChangePasswordUseCase
-import com.nunchuk.android.auth.domain.RecoverPasswordUseCase
 import com.nunchuk.android.auth.validator.doAfterValidate
-import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.model.Result
+import com.nunchuk.android.core.account.AccountManagerImpl
+import com.nunchuk.android.model.Result.Error
+import com.nunchuk.android.model.Result.Success
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class ChangePasswordViewModel @Inject constructor(
-    private val recoverPasswordUseCase: RecoverPasswordUseCase,
     private val changePasswordUseCase: ChangePasswordUseCase,
-    accountManager: AccountManager
-) : NCViewModel<Unit, ChangePasswordEvent>() {
+    accountManager: AccountManagerImpl
+) : NunchukViewModel<Unit, ChangePasswordEvent>() {
 
     private val account = accountManager.getAccount()
 
@@ -34,14 +33,10 @@ internal class ChangePasswordViewModel @Inject constructor(
             val isConfirmPasswordValid = validateConfirmPassword(confirmPassword)
             val isConfirmPasswordMatched = validateConfirmPasswordMatched(newPassword, confirmPassword)
             if (isOldPasswordValid && isNewPasswordValid && isConfirmPasswordValid && isConfirmPasswordMatched) {
-                val result = if (account.activated) {
-                    changePasswordUseCase.execute(oldPassword, newPassword, confirmPassword)
-                } else {
-                    recoverPasswordUseCase.execute(account.email, oldPassword, newPassword, confirmPassword)
-                }
-                if (result is Result.Success) {
+                val result = changePasswordUseCase.execute(oldPassword, newPassword)
+                if (result is Success) {
                     event(ChangePasswordSuccessEvent)
-                } else if (result is Result.Error) {
+                } else if (result is Error) {
                     event(ChangePasswordSuccessError(result.exception.message))
                 }
             }
@@ -56,17 +51,17 @@ internal class ChangePasswordViewModel @Inject constructor(
         return matched
     }
 
-    fun validateOldPassword(oldPassword: String) = when {
+    private fun validateOldPassword(oldPassword: String) = when {
         oldPassword.isEmpty() -> doAfterValidate(false) { event(OldPasswordRequiredEvent) }
         else -> doAfterValidate { event(OldPasswordValidEvent) }
     }
 
-    fun validateNewPassword(newPassword: String) = when {
+    private fun validateNewPassword(newPassword: String) = when {
         newPassword.isEmpty() -> doAfterValidate(false) { event(NewPasswordRequiredEvent) }
         else -> doAfterValidate { event(NewPasswordValidEvent) }
     }
 
-    fun validateConfirmPassword(confirmPassword: String) = when {
+    private fun validateConfirmPassword(confirmPassword: String) = when {
         confirmPassword.isEmpty() -> doAfterValidate(false) { event(ConfirmPasswordRequiredEvent) }
         else -> doAfterValidate { event(ConfirmPasswordValidEvent) }
     }

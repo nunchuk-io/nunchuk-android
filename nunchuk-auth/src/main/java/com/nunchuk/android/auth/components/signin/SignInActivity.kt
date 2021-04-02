@@ -9,11 +9,11 @@ import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.signin.SignInEvent.*
-import com.nunchuk.android.auth.components.signup.SignUpActivity
 import com.nunchuk.android.auth.databinding.ActivitySigninBinding
 import com.nunchuk.android.auth.util.orUnknownError
 import com.nunchuk.android.auth.util.setUnderlineText
-import com.nunchuk.android.auth.util.showToast
+import com.nunchuk.android.core.util.showToast
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.util.SimpleTextWatcher
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
@@ -22,6 +22,9 @@ class SignInActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: ViewModelFactory
+
+    @Inject
+    lateinit var navigator: NunchukNavigator
 
     private val viewModel: SignInViewModel by lazy {
         ViewModelProviders.of(this, factory).get(SignInViewModel::class.java)
@@ -51,14 +54,14 @@ class SignInActivity : BaseActivity() {
                 is PasswordRequiredEvent -> binding.password.setError(getString(R.string.nc_text_required))
                 is PasswordValidEvent -> binding.password.hideError()
                 is SignInErrorEvent -> showToast(it.message.orUnknownError())
-                is SignInSuccessEvent -> openHomeScreen()
+                is SignInSuccessEvent -> openMainScreen()
             }
         }
     }
 
-    private fun openHomeScreen() {
+    private fun openMainScreen() {
         finish()
-        showToast("Login Success")
+        navigator.openMainScreen(this)
     }
 
     private fun setupViews() {
@@ -66,24 +69,20 @@ class SignInActivity : BaseActivity() {
 
         binding.password.getEditTextView().transformationMethod = PasswordTransformationMethod.getInstance()
 
-        binding.email.addTextChangedListener(object : SimpleTextWatcher() {
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                viewModel.validateEmail("$s")
-            }
-        })
-        binding.password.addTextChangedListener(object : SimpleTextWatcher() {
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                viewModel.validatePassword("$s")
-            }
-        })
-        binding.staySignIn.setOnCheckedChangeListener { _, checked -> viewModel.storeStaySignIn(checked) }
+        binding.staySignIn.setOnCheckedChangeListener { _, checked -> viewModel.storeStaySignedIn(checked) }
         binding.signUp.setOnClickListener { onSignUpClick() }
         binding.signIn.setOnClickListener { onSignInClick() }
+        binding.forgotPassword.setOnClickListener { onForgotPasswordClick() }
     }
 
     private fun onSignUpClick() {
         finish()
-        SignUpActivity.start(this)
+        navigator.openSignUpScreen(this)
+    }
+
+    private fun onForgotPasswordClick() {
+        finish()
+        navigator.openForgotPasswordScreen(this)
     }
 
     private fun onSignInClick() {

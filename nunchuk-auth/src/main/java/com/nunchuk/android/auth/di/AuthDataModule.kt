@@ -6,9 +6,9 @@ import dagger.Binds
 import dagger.Module
 
 @Module
-internal abstract class AuthDataModule {
+internal interface AuthDataModule {
 
     @Binds
-    abstract fun bindAuthRepository(repository: AuthRepositoryImpl): AuthRepository
+    fun bindAuthRepository(repository: AuthRepositoryImpl): AuthRepository
 
 }

@@ -7,12 +7,12 @@ import dagger.Module
 import dagger.android.ContributesAndroidInjector
 
 @Module
-internal abstract class AppActivityModule {
+internal interface AppActivityModule {
 
     @ContributesAndroidInjector(modules = [SplashModule::class])
-    abstract fun splashActivity(): SplashActivity
+    fun splashActivity(): SplashActivity
 
     @ContributesAndroidInjector
-    abstract fun introActivity(): IntroActivity
+    fun introActivity(): IntroActivity
 
 }

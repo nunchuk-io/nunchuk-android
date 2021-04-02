@@ -31,7 +31,7 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_createSigner(
         syslog(LOG_DEBUG, "[JNI][signer]name::%s", signer.get_name().c_str());
         syslog(LOG_DEBUG, "[JNI][signer]public_key::%s", signer.get_public_key().c_str());
         syslog(LOG_DEBUG, "[JNI][signer]xpub::%s", signer.get_xpub().c_str());
-        return Deserializer::translateSingleSigner(env, signer);
+        return Deserializer::convert2JSigner(env, signer);
     }
     catch (StorageException &exception) {
         syslog(LOG_CRIT, "[JNI]create signer error %s", exception.what());
@@ -52,8 +52,20 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getRemoteSigner(
         syslog(LOG_DEBUG, "[JNI]There is no signer");
         return nullptr;
     } else {
-        syslog(LOG_DEBUG, "There is existing signers:: %i", signers.size());
+        syslog(LOG_DEBUG, "There is existing signers:: %lu", signers.size());
         SingleSigner signer = *(signers.begin());
-        return Deserializer::translateSingleSigner(env, signer);
+        return Deserializer::convert2JSigner(env, signer);
     }
+}
+
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getRemoteSigners(
+        JNIEnv *env,
+        jobject thiz,
+        jobject result
+) {
+    syslog(LOG_DEBUG, "[JNI]getRemoteSigner()");
+    auto signers = NunchukProvider::get()->nu->GetRemoteSigners();
+    return Deserializer::convert2JSigners(env, signers, result);
 }

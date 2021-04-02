@@ -2,6 +2,9 @@ apply from: 'configs/dependencies.gradle'
 
 buildscript {
     apply from: 'configs/dependencies.gradle'
+    ext {
+        kotlin_version = '1.4.31'
+    }
     repositories {
         google()
         jcenter()

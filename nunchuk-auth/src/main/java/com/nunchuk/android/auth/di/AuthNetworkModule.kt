@@ -6,10 +6,9 @@ import dagger.Provides
 import retrofit2.Retrofit
 
 @Module
-internal abstract class AuthNetworkModule {
+internal object AuthNetworkModule {
 
-    companion object {
-        @Provides
-        fun provideAuthApi(retrofit: Retrofit): AuthApi = retrofit.create(AuthApi::class.java)
-    }
+    @Provides
+    fun provideAuthApi(retrofit: Retrofit): AuthApi = retrofit.create(AuthApi::class.java)
+
 }

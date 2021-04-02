@@ -1,0 +1,21 @@
+apply from: '../configs/dependencies.gradle'
+apply from: '../configs/submodule-config.gradle'
+
+dependencies {
+
+    implementation project(':nunchuk-arch')
+    implementation project(':nunchuk-core')
+    implementation project(':nunchuk-model')
+    implementation project(':nunchuk-nativelib')
+    implementation project(':nunchuk-widget')
+
+    implementation 'androidx.navigation:navigation-ui-ktx:2.3.4'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.3.4'
+
+    implementation androidxDeps.values()
+    implementation lifecycleDeps.values()
+    implementation reactiveDeps.rxAndroid2
+    implementation networkDeps.values()
+
+    testImplementation otherTestDeps.junit
+}

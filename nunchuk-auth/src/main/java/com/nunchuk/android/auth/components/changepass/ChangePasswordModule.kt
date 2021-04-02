@@ -7,11 +7,11 @@ import dagger.Module
 import dagger.multibindings.IntoMap
 
 @Module
-internal abstract class ChangePasswordModule {
+internal interface ChangePasswordModule {
 
     @Binds
     @IntoMap
     @ViewModelKey(ChangePasswordViewModel::class)
-    abstract fun bindChangePasswordViewModel(viewModel: ChangePasswordViewModel): ViewModel
+    fun bindChangePasswordViewModel(viewModel: ChangePasswordViewModel): ViewModel
 
 }

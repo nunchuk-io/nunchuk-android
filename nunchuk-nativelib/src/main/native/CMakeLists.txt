@@ -21,7 +21,9 @@ add_library(nunchuk-android SHARED
         serializer.cpp
         provider.cpp
         initializer-jni.cpp
-        signer-jni.cpp)
+        wallet-jni.cpp
+        signer-jni.cpp
+)
 
 add_subdirectory(libnunchuk)
 

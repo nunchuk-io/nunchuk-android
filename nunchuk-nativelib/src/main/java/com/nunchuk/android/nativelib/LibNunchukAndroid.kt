@@ -1,6 +1,7 @@
 package com.nunchuk.android.nativelib
 
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.Wallet
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,6 +28,10 @@ internal class LibNunchukAndroid @Inject constructor() {
     ): SingleSigner
 
     external fun getRemoteSigner(): SingleSigner
+
+    external fun getRemoteSigners(result: ArrayList<SingleSigner>): List<SingleSigner>
+
+    external fun getWallets(result: ArrayList<Wallet>): List<Wallet>
 
     companion object {
         init {

@@ -118,6 +118,7 @@ dependencies {
     implementation project(':nunchuk-auth')
     implementation project(':nunchuk-core')
     implementation project(':nunchuk-database')
+    implementation project(':nunchuk-main')
     implementation project(':nunchuk-model')
     implementation project(':nunchuk-nativelib')
     implementation project(':nunchuk-network')

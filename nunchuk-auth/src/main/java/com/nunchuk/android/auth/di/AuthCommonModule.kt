@@ -8,12 +8,12 @@ import dagger.Binds
 import dagger.Module
 
 @Module
-internal abstract class AuthCommonModule {
+internal interface AuthCommonModule {
 
     @Binds
-    abstract fun bindEmailValidator(validator: EmailValidatorImpl): EmailValidator
+    fun bindEmailValidator(validator: EmailValidatorImpl): EmailValidator
 
     @Binds
-    abstract fun bindNameValidator(validator: NameValidatorImpl): NameValidator
+    fun bindNameValidator(validator: NameValidatorImpl): NameValidator
 
 }

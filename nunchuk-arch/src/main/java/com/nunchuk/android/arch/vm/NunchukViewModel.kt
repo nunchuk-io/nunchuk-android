@@ -4,12 +4,8 @@ import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
 
-abstract class NCViewModel<State, Event> : ViewModel() {
-
-    private val disposables = CompositeDisposable()
+abstract class NunchukViewModel<State, Event> : ViewModel() {
 
     private val stateMutable: MutableLiveData<State> = MutableLiveData()
 
@@ -20,11 +16,6 @@ abstract class NCViewModel<State, Event> : ViewModel() {
     val state: LiveData<State> get() = stateMutable
 
     val event: LiveData<Event> get() = eventMutable
-
-    override fun onCleared() {
-        disposables.dispose()
-        super.onCleared()
-    }
 
     @MainThread
     protected fun updateState(updater: State.() -> State) {
@@ -42,10 +33,6 @@ abstract class NCViewModel<State, Event> : ViewModel() {
 
     protected fun event(event: Event) {
         eventMutable.value = event
-    }
-
-    protected fun Disposable.addToDisposables() {
-        disposables.add(this)
     }
 
 }

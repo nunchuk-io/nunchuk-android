@@ -7,6 +7,6 @@
     <solid android:color="@color/nc_white_color" />
 
     <stroke
-        android:width="@dimen/nc_padding_1"
+        android:width="@dimen/nc_padding_2"
         android:color="@color/nc_primary_color" />
 </shape>

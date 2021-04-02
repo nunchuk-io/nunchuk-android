@@ -5,18 +5,21 @@ import dagger.Binds
 import dagger.Module
 
 @Module
-internal abstract class AuthDomainModule {
+internal interface AuthDomainModule {
 
     @Binds
-    abstract fun bindRegisterUseCase(useCase: RegisterUseCaseImpl): RegisterUseCase
+    fun bindRegisterUseCase(useCase: RegisterUseCaseImpl): RegisterUseCase
 
     @Binds
-    abstract fun bindSignInUseCase(useCase: SignInUseCaseImpl): SignInUseCase
+    fun bindSignInUseCase(useCase: SignInUseCaseImpl): SignInUseCase
 
     @Binds
-    abstract fun bindChangePasswordUseCase(useCase: ChangePasswordUseCaseImpl): ChangePasswordUseCase
+    fun bindChangePasswordUseCase(useCase: ChangePasswordUseCaseImpl): ChangePasswordUseCase
 
     @Binds
-    abstract fun bindRecoverPasswordUseCase(useCase: RecoverPasswordUseCaseImpl): RecoverPasswordUseCase
+    fun bindRecoverPasswordUseCase(useCase: RecoverPasswordUseCaseImpl): RecoverPasswordUseCase
+
+    @Binds
+    fun bindForgotPasswordUseCase(useCase: ForgotPasswordUseCaseImpl): ForgotPasswordUseCase
 
 }

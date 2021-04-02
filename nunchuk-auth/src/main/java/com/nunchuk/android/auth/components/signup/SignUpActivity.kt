@@ -7,12 +7,11 @@ import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
-import com.nunchuk.android.auth.components.changepass.ChangePasswordActivity
-import com.nunchuk.android.auth.components.signin.SignInActivity
 import com.nunchuk.android.auth.components.signup.SignUpEvent.*
 import com.nunchuk.android.auth.databinding.ActivitySignupBinding
 import com.nunchuk.android.auth.util.orUnknownError
-import com.nunchuk.android.auth.util.showToast
+import com.nunchuk.android.core.util.showToast
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.util.SimpleTextWatcher
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
@@ -21,6 +20,9 @@ class SignUpActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: ViewModelFactory
+
+    @Inject
+    lateinit var navigator: NunchukNavigator
 
     private val viewModel: SignUpViewModel by lazy {
         ViewModelProviders.of(this, factory).get(SignUpViewModel::class.java)
@@ -42,16 +44,6 @@ class SignUpActivity : BaseActivity() {
     }
 
     private fun setupViews() {
-        binding.email.addTextChangedListener(object : SimpleTextWatcher() {
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                viewModel.validateEmail("$s")
-            }
-        })
-        binding.name.addTextChangedListener(object : SimpleTextWatcher() {
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                viewModel.validateName("$s")
-            }
-        })
         binding.signUp.setOnClickListener { onRegisterClicked() }
         binding.signIn.setOnClickListener { openLoginScreen() }
     }
@@ -72,8 +64,14 @@ class SignUpActivity : BaseActivity() {
                 LoadingEvent -> showLoading()
                 is SignUpSuccessEvent -> openChangePasswordScreen()
                 is SignUpErrorEvent -> showToast(it.errorMessage.orUnknownError())
+                is AccountExistedEvent -> switchLoginPage(it.errorMessage.orUnknownError())
             }
         }
+    }
+
+    private fun switchLoginPage(message: String) {
+        showToast(message)
+        openLoginScreen()
     }
 
     private fun showLoading() {
@@ -97,12 +95,12 @@ class SignUpActivity : BaseActivity() {
 
     private fun openLoginScreen() {
         finish()
-        SignInActivity.start(this)
+        navigator.openSignInScreen(this)
     }
 
     private fun openChangePasswordScreen() {
         finish()
-        ChangePasswordActivity.start(this)
+        navigator.openChangePasswordScreen(this)
     }
 
     companion object {

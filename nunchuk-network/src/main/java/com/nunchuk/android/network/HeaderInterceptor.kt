@@ -1,8 +1,12 @@
 package com.nunchuk.android.network
 
 import com.nunchuk.android.network.ApiConstant.HEADER_APP_VERSION
+import com.nunchuk.android.network.ApiConstant.HEADER_CONTENT_TYPE
 import com.nunchuk.android.network.ApiConstant.HEADER_DEVICE_ID
+import com.nunchuk.android.network.ApiConstant.HEADER_OS_VERSION
+import com.nunchuk.android.network.ApiConstant.HEADER_TOKEN_TYPE
 import okhttp3.Interceptor
+import okhttp3.Request
 import okhttp3.Response
 import javax.inject.Inject
 
@@ -12,14 +16,21 @@ class HeaderInterceptor @Inject constructor(
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request().newBuilder()
-            .header(HEADER_DEVICE_ID, headerProvider.getDeviceId())
-            .header(HEADER_APP_VERSION, headerProvider.getAppVersion())
-            //.header(HEADER_CONTENT_TYPE, "application/json;charset=utf8")
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .header("accept", "application/json;charset=UTF-8")
-            //.header(HEADER_TOKEN_TYPE, "Bearer " + headerProvider.getAccessToken())
+            .validHeader(HEADER_DEVICE_ID, headerProvider.getDeviceId())
+            .validHeader(HEADER_APP_VERSION, headerProvider.getAppVersion())
+            .validHeader(HEADER_OS_VERSION, headerProvider.getOsVersion())
+            .validHeader(HEADER_CONTENT_TYPE, "application/json")
+            .validHeader("accept", "application/json;charset=UTF-8")
+            .validHeader(HEADER_TOKEN_TYPE, "Bearer " + headerProvider.getAccessToken())
             .build()
         return chain.proceed(request)
     }
 
+}
+
+internal fun Request.Builder.validHeader(name: String, value: String?): Request.Builder {
+    if (!value.isNullOrEmpty()) {
+        header(name, value)
+    }
+    return this
 }

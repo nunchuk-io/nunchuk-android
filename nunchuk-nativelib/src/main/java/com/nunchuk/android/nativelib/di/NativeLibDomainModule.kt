@@ -5,21 +5,27 @@ import dagger.Binds
 import dagger.Module
 
 @Module
-internal abstract class NativeLibDomainModule {
+internal interface NativeLibDomainModule {
 
     @Binds
-    abstract fun bindCreateSignerUseCase(useCase: CreateSignerUseCaseImpl): CreateSignerUseCase
+    fun bindCreateSignerUseCase(useCase: CreateSignerUseCaseImpl): CreateSignerUseCase
 
     @Binds
-    abstract fun bindGetRemoteSignerUseCase(useCase: GetRemoteSignerUseCaseImpl): GetRemoteSignerUseCase
+    fun bindGetRemoteSignerUseCase(useCase: GetRemoteSignerUseCaseImpl): GetRemoteSignerUseCase
 
     @Binds
-    abstract fun bindGetAppSettingsUseCase(useCase: GetAppSettingsUseCaseImpl): GetAppSettingsUseCase
+    fun bindGetAppSettingsUseCase(useCase: GetAppSettingsUseCaseImpl): GetAppSettingsUseCase
 
     @Binds
-    abstract fun bindInitNunchukUseCase(useCase: InitNunchukUseCaseImpl): InitNunchukUseCase
+    fun bindInitNunchukUseCase(useCase: InitNunchukUseCaseImpl): InitNunchukUseCase
 
     @Binds
-    abstract fun bindGetOrCreateRootDirUseCase(useCase: GetOrCreateRootDirUseCaseImpl): GetOrCreateRootDirUseCase
+    fun bindGetOrCreateRootDirUseCase(useCase: GetOrCreateRootDirUseCaseImpl): GetOrCreateRootDirUseCase
+
+    @Binds
+    fun bindGetRemoteSignersUseCase(useCase: GetRemoteSignersUseCaseImpl): GetRemoteSignersUseCase
+
+    @Binds
+    fun bindGetWalletsUseCase(useCase: GetWalletsUseCaseImpl): GetWalletsUseCase
 
 }
