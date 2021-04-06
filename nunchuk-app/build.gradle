@@ -122,6 +122,8 @@ dependencies {
     implementation project(':nunchuk-model')
     implementation project(':nunchuk-nativelib')
     implementation project(':nunchuk-network')
+    implementation project(':nunchuk-signer')
+    implementation project(':nunchuk-wallet')
     implementation project(':nunchuk-widget')
 
     implementation platform(playServices.firebaseBom)

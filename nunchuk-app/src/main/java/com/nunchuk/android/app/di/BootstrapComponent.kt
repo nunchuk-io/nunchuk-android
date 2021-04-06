@@ -5,9 +5,11 @@ import com.nunchuk.android.app.NunchukApplication
 import com.nunchuk.android.auth.di.AuthProxyModule
 import com.nunchuk.android.core.di.CoreProxyModule
 import com.nunchuk.android.database.di.DatabaseProxyModule
+import com.nunchuk.android.wallet.di.WalletProxyModule
 import com.nunchuk.android.main.di.MainProxyModule
 import com.nunchuk.android.nativelib.di.NativeLibProxyModule
 import com.nunchuk.android.network.di.NetworkProxyModule
+import com.nunchuk.android.signer.di.SignerProxyModule
 import dagger.Binds
 import dagger.Component
 import dagger.Module
@@ -30,6 +32,8 @@ internal abstract class BootstrapModule {
         CoreProxyModule::class,
         DatabaseProxyModule::class,
         MainProxyModule::class,
+        SignerProxyModule::class,
+        WalletProxyModule::class,
         NetworkProxyModule::class,
         NativeLibProxyModule::class
     ]

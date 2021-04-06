@@ -8,9 +8,9 @@ import com.nunchuk.android.auth.components.recover.RecoverPasswordActivity
 import com.nunchuk.android.auth.components.signin.SignInActivity
 import com.nunchuk.android.auth.components.signup.SignUpActivity
 import com.nunchuk.android.main.MainActivity
-import com.nunchuk.android.main.components.signer.AddSignerActivity
-import com.nunchuk.android.main.components.signer.SignerInfoActivity
-import com.nunchuk.android.main.components.signer.SignerIntroActivity
+import com.nunchuk.android.signer.SignerIntroActivity
+import com.nunchuk.android.signer.add.AddSignerActivity
+import com.nunchuk.android.signer.details.SignerInfoActivity
 import javax.inject.Inject
 
 internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator {
@@ -47,8 +47,13 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator {
         SignerIntroActivity.start(activityContext)
     }
 
-    override fun openSignerInfoScreen(activityContext: Context, signerName: String, signerSpec: String) {
-        SignerInfoActivity.start(activityContext = activityContext, signerName = signerName, signerSpec = signerSpec)
+    override fun openSignerInfoScreen(activityContext: Context, signerName: String, signerSpec: String, justAdded: Boolean) {
+        SignerInfoActivity.start(
+            activityContext = activityContext,
+            signerName = signerName,
+            signerSpec = signerSpec,
+            justAdded = justAdded
+        )
     }
 
     override fun openAddSignerScreen(activityContext: Context) {

@@ -8,19 +8,6 @@
             android:label="@string/nc_title_message"
             android:screenOrientation="portrait"
             android:theme="@style/MainScreenTheme" />
-
-        <activity
-
-            android:name=".components.signer.AddSignerActivity"
-            android:screenOrientation="portrait" />
-
-        <activity
-            android:name=".components.signer.SignerInfoActivity"
-            android:screenOrientation="portrait" />
-
-        <activity
-            android:name=".components.signer.SignerIntroActivity"
-            android:screenOrientation="portrait"/>
     </application>
 
 </manifest>

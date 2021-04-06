@@ -37,7 +37,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/nc_padding_16"
-                android:text="@string/nc_intro_title"
+                android:text="@string/nc_signer_intro_title"
                 android:textColor="@color/nc_black_color"
                 android:textSize="@dimen/nc_text_size_16"
                 app:fontTextStyle="semi_bold"
@@ -50,14 +50,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="@dimen/nc_padding_8"
                 android:layout_marginStart="@dimen/nc_padding_16"
-                android:text="@string/nc_intro_subtitle"
+                android:text="@string/nc_signer_intro_subtitle"
                 android:textColor="@color/nc_black_color"
                 android:textSize="@dimen/nc_text_size_16"
                 app:layout_constraintStart_toEndOf="@+id/iconInfo"
                 app:layout_constraintTop_toBottomOf="@+id/introTitle" />
 
             <com.nunchuk.android.widget.NCFontTextView
-                android:id="@+id/addASigner"
+                android:id="@+id/btnAdd"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/nc_padding_16"
@@ -85,10 +85,10 @@
                 android:text="@string/nc_text_do_this_later"
                 android:textColor="@color/nc_black_color"
                 android:textSize="@dimen/nc_text_size_16"
-                app:layout_constraintBottom_toBottomOf="@id/addASigner"
-                app:layout_constraintEnd_toStartOf="@id/addASigner"
+                app:layout_constraintBottom_toBottomOf="@id/btnAdd"
+                app:layout_constraintEnd_toStartOf="@id/btnAdd"
                 app:layout_constraintTop_toBottomOf="@+id/introSubtitle"
-                app:layout_constraintTop_toTopOf="@id/addASigner" />
+                app:layout_constraintTop_toTopOf="@id/btnAdd" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <com.nunchuk.android.widget.NCFontTextView
@@ -101,10 +101,10 @@
             android:text="@string/nc_title_wallets"
             android:textColor="@color/nc_black_color"
             android:textSize="@dimen/nc_text_size_16"
-            app:layout_constraintBottom_toBottomOf="@id/addASigner"
-            app:layout_constraintEnd_toStartOf="@id/addASigner"
+            app:layout_constraintBottom_toBottomOf="@id/btnAdd"
+            app:layout_constraintEnd_toStartOf="@id/btnAdd"
             app:layout_constraintTop_toBottomOf="@+id/introSubtitle"
-            app:layout_constraintTop_toTopOf="@id/addASigner" />
+            app:layout_constraintTop_toTopOf="@id/btnAdd" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/walletEmpty"

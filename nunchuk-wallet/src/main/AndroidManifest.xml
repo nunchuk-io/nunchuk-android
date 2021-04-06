@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.nunchuk.android.wallet">
+
+    <application>
+
+        <activity
+            android:name=".add.AddWalletActivity"
+            android:label="@string/nc_create_wallet_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/MainScreenTheme" />
+
+    </application>
+
+</manifest>

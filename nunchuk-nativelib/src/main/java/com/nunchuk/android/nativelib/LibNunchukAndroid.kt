@@ -4,12 +4,14 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.jvm.Throws
 
 internal const val LIB_NAME = "nunchuk-android"
 
 @Singleton
 internal class LibNunchukAndroid @Inject constructor() {
 
+    @Throws(Exception::class)
     external fun initNunchuk(
         chain: Int,
         hwiPath: String,
@@ -19,6 +21,7 @@ internal class LibNunchukAndroid @Inject constructor() {
         storagePath: String
     )
 
+    @Throws(Exception::class)
     external fun createSigner(
         name: String,
         xpub: String,
@@ -27,11 +30,20 @@ internal class LibNunchukAndroid @Inject constructor() {
         masterFingerprint: String
     ): SingleSigner
 
+    @Throws(Exception::class)
     external fun getRemoteSigner(): SingleSigner
 
+    @Throws(Exception::class)
     external fun getRemoteSigners(result: ArrayList<SingleSigner>): List<SingleSigner>
 
+    @Throws(Exception::class)
     external fun getWallets(result: ArrayList<Wallet>): List<Wallet>
+
+    @Throws(Exception::class)
+    external fun deleteRemoteSigner(masterFingerprint: String, derivationPath: String)
+
+    @Throws(Exception::class)
+    external fun updateSigner(signer: SingleSigner)
 
     companion object {
         init {

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nc_create_signer_title">Add an air-gapped signer</string>
+    <string name="nc_text_signer_info">Signer Info</string>
+    <string name="nc_error_invalid_signer_spec">Invalid Signer Spec</string>
+    <string name="nc_error_signer_existed">Signer Existed</string>
+
+    <string name="nc_text_add_signer_success">The Signer has been added successfully</string>
+    <string name="nc_text_change_signer_success">The Signer has been changed successfully</string>
+    <string name="nc_text_change_signer_error">The Signer hasn\'t been changed</string>
+
+    <string name="nc_title_signer_info">Signer Info</string>
+    <string name="nc_remove_signer">Remove signer</string>
+    <string name="nc_signer_air_gapped">Air-gapped</string>
+    <string name="nc_signer_type_air_gapped">Air-gapped</string>
+
+    <string name="nc_create_signer_before_you_start">Before you start</string>
+    <string name="nc_create_signer_description">You can only add air-gapped signers via this mobile app. If you need to add a wired signers, please do so via our desktop Nunchuk app.</string>
+    <string name="nc_add_signer_via_qr_code">Add signer spec via QR</string>
+    <string name="nc_text_signer_name">Signer name</string>
+    <string name="nc_text_signer_spec">Signer spec</string>
+    <string name="nc_text_add_signer">Add Signer</string>
+</resources>

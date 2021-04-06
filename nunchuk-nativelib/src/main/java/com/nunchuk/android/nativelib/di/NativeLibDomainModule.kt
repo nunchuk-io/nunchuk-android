@@ -26,6 +26,12 @@ internal interface NativeLibDomainModule {
     fun bindGetRemoteSignersUseCase(useCase: GetRemoteSignersUseCaseImpl): GetRemoteSignersUseCase
 
     @Binds
+    fun bindDeleteRemoteSignerUseCase(useCase: DeleteRemoteSignerUseCaseImpl): DeleteRemoteSignerUseCase
+
+    @Binds
+    fun bindUpdateRemoteSignerUseCase(useCase: UpdateRemoteSignerUseCaseImpl): UpdateRemoteSignerUseCase
+
+    @Binds
     fun bindGetWalletsUseCase(useCase: GetWalletsUseCaseImpl): GetWalletsUseCase
 
 }

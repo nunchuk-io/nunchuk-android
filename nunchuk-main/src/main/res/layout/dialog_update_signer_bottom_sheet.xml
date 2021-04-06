@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/nc_padding_16"
+    android:paddingBottom="300dp"
+    app:behavior_hideable="false"
+    app:behavior_peekHeight="90dp">
+
+    <ImageView
+        android:id="@+id/iconClose"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_close"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_marginTop="@dimen/nc_text_size_16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/signerNameValue" />
+
+    <com.nunchuk.android.widget.NCFontEditText
+        android:id="@+id/signerNameValue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:paddingVertical="@dimen/nc_padding_8"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/signerNameLabel" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/signerNameLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        android:paddingVertical="@dimen/nc_padding_8"
+        android:text="@string/nc_text_signer_name"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/iconClose" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btnSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/nc_padding_16"
+        android:text="@string/nc_text_save"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:layout_constraintBottom_toBottomOf="@+id/iconClose"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/iconClose" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
