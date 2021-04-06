@@ -7,19 +7,19 @@
 
     <fragment
             android:id="@+id/navigation_messages"
-            android:name="com.nunchuk.android.main.components.message.MessagesFragment"
+            android:name="com.nunchuk.android.main.components.tabs.message.MessagesFragment"
             android:label="@string/nc_title_message"
             tools:layout="@layout/fragment_messages" />
 
     <fragment
             android:id="@+id/navigation_wallets"
-            android:name="com.nunchuk.android.main.components.wallet.WalletsFragment"
+            android:name="com.nunchuk.android.main.components.tabs.wallet.WalletsFragment"
             android:label="@string/nc_title_wallets"
             tools:layout="@layout/fragment_wallets" />
 
     <fragment
             android:id="@+id/navigation_account"
-            android:name="com.nunchuk.android.main.components.account.AccountFragment"
+            android:name="com.nunchuk.android.main.components.tabs.account.AccountFragment"
             android:label="@string/nc_title_account"
             tools:layout="@layout/fragment_account" />
 </navigation>

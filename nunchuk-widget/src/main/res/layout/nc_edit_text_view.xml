@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
     <com.nunchuk.android.widget.NCFontTextView
@@ -19,48 +18,37 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Name" />
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/editTextWrapper"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/nc_edit_text_bg"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView"
-        tools:background="@drawable/nc_edit_text_error_bg"
-        tools:layout_height="@dimen/nc_height_44" />
-
     <com.nunchuk.android.widget.NCFontEditText
         android:id="@+id/editText"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@null"
-        android:gravity="center_vertical"
-        android:paddingStart="@dimen/nc_padding_12"
-        android:paddingTop="@dimen/nc_padding_8"
-        android:paddingEnd="@dimen/nc_padding_12"
-        android:paddingBottom="@dimen/nc_padding_8"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/nc_edit_text_bg"
+        android:inputType="textMultiLine"
+        android:maxLength="500"
+        android:padding="@dimen/nc_padding_12"
+        android:scrollHorizontally="false"
+        android:singleLine="false"
         android:textColor="@color/nc_black_color"
         android:textCursorDrawable="@null"
         android:textSize="@dimen/nc_text_size_14"
-        app:layout_constraintBottom_toBottomOf="@+id/editTextWrapper"
-        app:layout_constraintEnd_toStartOf="@+id/endTextView"
-        app:layout_constraintStart_toEndOf="@+id/startTextView"
-        app:layout_constraintTop_toTopOf="@+id/editTextWrapper"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView"
         tools:hint="Input Text Here"
-        tools:ignore="MissingConstraints"/>
+        tools:text="[A3C3B3D3/48h/0h/2h]xpub-xpub6EC33stJK4AJZrMNZEehWJe6JFTU3XdEbgDfCc3VoHytKqsQmsYAzH5zPNAS4TQudUzCMGiNH6Wrkt8f6kgGsBXSHLAXph32cQXjmEAd7wW" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/errorText"
-        android:layout_marginTop="@dimen/nc_padding_4"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_4"
         android:singleLine="true"
-        android:visibility="gone"
         android:textColor="@color/nc_red_color"
         android:textSize="@dimen/nc_text_size_14"
+        android:visibility="gone"
+        tools:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextWrapper"
+        app:layout_constraintTop_toBottomOf="@+id/editText"
         tools:text="Required" />
 </merge>

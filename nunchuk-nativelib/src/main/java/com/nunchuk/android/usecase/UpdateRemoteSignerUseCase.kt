@@ -6,7 +6,7 @@ import com.nunchuk.android.nativelib.LibNunchukFacade
 import javax.inject.Inject
 
 interface UpdateRemoteSignerUseCase {
-    suspend fun execute(signer: SingleSigner): Result<Boolean>
+    suspend fun execute(signer: SingleSigner): Result<Unit>
 }
 
 internal class UpdateRemoteSignerUseCaseImpl @Inject constructor(

@@ -14,4 +14,6 @@ public:
     static Chain intToChain(jint ordinal);
 
     static BackendType intToBackendType(jint ordinal);
+
+    static SingleSigner convert2CSigner(JNIEnv *env, jobject signer);
 };

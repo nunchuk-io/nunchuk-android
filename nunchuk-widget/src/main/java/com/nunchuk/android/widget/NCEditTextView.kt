@@ -89,12 +89,12 @@ class NCEditTextView : ConstraintLayout, LifecycleObserver {
                 textView.visibility = View.GONE
             } else {
                 textView.visibility = View.VISIBLE
-                (editTextWrapper.layoutParams as LayoutParams).topMargin = padding8
+                (editText.layoutParams as LayoutParams).topMargin = padding8
                 textView.text = title
             }
         } else {
             textView.visibility = View.VISIBLE
-            (editTextWrapper.layoutParams as LayoutParams).topMargin = padding8
+            (editText.layoutParams as LayoutParams).topMargin = padding8
             textView.setText(titleId)
         }
 
@@ -140,8 +140,8 @@ class NCEditTextView : ConstraintLayout, LifecycleObserver {
             editText.setPadding(padding12, 0, padding12, 0)
         }
 
-        editTextWrapper.setBackgroundResource(editTextBackground)
-        editTextWrapper.layoutParams.height = editHigh.toInt()
+        editText.setBackgroundResource(editTextBackground)
+        editText.layoutParams.height = editHigh.toInt()
     }
 
     fun setTitle(title: String?) {
@@ -203,13 +203,13 @@ class NCEditTextView : ConstraintLayout, LifecycleObserver {
     }
 
     fun hideError() {
-        editTextWrapper.background = ResourcesCompat.getDrawable(resources, R.drawable.nc_edit_text_bg, null)
+        editText.background = ResourcesCompat.getDrawable(resources, R.drawable.nc_edit_text_bg, null)
         errorText.visibility = View.GONE
         errorText.text = ""
     }
 
     fun setError(message: String) {
-        editTextWrapper.background = ResourcesCompat.getDrawable(resources, R.drawable.nc_edit_text_error_bg, null)
+        editText.background = ResourcesCompat.getDrawable(resources, R.drawable.nc_edit_text_error_bg, null)
         errorText.visibility = View.VISIBLE
         errorText.text = message
     }

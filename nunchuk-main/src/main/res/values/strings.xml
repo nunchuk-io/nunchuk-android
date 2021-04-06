@@ -1,49 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="nc_text_create_account">Create an account</string>
-    <string name="nc_text_sign_in">Sign-in</string>
-    <string name="nc_text_got_it">Got it</string>
-
-    <string name="nc_text_your_name">Your name</string>
-    <string name="nc_text_email_address">Email address</string>
-
-    <string name="nc_text_password">Password</string>
-    <string name="nc_text_temporary_password">Temporary password</string>
-    <string name="nc_text_new_password">New password</string>
-    <string name="nc_text_confirm_new_password">Confirm new password</string>
-    <string name="nc_text_stay_sign_in">Stay signed-in</string>
-    <string name="nc_text_forgot_password">Forgot password?</string>
-
-    <string name="nc_text_required">Required</string>
-    <string name="nc_text_name_invalid">Name is invalid</string>
-    <string name="nc_text_email_invalid">Email is invalid</string>
-    <string name="nc_text_password_does_not_match">Confirm password does not match</string>
-    <string name="nc_text_email_sent">We’ve sent a temporary password to %1s. Please change your password</string>
-
     <string name="nc_title_message">Messages</string>
     <string name="nc_title_wallets">Wallets</string>
     <string name="nc_title_signers">Signers</string>
     <string name="nc_title_account">Account</string>
-    <string name="nc_intro_title">Please add a signer before adding a wallet</string>
-    <string name="nc_intro_subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris posuere justo semper</string>
+    <string name="nc_signer_intro_title">Please add a signer before adding a wallet</string>
+    <string name="nc_wallet_intro_title">You can begin creating a wallet</string>
+    <string name="nc_signer_intro_subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris posuere justo semper</string>
+    <string name="nc_wallet_intro_subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris posuere justo semper</string>
     <string name="nc_text_add_a_signer">Add a signer</string>
+    <string name="nc_text_add_a_wallet">Add a wallet</string>
     <string name="nc_text_do_this_later">I’ll do this later</string>
 
     <string name="nc_text_you_have_not_add_wallet">You have not added a wallet.</string>
     <string name="nc_text_you_have_not_add_signer">You have not added a signer.</string>
-    <string name="nc_create_signer_before_you_start">Before you start</string>
-    <string name="nc_create_signer_description">You can only add air-gapped signers via this mobile app. If you need to add a wired signers, please do so via our desktop Nunchuk app.</string>
-    <string name="nc_create_signer_title">Add an air-gapped signer</string>
-    <string name="nc_add_signer_via_qr_code">Add signer spec via QR</string>
-    <string name="nc_text_signer_name">Signer name</string>
-    <string name="nc_text_signer_spec">Signer spec</string>
-    <string name="nc_text_add_signer">Add Signer</string>
-    <string name="nc_text_add_signer_success">The Signer has been added successfully</string>
-    <string name="nc_text_change_signer_success">The Signer has been changed successfully</string>
-
-    <string name="nc_title_signer_info">Signer Info</string>
-    <string name="nc_remove_signer">Remove signer</string>
-    <string name="nc_signer_air_gapped">Air-gapped</string>
-    <string name="nc_signer_type_air_gapped">Air-gapped</string>
-
 </resources>

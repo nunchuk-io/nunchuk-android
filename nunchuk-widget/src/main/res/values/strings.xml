@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nc_text_done">Done</string>
+    <string name="nc_text_save">Save</string>
+    <string name="nc_text_got_it">Got it</string>
+</resources>

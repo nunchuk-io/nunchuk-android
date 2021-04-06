@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".components.message.MessagesFragment">
+    tools:context=".components.tabs.message.MessagesFragment">
 
     <TextView
         android:id="@+id/textMessage"

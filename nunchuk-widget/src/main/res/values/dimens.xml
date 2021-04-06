@@ -40,6 +40,7 @@
 
     <dimen name="nc_height_44">44dp</dimen>
     <dimen name="nc_height_48">48dp</dimen>
-
+    <dimen name="nc_height_120">120dp</dimen>
+    <dimen name="nc_height_240">240dp</dimen>
 
 </resources>

@@ -39,10 +39,14 @@ internal class LibNunchukFacade @Inject constructor(
 
     fun getRemoteSigners(): List<SingleSigner> = nunchukAndroid.getRemoteSigners(ArrayList())
 
+    fun updateSigner(signer: SingleSigner) {
+        nunchukAndroid.updateSigner(signer)
+    }
+
     fun getWallets() = nunchukAndroid.getWallets(ArrayList())
 
-    fun updateSigner(signer: SingleSigner): Boolean {
-        return true
+    fun deleteRemoteSigner(masterFingerprint: String, derivationPath: String) {
+        nunchukAndroid.deleteRemoteSigner(masterFingerprint, derivationPath)
     }
 
 }
