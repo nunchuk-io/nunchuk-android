@@ -1,6 +1,8 @@
 package com.nunchuk.android.nav
 
 import android.content.Context
+import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.WalletType
 
 interface AuthNavigator {
     fun openSignInScreen(activityContext: Context)
@@ -29,9 +31,9 @@ interface SignerNavigator {
 }
 
 interface WalletNavigator {
-    fun openWalletIntroScreen(activityContext: Context)
-
     fun openAddWalletScreen(activityContext: Context)
+
+    fun openAssignSignerScreen(activityContext: Context, walletName: String, walletType: WalletType, addressType: AddressType)
 }
 
 interface NunchukNavigator : AuthNavigator, MainNavigator, SignerNavigator, WalletNavigator

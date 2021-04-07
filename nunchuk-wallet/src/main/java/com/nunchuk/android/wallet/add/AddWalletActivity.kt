@@ -3,11 +3,21 @@ package com.nunchuk.android.wallet.add
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputFilter.LengthFilter
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.nav.NunchukNavigator
-import com.nunchuk.android.wallet.databinding.ActivityAddWalletBinding
+import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.AddressType.*
+import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.add.AddWalletEvent.WalletNameRequiredEvent
+import com.nunchuk.android.wallet.add.AddWalletEvent.WalletSetupDoneEvent
+import com.nunchuk.android.wallet.databinding.ActivityWalletAddBinding
+import com.nunchuk.android.widget.util.SimpleTextWatcher
 import javax.inject.Inject
 
 class AddWalletActivity : BaseActivity() {
@@ -22,28 +32,118 @@ class AddWalletActivity : BaseActivity() {
         ViewModelProviders.of(this, factory).get(AddWalletViewModel::class.java)
     }
 
-    private lateinit var binding: ActivityAddWalletBinding
+    private lateinit var binding: ActivityWalletAddBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityAddWalletBinding.inflate(layoutInflater)
+        binding = ActivityWalletAddBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         setupViews()
-
         observeEvent()
+
+        viewModel.init()
     }
 
     private fun observeEvent() {
-        viewModel.event.observe(this) {
+        viewModel.event.observe(this, ::handleEvent)
+        viewModel.state.observe(this, ::handleState)
+    }
+
+    private fun handleState(state: AddWalletState) {
+        bindWalletType(state.walletType)
+        bindAddressType(state.addressType)
+        bindWalletCounter(state.walletName)
+    }
+
+    private fun bindWalletCounter(walletName: String) {
+        val counter = "${walletName.length}/$MAX_LENGTH"
+        binding.walletNameCounter.text = counter
+    }
+
+    private fun bindAddressType(addressType: AddressType) {
+        when (addressType) {
+            NESTED_SEGWIT -> enableNestedAddressType()
+            NATIVE_SEGWIT -> enableNativeAddressType()
+            LEGACY -> enableLegacyAddressType()
+            else -> {
+            }
+        }
+    }
+
+    private fun enableLegacyAddressType() {
+        binding.legacyRadio.isChecked = true
+        binding.nativeSegwitRadio.isChecked = false
+        binding.nestedSegwitRadio.isChecked = false
+    }
+
+    private fun enableNestedAddressType() {
+        binding.legacyRadio.isChecked = false
+        binding.nativeSegwitRadio.isChecked = false
+        binding.nestedSegwitRadio.isChecked = true
+    }
+
+    private fun enableNativeAddressType() {
+        binding.legacyRadio.isChecked = false
+        binding.nativeSegwitRadio.isChecked = true
+        binding.nestedSegwitRadio.isChecked = false
+    }
+
+    private fun handleEvent(event: AddWalletEvent) {
+        when (event) {
+            WalletNameRequiredEvent -> binding.walletName.setError(getString(R.string.nc_text_required))
+            is WalletSetupDoneEvent -> openAssignSignerScreen(event.walletName, event.walletType, event.addressType)
+        }
+    }
+
+    private fun openAssignSignerScreen(walletName: String, walletType: WalletType, addressType: AddressType) {
+        navigator.openAssignSignerScreen(this, walletName, walletType, addressType)
+    }
+
+    private fun bindWalletType(walletType: WalletType) {
+        if (walletType == WalletType.ESCROW) {
+            binding.standardWalletRadio.isChecked = false
+            binding.escrowWalletRadio.isChecked = true
+        } else {
+            binding.standardWalletRadio.isChecked = true
+            binding.escrowWalletRadio.isChecked = false
         }
     }
 
     private fun setupViews() {
+        binding.walletName.getEditTextView().filters = arrayOf(LengthFilter(MAX_LENGTH))
+
+        binding.customizeAddressSwitch.setOnCheckedChangeListener { _, checked -> handleCustomizeCustomerChanged(checked) }
+
+        binding.standardWalletRadio.setOnCheckedChangeListener { _, checked -> if (checked) viewModel.setStandardWalletType() }
+        binding.escrowWalletRadio.setOnCheckedChangeListener { _, checked -> if (checked) viewModel.setEscrowWalletType() }
+
+        binding.nestedSegwitRadio.setOnCheckedChangeListener { _, checked -> if (checked) viewModel.setNestedAddressType() }
+        binding.nativeSegwitRadio.setOnCheckedChangeListener { _, checked -> if (checked) viewModel.setNativeAddressType() }
+        binding.legacyRadio.setOnCheckedChangeListener { _, checked -> if (checked) viewModel.setLegacyAddressType() }
+
+        binding.walletName.addTextChangedListener(object : SimpleTextWatcher() {
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                viewModel.updateWalletName("$s")
+            }
+        })
+        binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }
+
+    }
+
+    private fun handleCustomizeCustomerChanged(checked: Boolean) {
+        if (checked) {
+            binding.customizeAddressContainer.visibility = VISIBLE
+        } else {
+            viewModel.setDefaultAddressType()
+            binding.customizeAddressContainer.visibility = GONE
+        }
     }
 
     companion object {
+        private const val MAX_LENGTH = 20
+
         fun start(activityContext: Context) {
             activityContext.startActivity(Intent(activityContext, AddWalletActivity::class.java))
         }

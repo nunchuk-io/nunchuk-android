@@ -2,6 +2,7 @@ package com.nunchuk.android.main.components.tabs.wallet
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.usecase.GetRemoteSignersUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
@@ -37,5 +38,31 @@ internal class WalletsViewModel @Inject constructor(
             updateState { walletsState }
         }
     }
+
+    fun handleAddSignerOrWallet() {
+        if (hasSigner()) {
+            handleAddWallet()
+        } else {
+            handleAddSigner()
+        }
+    }
+
+    fun handleAddSigner() {
+        if (hasSigner()) {
+            event(AddSignerEvent)
+        } else {
+            event(ShowSignerIntroEvent)
+        }
+    }
+
+    fun handleAddWallet() {
+        if (hasSigner()) {
+            event(AddWalletEvent)
+        } else {
+            event(ShowErrorEvent("You need to add signer before creating wallet"))
+        }
+    }
+
+    private fun hasSigner() = walletsState.signers.isNotEmpty()
 
 }

@@ -13,7 +13,7 @@ import com.nunchuk.android.signer.add.AddSignerActivity
 import com.nunchuk.android.signer.details.SignerInfoActivity
 import javax.inject.Inject
 
-internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator {
+internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator, WalletNavigatorImpl() {
 
     override fun openSignInScreen(activityContext: Context) {
         SignInActivity.start(activityContext)
@@ -58,12 +58,6 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator {
 
     override fun openAddSignerScreen(activityContext: Context) {
         AddSignerActivity.start(activityContext)
-    }
-
-    override fun openWalletIntroScreen(activityContext: Context) {
-    }
-
-    override fun openAddWalletScreen(activityContext: Context) {
     }
 
 }

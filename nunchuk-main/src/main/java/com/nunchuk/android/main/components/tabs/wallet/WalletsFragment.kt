@@ -13,6 +13,7 @@ import com.nunchuk.android.signer.util.SignerMapper
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.core.util.showToast
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.nav.NunchukNavigator
 import javax.inject.Inject
 
@@ -45,9 +46,9 @@ internal class WalletsFragment : BaseFragment() {
 
     private fun setupViews() {
         binding.doLater.setOnClickListener { hideIntroContainerView() }
-        binding.btnAdd.setOnClickListener { openSignerIntroScreen() }
-        binding.signerHeader.setOnClickListener { openAddSignerScreen() }
-        binding.walletsHeader.setOnClickListener { openAddWalletScreen() }
+        binding.btnAdd.setOnClickListener { viewModel.handleAddSignerOrWallet() }
+        binding.signerHeader.setOnClickListener { viewModel.handleAddSigner() }
+        binding.walletsHeader.setOnClickListener { viewModel.handleAddWallet() }
     }
 
     private fun openAddWalletScreen() {
@@ -73,9 +74,10 @@ internal class WalletsFragment : BaseFragment() {
 
     private fun handleEvent(event: WalletsEvent) {
         when (event) {
-            WalletsEvent.AddSignerEvent -> openAddSignerScreen()
-            WalletsEvent.AddWalletEvent -> openAddWalletScreen()
-            is WalletsEvent.ShowErrorEvent -> requireActivity().showToast(event.message)
+            AddSignerEvent -> openAddSignerScreen()
+            AddWalletEvent -> openAddWalletScreen()
+            ShowSignerIntroEvent -> openSignerIntroScreen()
+            is ShowErrorEvent -> requireActivity().showToast(event.message)
         }
     }
 

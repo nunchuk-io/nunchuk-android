@@ -4,6 +4,9 @@
 
     <corners android:radius="@dimen/nc_padding_16" />
 
-    <solid android:color="@color/nc_whisper_color" />
+    <solid android:color="@color/nc_white_color" />
 
+    <stroke
+        android:width="@dimen/nc_padding_1"
+        android:color="@color/nc_whisper_color" />
 </shape>
