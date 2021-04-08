@@ -1,15 +1,62 @@
 package com.nunchuk.android.wallet.add
 
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.type.AddressType.*
+import com.nunchuk.android.type.WalletType.ESCROW
+import com.nunchuk.android.type.WalletType.MULTI_SIG
+import com.nunchuk.android.wallet.add.AddWalletEvent.*
 import javax.inject.Inject
 
 internal class AddWalletViewModel @Inject constructor(
-) : NunchukViewModel<Unit, AddWalletEvent>() {
+) : NunchukViewModel<AddWalletState, AddWalletEvent>() {
 
-    override val initialState = Unit
+    override val initialState = AddWalletState()
 
-    fun handleAddWallet() {
+    fun init() {
+        updateState { initialState }
+    }
 
+    fun setStandardWalletType() {
+        updateState { copy(walletType = MULTI_SIG) }
+    }
+
+    fun setEscrowWalletType() {
+        updateState { copy(walletType = ESCROW) }
+    }
+
+    fun setDefaultAddressType() {
+        updateState { copy(addressType = NESTED_SEGWIT) }
+    }
+
+    fun setNestedAddressType() {
+        updateState { copy(addressType = NESTED_SEGWIT) }
+    }
+
+    fun setLegacyAddressType() {
+        updateState { copy(addressType = LEGACY) }
+    }
+
+    fun setNativeAddressType() {
+        updateState { copy(addressType = NATIVE_SEGWIT) }
+    }
+
+    fun updateWalletName(walletName: String) {
+        updateState { copy(walletName = walletName) }
+    }
+
+    fun handleContinueEvent() {
+        val currentState = getState()
+        if (currentState.walletName.isNotEmpty()) {
+            event(
+                WalletSetupDoneEvent(
+                    walletName = currentState.walletName,
+                    walletType = currentState.walletType,
+                    addressType = currentState.addressType
+                )
+            )
+        } else {
+            event(WalletNameRequiredEvent)
+        }
     }
 
 }

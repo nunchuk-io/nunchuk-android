@@ -15,6 +15,8 @@
     <dimen name="nc_padding_22">22dp</dimen>
     <dimen name="nc_padding_24">24dp</dimen>
     <dimen name="nc_padding_26">26dp</dimen>
+    <dimen name="nc_padding_28">28dp</dimen>
+    <dimen name="nc_padding_30">30dp</dimen>
     <dimen name="nc_padding_32">32dp</dimen>
     <dimen name="nc_padding_44">44dp</dimen>
     <dimen name="nc_padding_48">48dp</dimen>
@@ -42,5 +44,6 @@
     <dimen name="nc_height_48">48dp</dimen>
     <dimen name="nc_height_120">120dp</dimen>
     <dimen name="nc_height_240">240dp</dimen>
+    <dimen name="nc_bottom_navigation_height">@dimen/design_bottom_navigation_height</dimen>
 
 </resources>

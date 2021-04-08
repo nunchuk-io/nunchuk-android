@@ -6,7 +6,19 @@
 
         <activity
             android:name=".add.AddWalletActivity"
-            android:label="@string/nc_create_wallet_title"
+            android:label="@string/nc_wallet_create_wallet_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/MainScreenTheme" />
+
+        <activity
+            android:name=".assign.AssignSignerActivity"
+            android:label="@string/nc_wallet_assign_signer_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/MainScreenTheme" />
+
+        <activity
+            android:name=".confirm.WalletConfirmActivity"
+            android:label="@string/nc_wallet_assign_signer_title"
             android:screenOrientation="portrait"
             android:theme="@style/MainScreenTheme" />
 

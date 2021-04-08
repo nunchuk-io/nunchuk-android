@@ -34,8 +34,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView"
-        tools:hint="Input Text Here"
-        tools:text="[A3C3B3D3/48h/0h/2h]xpub-xpub6EC33stJK4AJZrMNZEehWJe6JFTU3XdEbgDfCc3VoHytKqsQmsYAzH5zPNAS4TQudUzCMGiNH6Wrkt8f6kgGsBXSHLAXph32cQXjmEAd7wW" />
+        tools:hint="Input Text Here" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/errorText"

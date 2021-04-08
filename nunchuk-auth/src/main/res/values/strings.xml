@@ -17,7 +17,6 @@
     <string name="nc_text_stay_sign_in">Stay signed-in</string>
     <string name="nc_text_forgot_password">Forgot password?</string>
 
-    <string name="nc_text_required">Required</string>
     <string name="nc_text_name_invalid">Name is invalid</string>
     <string name="nc_text_email_invalid">Email is invalid</string>
     <string name="nc_text_password_does_not_match">Confirm password does not match</string>

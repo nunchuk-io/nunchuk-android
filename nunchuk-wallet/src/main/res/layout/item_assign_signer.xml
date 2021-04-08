@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="@dimen/nc_padding_8">
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/avatar"
+        android:layout_width="@dimen/nc_padding_48"
+        android:layout_height="@dimen/nc_padding_48"
+        android:background="@drawable/nc_circle_beeswax_light_background"
+        android:gravity="center"
+        android:textColor="@color/nc_black_color"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="TN" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/signerName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintStart_toEndOf="@+id/avatar"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Tom’s Trezor Model T" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/signerType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:background="@drawable/nc_rounded_whisper_background"
+        android:paddingHorizontal="@dimen/nc_padding_8"
+        android:paddingVertical="@dimen/nc_padding_4"
+        android:text="Air-gapped signer"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_12"
+        app:layout_constraintStart_toEndOf="@+id/avatar"
+        app:layout_constraintTop_toBottomOf="@+id/signerName" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/xpf"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_14"
+        app:layout_constraintStart_toEndOf="@+id/avatar"
+        app:layout_constraintTop_toBottomOf="@+id/signerType"
+        tools:text="XFP: 79EB35F4" />
+
+    <CheckBox
+        android:id="@+id/checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:buttonTint="@color/nc_primary_color"
+        android:checked="false"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="@+id/avatar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/avatar"
+        tools:checked="true" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

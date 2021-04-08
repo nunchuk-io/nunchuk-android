@@ -3,4 +3,7 @@
     <string name="nc_text_done">Done</string>
     <string name="nc_text_save">Save</string>
     <string name="nc_text_got_it">Got it</string>
+    <string name="nc_text_continue">Continue</string>
+
+    <string name="nc_text_required">Required</string>
 </resources>

@@ -35,4 +35,8 @@ abstract class NunchukViewModel<State, Event> : ViewModel() {
         eventMutable.value = event
     }
 
+    protected fun getState(): State {
+        return stateMutable.value ?: initialState
+    }
+
 }
