@@ -6,7 +6,9 @@ sealed class AddSignerEvent {
         val signerSpec: String
     ) : AddSignerEvent()
 
-    object SignerExistedEvent : AddSignerEvent()
+    data class AddSignerErrorEvent(val message: String) : AddSignerEvent()
 
     object InvalidSignerSpecEvent : AddSignerEvent()
+
+    object SignerNameRequiredEvent : AddSignerEvent()
 }

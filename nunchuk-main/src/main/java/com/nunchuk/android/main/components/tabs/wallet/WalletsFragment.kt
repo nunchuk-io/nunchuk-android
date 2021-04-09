@@ -7,13 +7,13 @@ import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseFragment
 import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.main.databinding.FragmentWalletsBinding
-import com.nunchuk.android.signer.util.SignerMapper
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.core.util.showToast
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
+import com.nunchuk.android.model.toSpec
 import com.nunchuk.android.nav.NunchukNavigator
 import javax.inject.Inject
 
@@ -145,7 +145,7 @@ internal class WalletsFragment : BaseFragment() {
     }
 
     private fun openSignerInfoScreen(signer: SingleSigner) {
-        navigator.openSignerInfoScreen(requireActivity(), signer.name, SignerMapper.toSpec(signer))
+        navigator.openSignerInfoScreen(requireActivity(), signer.name, signer.toSpec())
     }
 
     override fun onResume() {

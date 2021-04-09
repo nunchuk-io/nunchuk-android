@@ -4,36 +4,28 @@ import com.nunchuk.android.model.SingleSigner
 
 import java.util.regex.Pattern
 
-object SignerMapper {
+internal data class SignerInput(val fingerPrint: String, val path: String, val xpub: String)
 
-    fun toSigner(input: String): SignerInput {
-        val pattern = Pattern.compile("^\\[([^/]+)/(.*)]xpub-([^/]+).*\$")
-        val matcher = pattern.matcher(input)
-        if (matcher.find()) {
-            val fingerPrint = requireNotNull(matcher.group(1))
-            val path = "m/${requireNotNull(matcher.group(2))}"
-            val xpub = requireNotNull(matcher.group(3))
-            return SignerInput(fingerPrint = fingerPrint, path = path, xpub = xpub)
-        }
-        throw InvalidSignerFormatException()
-    }
+internal class InvalidSignerFormatException : Exception()
 
-    fun toSpec(signer: SingleSigner): String {
-        val newPath = signer.derivationPath.replace("m/", "")
-        return "[${signer.masterFingerprint}/$newPath]xpub-${signer.xpub}"
+internal fun String.toSigner(): SignerInput {
+    val pattern = Pattern.compile("^\\[([^/]+)/(.*)]([^/]+).*\$")
+    val matcher = pattern.matcher(this)
+    if (matcher.find()) {
+        val fingerPrint = requireNotNull(matcher.group(1))
+        val path = "m/${requireNotNull(matcher.group(2))}"
+        val xpub = requireNotNull(matcher.group(3))
+        return SignerInput(fingerPrint = fingerPrint, path = path, xpub = xpub)
     }
-
-    fun toSingleSigner(name: String, spec: String): SingleSigner {
-        val signerInput = toSigner(spec)
-        return SingleSigner(
-            name = name,
-            xpub = signerInput.xpub,
-            derivationPath = signerInput.path,
-            masterFingerprint = signerInput.fingerPrint
-        )
-    }
+    throw InvalidSignerFormatException()
 }
 
-data class SignerInput(val fingerPrint: String, val path: String, val xpub: String)
-
-class InvalidSignerFormatException : Exception()
+internal fun String.toSingleSigner(name: String): SingleSigner {
+    val signerInput = toSigner()
+    return SingleSigner(
+        name = name,
+        xpub = signerInput.xpub,
+        derivationPath = signerInput.path,
+        masterFingerprint = signerInput.fingerPrint
+    )
+}

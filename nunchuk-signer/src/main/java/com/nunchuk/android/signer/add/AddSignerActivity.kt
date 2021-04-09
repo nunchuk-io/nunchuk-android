@@ -8,9 +8,9 @@ import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.util.showToast
-import com.nunchuk.android.signer.add.AddSignerEvent.*
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.add.AddSignerEvent.*
 import com.nunchuk.android.signer.databinding.ActivityAddSignerBinding
 import javax.inject.Inject
 
@@ -44,7 +44,8 @@ class AddSignerActivity : BaseActivity() {
             when (it) {
                 is AddSignerSuccessEvent -> openSignerInfo(it.signerName, it.signerSpec)
                 InvalidSignerSpecEvent -> binding.signerSpec.setError(getString(R.string.nc_error_invalid_signer_spec))
-                SignerExistedEvent -> binding.signerSpec.setError(getString(R.string.nc_error_signer_existed))
+                is AddSignerErrorEvent -> showToast(it.message)
+                SignerNameRequiredEvent -> binding.signerName.setError(getString(R.string.nc_text_required))
             }
         }
     }

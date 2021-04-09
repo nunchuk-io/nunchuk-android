@@ -10,3 +10,8 @@ data class SingleSigner(
         var masterSignerId: String = "",
         var used: Boolean = false
 )
+
+fun SingleSigner.toSpec(): String {
+        val newPath = derivationPath.replace("m/", "")
+        return "[$masterFingerprint/$newPath]$xpub"
+}
