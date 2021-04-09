@@ -4,10 +4,11 @@ import android.content.Context
 import android.os.Bundle
 import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.signer.util.SignerInput
-import com.nunchuk.android.signer.util.SignerMapper
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ActivitySignerInfoBinding
+import com.nunchuk.android.signer.util.toSigner
+import com.nunchuk.android.signer.util.toSingleSigner
 import com.nunchuk.android.usecase.DeleteRemoteSignerUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.widget.NCToastMessage
@@ -38,7 +39,7 @@ class SignerInfoActivity : BaseActivity() {
     }
 
     private fun setupViews() {
-        val signer = SignerMapper.toSigner(args.signerSpec)
+        val signer = args.signerSpec.toSigner()
         binding.signerName.text = args.signerName
         binding.signerSpec.text = args.signerSpec
         binding.btnDone.setOnClickListener { finish() }
@@ -60,7 +61,7 @@ class SignerInfoActivity : BaseActivity() {
     private fun onEditCompleted(updateSignerName: String) {
         if (updateSignerName.isNotEmpty() && updateSignerName != args.signerName) {
             GlobalScope.launch {
-                val result = updateRemoteSignerUseCase.execute(SignerMapper.toSingleSigner(updateSignerName, args.signerSpec))
+                val result = updateRemoteSignerUseCase.execute(args.signerSpec.toSingleSigner(updateSignerName))
                 if (result is Result.Success) {
                     binding.signerName.text = updateSignerName
                     showEditSignerNameSuccess()
