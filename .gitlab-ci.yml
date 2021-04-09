@@ -23,6 +23,8 @@ variables:
 before_script:
   
   # Not necessary, but just for surity
+  - echo "sdk.dir=${ANDROID_HOME}" >> local.properties
+  - echo "ndk.dir=${ANDROID_NDK_HOME}" >> local.properties
   - chmod +x ./gradlew
   
   # Add libnunchuk and build deps
