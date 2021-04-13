@@ -75,20 +75,21 @@
         android:id="@+id/divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="@dimen/nc_padding_18"
+        android:layout_marginTop="@dimen/nc_padding_16"
         android:background="#EAEAEA"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/requiredSignerDesc" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/assignSignerDesc"
-        android:layout_marginTop="@dimen/nc_padding_18"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_16"
         android:padding="@dimen/nc_padding_4"
         android:text="@string/nc_wallet_assign_signer_desc"
         android:textColor="@color/nc_black_color"
         android:textSize="@dimen/nc_text_size_14"
+        app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/divider" />
 
@@ -98,12 +99,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/assignSignerDesc">
-
-        <include layout="@layout/item_assign_signer" />
-
-        <include layout="@layout/item_assign_signer" />
-    </androidx.appcompat.widget.LinearLayoutCompat>
+        app:layout_constraintTop_toBottomOf="@+id/assignSignerDesc" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -124,7 +120,7 @@
             android:textSize="@dimen/nc_text_size_14" />
 
         <com.nunchuk.android.widget.NCFontTextView
-            android:id="@+id/required_signers_counter"
+            android:id="@+id/totalRequireSigns"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingHorizontal="@dimen/nc_text_size_16"

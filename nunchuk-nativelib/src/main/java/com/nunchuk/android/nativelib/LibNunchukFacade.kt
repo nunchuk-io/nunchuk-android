@@ -2,6 +2,7 @@ package com.nunchuk.android.nativelib
 
 import com.nunchuk.android.model.AppSettings
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.type.AddressType
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,13 +38,29 @@ internal class LibNunchukFacade @Inject constructor(
 
     fun getRemoteSigner() = nunchukAndroid.getRemoteSigner()
 
-    fun getRemoteSigners(): List<SingleSigner> = nunchukAndroid.getRemoteSigners(ArrayList())
+    fun getRemoteSigners(): List<SingleSigner> = nunchukAndroid.getRemoteSigners()
 
     fun updateSigner(signer: SingleSigner) {
         nunchukAndroid.updateSigner(signer)
     }
 
-    fun getWallets() = nunchukAndroid.getWallets(ArrayList())
+    fun createWallet(
+        name: String,
+        totalRequireSigns: Int,
+        signers: List<SingleSigner>,
+        addressType: AddressType,
+        isEscrow: Boolean,
+        description: String
+    ) = nunchukAndroid.createWallet(
+        name = name,
+        totalRequireSigns = totalRequireSigns,
+        signers = signers,
+        addressType = addressType.ordinal,
+        isEscrow = isEscrow,
+        description = description
+    )
+
+    fun getWallets() = nunchukAndroid.getWallets()
 
     fun deleteRemoteSigner(masterFingerprint: String, derivationPath: String) {
         nunchukAndroid.deleteRemoteSigner(masterFingerprint, derivationPath)

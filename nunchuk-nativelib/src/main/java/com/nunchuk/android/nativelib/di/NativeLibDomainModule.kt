@@ -34,4 +34,7 @@ internal interface NativeLibDomainModule {
     @Binds
     fun bindGetWalletsUseCase(useCase: GetWalletsUseCaseImpl): GetWalletsUseCase
 
+    @Binds
+    fun bindCreateWalletUseCase(useCase: CreateWalletUseCaseImpl): CreateWalletUseCase
+
 }

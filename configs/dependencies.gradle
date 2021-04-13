@@ -51,15 +51,15 @@ ext {
 
     ]
 
-    // all jacoco core newer than 0.8.1 is incompatible with instant run, don't upgrade yet
     pluginsDeps = [
-            gradleAndroid     : "com.android.tools.build:gradle:${gradleVersion}",
-            googleServices    : "com.google.gms:google-services:${googleServiceVersion}",
-            playServicesAds   : "com.google.android.gms:play-services-ads:${playServiceVersion}",
-            gradleCpd         : "de.aaschmid:gradle-cpd-plugin:${gradleCpdVersion}",
-            jacocoReport      : "org.jacoco:org.jacoco.core:${jacocoReportVersion}",
-            detektGradlePlugin: "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:${detektGradleVersion}",
-            crashlytics       : "com.google.firebase:firebase-crashlytics-gradle:2.5.1"
+            gradleAndroid       : "com.android.tools.build:gradle:${gradleVersion}",
+            googleServices      : "com.google.gms:google-services:${googleServiceVersion}",
+            playServicesAds     : "com.google.android.gms:play-services-ads:${playServiceVersion}",
+            gradleCpd           : "de.aaschmid:gradle-cpd-plugin:${gradleCpdVersion}",
+            jacocoReport        : "org.jacoco:org.jacoco.core:${jacocoReportVersion}",
+            detektGradlePlugin  : "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:${detektGradleVersion}",
+            crashlytics         : "com.google.firebase:firebase-crashlytics-gradle:2.5.1",
+            kotlinAndroidRuntime: "org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.30"
     ]
 
     kotlinDeps = [
@@ -84,6 +84,11 @@ ext {
             constraintLayout     : "androidx.constraintlayout:constraintlayout:${constraintLayoutVersion}",
             multidex             : "androidx.multidex:multidex:${mutlidexVersion}",
             localbroadcastManager: "androidx.localbroadcastmanager:localbroadcastmanager:${androidxVersion}",
+    ]
+
+    navigationDeps = [
+            navigationUi      : 'androidx.navigation:navigation-ui-ktx:2.3.4',
+            navigationFragment: 'androidx.navigation:navigation-fragment-ktx:2.3.4'
     ]
 
     espressoDeps = [

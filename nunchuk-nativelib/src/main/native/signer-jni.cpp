@@ -54,14 +54,10 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getRemoteSigner(
 
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getRemoteSigners(
-        JNIEnv *env,
-        jobject thiz,
-        jobject result
-) {
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getRemoteSigners(JNIEnv *env, jobject thiz, jobject result) {
     syslog(LOG_DEBUG, "[JNI]getRemoteSigner()");
     auto signers = NunchukProvider::get()->nu->GetRemoteSigners();
-    return Deserializer::convert2JSigners(env, signers, result);
+    return Deserializer::convert2JSigners(env, signers);
 }
 
 extern "C"

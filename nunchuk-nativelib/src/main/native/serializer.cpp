@@ -7,7 +7,46 @@
 
 using namespace nunchuk;
 
-Chain Serializer::intToChain(jint ordinal) {
+WalletType Serializer::convert2CWalletType(jint ordinal) {
+    syslog(LOG_DEBUG, "[JNI][Serializer::convert2CWalletType]ordinal:: %d", ordinal);
+    WalletType type;
+    switch (ordinal) {
+        case 0:
+            type = WalletType::SINGLE_SIG;
+            break;
+        case 1:
+            type = WalletType::MULTI_SIG;
+            break;
+        default:
+            type = WalletType::ESCROW;
+            break;
+    }
+    return type;
+}
+
+AddressType Serializer::convert2CAddressType(jint ordinal) {
+    syslog(LOG_DEBUG, "[JNI][Serializer::convert2CAddressType]ordinal:: %d", ordinal);
+    AddressType type;
+    switch (ordinal) {
+        case 0:
+            type = AddressType::ANY;
+            break;
+        case 1:
+            type = AddressType::LEGACY;
+            break;
+        case 2:
+            type = AddressType::NESTED_SEGWIT;
+            break;
+        default:
+            type = AddressType::NATIVE_SEGWIT;
+            break;
+    }
+    syslog(LOG_DEBUG, "[JNI][Serializer::convert2CAddressType]ordinal:: %d", type);
+    return type;
+}
+
+Chain Serializer::convert2CChain(jint ordinal) {
+    syslog(LOG_DEBUG, "[JNI][Serializer::convert2CChain]ordinal:: %d", ordinal);
     Chain chain;
     switch (ordinal) {
         case 0:
@@ -23,13 +62,13 @@ Chain Serializer::intToChain(jint ordinal) {
     return chain;
 }
 
-BackendType Serializer::intToBackendType(jint ordinal) {
+BackendType Serializer::convert2CBackendType(jint ordinal) {
+    syslog(LOG_DEBUG, "[JNI][Serializer::convert2CBackendType]ordinal:: %d", ordinal);
     return ordinal == 0 ? BackendType::ELECTRUM : BackendType::CORERPC;
 }
 
 SingleSigner Serializer::convert2CSigner(JNIEnv *env, jobject signer) {
-    jclass clazz = env->GetObjectClass(signer);
-    //jclass clazz = env->FindClass("com/nunchuk/android/model/SingleSigner");
+    jclass clazz = env->FindClass("com/nunchuk/android/model/SingleSigner");
 
     jfieldID fieldName = env->GetFieldID(clazz, "name", "Ljava/lang/String;");
     auto nameVal = (jstring) env->GetObjectField(signer, fieldName);
@@ -63,4 +102,20 @@ SingleSigner Serializer::convert2CSigner(JNIEnv *env, jobject signer) {
     env->ReleaseStringUTFChars(derivationPathVal, derivation_path);
     env->ReleaseStringUTFChars(masterFingerprintVal, master_fingerprint);
     return singleSigner;
+}
+
+std::vector<SingleSigner> Serializer::convert2CSigners(JNIEnv *env, jobject signers) {
+    jclass cList = env->FindClass("java/util/List");
+
+    jmethodID sizeMethod = env->GetMethodID(cList, "size", "()I");
+    jmethodID getMethod = env->GetMethodID(cList, "get", "(I)Ljava/lang/Object;");
+
+    jint size = env->CallIntMethod(signers, sizeMethod);
+    std::vector<SingleSigner> result;
+    for (jint i = 0; i < size; i++) {
+        auto item = (jobject) env->CallObjectMethod(signers, getMethod, i);
+        const SingleSigner singleSigner = Serializer::convert2CSigner(env, item);
+        result.push_back(singleSigner);
+    }
+    return result;
 }
