@@ -20,13 +20,13 @@ internal class SignInViewModel @Inject constructor(
 
     override val initialState = Unit
 
-    fun validateEmail(email: String) = when {
+    private fun validateEmail(email: String) = when {
         email.isBlank() -> doAfterValidate(false) { event(EmailRequiredEvent) }
         !emailValidator.valid(email) -> doAfterValidate(false) { event(EmailInvalidEvent) }
         else -> doAfterValidate { event(EmailValidEvent) }
     }
 
-    fun validatePassword(password: String) = when {
+    private fun validatePassword(password: String) = when {
         password.isBlank() -> doAfterValidate(false) { event(PasswordRequiredEvent) }
         else -> doAfterValidate { event(PasswordValidEvent) }
     }

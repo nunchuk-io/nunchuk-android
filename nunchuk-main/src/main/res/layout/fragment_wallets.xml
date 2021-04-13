@@ -99,6 +99,7 @@
             android:layout_marginTop="@dimen/nc_padding_8"
             android:drawableEnd="@drawable/ic_plus"
             android:paddingVertical="@dimen/nc_padding_8"
+            app:fontTextStyle="semi_bold"
             android:text="@string/nc_title_wallets"
             android:textColor="@color/nc_black_color"
             android:textSize="@dimen/nc_text_size_16"
@@ -136,7 +137,8 @@
             android:paddingVertical="@dimen/nc_padding_8"
             android:text="@string/nc_title_signers"
             android:textColor="@color/nc_black_color"
-            android:textSize="@dimen/nc_text_size_16" />
+            android:textSize="@dimen/nc_text_size_16"
+            app:fontTextStyle="semi_bold" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/signerEmpty"

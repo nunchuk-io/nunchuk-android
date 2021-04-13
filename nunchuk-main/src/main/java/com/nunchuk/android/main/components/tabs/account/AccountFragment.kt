@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseFragment
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.main.databinding.FragmentAccountBinding
+import com.nunchuk.android.nav.NunchukNavigator
 import javax.inject.Inject
 
 internal class AccountFragment : BaseFragment() {
@@ -15,7 +16,10 @@ internal class AccountFragment : BaseFragment() {
     @Inject
     lateinit var factory: NunchukFactory
 
-    private val accountViewModel: AccountViewModel by lazy {
+    @Inject
+    lateinit var navigator: NunchukNavigator
+
+    private val viewModel: AccountViewModel by lazy {
         ViewModelProviders.of(this, factory).get(AccountViewModel::class.java)
     }
 
@@ -25,12 +29,29 @@ internal class AccountFragment : BaseFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentAccountBinding.inflate(inflater, container, false)
-        val root: View = binding.root
+        return binding.root
+    }
 
-        accountViewModel.text.observe(viewLifecycleOwner, {
-            binding.textAccount.text = it
-        })
-        return root
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupViews()
+        observeEvent()
+    }
+
+    private fun observeEvent() {
+        viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
+    }
+
+    private fun handleEvent(event: AccountEvent) {
+        if (event == AccountEvent.SignOutEvent) {
+            val activity = requireActivity()
+            navigator.openSignInScreen(activity)
+            activity.finish()
+        }
+    }
+
+    private fun setupViews() {
+        binding.btnSignOut.setOnClickListener { viewModel.handleSignOutEvent() }
     }
 
     override fun onDestroyView() {

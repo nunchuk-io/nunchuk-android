@@ -3,6 +3,8 @@ package com.nunchuk.android.signer.add
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputFilter
+import android.text.InputType
 import android.widget.EditText
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
@@ -12,6 +14,7 @@ import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.add.AddSignerEvent.*
 import com.nunchuk.android.signer.databinding.ActivityAddSignerBinding
+import com.nunchuk.android.widget.util.SimpleTextWatcher
 import javax.inject.Inject
 
 class AddSignerActivity : BaseActivity() {
@@ -56,15 +59,31 @@ class AddSignerActivity : BaseActivity() {
     }
 
     private fun setupViews() {
+        binding.signerName.getEditTextView().filters = arrayOf(InputFilter.LengthFilter(MAX_LENGTH))
+        updateCounter(0)
+        binding.signerName.addTextChangedListener(object : SimpleTextWatcher() {
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                updateCounter(s.length)
+            }
+        })
+
         binding.addSignerViaQR.setOnClickListener { showToast("Scan QR coming soon") }
         val specContainer: EditText = binding.signerSpec.findViewById(R.id.editText)
+        specContainer.isSingleLine = false
+        specContainer.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
         specContainer.layoutParams.height = resources.getDimensionPixelSize(R.dimen.nc_height_240)
         binding.addSigner.setOnClickListener {
             viewModel.handleAddSigner(binding.signerName.getEditText(), binding.signerSpec.getEditText())
         }
     }
 
+    private fun updateCounter(length: Int) {
+        val counterValue = "$length/$MAX_LENGTH"
+        binding.signerNameCounter.text = counterValue
+    }
+
     companion object {
+        private const val MAX_LENGTH = 20
         fun start(activityContext: Context) {
             activityContext.startActivity(Intent(activityContext, AddSignerActivity::class.java))
         }
