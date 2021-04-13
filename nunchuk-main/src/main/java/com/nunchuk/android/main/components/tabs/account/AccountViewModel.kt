@@ -1,15 +1,18 @@
 package com.nunchuk.android.main.components.tabs.account
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.account.AccountManager
 import javax.inject.Inject
 
 internal class AccountViewModel @Inject constructor(
-) : ViewModel() {
+    private val accountManager: AccountManager
+) : NunchukViewModel<Unit, AccountEvent>() {
 
-    private val _text = MutableLiveData<String>().apply {
-        value = "This is account page"
+    override val initialState = Unit
+
+    fun handleSignOutEvent() {
+        accountManager.signOut()
+        event(AccountEvent.SignOutEvent)
     }
-    val text: LiveData<String> = _text
+
 }

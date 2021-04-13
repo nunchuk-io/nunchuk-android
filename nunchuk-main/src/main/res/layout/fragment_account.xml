@@ -4,20 +4,21 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="@dimen/nc_text_size_16"
     tools:context=".components.tabs.account.AccountFragment">
 
-    <TextView
-        android:id="@+id/textAccount"
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btnSignOut"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:background="@drawable/nc_rounded_light_background"
         android:gravity="center"
-        android:text="@string/nc_title_account"
-        android:textSize="20sp"
+        android:padding="@dimen/nc_padding_16"
+        android:text="@string/nc_text_sign_out"
+        android:textAllCaps="false"
+        android:textColor="@color/nc_primary_color"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

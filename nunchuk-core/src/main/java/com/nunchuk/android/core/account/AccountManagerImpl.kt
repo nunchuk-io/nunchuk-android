@@ -13,6 +13,8 @@ interface AccountManager {
     fun getAccount(): AccountInfo
 
     fun storeAccount(accountInfo: AccountInfo)
+
+    fun signOut()
 }
 
 @Singleton
@@ -30,6 +32,10 @@ class AccountManagerImpl @Inject constructor(
 
     override fun storeAccount(accountInfo: AccountInfo) {
         accountSharedPref.storeAccountInfo(accountInfo)
+    }
+
+    override fun signOut() {
+        accountSharedPref.clearAccountInfo()
     }
 
 }
