@@ -2,28 +2,24 @@ package com.nunchuk.android.signer.details
 
 import android.content.Context
 import android.os.Bundle
+import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
-import com.nunchuk.android.signer.util.SignerInput
-import com.nunchuk.android.model.Result
+import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ActivitySignerInfoBinding
 import com.nunchuk.android.signer.util.toSigner
-import com.nunchuk.android.signer.util.toSingleSigner
-import com.nunchuk.android.usecase.DeleteRemoteSignerUseCase
-import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.widget.NCToastMessage
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class SignerInfoActivity : BaseActivity() {
 
-    // TODO add ViewModel
     @Inject
-    lateinit var deleteRemoteSignerUseCase: DeleteRemoteSignerUseCase
+    lateinit var factory: NunchukFactory
 
-    @Inject
-    lateinit var updateRemoteSignerUseCase: UpdateRemoteSignerUseCase
+    private val viewModel: SignerInfoViewModel by lazy {
+        ViewModelProviders.of(this, factory).get(SignerInfoViewModel::class.java)
+    }
 
     private lateinit var binding: ActivitySignerInfoBinding
 
@@ -36,6 +32,24 @@ class SignerInfoActivity : BaseActivity() {
         setContentView(binding.root)
 
         setupViews()
+
+        observeEvent()
+        viewModel.init(args.signerSpec)
+
+    }
+
+    private fun observeEvent() {
+        viewModel.event.observe(this) {
+            when (it) {
+                is SignerInfoEvent.UpdateNameSuccessEvent -> {
+                    binding.signerName.text = it.signerName
+                    showEditSignerNameSuccess()
+                }
+                SignerInfoEvent.RemoveSignerCompletedEvent -> finish()
+                is SignerInfoEvent.RemoveSignerErrorEvent -> showToast(it.message)
+                is SignerInfoEvent.UpdateNameErrorEvent -> showToast(it.message)
+            }
+        }
     }
 
     private fun setupViews() {
@@ -43,7 +57,7 @@ class SignerInfoActivity : BaseActivity() {
         binding.signerName.text = args.signerName
         binding.signerSpec.text = args.signerSpec
         binding.btnDone.setOnClickListener { finish() }
-        binding.btnRemove.setOnClickListener { handleRemoveSigner(signer) }
+        binding.btnRemove.setOnClickListener { viewModel.handleRemoveSigner(signer) }
         binding.signerName.setOnClickListener { onEditClicked() }
         if (args.justAdded) {
             NCToastMessage(this).show(R.string.nc_text_add_signer_success)
@@ -55,30 +69,11 @@ class SignerInfoActivity : BaseActivity() {
             fragmentManager = supportFragmentManager,
             signerName = binding.signerName.text.toString()
         )
-        bottomSheet.setListener(::onEditCompleted)
-    }
-
-    private fun onEditCompleted(updateSignerName: String) {
-        if (updateSignerName.isNotEmpty() && updateSignerName != args.signerName) {
-            GlobalScope.launch {
-                val result = updateRemoteSignerUseCase.execute(args.signerSpec.toSingleSigner(updateSignerName))
-                if (result is Result.Success) {
-                    binding.signerName.text = updateSignerName
-                    showEditSignerNameSuccess()
-                }
-            }
-        }
+        bottomSheet.setListener(viewModel::handleEditCompletedEvent)
     }
 
     private fun showEditSignerNameSuccess() {
         binding.signerName.post { NCToastMessage(this).show(R.string.nc_text_change_signer_success) }
-    }
-
-    private fun handleRemoveSigner(signer: SignerInput) {
-        GlobalScope.launch {
-            deleteRemoteSignerUseCase.execute(masterFingerprint = signer.fingerPrint, derivationPath = signer.derivationPath)
-        }
-        finish()
     }
 
     companion object {
