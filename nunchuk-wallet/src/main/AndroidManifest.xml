@@ -18,7 +18,7 @@
 
         <activity
             android:name=".confirm.WalletConfirmActivity"
-            android:label="@string/nc_wallet_assign_signer_title"
+            android:label="@string/nc_wallet_review_wallet_title"
             android:screenOrientation="portrait"
             android:theme="@style/MainScreenTheme" />
 

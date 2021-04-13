@@ -1,7 +1,6 @@
 package com.nunchuk.android.wallet.assign
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
@@ -51,27 +50,34 @@ class AssignSignerActivity : BaseActivity() {
 
     private fun handleEvent(event: AssignSignerEvent) {
         when (event) {
-            is AssignSignerCompletedEvent -> openWalletConfirmScreen(event.requiredSignersNumber, event.signers)
+            is AssignSignerCompletedEvent -> openWalletConfirmScreen(event.totalRequireSigns, event.selectedSigners)
         }
     }
 
-    private fun openWalletConfirmScreen(requiredSignersNumber: Int, signers: List<SingleSigner>) {
-
+    private fun openWalletConfirmScreen(totalRequireSigns: Int, signers: List<SingleSigner>) {
+        navigator.openWalletConfirmScreen(
+            activityContext = this,
+            walletName = args.walletName,
+            walletType = args.walletType,
+            addressType = args.addressType,
+            totalRequireSigns = totalRequireSigns,
+            signers = signers
+        )
     }
 
     private fun handleState(state: AssignSignerState) {
         bindSigners(state.signers, state.selectedPFXs)
-        bindRequiredSignersInput(state.requiredSignersNumber)
-        val requiredSignersCounterValue = "${state.requiredSignersNumber}/${state.selectedPFXs.size} ${getString(R.string.nc_wallet_multisig)}"
-        binding.requiredSignersCounter.text = requiredSignersCounterValue
+        bindTotalRequireSigns(state.totalRequireSigns)
+        val totalRequireSignsValue = "${state.totalRequireSigns}/${state.selectedPFXs.size} ${getString(R.string.nc_wallet_multisig)}"
+        binding.totalRequireSigns.text = totalRequireSignsValue
     }
 
-    private fun bindRequiredSignersInput(requiredSignersNumber: Int) {
+    private fun bindTotalRequireSigns(totalRequireSigns: Int) {
         binding.requiredSingerInput.text?.apply {
             clear()
-            append("$requiredSignersNumber")
+            append("$totalRequireSigns")
         }
-        binding.requiredSingerInput.isEnabled = requiredSignersNumber == 0
+        binding.requiredSingerInput.isEnabled = totalRequireSigns == 0
     }
 
     private fun bindSigners(signers: List<SingleSigner>, selectedPFXs: List<String>) {
@@ -84,16 +90,16 @@ class AssignSignerActivity : BaseActivity() {
         binding.iconMinus.setOnClickListener { viewModel.handleDecreaseRequiredSigners() }
         binding.requiredSingerInput.addTextChangedListener(object : SimpleTextWatcher() {
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                viewModel.updateRequiredSingerInput("$s")
+                viewModel.updateTotalRequireSigns("$s")
             }
         })
+        binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }
     }
 
     companion object {
 
         fun start(activityContext: Context, walletName: String, walletType: WalletType, addressType: AddressType) {
-            AssignSignerArgs(walletName, walletType, addressType)
-            activityContext.startActivity(Intent(activityContext, AssignSignerActivity::class.java))
+            activityContext.startActivity(AssignSignerArgs(walletName, walletType, addressType).buildIntent(activityContext))
         }
     }
 

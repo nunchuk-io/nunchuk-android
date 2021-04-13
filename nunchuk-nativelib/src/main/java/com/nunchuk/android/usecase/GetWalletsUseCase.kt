@@ -13,10 +13,7 @@ internal class GetWalletsUseCaseImpl @Inject constructor(
     private val facade: LibNunchukFacade
 ) : BaseUseCase(), GetWalletsUseCase {
 
-    override suspend fun execute(): Result<List<Wallet>> {
-        return Result.Success(emptyList())
-        //return exe { facade.getWalllets() }
-    }
+    override suspend fun execute() = exe { facade.getWallets() }
 
 }
 

@@ -10,6 +10,7 @@ import com.nunchuk.android.signer.util.SignerInput
 import com.nunchuk.android.signer.util.toSigner
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import kotlinx.coroutines.launch
+import java.util.*
 import javax.inject.Inject
 
 internal class AddSignerViewModel @Inject constructor(
@@ -29,8 +30,8 @@ internal class AddSignerViewModel @Inject constructor(
             val result = createSignerUseCase.execute(
                 name = signerName,
                 xpub = signerInput.xpub,
-                derivationPath = signerInput.path,
-                masterFingerprint = signerInput.fingerPrint,
+                derivationPath = signerInput.derivationPath,
+                masterFingerprint = signerInput.fingerPrint.toLowerCase(Locale.getDefault()),
                 publicKey = ""
             )
             if (result is Result.Success) {

@@ -11,12 +11,11 @@ dependencies {
     implementation project(':nunchuk-signer')
     implementation project(':nunchuk-widget')
 
-    implementation 'androidx.navigation:navigation-ui-ktx:2.3.4'
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.3.4'
+    implementation navigationDeps.navigationUi
+    implementation navigationDeps.navigationFragment
 
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()
-    implementation reactiveDeps.rxAndroid2
     implementation networkDeps.values()
 
     testImplementation otherTestDeps.junit

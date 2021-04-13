@@ -76,7 +76,7 @@ class SignerInfoActivity : BaseActivity() {
 
     private fun handleRemoveSigner(signer: SignerInput) {
         GlobalScope.launch {
-            deleteRemoteSignerUseCase.execute(masterFingerprint = signer.fingerPrint, derivationPath = signer.path)
+            deleteRemoteSignerUseCase.execute(masterFingerprint = signer.fingerPrint, derivationPath = signer.derivationPath)
         }
         finish()
     }

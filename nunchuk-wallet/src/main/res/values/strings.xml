@@ -27,4 +27,10 @@
     <string name="nc_wallet_assign_signer_desc">Assign at least 1 signer to the wallet.</string>
     <string name="nc_wallet_required_signer_desc">Number of Signatures \nRequired to Unlock Funds</string>
     <string name="nc_wallet_required_signers">Required signers</string>
+
+    <string name="nc_wallet_review_wallet_title">Review Wallet</string>
+    <string name="nc_wallet_assigned_signers">Assigned signers</string>
+    <string name="nc_wallet_multisig_configuration">Multisig configuration</string>
+    <string name="nc_wallet_has_been_created">Wallet has been created</string>
+    <string name="nc_wallet_create_wallet">Create wallet</string>
 </resources>

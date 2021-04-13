@@ -111,7 +111,7 @@ internal class WalletsFragment : BaseFragment() {
         if (wallets.isEmpty()) {
             showWalletsEmptyView()
         } else {
-            showWalletsListView()
+            showWalletsListView(wallets)
         }
     }
 
@@ -120,9 +120,10 @@ internal class WalletsFragment : BaseFragment() {
         binding.walletList.visibility = View.GONE
     }
 
-    private fun showWalletsListView() {
-        binding.walletEmpty.visibility = View.VISIBLE
-        binding.walletList.visibility = View.GONE
+    private fun showWalletsListView(wallets: List<Wallet>) {
+        binding.walletEmpty.visibility = View.GONE
+        binding.walletList.visibility = View.VISIBLE
+        WalletsViewBinder(binding.walletList, wallets).bindItems()
     }
 
     private fun showSigners(signers: List<SingleSigner>) {

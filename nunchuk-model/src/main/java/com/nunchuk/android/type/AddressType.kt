@@ -4,5 +4,5 @@ enum class AddressType {
     ANY,
     LEGACY,
     NESTED_SEGWIT,
-    NATIVE_SEGWIT,
+    NATIVE_SEGWIT
 }

@@ -1,8 +1,10 @@
 package com.nunchuk.android.main.components.tabs.wallet
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
+import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.usecase.GetRemoteSignersUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
@@ -14,8 +16,6 @@ internal class WalletsViewModel @Inject constructor(
     private val getWalletsUseCase: GetWalletsUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
 
-    private var walletsState = WalletsState()
-
     override val initialState = WalletsState()
 
     fun retrieveData() {
@@ -25,17 +25,29 @@ internal class WalletsViewModel @Inject constructor(
 
     private fun getSigners() {
         viewModelScope.launch {
-            val result = getRemoteSignersUseCase.execute()
-            walletsState = walletsState.copy(signers = if (result is Success) result.data else emptyList())
-            updateState { walletsState }
+            when (val result = getRemoteSignersUseCase.execute()) {
+                is Success -> {
+                    updateState { copy(signers = result.data) }
+                }
+                is Result.Error -> {
+                    updateState { copy(signers = emptyList()) }
+                    Log.e(TAG, "get signers error: ${result.exception.message}")
+                }
+            }
         }
     }
 
     private fun getWallets() {
         viewModelScope.launch {
-            val result = getWalletsUseCase.execute()
-            walletsState = walletsState.copy(wallets = if (result is Success) result.data else emptyList())
-            updateState { walletsState }
+            when (val result = getWalletsUseCase.execute()) {
+                is Success -> {
+                    updateState { copy(wallets = result.data) }
+                }
+                is Result.Error -> {
+                    updateState { copy(wallets = emptyList()) }
+                    Log.e(TAG, "get wallets error: ${result.exception.message}")
+                }
+            }
         }
     }
 
@@ -63,6 +75,9 @@ internal class WalletsViewModel @Inject constructor(
         }
     }
 
-    private fun hasSigner() = walletsState.signers.isNotEmpty()
+    private fun hasSigner() = getState().signers.isNotEmpty()
 
+    companion object {
+        private const val TAG = "WalletsViewModel"
+    }
 }

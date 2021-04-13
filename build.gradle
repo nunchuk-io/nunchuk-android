@@ -16,6 +16,7 @@ buildscript {
         classpath kotlinDeps.plugin
         classpath pluginsDeps.googleServices
         classpath pluginsDeps.crashlytics
+        classpath pluginsDeps.kotlinAndroidRuntime
     }
 }
 
