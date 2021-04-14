@@ -1,16 +1,41 @@
 package com.nunchuk.android.usecase
 
+import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.nativelib.LibNunchukFacade
 import com.nunchuk.android.type.AddressType
+import javax.inject.Inject
 
 interface DraftWalletUseCase {
-    fun execute(
-            name: String,
-            m: Int,
-            n: Int,
-            signers: List<SingleSigner>,
-            address_type: AddressType,
-            is_escrow: Boolean,
-            description: String = ""
-    ): String
+    suspend fun execute(
+        name: String,
+        totalRequireSigns: Int,
+        signers: List<SingleSigner>,
+        addressType: AddressType,
+        isEscrow: Boolean,
+        description: String = ""
+    ): Result<String>
+}
+
+internal class DraftWalletUseCaseImpl @Inject constructor(
+    private val facade: LibNunchukFacade
+) : BaseUseCase(), DraftWalletUseCase {
+
+    override suspend fun execute(
+        name: String,
+        totalRequireSigns: Int,
+        signers: List<SingleSigner>,
+        addressType: AddressType,
+        isEscrow: Boolean,
+        description: String
+    ) = exe {
+        facade.draftWallet(
+            name = name,
+            totalRequireSigns = totalRequireSigns,
+            signers = signers,
+            addressType = addressType,
+            isEscrow = isEscrow,
+            description = description
+        )
+    }
 }

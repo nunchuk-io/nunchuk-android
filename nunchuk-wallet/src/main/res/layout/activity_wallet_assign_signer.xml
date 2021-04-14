@@ -93,22 +93,33 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/divider" />
 
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:id="@+id/signersContainer"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:layout_height="0dp"
+        android:clipToPadding="true"
+        android:fillViewport="true"
+        android:fitsSystemWindows="true"
+        android:paddingBottom="@dimen/nc_padding_4"
+        app:layout_constraintBottom_toTopOf="@+id/totalRequireSignsContainer"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/assignSignerDesc" />
+        app:layout_constraintTop_toBottomOf="@+id/assignSignerDesc">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/signersContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </androidx.core.widget.NestedScrollView>
 
     <LinearLayout
+        android:id="@+id/totalRequireSignsContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/nc_padding_20"
-        app:layout_constraintBottom_toTopOf="@+id/btnContinue"
-        android:orientation="horizontal"
         android:gravity="center"
-        app:layout_constraintStart_toStartOf="parent" >
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/btnContinue"
+        app:layout_constraintStart_toStartOf="parent">
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/currentConfig"
@@ -123,9 +134,9 @@
             android:id="@+id/totalRequireSigns"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@drawable/nc_rounded_whisper_background"
             android:paddingHorizontal="@dimen/nc_text_size_16"
             android:paddingVertical="@dimen/nc_padding_4"
-            android:background="@drawable/nc_rounded_whisper_background"
             android:text="@string/nc_wallet_multisig"
             android:textColor="@color/nc_black_color"
             android:textSize="@dimen/nc_text_size_14"

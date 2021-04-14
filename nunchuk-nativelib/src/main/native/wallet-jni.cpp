@@ -20,6 +20,33 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getWallets(JNIEnv *env, job
 }
 
 extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_draftWallet(
+        JNIEnv *env,
+        jobject thiz,
+        jstring name,
+        jint total_require_signs,
+        jobject signers,
+        jint address_type,
+        jboolean is_escrow,
+        jstring description
+) {
+
+    const std::vector<SingleSigner> &singleSigners = Serializer::convert2CSigners(env, signers);
+    AddressType type = Serializer::convert2CAddressType(address_type);
+    auto filePath = NunchukProvider::get()->nu->DraftWallet(
+            env->GetStringUTFChars(name, nullptr),
+            singleSigners.size(),
+            total_require_signs,
+            singleSigners,
+            type,
+            is_escrow,
+            env->GetStringUTFChars(description, nullptr)
+    );
+    return env->NewStringUTF(filePath.c_str());
+}
+
+extern "C"
 JNIEXPORT jobject JNICALL
 Java_com_nunchuk_android_nativelib_LibNunchukAndroid_createWallet(
         JNIEnv *env,

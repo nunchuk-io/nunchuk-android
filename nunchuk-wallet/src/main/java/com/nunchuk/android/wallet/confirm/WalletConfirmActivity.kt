@@ -4,18 +4,16 @@ import android.content.Context
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
+import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
-import com.nunchuk.android.wallet.R
-import com.nunchuk.android.wallet.confirm.WalletConfirmEvent.CreateWalletErrorEvent
-import com.nunchuk.android.wallet.confirm.WalletConfirmEvent.CreateWalletSuccessEvent
+import com.nunchuk.android.wallet.confirm.WalletConfirmEvent.*
 import com.nunchuk.android.wallet.databinding.ActivityWalletConfirmationBinding
 import com.nunchuk.android.wallet.util.toReadableString
-import com.nunchuk.android.widget.NCToastMessage
 import javax.inject.Inject
 
 class WalletConfirmActivity : BaseActivity() {
@@ -50,7 +48,8 @@ class WalletConfirmActivity : BaseActivity() {
 
     private fun handleEvent(event: WalletConfirmEvent) {
         when (event) {
-            CreateWalletSuccessEvent -> NCToastMessage(this).show(R.string.nc_wallet_has_been_created)
+            is SetLoadingEvent -> binding.progress.isVisible = event.showLoading
+            is CreateWalletSuccessEvent -> navigator.openBackupWalletScreen(this, event.descriptor)
             is CreateWalletErrorEvent -> showToast(event.message)
         }
     }
@@ -86,13 +85,15 @@ class WalletConfirmActivity : BaseActivity() {
             totalRequireSigns: Int,
             signers: List<SingleSigner>
         ) {
-            activityContext.startActivity(WalletConfirmArgs(
-                walletName = walletName,
-                walletType = walletType,
-                addressType = addressType,
-                totalRequireSigns = totalRequireSigns,
-                signers = signers
-            ).buildIntent(activityContext))
+            activityContext.startActivity(
+                WalletConfirmArgs(
+                    walletName = walletName,
+                    walletType = walletType,
+                    addressType = addressType,
+                    totalRequireSigns = totalRequireSigns,
+                    signers = signers
+                ).buildIntent(activityContext)
+            )
         }
     }
 
