@@ -67,6 +67,29 @@ BackendType Serializer::convert2CBackendType(jint ordinal) {
     return ordinal == 0 ? BackendType::ELECTRUM : BackendType::CORERPC;
 }
 
+ExportFormat Serializer::convert2CExportFormat(jint ordinal) {
+    syslog(LOG_DEBUG, "[JNI][Serializer::convert2CExportFormat]ordinal:: %d", ordinal);
+    ExportFormat format;
+    switch (ordinal) {
+        case 0:
+            format = ExportFormat::DB;
+            break;
+        case 1:
+            format = ExportFormat::DESCRIPTOR;
+            break;
+        case 2:
+            format = ExportFormat::COLDCARD;
+            break;
+        case 3:
+            format = ExportFormat::COBO;
+            break;
+        default:
+            format = ExportFormat::CSV;
+            break;
+    }
+    return format;
+}
+
 SingleSigner Serializer::convert2CSigner(JNIEnv *env, jobject signer) {
     jclass clazz = env->FindClass("com/nunchuk/android/model/SingleSigner");
 

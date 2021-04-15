@@ -3,10 +3,12 @@ package com.nunchuk.android.wallet.confirm
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.model.Result
+import com.nunchuk.android.model.Result.Error
+import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.type.WalletType.ESCROW
 import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.DraftWalletUseCase
 import com.nunchuk.android.wallet.confirm.WalletConfirmEvent.*
@@ -40,14 +42,14 @@ internal class WalletConfirmViewModel @Inject constructor(
             totalRequireSigns = totalRequireSigns,
             signers = signers,
             addressType = addressType,
-            isEscrow = walletType == WalletType.ESCROW
+            isEscrow = walletType == ESCROW
         )
         when (result) {
-            is Result.Success -> {
+            is Success -> {
                 descriptor = result.data
                 createWallet(walletName, totalRequireSigns, signers, addressType, walletType)
             }
-            is Result.Error -> {
+            is Error -> {
                 event(CreateWalletErrorEvent(result.exception.message.orUnknownError()))
                 event(SetLoadingEvent(false))
             }
@@ -66,11 +68,11 @@ internal class WalletConfirmViewModel @Inject constructor(
             totalRequireSigns = totalRequireSigns,
             signers = signers,
             addressType = addressType,
-            isEscrow = walletType == WalletType.ESCROW
+            isEscrow = walletType == ESCROW
         )
         when (result) {
-            is Result.Success -> event(CreateWalletSuccessEvent(descriptor))
-            is Result.Error -> {
+            is Success -> event(CreateWalletSuccessEvent(result.data.id, descriptor))
+            is Error -> {
                 event(CreateWalletErrorEvent(result.exception.message.orUnknownError()))
                 event(SetLoadingEvent(false))
             }

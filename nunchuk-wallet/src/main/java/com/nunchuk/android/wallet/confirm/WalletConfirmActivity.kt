@@ -49,7 +49,7 @@ class WalletConfirmActivity : BaseActivity() {
     private fun handleEvent(event: WalletConfirmEvent) {
         when (event) {
             is SetLoadingEvent -> binding.progress.isVisible = event.showLoading
-            is CreateWalletSuccessEvent -> navigator.openBackupWalletScreen(this, event.descriptor)
+            is CreateWalletSuccessEvent -> navigator.openBackupWalletScreen(this, event.walletId, event.descriptor)
             is CreateWalletErrorEvent -> NCToastMessage(this).showWarning(event.message)
         }
     }

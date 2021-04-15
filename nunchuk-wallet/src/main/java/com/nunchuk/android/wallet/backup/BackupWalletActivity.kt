@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
+import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.wallet.R
@@ -38,7 +39,7 @@ class BackupWalletActivity : BaseActivity() {
         setupViews()
         observeEvent()
 
-        viewModel.init(args.descriptor)
+        viewModel.init(args.walletId, args.descriptor)
     }
 
     private fun setupViews() {
@@ -53,10 +54,9 @@ class BackupWalletActivity : BaseActivity() {
 
     private fun handleEvent(event: BackupWalletEvent) {
         when (event) {
-            is SetLoadingEvent -> {
-            }
+            is SetLoadingEvent -> binding.progress.isVisible = event.showLoading
             is BackupDescriptorEvent -> shareDescriptor(event.descriptor)
-            SkipBackupWalletEvent -> navigator.openUploadConfigurationScreen(this)
+            is SkipBackupWalletEvent -> navigator.openUploadConfigurationScreen(this, event.walletId)
         }
     }
 
@@ -66,14 +66,13 @@ class BackupWalletActivity : BaseActivity() {
             putExtra(Intent.EXTRA_TEXT, descriptor)
             type = "text/plain"
         }
-
-        startActivity(Intent.createChooser(sendIntent, null))
+        startActivity(Intent.createChooser(sendIntent, "Nunchuk"))
     }
 
     companion object {
 
-        fun start(activityContext: Context, descriptor: String) {
-            activityContext.startActivity(BackupWalletArgs(descriptor).buildIntent(activityContext))
+        fun start(activityContext: Context, walletId: String, descriptor: String) {
+            activityContext.startActivity(BackupWalletArgs(walletId, descriptor).buildIntent(activityContext))
         }
     }
 

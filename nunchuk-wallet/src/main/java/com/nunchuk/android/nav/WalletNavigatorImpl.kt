@@ -43,12 +43,15 @@ open class WalletNavigatorImpl : WalletNavigator {
         )
     }
 
-    override fun openBackupWalletScreen(activityContext: Context, descriptor: String) {
-        BackupWalletActivity.start(activityContext, descriptor)
+    override fun openBackupWalletScreen(activityContext: Context, walletId: String, descriptor: String) {
+        BackupWalletActivity.start(activityContext = activityContext, walletId = walletId, descriptor = descriptor)
     }
 
-    override fun openUploadConfigurationScreen(activityContext: Context) {
-        UploadConfigurationActivity.start(activityContext)
+    override fun openUploadConfigurationScreen(activityContext: Context, walletId: String) {
+        UploadConfigurationActivity.start(activityContext, walletId)
+    }
+
+    override fun openWalletReviewScreen(activityContext: Context, walletId: String) {
     }
 
 }

@@ -20,6 +20,8 @@ public:
 
     static BackendType convert2CBackendType(jint ordinal);
 
+    static ExportFormat convert2CExportFormat(jint ordinal);
+
     static SingleSigner convert2CSigner(JNIEnv *env, jobject signer);
 
     static std::vector<SingleSigner> convert2CSigners(JNIEnv *env, jobject signers);
