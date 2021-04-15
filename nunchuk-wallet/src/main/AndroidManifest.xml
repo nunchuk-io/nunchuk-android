@@ -3,7 +3,6 @@
     package="com.nunchuk.android.wallet">
 
     <application>
-
         <activity
             android:name=".add.AddWalletActivity"
             android:label="@string/nc_wallet_create_wallet_title"
@@ -22,6 +21,17 @@
             android:screenOrientation="portrait"
             android:theme="@style/MainScreenTheme" />
 
+        <activity
+            android:name=".backup.BackupWalletActivity"
+            android:label="@string/nc_wallet_backup_and_device_registration"
+            android:screenOrientation="portrait"
+            android:theme="@style/MainScreenTheme" />
+
+        <activity
+            android:name=".upload.UploadConfigurationActivity"
+            android:label="@string/nc_wallet_backup_and_device_registration"
+            android:screenOrientation="portrait"
+            android:theme="@style/MainScreenTheme" />
     </application>
 
 </manifest>

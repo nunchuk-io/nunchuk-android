@@ -6,7 +6,9 @@ import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.add.AddWalletActivity
 import com.nunchuk.android.wallet.assign.AssignSignerActivity
+import com.nunchuk.android.wallet.backup.BackupWalletActivity
 import com.nunchuk.android.wallet.confirm.WalletConfirmActivity
+import com.nunchuk.android.wallet.upload.UploadConfigurationActivity
 
 open class WalletNavigatorImpl : WalletNavigator {
 
@@ -40,4 +42,13 @@ open class WalletNavigatorImpl : WalletNavigator {
             signers = signers
         )
     }
+
+    override fun openBackupWalletScreen(activityContext: Context, descriptor: String) {
+        BackupWalletActivity.start(activityContext, descriptor)
+    }
+
+    override fun openUploadConfigurationScreen(activityContext: Context) {
+        UploadConfigurationActivity.start(activityContext)
+    }
+
 }

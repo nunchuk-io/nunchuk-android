@@ -19,6 +19,7 @@
     <color name="nc_third_color">#999999</color>
     <color name="nc_line_color">#EEEEEE</color>
     <color name="nc_beeswax_light">#FDD95C</color>
+    <color name="nc_beeswax_dark">#A66800</color>
 
     <color name="nc_edit_text_stroke_color">#CCCCCC</color>
     <color name="nc_edit_text_stroke_error_color">#FFD7D9</color>

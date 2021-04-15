@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/nc_white_color"
+    android:paddingHorizontal="@dimen/nc_text_size_16"
+    android:paddingBottom="@dimen/nc_padding_16"
+    tools:ignore="ContentDescription">
+
+    <ProgressBar
+        android:id="@+id/progress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/nc_blue_color"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/iconInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_44"
+        android:src="@drawable/ic_info_big"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/progress" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:gravity="center"
+        android:paddingVertical="@dimen/nc_padding_8"
+        android:text="@string/nc_wallet_upload_configuration_title"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_24"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/iconInfo" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_18"
+        android:gravity="center"
+        android:paddingVertical="@dimen/nc_padding_8"
+        android:text="@string/nc_wallet_upload_configuration"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/nc_rounded_dark_background"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="@dimen/nc_padding_16"
+        app:layout_constraintBottom_toTopOf="@+id/btnSkipUpload"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_share" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/nc_padding_6"
+            android:text="@string/nc_wallet_upload_configuration_title"
+            android:textColor="@color/nc_white_color"
+            android:textSize="@dimen/nc_text_size_14"
+            app:fontTextStyle="semi_bold" />
+    </LinearLayout>
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btnSkipUpload"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_6"
+        android:gravity="center"
+        android:padding="@dimen/nc_padding_16"
+        android:text="@string/nc_wallet_skip_upload_configuration"
+        android:textColor="@color/nc_primary_color"
+        android:textSize="@dimen/nc_text_size_14"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

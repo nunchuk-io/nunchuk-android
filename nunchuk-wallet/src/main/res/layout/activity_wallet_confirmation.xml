@@ -4,19 +4,33 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/nc_padding_16"
+    android:paddingHorizontal="@dimen/nc_text_size_16"
+    android:paddingBottom="@dimen/nc_padding_16"
     tools:ignore="ContentDescription">
+
+    <ProgressBar
+        android:id="@+id/progress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/nc_blue_color"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/walletNameLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_16"
         android:text="@string/nc_wallet_wallet_name"
         android:textColor="@color/nc_black_color"
         android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintEnd_toStartOf="@+id/walletName"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/progress" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/walletName"
@@ -27,7 +41,7 @@
         android:textSize="@dimen/nc_text_size_16"
         app:fontTextStyle="semi_bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/walletNameLabel"
         tools:text="Nunchuk Fun Fund" />
 
     <com.nunchuk.android.widget.NCFontTextView
@@ -137,13 +151,22 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/middleDivider" />
 
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:id="@+id/signersContainer"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:layout_height="0dp"
+        android:clipToPadding="true"
+        android:fillViewport="true"
+        android:fitsSystemWindows="true"
+        app:layout_constraintBottom_toTopOf="@+id/btnContinue"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/assignSignersHeader" />
+        app:layout_constraintTop_toBottomOf="@+id/assignSignersHeader">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/signersContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </androidx.core.widget.NestedScrollView>
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnContinue"

@@ -20,7 +20,7 @@ class NCToastMessage constructor(private val activity: Activity) {
         offset: Int = R.dimen.nc_padding_16
     ) {
         val container: View = activity.layoutInflater.inflate(
-            R.layout.nc_toast,
+            R.layout.nc_toast_message,
             activity.findViewById(R.id.custom_toast_container) as ViewGroup?
         )
         container.findViewById<TextView>(R.id.text).text = activity.getString(messageId)

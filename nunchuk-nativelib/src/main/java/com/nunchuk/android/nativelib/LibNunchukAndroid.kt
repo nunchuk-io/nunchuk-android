@@ -1,5 +1,6 @@
 package com.nunchuk.android.nativelib
 
+import com.nunchuk.android.exception.NunchukNativeException
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import javax.inject.Inject
@@ -10,7 +11,7 @@ internal const val LIB_NAME = "nunchuk-android"
 @Singleton
 internal class LibNunchukAndroid @Inject constructor() {
 
-    @Throws(Exception::class)
+    @Throws(NunchukNativeException::class)
     external fun initNunchuk(
         chain: Int,
         hwiPath: String,
@@ -20,7 +21,7 @@ internal class LibNunchukAndroid @Inject constructor() {
         storagePath: String
     )
 
-    @Throws(Exception::class)
+    @Throws(NunchukNativeException::class)
     external fun createSigner(
         name: String,
         xpub: String,
@@ -29,13 +30,13 @@ internal class LibNunchukAndroid @Inject constructor() {
         masterFingerprint: String
     ): SingleSigner
 
-    @Throws(Exception::class)
+    @Throws(NunchukNativeException::class)
     external fun getRemoteSigner(): SingleSigner
 
-    @Throws(Exception::class)
+    @Throws(NunchukNativeException::class)
     external fun getRemoteSigners(): List<SingleSigner>
 
-    @Throws(Exception::class)
+    @Throws(NunchukNativeException::class)
     external fun createWallet(
         name: String,
         totalRequireSigns: Int,
@@ -45,14 +46,24 @@ internal class LibNunchukAndroid @Inject constructor() {
         description: String
     ): Wallet
 
-    @Throws(Exception::class)
+    @Throws(NunchukNativeException::class)
     external fun getWallets(): List<Wallet>
 
-    @Throws(Exception::class)
+    @Throws(NunchukNativeException::class)
     external fun deleteRemoteSigner(masterFingerprint: String, derivationPath: String)
 
-    @Throws(Exception::class)
+    @Throws(NunchukNativeException::class)
     external fun updateSigner(signer: SingleSigner)
+
+    @Throws(NunchukNativeException::class)
+    external fun draftWallet(
+        name: String,
+        totalRequireSigns: Int,
+        signers: List<SingleSigner>,
+        addressType: Int,
+        isEscrow: Boolean,
+        description: String
+    ): String
 
     companion object {
         init {

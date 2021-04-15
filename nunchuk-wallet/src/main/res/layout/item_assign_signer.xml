@@ -14,7 +14,7 @@
         android:gravity="center"
         android:textColor="@color/nc_black_color"
         app:fontTextStyle="semi_bold"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/xpf"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="TN" />
@@ -69,5 +69,22 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/avatar"
         tools:checked="true" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/warning"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableStart="@drawable/ic_warn"
+        android:paddingHorizontal="@dimen/nc_padding_4"
+        android:drawablePadding="@dimen/nc_padding_4"
+        android:paddingVertical="@dimen/nc_padding_4"
+        android:text="@string/nc_wallet_signer_has_been_used_warning"
+        android:textColor="@color/nc_beeswax_dark"
+        android:textSize="@dimen/nc_text_size_14"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/xpf"
+        app:layout_goneMarginTop="@dimen/nc_padding_4"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

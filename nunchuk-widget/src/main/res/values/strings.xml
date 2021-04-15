@@ -6,4 +6,5 @@
     <string name="nc_text_continue">Continue</string>
 
     <string name="nc_text_required">Required</string>
+    <string name="nc_loading_text">Please wait...</string>
 </resources>
