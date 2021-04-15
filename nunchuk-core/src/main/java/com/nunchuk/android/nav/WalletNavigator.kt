@@ -25,7 +25,9 @@ interface WalletNavigator {
         signers: List<SingleSigner>
     )
 
-    fun openBackupWalletScreen(activityContext: Context, descriptor: String)
+    fun openBackupWalletScreen(activityContext: Context, walletId: String, descriptor: String)
 
-    fun openUploadConfigurationScreen(activityContext: Context)
+    fun openUploadConfigurationScreen(activityContext: Context, walletId: String)
+
+    fun openWalletReviewScreen(activityContext: Context, walletId: String)
 }

@@ -1,12 +1,18 @@
 package com.nunchuk.android.wallet.upload
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
+import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.wallet.databinding.ActivityWalletUploadConfigurationBinding
+import com.nunchuk.android.wallet.upload.UploadConfigurationEvent.*
+import com.nunchuk.android.widget.NCToastMessage
+import java.io.File
 import javax.inject.Inject
 
 class UploadConfigurationActivity : BaseActivity() {
@@ -34,28 +40,37 @@ class UploadConfigurationActivity : BaseActivity() {
         setupViews()
         observeEvent()
 
-        viewModel.init()
+        viewModel.init(args.walletId)
     }
 
     private fun setupViews() {
+        binding.btnUpload.setOnClickListener { viewModel.handleUploadEvent() }
+        binding.btnSkipUpload.setOnClickListener { navigator.openWalletReviewScreen(this, args.walletId) }
     }
 
     private fun observeEvent() {
         viewModel.event.observe(this, ::handleEvent)
-        viewModel.state.observe(this, ::handleState)
     }
 
     private fun handleEvent(event: UploadConfigurationEvent) {
+        when (event) {
+            is SetLoadingEvent -> binding.progress.isVisible = event.showLoading
+            is ExportWalletSuccessEvent -> shareConfigurationFile(event.filePath)
+            is UploadConfigurationError -> NCToastMessage(this).showWarning(event.message)
+        }
     }
 
-    private fun handleState(state: UploadConfigurationState) {
-
+    private fun shareConfigurationFile(filePath: String) {
+        val shareIntent = Intent(Intent.ACTION_SEND)
+        shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(File(filePath)))
+        shareIntent.type = "*/*"
+        startActivity(Intent.createChooser(shareIntent, "Nunchuk"))
     }
 
     companion object {
 
-        fun start(activityContext: Context) {
-            activityContext.startActivity(UploadConfigurationArgs().buildIntent(activityContext))
+        fun start(activityContext: Context, walletId: String) {
+            activityContext.startActivity(UploadConfigurationArgs(walletId).buildIntent(activityContext))
         }
     }
 

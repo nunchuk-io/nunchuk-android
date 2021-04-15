@@ -3,6 +3,7 @@ package com.nunchuk.android.nativelib
 import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.type.ExportFormat
 import java.lang.Exception
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -65,6 +66,16 @@ internal class LibNunchukAndroid @Inject constructor() {
         isEscrow: Boolean,
         description: String
     ): String
+
+    @Throws(NCNativeException::class)
+    external fun exportWallet(
+        walletId: String,
+        filePath: String,
+        format: Int
+    ): Boolean
+
+    @Throws(NCNativeException::class)
+    external fun getWallet(walletId: String): Wallet
 
     companion object {
         init {

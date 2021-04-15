@@ -9,9 +9,7 @@
 using namespace nunchuk;
 
 extern "C"
-JNIEXPORT jobject
-
-JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getWallets(JNIEnv *env, jobject thiz) {
     syslog(LOG_DEBUG, "[JNI]getWallets()");
     auto wallets = NunchukProvider::get()->nu->GetWallets();
@@ -81,6 +79,44 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_createWallet(
         return Deserializer::convert2JWallet(env, wallet);
     } catch (std::exception &e) {
         syslog(LOG_DEBUG, "[JNI] createWallet error::%s", e.what());
+        Deserializer::convert2JException(env, e.what());
+        return env->ExceptionOccurred();
+    }
+}
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_exportWallet(
+        JNIEnv *env,
+        jobject thiz,
+        jstring wallet_id,
+        jstring file_path,
+        jint format
+) {
+    try {
+        return NunchukProvider::get()->nu->ExportWallet(
+                env->GetStringUTFChars(wallet_id, nullptr),
+                env->GetStringUTFChars(file_path, nullptr),
+                Serializer::convert2CExportFormat(format)
+        );
+    } catch (std::exception &e) {
+        syslog(LOG_DEBUG, "[JNI] createWallet error::%s", e.what());
+        Deserializer::convert2JException(env, e.what());
+        env->ExceptionOccurred();
+        return 0;
+    }
+}
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getWallet(
+        JNIEnv *env,
+        jobject thiz,
+        jstring wallet_id
+) {
+    try {
+        const auto &wallet = NunchukProvider::get()->nu->GetWallet(env->GetStringUTFChars(wallet_id, nullptr));
+        return Deserializer::convert2JWallet(env, wallet);
+    } catch (std::exception &e) {
+        syslog(LOG_DEBUG, "[JNI] getWallet error::%s", e.what());
         Deserializer::convert2JException(env, e.what());
         return env->ExceptionOccurred();
     }

@@ -4,6 +4,7 @@ import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.model.AppSettings
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.ExportFormat
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -51,6 +52,11 @@ internal class LibNunchukFacade @Inject constructor(
     }
 
     @Throws(NCNativeException::class)
+    fun deleteRemoteSigner(masterFingerprint: String, derivationPath: String) {
+        nunchukAndroid.deleteRemoteSigner(masterFingerprint, derivationPath)
+    }
+
+    @Throws(NCNativeException::class)
     fun createWallet(
         name: String,
         totalRequireSigns: Int,
@@ -88,8 +94,13 @@ internal class LibNunchukFacade @Inject constructor(
     fun getWallets() = nunchukAndroid.getWallets()
 
     @Throws(NCNativeException::class)
-    fun deleteRemoteSigner(masterFingerprint: String, derivationPath: String) {
-        nunchukAndroid.deleteRemoteSigner(masterFingerprint, derivationPath)
-    }
+    fun exportWallet(walletId: String, filePath: String, format: ExportFormat) = nunchukAndroid.exportWallet(
+        walletId = walletId,
+        filePath = filePath,
+        format = format.ordinal
+    )
+
+    @Throws(NCNativeException::class)
+    fun getWallet(walletId: String) = nunchukAndroid.getWallet(walletId)
 
 }
