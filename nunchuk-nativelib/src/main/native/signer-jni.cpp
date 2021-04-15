@@ -20,17 +20,23 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_createSigner(
         jstring master_fingerprint
 ) {
     syslog(LOG_DEBUG, "[JNI]createSigner()");
-    const SingleSigner &signer = NunchukProvider::get()->nu->CreateSigner(
-            env->GetStringUTFChars(name, nullptr),
-            env->GetStringUTFChars(xpub, nullptr),
-            env->GetStringUTFChars(public_key, nullptr),
-            env->GetStringUTFChars(derivation_path, nullptr),
-            env->GetStringUTFChars(master_fingerprint, nullptr)
-    );
-    syslog(LOG_DEBUG, "[JNI][signer]name::%s", signer.get_name().c_str());
-    syslog(LOG_DEBUG, "[JNI][signer]public_key::%s", signer.get_public_key().c_str());
-    syslog(LOG_DEBUG, "[JNI][signer]xpub::%s", signer.get_xpub().c_str());
-    return Deserializer::convert2JSigner(env, signer);
+    try {
+        const SingleSigner &signer = NunchukProvider::get()->nu->CreateSigner(
+                env->GetStringUTFChars(name, nullptr),
+                env->GetStringUTFChars(xpub, nullptr),
+                env->GetStringUTFChars(public_key, nullptr),
+                env->GetStringUTFChars(derivation_path, nullptr),
+                env->GetStringUTFChars(master_fingerprint, nullptr)
+        );
+        syslog(LOG_DEBUG, "[JNI][signer]name::%s", signer.get_name().c_str());
+        syslog(LOG_DEBUG, "[JNI][signer]public_key::%s", signer.get_public_key().c_str());
+        syslog(LOG_DEBUG, "[JNI][signer]xpub::%s", signer.get_xpub().c_str());
+        return Deserializer::convert2JSigner(env, signer);
+    } catch (std::exception &e) {
+        syslog(LOG_DEBUG, "[JNI] createSigner error::%s", e.what());
+        Deserializer::convert2JException(env, e.what());
+        return env->ExceptionOccurred();
+    }
 }
 
 extern "C"
@@ -54,7 +60,7 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getRemoteSigner(
 
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getRemoteSigners(JNIEnv *env, jobject thiz, jobject result) {
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getRemoteSigners(JNIEnv *env, jobject thiz) {
     syslog(LOG_DEBUG, "[JNI]getRemoteSigner()");
     auto signers = NunchukProvider::get()->nu->GetRemoteSigners();
     return Deserializer::convert2JSigners(env, signers);

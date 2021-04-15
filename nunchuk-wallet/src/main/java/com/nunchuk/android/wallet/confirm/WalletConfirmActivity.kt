@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
-import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.type.AddressType
@@ -14,6 +13,7 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.confirm.WalletConfirmEvent.*
 import com.nunchuk.android.wallet.databinding.ActivityWalletConfirmationBinding
 import com.nunchuk.android.wallet.util.toReadableString
+import com.nunchuk.android.widget.NCToastMessage
 import javax.inject.Inject
 
 class WalletConfirmActivity : BaseActivity() {
@@ -50,7 +50,7 @@ class WalletConfirmActivity : BaseActivity() {
         when (event) {
             is SetLoadingEvent -> binding.progress.isVisible = event.showLoading
             is CreateWalletSuccessEvent -> navigator.openBackupWalletScreen(this, event.descriptor)
-            is CreateWalletErrorEvent -> showToast(event.message)
+            is CreateWalletErrorEvent -> NCToastMessage(this).showWarning(event.message)
         }
     }
 
