@@ -31,19 +31,24 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_draftWallet(
         jboolean is_escrow,
         jstring description
 ) {
-
-    const std::vector<SingleSigner> &singleSigners = Serializer::convert2CSigners(env, signers);
-    AddressType type = Serializer::convert2CAddressType(address_type);
-    auto filePath = NunchukProvider::get()->nu->DraftWallet(
-            env->GetStringUTFChars(name, nullptr),
-            singleSigners.size(),
-            total_require_signs,
-            singleSigners,
-            type,
-            is_escrow,
-            env->GetStringUTFChars(description, nullptr)
-    );
-    return env->NewStringUTF(filePath.c_str());
+    try {
+        const std::vector<SingleSigner> &singleSigners = Serializer::convert2CSigners(env, signers);
+        AddressType type = Serializer::convert2CAddressType(address_type);
+        auto filePath = NunchukProvider::get()->nu->DraftWallet(
+                env->GetStringUTFChars(name, nullptr),
+                singleSigners.size(),
+                total_require_signs,
+                singleSigners,
+                type,
+                is_escrow,
+                env->GetStringUTFChars(description, nullptr)
+        );
+        return env->NewStringUTF(filePath.c_str());
+    } catch (std::exception &e) {
+        syslog(LOG_DEBUG, "[JNI] draftWallet error::%s", e.what());
+        env->ExceptionOccurred();
+        return env->NewStringUTF("");
+    }
 }
 
 extern "C"
@@ -58,20 +63,25 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_createWallet(
         jboolean is_escrow,
         jstring description
 ) {
-
-    const std::vector<SingleSigner> &singleSigners = Serializer::convert2CSigners(env, signers);
-    AddressType type = Serializer::convert2CAddressType(address_type);
-    const Wallet &wallet = NunchukProvider::get()->nu->CreateWallet(
-            env->GetStringUTFChars(name, nullptr),
-            singleSigners.size(),
-            total_require_signs,
-            singleSigners,
-            type,
-            is_escrow,
-            env->GetStringUTFChars(description, nullptr)
-    );
-    syslog(LOG_DEBUG, "[JNI][wallet]name::%s", wallet.get_name().c_str());
-    syslog(LOG_DEBUG, "[JNI][wallet]address_type::%d", wallet.get_address_type());
-    syslog(LOG_DEBUG, "[JNI][wallet]signers::%lu", wallet.get_signers().size());
-    return Deserializer::convert2JWallet(env, wallet);
+    try {
+        const std::vector<SingleSigner> &singleSigners = Serializer::convert2CSigners(env, signers);
+        AddressType type = Serializer::convert2CAddressType(address_type);
+        const Wallet &wallet = NunchukProvider::get()->nu->CreateWallet(
+                env->GetStringUTFChars(name, nullptr),
+                singleSigners.size(),
+                total_require_signs,
+                singleSigners,
+                type,
+                is_escrow,
+                env->GetStringUTFChars(description, nullptr)
+        );
+        syslog(LOG_DEBUG, "[JNI][wallet]name::%s", wallet.get_name().c_str());
+        syslog(LOG_DEBUG, "[JNI][wallet]address_type::%d", wallet.get_address_type());
+        syslog(LOG_DEBUG, "[JNI][wallet]signers::%lu", wallet.get_signers().size());
+        return Deserializer::convert2JWallet(env, wallet);
+    } catch (std::exception &e) {
+        syslog(LOG_DEBUG, "[JNI] createWallet error::%s", e.what());
+        Deserializer::convert2JException(env, e.what());
+        return env->ExceptionOccurred();
+    }
 }

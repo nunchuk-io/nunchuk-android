@@ -1,6 +1,6 @@
 package com.nunchuk.android.nativelib
 
-import com.nunchuk.android.exception.NunchukNativeException
+import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.model.AppSettings
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
@@ -12,7 +12,7 @@ internal class LibNunchukFacade @Inject constructor(
     private val nunchukAndroid: LibNunchukAndroid
 ) {
 
-    @Throws(NunchukNativeException::class)
+    @Throws(NCNativeException::class)
     fun initNunchuk(appSettings: AppSettings) {
         nunchukAndroid.initNunchuk(
             chain = appSettings.chain.ordinal,
@@ -24,7 +24,7 @@ internal class LibNunchukFacade @Inject constructor(
         )
     }
 
-    @Throws(NunchukNativeException::class)
+    @Throws(NCNativeException::class)
     fun createSigner(
         name: String,
         xpub: String,
@@ -39,18 +39,18 @@ internal class LibNunchukFacade @Inject constructor(
         masterFingerprint = masterFingerprint
     )
 
-    @Throws(NunchukNativeException::class)
+    @Throws(NCNativeException::class)
     fun getRemoteSigner() = nunchukAndroid.getRemoteSigner()
 
-    @Throws(NunchukNativeException::class)
+    @Throws(NCNativeException::class)
     fun getRemoteSigners(): List<SingleSigner> = nunchukAndroid.getRemoteSigners()
 
-    @Throws(NunchukNativeException::class)
+    @Throws(NCNativeException::class)
     fun updateSigner(signer: SingleSigner) {
         nunchukAndroid.updateSigner(signer)
     }
 
-    @Throws(NunchukNativeException::class)
+    @Throws(NCNativeException::class)
     fun createWallet(
         name: String,
         totalRequireSigns: Int,
@@ -67,7 +67,7 @@ internal class LibNunchukFacade @Inject constructor(
         description = description
     )
 
-    @Throws(NunchukNativeException::class)
+    @Throws(NCNativeException::class)
     fun draftWallet(
         name: String,
         totalRequireSigns: Int,
@@ -84,10 +84,10 @@ internal class LibNunchukFacade @Inject constructor(
         description = description
     )
 
-    @Throws(NunchukNativeException::class)
+    @Throws(NCNativeException::class)
     fun getWallets() = nunchukAndroid.getWallets()
 
-    @Throws(NunchukNativeException::class)
+    @Throws(NCNativeException::class)
     fun deleteRemoteSigner(masterFingerprint: String, derivationPath: String) {
         nunchukAndroid.deleteRemoteSigner(masterFingerprint, derivationPath)
     }

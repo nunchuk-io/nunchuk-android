@@ -1,8 +1,9 @@
 package com.nunchuk.android.nativelib
 
-import com.nunchuk.android.exception.NunchukNativeException
+import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
+import java.lang.Exception
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -11,7 +12,7 @@ internal const val LIB_NAME = "nunchuk-android"
 @Singleton
 internal class LibNunchukAndroid @Inject constructor() {
 
-    @Throws(NunchukNativeException::class)
+    @Throws(NCNativeException::class)
     external fun initNunchuk(
         chain: Int,
         hwiPath: String,
@@ -21,7 +22,7 @@ internal class LibNunchukAndroid @Inject constructor() {
         storagePath: String
     )
 
-    @Throws(NunchukNativeException::class)
+    @Throws(NCNativeException::class)
     external fun createSigner(
         name: String,
         xpub: String,
@@ -30,13 +31,13 @@ internal class LibNunchukAndroid @Inject constructor() {
         masterFingerprint: String
     ): SingleSigner
 
-    @Throws(NunchukNativeException::class)
+    @Throws(NCNativeException::class)
     external fun getRemoteSigner(): SingleSigner
 
-    @Throws(NunchukNativeException::class)
+    @Throws(NCNativeException::class)
     external fun getRemoteSigners(): List<SingleSigner>
 
-    @Throws(NunchukNativeException::class)
+    @Throws(NCNativeException::class)
     external fun createWallet(
         name: String,
         totalRequireSigns: Int,
@@ -46,16 +47,16 @@ internal class LibNunchukAndroid @Inject constructor() {
         description: String
     ): Wallet
 
-    @Throws(NunchukNativeException::class)
+    @Throws(NCNativeException::class)
     external fun getWallets(): List<Wallet>
 
-    @Throws(NunchukNativeException::class)
+    @Throws(NCNativeException::class)
     external fun deleteRemoteSigner(masterFingerprint: String, derivationPath: String)
 
-    @Throws(NunchukNativeException::class)
+    @Throws(NCNativeException::class)
     external fun updateSigner(signer: SingleSigner)
 
-    @Throws(NunchukNativeException::class)
+    @Throws(NCNativeException::class)
     external fun draftWallet(
         name: String,
         totalRequireSigns: Int,

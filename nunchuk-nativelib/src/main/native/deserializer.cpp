@@ -27,7 +27,6 @@ jobject Deserializer::convert2JSigner(JNIEnv *env, const SingleSigner &signer) {
         env->CallVoidMethod(instance, env->GetMethodID(clazz, "setLastHealthCheck", "(J)V"), signer.get_last_health_check());
         env->CallVoidMethod(instance, env->GetMethodID(clazz, "setUsed", "(Z)V"), signer.is_used());
     } catch (const std::exception &e) {
-        Deserializer::convert2JException(env, e.what());
         syslog(LOG_DEBUG, "[JNI] convert2JSigner error::%s", e.what());
     }
     return instance;
@@ -90,7 +89,7 @@ jobject Deserializer::convert2JWallets(JNIEnv *env, const std::vector<Wallet> &w
 }
 
 void Deserializer::convert2JException(JNIEnv *env, const char *msg) {
-    jclass clazz = env->FindClass("com/nunchuk/android/exception/NunchukNativeException");
+    jclass clazz = env->FindClass("com/nunchuk/android/exception/NCNativeException");
     if (nullptr == clazz) {
         clazz = env->FindClass("java/lang/NullPointerException");
     }

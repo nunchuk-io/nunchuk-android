@@ -14,6 +14,7 @@ import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.add.AddSignerEvent.*
 import com.nunchuk.android.signer.databinding.ActivityAddSignerBinding
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.SimpleTextWatcher
 import javax.inject.Inject
 
@@ -47,7 +48,7 @@ class AddSignerActivity : BaseActivity() {
             when (it) {
                 is AddSignerSuccessEvent -> openSignerInfo(it.signerName, it.signerSpec)
                 InvalidSignerSpecEvent -> binding.signerSpec.setError(getString(R.string.nc_error_invalid_signer_spec))
-                is AddSignerErrorEvent -> showToast(it.message)
+                is AddSignerErrorEvent -> NCToastMessage(this).showWarning(it.message)
                 SignerNameRequiredEvent -> binding.signerName.setError(getString(R.string.nc_text_required))
             }
         }
