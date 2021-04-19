@@ -8,6 +8,8 @@ import com.nunchuk.android.wallet.backup.BackupWalletActivity
 import com.nunchuk.android.wallet.backup.BackupWalletModule
 import com.nunchuk.android.wallet.confirm.WalletConfirmActivity
 import com.nunchuk.android.wallet.confirm.WalletConfirmModule
+import com.nunchuk.android.wallet.details.WalletInfoActivity
+import com.nunchuk.android.wallet.details.WalletInfoModule
 import com.nunchuk.android.wallet.upload.UploadConfigurationActivity
 import com.nunchuk.android.wallet.upload.UploadConfigurationModule
 import dagger.Module
@@ -30,4 +32,7 @@ internal interface WalletActivityModule {
 
     @ContributesAndroidInjector(modules = [UploadConfigurationModule::class])
     fun uploadConfigurationActivity(): UploadConfigurationActivity
+
+    @ContributesAndroidInjector(modules = [WalletInfoModule::class])
+    fun walletInfoActivity(): WalletInfoActivity
 }

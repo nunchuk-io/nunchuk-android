@@ -12,7 +12,6 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.assign.AssignSignerEvent.AssignSignerCompletedEvent
 import com.nunchuk.android.wallet.databinding.ActivityWalletAssignSignerBinding
-import com.nunchuk.android.widget.util.SimpleTextWatcher
 import javax.inject.Inject
 
 class AssignSignerActivity : BaseActivity() {
@@ -73,11 +72,7 @@ class AssignSignerActivity : BaseActivity() {
     }
 
     private fun bindTotalRequireSigns(totalRequireSigns: Int) {
-        binding.requiredSingerInput.text?.apply {
-            clear()
-            append("$totalRequireSigns")
-        }
-        binding.requiredSingerInput.isEnabled = totalRequireSigns == 0
+        binding.requiredSingerCounter.text = "$totalRequireSigns"
     }
 
     private fun bindSigners(signers: List<SingleSigner>, selectedPFXs: List<String>) {
@@ -88,11 +83,6 @@ class AssignSignerActivity : BaseActivity() {
         binding.signersContainer.removeAllViews()
         binding.iconPlus.setOnClickListener { viewModel.handleIncreaseRequiredSigners() }
         binding.iconMinus.setOnClickListener { viewModel.handleDecreaseRequiredSigners() }
-        binding.requiredSingerInput.addTextChangedListener(object : SimpleTextWatcher() {
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                viewModel.updateTotalRequireSigns("$s")
-            }
-        })
         binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }
     }
 

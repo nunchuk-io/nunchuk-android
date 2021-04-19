@@ -123,7 +123,11 @@ internal class WalletsFragment : BaseFragment() {
     private fun showWalletsListView(wallets: List<Wallet>) {
         binding.walletEmpty.visibility = View.GONE
         binding.walletList.visibility = View.VISIBLE
-        WalletsViewBinder(binding.walletList, wallets).bindItems()
+        WalletsViewBinder(binding.walletList, wallets, ::openWalletReviewScreen).bindItems()
+    }
+
+    private fun openWalletReviewScreen(walletId: String) {
+        navigator.openWalletReviewScreen(requireActivity(), walletId)
     }
 
     private fun showSigners(signers: List<SingleSigner>) {

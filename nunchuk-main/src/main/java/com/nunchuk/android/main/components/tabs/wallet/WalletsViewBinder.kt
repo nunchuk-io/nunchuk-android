@@ -9,16 +9,20 @@ import com.nunchuk.android.widget.util.AbsViewBinder
 
 internal class WalletsViewBinder(
     container: ViewGroup,
-    signers: List<Wallet>
-) : AbsViewBinder<Wallet>(container, signers) {
+    wallets: List<Wallet>,
+    val onItemClickListener: (String) -> Unit = {}
+) : AbsViewBinder<Wallet>(container, wallets) {
 
     override val layoutId: Int = R.layout.item_wallet
 
     override fun bindItem(position: Int, model: Wallet) {
-        val itemView = container[position]
-        itemView.findViewById<TextView>(R.id.walletName).text = model.name
-        itemView.findViewById<TextView>(R.id.btc).text = "0.00 BTC"
-        itemView.findViewById<TextView>(R.id.balance).text = "($ ${model.balance})"
-        itemView.findViewById<TextView>(R.id.config).text = "${model.totalRequireSigns}/${model.signers.size}"
+        container[position].apply {
+            findViewById<TextView>(R.id.walletName).text = model.name
+            findViewById<TextView>(R.id.btc).text = "0.00 BTC"
+            findViewById<TextView>(R.id.balance).text = "($ ${model.balance})"
+            findViewById<TextView>(R.id.config).text = "${model.totalRequireSigns}/${model.signers.size}"
+            setOnClickListener { onItemClickListener(model.id) }
+        }
+
     }
 }

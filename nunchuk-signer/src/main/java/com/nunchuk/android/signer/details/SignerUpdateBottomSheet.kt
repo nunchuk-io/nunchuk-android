@@ -14,14 +14,14 @@ import com.nunchuk.android.arch.args.FragmentArgs
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.DialogUpdateSignerBottomSheetBinding
 
-class UpdateSignerBottomSheet : BottomSheetDialogFragment() {
+class SignerUpdateBottomSheet : BottomSheetDialogFragment() {
 
     private lateinit var listener: (String) -> Unit
 
     private var _binding: DialogUpdateSignerBottomSheetBinding? = null
     private val binding get() = _binding!!
 
-    private val args: UpdateSignerBottomSheetArgs by lazy { UpdateSignerBottomSheetArgs.deserializeFrom(arguments) }
+    private val args: SignerUpdateBottomSheetArgs by lazy { SignerUpdateBottomSheetArgs.deserializeFrom(arguments) }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = DialogUpdateSignerBottomSheetBinding.inflate(inflater, container, false)
@@ -63,19 +63,19 @@ class UpdateSignerBottomSheet : BottomSheetDialogFragment() {
     }
 
     companion object {
-        private const val TAG = "LanguageSelectionDialog"
+        private const val TAG = "UpdateSignerBottomSheet"
 
-        private fun newInstance(signerName: String) = UpdateSignerBottomSheet().apply {
-            arguments = UpdateSignerBottomSheetArgs(signerName).buildBundle()
+        private fun newInstance(signerName: String) = SignerUpdateBottomSheet().apply {
+            arguments = SignerUpdateBottomSheetArgs(signerName).buildBundle()
         }
 
-        fun show(fragmentManager: FragmentManager, signerName: String): UpdateSignerBottomSheet {
+        fun show(fragmentManager: FragmentManager, signerName: String): SignerUpdateBottomSheet {
             return newInstance(signerName).apply { show(fragmentManager, TAG) }
         }
     }
 }
 
-data class UpdateSignerBottomSheetArgs(val signerName: String) : FragmentArgs {
+data class SignerUpdateBottomSheetArgs(val signerName: String) : FragmentArgs {
 
     override fun buildBundle() = Bundle().apply {
         putString(EXTRA_SIGNER_NAME, signerName)
@@ -84,7 +84,7 @@ data class UpdateSignerBottomSheetArgs(val signerName: String) : FragmentArgs {
     companion object {
         private const val EXTRA_SIGNER_NAME = "EXTRA_SIGNER_NAME"
 
-        fun deserializeFrom(data: Bundle?) = UpdateSignerBottomSheetArgs(
+        fun deserializeFrom(data: Bundle?) = SignerUpdateBottomSheetArgs(
             data?.getString(EXTRA_SIGNER_NAME).orEmpty()
         )
     }

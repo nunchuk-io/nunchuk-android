@@ -121,3 +121,13 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getWallet(
         return env->ExceptionOccurred();
     }
 }
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_updateWallet(
+        JNIEnv *env,
+        jobject thiz,
+        jobject wallet
+) {
+    auto updateWallet = Serializer::convert2CWallet(env, wallet);
+    return NunchukProvider::get()->nu->UpdateWallet(updateWallet);
+}

@@ -3,8 +3,7 @@ package com.nunchuk.android.nativelib
 import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.type.ExportFormat
-import java.lang.Exception
+import com.nunchuk.android.model.bridge.WalletBridge
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -76,6 +75,9 @@ internal class LibNunchukAndroid @Inject constructor() {
 
     @Throws(NCNativeException::class)
     external fun getWallet(walletId: String): Wallet
+
+    @Throws(NCNativeException::class)
+    external fun updateWallet(wallet: WalletBridge): Boolean
 
     companion object {
         init {
