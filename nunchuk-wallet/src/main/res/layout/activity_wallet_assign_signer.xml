@@ -40,11 +40,11 @@
         android:src="@drawable/ic_minus"
         android:layout_marginEnd="@dimen/nc_padding_8"
         app:layout_constraintBottom_toBottomOf="@+id/requiredSignerDesc"
-        app:layout_constraintEnd_toStartOf="@id/requiredSingerInput"
+        app:layout_constraintEnd_toStartOf="@id/requiredSingerCounter"
         app:layout_constraintTop_toTopOf="@+id/requiredSignerLabel" />
 
-    <com.nunchuk.android.widget.NCFontEditText
-        android:id="@+id/requiredSingerInput"
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/requiredSingerCounter"
         android:layout_width="@dimen/nc_padding_32"
         android:layout_height="@dimen/nc_padding_32"
         android:layout_marginEnd="@dimen/nc_padding_8"

@@ -8,6 +8,7 @@ import com.nunchuk.android.wallet.add.AddWalletActivity
 import com.nunchuk.android.wallet.assign.AssignSignerActivity
 import com.nunchuk.android.wallet.backup.BackupWalletActivity
 import com.nunchuk.android.wallet.confirm.WalletConfirmActivity
+import com.nunchuk.android.wallet.details.WalletInfoActivity
 import com.nunchuk.android.wallet.upload.UploadConfigurationActivity
 
 open class WalletNavigatorImpl : WalletNavigator {
@@ -52,6 +53,7 @@ open class WalletNavigatorImpl : WalletNavigator {
     }
 
     override fun openWalletReviewScreen(activityContext: Context, walletId: String) {
+        WalletInfoActivity.start(activityContext, walletId)
     }
 
 }

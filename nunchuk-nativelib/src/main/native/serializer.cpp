@@ -142,3 +142,37 @@ std::vector<SingleSigner> Serializer::convert2CSigners(JNIEnv *env, jobject sign
     }
     return result;
 }
+
+Wallet Serializer::convert2CWallet(JNIEnv *env, jobject wallet) {
+    jclass clazz = env->FindClass("com/nunchuk/android/model/bridge/WalletBridge");
+
+    jfieldID fieldId = env->GetFieldID(clazz, "id", "Ljava/lang/String;");
+    auto idVal = (jstring) env->GetObjectField(wallet, fieldId);
+    const char *id = env->GetStringUTFChars(idVal, nullptr);
+
+    jfieldID fieldName = env->GetFieldID(clazz, "name", "Ljava/lang/String;");
+    auto nameVal = (jstring) env->GetObjectField(wallet, fieldName);
+    const char *name = env->GetStringUTFChars(nameVal, nullptr);
+
+    jfieldID fieldTotalRequireSigns = env->GetFieldID(clazz, "totalRequireSigns", "I");
+    auto total_required_signs = (jint) env->GetIntField(wallet, fieldTotalRequireSigns);
+
+    jfieldID fieldSigners = env->GetFieldID(clazz, "signers", "Ljava/util/List;");
+    auto signersVal = (jobject) env->GetObjectField(wallet, fieldSigners);
+    auto signers = Serializer::convert2CSigners(env, signersVal);
+
+    jfieldID fieldAddressType = env->GetFieldID(clazz, "addressType", "I");
+    jint addressTypeVal = env->GetIntField(wallet, fieldAddressType);
+    auto address_type = Serializer::convert2CAddressType(addressTypeVal);
+
+    jfieldID fieldEscrow = env->GetFieldID(clazz, "escrow", "Z");
+    auto escrow = env->GetBooleanField(wallet, fieldEscrow);
+
+    Wallet updateWallet = Wallet(id, signers.size(), total_required_signs, signers, address_type, escrow, 0);
+    updateWallet.set_name(name);
+
+    env->ReleaseStringUTFChars(nameVal, name);
+    env->ReleaseStringUTFChars(idVal, id);
+
+    return updateWallet;
+}

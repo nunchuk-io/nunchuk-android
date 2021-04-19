@@ -65,7 +65,7 @@ class SignerInfoActivity : BaseActivity() {
     }
 
     private fun onEditClicked() {
-        val bottomSheet = UpdateSignerBottomSheet.show(
+        val bottomSheet = SignerUpdateBottomSheet.show(
             fragmentManager = supportFragmentManager,
             signerName = binding.signerName.text.toString()
         )

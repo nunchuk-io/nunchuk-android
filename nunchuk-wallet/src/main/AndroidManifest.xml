@@ -32,6 +32,12 @@
             android:label="@string/nc_wallet_backup_and_device_registration"
             android:screenOrientation="portrait"
             android:theme="@style/MainScreenTheme" />
+
+        <activity
+            android:name=".details.WalletInfoActivity"
+            android:label="@string/nc_text_wallet_config_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/MainScreenTheme" />
     </application>
 
 </manifest>

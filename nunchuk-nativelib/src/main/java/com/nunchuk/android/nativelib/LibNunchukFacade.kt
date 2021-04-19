@@ -3,6 +3,8 @@ package com.nunchuk.android.nativelib
 import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.model.AppSettings
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.bridge.toBridge
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.ExportFormat
 import javax.inject.Inject
@@ -103,4 +105,6 @@ internal class LibNunchukFacade @Inject constructor(
     @Throws(NCNativeException::class)
     fun getWallet(walletId: String) = nunchukAndroid.getWallet(walletId)
 
+    @Throws(NCNativeException::class)
+    fun updateWallet(wallet: Wallet) = nunchukAndroid.updateWallet(wallet.toBridge())
 }

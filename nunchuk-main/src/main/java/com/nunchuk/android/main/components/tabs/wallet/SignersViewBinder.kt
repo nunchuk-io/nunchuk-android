@@ -16,10 +16,11 @@ internal class SignersViewBinder(
     override val layoutId: Int = R.layout.item_signer
 
     override fun bindItem(position: Int, model: SingleSigner) {
-        val itemView = container[position]
-        itemView.findViewById<TextView>(R.id.signerName).text = model.name
-        val xfpValue = "XFP: ${model.masterFingerprint}"
-        itemView.findViewById<TextView>(R.id.xpf).text = xfpValue
-        itemView.setOnClickListener { onItemClickListener(model) }
+        container[position].apply {
+            findViewById<TextView>(R.id.signerName).text = model.name
+            val xfpValue = "XFP: ${model.masterFingerprint}"
+            findViewById<TextView>(R.id.xpf).text = xfpValue
+            setOnClickListener { onItemClickListener(model) }
+        }
     }
 }
