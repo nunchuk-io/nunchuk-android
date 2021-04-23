@@ -79,6 +79,9 @@ internal class LibNunchukAndroid @Inject constructor() {
     @Throws(NCNativeException::class)
     external fun updateWallet(wallet: WalletBridge): Boolean
 
+    @Throws(NCNativeException::class)
+    external fun exportCoboWallet(walletId: String): List<String>
+
     companion object {
         init {
             System.loadLibrary(LIB_NAME)

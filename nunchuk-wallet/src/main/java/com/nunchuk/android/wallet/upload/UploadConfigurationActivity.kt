@@ -44,6 +44,7 @@ class UploadConfigurationActivity : BaseActivity() {
     }
 
     private fun setupViews() {
+        binding.btnQRCode.setOnClickListener { viewModel.handleShowQREvent() }
         binding.btnUpload.setOnClickListener { viewModel.handleUploadEvent() }
         binding.btnSkipUpload.setOnClickListener { navigator.openWalletReviewScreen(this, args.walletId) }
     }
@@ -57,7 +58,13 @@ class UploadConfigurationActivity : BaseActivity() {
             is SetLoadingEvent -> binding.progress.isVisible = event.showLoading
             is ExportWalletSuccessEvent -> shareConfigurationFile(event.filePath)
             is UploadConfigurationError -> NCToastMessage(this).showWarning(event.message)
+            is OpenDynamicQRScreen -> openDynamicQRScreen(event)
         }
+    }
+
+    private fun openDynamicQRScreen(event: OpenDynamicQRScreen) {
+        NCToastMessage(this).showMessage(event.values.joinToString(separator = ","))
+        navigator.openDynamicQRScreen(this, event.values)
     }
 
     private fun shareConfigurationFile(filePath: String) {

@@ -59,10 +59,38 @@
         app:layout_constraintTop_toBottomOf="@+id/title" />
 
     <LinearLayout
+        android:id="@+id/btnQRCode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/nc_padding_16"
+        android:background="@drawable/nc_rounded_dark_background"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="@dimen/nc_padding_16"
+        app:layout_constraintBottom_toTopOf="@+id/btnUpload"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_qr"
+            app:tint="@color/nc_white_color" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/nc_padding_6"
+            android:text="@string/nc_text_wallet_qr_code"
+            android:textColor="@color/nc_white_color"
+            android:textSize="@dimen/nc_text_size_14"
+            app:fontTextStyle="semi_bold" />
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/btnUpload"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/nc_rounded_dark_background"
+        android:background="@drawable/nc_rounded_light_background"
         android:gravity="center"
         android:orientation="horizontal"
         android:padding="@dimen/nc_padding_16"
@@ -72,14 +100,15 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_share" />
+            android:src="@drawable/ic_share"
+            app:tint="@color/nc_primary_color" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_6"
-            android:text="@string/nc_wallet_upload_configuration_title"
-            android:textColor="@color/nc_white_color"
+            android:text="@string/nc_wallet_save_configuration"
+            android:textColor="@color/nc_black_color"
             android:textSize="@dimen/nc_text_size_14"
             app:fontTextStyle="semi_bold" />
     </LinearLayout>

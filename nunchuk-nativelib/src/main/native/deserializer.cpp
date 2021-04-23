@@ -95,3 +95,17 @@ void Deserializer::convert2JException(JNIEnv *env, const char *msg) {
     }
     env->ThrowNew(clazz, msg);
 }
+
+jobject Deserializer::convert2JListString(JNIEnv *env, const std::vector<std::string> &values) {
+    static auto arrayListClass = static_cast<jclass>(env->NewGlobalRef(env->FindClass("java/util/ArrayList")));
+    static jmethodID constructor = env->GetMethodID(arrayListClass, "<init>", "()V");
+    jmethodID addMethod = env->GetMethodID(arrayListClass, "add", "(Ljava/lang/Object;)Z");
+    jobject arrayListInstance = env->NewObject(arrayListClass, constructor);
+    for (const std::string &s: values) {
+        syslog(LOG_DEBUG, "[JNI] [convert2JListString]item::%s", s.c_str());
+        auto element = env->NewStringUTF(s.c_str());
+        env->CallBooleanMethod(arrayListInstance, addMethod, element);
+        env->DeleteLocalRef(element);
+    }
+    return arrayListInstance;
+}

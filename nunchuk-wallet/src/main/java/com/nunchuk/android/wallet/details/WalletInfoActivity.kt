@@ -10,6 +10,8 @@ import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.ActivityWalletInfoBinding
+import com.nunchuk.android.wallet.details.WalletInfoEvent.UpdateNameErrorEvent
+import com.nunchuk.android.wallet.details.WalletInfoEvent.UpdateNameSuccessEvent
 import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCToastMessage
 import javax.inject.Inject
@@ -49,6 +51,10 @@ class WalletInfoActivity : BaseActivity() {
     }
 
     private fun handleEvent(event: WalletInfoEvent) {
+        when (event) {
+            UpdateNameSuccessEvent -> showEditWalletSuccess()
+            is UpdateNameErrorEvent -> NCToastMessage(this).showWarning(event.message)
+        }
     }
 
     private fun handleState(wallet: Wallet) {
@@ -64,6 +70,7 @@ class WalletInfoActivity : BaseActivity() {
     }
 
     private fun setupViews() {
+        binding.walletName.setOnClickListener { onEditClicked() }
         binding.btnDone.setOnClickListener {
             finish()
         }
@@ -72,7 +79,7 @@ class WalletInfoActivity : BaseActivity() {
     private fun onEditClicked() {
         val bottomSheet = WalletUpdateBottomSheet.show(
             fragmentManager = supportFragmentManager,
-            walletName = ""
+            walletName = binding.walletName.text.toString()
         )
 
         bottomSheet.setListener(viewModel::handleEditCompleteEvent)

@@ -2,6 +2,7 @@ package com.nunchuk.android.nav
 
 import android.content.Context
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.qr.DynamicQRCodeActivity
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.add.AddWalletActivity
@@ -54,6 +55,10 @@ open class WalletNavigatorImpl : WalletNavigator {
 
     override fun openWalletReviewScreen(activityContext: Context, walletId: String) {
         WalletInfoActivity.start(activityContext, walletId)
+    }
+
+    override fun openDynamicQRScreen(activityContext: Context, values: List<String>) {
+        DynamicQRCodeActivity.start(activityContext, values)
     }
 
 }

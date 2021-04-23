@@ -103,6 +103,11 @@ internal class LibNunchukFacade @Inject constructor(
     )
 
     @Throws(NCNativeException::class)
+    fun exportCoboWallet(walletId: String) = nunchukAndroid.exportCoboWallet(
+        walletId = walletId
+    )
+
+    @Throws(NCNativeException::class)
     fun getWallet(walletId: String) = nunchukAndroid.getWallet(walletId)
 
     @Throws(NCNativeException::class)
