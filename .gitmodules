@@ -1,4 +1,4 @@
 [submodule "nunchuk-nativelib/src/main/native/libnunchuk"]
 	path = nunchuk-nativelib/src/main/native/libnunchuk
-	url = git@gitlab.com:nunchuck/libnunchuk.git
+	url = https://gitlab.com/nunchuck/libnunchuk.git
 	branch = android_experimental

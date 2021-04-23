@@ -12,6 +12,8 @@ class Deserializer {
 
 public:
 
+    static jobject convert2JListString(JNIEnv *env, const std::vector<std::string> &values);
+
     static void convert2JException(JNIEnv *env, const char *msg);
 
     static jobject convert2JAddressType(JNIEnv *env, const AddressType &type);

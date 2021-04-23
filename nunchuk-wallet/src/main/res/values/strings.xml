@@ -50,4 +50,5 @@
     <string name="nc_text_wallet_name">Wallet name</string>
 
     <string name="nc_text_wallet_config_title">Wallet config</string>
+    <string name="nc_text_wallet_qr_code">QR code</string>
 </resources>

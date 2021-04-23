@@ -83,6 +83,7 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_createWallet(
         return env->ExceptionOccurred();
     }
 }
+
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_nunchuk_android_nativelib_LibNunchukAndroid_exportWallet(
@@ -105,6 +106,23 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_exportWallet(
         return 0;
     }
 }
+
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_exportCoboWallet(JNIEnv *env, jobject thiz, jstring wallet_id) {
+    try {
+        auto values =  NunchukProvider::get()->nu->ExportCoboWallet(
+                env->GetStringUTFChars(wallet_id, nullptr)
+        );
+        return Deserializer::convert2JListString(env, values);
+    } catch (std::exception &e) {
+        syslog(LOG_DEBUG, "[JNI] createWallet error::%s", e.what());
+        Deserializer::convert2JException(env, e.what());
+        env->ExceptionOccurred();
+        return 0;
+    }
+}
+
 extern "C"
 JNIEXPORT jobject JNICALL
 Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getWallet(
@@ -121,6 +139,7 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getWallet(
         return env->ExceptionOccurred();
     }
 }
+
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_nunchuk_android_nativelib_LibNunchukAndroid_updateWallet(

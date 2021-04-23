@@ -38,6 +38,12 @@
             android:label="@string/nc_text_wallet_config_title"
             android:screenOrientation="portrait"
             android:theme="@style/MainScreenTheme" />
+
+        <activity
+            android:name="com.nunchuk.android.qr.DynamicQRCodeActivity"
+            android:label="@string/nc_text_wallet_qr_code"
+            android:screenOrientation="portrait"
+            android:theme="@style/MainScreenTheme" />
     </application>
 
 </manifest>

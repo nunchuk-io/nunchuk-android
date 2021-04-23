@@ -44,6 +44,9 @@ internal interface NativeLibDomainModule {
     fun bindExportWalletUseCase(useCase: ExportWalletUseCaseImpl): ExportWalletUseCase
 
     @Binds
+    fun bindExportCoboWalletUseCase(useCase: ExportCoboWalletUseCaseImpl): ExportCoboWalletUseCase
+
+    @Binds
     fun bindGetWalletUseCase(useCase: GetWalletUseCaseImpl): GetWalletUseCase
 
     @Binds

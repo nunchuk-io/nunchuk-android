@@ -2,7 +2,7 @@ package com.nunchuk.android.wallet.details
 
 sealed class WalletInfoEvent {
 
-    data class UpdateNameSuccessEvent(val signerName: String) : WalletInfoEvent()
+    object UpdateNameSuccessEvent : WalletInfoEvent()
 
     data class UpdateNameErrorEvent(val message: String) : WalletInfoEvent()
 }

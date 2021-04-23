@@ -34,7 +34,9 @@ class MainActivity : BaseActivity() {
 
     companion object {
         fun start(activityContext: Context) {
-            activityContext.startActivity(Intent(activityContext, MainActivity::class.java))
+            activityContext.startActivity(Intent(activityContext, MainActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            })
         }
     }
 }

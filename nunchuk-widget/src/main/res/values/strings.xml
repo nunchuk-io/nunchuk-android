@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="nc_text_done">Done</string>
+    <string name="nc_text_close">Close</string>
     <string name="nc_text_save">Save</string>
     <string name="nc_text_got_it">Got it</string>
     <string name="nc_text_continue">Continue</string>
 
     <string name="nc_text_required">Required</string>
-    <string name="nc_loading_text">Please wait...</string>
 </resources>

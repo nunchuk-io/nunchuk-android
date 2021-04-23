@@ -30,4 +30,6 @@ interface WalletNavigator {
     fun openUploadConfigurationScreen(activityContext: Context, walletId: String)
 
     fun openWalletReviewScreen(activityContext: Context, walletId: String)
+
+    fun openDynamicQRScreen(activityContext: Context, values: List<String>)
 }
