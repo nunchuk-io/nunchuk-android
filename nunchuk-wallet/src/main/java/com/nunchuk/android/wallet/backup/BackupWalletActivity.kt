@@ -7,6 +7,10 @@ import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.core.share.IntentSharingEventBus
+import com.nunchuk.android.core.share.IntentSharingListener
+import com.nunchuk.android.core.share.IntentSharingListenerWrapper
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.backup.BackupWalletEvent.*
@@ -21,6 +25,13 @@ class BackupWalletActivity : BaseActivity() {
 
     @Inject
     lateinit var navigator: NunchukNavigator
+
+    @Inject
+    lateinit var controller: IntentSharingController
+
+    private val listener: IntentSharingListener = IntentSharingListenerWrapper {
+        navigator.openUploadConfigurationScreen(this, args.walletId)
+    }
 
     private val args: BackupWalletArgs by lazy { BackupWalletArgs.deserializeFrom(intent) }
 
@@ -42,6 +53,16 @@ class BackupWalletActivity : BaseActivity() {
         viewModel.init(args.walletId, args.descriptor)
     }
 
+    override fun onResume() {
+        super.onResume()
+        IntentSharingEventBus.instance.subscribe(listener)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        IntentSharingEventBus.instance.unsubscribe()
+    }
+
     private fun setupViews() {
         NCToastMessage(this).show(R.string.nc_wallet_has_been_created)
         binding.btnBackup.setOnClickListener { viewModel.handleBackupDescriptorEvent() }
@@ -61,12 +82,11 @@ class BackupWalletActivity : BaseActivity() {
     }
 
     private fun shareDescriptor(descriptor: String) {
-        val sendIntent: Intent = Intent().apply {
+        controller.share(Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_TEXT, descriptor)
             type = "text/plain"
-        }
-        startActivity(Intent.createChooser(sendIntent, "Nunchuk"))
+        })
     }
 
     companion object {

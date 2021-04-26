@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:background="@color/nc_white_color"
+    android:layout_height="match_parent"
+    android:padding="@dimen/nc_padding_16">
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/note"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:paddingVertical="@dimen/nc_padding_8"
+        android:text="@string/nc_ssigner_new_seed_note"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/seedGrid"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        app:layout_constraintBottom_toTopOf="@+id/warning"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/note" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/warning"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/nc_padding_12"
+        android:background="@drawable/nc_rounded_whisper_background"
+        android:drawableStart="@drawable/ic_info"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:padding="@dimen/nc_padding_16"
+        android:text="@string/nc_ssigner_new_seed_warning"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_14"
+        app:layout_constraintBottom_toTopOf="@+id/btnContinue"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btnContinue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:layout_marginBottom="@dimen/nc_padding_16"
+        android:background="@drawable/nc_rounded_dark_background"
+        android:gravity="center"
+        android:padding="@dimen/nc_padding_16"
+        android:text="@string/nc_text_continue"
+        android:textAllCaps="false"
+        android:textColor="@color/nc_white_color"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

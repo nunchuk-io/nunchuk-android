@@ -72,7 +72,7 @@ class WalletInfoActivity : BaseActivity() {
     private fun setupViews() {
         binding.walletName.setOnClickListener { onEditClicked() }
         binding.btnDone.setOnClickListener {
-            finish()
+            navigator.openMainScreen(this)
         }
     }
 

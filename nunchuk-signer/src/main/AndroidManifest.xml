@@ -8,7 +8,8 @@
             android:name=".add.AddSignerActivity"
             android:label="@string/nc_create_signer_title"
             android:screenOrientation="portrait"
-            android:theme="@style/MainScreenTheme" />
+            android:theme="@style/MainScreenTheme"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".details.SignerInfoActivity"
@@ -18,9 +19,29 @@
 
         <activity
             android:name=".SignerIntroActivity"
-            android:label="@string/nc_create_signer_title"
+            android:label="@string/nc_add_signer_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukLightNoActionBarTheme" />
+
+        <activity
+            android:name=".SoftwareSignerIntroActivity"
+            android:label="@string/nc_ssigner_title"
             android:screenOrientation="portrait"
             android:theme="@style/MainScreenTheme" />
+
+        <activity
+            android:name=".ss.create.CreateNewSeedActivity"
+            android:label="@string/nc_ssigner_new_seed_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/MainScreenTheme" />
+
+        <activity
+            android:name=".ss.recover.RecoverSeedActivity"
+            android:label="@string/nc_ssigner_recover_seed"
+            android:screenOrientation="portrait"
+            android:theme="@style/MainScreenTheme"
+            android:windowSoftInputMode="adjustResize" />
+
     </application>
 
 </manifest>

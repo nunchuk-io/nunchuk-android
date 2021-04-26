@@ -23,10 +23,12 @@
 
     <ImageView
         android:id="@+id/iconInfo"
+        android:background="@drawable/nc_circle_whisper_background"
+        android:padding="@dimen/nc_padding_16"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_44"
-        android:src="@drawable/ic_info_big"
+        android:src="@drawable/ic_info"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

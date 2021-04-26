@@ -28,7 +28,7 @@ before_script:
   - chmod +x ./gradlew
   
   # Add libnunchuk and build deps
-  - pushd ${PWD}/nunchuk-nativelib/src/main/native 
+  - pushd ${PWD}/nunchuk-nativelib/src/main/native
   - git submodule add --force -b android_experimental https://gitlab.com/nunchuck/libnunchuk.git
   - git submodule update --init --recursive --depth=1
   - sh .install_deps.sh armeabi-v7a

@@ -12,5 +12,12 @@ interface SignerNavigator {
         justAdded: Boolean = false
     )
 
-    fun openAddSignerScreen(activityContext: Context)
+    fun openAddAirSignerScreen(activityContext: Context)
+
+    fun openAddSoftwareSignerScreen(activityContext: Context)
+
+    fun openCreateNewSeedScreen(activityContext: Context)
+
+    fun openRecoverSeedScreen(activityContext: Context)
+
 }

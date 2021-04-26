@@ -1,7 +1,8 @@
-package com.nunchuk.android.nav
+package com.nunchuk.android.wallet.nav
 
 import android.content.Context
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.nav.WalletNavigator
 import com.nunchuk.android.qr.DynamicQRCodeActivity
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
@@ -12,7 +13,7 @@ import com.nunchuk.android.wallet.confirm.WalletConfirmActivity
 import com.nunchuk.android.wallet.details.WalletInfoActivity
 import com.nunchuk.android.wallet.upload.UploadConfigurationActivity
 
-open class WalletNavigatorImpl : WalletNavigator {
+interface WalletNavigatorDelegate : WalletNavigator {
 
     override fun openAddWalletScreen(activityContext: Context) {
         AddWalletActivity.start(activityContext)

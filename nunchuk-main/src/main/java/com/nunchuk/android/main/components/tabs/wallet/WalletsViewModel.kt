@@ -60,11 +60,7 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     fun handleAddSigner() {
-        if (hasSigner()) {
-            event(AddSignerEvent)
-        } else {
-            event(ShowSignerIntroEvent)
-        }
+        event(ShowSignerIntroEvent)
     }
 
     fun handleAddWallet() {

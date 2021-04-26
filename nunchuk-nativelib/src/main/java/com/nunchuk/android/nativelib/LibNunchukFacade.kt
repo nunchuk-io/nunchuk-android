@@ -112,4 +112,8 @@ internal class LibNunchukFacade @Inject constructor(
 
     @Throws(NCNativeException::class)
     fun updateWallet(wallet: Wallet) = nunchukAndroid.updateWallet(wallet.toBridge())
+
+    //https://iancoleman.io/bip39/
+    @Throws(NCNativeException::class)
+    fun generateMnemonicCode() = "member gift grocery injury plunge track such sphere symptom liar asthma neck route hair promote motion public pupil nuclear flat afraid pen lady frown"
 }

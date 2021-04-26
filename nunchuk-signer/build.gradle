@@ -9,6 +9,7 @@ dependencies {
     implementation project(':nunchuk-nativelib')
     implementation project(':nunchuk-widget')
 
+    implementation pluginsDeps.kotlinAndroidRuntime
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()
 

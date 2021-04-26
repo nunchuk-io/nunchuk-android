@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseFragment
+import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.main.R
@@ -32,7 +33,11 @@ internal class WalletsFragment : BaseFragment() {
     private var _binding: FragmentWalletsBinding? = null
     private val binding get() = _binding!!
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         _binding = FragmentWalletsBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -55,16 +60,12 @@ internal class WalletsFragment : BaseFragment() {
         navigator.openAddWalletScreen(requireActivity())
     }
 
-    private fun openAddSignerScreen() {
-        navigator.openAddSignerScreen(requireActivity())
-    }
-
     private fun openSignerIntroScreen() {
         navigator.openSignerIntroScreen(requireActivity())
     }
 
     private fun hideIntroContainerView() {
-        binding.introContainer.visibility = View.GONE
+        binding.introContainer.isVisible = false
     }
 
     private fun observeEvent() {
@@ -74,7 +75,6 @@ internal class WalletsFragment : BaseFragment() {
 
     private fun handleEvent(event: WalletsEvent) {
         when (event) {
-            AddSignerEvent -> openAddSignerScreen()
             AddWalletEvent -> openAddWalletScreen()
             ShowSignerIntroEvent -> openSignerIntroScreen()
             is ShowErrorEvent -> requireActivity().showToast(event.message)
@@ -116,13 +116,13 @@ internal class WalletsFragment : BaseFragment() {
     }
 
     private fun showWalletsEmptyView() {
-        binding.walletEmpty.visibility = View.VISIBLE
-        binding.walletList.visibility = View.GONE
+        binding.walletEmpty.isVisible = true
+        binding.walletList.isVisible = false
     }
 
     private fun showWalletsListView(wallets: List<Wallet>) {
-        binding.walletEmpty.visibility = View.GONE
-        binding.walletList.visibility = View.VISIBLE
+        binding.walletEmpty.isVisible = false
+        binding.walletList.isVisible = true
         WalletsViewBinder(binding.walletList, wallets, ::openWalletReviewScreen).bindItems()
     }
 
@@ -139,13 +139,13 @@ internal class WalletsFragment : BaseFragment() {
     }
 
     private fun showSignersEmptyView() {
-        binding.signerEmpty.visibility = View.VISIBLE
-        binding.signerList.visibility = View.GONE
+        binding.signerEmpty.isVisible = true
+        binding.signerList.isVisible = false
     }
 
     private fun showSignersListView(signers: List<SingleSigner>) {
-        binding.signerEmpty.visibility = View.GONE
-        binding.signerList.visibility = View.VISIBLE
+        binding.signerEmpty.isVisible = false
+        binding.signerList.isVisible = true
         SignersViewBinder(binding.signerList, signers, ::openSignerInfoScreen).bindItems()
     }
 
