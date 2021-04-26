@@ -6,6 +6,7 @@ import android.os.Bundle
 import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.signer.databinding.ActivitySignerIntroBinding
+import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
 
 class SignerIntroActivity : BaseActivity() {
@@ -17,6 +18,7 @@ class SignerIntroActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setTransparentStatusBar(false)
 
         binding = ActivitySignerIntroBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -25,12 +27,21 @@ class SignerIntroActivity : BaseActivity() {
     }
 
     private fun setupViews() {
-        binding.gotIt.setOnClickListener { openAddSignerScreen() }
+        binding.btnAddAirSigner.setOnClickListener { openAddAirSignerScreen() }
+        binding.btnAddSSigner.setOnClickListener { openAddSoftwareSignerScreen() }
+        binding.toolbar.setNavigationOnClickListener {
+            finish()
+        }
     }
 
-    private fun openAddSignerScreen() {
+    private fun openAddAirSignerScreen() {
         finish()
-        navigator.openAddSignerScreen(this)
+        navigator.openAddAirSignerScreen(this)
+    }
+
+    private fun openAddSoftwareSignerScreen() {
+        finish()
+        navigator.openAddSoftwareSignerScreen(this)
     }
 
     companion object {

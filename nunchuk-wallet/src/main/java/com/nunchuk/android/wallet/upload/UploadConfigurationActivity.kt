@@ -8,6 +8,10 @@ import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.core.share.IntentSharingEventBus
+import com.nunchuk.android.core.share.IntentSharingListener
+import com.nunchuk.android.core.share.IntentSharingListenerWrapper
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.wallet.databinding.ActivityWalletUploadConfigurationBinding
 import com.nunchuk.android.wallet.upload.UploadConfigurationEvent.*
@@ -22,6 +26,13 @@ class UploadConfigurationActivity : BaseActivity() {
 
     @Inject
     lateinit var navigator: NunchukNavigator
+
+    @Inject
+    lateinit var controller: IntentSharingController
+
+    private val listener: IntentSharingListener = IntentSharingListenerWrapper {
+        navigator.openWalletReviewScreen(this, args.walletId)
+    }
 
     private val args: UploadConfigurationArgs by lazy { UploadConfigurationArgs.deserializeFrom(intent) }
 
@@ -41,6 +52,16 @@ class UploadConfigurationActivity : BaseActivity() {
         observeEvent()
 
         viewModel.init(args.walletId)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        IntentSharingEventBus.instance.subscribe(listener)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        IntentSharingEventBus.instance.unsubscribe()
     }
 
     private fun setupViews() {
@@ -63,15 +84,14 @@ class UploadConfigurationActivity : BaseActivity() {
     }
 
     private fun openDynamicQRScreen(event: OpenDynamicQRScreen) {
-        NCToastMessage(this).showMessage(event.values.joinToString(separator = ","))
         navigator.openDynamicQRScreen(this, event.values)
     }
 
     private fun shareConfigurationFile(filePath: String) {
-        val shareIntent = Intent(Intent.ACTION_SEND)
-        shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(File(filePath)))
-        shareIntent.type = "*/*"
-        startActivity(Intent.createChooser(shareIntent, "Nunchuk"))
+        controller.share(Intent(Intent.ACTION_SEND).apply {
+            putExtra(Intent.EXTRA_STREAM, Uri.fromFile(File(filePath)))
+            type = "*/*"
+        })
     }
 
     companion object {

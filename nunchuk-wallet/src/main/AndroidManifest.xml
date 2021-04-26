@@ -7,7 +7,8 @@
             android:name=".add.AddWalletActivity"
             android:label="@string/nc_wallet_create_wallet_title"
             android:screenOrientation="portrait"
-            android:theme="@style/MainScreenTheme" />
+            android:theme="@style/MainScreenTheme"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".assign.AssignSignerActivity"

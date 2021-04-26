@@ -55,4 +55,7 @@ internal interface NativeLibDomainModule {
     @Binds
     fun bindUpdateWalletUseCase(useCase: UpdateWalletUseCaseImpl): UpdateWalletUseCase
 
+    @Binds
+    fun bindGetMnemonicCodeUseCase(useCase: GetMnemonicCodeUseCaseImpl): GetMnemonicCodeUseCase
+
 }

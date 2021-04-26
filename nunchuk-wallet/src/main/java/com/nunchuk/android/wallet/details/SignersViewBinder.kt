@@ -31,6 +31,6 @@ internal class SignersViewBinder(
         signerName.text = model.name
         val xfpValue = "XFP: ${model.masterFingerprint}"
         xfp.text = xfpValue
-        checkBox.visibility = View.GONE
+        checkBox.isVisible = false
     }
 }

@@ -1,7 +1,7 @@
 set -e
 
 if [ -z "$ANDROID_NDK_HOME" ]; then
-  echo "export the ANDROID_NDK environment variable"
+  echo "export the $ANDROID_NDK_HOME environment variable"
   exit 1
 fi
 
@@ -68,7 +68,7 @@ installBitcoinDeps() {
   export RANLIB=$TOOLCHAIN/bin/$TARGET-ranlib
   export STRIP=$TOOLCHAIN/bin/$TARGET-strip
 
-  ANDROID_SDK=$ANDROID_SDK ANDROID_NDK=$ANDROID_NDK make HOST=$TARGET ANDROID_TOOLCHAIN_BIN=$TOOLCHAIN ANDROID_API_LEVEL=$API NO_QT=1 NO_ZMQ=1 NO_QR=1 NO_UPNP=1
+  ANDROID_SDK=$ANDROID_SDK ANDROID_NDK=$ANDROID_NDK_HOME make HOST=$TARGET ANDROID_TOOLCHAIN_BIN=$TOOLCHAIN ANDROID_API_LEVEL=$API NO_QT=1 NO_ZMQ=1 NO_QR=1 NO_UPNP=1
 }
 #
 pushd libnunchuk/contrib/bitcoin/depends || exit

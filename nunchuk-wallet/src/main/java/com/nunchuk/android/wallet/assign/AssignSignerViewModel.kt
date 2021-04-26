@@ -53,22 +53,14 @@ internal class AssignSignerViewModel @Inject constructor(
         updateState { copy(totalRequireSigns = newVal) }
     }
 
-    fun updateTotalRequireSigns(number: String) {
-        val state = getState()
-        val numberVal = if (number.isBlank()) 0 else number.toInt()
-        if (numberVal != state.totalRequireSigns) {
-            val newVal: Int = when {
-                numberVal <= 0 -> 0
-                numberVal >= state.selectedPFXs.size -> state.selectedPFXs.size
-                else -> numberVal
-            }
-        }
-    }
-
     fun handleContinueEvent() {
         val state = getState()
         if (state.totalRequireSigns > 0 && state.signers.isNotEmpty()) {
-            event(AssignSignerCompletedEvent(state.totalRequireSigns, state.signers.filter { it.masterFingerprint in state.selectedPFXs }))
+            event(
+                AssignSignerCompletedEvent(
+                    state.totalRequireSigns,
+                    state.signers.filter { it.masterFingerprint in state.selectedPFXs })
+            )
         }
     }
 

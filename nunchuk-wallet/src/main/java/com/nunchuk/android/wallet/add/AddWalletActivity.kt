@@ -4,10 +4,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.InputFilter.LengthFilter
-import android.view.View.GONE
-import android.view.View.VISIBLE
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
+import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.type.AddressType
@@ -134,10 +133,10 @@ class AddWalletActivity : BaseActivity() {
 
     private fun handleCustomizeCustomerChanged(checked: Boolean) {
         if (checked) {
-            binding.customizeAddressContainer.visibility = VISIBLE
+            binding.customizeAddressContainer.isVisible = true
         } else {
             viewModel.setDefaultAddressType()
-            binding.customizeAddressContainer.visibility = GONE
+            binding.customizeAddressContainer.isVisible = false
         }
     }
 

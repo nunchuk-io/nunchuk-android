@@ -8,6 +8,7 @@ import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ActivitySignerInfoBinding
+import com.nunchuk.android.signer.details.SignerInfoEvent.*
 import com.nunchuk.android.signer.util.toSigner
 import com.nunchuk.android.widget.NCToastMessage
 import javax.inject.Inject
@@ -41,13 +42,13 @@ class SignerInfoActivity : BaseActivity() {
     private fun observeEvent() {
         viewModel.event.observe(this) {
             when (it) {
-                is SignerInfoEvent.UpdateNameSuccessEvent -> {
+                is UpdateNameSuccessEvent -> {
                     binding.signerName.text = it.signerName
                     showEditSignerNameSuccess()
                 }
-                SignerInfoEvent.RemoveSignerCompletedEvent -> finish()
-                is SignerInfoEvent.RemoveSignerErrorEvent -> showToast(it.message)
-                is SignerInfoEvent.UpdateNameErrorEvent -> showToast(it.message)
+                RemoveSignerCompletedEvent -> finish()
+                is RemoveSignerErrorEvent -> showToast(it.message)
+                is UpdateNameErrorEvent -> showToast(it.message)
             }
         }
     }

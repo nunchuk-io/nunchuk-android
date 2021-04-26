@@ -12,7 +12,6 @@ import com.nunchuk.android.auth.databinding.ActivityForgotPasswordBinding
 import com.nunchuk.android.auth.util.orUnknownError
 import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.nav.NunchukNavigator
-import com.nunchuk.android.widget.util.SimpleTextWatcher
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
 

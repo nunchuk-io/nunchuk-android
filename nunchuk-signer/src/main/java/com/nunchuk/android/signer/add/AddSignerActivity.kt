@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.InputFilter
-import android.text.InputType
 import android.widget.EditText
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
@@ -16,6 +15,7 @@ import com.nunchuk.android.signer.add.AddSignerEvent.*
 import com.nunchuk.android.signer.databinding.ActivityAddSignerBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.SimpleTextWatcher
+import com.nunchuk.android.widget.util.heightExtended
 import javax.inject.Inject
 
 class AddSignerActivity : BaseActivity() {
@@ -69,10 +69,7 @@ class AddSignerActivity : BaseActivity() {
         })
 
         binding.addSignerViaQR.setOnClickListener { showToast("Scan QR coming soon") }
-        val specContainer: EditText = binding.signerSpec.findViewById(R.id.editText)
-        specContainer.isSingleLine = false
-        specContainer.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
-        specContainer.layoutParams.height = resources.getDimensionPixelSize(R.dimen.nc_height_240)
+        binding.signerSpec.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_180))
         binding.addSigner.setOnClickListener {
             viewModel.handleAddSigner(binding.signerName.getEditText(), binding.signerSpec.getEditText())
         }
