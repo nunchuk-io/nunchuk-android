@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.signer.databinding.ActivityCreateSeedBinding
+import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
 class CreateNewSeedActivity : BaseActivity() {
@@ -25,6 +26,8 @@ class CreateNewSeedActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setLightStatusBar()
 
         binding = ActivityCreateSeedBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -52,6 +55,9 @@ class CreateNewSeedActivity : BaseActivity() {
         adapter = CreateNewSeedAdapter(this)
         binding.seedGrid.layoutManager = GridLayoutManager(this, COLUMNS)
         binding.seedGrid.adapter = adapter
+        binding.toolbar.setNavigationOnClickListener {
+            finish()
+        }
     }
 
     companion object {

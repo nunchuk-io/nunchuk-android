@@ -6,6 +6,8 @@ import android.os.Bundle
 import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.signer.databinding.ActivitySoftwareSignerIntroBinding
+import com.nunchuk.android.widget.util.setLightStatusBar
+import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
 
 class SoftwareSignerIntroActivity : BaseActivity() {
@@ -18,6 +20,8 @@ class SoftwareSignerIntroActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        setLightStatusBar()
+
         binding = ActivitySoftwareSignerIntroBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -27,6 +31,9 @@ class SoftwareSignerIntroActivity : BaseActivity() {
     private fun setupViews() {
         binding.btnCreateSeed.setOnClickListener { openCreateNewSeedScreen() }
         binding.btnRecoverSeed.setOnClickListener { openRecoverSeedScreen() }
+        binding.toolbar.setNavigationOnClickListener {
+            finish()
+        }
     }
 
     private fun openCreateNewSeedScreen() {
