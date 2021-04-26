@@ -18,3 +18,9 @@ fun Activity.setTransparentStatusBar(useDarkTheme: Boolean = true) {
         window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
     }
 }
+
+@Suppress("DEPRECATION")
+fun Activity.setLightStatusBar() {
+    window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+    window.statusBarColor = 0xFFFFFF
+}

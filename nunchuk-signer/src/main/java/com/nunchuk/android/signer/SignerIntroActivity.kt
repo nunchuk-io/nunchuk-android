@@ -6,7 +6,7 @@ import android.os.Bundle
 import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.signer.databinding.ActivitySignerIntroBinding
-import com.nunchuk.android.widget.util.setTransparentStatusBar
+import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
 class SignerIntroActivity : BaseActivity() {
@@ -18,7 +18,8 @@ class SignerIntroActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setTransparentStatusBar(false)
+
+        setLightStatusBar()
 
         binding = ActivitySignerIntroBinding.inflate(layoutInflater)
         setContentView(binding.root)

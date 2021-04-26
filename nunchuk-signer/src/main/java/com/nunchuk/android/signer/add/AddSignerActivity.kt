@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.InputFilter
-import android.widget.EditText
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.NunchukFactory
@@ -16,6 +15,7 @@ import com.nunchuk.android.signer.databinding.ActivityAddSignerBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.SimpleTextWatcher
 import com.nunchuk.android.widget.util.heightExtended
+import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
 class AddSignerActivity : BaseActivity() {
@@ -34,6 +34,8 @@ class AddSignerActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setLightStatusBar()
 
         binding = ActivityAddSignerBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -72,6 +74,9 @@ class AddSignerActivity : BaseActivity() {
         binding.signerSpec.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_180))
         binding.addSigner.setOnClickListener {
             viewModel.handleAddSigner(binding.signerName.getEditText(), binding.signerSpec.getEditText())
+        }
+        binding.toolbar.setNavigationOnClickListener {
+            finish()
         }
     }
 

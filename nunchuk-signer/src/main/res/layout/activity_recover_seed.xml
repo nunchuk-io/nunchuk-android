@@ -2,26 +2,53 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:background="@color/nc_white_color"
     android:layout_height="match_parent"
-    android:padding="@dimen/nc_padding_16">
+    android:layout_marginTop="@dimen/nc_padding_24"
+    android:background="@color/nc_white_color">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        style="@style/NunchukLightNoActionBarTheme"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
+        app:buttonGravity="center_vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_back">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/toolbarTitle"
+            style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="@string/nc_ssigner_recover_seed"
+            android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_16"
+            app:fontTextStyle="semi_bold" />
+    </androidx.appcompat.widget.Toolbar>
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/desc"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
         android:paddingVertical="@dimen/nc_padding_8"
         android:text="@string/nc_ssigner_recover_seed_phrase_note"
         android:textColor="@color/nc_black_color"
         android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
     <com.nunchuk.android.widget.NCEditTextView
         android:id="@+id/phrase"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_24"
         app:edit_title="@string/nc_ssigner_recover_seed_phrase"
         app:edit_title_color="@color/nc_black_color"
@@ -33,12 +60,13 @@
         android:id="@+id/btnContinue"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/nc_padding_16"
-        android:layout_marginBottom="@dimen/nc_padding_16"
-        android:background="@drawable/nc_rounded_whisper_disable_background"
-        android:gravity="center"
+        android:layout_margin="@dimen/nc_padding_16"
+        android:background="@drawable/nc_rounded_dark_background"
+        android:foreground="?android:attr/selectableItemBackground"
         android:enabled="false"
+        android:gravity="center"
         android:padding="@dimen/nc_padding_16"
+        android:stateListAnimator="@null"
         android:text="@string/nc_text_continue"
         android:textAllCaps="false"
         android:textColor="@color/nc_grey_dark_color"

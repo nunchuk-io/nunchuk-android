@@ -21,6 +21,5 @@
         <item name="colorPrimary">@android:color/transparent</item>
         <item name="colorPrimaryDark">@android:color/transparent</item>
         <item name="colorAccent">@color/nc_accent_color</item>
-        <item name="android:minHeight">?attr/actionBarSize</item>
     </style>
 </resources>

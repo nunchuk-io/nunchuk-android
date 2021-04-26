@@ -1,25 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:padding="@dimen/nc_padding_16">
+    android:layout_marginTop="@dimen/nc_padding_24">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        style="@style/NunchukLightNoActionBarTheme"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
+        app:buttonGravity="center_vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_back">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/toolbarTitle"
+            style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="@string/nc_create_signer_title"
+            android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_16"
+            app:fontTextStyle="semi_bold" />
+    </androidx.appcompat.widget.Toolbar>
 
     <com.nunchuk.android.widget.NCEditTextView
         android:id="@+id/signerName"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_24"
         app:edit_title="@string/nc_text_signer_name"
         app:errorEnabled="true"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/signerNameCounter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/nc_padding_16"
         android:padding="@dimen/nc_padding_4"
         android:textColor="@color/nc_grey_dark_color"
         android:textSize="@dimen/nc_text_size_12"
@@ -29,6 +56,7 @@
 
     <com.nunchuk.android.widget.NCEditTextView
         android:id="@+id/signerSpec"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_24"
@@ -41,11 +69,14 @@
         android:id="@+id/addSignerViaQR"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:paddingVertical="@dimen/nc_padding_4"
         android:background="@drawable/nc_rounded_light_background"
+        android:foreground="?android:attr/selectableItemBackground"
         android:gravity="center"
         android:orientation="horizontal"
+        android:paddingVertical="@dimen/nc_padding_4"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/signerSpec">
 
@@ -53,9 +84,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:drawableEnd="@drawable/ic_qr"
-            android:paddingVertical="@dimen/nc_padding_8"
             android:drawablePadding="@dimen/nc_padding_8"
             android:gravity="center"
+            android:paddingVertical="@dimen/nc_padding_8"
             android:text="@string/nc_add_signer_via_qr_code"
             android:textColor="@color/nc_black_color"
             android:textSize="@dimen/nc_text_size_16"
@@ -67,10 +98,12 @@
         android:id="@+id/addSigner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/nc_padding_16"
+        android:layout_margin="@dimen/nc_padding_16"
         android:background="@drawable/nc_rounded_dark_background"
+        android:foreground="?android:attr/selectableItemBackground"
         android:gravity="center"
         android:padding="@dimen/nc_padding_16"
+        android:stateListAnimator="@null"
         android:text="@string/nc_text_add_signer"
         android:textAllCaps="false"
         android:textColor="@color/nc_white_color"

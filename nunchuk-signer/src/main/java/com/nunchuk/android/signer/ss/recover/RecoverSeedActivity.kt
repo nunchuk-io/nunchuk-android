@@ -9,6 +9,7 @@ import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ActivityRecoverSeedBinding
 import com.nunchuk.android.widget.util.heightExtended
+import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
 class RecoverSeedActivity : BaseActivity() {
@@ -24,6 +25,8 @@ class RecoverSeedActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setLightStatusBar()
 
         binding = ActivityRecoverSeedBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -47,6 +50,9 @@ class RecoverSeedActivity : BaseActivity() {
 
     private fun setupViews() {
         binding.phrase.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_180))
+        binding.toolbar.setNavigationOnClickListener {
+            finish()
+        }
     }
 
     companion object {
