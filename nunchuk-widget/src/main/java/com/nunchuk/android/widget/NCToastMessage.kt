@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import com.nunchuk.android.widget.util.NCCountdownTimer
 
@@ -24,6 +25,7 @@ class NCToastMessage constructor(private val activity: Activity) {
     fun showMessage(
         message: String,
         background: Int = R.drawable.nc_toast_background,
+        textColor: Int = R.color.nc_black_color,
         icon: Int = R.drawable.ic_info,
         gravity: Int = BOTTOM or FILL_HORIZONTAL,
         duration: Int = Toast.LENGTH_LONG,
@@ -33,7 +35,9 @@ class NCToastMessage constructor(private val activity: Activity) {
             R.layout.nc_toast_message,
             activity.findViewById(R.id.custom_toast_container) as ViewGroup?
         )
-        root.findViewById<TextView>(R.id.text).text = message
+        val textView: TextView = root.findViewById(R.id.text)
+        textView.text = message
+        textView.setTextColor(ContextCompat.getColor(activity, textColor))
 
         val containerView = root.findViewById<ViewGroup>(R.id.container)
         containerView.background = ResourcesCompat.getDrawable(activity.resources, background, null)
@@ -57,6 +61,15 @@ class NCToastMessage constructor(private val activity: Activity) {
             message = message,
             background = R.drawable.nc_toast_warning_background,
             icon = R.drawable.ic_warn
+        )
+    }
+
+    fun showError(message: String) {
+        showMessage(
+            message = message,
+            background = R.drawable.nc_toast_error_background,
+            textColor = R.color.nc_white_color,
+            icon = R.drawable.ic_info_white
         )
     }
 

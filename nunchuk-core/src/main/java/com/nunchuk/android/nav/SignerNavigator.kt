@@ -14,10 +14,17 @@ interface SignerNavigator {
 
     fun openAddAirSignerScreen(activityContext: Context)
 
+    fun openAddAirSignerIntroScreen(activityContext: Context)
+
     fun openAddSoftwareSignerScreen(activityContext: Context)
 
     fun openCreateNewSeedScreen(activityContext: Context)
 
     fun openRecoverSeedScreen(activityContext: Context)
 
+    fun openSelectPhraseScreen(activityContext: Context, mnemonic: String)
+
+    fun openAddSoftwareSignerNameScreen(activityContext: Context, mnemonic: String)
+
+    fun openSetPassphraseScreen(activityContext: Context, mnemonic: String, signerName: String)
 }

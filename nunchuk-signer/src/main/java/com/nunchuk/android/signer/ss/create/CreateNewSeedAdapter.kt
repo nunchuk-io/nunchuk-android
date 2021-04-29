@@ -1,17 +1,14 @@
 package com.nunchuk.android.signer.ss.create
 
-import android.content.Context
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.BaseViewHolder
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ItemNewSeedBinding
+import com.nunchuk.android.widget.util.inflate
 
-internal class CreateNewSeedAdapter internal constructor(
-    val context: Context
-) : RecyclerView.Adapter<CreateNewSeedViewHolder>() {
+internal class CreateNewSeedAdapter : RecyclerView.Adapter<CreateNewSeedViewHolder>() {
 
     internal var items: List<String> = ArrayList()
         set(value) {
@@ -20,9 +17,7 @@ internal class CreateNewSeedAdapter internal constructor(
         }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = CreateNewSeedViewHolder(
-        LayoutInflater
-            .from(context)
-            .inflate(R.layout.item_new_seed, parent, false)
+        parent.inflate(R.layout.item_new_seed)
     )
 
     override fun onBindViewHolder(holder: CreateNewSeedViewHolder, position: Int) {

@@ -7,7 +7,11 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.GridLayoutManager
 import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.signer.databinding.ActivityCreateSeedBinding
+import com.nunchuk.android.signer.ss.create.CreateNewSeedEvent.GenerateMnemonicCodeErrorEvent
+import com.nunchuk.android.signer.ss.create.CreateNewSeedEvent.OpenSelectPhraseEvent
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
@@ -15,6 +19,9 @@ class CreateNewSeedActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: NunchukFactory
+
+    @Inject
+    lateinit var navigator: NunchukNavigator
 
     private val viewModel: CreateNewSeedViewModel by lazy {
         ViewModelProviders.of(this, factory).get(CreateNewSeedViewModel::class.java)
@@ -49,15 +56,20 @@ class CreateNewSeedActivity : BaseActivity() {
     }
 
     private fun handleEvent(event: CreateNewSeedEvent) {
+        when (event) {
+            is GenerateMnemonicCodeErrorEvent -> NCToastMessage(this).showWarning(event.message)
+            is OpenSelectPhraseEvent -> navigator.openSelectPhraseScreen(this, event.mnemonic)
+        }
     }
 
     private fun setupViews() {
-        adapter = CreateNewSeedAdapter(this)
+        adapter = CreateNewSeedAdapter()
         binding.seedGrid.layoutManager = GridLayoutManager(this, COLUMNS)
         binding.seedGrid.adapter = adapter
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
+        binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }
     }
 
     companion object {
