@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="@dimen/nc_padding_24"
+    android:background="@color/nc_white_color">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        style="@style/NunchukLightNoActionBarTheme"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
+        app:buttonGravity="center_vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_back">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/toolbarTitle"
+            style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="@string/nc_ssigner_set_passphrase_title"
+            android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_16"
+            app:fontTextStyle="semi_bold" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/note"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:paddingVertical="@dimen/nc_padding_8"
+        android:text="@string/nc_ssigner_text_set_passphrase_note"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/nameTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:paddingVertical="@dimen/nc_padding_8"
+        android:text="Passphrase"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/note" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/optional"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_2"
+        android:gravity="center"
+        android:paddingVertical="@dimen/nc_padding_8"
+        android:text="(optional)"
+        android:textColor="@color/nc_grey_dark_color"
+        android:textSize="@dimen/nc_text_size_14"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintBottom_toBottomOf="@+id/nameTitle"
+        app:layout_constraintStart_toEndOf="@+id/nameTitle"
+        app:layout_constraintTop_toTopOf="@+id/nameTitle" />
+
+    <com.nunchuk.android.widget.NCEditTextView
+        android:id="@+id/passphrase"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        app:edit_hint="Input text here"
+        app:edit_title_color="@color/nc_black_color"
+        app:edit_title_text_size="@dimen/nc_text_size_16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/nameTitle" />
+
+    <com.nunchuk.android.widget.NCEditTextView
+        android:id="@+id/confirmPassphrase"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        app:edit_hint="Input text here"
+        app:edit_title="@string/nc_ssigner_confirm_passphrase"
+        app:edit_title_color="@color/nc_black_color"
+        app:edit_title_text_size="@dimen/nc_text_size_16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/passphrase" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/warning"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginBottom="@dimen/nc_padding_16"
+        android:background="@drawable/nc_rounded_whisper_background"
+        android:drawableStart="@drawable/ic_info"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:padding="@dimen/nc_padding_16"
+        android:text="@string/nc_ssigner_text_set_passphrase_warn"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_14"
+        app:layout_constraintBottom_toTopOf="@+id/btnNoPassphrase"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btnNoPassphrase"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/nc_padding_16"
+        android:background="@drawable/nc_rounded_dark_background"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:gravity="center"
+        android:padding="@dimen/nc_padding_16"
+        android:stateListAnimator="@null"
+        android:text="@string/nc_ssigner_text_dont_set_passphrase"
+        android:textAllCaps="false"
+        android:textColor="@color/nc_white_color"
+        app:layout_constraintBottom_toTopOf="@+id/btnSetPassphrase"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btnSetPassphrase"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/nc_padding_16"
+        android:background="@drawable/nc_rounded_light_background"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:gravity="center"
+        android:padding="@dimen/nc_padding_16"
+        android:stateListAnimator="@null"
+        android:text="@string/nc_ssigner_text_set_passphrase"
+        android:textAllCaps="false"
+        android:textColor="@color/nc_black_color"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

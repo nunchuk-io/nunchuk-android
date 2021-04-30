@@ -25,6 +25,13 @@
     <string name="nc_text_ss_desc">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</string>
     <string name="nc_text_air_desc">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</string>
 
+    <string name="nc_signer_before_start_title">Before you start</string>
+    <string name="nc_signer_before_start_note">Please ensure to do the following things</string>
+    <string name="nc_signer_before_start_initialize">Initialize the brand new device</string>
+    <string name="nc_signer_before_start_initialize_content">Follow your vendor\'s instruction on how to set up a device with a seed.</string>
+    <string name="nc_signer_before_start_device_unlock">Ensure your device is unlocked</string>
+    <string name="nc_signer_before_start_device_unlock_content">Please enter the PIN to unlock the device. You might also need to enter a PASSPHRASE on-device, if PASSPHRASE is enabled.</string>
+
     <string name="nc_ssigner_title">Add a software signer</string>
     <string name="nc_ssigner_new_seed_title">New wallet seed</string>
     <string name="nc_ssigner_new_seed">Create new seed</string>
@@ -35,4 +42,16 @@
 
     <string name="nc_ssigner_recover_seed_phrase">Your recovery phrase</string>
     <string name="nc_ssigner_recover_seed_phrase_note">Please enter the seed words recovery mnemonic phrase. Separate each word with a single space only (No commas or any other punctuation)</string>
+
+    <string name="nc_ssigner_confirm_seed_title">Confirm recovery phrase</string>
+    <string name="nc_ssigner_confirm_seed_note">Please confirm the recovery phrase</string>
+    <string name="nc_ssigner_confirm_seed_error">Incorrect words. Please try again.</string>
+    <string name="nc_ssigner_add_name_title">Give your signer a name</string>
+    <string name="nc_ssigner_set_passphrase_title">Set a passphrase</string>
+    <string name="nc_ssigner_text_dont_set_passphrase">I don\'t need a passphrase</string>
+    <string name="nc_ssigner_text_set_passphrase">Set passphrase</string>
+    <string name="nc_ssigner_text_set_passphrase_note">Passphrase can be anything you want, and add extra security to your signer. COPY TBD</string>
+    <string name="nc_ssigner_text_set_passphrase_warn">Please backup your passphrase along with the seed. You need both to recover your signer.</string>
+    <string name="nc_ssigner_confirm_passphrase">Confirm passphrase</string>
+    <string name="nc_ssigner_text_name">Name</string>
 </resources>

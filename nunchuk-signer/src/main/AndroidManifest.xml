@@ -23,6 +23,12 @@
             android:theme="@style/NunchukLightNoActionBarTheme" />
 
         <activity
+            android:name=".AirSignerIntroActivity"
+            android:label="@string/nc_signer_before_start_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukLightNoActionBarTheme" />
+
+        <activity
             android:name=".SoftwareSignerIntroActivity"
             android:label="@string/nc_ssigner_title"
             android:screenOrientation="portrait"
@@ -35,8 +41,26 @@
             android:theme="@style/NunchukLightNoActionBarTheme" />
 
         <activity
+            android:name=".ss.confirm.ConfirmSeedActivity"
+            android:label="@string/nc_ssigner_new_seed_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukLightNoActionBarTheme" />
+
+        <activity
             android:name=".ss.recover.RecoverSeedActivity"
             android:label="@string/nc_ssigner_recover_seed"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukLightNoActionBarTheme" />
+
+        <activity
+            android:name=".ss.name.AddSoftwareSignerNameActivity"
+            android:label="@string/nc_ssigner_add_name_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukLightNoActionBarTheme" />
+
+        <activity
+            android:name=".ss.passphrase.SetPassphraseActivity"
+            android:label="@string/nc_ssigner_set_passphrase_title"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukLightNoActionBarTheme" />
 

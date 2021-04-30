@@ -1,8 +1,11 @@
 package com.nunchuk.android.widget.util
 
 import android.text.InputType
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.EditText
+import androidx.annotation.LayoutRes
 import com.nunchuk.android.widget.NCEditTextView
 import com.nunchuk.android.widget.R
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -39,4 +42,10 @@ fun EditText.heightExtended(dimensionPixelSize: Int) {
     isSingleLine = false
     inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
     layoutParams.height = dimensionPixelSize
+}
+
+fun ViewGroup.inflate(@LayoutRes resourceId: Int): View {
+    return LayoutInflater
+        .from(context)
+        .inflate(resourceId, this, false)
 }

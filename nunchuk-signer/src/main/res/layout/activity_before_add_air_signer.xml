@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="@dimen/nc_padding_24"
+    android:background="@color/nc_white_color">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        style="@style/NunchukLightNoActionBarTheme"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
+        app:buttonGravity="center_vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_back">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/toolbarTitle"
+            style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="@string/nc_signer_before_start_title"
+            android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_16"
+            app:fontTextStyle="semi_bold" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <ImageView
+        android:id="@+id/icNote"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:background="@drawable/nc_circle_whisper_background"
+        android:padding="@dimen/nc_padding_16"
+        android:src="@drawable/ic_info_amber"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/note"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:paddingVertical="@dimen/nc_padding_8"
+        android:text="@string/nc_signer_before_start_note"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/icNote" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/initNum"
+        android:layout_width="@dimen/nc_padding_28"
+        android:layout_height="@dimen/nc_padding_28"
+        android:layout_gravity="center"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:background="@drawable/nc_circle_dark_stroke_background"
+        android:gravity="center"
+        android:padding="@dimen/nc_padding_4"
+        android:text="1"
+        android:textColor="@color/nc_primary_color"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/note" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/initTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:gravity="center"
+        android:text="@string/nc_signer_before_start_initialize"
+        android:textColor="@color/nc_black_color"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintStart_toEndOf="@+id/initNum"
+        app:layout_constraintTop_toBottomOf="@+id/note" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/initContent"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        android:layout_marginEnd="@dimen/nc_padding_16"
+        android:text="@string/nc_signer_before_start_initialize_content"
+        android:textColor="#323E4A"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/initNum"
+        app:layout_constraintTop_toBottomOf="@+id/initTitle" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/unlockNum"
+        android:layout_width="@dimen/nc_padding_28"
+        android:layout_height="@dimen/nc_padding_28"
+        android:layout_gravity="center"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:background="@drawable/nc_circle_dark_stroke_background"
+        android:gravity="center"
+        android:padding="@dimen/nc_padding_4"
+        android:text="2"
+        android:textColor="@color/nc_primary_color"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/initContent" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:layout_width="0dp"
+        android:id="@+id/unlockTitle"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:gravity="center"
+        android:text="@string/nc_signer_before_start_device_unlock"
+        android:textColor="@color/nc_black_color"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintStart_toEndOf="@+id/initNum"
+        app:layout_constraintTop_toBottomOf="@+id/initContent" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:layout_width="0dp"
+        android:id="@+id/unlockContent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        android:layout_marginEnd="@dimen/nc_padding_16"
+        android:text="@string/nc_signer_before_start_device_unlock_content"
+        android:textColor="#323E4A"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/initNum"
+        app:layout_constraintTop_toBottomOf="@+id/unlockTitle" />
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btnContinue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/nc_padding_16"
+        android:background="@drawable/nc_rounded_dark_background"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:gravity="center"
+        android:padding="@dimen/nc_padding_16"
+        android:stateListAnimator="@null"
+        android:text="@string/nc_text_continue"
+        android:textAllCaps="false"
+        android:textColor="@color/nc_white_color"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -13,7 +13,7 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:padding="@dimen/nc_padding_16"
-        tools:background="@drawable/nc_toast_warning_background">
+        tools:background="@drawable/nc_toast_error_background">
 
         <ImageView
             android:id="@+id/icon"
@@ -21,13 +21,14 @@
             android:layout_height="wrap_content"
             android:layout_marginRight="8dp"
             android:src="@drawable/ic_check_circle"
-            tools:src="@drawable/ic_warn" />
+            tools:src="@drawable/ic_info_white" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/nc_black_color"
+            tools:textColor="@color/nc_white_color"
             tools:text="Your signer has been added successfully" />
     </LinearLayout>
 </LinearLayout>
