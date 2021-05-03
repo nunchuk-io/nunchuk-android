@@ -7,12 +7,12 @@ import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.signer.ss.create.CreateNewSeedEvent.GenerateMnemonicCodeErrorEvent
 import com.nunchuk.android.signer.ss.create.CreateNewSeedEvent.OpenSelectPhraseEvent
-import com.nunchuk.android.usecase.GetMnemonicCodeUseCase
+import com.nunchuk.android.usecase.GenerateMnemonicUseCase
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class CreateNewSeedViewModel @Inject constructor(
-    private val getMnemonicCodeUseCase: GetMnemonicCodeUseCase
+    private val generateMnemonicUseCase: GenerateMnemonicUseCase
 ) : NunchukViewModel<CreateNewSeedState, CreateNewSeedEvent>() {
 
     private var mnemonic: String = ""
@@ -21,7 +21,7 @@ internal class CreateNewSeedViewModel @Inject constructor(
 
     fun init() {
         viewModelScope.launch {
-            when (val result = getMnemonicCodeUseCase.execute()) {
+            when (val result = generateMnemonicUseCase.execute()) {
                 is Success -> {
                     mnemonic = result.data
                     updateState { copy(seeds = mnemonic.toPhrases()) }

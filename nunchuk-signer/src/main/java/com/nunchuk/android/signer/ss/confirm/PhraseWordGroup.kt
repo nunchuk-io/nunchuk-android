@@ -16,43 +16,51 @@ data class PhraseWord(
 )
 
 internal fun List<String>.randomPhraseWordGroups(): List<PhraseWordGroup> {
-    val src = ArrayList(this)
+    val usedIndexes = ArrayList<Int>()
     val result = ArrayList<PhraseWordGroup>(NUMBER_WORD_TO_CONFIRM)
     for (i in 0 until NUMBER_WORD_TO_CONFIRM) {
-        val group = src.randomPhraseWordGroup()
+        val group = randomPhraseWordGroup(usedIndexes)
         result.add(group)
     }
     result.sortBy(PhraseWordGroup::index)
     return result
 }
 
-internal fun List<String>.randomPhraseWordGroup(): PhraseWordGroup {
-    val src = ArrayList(this)
-    val randomGroupIndex = Random.nextInt(0, size - 1)
+internal fun List<String>.randomPhraseWordGroup(usedIndexes: ArrayList<Int>): PhraseWordGroup {
+    val randomGroupIndex = randomNum(size, usedIndexes)
     return when (Random.nextInt(0, NUMBER_WORD_TO_CONFIRM - 1)) {
         0 -> {
             PhraseWordGroup(
                 index = randomGroupIndex,
-                firstWord = PhraseWord(src[randomGroupIndex], true),
-                secondWord = src.randomPhraseWord(),
-                thirdWord = src.randomPhraseWord()
+                firstWord = PhraseWord(this[randomGroupIndex], true),
+                secondWord = randomPhraseWord(usedIndexes),
+                thirdWord = randomPhraseWord(usedIndexes)
             )
         }
         1 -> PhraseWordGroup(
             index = randomGroupIndex,
-            firstWord = src.randomPhraseWord(),
-            secondWord = PhraseWord(src[randomGroupIndex], true),
-            thirdWord = src.randomPhraseWord()
+            firstWord = randomPhraseWord(usedIndexes),
+            secondWord = PhraseWord(this[randomGroupIndex], true),
+            thirdWord = randomPhraseWord(usedIndexes)
         )
         else -> PhraseWordGroup(
             index = randomGroupIndex,
-            firstWord = randomPhraseWord(),
-            secondWord = randomPhraseWord(),
-            thirdWord = PhraseWord(src[randomGroupIndex], true)
+            firstWord = randomPhraseWord(usedIndexes),
+            secondWord = randomPhraseWord(usedIndexes),
+            thirdWord = PhraseWord(this[randomGroupIndex], true)
         )
     }
 }
 
-internal fun List<String>.randomPhraseWord() = PhraseWord(this[Random.nextInt(0, size - 1)])
+internal fun randomNum(size: Int, usedIndexes: ArrayList<Int>): Int {
+    var randomNum = Random.nextInt(0, size - 1)
+    while (usedIndexes.contains(randomNum)) {
+        randomNum = Random.nextInt(0, size - 1)
+    }
+    usedIndexes.add(randomNum)
+    return randomNum
+}
+
+internal fun List<String>.randomPhraseWord(usedIndexes: ArrayList<Int>) = PhraseWord(this[randomNum(size, usedIndexes)])
 
 internal const val NUMBER_WORD_TO_CONFIRM = 3

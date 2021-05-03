@@ -1,5 +1,14 @@
 package com.nunchuk.android.signer.ss.recover
 
-sealed class RecoverSeedEvent
+sealed class RecoverSeedEvent {
+    object MnemonicRequiredEvent : RecoverSeedEvent()
+    object InvalidMnemonicEvent : RecoverSeedEvent()
+    data class UpdateMnemonicEvent(val mnemonic: String) : RecoverSeedEvent()
+    data class ValidMnemonicEvent(val mnemonic: String) : RecoverSeedEvent()
+    data class CanGoNextStepEvent(val canGoNext: Boolean) : RecoverSeedEvent()
+}
 
-class RecoverSeedState
+data class RecoverSeedState(
+    val mnemonic: String = "",
+    val suggestions: List<String> = emptyList()
+)

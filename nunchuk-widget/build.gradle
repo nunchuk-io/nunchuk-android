@@ -3,5 +3,9 @@ apply from: '../configs/submodule-config.gradle'
 apply plugin: 'kotlin-android-extensions'
 
 dependencies {
+
+    api project(':nunchuk-utils')
+
     implementation androidxDeps.values()
+
 }

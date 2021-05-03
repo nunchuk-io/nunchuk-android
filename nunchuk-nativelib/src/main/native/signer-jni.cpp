@@ -90,3 +90,31 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_updateSigner(
     auto singleSigner = Serializer::convert2CSigner(env, signer);
     NunchukProvider::get()->nu->UpdateRemoteSigner(singleSigner);
 }
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_generateMnemonic(
+        JNIEnv *env,
+        jobject thiz
+) {
+    return env->NewStringUTF(Utils::GenerateMnemonic().c_str());
+}
+
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getBip39WordList(
+        JNIEnv *env,
+        jobject thiz
+) {
+    return Deserializer::convert2JListString(env, Utils::GetBip39WordList());
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_checkMnemonic(
+        JNIEnv *env,
+        jobject thiz,
+        jstring mnemonic
+) {
+    return Utils::CheckMnemonic(env->GetStringUTFChars(mnemonic, nullptr));
+}

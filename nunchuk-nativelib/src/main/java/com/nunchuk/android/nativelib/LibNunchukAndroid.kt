@@ -82,6 +82,15 @@ internal class LibNunchukAndroid @Inject constructor() {
     @Throws(NCNativeException::class)
     external fun exportCoboWallet(walletId: String): List<String>
 
+    @Throws(NCNativeException::class)
+    external fun generateMnemonic(): String
+
+    @Throws(NCNativeException::class)
+    external fun getBip39WordList(): List<String>
+
+    @Throws(NCNativeException::class)
+    external fun checkMnemonic(mnemonic: String): Boolean
+
     companion object {
         init {
             System.loadLibrary(LIB_NAME)

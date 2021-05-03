@@ -1,19 +1,27 @@
 package com.nunchuk.android.widget.util
 
+import com.nunchuk.android.utils.Disposable
 import java.util.*
 
-class NCCountdownTimer {
+class NCCountdownTimer : Timer(), Disposable {
 
-    private val timer = Timer()
+    private var task: NCTimerTask? = null
 
     fun doAfter(job: () -> Unit, timeInMilliSecs: Long = 3000) {
-        timer.schedule(NCTimerTask(job), timeInMilliSecs, timeInMilliSecs)
+        val task = NCTimerTask(job)
+        schedule(task, timeInMilliSecs, timeInMilliSecs)
     }
 
-    private class NCTimerTask(val job: () -> Unit) : TimerTask() {
-        override fun run() {
-            job()
-        }
+    override fun dispose() {
+        task?.cancel()
+        cancel()
+    }
+
+}
+
+class NCTimerTask(val job: () -> Unit = {}) : TimerTask() {
+    override fun run() {
+        job()
     }
 
 }
