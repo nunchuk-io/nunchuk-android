@@ -46,7 +46,7 @@ internal class LibNunchukFacade @Inject constructor(
     fun getRemoteSigner() = nunchukAndroid.getRemoteSigner()
 
     @Throws(NCNativeException::class)
-    fun getRemoteSigners(): List<SingleSigner> = nunchukAndroid.getRemoteSigners()
+    fun getRemoteSigners() = nunchukAndroid.getRemoteSigners()
 
     @Throws(NCNativeException::class)
     fun updateSigner(signer: SingleSigner) {
@@ -113,7 +113,13 @@ internal class LibNunchukFacade @Inject constructor(
     @Throws(NCNativeException::class)
     fun updateWallet(wallet: Wallet) = nunchukAndroid.updateWallet(wallet.toBridge())
 
+    @Throws(NCNativeException::class)
+    fun generateMnemonic() = nunchukAndroid.generateMnemonic()
+
     //https://iancoleman.io/bip39/
     @Throws(NCNativeException::class)
-    fun generateMnemonicCode() = "member gift grocery injury plunge track such sphere symptom liar asthma neck route hair promote motion public pupil nuclear flat afraid pen lady frown"
+    fun getBip39WordList() = nunchukAndroid.getBip39WordList()
+
+    @Throws(NCNativeException::class)
+    fun checkMnemonic(mnemonic: String) = nunchukAndroid.checkMnemonic(mnemonic)
 }

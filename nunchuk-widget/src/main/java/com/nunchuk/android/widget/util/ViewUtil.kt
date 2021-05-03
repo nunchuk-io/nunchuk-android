@@ -1,6 +1,7 @@
 package com.nunchuk.android.widget.util
 
 import android.text.InputType
+import android.text.method.PasswordTransformationMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -36,6 +37,12 @@ fun EditText.textChanges() = callbackFlow<CharSequence> {
 
 fun NCEditTextView.heightExtended(dimensionPixelSize: Int) {
     findViewById<EditText>(R.id.editText).heightExtended(dimensionPixelSize)
+}
+
+fun NCEditTextView.passwordEnabled() {
+    val editText = findViewById<EditText>(R.id.editText)
+    editText.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+    editText.transformationMethod = PasswordTransformationMethod.getInstance()
 }
 
 fun EditText.heightExtended(dimensionPixelSize: Int) {

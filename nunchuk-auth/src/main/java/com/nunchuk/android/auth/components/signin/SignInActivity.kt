@@ -3,7 +3,6 @@ package com.nunchuk.android.auth.components.signin
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.text.method.PasswordTransformationMethod
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.ViewModelFactory
@@ -14,6 +13,7 @@ import com.nunchuk.android.auth.util.orUnknownError
 import com.nunchuk.android.auth.util.setUnderlineText
 import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.widget.util.passwordEnabled
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
 
@@ -66,7 +66,7 @@ class SignInActivity : BaseActivity() {
     private fun setupViews() {
         binding.forgotPassword.setUnderlineText(getString(R.string.nc_text_forgot_password))
 
-        binding.password.getEditTextView().transformationMethod = PasswordTransformationMethod.getInstance()
+        binding.password.passwordEnabled()
 
         binding.staySignIn.setOnCheckedChangeListener { _, checked -> viewModel.storeStaySignedIn(checked) }
         binding.signUp.setOnClickListener { onSignUpClick() }
