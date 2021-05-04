@@ -54,4 +54,5 @@
     <string name="nc_ssigner_text_set_passphrase_warn">Please backup your passphrase along with the seed. You need both to recover your signer.</string>
     <string name="nc_ssigner_confirm_passphrase">Confirm passphrase</string>
     <string name="nc_ssigner_text_name">Name</string>
+    <string name="nc_text_confirm_passphrase_not_matched">Confirm passphrase does not match</string>
 </resources>

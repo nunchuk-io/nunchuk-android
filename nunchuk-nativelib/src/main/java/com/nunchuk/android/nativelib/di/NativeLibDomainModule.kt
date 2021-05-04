@@ -55,6 +55,7 @@ internal interface NativeLibDomainModule {
     @Binds
     fun bindUpdateWalletUseCase(useCase: UpdateWalletUseCaseImpl): UpdateWalletUseCase
 
+    // SOFTWARE SIGNER
     @Binds
     fun bindGenerateMnemonicUseCase(useCase: GenerateMnemonicUseCaseImpl): GenerateMnemonicUseCase
 
@@ -63,5 +64,8 @@ internal interface NativeLibDomainModule {
 
     @Binds
     fun bindCheckMnemonicUseCase(useCase: CheckMnemonicUseCaseImpl): CheckMnemonicUseCase
+
+    @Binds
+    fun bindCreateSoftwareSignerUseCase(useCase: CreateSoftwareSignerUseCaseImpl): CreateSoftwareSignerUseCase
 
 }

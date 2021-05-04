@@ -2,12 +2,15 @@ package com.nunchuk.android.signer.ss.passphrase
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ActivitySetPassphraseBinding
 import com.nunchuk.android.signer.ss.passphrase.SetPassphraseEvent.*
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.SimpleTextWatcher
 import com.nunchuk.android.widget.util.passwordEnabled
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -17,6 +20,9 @@ class SetPassphraseActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: NunchukFactory
+
+    @Inject
+    lateinit var navigator: NunchukNavigator
 
     private val viewModel: SetPassphraseViewModel by lazy {
         ViewModelProviders.of(this, factory).get(SetPassphraseViewModel::class.java)
@@ -46,19 +52,28 @@ class SetPassphraseActivity : BaseActivity() {
     }
 
     private fun handleState(state: SetPassphraseState) {
+        Log.d(TAG, "handleState($state)")
     }
 
     private fun handleEvent(event: SetPassphraseEvent) {
         when (event) {
             PassPhraseRequiredEvent -> binding.passphrase.setError(getString(R.string.nc_text_required))
             ConfirmPassPhraseRequiredEvent -> binding.confirmPassphrase.setError(getString(R.string.nc_text_required))
-            ConfirmPassPhraseNotMatchedEvent -> binding.passphrase.setError(getString(R.string.nc_text_required))
-            is PassphraseCompletedEvent -> openSignerInfoScreen(event.skip)
+            ConfirmPassPhraseNotMatchedEvent -> binding.confirmPassphrase.setError(getString(R.string.nc_text_confirm_passphrase_not_matched))
+            is CreateSoftwareSignerCompletedEvent -> openSignerInfoScreen(event.id, event.skipPassphrase)
+            is CreateSoftwareSignerErrorEvent -> NCToastMessage(this).showError(event.message)
+            PassPhraseValidEvent -> removeValidationError()
         }
     }
 
-    private fun openSignerInfoScreen(skip: Boolean) {
+    private fun removeValidationError() {
+        binding.passphrase.hideError()
+        binding.confirmPassphrase.hideError()
+    }
 
+    private fun openSignerInfoScreen(id: String, skipPassphrase: Boolean) {
+        Log.d(TAG, "Create software signer completed::(id=$id, skipPassphrase=$skipPassphrase)")
+        NCToastMessage(this).showMessage("Create software signer successful")
     }
 
     private fun setupViews() {
@@ -82,6 +97,7 @@ class SetPassphraseActivity : BaseActivity() {
     }
 
     companion object {
+        private const val TAG = "SetPassphraseActivity"
 
         fun start(activityContext: Context, mnemonic: String, signerName: String) {
             activityContext.startActivity(
