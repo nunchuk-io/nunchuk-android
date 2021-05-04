@@ -16,7 +16,11 @@ public:
 
     static void convert2JException(JNIEnv *env, const char *msg);
 
+    static jobject convert2JDevice(JNIEnv *env, const Device &device);
+
     static jobject convert2JAddressType(JNIEnv *env, const AddressType &type);
+
+    static jobject convert2JMasterSigner(JNIEnv *env, const MasterSigner &signer);
 
     static jobject convert2JSigner(JNIEnv *env, const SingleSigner &signer);
 

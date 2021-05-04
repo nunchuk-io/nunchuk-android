@@ -1,6 +1,7 @@
 package com.nunchuk.android.nativelib
 
 import com.nunchuk.android.exception.NCNativeException
+import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.bridge.WalletBridge
@@ -30,6 +31,13 @@ internal class LibNunchukAndroid @Inject constructor() {
         derivationPath: String,
         masterFingerprint: String
     ): SingleSigner
+
+    @Throws(NCNativeException::class)
+    external fun createSoftwareSigner(
+        name: String,
+        mnemonic: String,
+        passphrase: String = ""
+    ): MasterSigner
 
     @Throws(NCNativeException::class)
     external fun getRemoteSigner(): SingleSigner

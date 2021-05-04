@@ -118,3 +118,30 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_checkMnemonic(
 ) {
     return Utils::CheckMnemonic(env->GetStringUTFChars(mnemonic, nullptr));
 }
+
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_createSoftwareSigner(
+        JNIEnv *env,
+        jobject thiz,
+        jstring name,
+        jstring mnemonic,
+        jstring passphrase
+) {
+    syslog(LOG_DEBUG, "[JNI]createSoftwareSigner()");
+    try {
+        const MasterSigner &signer = NunchukProvider::get()->nu->CreateSoftwareSigner(
+                env->GetStringUTFChars(name, nullptr),
+                env->GetStringUTFChars(mnemonic, nullptr),
+                env->GetStringUTFChars(passphrase, JNI_FALSE),
+                [](int percent) { return true; }
+        );
+        syslog(LOG_DEBUG, "[JNI][SoftwareSigner]name::%s", signer.get_name().c_str());
+        syslog(LOG_DEBUG, "[JNI][SoftwareSigner]public_key::%s", signer.get_id().c_str());
+        return Deserializer::convert2JMasterSigner(env, signer);
+    } catch (std::exception &e) {
+        syslog(LOG_DEBUG, "[JNI] createSoftwareSigner error::%s", e.what());
+        Deserializer::convert2JException(env, e.what());
+        return env->ExceptionOccurred();
+    }
+}

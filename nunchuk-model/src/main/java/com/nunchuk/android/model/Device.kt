@@ -1,14 +1,13 @@
 package com.nunchuk.android.model
 
 data class Device(
-        val fingerPrint: String = "",
-        val type: String = "",
-        val model: String = "",
-        val masterFingerprint: String = "",
-        val connected: Boolean = false,
-        val needPassPhraseSent: Boolean = false,
-        val needPinSet: Boolean = false,
-        val initialized: Boolean = true
+    var type: String = "",
+    var model: String = "",
+    var masterFingerprint: String = "",
+    var connected: Boolean = false,
+    var needPassPhraseSent: Boolean = false,
+    var needPinSet: Boolean = false,
+    var initialized: Boolean = true
 )
 
 

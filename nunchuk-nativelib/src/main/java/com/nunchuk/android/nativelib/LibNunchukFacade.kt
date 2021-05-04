@@ -43,6 +43,17 @@ internal class LibNunchukFacade @Inject constructor(
     )
 
     @Throws(NCNativeException::class)
+    fun createSoftwareSigner(
+        name: String,
+        mnemonic: String,
+        passphrase: String
+    ) = nunchukAndroid.createSoftwareSigner(
+        name = name,
+        mnemonic = mnemonic,
+        passphrase = passphrase
+    )
+
+    @Throws(NCNativeException::class)
     fun getRemoteSigner() = nunchukAndroid.getRemoteSigner()
 
     @Throws(NCNativeException::class)
