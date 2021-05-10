@@ -40,9 +40,6 @@ internal class LibNunchukAndroid @Inject constructor() {
     ): MasterSigner
 
     @Throws(NCNativeException::class)
-    external fun getRemoteSigner(): SingleSigner
-
-    @Throws(NCNativeException::class)
     external fun getRemoteSigners(): List<SingleSigner>
 
     @Throws(NCNativeException::class)
@@ -62,7 +59,7 @@ internal class LibNunchukAndroid @Inject constructor() {
     external fun deleteRemoteSigner(masterFingerprint: String, derivationPath: String)
 
     @Throws(NCNativeException::class)
-    external fun updateSigner(signer: SingleSigner)
+    external fun updateRemoteSigner(signer: SingleSigner)
 
     @Throws(NCNativeException::class)
     external fun draftWallet(
@@ -98,6 +95,28 @@ internal class LibNunchukAndroid @Inject constructor() {
 
     @Throws(NCNativeException::class)
     external fun checkMnemonic(mnemonic: String): Boolean
+
+    @Throws(NCNativeException::class)
+    external fun getMasterSigner(masterSignerId: String): MasterSigner
+
+    @Throws(NCNativeException::class)
+    external fun getMasterSigners(): List<MasterSigner>
+
+    @Throws(NCNativeException::class)
+    external fun getSignersFromMasterSigner(masterSignerId: String): List<SingleSigner>
+
+    @Throws(NCNativeException::class)
+    external fun deleteMasterSigner(masterSignerId: String): Boolean
+
+    @Throws(NCNativeException::class)
+    external fun updateMasterSigner(masterSigner: MasterSigner): Boolean
+
+    @Throws(NCNativeException::class)
+    external fun getUnusedSignerFromMasterSigner(
+        masterSignerId: String,
+        walletType: Int,
+        addressType: Int
+    ): SingleSigner
 
     companion object {
         init {

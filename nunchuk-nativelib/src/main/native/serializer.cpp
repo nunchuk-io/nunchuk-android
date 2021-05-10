@@ -127,6 +127,80 @@ SingleSigner Serializer::convert2CSigner(JNIEnv *env, jobject signer) {
     return singleSigner;
 }
 
+MasterSigner Serializer::convert2CMasterSigner(JNIEnv *env, jobject signer) {
+    jclass clazz = env->FindClass("com/nunchuk/android/model/MasterSigner");
+
+    jfieldID fieldId = env->GetFieldID(clazz, "id", "Ljava/lang/String;");
+    auto idVal = (jstring) env->GetObjectField(signer, fieldId);
+    const char *id = env->GetStringUTFChars(idVal, JNI_FALSE);
+
+    jfieldID fieldName = env->GetFieldID(clazz, "name", "Ljava/lang/String;");
+    auto nameVal = (jstring) env->GetObjectField(signer, fieldName);
+    const char *name = env->GetStringUTFChars(nameVal, JNI_FALSE);
+
+    jfieldID fieldLastHealthCheck = env->GetFieldID(clazz, "lastHealthCheck", "J");
+    auto last_health_check =  env->GetLongField(signer, fieldLastHealthCheck);
+
+    jfieldID fieldSoftware = env->GetFieldID(clazz, "software", "Z");
+    auto software =  env->GetBooleanField(signer, fieldSoftware);
+
+    jfieldID fieldDevice = env->GetFieldID(clazz, "device", "Lcom/nunchuk/android/model/Device;");
+    auto deviceVal = (jobject) env->GetObjectField(signer, fieldDevice);
+    auto device = convert2CDevice(env, deviceVal);
+
+    MasterSigner masterSigner = MasterSigner(id, device, last_health_check, software);
+    masterSigner.set_name(name);
+    syslog(LOG_DEBUG, "[JNI][MasterSigner]id:: %s", masterSigner.get_id().c_str());
+    syslog(LOG_DEBUG, "[JNI][MasterSigner]name:: %s", masterSigner.get_name().c_str());
+    syslog(LOG_DEBUG, "[JNI][MasterSigner]path:: %s", masterSigner.get_device().get_path().c_str());
+    syslog(LOG_DEBUG, "[JNI][MasterSigner]fingerPrint:: %s", masterSigner.get_device().get_master_fingerprint().c_str());
+
+    env->ReleaseStringUTFChars(idVal, id);
+    env->ReleaseStringUTFChars(nameVal, name);
+    return masterSigner;
+}
+
+Device Serializer::convert2CDevice(JNIEnv *env, jobject device) {
+    jclass clazz = env->FindClass("com/nunchuk/android/model/Device");
+
+    jfieldID fieldType = env->GetFieldID(clazz, "type", "Ljava/lang/String;");
+    auto typeVal = (jstring) env->GetObjectField(device, fieldType);
+    const char *type = env->GetStringUTFChars(typeVal, JNI_FALSE);
+
+    jfieldID fieldModel = env->GetFieldID(clazz, "model", "Ljava/lang/String;");
+    auto modelVal = (jstring) env->GetObjectField(device, fieldModel);
+    const char *model = env->GetStringUTFChars(modelVal, JNI_FALSE);
+
+    jfieldID fieldPath = env->GetFieldID(clazz, "path", "Ljava/lang/String;");
+    auto pathVal = (jstring) env->GetObjectField(device, fieldPath);
+    const char *path = env->GetStringUTFChars(pathVal, JNI_FALSE);
+
+    jfieldID fieldMasterFingerprint = env->GetFieldID(clazz, "masterFingerprint", "Ljava/lang/String;");
+    auto masterFingerprintVal = (jstring) env->GetObjectField(device, fieldMasterFingerprint);
+    const char *master_fingerprint = env->GetStringUTFChars(masterFingerprintVal, JNI_FALSE);
+
+    jfieldID fieldConnected = env->GetFieldID(clazz, "connected", "Z");
+    auto connected = env->GetBooleanField(device, fieldConnected);
+
+    jfieldID fieldNeedPassPhraseSent = env->GetFieldID(clazz, "needPassPhraseSent", "Z");
+    auto needs_pass_phrase_sent = env->GetBooleanField(device, fieldNeedPassPhraseSent);
+
+    jfieldID fieldNeedPinSet = env->GetFieldID(clazz, "needPinSet", "Z");
+    auto need_pin_set = env->GetBooleanField(device, fieldNeedPinSet);
+
+    const Device &device_ = Device(type, path, model, master_fingerprint, connected, needs_pass_phrase_sent, need_pin_set);
+    syslog(LOG_DEBUG, "[JNI][Device]type:: %s", device_.get_type().c_str());
+    syslog(LOG_DEBUG, "[JNI][Device]model:: %s", device_.get_model().c_str());
+    syslog(LOG_DEBUG, "[JNI][Device]path:: %s", device_.get_path().c_str());
+    syslog(LOG_DEBUG, "[JNI][Device]fingerPrint:: %s", device_.get_master_fingerprint().c_str());
+
+    env->ReleaseStringUTFChars(typeVal, type);
+    env->ReleaseStringUTFChars(modelVal, model);
+    env->ReleaseStringUTFChars(pathVal, path);
+    env->ReleaseStringUTFChars(masterFingerprintVal, master_fingerprint);
+    return device_;
+}
+
 std::vector<SingleSigner> Serializer::convert2CSigners(JNIEnv *env, jobject signers) {
     jclass cList = env->FindClass("java/util/List");
 

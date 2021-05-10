@@ -4,22 +4,22 @@ import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
 import com.nunchuk.android.arch.ext.isVisible
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.shorten
-import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.widget.util.AbsViewBinder
 import java.util.*
 
 internal class SignersViewBinder(
     container: ViewGroup,
-    signers: List<SingleSigner>,
+    signers: List<SignerModel>,
     private val selectedXpfs: List<String> = emptyList(),
     val onItemSelectedListener: (String, Boolean) -> Unit,
-) : AbsViewBinder<SingleSigner>(container, signers) {
+) : AbsViewBinder<SignerModel>(container, signers) {
 
     override val layoutId: Int = R.layout.item_assign_signer
 
-    override fun bindItem(position: Int, model: SingleSigner) {
+    override fun bindItem(position: Int, model: SignerModel) {
         val itemView = container.getChildAt(position)
         val signerName = itemView.findViewById<TextView>(R.id.signerName)
         val avatar = itemView.findViewById<TextView>(R.id.avatar)
@@ -30,9 +30,9 @@ internal class SignersViewBinder(
         warn.isVisible = model.used
         avatar.text = model.name.shorten().toUpperCase(Locale.getDefault())
         signerName.text = model.name
-        val xfpValue = "XFP: ${model.masterFingerprint}"
+        val xfpValue = "XFP: ${model.fingerPrint}"
         xfp.text = xfpValue
-        checkBox.isChecked = selectedXpfs.isNotEmpty() && selectedXpfs.contains(model.masterFingerprint)
-        checkBox.setOnCheckedChangeListener { _, checked -> onItemSelectedListener(model.masterFingerprint, checked) }
+        checkBox.isChecked = selectedXpfs.isNotEmpty() && selectedXpfs.contains(model.fingerPrint)
+        checkBox.setOnCheckedChangeListener { _, checked -> onItemSelectedListener(model.fingerPrint, checked) }
     }
 }

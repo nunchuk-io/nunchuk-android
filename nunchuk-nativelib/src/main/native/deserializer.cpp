@@ -36,6 +36,7 @@ jobject Deserializer::convert2JDevice(JNIEnv *env, const Device &device) {
         env->CallVoidMethod(instance, env->GetMethodID(clazz, "setMasterFingerprint", "(Ljava/lang/String;)V"), env->NewStringUTF(device.get_master_fingerprint().c_str()));
         env->CallVoidMethod(instance, env->GetMethodID(clazz, "setType", "(Ljava/lang/String;)V"), env->NewStringUTF(device.get_type().c_str()));
         env->CallVoidMethod(instance, env->GetMethodID(clazz, "setModel", "(Ljava/lang/String;)V"), env->NewStringUTF(device.get_model().c_str()));
+        env->CallVoidMethod(instance, env->GetMethodID(clazz, "setPath", "(Ljava/lang/String;)V"), env->NewStringUTF(device.get_path().c_str()));
         env->CallVoidMethod(instance, env->GetMethodID(clazz, "setConnected", "(Z)V"), device.connected());
         env->CallVoidMethod(instance, env->GetMethodID(clazz, "setNeedPassPhraseSent", "(Z)V"), device.needs_pass_phrase_sent());
         env->CallVoidMethod(instance, env->GetMethodID(clazz, "setNeedPinSet", "(Z)V"), device.needs_pin_sent());
@@ -62,6 +63,7 @@ jobject Deserializer::convert2JMasterSigner(JNIEnv *env, const MasterSigner &sig
         env->CallVoidMethod(instance, env->GetMethodID(clazz, "setName", "(Ljava/lang/String;)V"), env->NewStringUTF(signer.get_name().c_str()));
         env->CallVoidMethod(instance, env->GetMethodID(clazz, "setDevice", "(Lcom/nunchuk/android/model/Device;)V"), Deserializer::convert2JDevice(env, signer.get_device()));
         env->CallVoidMethod(instance, env->GetMethodID(clazz, "setLastHealthCheck", "(J)V"), signer.get_last_health_check());
+        env->CallVoidMethod(instance, env->GetMethodID(clazz, "setSoftware", "(Z)V"), signer.is_software());
     } catch (const std::exception &e) {
         syslog(LOG_DEBUG, "[JNI] convert2JSigner error::%s", e.what());
     }
@@ -96,6 +98,20 @@ jobject Deserializer::convert2JSigners(JNIEnv *env, const std::vector<SingleSign
     jobject arrayListInstance = env->NewObject(arrayListClass, constructor);
     for (const SingleSigner &s: signers) {
         jobject element = convert2JSigner(env, s);
+        env->CallBooleanMethod(arrayListInstance, addMethod, element);
+        env->DeleteLocalRef(element);
+    }
+    return arrayListInstance;
+}
+
+jobject Deserializer::convert2JMasterSigners(JNIEnv *env, const std::vector<MasterSigner> &signers) {
+    syslog(LOG_DEBUG, "[JNI] convert2JMasterSigners()");
+    static auto arrayListClass = static_cast<jclass>(env->NewGlobalRef(env->FindClass("java/util/ArrayList")));
+    static jmethodID constructor = env->GetMethodID(arrayListClass, "<init>", "()V");
+    jmethodID addMethod = env->GetMethodID(arrayListClass, "add", "(Ljava/lang/Object;)Z");
+    jobject arrayListInstance = env->NewObject(arrayListClass, constructor);
+    for (const MasterSigner &s: signers) {
+        jobject element = convert2JMasterSigner(env, s);
         env->CallBooleanMethod(arrayListInstance, addMethod, element);
         env->DeleteLocalRef(element);
     }

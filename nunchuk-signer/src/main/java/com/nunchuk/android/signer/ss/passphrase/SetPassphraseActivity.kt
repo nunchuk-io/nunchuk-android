@@ -60,7 +60,7 @@ class SetPassphraseActivity : BaseActivity() {
             PassPhraseRequiredEvent -> binding.passphrase.setError(getString(R.string.nc_text_required))
             ConfirmPassPhraseRequiredEvent -> binding.confirmPassphrase.setError(getString(R.string.nc_text_required))
             ConfirmPassPhraseNotMatchedEvent -> binding.confirmPassphrase.setError(getString(R.string.nc_text_confirm_passphrase_not_matched))
-            is CreateSoftwareSignerCompletedEvent -> openSignerInfoScreen(event.id, event.skipPassphrase)
+            is CreateSoftwareSignerCompletedEvent -> openSignerInfoScreen(event.id, event.name, event.skipPassphrase)
             is CreateSoftwareSignerErrorEvent -> NCToastMessage(this).showError(event.message)
             PassPhraseValidEvent -> removeValidationError()
         }
@@ -71,9 +71,15 @@ class SetPassphraseActivity : BaseActivity() {
         binding.confirmPassphrase.hideError()
     }
 
-    private fun openSignerInfoScreen(id: String, skipPassphrase: Boolean) {
-        Log.d(TAG, "Create software signer completed::(id=$id, skipPassphrase=$skipPassphrase)")
-        NCToastMessage(this).showMessage("Create software signer successful")
+    private fun openSignerInfoScreen(id: String, name: String, skipPassphrase: Boolean) {
+        navigator.openSignerInfoScreen(
+            activityContext = this,
+            id = id,
+            name = name,
+            justAdded = true,
+            software = true,
+            setPassphrase = !skipPassphrase
+        )
     }
 
     private fun setupViews() {

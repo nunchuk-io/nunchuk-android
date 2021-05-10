@@ -1,6 +1,7 @@
 package com.nunchuk.android.wallet.nav
 
 import android.content.Context
+import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.WalletNavigator
 import com.nunchuk.android.qr.DynamicQRCodeActivity
@@ -34,7 +35,8 @@ interface WalletNavigatorDelegate : WalletNavigator {
         walletType: WalletType,
         addressType: AddressType,
         totalRequireSigns: Int,
-        signers: List<SingleSigner>
+        masterSigners: List<MasterSigner>,
+        remoteSigners: List<SingleSigner>
     ) {
         WalletConfirmActivity.start(
             activityContext = activityContext,
@@ -42,7 +44,8 @@ interface WalletNavigatorDelegate : WalletNavigator {
             walletType = walletType,
             addressType = addressType,
             totalRequireSigns = totalRequireSigns,
-            signers = signers
+            masterSigners = masterSigners,
+            remoteSigners = remoteSigners
         )
     }
 

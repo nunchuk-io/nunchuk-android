@@ -1,9 +1,11 @@
 package com.nunchuk.android.main.components.tabs.wallet
 
+import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 
 internal data class WalletsState(
     val wallets: List<Wallet> = emptyList(),
-    val signers: List<SingleSigner> = emptyList()
+    val signers: List<SingleSigner> = emptyList(),
+    val masterSigners: List<MasterSigner> = emptyList()
 )

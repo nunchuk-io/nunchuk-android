@@ -2,13 +2,15 @@ package com.nunchuk.android.wallet.assign
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.model.Result
+import com.nunchuk.android.model.Result.Success
+import com.nunchuk.android.usecase.GetMasterSignersUseCase
 import com.nunchuk.android.usecase.GetRemoteSignersUseCase
 import com.nunchuk.android.wallet.assign.AssignSignerEvent.AssignSignerCompletedEvent
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class AssignSignerViewModel @Inject constructor(
+    private val getMasterSignersUseCase: GetMasterSignersUseCase,
     private val getRemoteSignersUseCase: GetRemoteSignersUseCase
 ) : NunchukViewModel<AssignSignerState, AssignSignerEvent>() {
 
@@ -22,7 +24,12 @@ internal class AssignSignerViewModel @Inject constructor(
     private fun getSigners() {
         viewModelScope.launch {
             val result = getRemoteSignersUseCase.execute()
-            updateState { copy(signers = if (result is Result.Success) result.data else emptyList()) }
+            updateState { copy(remoteSigners = if (result is Success) result.data else emptyList()) }
+        }
+
+        viewModelScope.launch {
+            val result = getMasterSignersUseCase.execute()
+            updateState { copy(masterSigners = if (result is Success) result.data else emptyList()) }
         }
     }
 
@@ -55,11 +62,12 @@ internal class AssignSignerViewModel @Inject constructor(
 
     fun handleContinueEvent() {
         val state = getState()
-        if (state.totalRequireSigns > 0 && state.signers.isNotEmpty()) {
+        if (state.totalRequireSigns > 0 && state.remoteSigners.isNotEmpty()) {
             event(
                 AssignSignerCompletedEvent(
                     state.totalRequireSigns,
-                    state.signers.filter { it.masterFingerprint in state.selectedPFXs })
+                    state.masterSigners.filter { it.device.masterFingerprint in state.selectedPFXs },
+                    state.remoteSigners.filter { it.masterFingerprint in state.selectedPFXs })
             )
         }
     }

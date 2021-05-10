@@ -14,7 +14,7 @@ internal class UpdateRemoteSignerUseCaseImpl @Inject constructor(
 ) : BaseUseCase(), UpdateRemoteSignerUseCase {
 
     override suspend fun execute(signer: SingleSigner) = exe {
-        nunchukFacade.updateSigner(signer)
+        nunchukFacade.updateRemoteSigner(signer)
     }
 
 }

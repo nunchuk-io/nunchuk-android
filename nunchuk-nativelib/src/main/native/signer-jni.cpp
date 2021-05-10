@@ -41,25 +41,6 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_createSigner(
 
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getRemoteSigner(
-        JNIEnv *env,
-        jobject thiz
-) {
-    syslog(LOG_DEBUG, "[JNI]getRemoteSigner()");
-    auto signers = NunchukProvider::get()->nu->GetRemoteSigners();
-    syslog(LOG_DEBUG, "[JNI]nu->GetRemoteSigners()");
-    if (signers.empty()) {
-        syslog(LOG_DEBUG, "[JNI]There is no signer");
-        return nullptr;
-    } else {
-        syslog(LOG_DEBUG, "There is existing signers:: %lu", signers.size());
-        SingleSigner signer = *(signers.begin());
-        return Deserializer::convert2JSigner(env, signer);
-    }
-}
-
-extern "C"
-JNIEXPORT jobject JNICALL
 Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getRemoteSigners(JNIEnv *env, jobject thiz) {
     syslog(LOG_DEBUG, "[JNI]getRemoteSigner()");
     auto signers = NunchukProvider::get()->nu->GetRemoteSigners();
@@ -82,13 +63,24 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_deleteRemoteSigner(
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_nunchuk_android_nativelib_LibNunchukAndroid_updateSigner(
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_updateRemoteSigner(
         JNIEnv *env,
         jobject thiz,
         jobject signer
 ) {
     auto singleSigner = Serializer::convert2CSigner(env, signer);
     NunchukProvider::get()->nu->UpdateRemoteSigner(singleSigner);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_updateMasterSigner(
+        JNIEnv *env,
+        jobject thiz,
+        jobject signer
+) {
+    auto masterSigner = Serializer::convert2CMasterSigner(env, signer);
+    NunchukProvider::get()->nu->UpdateMasterSigner(masterSigner);
 }
 
 extern "C"
@@ -116,7 +108,7 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_checkMnemonic(
         jobject thiz,
         jstring mnemonic
 ) {
-    return Utils::CheckMnemonic(env->GetStringUTFChars(mnemonic, nullptr));
+    return Utils::CheckMnemonic(env->GetStringUTFChars(mnemonic, JNI_FALSE));
 }
 
 extern "C"
@@ -131,8 +123,8 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_createSoftwareSigner(
     syslog(LOG_DEBUG, "[JNI]createSoftwareSigner()");
     try {
         const MasterSigner &signer = NunchukProvider::get()->nu->CreateSoftwareSigner(
-                env->GetStringUTFChars(name, nullptr),
-                env->GetStringUTFChars(mnemonic, nullptr),
+                env->GetStringUTFChars(name, JNI_FALSE),
+                env->GetStringUTFChars(mnemonic, JNI_FALSE),
                 env->GetStringUTFChars(passphrase, JNI_FALSE),
                 [](int percent) { return true; }
         );
@@ -144,4 +136,68 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_createSoftwareSigner(
         Deserializer::convert2JException(env, e.what());
         return env->ExceptionOccurred();
     }
+}
+
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getMasterSigners(
+        JNIEnv *env,
+        jobject thiz
+) {
+    syslog(LOG_DEBUG, "[JNI]getMasterSigners()");
+    auto signers = NunchukProvider::get()->nu->GetMasterSigners();
+    return Deserializer::convert2JMasterSigners(env, signers);
+}
+
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getMasterSigner(
+        JNIEnv *env,
+        jobject thiz,
+        jstring mastersigner_id
+) {
+    syslog(LOG_DEBUG, "[JNI]getMasterSigners()");
+    auto signer = NunchukProvider::get()->nu->GetMasterSigner(env->GetStringUTFChars(mastersigner_id, JNI_FALSE));
+    return Deserializer::convert2JMasterSigner(env, signer);
+}
+
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getSignersFromMasterSigner(
+        JNIEnv *env,
+        jobject thiz,
+        jstring mastersigner_id
+) {
+    syslog(LOG_DEBUG, "[JNI]getSignersFromMasterSigner()");
+    auto signer = NunchukProvider::get()->nu->GetSignersFromMasterSigner(env->GetStringUTFChars(mastersigner_id, JNI_FALSE));
+    return Deserializer::convert2JSigners(env, signer);
+}
+
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getUnusedSignerFromMasterSigner(
+        JNIEnv *env,
+        jobject thiz,
+        jstring mastersigner_id,
+        jint wallet_type,
+        jint address_type
+) {
+    syslog(LOG_DEBUG, "[JNI]getSignersFromMasterSigner()");
+    auto signer = NunchukProvider::get()->nu->GetUnusedSignerFromMasterSigner(
+            env->GetStringUTFChars(mastersigner_id, JNI_FALSE),
+            Serializer::convert2CWalletType(wallet_type),
+            Serializer::convert2CAddressType(address_type)
+    );
+    return Deserializer::convert2JSigner(env, signer);
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_deleteMasterSigner(
+        JNIEnv *env,
+        jobject thiz,
+        jstring mastersigner_id
+) {
+    syslog(LOG_DEBUG, "[JNI]deleteMasterSigner()");
+    return NunchukProvider::get()->nu->DeleteMasterSigner(env->GetStringUTFChars(mastersigner_id, JNI_FALSE));
 }

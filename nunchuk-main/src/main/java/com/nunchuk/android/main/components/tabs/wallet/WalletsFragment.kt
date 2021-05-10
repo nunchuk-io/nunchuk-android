@@ -8,13 +8,15 @@ import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseFragment
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.main.databinding.FragmentWalletsBinding
+import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.model.toSpec
 import com.nunchuk.android.nav.NunchukNavigator
 import javax.inject.Inject
 
@@ -83,7 +85,7 @@ internal class WalletsFragment : BaseFragment() {
 
     private fun showWalletState(state: WalletsState) {
         showIntro(state)
-        showSigners(state.signers)
+        showSigners(state.masterSigners.map(MasterSigner::toModel) + state.signers.map(SingleSigner::toModel))
         showWallets(state.wallets)
     }
 
@@ -130,7 +132,7 @@ internal class WalletsFragment : BaseFragment() {
         navigator.openWalletReviewScreen(requireActivity(), walletId)
     }
 
-    private fun showSigners(signers: List<SingleSigner>) {
+    private fun showSigners(signers: List<SignerModel>) {
         if (signers.isEmpty()) {
             showSignersEmptyView()
         } else {
@@ -143,14 +145,19 @@ internal class WalletsFragment : BaseFragment() {
         binding.signerList.isVisible = false
     }
 
-    private fun showSignersListView(signers: List<SingleSigner>) {
+    private fun showSignersListView(signers: List<SignerModel>) {
         binding.signerEmpty.isVisible = false
         binding.signerList.isVisible = true
         SignersViewBinder(binding.signerList, signers, ::openSignerInfoScreen).bindItems()
     }
 
-    private fun openSignerInfoScreen(signer: SingleSigner) {
-        navigator.openSignerInfoScreen(requireActivity(), signer.name, signer.toSpec())
+    private fun openSignerInfoScreen(signer: SignerModel) {
+        navigator.openSignerInfoScreen(
+            activityContext = requireActivity(),
+            id = signer.id,
+            name = signer.name,
+            software = signer.software
+        )
     }
 
     override fun onResume() {

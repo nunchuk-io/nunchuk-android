@@ -48,7 +48,7 @@ class AddSignerActivity : BaseActivity() {
     private fun observeEvent() {
         viewModel.event.observe(this) {
             when (it) {
-                is AddSignerSuccessEvent -> openSignerInfo(it.signerName, it.signerSpec)
+                is AddSignerSuccessEvent -> openSignerInfo(it.id, it.name)
                 InvalidSignerSpecEvent -> binding.signerSpec.setError(getString(R.string.nc_error_invalid_signer_spec))
                 is AddSignerErrorEvent -> NCToastMessage(this).showWarning(it.message)
                 SignerNameRequiredEvent -> binding.signerName.setError(getString(R.string.nc_text_required))
@@ -56,9 +56,9 @@ class AddSignerActivity : BaseActivity() {
         }
     }
 
-    private fun openSignerInfo(signerName: String, signerSpec: String) {
+    private fun openSignerInfo(id: String, name: String) {
         finish()
-        navigator.openSignerInfoScreen(this, signerName, signerSpec, true)
+        navigator.openSignerInfoScreen(this, id = id, name = name, justAdded = true)
     }
 
     private fun setupViews() {

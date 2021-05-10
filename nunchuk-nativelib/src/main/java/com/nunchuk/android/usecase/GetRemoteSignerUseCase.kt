@@ -6,13 +6,13 @@ import com.nunchuk.android.nativelib.LibNunchukFacade
 import javax.inject.Inject
 
 interface GetRemoteSignerUseCase {
-    suspend fun execute(): Result<SingleSigner>
+    suspend fun execute(id: String): Result<SingleSigner>
 }
 
 internal class GetRemoteSignerUseCaseImpl @Inject constructor(
     private val nunchukFacade: LibNunchukFacade
 ) : BaseUseCase(), GetRemoteSignerUseCase {
 
-    override suspend fun execute() = exe { nunchukFacade.getRemoteSigner() }
+    override suspend fun execute(id: String) = exe { nunchukFacade.getRemoteSigner(id) }
 
 }

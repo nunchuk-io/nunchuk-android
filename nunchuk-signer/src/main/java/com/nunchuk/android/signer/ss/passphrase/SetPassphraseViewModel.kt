@@ -60,7 +60,11 @@ internal class SetPassphraseViewModel @Inject constructor(
                 mnemonic = mnemonic,
                 passphrase = state.passphrase
             )) {
-                is Success -> event(CreateSoftwareSignerCompletedEvent(result.data.id, skipPassphrase))
+                is Success -> event(CreateSoftwareSignerCompletedEvent(
+                    id = result.data.id,
+                    name = result.data.name,
+                    skipPassphrase = skipPassphrase
+                ))
                 is Error -> event(CreateSoftwareSignerErrorEvent(result.exception.message.orUnknownError()))
             }
         }

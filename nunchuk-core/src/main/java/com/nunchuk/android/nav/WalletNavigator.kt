@@ -1,6 +1,7 @@
 package com.nunchuk.android.nav
 
 import android.content.Context
+import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
@@ -22,7 +23,8 @@ interface WalletNavigator {
         walletType: WalletType,
         addressType: AddressType,
         totalRequireSigns: Int,
-        signers: List<SingleSigner>
+        masterSigners: List<MasterSigner>,
+        remoteSigners: List<SingleSigner>
     )
 
     fun openBackupWalletScreen(activityContext: Context, walletId: String, descriptor: String)
