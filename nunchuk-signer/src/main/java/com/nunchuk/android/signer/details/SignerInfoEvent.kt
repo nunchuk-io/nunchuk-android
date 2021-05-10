@@ -1,5 +1,8 @@
 package com.nunchuk.android.signer.details
 
+import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.model.SingleSigner
+
 sealed class SignerInfoEvent {
 
     data class UpdateNameSuccessEvent(val signerName: String) : SignerInfoEvent()
@@ -10,3 +13,5 @@ sealed class SignerInfoEvent {
 
     data class RemoveSignerErrorEvent(val message: String) : SignerInfoEvent()
 }
+
+data class SignerInfoState(val remoteSigner: SingleSigner? = null, val masterSigner: MasterSigner? = null)

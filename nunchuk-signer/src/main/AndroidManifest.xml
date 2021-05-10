@@ -14,7 +14,7 @@
             android:name=".details.SignerInfoActivity"
             android:label="@string/nc_text_signer_info"
             android:screenOrientation="portrait"
-            android:theme="@style/MainScreenTheme" />
+            android:theme="@style/NunchukDarkNoActionBarTheme" />
 
         <activity
             android:name=".SignerIntroActivity"

@@ -3,7 +3,8 @@ package com.nunchuk.android.signer.add
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.model.Result
+import com.nunchuk.android.model.Result.Error
+import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.signer.add.AddSignerEvent.*
 import com.nunchuk.android.signer.util.InvalidSignerFormatException
 import com.nunchuk.android.signer.util.SignerInput
@@ -21,11 +22,11 @@ internal class AddSignerViewModel @Inject constructor(
 
     fun handleAddSigner(signerName: String, signerSpec: String) {
         validateInput(signerName, signerSpec) {
-            doAfterValidate(signerName, signerSpec, it)
+            doAfterValidate(signerName, it)
         }
     }
 
-    private fun doAfterValidate(signerName: String, signerSpec: String, signerInput: SignerInput) {
+    private fun doAfterValidate(signerName: String, signerInput: SignerInput) {
         viewModelScope.launch {
             val result = createSignerUseCase.execute(
                 name = signerName,
@@ -34,10 +35,9 @@ internal class AddSignerViewModel @Inject constructor(
                 masterFingerprint = signerInput.fingerPrint.toLowerCase(Locale.getDefault()),
                 publicKey = ""
             )
-            if (result is Result.Success) {
-                event(AddSignerSuccessEvent(signerName = signerName, signerSpec = signerSpec))
-            } else if (result is Result.Error) {
-                event(AddSignerErrorEvent(result.exception.message.orUnknownError()))
+            when (result) {
+                is Success -> event(AddSignerSuccessEvent(id = result.data.masterSignerId, name = result.data.name))
+                is Error -> event(AddSignerErrorEvent(result.exception.message.orUnknownError()))
             }
         }
     }

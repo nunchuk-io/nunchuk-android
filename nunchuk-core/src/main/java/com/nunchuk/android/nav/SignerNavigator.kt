@@ -7,9 +7,11 @@ interface SignerNavigator {
 
     fun openSignerInfoScreen(
         activityContext: Context,
-        signerName: String,
-        signerSpec: String,
-        justAdded: Boolean = false
+        id: String,
+        name: String,
+        justAdded: Boolean = false,
+        software: Boolean = false,
+        setPassphrase: Boolean = false
     )
 
     fun openAddAirSignerScreen(activityContext: Context)

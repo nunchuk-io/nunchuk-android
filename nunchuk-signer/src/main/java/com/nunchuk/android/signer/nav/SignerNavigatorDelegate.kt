@@ -19,12 +19,21 @@ interface SignerNavigatorDelegate : SignerNavigator {
         SignerIntroActivity.start(activityContext)
     }
 
-    override fun openSignerInfoScreen(activityContext: Context, signerName: String, signerSpec: String, justAdded: Boolean) {
+    override fun openSignerInfoScreen(
+        activityContext: Context,
+        id: String,
+        name: String,
+        justAdded: Boolean,
+        software: Boolean,
+        setPassphrase: Boolean
+    ) {
         SignerInfoActivity.start(
             activityContext = activityContext,
-            signerName = signerName,
-            signerSpec = signerSpec,
-            justAdded = justAdded
+            id = id,
+            name = name,
+            justAdded = justAdded,
+            software = software,
+            setPassphrase = setPassphrase
         )
     }
 

@@ -2,11 +2,13 @@ package com.nunchuk.android.nativelib
 
 import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.model.AppSettings
+import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.bridge.toBridge
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.ExportFormat
+import com.nunchuk.android.type.WalletType
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -54,14 +56,14 @@ internal class LibNunchukFacade @Inject constructor(
     )
 
     @Throws(NCNativeException::class)
-    fun getRemoteSigner() = nunchukAndroid.getRemoteSigner()
+    fun getRemoteSigner(id: String) = nunchukAndroid.getRemoteSigners().first { it.masterSignerId == id }
 
     @Throws(NCNativeException::class)
     fun getRemoteSigners() = nunchukAndroid.getRemoteSigners()
 
     @Throws(NCNativeException::class)
-    fun updateSigner(signer: SingleSigner) {
-        nunchukAndroid.updateSigner(signer)
+    fun updateRemoteSigner(signer: SingleSigner) {
+        nunchukAndroid.updateRemoteSigner(signer)
     }
 
     @Throws(NCNativeException::class)
@@ -133,4 +135,26 @@ internal class LibNunchukFacade @Inject constructor(
 
     @Throws(NCNativeException::class)
     fun checkMnemonic(mnemonic: String) = nunchukAndroid.checkMnemonic(mnemonic)
+
+    @Throws(NCNativeException::class)
+    fun getMasterSigner(masterSignerId: String) = nunchukAndroid.getMasterSigner(masterSignerId)
+
+    @Throws(NCNativeException::class)
+    fun getMasterSigners() = nunchukAndroid.getMasterSigners()
+
+    @Throws(NCNativeException::class)
+    fun deleteMasterSigner(masterSignerId: String) = nunchukAndroid.deleteMasterSigner(masterSignerId)
+
+    @Throws(NCNativeException::class)
+    fun getSignersFromMasterSigner(masterSignerId: String) = nunchukAndroid.getSignersFromMasterSigner(masterSignerId)
+
+    @Throws(NCNativeException::class)
+    fun updateMasterSigner(masterSigner: MasterSigner) = nunchukAndroid.updateMasterSigner(masterSigner)
+
+    @Throws(NCNativeException::class)
+    fun getUnusedSignerFromMasterSigner(
+        masterSignerId: String,
+        walletType: WalletType,
+        addressType: AddressType
+    ) = nunchukAndroid.getUnusedSignerFromMasterSigner(masterSignerId, walletType.ordinal, addressType.ordinal)
 }

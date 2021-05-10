@@ -4,53 +4,104 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
-    android:padding="@dimen/nc_padding_16">
+    android:background="#F5F5F5">
 
-    <com.nunchuk.android.widget.NCFontButton
-        android:id="@+id/btnDone"
-        android:layout_width="match_parent"
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:background="@color/nc_primary_dark_color"
+        style="@style/NunchukLightNoActionBarTheme"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/nc_padding_16"
-        android:layout_marginBottom="@dimen/nc_padding_16"
-        android:background="@drawable/nc_rounded_dark_background"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:gravity="center"
-        android:padding="@dimen/nc_padding_18"
-        android:text="@string/nc_text_done"
-        android:textAllCaps="false"
-        android:textColor="@color/nc_white_color"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/signerType"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/nc_padding_4"
-        android:background="@drawable/nc_rounded_whisper_background"
-        android:paddingHorizontal="@dimen/nc_padding_8"
-        android:paddingVertical="@dimen/nc_padding_4"
-        android:text="@string/nc_signer_type_air_gapped"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_14"
+        android:minHeight="?attr/actionBarSize"
+        app:buttonGravity="center_vertical"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/signerName" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_close_white">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/toolbarTitle"
+            style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="@string/nc_text_signer_info"
+            android:textColor="@color/nc_white_color"
+            android:textSize="@dimen/nc_text_size_16"
+            app:fontTextStyle="semi_bold" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/headerContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:paddingVertical="@dimen/nc_padding_16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        android:background="@drawable/nc_signer_header_background">
+
+        <ImageView
+            android:id="@+id/signerTypeIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_24"
+            android:background="@drawable/nc_circle_white_background"
+            android:padding="@dimen/nc_padding_16"
+            android:src="@drawable/ic_software_signer_big"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/signerName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_16"
+            android:drawableEnd="@drawable/ic_edit"
+            android:paddingVertical="@dimen/nc_padding_8"
+            android:textColor="@color/nc_white_color"
+            android:textSize="@dimen/nc_text_size_24"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:drawablePadding="@dimen/nc_padding_8"
+            android:drawableTint="@color/nc_white_color"
+            app:layout_constraintTop_toBottomOf="@+id/signerTypeIcon"
+            tools:text="Tom’s Trezor Model T" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/signerType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_4"
+            android:background="@drawable/nc_rounded_whisper_background"
+            android:paddingHorizontal="@dimen/nc_padding_12"
+            android:paddingVertical="@dimen/nc_padding_4"
+            android:text="@string/nc_signer_type_air_gapped"
+            android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_14"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/signerName" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/signerSpecTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:paddingHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
         android:paddingVertical="@dimen/nc_padding_4"
         android:text="@string/nc_text_signer_spec"
         android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
+        android:textSize="@dimen/nc_text_size_14"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/signerType" />
+        app:layout_constraintTop_toBottomOf="@+id/headerContainer" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/signerSpec"
+        android:paddingHorizontal="@dimen/nc_padding_16"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_8"
@@ -63,30 +114,50 @@
 xpub661MyMwAqRbcG8Zah6TcX3QpP5yJApaXcyLK8CJcZkuYjczivsHxVL5qm9cw8BYLYehgFeddK5WrxhntpcvqJKTVg96dUVL9P7hZ7Kcvqvd" />
 
     <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/fingerprint"
+        android:paddingHorizontal="@dimen/nc_padding_16"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:paddingVertical="@dimen/nc_padding_4"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/signerSpecTitle"
+        tools:text="79EB35F4" />
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btnDone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:layout_marginBottom="@dimen/nc_padding_16"
+        android:background="@drawable/nc_rounded_dark_background"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:gravity="center"
+        android:padding="@dimen/nc_padding_18"
+        android:text="@string/nc_text_done"
+        android:textAllCaps="false"
+        app:layout_constraintBottom_toTopOf="@+id/btnRemove"
+        android:textColor="@color/nc_white_color"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btnRemove"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_16"
         android:gravity="center"
+        android:layout_marginBottom="@dimen/nc_padding_24"
         android:padding="@dimen/nc_padding_16"
         android:paddingVertical="@dimen/nc_padding_4"
         android:text="@string/nc_remove_signer"
         android:textColor="@color/nc_red_color"
         android:textSize="@dimen/nc_text_size_16"
-        app:layout_constraintBottom_toTopOf="@+id/btnDone"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/signerName"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/nc_padding_16"
-        android:drawableEnd="@drawable/ic_edit"
-        android:paddingVertical="@dimen/nc_padding_8"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_24"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="Tom’s Trezor Model T" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

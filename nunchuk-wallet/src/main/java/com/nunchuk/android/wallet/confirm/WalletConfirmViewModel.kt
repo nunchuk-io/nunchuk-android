@@ -3,6 +3,8 @@ package com.nunchuk.android.wallet.confirm
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.SingleSigner
@@ -11,11 +13,13 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.type.WalletType.ESCROW
 import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.DraftWalletUseCase
+import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.wallet.confirm.WalletConfirmEvent.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class WalletConfirmViewModel @Inject constructor(
+    private val getUnusedSignerFromMasterSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
     private val draftWalletUseCase: DraftWalletUseCase,
     private val createWalletUseCase: CreateWalletUseCase
 ) : NunchukViewModel<Unit, WalletConfirmEvent>() {
@@ -23,19 +27,33 @@ internal class WalletConfirmViewModel @Inject constructor(
     override val initialState = Unit
     private var descriptor = ""
 
-    fun handleContinueEvent(walletName: String, walletType: WalletType, addressType: AddressType, totalRequireSigns: Int, signers: List<SingleSigner>) {
+    fun handleContinueEvent(
+        walletName: String,
+        walletType: WalletType,
+        addressType: AddressType,
+        totalRequireSigns: Int,
+        masterSigners: List<MasterSigner>,
+        remoteSigners: List<SingleSigner>
+    ) {
         event(SetLoadingEvent(true))
         viewModelScope.launch {
-            draftWallet(walletName, totalRequireSigns, signers, addressType, walletType)
+            val unusedSignerSigners = ArrayList<SingleSigner>()
+            masterSigners.forEach {
+                val result: Result<SingleSigner> = getUnusedSignerFromMasterSignerUseCase.execute(it.id, walletType, addressType)
+                if (result is Success) {
+                    unusedSignerSigners.add(result.data)
+                }
+            }
+            draftWallet(walletName, totalRequireSigns, addressType, walletType, unusedSignerSigners + remoteSigners)
         }
     }
 
     private suspend fun draftWallet(
         walletName: String,
         totalRequireSigns: Int,
-        signers: List<SingleSigner>,
         addressType: AddressType,
-        walletType: WalletType
+        walletType: WalletType,
+        signers: List<SingleSigner>
     ) {
         val result = draftWalletUseCase.execute(
             name = walletName,

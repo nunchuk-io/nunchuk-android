@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.type.WalletType
@@ -66,7 +68,7 @@ class WalletInfoActivity : BaseActivity() {
         binding.walletType.text = (if (wallet.escrow) WalletType.ESCROW else WalletType.MULTI_SIG).toReadableString(this)
         binding.addressType.text = wallet.addressType.toReadableString(this)
 
-        SignersViewBinder(binding.signersContainer, wallet.signers).bindItems()
+        SignersViewBinder(binding.signersContainer, wallet.signers.map(SingleSigner::toModel)).bindItems()
     }
 
     private fun setupViews() {

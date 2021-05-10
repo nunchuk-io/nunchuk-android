@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.type.AddressType
@@ -56,13 +58,13 @@ class WalletConfirmActivity : BaseActivity() {
 
     private fun setupViews() {
         binding.walletName.text = args.walletName
-
-        val configutation = "${args.totalRequireSigns}/${args.signers.size}"
+        val signers = args.masterSigners.map(MasterSigner::toModel) + args.remoteSigners.map(SingleSigner::toModel)
+        val configutation = "${args.totalRequireSigns}/${signers.size}"
         binding.multisigConfigutation.text = configutation
 
         binding.walletType.text = args.walletType.toReadableString(this)
         binding.addressType.text = args.addressType.toReadableString(this)
-        SignersViewBinder(binding.signersContainer, args.signers).bindItems()
+        SignersViewBinder(binding.signersContainer, signers).bindItems()
 
         binding.btnContinue.setOnClickListener {
             viewModel.handleContinueEvent(
@@ -70,7 +72,8 @@ class WalletConfirmActivity : BaseActivity() {
                 walletType = args.walletType,
                 addressType = args.addressType,
                 totalRequireSigns = args.totalRequireSigns,
-                signers = args.signers
+                masterSigners = args.masterSigners,
+                remoteSigners = args.remoteSigners
             )
         }
     }
@@ -83,7 +86,8 @@ class WalletConfirmActivity : BaseActivity() {
             walletType: WalletType,
             addressType: AddressType,
             totalRequireSigns: Int,
-            signers: List<SingleSigner>
+            masterSigners: List<MasterSigner>,
+            remoteSigners: List<SingleSigner>
         ) {
             activityContext.startActivity(
                 WalletConfirmArgs(
@@ -91,7 +95,8 @@ class WalletConfirmActivity : BaseActivity() {
                     walletType = walletType,
                     addressType = addressType,
                     totalRequireSigns = totalRequireSigns,
-                    signers = signers
+                    masterSigners = masterSigners,
+                    remoteSigners = remoteSigners
                 ).buildIntent(activityContext)
             )
         }

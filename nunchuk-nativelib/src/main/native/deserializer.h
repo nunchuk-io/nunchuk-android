@@ -22,6 +22,8 @@ public:
 
     static jobject convert2JMasterSigner(JNIEnv *env, const MasterSigner &signer);
 
+    static jobject convert2JMasterSigners(JNIEnv *env, const std::vector<MasterSigner> &signers);
+
     static jobject convert2JSigner(JNIEnv *env, const SingleSigner &signer);
 
     static jobject convert2JSigners(JNIEnv *env, const std::vector<SingleSigner> &signers);

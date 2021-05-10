@@ -25,6 +25,8 @@ class NCToastMessage(activity: Activity) : Disposable {
 
     fun show(messageId: Int) = weakReference.get()?.getString(messageId)?.let(::showMessage)
 
+    fun show(message: String) = message.let(::showMessage)
+
     @JvmOverloads
     fun showMessage(
         message: String,
@@ -33,7 +35,8 @@ class NCToastMessage(activity: Activity) : Disposable {
         icon: Int = R.drawable.ic_info,
         gravity: Int = BOTTOM or FILL_HORIZONTAL,
         duration: Int = Toast.LENGTH_LONG,
-        offset: Int = R.dimen.nc_padding_16
+        offset: Int = R.dimen.nc_padding_16,
+        dismissTime: Long = TIME
     ): NCToastMessage {
         weakReference.get()?.apply {
             val root: View = layoutInflater.inflate(
@@ -57,7 +60,7 @@ class NCToastMessage(activity: Activity) : Disposable {
                 it.duration = duration
                 it.view = root
                 it.show()
-                timer.doAfter(it::cancel)
+                timer.doAfter(it::cancel, dismissTime)
             }
         }
         return also { DisposableManager.instance.add(this) }
@@ -79,6 +82,10 @@ class NCToastMessage(activity: Activity) : Disposable {
     override fun dispose() {
         timer.dispose()
         toast.cancel()
+    }
+
+    companion object {
+        private const val TIME = 3000L
     }
 
 }
