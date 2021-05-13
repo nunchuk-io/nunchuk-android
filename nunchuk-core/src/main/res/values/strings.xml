@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nc_signer_type_air_gapped">Air-gapped</string>
+    <string name="nc_signer_type_software">Software signer</string>
+</resources>

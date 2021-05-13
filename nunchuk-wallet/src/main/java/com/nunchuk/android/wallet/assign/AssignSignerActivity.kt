@@ -15,6 +15,7 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.assign.AssignSignerEvent.AssignSignerCompletedEvent
 import com.nunchuk.android.wallet.databinding.ActivityWalletAssignSignerBinding
+import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
 class AssignSignerActivity : BaseActivity() {
@@ -35,6 +36,8 @@ class AssignSignerActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setLightStatusBar()
 
         binding = ActivityWalletAssignSignerBinding.inflate(layoutInflater)
         setContentView(binding.root)

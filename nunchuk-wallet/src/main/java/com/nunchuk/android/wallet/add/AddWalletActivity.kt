@@ -17,6 +17,7 @@ import com.nunchuk.android.wallet.add.AddWalletEvent.WalletNameRequiredEvent
 import com.nunchuk.android.wallet.add.AddWalletEvent.WalletSetupDoneEvent
 import com.nunchuk.android.wallet.databinding.ActivityWalletAddBinding
 import com.nunchuk.android.widget.util.SimpleTextWatcher
+import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
 class AddWalletActivity : BaseActivity() {
@@ -35,6 +36,8 @@ class AddWalletActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setLightStatusBar()
 
         binding = ActivityWalletAddBinding.inflate(layoutInflater)
         setContentView(binding.root)

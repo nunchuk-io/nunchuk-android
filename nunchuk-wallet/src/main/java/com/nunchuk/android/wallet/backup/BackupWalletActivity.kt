@@ -16,6 +16,7 @@ import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.backup.BackupWalletEvent.*
 import com.nunchuk.android.wallet.databinding.ActivityWalletBackupWalletBinding
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
 class BackupWalletActivity : BaseActivity() {
@@ -43,6 +44,8 @@ class BackupWalletActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setLightStatusBar()
 
         binding = ActivityWalletBackupWalletBinding.inflate(layoutInflater)
         setContentView(binding.root)

@@ -89,7 +89,7 @@ class SignerInfoActivity : BaseActivity() {
             NCToastMessage(this).showMessage(
                 message = getString(R.string.nc_text_add_signer_success, args.name)
             )
-            if (args.software) {
+            if (args.setPassphrase) {
                 NCToastMessage(this).showMessage(
                     message = getString(R.string.nc_text_set_passphrase_success),
                     offset = R.dimen.nc_padding_44,

@@ -84,15 +84,16 @@ internal class WalletsFragment : BaseFragment() {
     }
 
     private fun showWalletState(state: WalletsState) {
-        showIntro(state)
-        showSigners(state.masterSigners.map(MasterSigner::toModel) + state.signers.map(SingleSigner::toModel))
+        val signers = state.masterSigners.map(MasterSigner::toModel) + state.signers.map(SingleSigner::toModel)
+        showIntro(signers, state.wallets)
+        showSigners(signers)
         showWallets(state.wallets)
     }
 
-    private fun showIntro(state: WalletsState) {
+    private fun showIntro(signers:List<SignerModel>, wallets: List<Wallet>) {
         when {
-            state.signers.isEmpty() -> showAddSignerIntro()
-            state.wallets.isEmpty() -> showAddWalletIntro()
+            signers.isEmpty() -> showAddSignerIntro()
+            wallets.isEmpty() -> showAddWalletIntro()
             else -> hideIntroContainerView()
         }
     }

@@ -27,6 +27,9 @@ internal class SignersViewBinder(
         val warn = itemView.findViewById<TextView>(R.id.warning)
         val checkBox = itemView.findViewById<CheckBox>(R.id.checkbox)
 
+        val signerType = if (model.software) context.getString(R.string.nc_signer_type_software) else context.getString(R.string.nc_signer_type_air_gapped)
+        itemView.findViewById<TextView>(R.id.signerType).text = signerType
+
         warn.isVisible = model.used
         avatar.text = model.name.shorten().toUpperCase(Locale.getDefault())
         signerName.text = model.name

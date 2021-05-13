@@ -28,7 +28,7 @@ internal fun List<String>.randomPhraseWordGroups(): List<PhraseWordGroup> {
 
 internal fun List<String>.randomPhraseWordGroup(usedIndexes: ArrayList<Int>): PhraseWordGroup {
     val randomGroupIndex = randomNum(size, usedIndexes)
-    return when (Random.nextInt(0, NUMBER_WORD_TO_CONFIRM - 1)) {
+    return when (Random.nextInt(0, NUMBER_WORD_TO_CONFIRM)) {
         0 -> {
             PhraseWordGroup(
                 index = randomGroupIndex,

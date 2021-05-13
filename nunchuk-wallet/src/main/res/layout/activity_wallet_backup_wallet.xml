@@ -5,9 +5,32 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/nc_white_color"
-    android:paddingHorizontal="@dimen/nc_text_size_16"
-    android:paddingBottom="@dimen/nc_padding_16"
     tools:ignore="ContentDescription">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        style="@style/NunchukLightNoActionBarTheme"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
+        app:buttonGravity="center_vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_back">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/toolbarTitle"
+            style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="@string/nc_wallet_backup_and_device_registration"
+            android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_16"
+            app:fontTextStyle="semi_bold" />
+    </androidx.appcompat.widget.Toolbar>
 
     <ProgressBar
         android:id="@+id/progress"
@@ -18,25 +41,26 @@
         android:indeterminateTint="@color/nc_blue_color"
         android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
         tools:visibility="visible" />
 
     <ImageView
         android:id="@+id/iconInfo"
-        android:background="@drawable/nc_circle_whisper_background"
-        android:padding="@dimen/nc_padding_16"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_44"
+        android:background="@drawable/nc_circle_whisper_background"
+        android:padding="@dimen/nc_padding_16"
         android:src="@drawable/ic_info"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_24"
         android:gravity="center"
         android:paddingVertical="@dimen/nc_padding_8"
@@ -51,6 +75,7 @@
         android:id="@+id/description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_18"
         android:gravity="center"
         android:paddingVertical="@dimen/nc_padding_8"
@@ -64,6 +89,7 @@
         android:id="@+id/descriptionHint"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:gravity="center"
         android:paddingVertical="@dimen/nc_padding_8"
         android:text="@string/nc_wallet_backup_wallet_description_hint"
@@ -76,6 +102,7 @@
         android:id="@+id/btnBackup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:background="@drawable/nc_rounded_dark_background"
         android:gravity="center"
         android:orientation="horizontal"
@@ -103,6 +130,7 @@
         android:id="@+id/btnSkipBackup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="@dimen/nc_padding_16"
         android:layout_marginStart="@dimen/nc_padding_6"
         android:gravity="center"
         android:padding="@dimen/nc_padding_16"

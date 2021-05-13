@@ -62,7 +62,9 @@ internal class AssignSignerViewModel @Inject constructor(
 
     fun handleContinueEvent() {
         val state = getState()
-        if (state.totalRequireSigns > 0 && state.remoteSigners.isNotEmpty()) {
+        val hasSigners = state.remoteSigners.isNotEmpty() || state.masterSigners.isNotEmpty()
+        val isValidRequireSigns = state.totalRequireSigns > 0
+        if (isValidRequireSigns && hasSigners) {
             event(
                 AssignSignerCompletedEvent(
                     state.totalRequireSigns,

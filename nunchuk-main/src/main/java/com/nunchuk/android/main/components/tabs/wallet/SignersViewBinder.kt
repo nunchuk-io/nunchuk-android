@@ -17,9 +17,13 @@ internal class SignersViewBinder(
 
     override fun bindItem(position: Int, model: SignerModel) {
         container[position].apply {
-            findViewById<TextView>(R.id.signerName).text = model.name
             val xfpValue = "XFP: ${model.fingerPrint}"
+            val signerType = if (model.software) context.getString(R.string.nc_signer_type_software) else context.getString(R.string.nc_signer_type_air_gapped)
+
+            findViewById<TextView>(R.id.signerName).text = model.name
             findViewById<TextView>(R.id.xpf).text = xfpValue
+            findViewById<TextView>(R.id.signerType).text = signerType
+
             setOnClickListener { onItemClickListener(model) }
         }
     }

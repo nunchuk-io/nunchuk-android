@@ -7,44 +7,44 @@
             android:name=".add.AddWalletActivity"
             android:label="@string/nc_wallet_create_wallet_title"
             android:screenOrientation="portrait"
-            android:theme="@style/MainScreenTheme"
+            android:theme="@style/NunchukLightNoActionBarTheme"
             android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".assign.AssignSignerActivity"
             android:label="@string/nc_wallet_assign_signer_title"
             android:screenOrientation="portrait"
-            android:theme="@style/MainScreenTheme" />
+            android:theme="@style/NunchukLightNoActionBarTheme" />
 
         <activity
             android:name=".confirm.WalletConfirmActivity"
             android:label="@string/nc_wallet_review_wallet_title"
             android:screenOrientation="portrait"
-            android:theme="@style/MainScreenTheme" />
+            android:theme="@style/NunchukLightNoActionBarTheme" />
 
         <activity
             android:name=".backup.BackupWalletActivity"
             android:label="@string/nc_wallet_backup_and_device_registration"
             android:screenOrientation="portrait"
-            android:theme="@style/MainScreenTheme" />
+            android:theme="@style/NunchukLightNoActionBarTheme" />
 
         <activity
             android:name=".upload.UploadConfigurationActivity"
             android:label="@string/nc_wallet_backup_and_device_registration"
             android:screenOrientation="portrait"
-            android:theme="@style/MainScreenTheme" />
+            android:theme="@style/NunchukLightNoActionBarTheme" />
 
         <activity
             android:name=".details.WalletInfoActivity"
             android:label="@string/nc_text_wallet_config_title"
             android:screenOrientation="portrait"
-            android:theme="@style/MainScreenTheme" />
+            android:theme="@style/NunchukLightNoActionBarTheme" />
 
         <activity
             android:name="com.nunchuk.android.qr.DynamicQRCodeActivity"
             android:label="@string/nc_text_wallet_qr_code"
             android:screenOrientation="portrait"
-            android:theme="@style/MainScreenTheme" />
+            android:theme="@style/NunchukLightNoActionBarTheme" />
     </application>
 
 </manifest>

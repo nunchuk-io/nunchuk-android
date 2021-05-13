@@ -92,7 +92,7 @@ internal class WalletsViewModel @Inject constructor(
         }
     }
 
-    private fun hasSigner() = getState().signers.isNotEmpty()
+    private fun hasSigner() = getState().signers.isNotEmpty() || getState().masterSigners.isNotEmpty()
 
     companion object {
         private const val TAG = "WalletsViewModel"

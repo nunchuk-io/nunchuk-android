@@ -16,6 +16,7 @@ import com.nunchuk.android.wallet.confirm.WalletConfirmEvent.*
 import com.nunchuk.android.wallet.databinding.ActivityWalletConfirmationBinding
 import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
 class WalletConfirmActivity : BaseActivity() {
@@ -36,6 +37,8 @@ class WalletConfirmActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setLightStatusBar()
 
         binding = ActivityWalletConfirmationBinding.inflate(layoutInflater)
         setContentView(binding.root)

@@ -16,6 +16,7 @@ import com.nunchuk.android.wallet.details.WalletInfoEvent.UpdateNameErrorEvent
 import com.nunchuk.android.wallet.details.WalletInfoEvent.UpdateNameSuccessEvent
 import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
 class WalletInfoActivity : BaseActivity() {
@@ -36,6 +37,8 @@ class WalletInfoActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setLightStatusBar()
 
         binding = ActivityWalletInfoBinding.inflate(layoutInflater)
         setContentView(binding.root)

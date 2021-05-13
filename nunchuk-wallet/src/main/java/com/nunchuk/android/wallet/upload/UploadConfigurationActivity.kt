@@ -16,6 +16,7 @@ import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.wallet.databinding.ActivityWalletUploadConfigurationBinding
 import com.nunchuk.android.wallet.upload.UploadConfigurationEvent.*
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.util.setLightStatusBar
 import java.io.File
 import javax.inject.Inject
 
@@ -44,6 +45,8 @@ class UploadConfigurationActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setLightStatusBar()
 
         binding = ActivityWalletUploadConfigurationBinding.inflate(layoutInflater)
         setContentView(binding.root)

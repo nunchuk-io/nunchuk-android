@@ -21,11 +21,13 @@
         <item name="colorPrimary">@android:color/transparent</item>
         <item name="colorPrimaryDark">@android:color/transparent</item>
         <item name="colorAccent">@color/nc_accent_color</item>
+        <item name="android:windowBackground">@color/nc_white_color</item>
     </style>
 
     <style name="NunchukDarkNoActionBarTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/nc_primary_color</item>
         <item name="colorPrimaryDark">@color/nc_primary_dark_color</item>
         <item name="colorAccent">@color/nc_accent_color</item>
+        <item name="android:windowBackground">@color/nc_white_color</item>
     </style>
 </resources>
