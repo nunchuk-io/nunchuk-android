@@ -1,10 +1,7 @@
 package com.nunchuk.android.nativelib
 
 import com.nunchuk.android.exception.NCNativeException
-import com.nunchuk.android.model.AppSettings
-import com.nunchuk.android.model.MasterSigner
-import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.*
 import com.nunchuk.android.model.bridge.toBridge
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.ExportFormat
@@ -68,7 +65,10 @@ internal class LibNunchukFacade @Inject constructor(
 
     @Throws(NCNativeException::class)
     fun deleteRemoteSigner(masterFingerprint: String, derivationPath: String) {
-        nunchukAndroid.deleteRemoteSigner(masterFingerprint, derivationPath)
+        nunchukAndroid.deleteRemoteSigner(
+            masterFingerprint = masterFingerprint,
+            derivationPath = derivationPath
+        )
     }
 
     @Throws(NCNativeException::class)
@@ -156,5 +156,132 @@ internal class LibNunchukFacade @Inject constructor(
         masterSignerId: String,
         walletType: WalletType,
         addressType: AddressType
-    ) = nunchukAndroid.getUnusedSignerFromMasterSigner(masterSignerId, walletType.ordinal, addressType.ordinal)
+    ) = nunchukAndroid.getUnusedSignerFromMasterSigner(
+        masterSignerId = masterSignerId,
+        walletType = walletType.ordinal,
+        addressType = addressType.ordinal
+    )
+
+    @Throws(NCNativeException::class)
+    fun broadcastTransaction(walletId: String, txId: String) = nunchukAndroid.broadcastTransaction(
+        walletId = walletId,
+        txId = txId
+    )
+
+    @Throws(NCNativeException::class)
+    fun createTransactionUseCase(
+        walletId: String,
+        outputs: Map<String, Amount>,
+        memo: String,
+        inputs: List<UnspentOutput>,
+        feeRate: Amount,
+        subtractFeeFromAmount: Boolean
+    ) = nunchukAndroid.createTransaction(
+        walletId = walletId,
+        outputs = outputs,
+        memo = memo,
+        inputs = inputs,
+        feeRate = feeRate,
+        subtractFeeFromAmount = subtractFeeFromAmount
+    )
+
+    @Throws(NCNativeException::class)
+    fun draftTransaction(
+        walletId: String,
+        outputs: Map<String, Amount>,
+        inputs: List<UnspentOutput>,
+        feeRate: Amount,
+        subtractFeeFromAmount: Boolean
+    ) = nunchukAndroid.draftTransaction(
+        walletId = walletId,
+        outputs = outputs,
+        inputs = inputs,
+        feeRate = feeRate,
+        subtractFeeFromAmount = subtractFeeFromAmount
+    )
+
+    @Throws(NCNativeException::class)
+    fun deleteTransaction(walletId: String, txId: String) = nunchukAndroid.deleteTransaction(
+        walletId = walletId,
+        txId = txId
+    )
+
+    @Throws(NCNativeException::class)
+    fun exportCoboTransaction(walletId: String, txId: String) = nunchukAndroid.exportCoboTransaction(
+        walletId = walletId,
+        txId = txId
+    )
+
+    @Throws(NCNativeException::class)
+    fun exportTransaction(
+        walletId: String,
+        txId: String,
+        filePath: String
+    ) = nunchukAndroid.exportTransaction(
+        walletId = walletId,
+        txId = txId,
+        filePath = filePath
+    )
+
+    @Throws(NCNativeException::class)
+    fun getTransaction(walletId: String, txId: String) = nunchukAndroid.getTransaction(
+        walletId = walletId,
+        txId = txId
+    )
+
+    @Throws(NCNativeException::class)
+    fun replaceTransaction(
+        walletId: String,
+        txId: String,
+        newFeeRate: Amount
+    ) = nunchukAndroid.replaceTransaction(
+        walletId = walletId,
+        txId = txId,
+        newFeeRate = newFeeRate
+    )
+
+    @Throws(NCNativeException::class)
+    fun importTransaction(walletId: String, filePath: String) = nunchukAndroid.importTransaction(
+        walletId = walletId,
+        filePath = filePath
+    )
+
+    @Throws(NCNativeException::class)
+    fun getTransactionHistory(walletId: String, count: Int, skip: Int) = nunchukAndroid.getTransactionHistory(
+        walletId = walletId,
+        count = count,
+        skip = skip
+    )
+
+    @Throws(NCNativeException::class)
+    fun importCoboTransaction(walletId: String, qrData: List<String>) = nunchukAndroid.importCoboTransaction(
+        walletId = walletId,
+        qrData = qrData
+    )
+
+    @Throws(NCNativeException::class)
+    fun updateTransactionMemo(
+        walletId: String,
+        txId: String,
+        newMemo: String
+    ) = nunchukAndroid.updateTransactionMemo(
+        walletId = walletId,
+        txId = txId,
+        newMemo = newMemo
+    )
+
+    @Throws(NCNativeException::class)
+    fun signTransaction(walletId: String, txId: String, device: Device) = nunchukAndroid.signTransaction(
+        walletId = walletId,
+        txId = txId,
+        device = device
+    )
+
+    @Throws(NCNativeException::class)
+    fun exportTransactionHistory(walletId: String, filePath: String, format: ExportFormat) = nunchukAndroid.exportTransactionHistory(
+        walletId = walletId,
+        filePath = filePath,
+        format = format.ordinal
+    )
+
 }

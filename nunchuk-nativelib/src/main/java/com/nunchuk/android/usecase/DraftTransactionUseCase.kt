@@ -1,14 +1,39 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.nativelib.LibNunchukFacade
+import javax.inject.Inject
 
 interface DraftTransactionUseCase {
-    fun execute(walletId: String,
-                outputs: Map<String, Amount>,
-                inputs: List<UnspentOutput> = emptyList(),
-                feeRate: Amount = Amount(-1),
-                subtractFeeFromAmount: Boolean = false
-    ): Transaction
+    suspend fun execute(
+        walletId: String,
+        outputs: Map<String, Amount>,
+        inputs: List<UnspentOutput> = emptyList(),
+        feeRate: Amount = Amount(-1),
+        subtractFeeFromAmount: Boolean = false
+    ): Result<Transaction>
+}
+
+internal class DraftTransactionUseCaseImpl @Inject constructor(
+    private val nunchukFacade: LibNunchukFacade
+) : BaseUseCase(), DraftTransactionUseCase {
+    override suspend fun execute(
+        walletId: String,
+        outputs: Map<String, Amount>,
+        inputs: List<UnspentOutput>,
+        feeRate: Amount,
+        subtractFeeFromAmount: Boolean
+    ) = exe {
+        nunchukFacade.draftTransaction(
+            walletId = walletId,
+            outputs = outputs,
+            inputs = inputs,
+            feeRate = feeRate,
+            subtractFeeFromAmount = subtractFeeFromAmount
+        )
+    }
+
 }

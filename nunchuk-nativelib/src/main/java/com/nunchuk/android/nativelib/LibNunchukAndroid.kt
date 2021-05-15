@@ -1,9 +1,7 @@
 package com.nunchuk.android.nativelib
 
 import com.nunchuk.android.exception.NCNativeException
-import com.nunchuk.android.model.MasterSigner
-import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.*
 import com.nunchuk.android.model.bridge.WalletBridge
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -117,6 +115,61 @@ internal class LibNunchukAndroid @Inject constructor() {
         walletType: Int,
         addressType: Int
     ): SingleSigner
+
+    @Throws(NCNativeException::class)
+    external fun broadcastTransaction(walletId: String, txId: String): Transaction
+
+    @Throws(NCNativeException::class)
+    external fun createTransaction(
+        walletId: String,
+        outputs: Map<String, Amount>,
+        memo: String,
+        inputs: List<UnspentOutput>,
+        feeRate: Amount,
+        subtractFeeFromAmount: Boolean
+    ): Transaction
+
+    @Throws(NCNativeException::class)
+    external fun draftTransaction(
+        walletId: String,
+        outputs: Map<String, Amount>,
+        inputs: List<UnspentOutput>,
+        feeRate: Amount,
+        subtractFeeFromAmount: Boolean
+    ): Transaction
+
+    @Throws(NCNativeException::class)
+    external fun deleteTransaction(walletId: String, txId: String): Boolean
+
+    @Throws(NCNativeException::class)
+    external fun exportCoboTransaction(walletId: String, txId: String): List<String>
+
+    @Throws(NCNativeException::class)
+    external fun exportTransaction(walletId: String, txId: String, filePath: String): Boolean
+
+    @Throws(NCNativeException::class)
+    external fun getTransaction(walletId: String, txId: String): Transaction
+
+    @Throws(NCNativeException::class)
+    external fun replaceTransaction(walletId: String, txId: String, newFeeRate: Amount): Transaction
+
+    @Throws(NCNativeException::class)
+    external fun importTransaction(walletId: String, filePath: String): Transaction
+
+    @Throws(NCNativeException::class)
+    external fun getTransactionHistory(walletId: String, count: Int, skip: Int): List<Transaction>
+
+    @Throws(NCNativeException::class)
+    external fun importCoboTransaction(walletId: String, qrData: List<String>): Transaction
+
+    @Throws(NCNativeException::class)
+    external fun updateTransactionMemo(walletId: String, txId: String, newMemo: String): Boolean
+
+    @Throws(NCNativeException::class)
+    external fun signTransaction(walletId: String, txId: String, device: Device)
+
+    @Throws(NCNativeException::class)
+    external fun exportTransactionHistory(walletId: String, filePath: String, format: Int)
 
     companion object {
         init {
