@@ -32,7 +32,7 @@ class UploadConfigurationActivity : BaseActivity() {
     lateinit var controller: IntentSharingController
 
     private val listener: IntentSharingListener = IntentSharingListenerWrapper {
-        navigator.openWalletReviewScreen(this, args.walletId)
+        navigator.openWalletConfigScreen(this, args.walletId)
     }
 
     private val args: UploadConfigurationArgs by lazy { UploadConfigurationArgs.deserializeFrom(intent) }
@@ -70,7 +70,7 @@ class UploadConfigurationActivity : BaseActivity() {
     private fun setupViews() {
         binding.btnQRCode.setOnClickListener { viewModel.handleShowQREvent() }
         binding.btnUpload.setOnClickListener { viewModel.handleUploadEvent() }
-        binding.btnSkipUpload.setOnClickListener { navigator.openWalletReviewScreen(this, args.walletId) }
+        binding.btnSkipUpload.setOnClickListener { navigator.openWalletConfigScreen(this, args.walletId) }
     }
 
     private fun observeEvent() {

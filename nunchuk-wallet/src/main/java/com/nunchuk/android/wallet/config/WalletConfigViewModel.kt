@@ -1,4 +1,4 @@
-package com.nunchuk.android.wallet.details
+package com.nunchuk.android.wallet.config
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
@@ -7,15 +7,15 @@ import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.UpdateWalletUseCase
-import com.nunchuk.android.wallet.details.WalletInfoEvent.UpdateNameErrorEvent
-import com.nunchuk.android.wallet.details.WalletInfoEvent.UpdateNameSuccessEvent
+import com.nunchuk.android.wallet.config.WalletConfigEvent.UpdateNameErrorEvent
+import com.nunchuk.android.wallet.config.WalletConfigEvent.UpdateNameSuccessEvent
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-internal class WalletInfoViewModel @Inject constructor(
+internal class WalletConfigViewModel @Inject constructor(
     private val getWalletUseCase: GetWalletUseCase,
     private val updateWalletUseCase: UpdateWalletUseCase
-) : NunchukViewModel<Wallet, WalletInfoEvent>() {
+) : NunchukViewModel<Wallet, WalletConfigEvent>() {
 
     override val initialState = Wallet()
 

@@ -1,4 +1,4 @@
-package com.nunchuk.android.wallet.details
+package com.nunchuk.android.wallet.config
 
 import android.content.Context
 import android.os.Bundle
@@ -12,20 +12,20 @@ import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.ActivityWalletInfoBinding
-import com.nunchuk.android.wallet.details.WalletInfoEvent.UpdateNameErrorEvent
-import com.nunchuk.android.wallet.details.WalletInfoEvent.UpdateNameSuccessEvent
+import com.nunchuk.android.wallet.config.WalletConfigEvent.UpdateNameErrorEvent
+import com.nunchuk.android.wallet.config.WalletConfigEvent.UpdateNameSuccessEvent
 import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
-class WalletInfoActivity : BaseActivity() {
+class WalletConfigActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: NunchukFactory
 
-    private val viewModel: WalletInfoViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(WalletInfoViewModel::class.java)
+    private val viewModel: WalletConfigViewModel by lazy {
+        ViewModelProviders.of(this, factory).get(WalletConfigViewModel::class.java)
     }
 
     @Inject
@@ -33,7 +33,7 @@ class WalletInfoActivity : BaseActivity() {
 
     private lateinit var binding: ActivityWalletInfoBinding
 
-    private val args: WalletInfoArgs by lazy { WalletInfoArgs.deserializeFrom(intent) }
+    private val args: WalletConfigArgs by lazy { WalletConfigArgs.deserializeFrom(intent) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,7 +55,7 @@ class WalletInfoActivity : BaseActivity() {
         viewModel.event.observe(this, ::handleEvent)
     }
 
-    private fun handleEvent(event: WalletInfoEvent) {
+    private fun handleEvent(event: WalletConfigEvent) {
         when (event) {
             UpdateNameSuccessEvent -> showEditWalletSuccess()
             is UpdateNameErrorEvent -> NCToastMessage(this).showWarning(event.message)
@@ -97,7 +97,7 @@ class WalletInfoActivity : BaseActivity() {
     companion object {
 
         fun start(activityContext: Context, walletId: String) {
-            activityContext.startActivity(WalletInfoArgs(walletId = walletId).buildIntent(activityContext))
+            activityContext.startActivity(WalletConfigArgs(walletId = walletId).buildIntent(activityContext))
         }
     }
 

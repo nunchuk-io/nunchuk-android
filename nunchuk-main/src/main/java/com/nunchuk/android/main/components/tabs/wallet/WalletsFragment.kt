@@ -130,7 +130,7 @@ internal class WalletsFragment : BaseFragment() {
     }
 
     private fun openWalletReviewScreen(walletId: String) {
-        navigator.openWalletReviewScreen(requireActivity(), walletId)
+        navigator.openWalletConfigScreen(requireActivity(), walletId)
     }
 
     private fun showSigners(signers: List<SignerModel>) {

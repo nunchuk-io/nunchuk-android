@@ -1,4 +1,4 @@
-package com.nunchuk.android.wallet.details
+package com.nunchuk.android.wallet.config
 
 import android.view.ViewGroup
 import android.widget.CheckBox
