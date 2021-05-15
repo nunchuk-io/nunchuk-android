@@ -1,3 +1,9 @@
 package com.nunchuk.android.model
 
-data class Amount(val value: Int = 0)
+data class Amount(var value: Long = 0) {
+
+    companion object {
+        val ZER0 = Amount(0)
+    }
+
+}

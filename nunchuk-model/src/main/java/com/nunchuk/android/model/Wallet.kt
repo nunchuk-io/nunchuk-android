@@ -9,7 +9,7 @@ data class Wallet(
     var signers: List<SingleSigner> = emptyList(),
     var addressType: AddressType = AddressType.NESTED_SEGWIT,
     var escrow: Boolean = false,
-    var balance: Double = 0.0,
+    var balance: Amount = Amount.ZER0,
     var createDate: Long = 0L,
     var description: String = ""
 )

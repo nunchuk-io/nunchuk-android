@@ -32,4 +32,19 @@ public:
 
     static Wallet convert2CWallet(JNIEnv *env, jobject wallet);
 
+    static TxInput convert2CTxInput(JNIEnv *env, jobject input);
+
+    static std::vector<TxInput> convert2CTxInputs(JNIEnv *env, jobject inputs);
+
+    static TxOutput convert2CTxOutput(JNIEnv *env, jobject input);
+
+    static std::vector<TxOutput> convert2CTxOutputs(JNIEnv *env, jobject outputs);
+
+    static UnspentOutput convert2CUnspentOutput(JNIEnv *env, jobject unspentOutput);
+
+    static std::vector<UnspentOutput> convert2CUnspentOutputs(JNIEnv *env, jobject unspentOutputs);
+
+    static std::map<std::string, Amount> convert2CAmountsMap(JNIEnv *pEnv, jobject amountsMap);
+
+    static Amount convert2CAmount(JNIEnv *env, jobject amount);
 };

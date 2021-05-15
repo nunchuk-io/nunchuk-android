@@ -139,10 +139,10 @@ MasterSigner Serializer::convert2CMasterSigner(JNIEnv *env, jobject signer) {
     const char *name = env->GetStringUTFChars(nameVal, JNI_FALSE);
 
     jfieldID fieldLastHealthCheck = env->GetFieldID(clazz, "lastHealthCheck", "J");
-    auto last_health_check =  env->GetLongField(signer, fieldLastHealthCheck);
+    auto last_health_check = env->GetLongField(signer, fieldLastHealthCheck);
 
     jfieldID fieldSoftware = env->GetFieldID(clazz, "software", "Z");
-    auto software =  env->GetBooleanField(signer, fieldSoftware);
+    auto software = env->GetBooleanField(signer, fieldSoftware);
 
     jfieldID fieldDevice = env->GetFieldID(clazz, "device", "Lcom/nunchuk/android/model/Device;");
     auto deviceVal = (jobject) env->GetObjectField(signer, fieldDevice);
@@ -249,4 +249,124 @@ Wallet Serializer::convert2CWallet(JNIEnv *env, jobject wallet) {
     env->ReleaseStringUTFChars(idVal, id);
 
     return updateWallet;
+}
+
+TxInput Serializer::convert2CTxInput(JNIEnv *env, jobject input) {
+    jclass clazz = env->FindClass("com/nunchuk/android/model/TxInput");
+
+    jfieldID fieldFirst = env->GetFieldID(clazz, "first", "Ljava/lang/String;");
+    auto firstVal = (jstring) env->GetObjectField(input, fieldFirst);
+    auto first = env->GetStringUTFChars(firstVal, JNI_FALSE);
+
+    jfieldID fieldSecond = env->GetFieldID(clazz, "second", "I");
+    auto secondVal = env->GetIntField(input, fieldSecond);
+
+    env->ReleaseStringUTFChars(firstVal, first);
+    return TxInput(first, secondVal);
+}
+
+std::vector<TxInput> Serializer::convert2CTxInputs(JNIEnv *env, jobject inputs) {
+    jclass cList = env->FindClass("java/util/List");
+
+    jmethodID sizeMethod = env->GetMethodID(cList, "size", "()I");
+    jmethodID getMethod = env->GetMethodID(cList, "get", "(I)Ljava/lang/Object;");
+
+    jint size = env->CallIntMethod(inputs, sizeMethod);
+    std::vector<TxInput> result;
+    for (jint i = 0; i < size; i++) {
+        auto _item = (jobject) env->CallObjectMethod(inputs, getMethod, i);
+        auto item = Serializer::convert2CTxInput(env, _item);
+        result.push_back(item);
+    }
+    return result;
+}
+
+TxOutput Serializer::convert2CTxOutput(JNIEnv *env, jobject input) {
+    jclass clazz = env->FindClass("com/nunchuk/android/model/TxOutput");
+
+    jfieldID fieldFirst = env->GetFieldID(clazz, "first", "Ljava/lang/String;");
+    auto firstVal = (jstring) env->GetObjectField(input, fieldFirst);
+    auto first = env->GetStringUTFChars(firstVal, JNI_FALSE);
+
+    jfieldID fieldSecond = env->GetFieldID(clazz, "second", "Lcom/nunchuk/android/model/Amount;");
+    auto secondVal = env->GetObjectField(input, fieldSecond);
+
+    env->ReleaseStringUTFChars(firstVal, first);
+
+    return TxOutput(first, Serializer::convert2CAmount(env, secondVal));
+}
+
+std::vector<TxOutput> Serializer::convert2CTxOutputs(JNIEnv *env, jobject outputs) {
+    jclass cList = env->FindClass("java/util/List");
+
+    jmethodID sizeMethod = env->GetMethodID(cList, "size", "()I");
+    jmethodID getMethod = env->GetMethodID(cList, "get", "(I)Ljava/lang/Object;");
+
+    jint size = env->CallIntMethod(outputs, sizeMethod);
+    std::vector<TxOutput> result;
+    for (jint i = 0; i < size; i++) {
+        auto _item = (jobject) env->CallObjectMethod(outputs, getMethod, i);
+        auto item = Serializer::convert2CTxOutput(env, _item);
+        result.push_back(item);
+    }
+    return result;
+}
+
+UnspentOutput Serializer::convert2CUnspentOutput(JNIEnv *env, jobject unspentOutput) {
+    jclass clazz = env->FindClass("com/nunchuk/android/model/UnspentOutput");
+
+    jfieldID fieldTxId = env->GetFieldID(clazz, "txid", "Ljava/lang/String;");
+    auto txIdVal = (jstring) env->GetObjectField(unspentOutput, fieldTxId);
+    auto txId = env->GetStringUTFChars(txIdVal, JNI_FALSE);
+
+    jfieldID fieldVOut = env->GetFieldID(clazz, "vout", "I");
+    auto vout = env->GetIntField(unspentOutput, fieldVOut);
+
+    jfieldID fieldAmount = env->GetFieldID(clazz, "amount", "Lcom/nunchuk/android/model/Amount;");
+    auto amountVal = env->GetObjectField(unspentOutput, fieldAmount);
+
+    jfieldID fieldHeight = env->GetFieldID(clazz, "height", "I");
+    auto height = env->GetIntField(unspentOutput, fieldHeight);
+
+    jfieldID fieldMemo = env->GetFieldID(clazz, "memo", "Ljava/lang/String;");
+    auto memoVal = (jstring) env->GetObjectField(unspentOutput, fieldMemo);
+    auto memo = env->GetStringUTFChars(memoVal, JNI_FALSE);
+
+    env->ReleaseStringUTFChars(txIdVal, txId);
+    env->ReleaseStringUTFChars(memoVal, memo);
+
+    UnspentOutput output = UnspentOutput();
+    output.set_txid(txId);
+    output.set_vout(vout);
+    output.set_amount(Serializer::convert2CAmount(env, amountVal));
+    output.set_height(height);
+    output.set_memo(memo);
+    return output;
+}
+
+std::vector<UnspentOutput> Serializer::convert2CUnspentOutputs(JNIEnv *env, jobject unspentOutputs) {
+    jclass cList = env->FindClass("java/util/List");
+
+    jmethodID sizeMethod = env->GetMethodID(cList, "size", "()I");
+    jmethodID getMethod = env->GetMethodID(cList, "get", "(I)Ljava/lang/Object;");
+
+    jint size = env->CallIntMethod(unspentOutputs, sizeMethod);
+    std::vector<UnspentOutput> result;
+    for (jint i = 0; i < size; i++) {
+        auto _item = (jobject) env->CallObjectMethod(unspentOutputs, getMethod, i);
+        auto item = Serializer::convert2CUnspentOutput(env, _item);
+        result.push_back(item);
+    }
+    return result;
+}
+
+std::map<std::string, Amount> Serializer::convert2CAmountsMap(JNIEnv *env, jobject outputs) {
+    // TODO
+    return std::map<std::string, Amount>();
+}
+
+Amount Serializer::convert2CAmount(JNIEnv *env, jobject amount) {
+    jclass clazz = env->FindClass("com/nunchuk/android/model/Amount");
+    jfieldID fieldId = env->GetFieldID(clazz, "value", "J");
+    return env->GetLongField(amount, fieldId);
 }

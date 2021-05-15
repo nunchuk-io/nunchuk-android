@@ -83,4 +83,47 @@ internal interface NativeLibDomainModule {
 
     @Binds
     fun bindGetUnusedSignerFromMasterSignerUseCase(useCase: GetUnusedSignerFromMasterSignerUseCaseImpl): GetUnusedSignerFromMasterSignerUseCase
+
+    // TRANSACTION
+    @Binds
+    fun binBroadcastTransactionUseCase(useCase: BroadcastTransactionUseCaseImpl): BroadcastTransactionUseCase
+
+    @Binds
+    fun binCreateTransactionUseCase(useCase: CreateTransactionUseCaseImpl): CreateTransactionUseCase
+
+    @Binds
+    fun bindDeleteTransactionUseCase(useCase: DeleteTransactionUseCaseImpl): DeleteTransactionUseCase
+
+    @Binds
+    fun bindDraftTransactionUseCase(useCase: DraftTransactionUseCaseImpl): DraftTransactionUseCase
+
+    @Binds
+    fun bindExportCoboTransactionUseCase(useCase: ExportCoboTransactionUseCaseImpl): ExportCoboTransactionUseCase
+
+    @Binds
+    fun bindExportTransactionUseCase(useCase: ExportTransactionUseCaseImpl): ExportTransactionUseCase
+
+    @Binds
+    fun bindGetTransactionHistoryUseCase(useCase: GetTransactionHistoryUseCaseImpl): GetTransactionHistoryUseCase
+
+    @Binds
+    fun bindGetTransactionUseCase(useCase: GetTransactionUseCaseImpl): GetTransactionUseCase
+
+    @Binds
+    fun bindImportTransactionUseCase(useCase: ImportTransactionUseCaseImpl): ImportTransactionUseCase
+
+    @Binds
+    fun bindImportCoboTransactionUseCase(useCase: ImportCoboTransactionUseCaseImpl): ImportCoboTransactionUseCase
+
+    @Binds
+    fun bindReplaceTransactionUseCase(useCase: ReplaceTransactionUseCaseImpl): ReplaceTransactionUseCase
+
+    @Binds
+    fun bindSignTransactionUseCase(useCase: SignTransactionUseCaseImpl): SignTransactionUseCase
+
+    @Binds
+    fun bindUpdateTransactionMemoUseCase(useCase: UpdateTransactionMemoUseCaseImpl): UpdateTransactionMemoUseCase
+
+    @Binds
+    fun bindExportTransactionHistoryUseCase(useCase: ExportTransactionHistoryUseCaseImpl): ExportTransactionHistoryUseCase
 }
