@@ -11,7 +11,7 @@ import com.nunchuk.android.wallet.add.AddWalletActivity
 import com.nunchuk.android.wallet.assign.AssignSignerActivity
 import com.nunchuk.android.wallet.backup.BackupWalletActivity
 import com.nunchuk.android.wallet.confirm.WalletConfirmActivity
-import com.nunchuk.android.wallet.details.WalletInfoActivity
+import com.nunchuk.android.wallet.config.WalletConfigActivity
 import com.nunchuk.android.wallet.upload.UploadConfigurationActivity
 
 interface WalletNavigatorDelegate : WalletNavigator {
@@ -57,8 +57,8 @@ interface WalletNavigatorDelegate : WalletNavigator {
         UploadConfigurationActivity.start(activityContext, walletId)
     }
 
-    override fun openWalletReviewScreen(activityContext: Context, walletId: String) {
-        WalletInfoActivity.start(activityContext, walletId)
+    override fun openWalletConfigScreen(activityContext: Context, walletId: String) {
+        WalletConfigActivity.start(activityContext, walletId)
     }
 
     override fun openDynamicQRScreen(activityContext: Context, values: List<String>) {

@@ -35,7 +35,7 @@
             android:theme="@style/NunchukLightNoActionBarTheme" />
 
         <activity
-            android:name=".details.WalletInfoActivity"
+            android:name=".config.WalletConfigActivity"
             android:label="@string/nc_text_wallet_config_title"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukLightNoActionBarTheme" />

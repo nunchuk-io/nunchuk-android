@@ -1,21 +1,21 @@
-package com.nunchuk.android.wallet.details
+package com.nunchuk.android.wallet.config
 
 import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 
-data class WalletInfoArgs(
+data class WalletConfigArgs(
     val walletId: String,
 ) : ActivityArgs {
 
-    override fun buildIntent(activityContext: Context) = Intent(activityContext, WalletInfoActivity::class.java).apply {
+    override fun buildIntent(activityContext: Context) = Intent(activityContext, WalletConfigActivity::class.java).apply {
         putExtra(EXTRA_WALLET_ID, walletId)
     }
 
     companion object {
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
 
-        fun deserializeFrom(intent: Intent): WalletInfoArgs = WalletInfoArgs(
+        fun deserializeFrom(intent: Intent): WalletConfigArgs = WalletConfigArgs(
             intent.extras?.getString(EXTRA_WALLET_ID, "").orEmpty(),
         )
     }
