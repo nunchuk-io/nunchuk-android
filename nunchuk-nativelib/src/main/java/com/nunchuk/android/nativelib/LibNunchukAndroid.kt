@@ -171,6 +171,18 @@ internal class LibNunchukAndroid @Inject constructor() {
     @Throws(NCNativeException::class)
     external fun exportTransactionHistory(walletId: String, filePath: String, format: Int)
 
+    @Throws(NCNativeException::class)
+    external fun getAddresses(walletId: String, used: Boolean, internal: Boolean): List<String>
+
+    @Throws(NCNativeException::class)
+    external fun getAddressBalance(walletId: String, address: String): Amount
+
+    @Throws(NCNativeException::class)
+    external fun getUnspentOutputs(walletId: String): List<UnspentOutput>
+
+    @Throws(NCNativeException::class)
+    external fun newAddress(walletId: String, internal: Boolean): String
+
     companion object {
         init {
             System.loadLibrary(LIB_NAME)

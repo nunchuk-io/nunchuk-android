@@ -271,17 +271,53 @@ internal class LibNunchukFacade @Inject constructor(
     )
 
     @Throws(NCNativeException::class)
-    fun signTransaction(walletId: String, txId: String, device: Device) = nunchukAndroid.signTransaction(
+    fun signTransaction(
+        walletId: String,
+        txId: String,
+        device: Device
+    ) = nunchukAndroid.signTransaction(
         walletId = walletId,
         txId = txId,
         device = device
     )
 
     @Throws(NCNativeException::class)
-    fun exportTransactionHistory(walletId: String, filePath: String, format: ExportFormat) = nunchukAndroid.exportTransactionHistory(
+    fun exportTransactionHistory(
+        walletId: String,
+        filePath: String,
+        format: ExportFormat
+    ) = nunchukAndroid.exportTransactionHistory(
         walletId = walletId,
         filePath = filePath,
         format = format.ordinal
+    )
+
+    @Throws(NCNativeException::class)
+    fun getAddresses(
+        walletId: String,
+        used: Boolean,
+        internal: Boolean
+    ) = nunchukAndroid.getAddresses(
+        walletId = walletId,
+        used = used,
+        internal = internal
+    )
+
+    @Throws(NCNativeException::class)
+    fun getAddressBalance(walletId: String, address: String) = nunchukAndroid.getAddressBalance(
+        walletId = walletId,
+        address = address
+    )
+
+    @Throws(NCNativeException::class)
+    fun getUnspentOutputs(walletId: String) = nunchukAndroid.getUnspentOutputs(
+        walletId = walletId
+    )
+
+    @Throws(NCNativeException::class)
+    fun newAddress(walletId: String, internal: Boolean = false) = nunchukAndroid.newAddress(
+        walletId = walletId,
+        internal = internal
     )
 
 }

@@ -126,4 +126,16 @@ internal interface NativeLibDomainModule {
 
     @Binds
     fun bindExportTransactionHistoryUseCase(useCase: ExportTransactionHistoryUseCaseImpl): ExportTransactionHistoryUseCase
+
+    @Binds
+    fun bindGetAddressBalanceUseCase(useCase: GetAddressBalanceUseCaseImpl): GetAddressBalanceUseCase
+
+    @Binds
+    fun bindGetAddressesUseCase(useCase: GetAddressesUseCaseImpl): GetAddressesUseCase
+
+    @Binds
+    fun bindGetUnspentOutputsUseCase(useCase: GetUnspentOutputsUseCaseImpl): GetUnspentOutputsUseCase
+
+    @Binds
+    fun bindNewAddressUseCase(useCase: NewAddressUseCaseImpl): NewAddressUseCase
 }

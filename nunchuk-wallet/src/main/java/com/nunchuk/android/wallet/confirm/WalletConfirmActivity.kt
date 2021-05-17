@@ -79,6 +79,9 @@ class WalletConfirmActivity : BaseActivity() {
                 remoteSigners = args.remoteSigners
             )
         }
+        binding.toolbar.setNavigationOnClickListener {
+            finish()
+        }
     }
 
     companion object {

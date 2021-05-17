@@ -237,3 +237,64 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_exportTransactionHistory(
             Serializer::convert2CExportFormat(format)
     );
 }
+
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getAddresses(
+        JNIEnv *env,
+        jobject thiz,
+        jstring wallet_id,
+        jboolean used,
+        jboolean internal
+) {
+    auto values = NunchukProvider::get()->nu->GetAddresses(
+            env->GetStringUTFChars(wallet_id, JNI_FALSE),
+            used,
+            internal);
+    return Deserializer::convert2JListString(env, values);
+}
+
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getAddressBalance(
+        JNIEnv *env,
+        jobject thiz,
+        jstring wallet_id,
+        jstring address
+) {
+    auto value = NunchukProvider::get()->nu->GetAddressBalance(
+            env->GetStringUTFChars(wallet_id, JNI_FALSE),
+            env->GetStringUTFChars(address, JNI_FALSE));
+    return Deserializer::convert2JAmount(env, value);
+}
+
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getUnspentOutputs(
+        JNIEnv *env,
+        jobject thiz,
+        jstring wallet_id
+) {
+    // TODO: implement getUnspentOutputs()
+}
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_newAddress(
+        JNIEnv *env,
+        jobject thiz,
+        jstring wallet_id,
+        jboolean internal
+) {
+    try {
+        auto value = NunchukProvider::get()->nu->NewAddress(
+                env->GetStringUTFChars(wallet_id, JNI_FALSE),
+                internal);
+        return env->NewStringUTF(value.c_str());
+    } catch (std::exception &e) {
+        syslog(LOG_DEBUG, "[JNI] newAddress error::%s", e.what());
+        Deserializer::convert2JException(env, e.what());
+        env->ExceptionOccurred();
+        return env->NewStringUTF("");
+    }
+}

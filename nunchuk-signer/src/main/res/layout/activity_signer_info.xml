@@ -39,7 +39,7 @@
         android:paddingVertical="@dimen/nc_padding_16"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        android:background="@drawable/nc_signer_header_background">
+        android:background="@drawable/nc_header_gradient_background">
 
         <ImageView
             android:id="@+id/signerTypeIcon"

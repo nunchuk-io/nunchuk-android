@@ -90,7 +90,7 @@ internal class WalletsFragment : BaseFragment() {
         showWallets(state.wallets)
     }
 
-    private fun showIntro(signers:List<SignerModel>, wallets: List<Wallet>) {
+    private fun showIntro(signers: List<SignerModel>, wallets: List<Wallet>) {
         when {
             signers.isEmpty() -> showAddSignerIntro()
             wallets.isEmpty() -> showAddWalletIntro()
@@ -126,11 +126,11 @@ internal class WalletsFragment : BaseFragment() {
     private fun showWalletsListView(wallets: List<Wallet>) {
         binding.walletEmpty.isVisible = false
         binding.walletList.isVisible = true
-        WalletsViewBinder(binding.walletList, wallets, ::openWalletReviewScreen).bindItems()
+        WalletsViewBinder(binding.walletList, wallets, ::openWalletDetailsScreen).bindItems()
     }
 
-    private fun openWalletReviewScreen(walletId: String) {
-        navigator.openWalletConfigScreen(requireActivity(), walletId)
+    private fun openWalletDetailsScreen(walletId: String) {
+        navigator.openWalletDetailsScreen(requireActivity(), walletId)
     }
 
     private fun showSigners(signers: List<SignerModel>) {

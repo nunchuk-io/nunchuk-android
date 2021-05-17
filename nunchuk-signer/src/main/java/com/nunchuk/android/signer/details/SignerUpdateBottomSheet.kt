@@ -58,7 +58,9 @@ class SignerUpdateBottomSheet : BottomSheetDialogFragment() {
         val bottomSheetDialog = dialog as BottomSheetDialog
         val designBottomSheet: View? = bottomSheetDialog.findViewById(R.id.design_bottom_sheet)
         designBottomSheet.run {
-            BottomSheetBehavior.from(this).state = BottomSheetBehavior.STATE_EXPANDED
+            this?.let {
+                BottomSheetBehavior.from(it).state = BottomSheetBehavior.STATE_EXPANDED
+            }
         }
     }
 

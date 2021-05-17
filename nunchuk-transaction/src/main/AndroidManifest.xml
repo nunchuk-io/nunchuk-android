@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.nunchuk.android.transaction">
+
+    <application>
+        <activity
+            android:name=".receive.ReceiveTransactionActivity"
+            android:label="@string/nc_transaction_receive"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukLightNoActionBarTheme" />
+    </application>
+
+</manifest>

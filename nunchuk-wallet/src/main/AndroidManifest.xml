@@ -45,6 +45,11 @@
             android:label="@string/nc_text_wallet_qr_code"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukLightNoActionBarTheme" />
+
+        <activity android:name=".details.WalletDetailsActivity"
+            android:label="@string/nc_wallet_checking_account"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukDarkNoActionBarTheme" />
     </application>
 
 </manifest>
