@@ -9,4 +9,6 @@ dependencies {
     implementation lifecycleDeps.values()
     implementation reactiveDeps.rxAndroid2
     implementation networkDeps.values()
+
+    implementation zxingDeps.values()
 }

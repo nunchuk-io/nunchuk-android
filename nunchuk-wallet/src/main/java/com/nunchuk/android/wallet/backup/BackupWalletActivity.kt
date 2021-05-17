@@ -70,6 +70,9 @@ class BackupWalletActivity : BaseActivity() {
         NCToastMessage(this).show(R.string.nc_wallet_has_been_created)
         binding.btnBackup.setOnClickListener { viewModel.handleBackupDescriptorEvent() }
         binding.btnSkipBackup.setOnClickListener { viewModel.handleSkipBackupEvent() }
+        binding.toolbar.setNavigationOnClickListener {
+            finish()
+        }
     }
 
     private fun observeEvent() {

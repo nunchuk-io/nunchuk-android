@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="?attr/actionBarSize">
+
+    <com.nunchuk.android.transaction.receive.address.WrapHeightViewPager
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:clipToPadding="false"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/nc_padding_16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/addressCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_24"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:textColor="@color/nc_primary_dark_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/viewPager"
+        tools:text="4/4 address" />
+
+    <ImageView
+        android:id="@+id/more"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_24"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:src="@drawable/ic_more_white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/viewPager"
+        app:tint="@color/nc_primary_dark_color" />
+
+    <LinearLayout
+        android:id="@+id/btnShare"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginBottom="@dimen/nc_padding_16"
+        android:background="@drawable/nc_rounded_dark_background"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="@dimen/nc_padding_16"
+        app:layout_constraintBottom_toTopOf="@+id/btnCopy"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_share"
+            app:tint="@color/nc_primary_color" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/nc_padding_6"
+            android:text="@string/nc_address_share"
+            android:textColor="@color/nc_white_color"
+            android:textSize="@dimen/nc_text_size_14"
+            app:fontTextStyle="semi_bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/btnCopy"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginBottom="@dimen/nc_padding_16"
+        android:background="@drawable/nc_rounded_light_background"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="@dimen/nc_padding_16"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_copy" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/nc_padding_6"
+            android:text="@string/nc_address_copy"
+            android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_14"
+            app:fontTextStyle="semi_bold" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
+    android:background="@color/nc_white_color"
     tools:ignore="ContentDescription">
 
     <androidx.appcompat.widget.Toolbar
@@ -70,8 +70,8 @@
         android:id="@+id/multisigConfigutation"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:paddingVertical="@dimen/nc_padding_4"
-        android:paddingHorizontal="@dimen/nc_padding_8"
+        android:paddingVertical="@dimen/nc_padding_2"
+        android:paddingHorizontal="@dimen/nc_padding_12"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_text_size_16"
         android:background="@drawable/nc_rounded_whisper_background"

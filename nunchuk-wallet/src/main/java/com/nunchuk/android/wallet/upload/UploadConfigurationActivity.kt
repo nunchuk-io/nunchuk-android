@@ -71,6 +71,9 @@ class UploadConfigurationActivity : BaseActivity() {
         binding.btnQRCode.setOnClickListener { viewModel.handleShowQREvent() }
         binding.btnUpload.setOnClickListener { viewModel.handleUploadEvent() }
         binding.btnSkipUpload.setOnClickListener { navigator.openWalletConfigScreen(this, args.walletId) }
+        binding.toolbar.setNavigationOnClickListener {
+            finish()
+        }
     }
 
     private fun observeEvent() {

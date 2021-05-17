@@ -95,6 +95,9 @@ class AssignSignerActivity : BaseActivity() {
         binding.iconPlus.setOnClickListener { viewModel.handleIncreaseRequiredSigners() }
         binding.iconMinus.setOnClickListener { viewModel.handleDecreaseRequiredSigners() }
         binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }
+        binding.toolbar.setNavigationOnClickListener {
+            finish()
+        }
     }
 
     companion object {

@@ -1,0 +1,18 @@
+apply from: '../configs/dependencies.gradle'
+apply from: '../configs/submodule-config.gradle'
+apply plugin: 'kotlin-parcelize'
+
+dependencies {
+
+    implementation project(':nunchuk-arch')
+    implementation project(':nunchuk-core')
+    implementation project(':nunchuk-model')
+    implementation project(':nunchuk-nativelib')
+    implementation project(':nunchuk-widget')
+
+    implementation androidxDeps.values()
+    implementation lifecycleDeps.values()
+
+    implementation zxingDeps.values()
+    testImplementation otherTestDeps.junit
+}

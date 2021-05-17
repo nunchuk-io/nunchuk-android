@@ -12,4 +12,8 @@ data class Wallet(
     var balance: Amount = Amount.ZER0,
     var createDate: Long = 0L,
     var description: String = ""
-)
+) {
+    companion object {
+        val EMPTY = Wallet()
+    }
+}

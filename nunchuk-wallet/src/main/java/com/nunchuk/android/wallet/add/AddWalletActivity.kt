@@ -131,7 +131,9 @@ class AddWalletActivity : BaseActivity() {
             }
         })
         binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }
-
+        binding.toolbar.setNavigationOnClickListener {
+            finish()
+        }
     }
 
     private fun handleCustomizeCustomerChanged(checked: Boolean) {
