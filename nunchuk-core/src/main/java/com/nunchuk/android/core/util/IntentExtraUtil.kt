@@ -16,3 +16,9 @@ fun Bundle?.getBooleanValue(
     key: String,
     defaultValue: Boolean = true
 ): Boolean = this?.getBoolean(key, defaultValue) ?: defaultValue
+
+
+fun Bundle?.getLongValue(
+    key: String,
+    defaultValue: Long = 9L
+): Long = this?.getLong(key, defaultValue) ?: defaultValue

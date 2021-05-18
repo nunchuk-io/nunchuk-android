@@ -1,4 +1,4 @@
-package com.nunchuk.android.transaction.receive.address.used
+package com.nunchuk.android.transaction.receive.address
 
 import com.nunchuk.android.model.Amount
 

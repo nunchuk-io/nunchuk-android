@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.transaction.databinding.FragmentUsedAddressBinding
 import com.nunchuk.android.transaction.receive.address.AddressFragmentArgs
 import dagger.android.support.DaggerFragment
@@ -17,6 +18,9 @@ internal class UsedAddressFragment : DaggerFragment() {
 
     @Inject
     lateinit var factory: NunchukFactory
+
+    @Inject
+    lateinit var navigator: NunchukNavigator
 
     private val args: AddressFragmentArgs by lazy { AddressFragmentArgs.deserializeFrom(arguments) }
 
@@ -43,6 +47,11 @@ internal class UsedAddressFragment : DaggerFragment() {
 
     private fun initViews() {
         adapter = UsedAddressAdapter {
+            navigator.openAddressDetailsScreen(
+                activityContext = requireActivity(),
+                address = it.address,
+                balance = it.balance.value
+            )
         }
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)
         binding.recyclerView.adapter = adapter

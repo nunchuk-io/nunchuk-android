@@ -12,6 +12,6 @@ internal interface ReceiveTransactionModule {
     @Binds
     @IntoMap
     @ViewModelKey(ReceiveTransactionViewModel::class)
-    fun bindAddWalletViewModel(viewModel: ReceiveTransactionViewModel): ViewModel
+    fun bindReceiveTransactionViewModel(viewModel: ReceiveTransactionViewModel): ViewModel
 
 }
