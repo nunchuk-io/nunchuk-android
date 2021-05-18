@@ -7,5 +7,6 @@
 
     <string name="nc_address_share">Share address</string>
     <string name="nc_address_copy">Copy address</string>
+    <string name="nc_address_used_introduction">An address is marked as used as soon as money is deposited into it. For better privacy, reusing addresses is not recommended.</string>
 
 </resources>
