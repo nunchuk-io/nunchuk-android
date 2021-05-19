@@ -13,7 +13,7 @@ import com.nunchuk.android.core.util.observe
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.ActivityWalletDetailBinding
-import com.nunchuk.android.wallet.details.WalletDetailsEvent.GetWalletDetailsError
+import com.nunchuk.android.wallet.details.WalletDetailsEvent.WalletDetailsError
 import javax.inject.Inject
 
 class WalletDetailsActivity : BaseActivity() {
@@ -52,7 +52,7 @@ class WalletDetailsActivity : BaseActivity() {
 
     private fun handleEvent(event: WalletDetailsEvent) {
         when (event) {
-            is GetWalletDetailsError -> Toast.makeText(applicationContext, event.message, Toast.LENGTH_SHORT).show()
+            is WalletDetailsError -> Toast.makeText(applicationContext, event.message, Toast.LENGTH_SHORT).show()
         }
     }
 

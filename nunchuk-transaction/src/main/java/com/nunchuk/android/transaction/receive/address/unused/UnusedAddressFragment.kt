@@ -67,11 +67,12 @@ internal class UnusedAddressFragment : DaggerFragment() {
 
     private fun bindAddresses(addresses: List<String>) {
         adapter.items = addresses
-        if (addresses.isNotEmpty()) {
-            binding.addressCount.isVisible = true
+        val hasUnusedAddresses = addresses.isNotEmpty()
+        binding.addressCount.isVisible = hasUnusedAddresses
+        binding.btnShare.isVisible = hasUnusedAddresses
+        binding.btnCopy.isVisible = hasUnusedAddresses
+        if (hasUnusedAddresses) {
             binding.addressCount.text = "${binding.viewPager.currentItem + 1}/${addresses.size} address"
-        } else {
-            binding.addressCount.isVisible = false
         }
     }
 

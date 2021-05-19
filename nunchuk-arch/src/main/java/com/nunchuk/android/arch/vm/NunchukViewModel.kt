@@ -7,36 +7,30 @@ import androidx.lifecycle.ViewModel
 
 abstract class NunchukViewModel<State, Event> : ViewModel() {
 
-    private val stateMutable: MutableLiveData<State> = MutableLiveData()
+    private val _state = MutableLiveData<State>()
 
-    private val eventMutable: SingleLiveEvent<Event> = SingleLiveEvent()
+    private val _event = SingleLiveEvent<Event>()
 
     protected abstract val initialState: State
 
-    val state: LiveData<State> get() = stateMutable
+    val state: LiveData<State> get() = _state
 
-    val event: LiveData<Event> get() = eventMutable
+    val event: LiveData<Event> get() = _event
 
     @MainThread
     protected fun updateState(updater: State.() -> State) {
-        stateMutable.value = updater(stateMutable.value ?: initialState)
+        _state.value = updater(_state.value ?: initialState)
     }
 
     @MainThread
     protected fun setState(state: State) {
-        stateMutable.value = state
-    }
-
-    protected fun withState(stateConsumer: State.() -> Unit) {
-        stateMutable.value?.let(stateConsumer)
+        _state.value = state
     }
 
     protected fun event(event: Event) {
-        eventMutable.value = event
+        _event.value = event
     }
 
-    protected fun getState(): State {
-        return stateMutable.value ?: initialState
-    }
+    protected fun getState() = _state.value ?: initialState
 
 }

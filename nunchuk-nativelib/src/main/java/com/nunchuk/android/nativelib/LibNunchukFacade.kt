@@ -320,4 +320,9 @@ internal class LibNunchukFacade @Inject constructor(
         internal = internal
     )
 
+    @Throws(NCNativeException::class)
+    fun valueFromAmount(amount: Amount) = nunchukAndroid.valueFromAmount(
+        amount = amount
+    )
+
 }

@@ -6,7 +6,7 @@ import com.nunchuk.android.nativelib.LibNunchukFacade
 import javax.inject.Inject
 
 interface GetTransactionHistoryUseCase {
-    suspend fun execute(walletId: String, count: Int, skip: Int): Result<List<Transaction>>
+    suspend fun execute(walletId: String, count: Int = 1000, skip: Int = 0): Result<List<Transaction>>
 }
 
 internal class GetTransactionHistoryUseCaseImpl @Inject constructor(

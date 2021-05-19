@@ -146,12 +146,13 @@ xpub661MyMwAqRbcG8Zah6TcX3QpP5yJApaXcyLK8CJcZkuYjczivsHxVL5qm9cw8BYLYehgFeddK5Wr
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btnRemove"
-        android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:gravity="center"
         android:layout_marginBottom="@dimen/nc_padding_24"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:gravity="center"
         android:padding="@dimen/nc_padding_16"
         android:paddingVertical="@dimen/nc_padding_4"
         android:text="@string/nc_remove_signer"
