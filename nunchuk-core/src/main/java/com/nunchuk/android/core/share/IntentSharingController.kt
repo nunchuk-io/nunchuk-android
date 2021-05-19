@@ -15,4 +15,12 @@ class IntentSharingController @Inject constructor(val context: Context) {
         context.startActivity(Intent.createChooser(intent, title, pendingIntent.intentSender))
     }
 
+    fun shareText(text: String) {
+        share(Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, text)
+            type = "text/plain"
+        })
+    }
+
 }

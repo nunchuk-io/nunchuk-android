@@ -229,6 +229,7 @@ jobject Deserializer::convert2JWallet(JNIEnv *env, const Wallet &wallet) {
         env->CallVoidMethod(instance, env->GetMethodID(clazz, "setAddressType", "(Lcom/nunchuk/android/type/AddressType;)V"), convert2JAddressType(env, wallet.get_address_type()));
         env->CallVoidMethod(instance, env->GetMethodID(clazz, "setCreateDate", "(J)V"), wallet.get_create_date());
         env->CallVoidMethod(instance, env->GetMethodID(clazz, "setDescription", "(Ljava/lang/String;)V"), env->NewStringUTF(wallet.get_description().c_str()));
+        syslog(LOG_DEBUG, "[JNI] convert2JWallet balance::%s", Utils::ValueFromAmount(wallet.get_balance()).c_str());
     } catch (const std::exception &e) {
         syslog(LOG_DEBUG, "[JNI] convert2JWallet error::%s", e.what());
         convert2JException(env, e.what());
