@@ -7,6 +7,7 @@ import com.nunchuk.android.arch.BaseViewHolder
 import com.nunchuk.android.qr.convertToQRCode
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.ItemUsedAddressBinding
+import com.nunchuk.android.transaction.receive.address.UsedAddressModel
 import com.nunchuk.android.widget.util.inflate
 
 internal class UsedAddressAdapter(
