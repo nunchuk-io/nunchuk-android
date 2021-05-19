@@ -1,7 +1,6 @@
 package com.nunchuk.android.wallet.backup
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.BaseActivity
@@ -88,11 +87,7 @@ class BackupWalletActivity : BaseActivity() {
     }
 
     private fun shareDescriptor(descriptor: String) {
-        controller.share(Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, descriptor)
-            type = "text/plain"
-        })
+        controller.shareText(descriptor)
     }
 
     companion object {

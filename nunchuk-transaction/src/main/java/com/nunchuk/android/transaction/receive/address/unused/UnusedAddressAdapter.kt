@@ -11,7 +11,7 @@ import androidx.viewpager.widget.ViewPager
 import com.nunchuk.android.qr.convertToQRCode
 import com.nunchuk.android.transaction.R
 
-class UnusedAddressAdapter(private val context: Context) : PagerAdapter() {
+class UnusedAddressAdapter(private val context: Context, private val listener: (String?) -> Unit) : PagerAdapter() {
 
     internal var items = emptyList<String>()
         set(value) {
@@ -20,15 +20,26 @@ class UnusedAddressAdapter(private val context: Context) : PagerAdapter() {
         }
 
     override fun getCount(): Int {
-        return items.size
+        return items.size + 1
     }
 
     override fun isViewFromObject(view: View, `object`: Any): Boolean {
         return view === `object`
     }
 
+    override fun getItemPosition(`object`: Any): Int {
+        return POSITION_NONE
+    }
+
     override fun instantiateItem(container: ViewGroup, position: Int): Any {
         val layoutInflater: LayoutInflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val view: View = if (position == items.size) createEmptyItem(layoutInflater) else createNormalItem(layoutInflater, position)
+        val vp = container as ViewPager
+        vp.addView(view, 0)
+        return view
+    }
+
+    private fun createNormalItem(layoutInflater: LayoutInflater, position: Int): View {
         val view: View = layoutInflater.inflate(R.layout.item_unused_address, null)
 
         val imageView: ImageView = view.findViewById(R.id.qrCode)
@@ -36,9 +47,13 @@ class UnusedAddressAdapter(private val context: Context) : PagerAdapter() {
         val address = items[position]
         imageView.setImageBitmap(address.convertToQRCode())
         textView.text = address
+        view.setOnClickListener { listener(address) }
+        return view
+    }
 
-        val vp = container as ViewPager
-        vp.addView(view, 0)
+    private fun createEmptyItem(layoutInflater: LayoutInflater): View {
+        val view = layoutInflater.inflate(R.layout.item_generate_address, null)
+        view.setOnClickListener { listener(null) }
         return view
     }
 

@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
+import com.nunchuk.android.transaction.receive.address.unused.UnusedAddressEvent.GenerateAddressErrorEvent
 import com.nunchuk.android.usecase.GetAddressesUseCase
 import com.nunchuk.android.usecase.NewAddressUseCase
 import kotlinx.coroutines.launch
@@ -31,6 +32,15 @@ internal class UnusedAddressViewModel @Inject constructor(
             }
         }
 
+    }
+
+    fun generateAddress() {
+        viewModelScope.launch {
+            when (val result = newAddressUseCase.execute(walletId = walletId)) {
+                is Error -> event(GenerateAddressErrorEvent(result.exception.message.orEmpty()))
+                is Success -> getUnusedAddresses()
+            }
+        }
     }
 
 }

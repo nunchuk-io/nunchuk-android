@@ -10,9 +10,12 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.viewpager.widget.ViewPager
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.FragmentUnusedAddressBinding
 import com.nunchuk.android.transaction.receive.address.AddressFragmentArgs
+import com.nunchuk.android.utils.TextUtils
+import com.nunchuk.android.widget.NCToastMessage
 import dagger.android.support.DaggerFragment
 import javax.inject.Inject
 
@@ -20,6 +23,12 @@ internal class UnusedAddressFragment : DaggerFragment() {
 
     @Inject
     lateinit var factory: NunchukFactory
+
+    @Inject
+    lateinit var textUtils: TextUtils
+
+    @Inject
+    lateinit var controller: IntentSharingController
 
     lateinit var adapter: UnusedAddressAdapter
 
@@ -46,15 +55,46 @@ internal class UnusedAddressFragment : DaggerFragment() {
 
     private fun initViews() {
         val context = requireContext()
-        adapter = UnusedAddressAdapter(context)
+        adapter = UnusedAddressAdapter(context, ::handleItemClicked)
         binding.viewPager.adapter = adapter
         binding.viewPager.pageMargin = dipToPixels(context, context.resources.getDimension(R.dimen.nc_padding_4)).toInt()
         binding.viewPager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
             override fun onPageSelected(position: Int) {
+                showAddresses(position < adapter.items.size)
                 binding.addressCount.text = "${binding.viewPager.currentItem + 1}/${adapter.items.size} address"
             }
         })
+        binding.btnCopy.setOnClickListener {
+            handleCopyAddress()
+        }
+
+        binding.btnShare.setOnClickListener {
+            handleShareAddress()
+        }
     }
+
+    private fun handleItemClicked(address: String?) {
+        if (address.isNullOrBlank()) {
+            viewModel.generateAddress()
+        } else {
+            copyAddress(address)
+        }
+    }
+
+    private fun copyAddress(address: String) {
+        textUtils.copyText(text = address)
+        NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_address_copy_to_clipboard))
+    }
+
+    private fun handleShareAddress() {
+        getCurrentAddress()?.let(controller::shareText)
+    }
+
+    private fun handleCopyAddress() {
+        getCurrentAddress()?.let(::copyAddress)
+    }
+
+    private fun getCurrentAddress() = if (adapter.items.isNotEmpty()) adapter.items[binding.viewPager.currentItem] else null
 
     private fun observeEvent() {
         viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
@@ -68,12 +108,17 @@ internal class UnusedAddressFragment : DaggerFragment() {
     private fun bindAddresses(addresses: List<String>) {
         adapter.items = addresses
         val hasUnusedAddresses = addresses.isNotEmpty()
-        binding.addressCount.isVisible = hasUnusedAddresses
-        binding.btnShare.isVisible = hasUnusedAddresses
-        binding.btnCopy.isVisible = hasUnusedAddresses
+        showAddresses(hasUnusedAddresses)
         if (hasUnusedAddresses) {
             binding.addressCount.text = "${binding.viewPager.currentItem + 1}/${addresses.size} address"
         }
+    }
+
+    private fun showAddresses(hasUnusedAddresses: Boolean) {
+        binding.addressCount.isVisible = hasUnusedAddresses
+        binding.btnShare.isVisible = hasUnusedAddresses
+        binding.btnCopy.isVisible = hasUnusedAddresses
+        binding.more.isVisible = hasUnusedAddresses
     }
 
     private fun handleEvent(event: UnusedAddressEvent) {
