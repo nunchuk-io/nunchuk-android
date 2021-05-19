@@ -138,4 +138,7 @@ internal interface NativeLibDomainModule {
 
     @Binds
     fun bindNewAddressUseCase(useCase: NewAddressUseCaseImpl): NewAddressUseCase
+
+    @Binds
+    fun bindValueFromAmountUseCase(useCase: ValueFromAmountUseCaseImpl): ValueFromAmountUseCase
 }

@@ -298,3 +298,22 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_newAddress(
         return env->NewStringUTF("");
     }
 }
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_nunchuk_android_nativelib_LibNunchukAndroid_valueFromAmount(
+        JNIEnv *env,
+        jobject thiz,
+        jobject amount
+) {
+    try {
+        Amount _amount = Serializer::convert2CAmount(env, amount);
+        auto value = Utils::ValueFromAmount(_amount);
+        return env->NewStringUTF(value.c_str());
+    } catch (std::exception &e) {
+        syslog(LOG_DEBUG, "[JNI] valueFromAmount error::%s", e.what());
+        Deserializer::convert2JException(env, e.what());
+        env->ExceptionOccurred();
+        return env->NewStringUTF("");
+    }
+}

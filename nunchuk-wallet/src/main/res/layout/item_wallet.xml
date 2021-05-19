@@ -6,6 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="@dimen/nc_padding_8"
     android:background="@drawable/nc_gradient_background"
+    android:foreground="?android:attr/selectableItemBackground"
     android:padding="@dimen/nc_padding_16">
 
     <com.nunchuk.android.widget.NCFontTextView

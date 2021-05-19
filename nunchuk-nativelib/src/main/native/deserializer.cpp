@@ -29,14 +29,16 @@ jobject Deserializer::convert2JSignersMap(JNIEnv *env, const std::map<std::strin
     jclass clazz = env->FindClass("java/util/HashMap");
     jmethodID init = env->GetMethodID(clazz, "<init>", "()V");
     jobject instance = env->NewObject(clazz, init);
-
-    jmethodID putMethod = env->GetMethodID(clazz, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
-
-    for (const auto &it : signersMap) {
-        env->CallObjectMethod(instance, putMethod, env->NewStringUTF(it.first.c_str()), convert2JBoolean(env, it.second));
+    try {
+        jmethodID putMethod = env->GetMethodID(clazz, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+        if (!signersMap.empty()) {
+            for (const auto &it : signersMap) {
+                env->CallObjectMethod(instance, putMethod, env->NewStringUTF(it.first.c_str()), convert2JBoolean(env, it.second));
+            }
+        }
+    } catch (const std::exception &e) {
+        syslog(LOG_DEBUG, "[JNI] convert2JSignersMap error::%s", e.what());
     }
-
-    env->PopLocalFrame(instance);
     return instance;
 }
 
@@ -277,7 +279,7 @@ jobject Deserializer::convert2JTransaction(JNIEnv *env, const Transaction &trans
         env->CallVoidMethod(instance, env->GetMethodID(clazz, "setReceive", "(Z)V"), transaction.is_receive());
         env->CallVoidMethod(instance, env->GetMethodID(clazz, "setSubAmount", "(Lcom/nunchuk/android/model/Amount;)V"), convert2JAmount(env, transaction.get_sub_amount()));
     } catch (const std::exception &e) {
-        syslog(LOG_DEBUG, "[JNI] convert2JSigner error::%s", e.what());
+        syslog(LOG_DEBUG, "[JNI] convert2JTransaction error::%s", e.what());
     }
     return instance;
 }

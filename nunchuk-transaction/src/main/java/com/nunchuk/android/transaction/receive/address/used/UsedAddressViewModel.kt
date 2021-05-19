@@ -28,7 +28,7 @@ internal class UsedAddressViewModel @Inject constructor(
 
     private fun getUnusedAddress() {
         viewModelScope.launch {
-            when (val result = getAddressesUseCase.execute(walletId)) {
+            when (val result = getAddressesUseCase.execute(walletId = walletId, used = true)) {
                 is Success -> getAddressBalance(result.data)
                 is Error -> event(GetUsedAddressErrorEvent(result.exception.message.orEmpty()))
             }

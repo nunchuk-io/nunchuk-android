@@ -183,6 +183,9 @@ internal class LibNunchukAndroid @Inject constructor() {
     @Throws(NCNativeException::class)
     external fun newAddress(walletId: String, internal: Boolean): String
 
+    @Throws(NCNativeException::class)
+    external fun valueFromAmount(amount: Amount): String
+
     companion object {
         init {
             System.loadLibrary(LIB_NAME)

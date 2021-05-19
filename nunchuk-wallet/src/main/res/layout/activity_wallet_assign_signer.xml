@@ -180,6 +180,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
         android:background="@drawable/nc_rounded_dark_background"
+        android:foreground="?android:attr/selectableItemBackground"
         android:gravity="center"
         android:padding="@dimen/nc_padding_16"
         android:text="@string/nc_text_continue"
