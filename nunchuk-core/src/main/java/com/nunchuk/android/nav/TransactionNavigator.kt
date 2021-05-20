@@ -12,7 +12,7 @@ interface TransactionNavigator {
     fun openAddressDetailsScreen(
         activityContext: Activity,
         address: String,
-        balance: Long
+        balance: String
     )
 
 }

@@ -3,12 +3,11 @@ package com.nunchuk.android.transaction.receive.address.details
 import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
-import com.nunchuk.android.core.util.getLongValue
 import com.nunchuk.android.core.util.getStringValue
 
 data class AddressDetailsArgs(
     val address: String,
-    val balance: Long = 0L
+    val balance: String
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(
@@ -25,7 +24,7 @@ data class AddressDetailsArgs(
 
         fun deserializeFrom(intent: Intent): AddressDetailsArgs = AddressDetailsArgs(
             intent.extras.getStringValue(EXTRA_ADDRESS),
-            intent.extras.getLongValue(EXTRA_BALANCE)
+            intent.extras.getStringValue(EXTRA_BALANCE)
         )
     }
 }

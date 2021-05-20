@@ -4,6 +4,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.BaseViewHolder
+import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.qr.convertToQRCode
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.ItemUsedAddressBinding
@@ -46,7 +47,7 @@ internal class UsedAddressViewHolder(
     override fun bind(data: UsedAddressModel) {
         binding.qrCode.setImageBitmap(data.address.convertToQRCode())
         binding.address.text = data.address
-        binding.balance.text = "${data.balance.value} BTC"
+        binding.balance.text = data.balance.getBTCAmount()
         binding.root.setOnClickListener { listener(data) }
     }
 
