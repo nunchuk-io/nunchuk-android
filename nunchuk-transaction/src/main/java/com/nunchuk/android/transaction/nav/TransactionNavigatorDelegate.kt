@@ -20,7 +20,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
     override fun openAddressDetailsScreen(
         activityContext: Activity,
         address: String,
-        balance: Long
+        balance: String
     ) {
         AddressDetailsActivity.start(
             activityContext = activityContext,

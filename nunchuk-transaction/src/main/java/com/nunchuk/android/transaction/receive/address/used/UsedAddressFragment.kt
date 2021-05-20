@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.transaction.databinding.FragmentUsedAddressBinding
 import com.nunchuk.android.transaction.receive.address.AddressFragmentArgs
@@ -50,7 +51,7 @@ internal class UsedAddressFragment : DaggerFragment() {
             navigator.openAddressDetailsScreen(
                 activityContext = requireActivity(),
                 address = it.address,
-                balance = it.balance.value
+                balance = it.balance.getBTCAmount()
             )
         }
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)

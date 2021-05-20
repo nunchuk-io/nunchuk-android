@@ -77,6 +77,7 @@ jobject Deserializer::convert2JAmount(JNIEnv *env, const Amount amount) {
     jobject instance = env->NewObject(clazz, constructor);
     try {
         env->CallVoidMethod(instance, env->GetMethodID(clazz, "setValue", "(J)V"), (long) amount);
+        env->CallVoidMethod(instance, env->GetMethodID(clazz, "setFormattedValue", "(Ljava/lang/String;)V"), env->NewStringUTF(Utils::ValueFromAmount(amount).c_str()));
     } catch (const std::exception &e) {
         syslog(LOG_DEBUG, "[JNI] convert2JAmount error::%s", e.what());
     }

@@ -27,13 +27,13 @@ class AddressDetailsActivity : BaseActivity() {
     private fun setupViews() {
         binding.qrCode.setImageBitmap(args.address.convertToQRCode())
         binding.address.text = args.address
-        binding.balance.text = "${args.balance} BTC"
+        binding.balance.text = args.balance
         binding.toolbar.setNavigationOnClickListener { finish() }
         binding.btnClose.setOnClickListener { finish() }
     }
 
     companion object {
-        fun start(activityContext: Context, address: String, balance: Long) {
+        fun start(activityContext: Context, address: String, balance: String) {
             val intent = AddressDetailsArgs(address = address, balance = balance).buildIntent(activityContext)
             activityContext.startActivity(intent)
         }
