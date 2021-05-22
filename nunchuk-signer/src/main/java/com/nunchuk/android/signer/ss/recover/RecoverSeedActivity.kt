@@ -74,7 +74,7 @@ class RecoverSeedActivity : BaseActivity() {
             binding.btnContinue.background = ContextCompat.getDrawable(this, R.drawable.nc_rounded_dark_background)
         } else {
             binding.btnContinue.setTextColor(ContextCompat.getColor(this, R.color.nc_grey_dark_color))
-            binding.btnContinue.background = ContextCompat.getDrawable(this, R.drawable.nc_rounded_light_background)
+            binding.btnContinue.background = ContextCompat.getDrawable(this, R.drawable.nc_rounded_whisper_disable_background)
         }
     }
 
