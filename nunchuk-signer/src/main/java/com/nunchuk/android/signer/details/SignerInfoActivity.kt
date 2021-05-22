@@ -97,6 +97,7 @@ class SignerInfoActivity : BaseActivity() {
                 )
             }
         }
+        binding.btnDone.isVisible = args.justAdded
         if (args.software) {
             binding.signerType.text = getString(R.string.nc_signer_type_software)
         } else {

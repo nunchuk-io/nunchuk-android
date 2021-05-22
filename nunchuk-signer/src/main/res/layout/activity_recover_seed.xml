@@ -27,7 +27,7 @@
             android:gravity="center"
             android:text="@string/nc_ssigner_recover_seed"
             android:textColor="@color/nc_black_color"
-            android:textSize="@dimen/nc_text_size_16"
+            android:textSize="@dimen/nc_text_size_18"
             app:fontTextStyle="semi_bold" />
     </androidx.appcompat.widget.Toolbar>
 
@@ -70,7 +70,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
-        android:background="@drawable/nc_rounded_dark_background"
+        android:background="@drawable/nc_rounded_whisper_disable_background"
         android:foreground="?android:attr/selectableItemBackground"
         android:enabled="false"
         android:gravity="center"

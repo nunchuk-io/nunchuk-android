@@ -55,4 +55,7 @@
     <string name="nc_ssigner_confirm_passphrase">Confirm passphrase</string>
     <string name="nc_ssigner_text_name">Name</string>
     <string name="nc_text_confirm_passphrase_not_matched">Confirm passphrase does not match</string>
+
+    <string name="nc_signer_bad_ratio_not_recommend">It is not recommended for the software signers to have complete control of the wallet. Software signers are not as safe as hardware signers. Are you sure you want to proceed?</string>
+    <string name="nc_signer_bad_ratio_recommend">It is recommended for the hardware signers to have complete control of the wallet. Software signers are not as safe as hardware signers. Are you sure you want to proceed?</string>
 </resources>

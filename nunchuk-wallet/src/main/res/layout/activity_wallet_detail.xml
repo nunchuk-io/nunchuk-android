@@ -30,7 +30,7 @@
             android:gravity="center"
             android:text="@string/nc_wallet_checking_account"
             android:textColor="@color/nc_white_color"
-            android:textSize="@dimen/nc_text_size_16"
+            android:textSize="@dimen/nc_text_size_18"
             app:fontTextStyle="semi_bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />

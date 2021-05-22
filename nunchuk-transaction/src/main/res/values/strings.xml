@@ -11,4 +11,34 @@
     <string name="nc_address_used_introduction">An address is marked as used as soon as money is deposited into it. For better privacy, reusing addresses is not recommended.</string>
     <string name="nc_address_generate_address">Generate a new address</string>
 
+    <string name="nc_transaction_new">New transaction</string>
+    <string name="nc_transaction_send_all">Send all</string>
+    <string name="nc_transaction_switch_to_usd">Switch to USD</string>
+    <string name="nc_transaction_switch_to_btc">Switch to BTC</string>
+    <string name="nc_transaction_private_note">Private note</string>
+    <string name="nc_transaction_private_note_optional">(optional off-chain data)</string>
+    <string name="nc_transaction_enter_receipt">Enter recipient’s address or email</string>
+    <string name="nc_transaction_estimate_fee">Estimated fee</string>
+    <string name="nc_transaction_total_amount">Total amount</string>
+    <string name="nc_transaction_customize_fee_setting">Customize fee setting</string>
+    <string name="nc_transaction_subtract_fee_title">Subtract fee from send amount</string>
+    <string name="nc_transaction_subtract_fee_desc">The fee will be deducted from the amount being sent. The recipient will receive less bitcoins than you entered in the amount fee</string>
+    <string name="nc_transaction_manual_fee_rate">Manual fee rate</string>
+    <string name="nc_transaction_manual_fee_rate_desc">You can replace by fee later if neccessary</string>
+    <string name="nc_transaction_fee_rate_unit">sat/vbyte</string>
+    <string name="nc_transaction_processing_speed">Processing speed</string>
+    <string name="nc_transaction_priority_rate">Priority rate:</string>
+    <string name="nc_transaction_priority_rate_value">8 sat/vbyte</string>
+    <string name="nc_transaction_standard_rate">Standard rate:</string>
+    <string name="nc_transaction_standard_rate_value">4 sat/vbyte</string>
+    <string name="nc_transaction_economical_rate">Economical rate:</string>
+    <string name="nc_transaction_economical_rate_value">2 sat/vbyte</string>
+    <string name="nc_transaction_confirm_transaction">Confirm transaction</string>
+    <string name="nc_transaction_confirm_and_create_transaction">Confirm and create transaction</string>
+    <string name="nc_transaction_private_note_off_chain_data">Private note (off-chain data)</string>
+    <string name="nc_transaction_change_address">Change address</string>
+    <string name="nc_transaction_send_to_address">Send to address</string>
+    <string name="nc_transaction_send_to">Send to</string>
+    <string name="nc_transaction_status_pending_confirmation">Pending confirmation</string>
+
 </resources>

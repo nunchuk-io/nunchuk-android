@@ -28,7 +28,7 @@
             android:gravity="center"
             android:text="@string/nc_ssigner_add_name_title"
             android:textColor="@color/nc_black_color"
-            android:textSize="@dimen/nc_text_size_16"
+            android:textSize="@dimen/nc_text_size_18"
             app:fontTextStyle="semi_bold" />
     </androidx.appcompat.widget.Toolbar>
 
