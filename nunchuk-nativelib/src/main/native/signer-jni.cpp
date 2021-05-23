@@ -98,7 +98,7 @@ Java_com_nunchuk_android_nativelib_LibNunchukAndroid_getBip39WordList(
         JNIEnv *env,
         jobject thiz
 ) {
-    return Deserializer::convert2JListString(env, Utils::GetBip39WordList());
+    return Deserializer::convert2JListString(env, Utils::GetBIP39WordList());
 }
 
 extern "C"
