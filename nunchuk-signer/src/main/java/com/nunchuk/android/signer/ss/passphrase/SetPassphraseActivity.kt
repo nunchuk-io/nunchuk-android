@@ -4,9 +4,8 @@ import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.ViewModelProviders
-import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.NunchukFactory
-import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ActivitySetPassphraseBinding
 import com.nunchuk.android.signer.ss.passphrase.SetPassphraseEvent.*
@@ -20,9 +19,6 @@ class SetPassphraseActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: NunchukFactory
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val viewModel: SetPassphraseViewModel by lazy {
         ViewModelProviders.of(this, factory).get(SetPassphraseViewModel::class.java)

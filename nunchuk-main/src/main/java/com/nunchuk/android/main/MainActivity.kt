@@ -8,7 +8,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.nunchuk.android.arch.BaseActivity
+import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 
 class MainActivity : BaseActivity() {

@@ -2,10 +2,5 @@ apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 
 dependencies {
-    implementation project(':nunchuk-utils')
-
-    implementation androidxDeps.recyclerView
-    implementation pluginsDeps.kotlinAndroidRuntime
     implementation lifecycleDeps.values()
-    implementation reactiveDeps.rxAndroid2
 }

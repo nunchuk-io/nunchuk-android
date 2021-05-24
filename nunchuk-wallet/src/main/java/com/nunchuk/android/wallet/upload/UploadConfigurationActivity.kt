@@ -5,14 +5,13 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
-import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.share.IntentSharingEventBus
 import com.nunchuk.android.core.share.IntentSharingListener
 import com.nunchuk.android.core.share.IntentSharingListenerWrapper
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.wallet.databinding.ActivityWalletUploadConfigurationBinding
 import com.nunchuk.android.wallet.upload.UploadConfigurationEvent.*
 import com.nunchuk.android.widget.NCToastMessage
@@ -24,9 +23,6 @@ class UploadConfigurationActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: NunchukFactory
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     @Inject
     lateinit var controller: IntentSharingController

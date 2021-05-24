@@ -4,15 +4,14 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
-import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.signin.SignInEvent.*
 import com.nunchuk.android.auth.databinding.ActivitySigninBinding
 import com.nunchuk.android.auth.util.orUnknownError
 import com.nunchuk.android.auth.util.setUnderlineText
+import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.showToast
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.util.passwordEnabled
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
@@ -21,9 +20,6 @@ class SignInActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: ViewModelFactory
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val viewModel: SignInViewModel by lazy {
         ViewModelProviders.of(this, factory).get(SignInViewModel::class.java)

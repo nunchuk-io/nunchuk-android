@@ -3,17 +3,11 @@ package com.nunchuk.android.signer
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import com.nunchuk.android.arch.BaseActivity
-import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.signer.databinding.ActivitySoftwareSignerIntroBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
-import com.nunchuk.android.widget.util.setTransparentStatusBar
-import javax.inject.Inject
 
 class SoftwareSignerIntroActivity : BaseActivity() {
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private lateinit var binding: ActivitySoftwareSignerIntroBinding
 

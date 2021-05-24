@@ -2,7 +2,7 @@ package com.nunchuk.android.transaction.receive.address.details
 
 import android.content.Context
 import android.os.Bundle
-import com.nunchuk.android.arch.BaseActivity
+import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.qr.convertToQRCode
 import com.nunchuk.android.transaction.databinding.ActivityAddressDetailsBinding
 import com.nunchuk.android.widget.util.setLightStatusBar

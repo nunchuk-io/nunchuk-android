@@ -1,8 +1,11 @@
-package com.nunchuk.android.arch
+package com.nunchuk.android.core.base
 
 import android.os.Bundle
 import android.os.StrictMode
 import androidx.appcompat.app.AppCompatActivity
+import com.nunchuk.android.arch.R
+import com.nunchuk.android.core.BuildConfig
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.utils.DisposableManager
 import dagger.android.AndroidInjection
 import dagger.android.AndroidInjector
@@ -14,6 +17,9 @@ abstract class BaseActivity : AppCompatActivity(), HasAndroidInjector {
 
     @Inject
     lateinit var androidInjector: DispatchingAndroidInjector<Any>
+
+    @Inject
+    lateinit var navigator: NunchukNavigator
 
     override fun androidInjector(): AndroidInjector<Any> = androidInjector
 

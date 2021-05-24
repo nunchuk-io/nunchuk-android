@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProviders
-import com.nunchuk.android.arch.BaseFragment
+import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.main.databinding.FragmentMessagesBinding
 import javax.inject.Inject
@@ -28,9 +28,9 @@ internal class MessagesFragment : BaseFragment() {
         val root: View = binding.root
 
         val textView: TextView = binding.textMessage
-        messageViewModel.text.observe(viewLifecycleOwner, {
+        messageViewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
-        })
+        }
         return root
     }
 

@@ -5,10 +5,12 @@ dependencies {
     implementation project(':nunchuk-arch')
     implementation project(':nunchuk-network')
     implementation project(':nunchuk-model')
+    implementation project(':nunchuk-utils')
 
+    implementation androidxDeps.recyclerView
     implementation lifecycleDeps.values()
-    implementation reactiveDeps.rxAndroid2
     implementation networkDeps.values()
+    implementation pluginsDeps.kotlinAndroidRuntime
 
     implementation zxingDeps.values()
 }

@@ -6,6 +6,7 @@ import com.google.gson.GsonBuilder
 import com.nunchuk.android.network.ApiConstant.BASE_URL
 import com.nunchuk.android.network.ApiConstant.HTTP_CONNECT_TIMEOUT
 import com.nunchuk.android.network.ApiConstant.HTTP_READ_TIMEOUT
+import com.nunchuk.android.network.BuildConfig
 import com.nunchuk.android.network.HeaderInterceptor
 import dagger.Module
 import dagger.Provides
@@ -19,8 +20,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @Module
-class NetworkModule @Inject constructor(
-) {
+class NetworkModule @Inject constructor() {
 
     @Provides
     fun provideGson(): Gson = GsonBuilder()
@@ -48,8 +48,7 @@ class NetworkModule @Inject constructor(
 
     @Provides
     fun provideLoggingInterceptor() = HttpLoggingInterceptor().apply {
-        //level = if (BuildConfig.DEBUG) Level.BODY else Level.NONE
-        level = Level.BODY
+        level = if (BuildConfig.DEBUG) Level.BODY else Level.NONE
     }
 
 }

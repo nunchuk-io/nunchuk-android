@@ -5,10 +5,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.InputFilter.LengthFilter
 import androidx.lifecycle.ViewModelProviders
-import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
-import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.AddressType.*
 import com.nunchuk.android.type.WalletType
@@ -24,9 +23,6 @@ class AddWalletActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: NunchukFactory
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val viewModel: AddWalletViewModel by lazy {
         ViewModelProviders.of(this, factory).get(AddWalletViewModel::class.java)

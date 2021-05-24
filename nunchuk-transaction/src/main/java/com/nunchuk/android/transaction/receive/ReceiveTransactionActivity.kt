@@ -3,9 +3,8 @@ package com.nunchuk.android.transaction.receive
 import android.content.Context
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
-import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.NunchukFactory
-import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.ActivityTransactionReceiveBinding
 import com.nunchuk.android.transaction.receive.address.AddressFragmentFactory
@@ -21,9 +20,6 @@ class ReceiveTransactionActivity : BaseActivity(), TabCountChangeListener {
 
     @Inject
     lateinit var factory: NunchukFactory
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val args: ReceiveTransactionArgs by lazy { ReceiveTransactionArgs.deserializeFrom(intent) }
 
