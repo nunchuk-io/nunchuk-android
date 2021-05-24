@@ -6,9 +6,9 @@ dependencies {
 
     implementation project(':nunchuk-arch')
     implementation project(':nunchuk-core')
-    implementation project(':nunchuk-model')
-    implementation project(':nunchuk-nativelib')
+    implementation project(':nunchuk-domain')
     implementation project(':nunchuk-widget')
+    implementation nunchukDeps.nativeSdk
 
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()

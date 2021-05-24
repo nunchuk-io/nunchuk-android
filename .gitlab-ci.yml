@@ -26,14 +26,7 @@ before_script:
   - echo "sdk.dir=${ANDROID_HOME}" >> local.properties
   - echo "ndk.dir=${ANDROID_NDK_HOME}" >> local.properties
   - chmod +x ./gradlew
-  
-  # Add libnunchuk and build deps
-  - pushd ${PWD}/nunchuk-nativelib/src/main/native
-  - git submodule add --force -b android_experimental https://gitlab.com/nunchuck/libnunchuk.git
-  - git submodule update --init --recursive
-  - sh .install_deps.sh arm64-v8a
-  - popd
-  - echo ${PWD}
+
 # Make Project
 assembleDebug:
   interruptible: true

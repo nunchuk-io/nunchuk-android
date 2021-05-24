@@ -34,6 +34,9 @@ ext {
     kotlinGradlePluginVersion = '1.4.30'
     kotlinStdlibVersion = '1.4.30'
 
+    // nunchuk dep versions
+    nativeSdkVersion = '1.0.0'
+
     MAJOR_VERSION = 1
     MINOR_VERSION = 0
     PATCH_VERSION = 0
@@ -44,7 +47,7 @@ ext {
             applicationId    : "com.nunchuk.android",
             compileSdkVersion: 30,
             targetSdkVersion : 30,
-            minSdkVersion    : 24,
+            minSdkVersion    : 21,
             buildToolsVersion: "30.0.3",
             versionName      : "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}",
             versionCode      : VERSION_CODE,
@@ -198,6 +201,10 @@ ext {
             powermockModule     : "org.powermock:powermock-module-junit4:1.7.0",
             powermockCore       : "org.powermock:powermock-core:1.7.0",
             powermockModuleRule : "org.powermock:powermock-module-junit4-rule:1.7.0",
+    ]
+
+    nunchukDeps = [
+            nativeSdk: "io.nunchuk.android:nativesdk-arm64_v8a:${nativeSdkVersion}"
     ]
 
 }

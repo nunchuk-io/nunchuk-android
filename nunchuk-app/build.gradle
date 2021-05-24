@@ -119,14 +119,14 @@ dependencies {
     implementation project(':nunchuk-core')
     implementation project(':nunchuk-database')
     implementation project(':nunchuk-main')
-    implementation project(':nunchuk-model')
-    implementation project(':nunchuk-nativelib')
+    implementation project(':nunchuk-domain')
     implementation project(':nunchuk-network')
     implementation project(':nunchuk-signer')
     implementation project(':nunchuk-wallet')
     implementation project(':nunchuk-widget')
     implementation project(':nunchuk-transaction')
     implementation project(':nunchuk-utils')
+    implementation nunchukDeps.nativeSdk
 
     implementation platform(playServices.firebaseBom)
     implementation playServices.firebaseCrashlytics
