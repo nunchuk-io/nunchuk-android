@@ -4,7 +4,7 @@ import android.app.Application
 import android.content.Context
 import androidx.multidex.MultiDex
 import com.nunchuk.android.app.di.BootstrapInjectors
-import com.nunchuk.android.core.util.FileHelper
+import com.nunchuk.android.util.FileHelper
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasAndroidInjector

@@ -4,8 +4,8 @@ apply from: '../configs/submodule-config.gradle'
 dependencies {
     implementation project(':nunchuk-arch')
     implementation project(':nunchuk-core')
-    implementation project(':nunchuk-model')
     implementation project(':nunchuk-network')
+    implementation project(':nunchuk-domain')
     implementation project(':nunchuk-widget')
 
     implementation androidxDeps.values()

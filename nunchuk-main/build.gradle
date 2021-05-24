@@ -5,11 +5,11 @@ dependencies {
 
     implementation project(':nunchuk-arch')
     implementation project(':nunchuk-core')
-    implementation project(':nunchuk-model')
-    implementation project(':nunchuk-nativelib')
+    implementation project(':nunchuk-domain')
     implementation project(':nunchuk-wallet')
     implementation project(':nunchuk-signer')
     implementation project(':nunchuk-widget')
+    implementation nunchukDeps.nativeSdk
 
     implementation navigationDeps.navigationUi
     implementation navigationDeps.navigationFragment

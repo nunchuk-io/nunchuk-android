@@ -9,6 +9,7 @@ buildscript {
         google()
         jcenter()
         maven { url "https://maven.google.com" }
+        mavenLocal()
     }
     dependencies {
         classpath pluginsDeps.gradleAndroid
@@ -25,6 +26,7 @@ allprojects {
         google()
         jcenter()
         maven { url "https://maven.google.com" }
+        mavenLocal()
     }
 }
 
