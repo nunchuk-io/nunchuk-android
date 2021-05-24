@@ -4,14 +4,13 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
-import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.signup.SignUpEvent.*
 import com.nunchuk.android.auth.databinding.ActivitySignupBinding
 import com.nunchuk.android.auth.util.orUnknownError
+import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.showToast
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
 
@@ -19,9 +18,6 @@ class SignUpActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: ViewModelFactory
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val viewModel: SignUpViewModel by lazy {
         ViewModelProviders.of(this, factory).get(SignUpViewModel::class.java)

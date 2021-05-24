@@ -3,7 +3,7 @@ package com.nunchuk.android.transaction.receive.address.used
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.nunchuk.android.arch.BaseViewHolder
+import com.nunchuk.android.core.base.BaseViewHolder
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.qr.convertToQRCode
 import com.nunchuk.android.transaction.R

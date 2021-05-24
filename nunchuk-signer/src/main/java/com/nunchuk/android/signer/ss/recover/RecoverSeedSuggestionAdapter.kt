@@ -3,7 +3,7 @@ package com.nunchuk.android.signer.ss.recover
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.nunchuk.android.arch.BaseViewHolder
+import com.nunchuk.android.core.base.BaseViewHolder
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ItemRecoverSeedSuggestionBinding
 import com.nunchuk.android.widget.util.inflate

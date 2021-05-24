@@ -5,10 +5,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.InputFilter
 import androidx.lifecycle.ViewModelProviders
-import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.showToast
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.add.AddSignerEvent.*
 import com.nunchuk.android.signer.databinding.ActivityAddSignerBinding
@@ -22,9 +21,6 @@ class AddSignerActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: NunchukFactory
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val viewModel: AddSignerViewModel by lazy {
         ViewModelProviders.of(this, factory).get(AddSignerViewModel::class.java)

@@ -10,16 +10,16 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.viewpager.widget.ViewPager
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.FragmentUnusedAddressBinding
 import com.nunchuk.android.transaction.receive.address.AddressFragmentArgs
 import com.nunchuk.android.utils.TextUtils
 import com.nunchuk.android.widget.NCToastMessage
-import dagger.android.support.DaggerFragment
 import javax.inject.Inject
 
-internal class UnusedAddressFragment : DaggerFragment() {
+internal class UnusedAddressFragment : BaseFragment() {
 
     @Inject
     lateinit var factory: NunchukFactory

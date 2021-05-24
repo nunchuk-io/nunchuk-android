@@ -6,15 +6,13 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
-import com.nunchuk.android.usecase.GetTransactionUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class WalletDetailsViewModel @Inject constructor(
     private val getWalletUseCase: GetWalletUseCase,
-    private val getTransactionHistoryUseCase: GetTransactionHistoryUseCase,
-    private val getTransactionUseCase: GetTransactionUseCase
+    private val getTransactionHistoryUseCase: GetTransactionHistoryUseCase
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
 
     override val initialState = WalletDetailsState()

@@ -3,14 +3,13 @@ package com.nunchuk.android.wallet.backup
 import android.content.Context
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
-import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.share.IntentSharingEventBus
 import com.nunchuk.android.core.share.IntentSharingListener
 import com.nunchuk.android.core.share.IntentSharingListenerWrapper
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.backup.BackupWalletEvent.*
 import com.nunchuk.android.wallet.databinding.ActivityWalletBackupWalletBinding
@@ -22,9 +21,6 @@ class BackupWalletActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: NunchukFactory
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     @Inject
     lateinit var controller: IntentSharingController

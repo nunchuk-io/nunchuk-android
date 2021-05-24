@@ -5,9 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProviders
-import com.nunchuk.android.arch.BaseFragment
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.showToast
@@ -17,16 +17,12 @@ import com.nunchuk.android.main.databinding.FragmentWalletsBinding
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.nav.NunchukNavigator
 import javax.inject.Inject
 
 internal class WalletsFragment : BaseFragment() {
 
     @Inject
     lateinit var factory: NunchukFactory
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val viewModel: WalletsViewModel by lazy {
         ViewModelProviders.of(this, factory).get(WalletsViewModel::class.java)

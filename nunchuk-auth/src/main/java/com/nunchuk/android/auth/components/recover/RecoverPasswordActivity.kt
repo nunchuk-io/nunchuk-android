@@ -4,14 +4,13 @@ import android.content.Context
 import android.os.Bundle
 import android.text.method.PasswordTransformationMethod
 import androidx.lifecycle.ViewModelProviders
-import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.recover.RecoverPasswordEvent.*
 import com.nunchuk.android.auth.databinding.ActivityRecoverPasswordBinding
 import com.nunchuk.android.auth.util.orUnknownError
+import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.showToast
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
 
@@ -19,9 +18,6 @@ class RecoverPasswordActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: ViewModelFactory
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val args: RecoverPasswordArgs by lazy { RecoverPasswordArgs.deserializeFrom(intent) }
 

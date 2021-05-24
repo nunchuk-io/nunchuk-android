@@ -5,14 +5,13 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.method.PasswordTransformationMethod
 import androidx.lifecycle.ViewModelProviders
-import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.*
 import com.nunchuk.android.auth.databinding.ActivityChangePasswordBinding
 import com.nunchuk.android.auth.util.orUnknownError
+import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.showToast
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
 
@@ -20,9 +19,6 @@ class ChangePasswordActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: ViewModelFactory
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val viewModel: ChangePasswordViewModel by lazy {
         ViewModelProviders.of(this, factory).get(ChangePasswordViewModel::class.java)

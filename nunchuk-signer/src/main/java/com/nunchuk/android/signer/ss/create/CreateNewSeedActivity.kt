@@ -5,9 +5,8 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.GridLayoutManager
-import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.NunchukFactory
-import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.signer.databinding.ActivityCreateSeedBinding
 import com.nunchuk.android.signer.ss.create.CreateNewSeedEvent.GenerateMnemonicCodeErrorEvent
 import com.nunchuk.android.signer.ss.create.CreateNewSeedEvent.OpenSelectPhraseEvent
@@ -19,9 +18,6 @@ class CreateNewSeedActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: NunchukFactory
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val viewModel: CreateNewSeedViewModel by lazy {
         ViewModelProviders.of(this, factory).get(CreateNewSeedViewModel::class.java)

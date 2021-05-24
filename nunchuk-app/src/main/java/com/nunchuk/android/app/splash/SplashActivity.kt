@@ -6,13 +6,12 @@ import android.os.Bundle
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.app.splash.SplashEvent.*
-import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.ViewModelFactory
-import com.nunchuk.android.core.util.showToast
+import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.isPermissionGranted
 import com.nunchuk.android.core.util.observe
+import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.databinding.ActivitySplashBinding
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
 
@@ -21,12 +20,10 @@ internal class SplashActivity : BaseActivity() {
     @Inject
     lateinit var factory: ViewModelFactory
 
-    @Inject
-    lateinit var navigator: NunchukNavigator
-
     private val viewModel: SplashViewModel by lazy {
         ViewModelProviders.of(this, factory).get(SplashViewModel::class.java)
     }
+
     private lateinit var binding: ActivitySplashBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {

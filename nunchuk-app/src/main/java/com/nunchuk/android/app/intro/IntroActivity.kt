@@ -3,16 +3,11 @@ package com.nunchuk.android.app.intro
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import com.nunchuk.android.arch.BaseActivity
+import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.databinding.ActivityIntroBinding
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.util.setTransparentStatusBar
-import javax.inject.Inject
 
 internal class IntroActivity : BaseActivity() {
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private lateinit var binding: ActivityIntroBinding
 

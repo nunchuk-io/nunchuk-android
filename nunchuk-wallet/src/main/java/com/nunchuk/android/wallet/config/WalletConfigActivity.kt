@@ -3,8 +3,8 @@ package com.nunchuk.android.wallet.config
 import android.content.Context
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
-import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.getConfiguration
 import com.nunchuk.android.model.SingleSigner
@@ -28,9 +28,6 @@ class WalletConfigActivity : BaseActivity() {
     private val viewModel: WalletConfigViewModel by lazy {
         ViewModelProviders.of(this, factory).get(WalletConfigViewModel::class.java)
     }
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private lateinit var binding: ActivityWalletConfigBinding
 

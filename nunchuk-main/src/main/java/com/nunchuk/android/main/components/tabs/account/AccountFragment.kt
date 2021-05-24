@@ -5,19 +5,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProviders
-import com.nunchuk.android.arch.BaseFragment
 import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.main.databinding.FragmentAccountBinding
-import com.nunchuk.android.nav.NunchukNavigator
 import javax.inject.Inject
 
 internal class AccountFragment : BaseFragment() {
 
     @Inject
     lateinit var factory: NunchukFactory
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val viewModel: AccountViewModel by lazy {
         ViewModelProviders.of(this, factory).get(AccountViewModel::class.java)

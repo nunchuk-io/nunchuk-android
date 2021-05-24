@@ -4,12 +4,12 @@ import android.content.Context
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.nunchuk.android.arch.BaseActivity
 import com.nunchuk.android.arch.vm.NunchukFactory
-import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ActivityConfirmSeedBinding
-import com.nunchuk.android.signer.ss.confirm.ConfirmSeedEvent.*
+import com.nunchuk.android.signer.ss.confirm.ConfirmSeedEvent.ConfirmSeedCompletedEvent
+import com.nunchuk.android.signer.ss.confirm.ConfirmSeedEvent.SelectedIncorrectWordEvent
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
@@ -18,9 +18,6 @@ class ConfirmSeedActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: NunchukFactory
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val viewModel: ConfirmSeedViewModel by lazy {
         ViewModelProviders.of(this, factory).get(ConfirmSeedViewModel::class.java)
