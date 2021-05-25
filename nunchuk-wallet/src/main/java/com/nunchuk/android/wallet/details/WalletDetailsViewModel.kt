@@ -7,6 +7,7 @@ import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.wallet.details.WalletDetailsEvent.SendMoneyEvent
 import com.nunchuk.android.wallet.details.WalletDetailsEvent.WalletDetailsError
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -42,6 +43,10 @@ internal class WalletDetailsViewModel @Inject constructor(
                 is Error -> event(WalletDetailsError(result.exception.message.orUnknownError()))
             }
         }
+    }
+
+    fun handleSendMoneyEvent() {
+        event(SendMoneyEvent(getState().wallet.balance))
     }
 
 }

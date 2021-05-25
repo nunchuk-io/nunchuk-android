@@ -5,8 +5,8 @@ import com.nunchuk.android.nav.TransactionNavigator
 import com.nunchuk.android.transaction.receive.ReceiveTransactionActivity
 import com.nunchuk.android.transaction.receive.address.details.AddressDetailsActivity
 import com.nunchuk.android.transaction.send.amount.InputAmountActivity
-import com.nunchuk.android.transaction.send.fee.EstimatedFeeActivity
 import com.nunchuk.android.transaction.send.confirmation.TransactionConfirmActivity
+import com.nunchuk.android.transaction.send.fee.EstimatedFeeActivity
 
 interface TransactionNavigatorDelegate : TransactionNavigator {
 
@@ -32,10 +32,15 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         )
     }
 
-    override fun openInputAmountScreen(activityContext: Activity, walletId: String) {
+    override fun openInputAmountScreen(
+        activityContext: Activity,
+        walletId: String,
+        availableAmount: Double
+    ) {
         InputAmountActivity.start(
             activityContext = activityContext,
-            walletId = walletId
+            walletId = walletId,
+            availableAmount = availableAmount
         )
     }
 
@@ -48,7 +53,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
     }
 
     override fun openAddReceiptScreen(activityContext: Activity, walletId: String, amount: Double, feeRate: Double) {
-       TransactionConfirmActivity.start(activityContext, walletId, amount, feeRate)
+        TransactionConfirmActivity.start(activityContext, walletId, amount, feeRate)
     }
 
 }

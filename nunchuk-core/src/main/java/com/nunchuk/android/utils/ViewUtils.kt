@@ -9,8 +9,6 @@ import android.widget.TextView
 import com.nunchuk.android.core.R
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.type.TransactionStatus.*
-import java.text.SimpleDateFormat
-import java.util.*
 import javax.inject.Inject
 
 class TextUtils @Inject constructor(val context: Context) {
@@ -36,10 +34,4 @@ fun TransactionStatus.toDisplayedText(context: Context) = when (this) {
     PENDING_CONFIRMATION -> context.getString(R.string.nc_transaction_pending_confirmation)
     REPLACED -> context.getString(R.string.nc_transaction_replaced)
     CONFIRMED -> context.getString(R.string.nc_transaction_confirmed)
-}
-
-fun Long.formatDate(): String {
-    val dateFormat = SimpleDateFormat("dd/MM/yyyy 'at' HH:mm aaa", Locale.US)
-    val date = Date(this * 1000)
-    return dateFormat.format(date)
 }

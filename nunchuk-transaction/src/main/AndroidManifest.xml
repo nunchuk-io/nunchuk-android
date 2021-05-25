@@ -3,35 +3,37 @@
     package="com.nunchuk.android.transaction">
 
     <application>
+
         <activity
             android:name=".receive.ReceiveTransactionActivity"
             android:label="@string/nc_transaction_receive"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukLightNoActionBarTheme" />
+            android:theme="@style/NunchukLightNoActionBarTheme"/>
 
         <activity
             android:name=".receive.address.details.AddressDetailsActivity"
             android:label="@string/nc_transaction_unused"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukLightNoActionBarTheme" />
+            android:theme="@style/NunchukLightNoActionBarTheme"/>
 
         <activity
             android:name=".send.amount.InputAmountActivity"
             android:label="@string/nc_transaction_new"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukLightNoActionBarTheme" />
+            android:theme="@style/NunchukLightNoActionBarTheme"
+            android:windowSoftInputMode="adjustResize"/>
 
         <activity
             android:name=".send.fee.EstimatedFeeActivity"
             android:label="@string/nc_transaction_new"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukLightNoActionBarTheme" />
+            android:theme="@style/NunchukLightNoActionBarTheme"/>
 
         <activity
             android:name=".send.confirmation.TransactionConfirmActivity"
             android:label="@string/nc_transaction_confirm_transaction"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukLightNoActionBarTheme" />
+            android:theme="@style/NunchukLightNoActionBarTheme"/>
 
     </application>
 

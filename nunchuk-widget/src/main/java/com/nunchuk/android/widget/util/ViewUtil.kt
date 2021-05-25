@@ -56,3 +56,7 @@ fun ViewGroup.inflate(@LayoutRes resourceId: Int): View {
         .from(context)
         .inflate(resourceId, this, false)
 }
+
+fun EditText.keepCursorLast() {
+    setSelection(text.length)
+}
