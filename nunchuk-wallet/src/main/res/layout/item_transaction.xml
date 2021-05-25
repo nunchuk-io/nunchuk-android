@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:paddingVertical="@dimen/nc_padding_4">
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/sendTo"
@@ -23,9 +24,9 @@
         android:background="@drawable/nc_rounded_whisper_background"
         android:paddingHorizontal="@dimen/nc_padding_16"
         android:paddingVertical="@dimen/nc_padding_4"
-        android:text="@string/nc_transaction_status_pending_confirmation"
+        android:text="@string/nc_transaction_pending_confirmation"
         android:textColor="@color/nc_primary_dark_color"
-        android:textSize="@dimen/nc_text_size_12"
+        android:textSize="@dimen/nc_text_size_14"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -38,11 +39,12 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/receiverName"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textColor="@color/nc_primary_dark_color"
         android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintBottom_toBottomOf="@+id/amountBTC"
+        app:layout_constraintEnd_toStartOf="@+id/amountBTC"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/amountBTC"
         tools:text="Hugo Nguyen" />
@@ -52,7 +54,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingHorizontal="@dimen/nc_padding_16"
-        android:paddingVertical="@dimen/nc_padding_4"
+        android:paddingVertical="@dimen/nc_padding_8"
         android:textColor="@color/nc_primary_dark_color"
         android:textSize="@dimen/nc_text_size_16"
         app:fontTextStyle="semi_bold"

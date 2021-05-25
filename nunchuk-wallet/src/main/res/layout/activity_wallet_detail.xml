@@ -61,24 +61,24 @@
         android:id="@+id/headerContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:background="@drawable/nc_header_gradient_background"
         android:padding="@dimen/nc_padding_16"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        android:background="@drawable/nc_header_gradient_background">
+        app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/multisigConfiguration"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingVertical="@dimen/nc_padding_2"
-            android:paddingHorizontal="@dimen/nc_padding_12"
             android:layout_marginStart="@dimen/nc_padding_16"
             android:layout_marginTop="@dimen/nc_text_size_16"
             android:background="@drawable/nc_rounded_whisper_background"
+            android:paddingHorizontal="@dimen/nc_padding_12"
+            android:paddingVertical="@dimen/nc_padding_2"
             android:textColor="@color/nc_black_color"
             android:textSize="@dimen/nc_text_size_12"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="2/3 Multisig" />
 
@@ -114,7 +114,7 @@
             android:id="@+id/viewWalletConfig"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/nc_padding_24"
+            android:layout_marginTop="@dimen/nc_padding_16"
             android:paddingHorizontal="@dimen/nc_padding_8"
             android:paddingVertical="@dimen/nc_padding_4"
             android:text="@string/nc_wallet_view_wallet_config"
@@ -135,7 +135,7 @@
             android:id="@+id/btnSend"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/nc_padding_8"
+            android:layout_marginTop="@dimen/nc_padding_16"
             android:layout_marginEnd="@dimen/nc_padding_8"
             android:background="@drawable/nc_rounded_light_background"
             android:foreground="?android:attr/selectableItemBackground"
@@ -153,7 +153,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_8"
-            android:layout_marginTop="@dimen/nc_padding_8"
+            android:layout_marginTop="@dimen/nc_padding_16"
             android:background="@drawable/nc_rounded_light_background"
             android:foreground="?android:attr/selectableItemBackground"
             android:gravity="center"
@@ -165,5 +165,14 @@
             app:layout_constraintStart_toEndOf="@id/guideline"
             app:layout_constraintTop_toBottomOf="@+id/viewWalletConfig" />
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/transactionList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/nc_padding_16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/headerContainer"
+        tools:listitem="@layout/item_transaction" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

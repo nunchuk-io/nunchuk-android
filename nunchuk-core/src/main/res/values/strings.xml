@@ -2,4 +2,14 @@
 <resources>
     <string name="nc_signer_type_air_gapped">Air-gapped</string>
     <string name="nc_signer_type_software">Software signer</string>
+
+    <string name="nc_transaction_send_to">Send to</string>
+    <string name="nc_transaction_receive_from">Receive from</string>
+    <string name="nc_transaction_pending_confirmation">Pending confirmation</string>
+    <string name="nc_transaction_ready_to_broadcast">Ready to broadcast</string>
+    <string name="nc_transaction_network_rejected">Network rejected</string>
+    <string name="nc_transaction_pending_signatures">Pending signatures</string>
+    <string name="nc_transaction_replaced">Replaced</string>
+    <string name="nc_transaction_confirmed">Confirmed</string>
+
 </resources>

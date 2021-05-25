@@ -38,7 +38,5 @@
     <string name="nc_transaction_private_note_off_chain_data">Private note (off-chain data)</string>
     <string name="nc_transaction_change_address">Change address</string>
     <string name="nc_transaction_send_to_address">Send to address</string>
-    <string name="nc_transaction_send_to">Send to</string>
-    <string name="nc_transaction_status_pending_confirmation">Pending confirmation</string>
 
 </resources>
