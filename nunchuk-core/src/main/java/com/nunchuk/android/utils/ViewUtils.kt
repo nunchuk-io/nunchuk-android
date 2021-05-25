@@ -39,7 +39,7 @@ fun TransactionStatus.toDisplayedText(context: Context) = when (this) {
 }
 
 fun Long.formatDate(): String {
-    val dateFormat = SimpleDateFormat("yyyy.MM.dd 'at' HH:mm:ss aaa", Locale.US)
+    val dateFormat = SimpleDateFormat("dd/MM/yyyy 'at' HH:mm aaa", Locale.US)
     val date = Date(this * 1000)
     return dateFormat.format(date)
 }
