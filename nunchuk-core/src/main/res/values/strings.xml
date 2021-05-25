@@ -12,4 +12,7 @@
     <string name="nc_transaction_replaced">Replaced</string>
     <string name="nc_transaction_confirmed">Confirmed</string>
 
+    <string name="nc_currency_btc">BTC</string>
+    <string name="nc_currency_usd">USD</string>
+
 </resources>

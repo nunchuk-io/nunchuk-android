@@ -8,13 +8,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getConfiguration
-import com.nunchuk.android.core.util.getUSDAmount
-import com.nunchuk.android.core.util.observe
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.utils.setUnderline
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.ActivityWalletDetailBinding
+import com.nunchuk.android.wallet.details.WalletDetailsEvent.SendMoneyEvent
 import com.nunchuk.android.wallet.details.WalletDetailsEvent.WalletDetailsError
 import javax.inject.Inject
 
@@ -53,6 +51,7 @@ class WalletDetailsActivity : BaseActivity() {
     private fun handleEvent(event: WalletDetailsEvent) {
         when (event) {
             is WalletDetailsError -> Toast.makeText(applicationContext, event.message, Toast.LENGTH_SHORT).show()
+            is SendMoneyEvent -> navigator.openInputAmountScreen(this, args.walletId, event.amount.pureBTC())
         }
     }
 
@@ -77,7 +76,7 @@ class WalletDetailsActivity : BaseActivity() {
         binding.viewWalletConfig.setUnderline()
         binding.viewWalletConfig.setOnClickListener { navigator.openWalletConfigScreen(this, args.walletId) }
         binding.btnReceive.setOnClickListener { navigator.openReceiveTransactionScreen(this, args.walletId) }
-        binding.btnSend.setOnClickListener { navigator.openInputAmountScreen(this, args.walletId) }
+        binding.btnSend.setOnClickListener { viewModel.handleSendMoneyEvent() }
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }

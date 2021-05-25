@@ -37,7 +37,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
-        <com.google.android.material.tabs.TabLayout
+        <com.nunchuk.android.widget.NCFontTabLayout
             android:id="@+id/tabs"
             style="@style/NCTabLayout"
             android:layout_width="match_parent"

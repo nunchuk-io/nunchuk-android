@@ -1,4 +1,3 @@
-
 package com.nunchuk.android.transaction.send.amount
 
 import android.content.Context
@@ -6,7 +5,13 @@ import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.ActivityTransactionInputAmountBinding
+import com.nunchuk.android.transaction.send.amount.InputAmountEvent.*
+import com.nunchuk.android.utils.formatDecimal
+import com.nunchuk.android.utils.setUnderline
+import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.util.SimpleTextWatcher
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
@@ -33,6 +38,7 @@ class InputAmountActivity : BaseActivity() {
 
         setupViews()
         observeEvent()
+        viewModel.init(args.availableAmount)
     }
 
 
@@ -42,27 +48,62 @@ class InputAmountActivity : BaseActivity() {
     }
 
     private fun setupViews() {
+        binding.btnSendAll.setUnderline()
+        binding.btnSwitch.setUnderline()
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
-
+        binding.mainCurrency.setText(0L.formatDecimal())
+        binding.mainCurrency.addTextChangedListener(object : SimpleTextWatcher() {
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                viewModel.handleAmountChanged("$s")
+            }
+        })
+        binding.btnSendAll.setOnClickListener { openEstimatedFeeScreen() }
+        binding.btnSwitch.setOnClickListener { viewModel.switchCurrency() }
         binding.btnContinue.setOnClickListener {
-            navigator.openEstimatedFeeScreen(this, walletId = args.walletId, 0.0)
+            viewModel.handleContinueEvent()
         }
     }
 
-    private fun handleState(state: InputAmountState) {
+    private fun openEstimatedFeeScreen(amount: Double = args.availableAmount) {
+        navigator.openEstimatedFeeScreen(this, walletId = args.walletId, amount = amount)
+    }
 
+    private fun handleState(state: InputAmountState) {
+        if (state.useBtc) {
+            binding.mainCurrencyLabel.text = getString(R.string.nc_currency_btc)
+            binding.btnSwitch.text = getString(R.string.nc_transaction_switch_to_usd)
+
+            val secondaryCurrency = "$${state.amountUSD.formatDecimal()} ${getString(R.string.nc_currency_usd)}"
+            binding.secondaryCurrency.text = secondaryCurrency
+        } else {
+            binding.mainCurrencyLabel.text = getString(R.string.nc_currency_usd)
+            binding.btnSwitch.text = getString(R.string.nc_transaction_switch_to_btc)
+
+            val secondaryCurrency = "${state.amountBTC.formatDecimal()} ${getString(R.string.nc_currency_btc)}"
+            binding.secondaryCurrency.text = secondaryCurrency
+
+        }
     }
 
     private fun handleEvent(event: InputAmountEvent) {
+        when (event) {
+            is SwapCurrencyEvent -> binding.mainCurrency.setText(event.amount.formatDecimal())
+            is AcceptAmountEvent -> openEstimatedFeeScreen(event.amount)
+            InsufficientFundsEvent -> NCToastMessage(this).showError(getString(R.string.nc_transaction_insufficient_funds))
+        }
     }
-
 
     companion object {
 
-        fun start(activityContext: Context, walletId: String) {
-            activityContext.startActivity(InputAmountArgs(walletId = walletId).buildIntent(activityContext))
+        fun start(activityContext: Context, walletId: String, availableAmount: Double) {
+            activityContext.startActivity(
+                InputAmountArgs(
+                    walletId = walletId,
+                    availableAmount = availableAmount
+                ).buildIntent(activityContext)
+            )
         }
 
     }
