@@ -2,7 +2,6 @@ package com.nunchuk.android.signer.ss.name
 
 import android.content.Context
 import android.os.Bundle
-import android.text.InputFilter
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
@@ -10,8 +9,9 @@ import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ActivityAddNameBinding
 import com.nunchuk.android.signer.ss.name.AddSoftwareSignerNameEvent.SignerNameInputCompletedEvent
 import com.nunchuk.android.signer.ss.name.AddSoftwareSignerNameEvent.SignerNameRequiredEvent
-import com.nunchuk.android.widget.util.SimpleTextWatcher
+import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
+import com.nunchuk.android.widget.util.setMaxLength
 import javax.inject.Inject
 
 class AddSoftwareSignerNameActivity : BaseActivity() {
@@ -63,12 +63,8 @@ class AddSoftwareSignerNameActivity : BaseActivity() {
     }
 
     private fun setupViews() {
-        binding.signerName.getEditTextView().filters = arrayOf(InputFilter.LengthFilter(MAX_LENGTH))
-        binding.signerName.addTextChangedListener(object : SimpleTextWatcher() {
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                viewModel.updateSignerName("$s")
-            }
-        })
+        binding.signerName.setMaxLength(MAX_LENGTH)
+        binding.signerName.addTextChangedCallback(viewModel::updateSignerName)
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }

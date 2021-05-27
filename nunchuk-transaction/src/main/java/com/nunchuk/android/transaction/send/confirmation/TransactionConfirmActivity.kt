@@ -1,6 +1,6 @@
 package com.nunchuk.android.transaction.send.confirmation
 
-import android.content.Context
+import android.app.Activity
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.vm.NunchukFactory
@@ -58,8 +58,27 @@ class TransactionConfirmActivity : BaseActivity() {
 
     companion object {
 
-        fun start(activityContext: Context, walletId: String, amount: Double, feeRate: Double) {
-            activityContext.startActivity(TransactionConfirmArgs(walletId, amount, feeRate).buildIntent(activityContext))
+        fun start(
+            activityContext: Activity,
+            walletId: String,
+            outputAmount: Double,
+            availableAmount: Double,
+            address: String,
+            privateNote: String,
+            subtractFeeFromAmount: Boolean = false,
+            manualFeeRate: Int = 0
+        ) {
+            activityContext.startActivity(
+                TransactionConfirmArgs(
+                    walletId = walletId,
+                    outputAmount = outputAmount,
+                    availableAmount = availableAmount,
+                    address = address,
+                    privateNote = privateNote,
+                    subtractFeeFromAmount = subtractFeeFromAmount,
+                    manualFeeRate = manualFeeRate
+                ).buildIntent(activityContext)
+            )
         }
 
     }

@@ -11,7 +11,7 @@ import com.nunchuk.android.transaction.send.amount.InputAmountEvent.*
 import com.nunchuk.android.utils.formatDecimal
 import com.nunchuk.android.utils.setUnderline
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.util.SimpleTextWatcher
+import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
@@ -54,20 +54,21 @@ class InputAmountActivity : BaseActivity() {
             finish()
         }
         binding.mainCurrency.setText(0L.formatDecimal())
-        binding.mainCurrency.addTextChangedListener(object : SimpleTextWatcher() {
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                viewModel.handleAmountChanged("$s")
-            }
-        })
-        binding.btnSendAll.setOnClickListener { openEstimatedFeeScreen() }
+        binding.mainCurrency.addTextChangedCallback(viewModel::handleAmountChanged)
+        binding.btnSendAll.setOnClickListener { openAddReceiptScreen(args.availableAmount) }
         binding.btnSwitch.setOnClickListener { viewModel.switchCurrency() }
         binding.btnContinue.setOnClickListener {
             viewModel.handleContinueEvent()
         }
     }
 
-    private fun openEstimatedFeeScreen(amount: Double = args.availableAmount) {
-        navigator.openEstimatedFeeScreen(this, walletId = args.walletId, amount = amount)
+    private fun openAddReceiptScreen(outputAmount: Double) {
+        navigator.openAddReceiptScreen(
+            this,
+            walletId = args.walletId,
+            outputAmount = outputAmount,
+            availableAmount = args.availableAmount
+        )
     }
 
     private fun handleState(state: InputAmountState) {
@@ -90,7 +91,7 @@ class InputAmountActivity : BaseActivity() {
     private fun handleEvent(event: InputAmountEvent) {
         when (event) {
             is SwapCurrencyEvent -> binding.mainCurrency.setText(event.amount.formatDecimal())
-            is AcceptAmountEvent -> openEstimatedFeeScreen(event.amount)
+            is AcceptAmountEvent -> openAddReceiptScreen(event.amount)
             InsufficientFundsEvent -> NCToastMessage(this).showError(getString(R.string.nc_transaction_insufficient_funds))
         }
     }

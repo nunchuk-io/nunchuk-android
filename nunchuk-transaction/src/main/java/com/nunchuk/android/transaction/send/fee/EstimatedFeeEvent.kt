@@ -1,5 +1,15 @@
 package com.nunchuk.android.transaction.send.fee
 
-sealed class EstimatedFeeEvent
+import com.nunchuk.android.model.Amount
 
-class EstimatedFeeState
+sealed class EstimatedFeeEvent {
+    data class EstimatedFeeErrorEvent(val message: String) : EstimatedFeeEvent()
+}
+
+data class EstimatedFeeState(
+    val estimatedFee: Amount = Amount.ZER0,
+    val customizeFeeDetails: Boolean = false,
+    val subtractFeeFromSendMoney: Boolean = false,
+    val manualFeeDetails: Boolean = false,
+    val manualFeeRate: Int = 0
+)

@@ -17,7 +17,31 @@ interface TransactionNavigator {
 
     fun openInputAmountScreen(activityContext: Activity, walletId: String, availableAmount: Double)
 
-    fun openEstimatedFeeScreen(activityContext: Activity, walletId: String, amount: Double)
+    fun openAddReceiptScreen(
+        activityContext: Activity,
+        walletId: String,
+        outputAmount: Double,
+        availableAmount: Double
+    )
 
-    fun openAddReceiptScreen(activityContext: Activity, walletId: String, amount: Double, feeRate: Double)
+    fun openEstimatedFeeScreen(
+        activityContext: Activity,
+        walletId: String,
+        outputAmount: Double,
+        availableAmount: Double,
+        address: String,
+        privateNote: String
+    )
+
+    fun openTransactionConfirmScreen(
+        activityContext: Activity,
+        walletId: String,
+        outputAmount: Double,
+        availableAmount: Double,
+        address: String,
+        privateNote: String,
+        subtractFeeFromAmount: Boolean = false,
+        manualFeeRate: Int = 0
+    )
+
 }

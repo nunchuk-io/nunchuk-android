@@ -12,6 +12,8 @@ import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.transaction.databinding.FragmentUsedAddressBinding
 import com.nunchuk.android.transaction.receive.address.AddressFragmentArgs
+import com.nunchuk.android.transaction.receive.address.used.UsedAddressEvent.GetUsedAddressErrorEvent
+import com.nunchuk.android.widget.NCToastMessage
 import javax.inject.Inject
 
 internal class UsedAddressFragment : BaseFragment() {
@@ -64,6 +66,9 @@ internal class UsedAddressFragment : BaseFragment() {
     }
 
     private fun handleEvent(event: UsedAddressEvent) {
+        when (event) {
+            is GetUsedAddressErrorEvent -> activity?.let { NCToastMessage(it).showError(event.message) }
+        }
     }
 
     companion object {

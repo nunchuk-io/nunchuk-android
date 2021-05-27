@@ -3,13 +3,15 @@ package com.nunchuk.android.transaction.send.receipt
 import android.content.Context
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
+import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.ActivityTransactionAddReceiptBinding
-import com.nunchuk.android.transaction.send.confirmation.TransactionConfirmEvent
-import com.nunchuk.android.transaction.send.confirmation.TransactionConfirmState
-import com.nunchuk.android.transaction.send.confirmation.TransactionConfirmViewModel
+import com.nunchuk.android.transaction.send.receipt.AddReceiptEvent.*
+import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
+import com.nunchuk.android.widget.util.setMaxLength
 import javax.inject.Inject
 
 class AddReceiptActivity : BaseActivity() {
@@ -19,8 +21,8 @@ class AddReceiptActivity : BaseActivity() {
 
     private val args: AddReceiptArgs by lazy { AddReceiptArgs.deserializeFrom(intent) }
 
-    private val viewModel: TransactionConfirmViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(TransactionConfirmViewModel::class.java)
+    private val viewModel: AddReceiptViewModel by lazy {
+        ViewModelProviders.of(this, factory).get(AddReceiptViewModel::class.java)
     }
 
     private lateinit var binding: ActivityTransactionAddReceiptBinding
@@ -35,6 +37,7 @@ class AddReceiptActivity : BaseActivity() {
 
         setupViews()
         observeEvent()
+        viewModel.init()
     }
 
 
@@ -44,24 +47,71 @@ class AddReceiptActivity : BaseActivity() {
     }
 
     private fun setupViews() {
+        binding.receiptInput.addTextChangedCallback(viewModel::handleReceiptChanged)
+        binding.privateNoteInput.setMaxLength(MAX_NOTE_LENGTH)
+        binding.privateNoteInput.addTextChangedCallback(viewModel::handlePrivateNoteChanged)
+
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
+
         binding.btnContinue.setOnClickListener {
+            viewModel.handleContinueEvent()
         }
     }
 
-    private fun handleState(state: TransactionConfirmState) {
-
+    private fun handleState(state: AddReceiptState) {
+        binding.privateNoteCounter.text = "${state.privateNote.length}/$MAX_NOTE_LENGTH"
     }
 
-    private fun handleEvent(event: TransactionConfirmEvent) {
+    private fun handleEvent(event: AddReceiptEvent) {
+        when (event) {
+            is AcceptedAddressEvent -> openEstimatedFeeScreen(event.address, event.privateNote)
+            AddressRequiredEvent -> showAddressRequiredError()
+            InvalidAddressEvent -> showInvalidAddressError()
+        }
+    }
+
+    private fun showInvalidAddressError() {
+        showError(getString(R.string.nc_transaction_invalid_address))
+    }
+
+    private fun showAddressRequiredError() {
+        showError(getString(R.string.nc_text_required))
+    }
+
+    private fun showError(message: String) {
+        binding.errorText.isVisible = true
+        binding.errorText.text = message
+    }
+
+    private fun hideError() {
+        binding.errorText.isVisible = false
+    }
+
+    private fun openEstimatedFeeScreen(address: String, privateNote: String) {
+        hideError()
+        navigator.openEstimatedFeeScreen(
+            activityContext = this,
+            walletId = args.walletId,
+            outputAmount = args.outputAmount,
+            availableAmount = args.availableAmount,
+            address = address,
+            privateNote = privateNote
+        )
     }
 
     companion object {
+        private const val MAX_NOTE_LENGTH = 80
 
-        fun start(activityContext: Context, walletId: String, amount: Double, feeRate: Double) {
-            activityContext.startActivity(com.nunchuk.android.transaction.send.confirmation.TransactionConfirmArgs(walletId, amount, feeRate).buildIntent(activityContext))
+        fun start(activityContext: Context, walletId: String, outputAmount: Double, availableAmount: Double) {
+            activityContext.startActivity(
+                AddReceiptArgs(
+                    walletId = walletId,
+                    outputAmount = outputAmount,
+                    availableAmount = availableAmount
+                ).buildIntent(activityContext)
+            )
         }
 
     }

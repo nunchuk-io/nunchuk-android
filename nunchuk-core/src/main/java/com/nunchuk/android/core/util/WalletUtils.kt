@@ -18,3 +18,7 @@ fun Double.fromBTCToUSD() = this * BTC_USD_EXCHANGE_RATE
 fun Double.fromUSDToBTC() = this / BTC_USD_EXCHANGE_RATE
 
 fun Amount.pureBTC() = value * SATOSHI_BTC_EXCHANGE_RATE
+
+fun Double.getBTCAmount() = " $this BTC"
+
+fun Double.getUSDAmount() = "$${this * SATOSHI_BTC_EXCHANGE_RATE * BTC_USD_EXCHANGE_RATE} USD"

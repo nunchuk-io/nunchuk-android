@@ -7,6 +7,7 @@ import com.nunchuk.android.transaction.receive.address.details.AddressDetailsAct
 import com.nunchuk.android.transaction.send.amount.InputAmountActivity
 import com.nunchuk.android.transaction.send.confirmation.TransactionConfirmActivity
 import com.nunchuk.android.transaction.send.fee.EstimatedFeeActivity
+import com.nunchuk.android.transaction.send.receipt.AddReceiptActivity
 
 interface TransactionNavigatorDelegate : TransactionNavigator {
 
@@ -44,16 +45,58 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         )
     }
 
-    override fun openEstimatedFeeScreen(activityContext: Activity, walletId: String, amount: Double) {
-        EstimatedFeeActivity.start(
+    override fun openAddReceiptScreen(
+        activityContext: Activity,
+        walletId: String,
+        outputAmount: Double,
+        availableAmount: Double
+    ) {
+        AddReceiptActivity.start(
             activityContext = activityContext,
             walletId = walletId,
-            amount = amount
+            outputAmount = outputAmount,
+            availableAmount = availableAmount
         )
     }
 
-    override fun openAddReceiptScreen(activityContext: Activity, walletId: String, amount: Double, feeRate: Double) {
-        TransactionConfirmActivity.start(activityContext, walletId, amount, feeRate)
+    override fun openEstimatedFeeScreen(
+        activityContext: Activity,
+        walletId: String,
+        outputAmount: Double,
+        availableAmount: Double,
+        address: String,
+        privateNote: String
+    ) {
+        EstimatedFeeActivity.start(
+            activityContext = activityContext,
+            walletId = walletId,
+            outputAmount = outputAmount,
+            availableAmount = availableAmount,
+            address = address,
+            privateNote = privateNote
+        )
+    }
+
+    override fun openTransactionConfirmScreen(
+        activityContext: Activity,
+        walletId: String,
+        outputAmount: Double,
+        availableAmount: Double,
+        address: String,
+        privateNote: String,
+        subtractFeeFromAmount: Boolean,
+        manualFeeRate: Int
+    ) {
+        TransactionConfirmActivity.start(
+            activityContext = activityContext,
+            walletId = walletId,
+            outputAmount = outputAmount,
+            availableAmount = availableAmount,
+            address = address,
+            privateNote = privateNote,
+            subtractFeeFromAmount = subtractFeeFromAmount,
+            manualFeeRate = manualFeeRate
+        )
     }
 
 }

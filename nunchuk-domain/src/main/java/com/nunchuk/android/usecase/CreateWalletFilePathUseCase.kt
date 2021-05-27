@@ -11,6 +11,7 @@ interface CreateWalletFilePathUseCase {
 internal class CreateWalletFilePathUseCaseImpl @Inject constructor() : BaseUseCase(), CreateWalletFilePathUseCase {
 
     override suspend fun execute(walletId: String) = exe {
+        @Suppress("DEPRECATION")
         "${Environment.getExternalStorageDirectory()}/$walletId"
     }
 

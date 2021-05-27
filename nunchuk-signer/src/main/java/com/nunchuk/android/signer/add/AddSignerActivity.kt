@@ -3,7 +3,6 @@ package com.nunchuk.android.signer.add
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.text.InputFilter
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
@@ -12,9 +11,10 @@ import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.add.AddSignerEvent.*
 import com.nunchuk.android.signer.databinding.ActivityAddSignerBinding
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.util.SimpleTextWatcher
+import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.heightExtended
 import com.nunchuk.android.widget.util.setLightStatusBar
+import com.nunchuk.android.widget.util.setMaxLength
 import javax.inject.Inject
 
 class AddSignerActivity : BaseActivity() {
@@ -58,13 +58,11 @@ class AddSignerActivity : BaseActivity() {
     }
 
     private fun setupViews() {
-        binding.signerName.getEditTextView().filters = arrayOf(InputFilter.LengthFilter(MAX_LENGTH))
+        binding.signerName.setMaxLength(MAX_LENGTH)
         updateCounter(0)
-        binding.signerName.addTextChangedListener(object : SimpleTextWatcher() {
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                updateCounter(s.length)
-            }
-        })
+        binding.signerName.addTextChangedCallback {
+            updateCounter(it.length)
+        }
 
         binding.addSignerViaQR.setOnClickListener { showToast("Scan QR coming soon") }
         binding.signerSpec.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_180))
