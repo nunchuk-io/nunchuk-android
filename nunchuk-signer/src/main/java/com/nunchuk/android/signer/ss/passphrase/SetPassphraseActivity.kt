@@ -10,7 +10,7 @@ import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ActivitySetPassphraseBinding
 import com.nunchuk.android.signer.ss.passphrase.SetPassphraseEvent.*
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.util.SimpleTextWatcher
+import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.passwordEnabled
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
@@ -83,17 +83,10 @@ class SetPassphraseActivity : BaseActivity() {
             finish()
         }
         binding.passphrase.passwordEnabled()
-        binding.passphrase.addTextChangedListener(object : SimpleTextWatcher() {
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                viewModel.updatePassphrase("$s")
-            }
-        })
+        binding.passphrase.addTextChangedCallback(viewModel::updatePassphrase)
+
         binding.confirmPassphrase.passwordEnabled()
-        binding.confirmPassphrase.addTextChangedListener(object : SimpleTextWatcher() {
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                viewModel.updateConfirmPassphrase("$s")
-            }
-        })
+        binding.confirmPassphrase.addTextChangedCallback(viewModel::updateConfirmPassphrase)
         binding.btnNoPassphrase.setOnClickListener { viewModel.skipPassphraseEvent() }
         binding.btnSetPassphrase.setOnClickListener { viewModel.confirmPassphraseEvent() }
     }

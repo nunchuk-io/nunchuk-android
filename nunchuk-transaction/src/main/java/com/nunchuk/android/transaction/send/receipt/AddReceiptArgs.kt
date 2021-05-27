@@ -5,25 +5,28 @@ import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.core.util.getDoubleValue
 import com.nunchuk.android.core.util.getStringValue
-import com.nunchuk.android.transaction.send.confirmation.TransactionConfirmActivity
 
-data class AddReceiptArgs(val walletId: String, val amount: Double, val feeRate: Double) : ActivityArgs {
+data class AddReceiptArgs(
+    val walletId: String,
+    val outputAmount: Double,
+    val availableAmount: Double
+) : ActivityArgs {
 
-    override fun buildIntent(activityContext: Context) = Intent(activityContext, TransactionConfirmActivity::class.java).apply {
+    override fun buildIntent(activityContext: Context) = Intent(activityContext, AddReceiptActivity::class.java).apply {
         putExtra(EXTRA_WALLET_ID, walletId)
-        putExtra(EXTRA_AMOUNT, amount)
-        putExtra(EXTRA_FEE_RATE, feeRate)
+        putExtra(EXTRA_OUTPUT_AMOUNT, outputAmount)
+        putExtra(EXTRA_AVAILABLE_AMOUNT, availableAmount)
     }
 
     companion object {
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
-        private const val EXTRA_AMOUNT = "EXTRA_AMOUNT"
-        private const val EXTRA_FEE_RATE = "EXTRA_FEE_RATE"
+        private const val EXTRA_OUTPUT_AMOUNT = "EXTRA_OUTPUT_AMOUNT"
+        private const val EXTRA_AVAILABLE_AMOUNT = "EXTRA_AVAILABLE_AMOUNT"
 
         fun deserializeFrom(intent: Intent) = AddReceiptArgs(
             intent.extras.getStringValue(EXTRA_WALLET_ID),
-            intent.extras.getDoubleValue(EXTRA_AMOUNT),
-            intent.extras.getDoubleValue(EXTRA_FEE_RATE)
+            intent.extras.getDoubleValue(EXTRA_OUTPUT_AMOUNT),
+            intent.extras.getDoubleValue(EXTRA_AVAILABLE_AMOUNT)
         )
     }
 }

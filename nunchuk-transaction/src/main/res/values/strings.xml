@@ -39,5 +39,6 @@
     <string name="nc_transaction_change_address">Change address</string>
     <string name="nc_transaction_send_to_address">Send to address</string>
     <string name="nc_transaction_insufficient_funds">Insufficient funds</string>
+    <string name="nc_transaction_invalid_address">Invalid address</string>
 
 </resources>

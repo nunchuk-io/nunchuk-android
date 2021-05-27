@@ -6,10 +6,12 @@ import com.nunchuk.android.transaction.receive.address.details.AddressDetailsAct
 import com.nunchuk.android.transaction.receive.di.AddressFragmentModule
 import com.nunchuk.android.transaction.send.amount.InputAmountActivity
 import com.nunchuk.android.transaction.send.amount.InputAmountModule
-import com.nunchuk.android.transaction.send.fee.EstimatedFeeActivity
-import com.nunchuk.android.transaction.send.fee.EstimatedFeeModule
 import com.nunchuk.android.transaction.send.confirmation.TransactionConfirmActivity
 import com.nunchuk.android.transaction.send.confirmation.TransactionConfirmModule
+import com.nunchuk.android.transaction.send.fee.EstimatedFeeActivity
+import com.nunchuk.android.transaction.send.fee.EstimatedFeeModule
+import com.nunchuk.android.transaction.send.receipt.AddReceiptActivity
+import com.nunchuk.android.transaction.send.receipt.AddReceiptModule
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
 
@@ -28,7 +30,10 @@ internal interface TransactionActivityModule {
     @ContributesAndroidInjector(modules = [EstimatedFeeModule::class])
     fun estimatedFeeActivity(): EstimatedFeeActivity
 
+    @ContributesAndroidInjector(modules = [AddReceiptModule::class])
+    fun addReceiptActivity(): AddReceiptActivity
+
     @ContributesAndroidInjector(modules = [TransactionConfirmModule::class])
-    fun addReceiptActivity(): TransactionConfirmActivity
+    fun transactionConfirmActivity(): TransactionConfirmActivity
 
 }

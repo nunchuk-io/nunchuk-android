@@ -15,7 +15,7 @@ import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.add.AddWalletEvent.WalletNameRequiredEvent
 import com.nunchuk.android.wallet.add.AddWalletEvent.WalletSetupDoneEvent
 import com.nunchuk.android.wallet.databinding.ActivityWalletAddBinding
-import com.nunchuk.android.widget.util.SimpleTextWatcher
+import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
@@ -121,11 +121,7 @@ class AddWalletActivity : BaseActivity() {
         binding.nativeSegwitRadio.setOnCheckedChangeListener { _, checked -> if (checked) viewModel.setNativeAddressType() }
         binding.legacyRadio.setOnCheckedChangeListener { _, checked -> if (checked) viewModel.setLegacyAddressType() }
 
-        binding.walletName.addTextChangedListener(object : SimpleTextWatcher() {
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                viewModel.updateWalletName("$s")
-            }
-        })
+        binding.walletName.addTextChangedCallback(viewModel::updateWalletName)
         binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }
         binding.toolbar.setNavigationOnClickListener {
             finish()

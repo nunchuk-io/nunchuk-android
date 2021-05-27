@@ -1,5 +1,6 @@
 package com.nunchuk.android.widget.util
 
+import android.text.InputFilter
 import android.text.InputType
 import android.text.method.PasswordTransformationMethod
 import android.view.LayoutInflater
@@ -8,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.EditText
 import androidx.annotation.LayoutRes
 import com.nunchuk.android.widget.NCEditTextView
-import com.nunchuk.android.widget.R
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
@@ -36,19 +36,39 @@ fun EditText.textChanges() = callbackFlow<CharSequence> {
 }.onStart { emit(text) }
 
 fun NCEditTextView.heightExtended(dimensionPixelSize: Int) {
-    findViewById<EditText>(R.id.editText).heightExtended(dimensionPixelSize)
+    getEditTextView().heightExtended(dimensionPixelSize)
 }
 
 fun NCEditTextView.passwordEnabled() {
-    val editText = findViewById<EditText>(R.id.editText)
+    val editText = getEditTextView()
     editText.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
     editText.transformationMethod = PasswordTransformationMethod.getInstance()
+}
+
+fun NCEditTextView.setMaxLength(maxLength: Int) {
+    getEditTextView().filters = arrayOf(InputFilter.LengthFilter(maxLength))
+}
+
+fun EditText.setMaxLength(maxLength: Int) {
+    filters = arrayOf(InputFilter.LengthFilter(maxLength))
 }
 
 fun EditText.heightExtended(dimensionPixelSize: Int) {
     isSingleLine = false
     inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
     layoutParams.height = dimensionPixelSize
+}
+
+fun NCEditTextView.addTextChangedCallback(callback: (String) -> Unit) {
+    getEditTextView().addTextChangedCallback(callback)
+}
+
+fun EditText.addTextChangedCallback(callback: (String) -> Unit) {
+    addTextChangedListener(object : SimpleTextWatcher() {
+        override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+            callback("$s")
+        }
+    })
 }
 
 fun ViewGroup.inflate(@LayoutRes resourceId: Int): View {

@@ -146,6 +146,12 @@ internal interface NativeLibDomainModule {
     @Binds
     fun bindValueFromAmountUseCase(useCase: ValueFromAmountUseCaseImpl): ValueFromAmountUseCase
 
+    @Binds
+    fun bindEstimateFeeUseCase(useCase: EstimateFeeUseCaseImpl): EstimateFeeUseCase
+
+    @Binds
+    fun bindCheckAddressValidUseCase(useCase: CheckAddressValidUseCaseImpl): CheckAddressValidUseCase
+
     companion object {
 
         @Singleton

@@ -30,6 +30,12 @@
             android:theme="@style/NunchukLightNoActionBarTheme"/>
 
         <activity
+            android:name=".send.receipt.AddReceiptActivity"
+            android:label="@string/nc_transaction_new"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukLightNoActionBarTheme" />
+
+        <activity
             android:name=".send.confirmation.TransactionConfirmActivity"
             android:label="@string/nc_transaction_confirm_transaction"
             android:screenOrientation="portrait"
