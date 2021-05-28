@@ -55,7 +55,7 @@ internal class TransactionViewHolder(
             binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
             binding.amountBTC.text = "- ${data.subAmount.getBTCAmount()}"
             binding.amountUSD.text = "- ${data.subAmount.getUSDAmount()}"
-            binding.receiverName.text = data.inputs.first().first
+            binding.receiverName.text = data.outputs.first().first
         }
         binding.status.text = data.status.toDisplayedText(context)
         binding.date.text = data.blockTime.formatDate()

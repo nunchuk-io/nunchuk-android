@@ -84,6 +84,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         availableAmount: Double,
         address: String,
         privateNote: String,
+        estimatedFee: Double,
         subtractFeeFromAmount: Boolean,
         manualFeeRate: Int
     ) {
@@ -94,6 +95,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             availableAmount = availableAmount,
             address = address,
             privateNote = privateNote,
+            estimatedFee = estimatedFee,
             subtractFeeFromAmount = subtractFeeFromAmount,
             manualFeeRate = manualFeeRate
         )

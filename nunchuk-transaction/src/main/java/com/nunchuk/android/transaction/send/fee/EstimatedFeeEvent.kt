@@ -4,6 +4,11 @@ import com.nunchuk.android.model.Amount
 
 sealed class EstimatedFeeEvent {
     data class EstimatedFeeErrorEvent(val message: String) : EstimatedFeeEvent()
+    data class EstimatedFeeCompletedEvent(
+        val estimatedFee: Double,
+        val subtractFeeFromSendMoney: Boolean,
+        val manualFeeRate: Int
+    ) : EstimatedFeeEvent()
 }
 
 data class EstimatedFeeState(
