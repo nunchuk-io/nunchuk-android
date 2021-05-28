@@ -58,4 +58,5 @@
     <string name="nc_wallet_receive">Receive</string>
 
     <string name="nc_transaction">Transaction</string>
+    <string name="nc_transactions">Transactions</string>
 </resources>

@@ -40,6 +40,7 @@ interface TransactionNavigator {
         availableAmount: Double,
         address: String,
         privateNote: String,
+        estimatedFee: Double,
         subtractFeeFromAmount: Boolean = false,
         manualFeeRate: Int = 0
     )

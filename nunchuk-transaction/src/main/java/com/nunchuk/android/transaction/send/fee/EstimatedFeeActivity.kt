@@ -10,6 +10,7 @@ import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.transaction.databinding.ActivityTransactionEstimateFeeBinding
+import com.nunchuk.android.transaction.send.fee.EstimatedFeeEvent.EstimatedFeeCompletedEvent
 import com.nunchuk.android.transaction.send.fee.EstimatedFeeEvent.EstimatedFeeErrorEvent
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -47,14 +48,26 @@ class EstimatedFeeActivity : BaseActivity() {
     }
 
     private fun setupViews() {
-        binding.customizeFeeSwitch.setOnCheckedChangeListener { _, isChecked -> viewModel.handleCustomizeFeeSwitch(isChecked) }
+        binding.customizeFeeSwitch.setOnCheckedChangeListener { _, isChecked -> handleCustomizeFeeSwitch(isChecked) }
+        binding.subtractFeeCheckBox.setOnCheckedChangeListener { _, isChecked -> viewModel.handleSubtractFeeSwitch(isChecked) }
+        binding.manualFeeCheckBox.setOnCheckedChangeListener { _, isChecked -> viewModel.handleManualFeeSwitch(isChecked) }
+
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
         binding.btnContinue.setOnClickListener {
+            viewModel.handleContinueEvent()
         }
 
         bindSubtotal(args.outputAmount)
+    }
+
+    private fun handleCustomizeFeeSwitch(isChecked: Boolean) {
+        viewModel.handleCustomizeFeeSwitch(isChecked)
+        if (!isChecked) {
+            binding.subtractFeeCheckBox.isChecked = false
+            binding.manualFeeCheckBox.isChecked = false
+        }
     }
 
     private fun bindSubtotal(subtotal: Double) {
@@ -63,7 +76,7 @@ class EstimatedFeeActivity : BaseActivity() {
     }
 
     private fun handleState(state: EstimatedFeeState) {
-        binding.estimatedFeeBTC.text = state.estimatedFee.formattedValue
+        binding.estimatedFeeBTC.text = state.estimatedFee.getBTCAmount()
         binding.estimatedFeeUSD.text = state.estimatedFee.getUSDAmount()
 
         if (state.subtractFeeFromSendMoney) {
@@ -79,7 +92,22 @@ class EstimatedFeeActivity : BaseActivity() {
     private fun handleEvent(event: EstimatedFeeEvent) {
         when (event) {
             is EstimatedFeeErrorEvent -> NCToastMessage(this).show(event.message)
+            is EstimatedFeeCompletedEvent -> openTransactionConfirmScreen(event.estimatedFee, event.subtractFeeFromSendMoney, event.manualFeeRate)
         }
+    }
+
+    private fun openTransactionConfirmScreen(estimatedFee: Double, subtractFeeFromAmount: Boolean, manualFeeRate: Int) {
+        navigator.openTransactionConfirmScreen(
+            activityContext = this,
+            walletId = args.walletId,
+            outputAmount = args.outputAmount,
+            availableAmount = args.availableAmount,
+            address = args.address,
+            privateNote = args.privateNote,
+            estimatedFee = estimatedFee,
+            subtractFeeFromAmount = subtractFeeFromAmount,
+            manualFeeRate = manualFeeRate
+        )
     }
 
     companion object {

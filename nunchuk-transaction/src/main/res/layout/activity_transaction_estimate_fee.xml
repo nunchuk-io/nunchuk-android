@@ -247,17 +247,25 @@
             app:layout_constraintTop_toBottomOf="@+id/manualFeeDesc"
             tools:visibility="visible">
 
-            <com.nunchuk.android.widget.NCEditTextView
+            <com.nunchuk.android.widget.NCFontEditText
                 android:id="@+id/feeRateInput"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/nc_padding_8"
-                app:edit_hint="210"
-                app:edit_title_color="@color/nc_black_color"
-                app:edit_title_text_size="@dimen/nc_text_size_16"
+                android:background="@drawable/nc_edit_text_bg"
+                android:hint="210"
+                android:inputType="numberDecimal"
+                android:maxLength="20"
+                android:padding="@dimen/nc_padding_12"
+                android:scrollHorizontally="false"
+                android:singleLine="true"
+                android:textColor="@color/nc_black_color"
+                android:textCursorDrawable="@null"
+                android:textSize="@dimen/nc_text_size_16"
                 app:layout_constraintEnd_toStartOf="@+id/feeUnit"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="210" />
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/feeUnit"

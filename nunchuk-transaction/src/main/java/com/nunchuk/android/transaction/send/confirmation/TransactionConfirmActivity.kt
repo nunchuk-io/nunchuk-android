@@ -5,7 +5,12 @@ import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.transaction.databinding.ActivityTransactionConfirmBinding
+import com.nunchuk.android.transaction.send.confirmation.TransactionConfirmEvent.CreateTxErrorEvent
+import com.nunchuk.android.transaction.send.confirmation.TransactionConfirmEvent.CreateTxSuccessEvent
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
@@ -32,6 +37,13 @@ class TransactionConfirmActivity : BaseActivity() {
 
         setupViews()
         observeEvent()
+        viewModel.init(
+            walletId = args.walletId,
+            address = args.address,
+            sendAmount = args.outputAmount,
+            estimateFee = args.estimatedFee,
+            subtractFeeFromAmount = args.subtractFeeFromAmount
+        )
     }
 
 
@@ -41,7 +53,26 @@ class TransactionConfirmActivity : BaseActivity() {
     }
 
     private fun setupViews() {
+        binding.sendAddressLabel.text = args.address
+        binding.estimatedFeeBTC.text = args.estimatedFee.getBTCAmount()
+        binding.estimatedFeeUSD.text = args.estimatedFee.getUSDAmount()
+        val sendAmount: Double
+        val totalAmount: Double
+        if (args.subtractFeeFromAmount) {
+            sendAmount = args.outputAmount - args.estimatedFee
+            totalAmount = args.outputAmount
+        } else {
+            sendAmount = args.outputAmount
+            totalAmount = args.outputAmount + args.estimatedFee
+        }
+        binding.sendAddressBTC.text = sendAmount.getBTCAmount()
+        binding.sendAddressUSD.text = sendAmount.getUSDAmount()
+        binding.totalAmountBTC.text = totalAmount.getBTCAmount()
+        binding.totalAmountUSD.text = totalAmount.getUSDAmount()
+        binding.noteContent.text = args.privateNote
+
         binding.btnConfirm.setOnClickListener {
+            viewModel.handleConfirmEvent()
         }
 
         binding.toolbar.setNavigationOnClickListener {
@@ -50,10 +81,21 @@ class TransactionConfirmActivity : BaseActivity() {
     }
 
     private fun handleState(state: TransactionConfirmState) {
-
     }
 
     private fun handleEvent(event: TransactionConfirmEvent) {
+        when (event) {
+            is CreateTxErrorEvent -> showCreateTransactionError(event.message)
+            is CreateTxSuccessEvent -> openTransactionDetailScreen(event.txId)
+        }
+    }
+
+    private fun openTransactionDetailScreen(txId: String) {
+        NCToastMessage(this).showMessage("Transaction created::$txId")
+    }
+
+    private fun showCreateTransactionError(message: String) {
+        NCToastMessage(this).showError("Create transaction error due to $message")
     }
 
     companion object {
@@ -65,6 +107,7 @@ class TransactionConfirmActivity : BaseActivity() {
             availableAmount: Double,
             address: String,
             privateNote: String,
+            estimatedFee: Double,
             subtractFeeFromAmount: Boolean = false,
             manualFeeRate: Int = 0
         ) {
@@ -75,6 +118,7 @@ class TransactionConfirmActivity : BaseActivity() {
                     availableAmount = availableAmount,
                     address = address,
                     privateNote = privateNote,
+                    estimatedFee = estimatedFee,
                     subtractFeeFromAmount = subtractFeeFromAmount,
                     manualFeeRate = manualFeeRate
                 ).buildIntent(activityContext)
