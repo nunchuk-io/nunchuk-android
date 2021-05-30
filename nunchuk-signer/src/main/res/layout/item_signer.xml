@@ -10,7 +10,8 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="@dimen/nc_padding_16">
+        android:foreground="?attr/selectableItemBackground"
+        android:padding="@dimen/nc_padding_12">
 
         <ImageView
             android:id="@+id/icPin"
@@ -39,7 +40,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_16"
-            android:layout_marginTop="@dimen/nc_padding_12"
+            android:layout_marginTop="@dimen/nc_padding_8"
             android:background="@drawable/nc_rounded_whisper_background"
             android:paddingHorizontal="@dimen/nc_padding_8"
             android:paddingVertical="@dimen/nc_padding_4"
@@ -54,7 +55,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_16"
-            android:layout_marginTop="@dimen/nc_padding_12"
+            android:layout_marginTop="@dimen/nc_padding_8"
             android:textColor="@color/nc_black_color"
             android:textSize="@dimen/nc_text_size_14"
             app:layout_constraintStart_toEndOf="@+id/icPin"

@@ -5,11 +5,12 @@ import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
+import com.nunchuk.android.model.Amount
 import com.nunchuk.android.transaction.databinding.ActivityTransactionConfirmBinding
-import com.nunchuk.android.transaction.send.confirmation.TransactionConfirmEvent.CreateTxErrorEvent
-import com.nunchuk.android.transaction.send.confirmation.TransactionConfirmEvent.CreateTxSuccessEvent
+import com.nunchuk.android.transaction.send.confirmation.TransactionConfirmEvent.*
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
@@ -42,14 +43,15 @@ class TransactionConfirmActivity : BaseActivity() {
             address = args.address,
             sendAmount = args.outputAmount,
             estimateFee = args.estimatedFee,
-            subtractFeeFromAmount = args.subtractFeeFromAmount
+            subtractFeeFromAmount = args.subtractFeeFromAmount,
+            privateNote = args.privateNote,
+            manualFeeRate = args.manualFeeRate
         )
     }
 
 
     private fun observeEvent() {
         viewModel.event.observe(this, ::handleEvent)
-        viewModel.state.observe(this, ::handleState)
     }
 
     private fun setupViews() {
@@ -80,17 +82,27 @@ class TransactionConfirmActivity : BaseActivity() {
         }
     }
 
-    private fun handleState(state: TransactionConfirmState) {
-    }
-
     private fun handleEvent(event: TransactionConfirmEvent) {
         when (event) {
             is CreateTxErrorEvent -> showCreateTransactionError(event.message)
             is CreateTxSuccessEvent -> openTransactionDetailScreen(event.txId)
+            is UpdateChangeAddress -> bindChangAddress(event.address, event.amount)
         }
     }
 
+    private fun bindChangAddress(changeAddress: String, amount: Amount) {
+        binding.changeAddressLabel.text = changeAddress
+        binding.changeAddressBTC.text = amount.getBTCAmount()
+        binding.changeAddressUSD.text = amount.getUSDAmount()
+    }
+
     private fun openTransactionDetailScreen(txId: String) {
+        ActivityManager.instance.popUntilRoot()
+        navigator.openTransactionDetailsScreen(
+            activityContext = this,
+            walletId = args.walletId,
+            txId = txId
+        )
         NCToastMessage(this).showMessage("Transaction created::$txId")
     }
 

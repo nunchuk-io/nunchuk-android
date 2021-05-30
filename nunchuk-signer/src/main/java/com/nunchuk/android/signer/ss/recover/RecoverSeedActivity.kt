@@ -12,7 +12,6 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ActivityRecoverSeedBinding
 import com.nunchuk.android.signer.ss.recover.RecoverSeedEvent.*
-import com.nunchuk.android.widget.util.SimpleTextWatcher
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.heightExtended
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -81,7 +80,7 @@ class RecoverSeedActivity : BaseActivity() {
     }
 
     private fun setupViews() {
-        binding.mnemonic.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_180))
+        binding.mnemonic.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_60))
         binding.mnemonic.addTextChangedCallback(viewModel::handleInputEvent)
         adapter = RecoverSeedSuggestionAdapter(viewModel::handleSelectWord)
         binding.recyclerView.layoutManager = LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)

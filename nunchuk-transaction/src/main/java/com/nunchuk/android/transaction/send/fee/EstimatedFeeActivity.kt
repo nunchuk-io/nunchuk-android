@@ -82,7 +82,7 @@ class EstimatedFeeActivity : BaseActivity() {
         if (state.subtractFeeFromSendMoney) {
             bindSubtotal(args.outputAmount - state.estimatedFee.pureBTC())
         } else {
-            bindSubtotal(args.outputAmount)
+            bindSubtotal(args.outputAmount.coerceAtMost(args.availableAmount - state.estimatedFee.pureBTC()))
         }
 
         binding.customizeFeeDetails.isVisible = state.customizeFeeDetails

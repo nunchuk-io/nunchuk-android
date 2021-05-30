@@ -27,3 +27,5 @@ fun Double.getUSDAmount() = "$${fromBTCToUSD().formatDecimal()} USD"
 private fun Amount.fromBTCToUSD() = value * SATOSHI_BTC_EXCHANGE_RATE * BTC_USD_EXCHANGE_RATE
 
 fun Double.toAmount() = Amount().copy(value = (this / SATOSHI_BTC_EXCHANGE_RATE).toLong())
+
+fun Int.toAmount() = Amount().copy(value = this.toLong())

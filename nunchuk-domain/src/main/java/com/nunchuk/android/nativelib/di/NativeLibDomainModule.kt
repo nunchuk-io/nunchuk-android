@@ -1,6 +1,5 @@
 package com.nunchuk.android.nativelib.di
 
-import com.nunchuk.android.nativelib.LibNunchukAndroid
 import com.nunchuk.android.nativelib.LibNunchukFacade
 import com.nunchuk.android.usecase.*
 import dagger.Binds
@@ -152,6 +151,15 @@ internal interface NativeLibDomainModule {
     @Binds
     fun bindCheckAddressValidUseCase(useCase: CheckAddressValidUseCaseImpl): CheckAddressValidUseCase
 
+    @Binds
+    fun bindGetBlockchainExplorerUrlUseCase(useCase: GetBlockchainExplorerUrlUseCaseImpl): GetBlockchainExplorerUrlUseCase
+
+    @Binds
+    fun bindGetChainTipUseCase(useCase: GetChainTipUseCaseImpl): GetChainTipUseCase
+
+    @Binds
+    fun bindGetDeviceUseCase(useCase: GetDevicesUseCaseImpl): GetDevicesUseCase
+
     companion object {
 
         @Singleton
@@ -162,7 +170,7 @@ internal interface NativeLibDomainModule {
 }
 
 internal class LibNunchukProvider {
-    val libNunchuk = LibNunchukFacade(LibNunchukAndroid())
+    val libNunchuk = LibNunchukFacade()
 
     companion object {
         val instance = InstanceHolder.instance

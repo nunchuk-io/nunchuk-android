@@ -2,6 +2,7 @@ package com.nunchuk.android.transaction.nav
 
 import android.app.Activity
 import com.nunchuk.android.nav.TransactionNavigator
+import com.nunchuk.android.transaction.details.TransactionDetailsActivity
 import com.nunchuk.android.transaction.receive.ReceiveTransactionActivity
 import com.nunchuk.android.transaction.receive.address.details.AddressDetailsActivity
 import com.nunchuk.android.transaction.send.amount.InputAmountActivity
@@ -99,6 +100,14 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             subtractFeeFromAmount = subtractFeeFromAmount,
             manualFeeRate = manualFeeRate
         )
+    }
+
+    override fun openTransactionDetailsScreen(
+        activityContext: Activity,
+        walletId: String,
+        txId: String
+    ) {
+        TransactionDetailsActivity.start(activityContext, walletId, txId)
     }
 
 }
