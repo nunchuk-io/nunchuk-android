@@ -5,6 +5,7 @@ import android.os.StrictMode
 import androidx.appcompat.app.AppCompatActivity
 import com.nunchuk.android.arch.R
 import com.nunchuk.android.core.BuildConfig
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.utils.DisposableManager
 import dagger.android.AndroidInjection
@@ -28,11 +29,13 @@ abstract class BaseActivity : AppCompatActivity(), HasAndroidInjector {
         setupStrictMode()
         super.onCreate(savedInstanceState)
         overridePendingTransition(R.anim.enter, R.anim.exit)
+        ActivityManager.instance.add(this)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         DisposableManager.instance.dispose()
+        ActivityManager.instance.remove(this)
     }
 
     private fun setupStrictMode() {

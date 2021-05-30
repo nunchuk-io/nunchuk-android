@@ -41,6 +41,12 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukLightNoActionBarTheme"/>
 
+        <activity
+            android:name=".details.TransactionDetailsActivity"
+            android:label="@string/nc_transaction_details"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukLightNoActionBarTheme" />
+
     </application>
 
 </manifest>

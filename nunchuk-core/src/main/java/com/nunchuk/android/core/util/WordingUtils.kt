@@ -11,7 +11,7 @@ fun String.shorten(): String {
         }
         return "$initials"
     }
-    return if (length > 2) this.take(2) else this
+    return if (length > 2) "${first()} ${last()}" else this
 }
 
 fun String.lastWord(): String = if (this.contains(DELIMITERS)) {

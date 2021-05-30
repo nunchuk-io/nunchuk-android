@@ -2,11 +2,12 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Device
 import com.nunchuk.android.model.Result
+import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.LibNunchukFacade
 import javax.inject.Inject
 
 interface SignTransactionUseCase {
-    suspend fun execute(walletId: String, txId: String, device: Device): Result<Unit>
+    suspend fun execute(walletId: String, txId: String, device: Device): Result<Transaction>
 }
 
 internal class SignTransactionUseCaseImpl @Inject constructor(

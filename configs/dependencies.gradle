@@ -12,7 +12,6 @@ ext {
     espressoVersion = '3.1.0'
     dexMakerVersion = '1.4'
     androidDebugDatabaseVersion = '1.0.6'
-    zxingVersion = '3.2.0'
     gsonVersion = '2.8.2'
     androidTestVersion = '1.1.0'
 
@@ -178,8 +177,8 @@ ext {
     ]
 
     zxingDeps = [
-            zxingCore       : "com.google.zxing:core:${zxingVersion}@jar",
-            zxingAndroidCore: "com.google.zxing:android-core:${zxingVersion}",
+            zxingCore   : "com.google.zxing:core:3.2.0",
+            zxingAndroid: "com.journeyapps:zxing-android-embedded:3.1.0@aar",
     ]
 
     lifecycleDeps = [

@@ -6,7 +6,8 @@ import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.util.showToast
+import com.nunchuk.android.qr.QRCodeParser
+import com.nunchuk.android.qr.startQRCodeScan
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.add.AddSignerEvent.*
 import com.nunchuk.android.signer.databinding.ActivityAddSignerBinding
@@ -64,13 +65,20 @@ class AddSignerActivity : BaseActivity() {
             updateCounter(it.length)
         }
 
-        binding.addSignerViaQR.setOnClickListener { showToast("Scan QR coming soon") }
+        binding.addSignerViaQR.setOnClickListener { startQRCodeScan() }
         binding.signerSpec.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_180))
         binding.addSigner.setOnClickListener {
             viewModel.handleAddSigner(binding.signerName.getEditText(), binding.signerSpec.getEditText())
         }
         binding.toolbar.setNavigationOnClickListener {
             finish()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        QRCodeParser.parse(requestCode, resultCode, data)?.apply {
+            binding.signerSpec.getEditTextView().setText(this)
         }
     }
 

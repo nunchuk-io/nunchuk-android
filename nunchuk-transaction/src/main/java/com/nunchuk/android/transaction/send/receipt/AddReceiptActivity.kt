@@ -1,11 +1,14 @@
 package com.nunchuk.android.transaction.send.receipt
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.qr.QRCodeParser
+import com.nunchuk.android.qr.startQRCodeScan
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.ActivityTransactionAddReceiptBinding
 import com.nunchuk.android.transaction.send.receipt.AddReceiptEvent.*
@@ -51,12 +54,21 @@ class AddReceiptActivity : BaseActivity() {
         binding.privateNoteInput.setMaxLength(MAX_NOTE_LENGTH)
         binding.privateNoteInput.addTextChangedCallback(viewModel::handlePrivateNoteChanged)
 
+        binding.qrCode.setOnClickListener { startQRCodeScan() }
+
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
 
         binding.btnContinue.setOnClickListener {
             viewModel.handleContinueEvent()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        QRCodeParser.parse(requestCode, resultCode, data)?.apply {
+            binding.receiptInput.setText(this)
         }
     }
 

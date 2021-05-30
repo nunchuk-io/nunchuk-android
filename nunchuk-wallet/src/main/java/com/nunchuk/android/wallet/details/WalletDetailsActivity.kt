@@ -69,7 +69,9 @@ class WalletDetailsActivity : BaseActivity() {
     }
 
     private fun setupViews() {
-        adapter = TransactionAdapter {}
+        adapter = TransactionAdapter {
+            navigator.openTransactionDetailsScreen(this, args.walletId, it.txId)
+        }
         binding.transactionList.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
         binding.transactionList.adapter = adapter
 

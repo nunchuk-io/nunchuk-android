@@ -45,4 +45,10 @@ interface TransactionNavigator {
         manualFeeRate: Int = 0
     )
 
+    fun openTransactionDetailsScreen(
+        activityContext: Activity,
+        walletId: String,
+        txId: String
+    )
+
 }

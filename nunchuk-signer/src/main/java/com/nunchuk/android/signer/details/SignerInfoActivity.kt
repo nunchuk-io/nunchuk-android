@@ -99,7 +99,7 @@ class SignerInfoActivity : BaseActivity() {
         } else {
             binding.signerType.text = getString(R.string.nc_signer_type_air_gapped)
         }
-        binding.toolbar.setOnClickListener { openMainScreen() }
+        binding.toolbar.setNavigationOnClickListener { openMainScreen() }
         binding.btnDone.setOnClickListener { openMainScreen() }
         binding.btnRemove.setOnClickListener { viewModel.handleRemoveSigner() }
         binding.signerName.setOnClickListener { onEditClicked() }
