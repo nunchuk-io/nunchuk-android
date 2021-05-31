@@ -53,5 +53,6 @@
     <string name="nc_transaction_signed">Signed</string>
     <string name="nc_transaction_sign">Sign</string>
     <string name="nc_transaction_view_blockchain">View on Blockchain Explorer</string>
+    <string name="nc_transaction_enter_passphrase">Enter your passphrase</string>
 
 </resources>
