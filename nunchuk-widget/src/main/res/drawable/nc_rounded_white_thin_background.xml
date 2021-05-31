@@ -4,9 +4,6 @@
 
     <corners android:radius="@dimen/nc_padding_8" />
 
-    <gradient
-        android:angle="0"
-        android:endColor="@color/nc_primary_color"
-        android:startColor="@color/nc_primary_light_color"
-        android:type="linear" />
+    <solid android:color="@color/nc_white_color" />
+
 </shape>
