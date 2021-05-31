@@ -177,8 +177,8 @@ ext {
     ]
 
     zxingDeps = [
-            zxingCore   : "com.google.zxing:core:3.2.0",
-            zxingAndroid: "com.journeyapps:zxing-android-embedded:3.1.0@aar",
+            zxingCore   : "com.google.zxing:core:3.3.0",
+            zxingAndroid: "com.journeyapps:zxing-android-embedded:4.2.0",
     ]
 
     lifecycleDeps = [

@@ -51,4 +51,10 @@ interface TransactionNavigator {
         txId: String
     )
 
+    fun openExportTransactionScreen(
+        activityContext: Activity,
+        walletId: String,
+        txId: String
+    )
+
 }

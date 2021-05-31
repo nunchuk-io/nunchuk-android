@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
 import com.nunchuk.android.wallet.databinding.ActivityWalletDynamicQrBinding
+import com.nunchuk.android.widget.util.setLightStatusBar
 
 class DynamicQRCodeActivity : AppCompatActivity() {
 
@@ -20,6 +21,8 @@ class DynamicQRCodeActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setLightStatusBar()
 
         binding = ActivityWalletDynamicQrBinding.inflate(layoutInflater)
         setContentView(binding.root)

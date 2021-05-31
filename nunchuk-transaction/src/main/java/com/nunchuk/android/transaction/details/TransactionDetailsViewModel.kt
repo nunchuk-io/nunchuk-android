@@ -23,19 +23,31 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val signTransactionUseCase: SignTransactionUseCase,
     private val broadcastTransactionUseCase: BroadcastTransactionUseCase,
-    private val sendSignerPassphrase: SendSignerPassphrase
+    private val sendSignerPassphrase: SendSignerPassphrase,
+    private val getChainTipUseCase: GetChainTipUseCase
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
 
     private lateinit var walletId: String
     private lateinit var txId: String
     private var remoteSigners: List<SingleSigner> = emptyList()
     private var masterSigners: List<MasterSigner> = emptyList()
+    private var chainTip: Int = -1
 
     override val initialState = TransactionDetailsState()
 
     fun init(walletId: String, txId: String) {
         this.walletId = walletId
         this.txId = txId
+        getChainTip()
+    }
+
+    private fun getChainTip() {
+        viewModelScope.launch {
+            chainTip = when (val result = getChainTipUseCase.execute()) {
+                is Error -> -1
+                is Success -> result.data
+            }
+        }
     }
 
     fun getTransactionInfo() {
@@ -58,8 +70,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     private fun onRetrieveTransactionSuccess(transaction: Transaction) {
-        updateState { copy(transaction = transaction) }
-        val signers = transaction.signers
+        updateTransaction(transaction)
+    }
+
+    private fun updateTransaction(transaction: Transaction) {
+        val updatedTransaction = transaction.copy(height = transaction.getConfirmations())
+        updateState { copy(transaction = updatedTransaction) }
+        val signers = updatedTransaction.signers
         if (signers.isNotEmpty()) {
             val signedMasterSigners = masterSigners.filter { it.device.masterFingerprint in signers }.map(MasterSigner::toModel)
             val signedRemoteSigners = remoteSigners.filter { it.masterFingerprint in signers }.map(SingleSigner::toModel)
@@ -75,7 +92,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = broadcastTransactionUseCase.execute(walletId, txId)) {
                 is Success -> {
-                    updateState { copy(transaction = result.data) }
+                    updateTransaction(result.data)
                     event(BroadcastTransactionSuccess)
                 }
                 is Error -> event(TransactionDetailsError(result.exception.message.orEmpty()))
@@ -127,11 +144,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private suspend fun signTransaction(device: Device) {
         when (val result = signTransactionUseCase.execute(walletId, txId, device)) {
             is Success -> {
-                updateState { copy(transaction = result.data) }
+                updateTransaction(result.data)
                 event(SignTransactionSuccess)
             }
             is Error -> event(TransactionDetailsError(result.exception.message.orEmpty()))
         }
     }
+
+    private fun Transaction.getConfirmations(): Int = if (height > 0) (chainTip - height + 1) else height
 
 }

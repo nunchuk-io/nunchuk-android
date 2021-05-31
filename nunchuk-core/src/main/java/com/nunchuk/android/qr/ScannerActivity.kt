@@ -6,13 +6,13 @@ import com.google.zxing.integration.android.IntentIntegrator
 import com.journeyapps.barcodescanner.CaptureActivity
 
 // Customize later
-class ScannerActivity : CaptureActivity()
+open class ScannerActivity : CaptureActivity()
 
 fun Activity.startQRCodeScan() {
     val scanIntegrator = IntentIntegrator(this)
     scanIntegrator.setPrompt("Nunchuk")
     scanIntegrator.setBeepEnabled(true)
-    scanIntegrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES)
+    scanIntegrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
     scanIntegrator.captureActivity = ScannerActivity::class.java
     scanIntegrator.setOrientationLocked(true)
     scanIntegrator.setBarcodeImageEnabled(true)
