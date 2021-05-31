@@ -16,6 +16,7 @@ import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
 import com.nunchuk.android.transaction.details.TransactionDetailsEvent.*
+import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.toDisplayedText
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
@@ -95,7 +96,12 @@ class TransactionDetailsActivity : BaseActivity() {
         } else {
             binding.signatureStatus.text = getString(R.string.nc_transaction_enough_signers)
         }
-        binding.status.text = transaction.status.toDisplayedText(this)
+        if (transaction.status == TransactionStatus.CONFIRMED) {
+            val confirmText = "${transaction.height} ${getString(R.string.nc_transaction_confirmations)}"
+            binding.status.text = confirmText
+        } else {
+            binding.status.text = transaction.status.toDisplayedText(this)
+        }
         binding.sendingBTC.text = transaction.subAmount.getBTCAmount()
         binding.signersContainer.isVisible = !transaction.isReceive
         binding.btnBroadcast.isVisible = transaction.status.canBroadCast()

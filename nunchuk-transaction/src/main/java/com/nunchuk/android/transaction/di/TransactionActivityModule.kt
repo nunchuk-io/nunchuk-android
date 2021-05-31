@@ -2,6 +2,8 @@ package com.nunchuk.android.transaction.di
 
 import com.nunchuk.android.transaction.details.TransactionDetailsActivity
 import com.nunchuk.android.transaction.details.TransactionDetailsModule
+import com.nunchuk.android.transaction.export.ExportTransactionActivity
+import com.nunchuk.android.transaction.export.ExportTransactionModule
 import com.nunchuk.android.transaction.receive.ReceiveTransactionActivity
 import com.nunchuk.android.transaction.receive.ReceiveTransactionModule
 import com.nunchuk.android.transaction.receive.address.details.AddressDetailsActivity
@@ -40,5 +42,8 @@ internal interface TransactionActivityModule {
 
     @ContributesAndroidInjector(modules = [TransactionDetailsModule::class])
     fun transactionDetailActivity(): TransactionDetailsActivity
+
+    @ContributesAndroidInjector(modules = [ExportTransactionModule::class])
+    fun exportTransactionActivity(): ExportTransactionActivity
 
 }
