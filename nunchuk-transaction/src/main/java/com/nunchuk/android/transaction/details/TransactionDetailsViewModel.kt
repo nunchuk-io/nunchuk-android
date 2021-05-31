@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.model.Device
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
@@ -21,7 +22,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getTransactionUseCase: GetTransactionUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val signTransactionUseCase: SignTransactionUseCase,
-    private val broadcastTransactionUseCase: BroadcastTransactionUseCase
+    private val broadcastTransactionUseCase: BroadcastTransactionUseCase,
+    private val sendSignerPassphrase: SendSignerPassphrase
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
 
     private lateinit var walletId: String
@@ -34,10 +36,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
     fun init(walletId: String, txId: String) {
         this.walletId = walletId
         this.txId = txId
-        getTransactionInfo()
     }
 
-    private fun getTransactionInfo() {
+    fun getTransactionInfo() {
         viewModelScope.launch {
             masterSigners = when (val result = getMasterSignersUseCase.execute()) {
                 is Success -> result.data
@@ -102,18 +103,34 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun handleSignEvent(signer: SignerModel) {
         if (signer.software) {
-            val fingerPrint = signer.fingerPrint
             viewModelScope.launch {
-                when (val result = signTransactionUseCase.execute(walletId, txId, masterSigners.first { it.device.masterFingerprint == fingerPrint }.device)) {
-                    is Success -> {
-                        updateState { copy(transaction = result.data) }
-                        event(SignTransactionSuccess)
-                    }
-                    is Error -> event(TransactionDetailsError(result.exception.message.orEmpty()))
+                val fingerPrint = signer.fingerPrint
+                val device = masterSigners.first { it.device.masterFingerprint == fingerPrint }.device
+                if (device.needPassPhraseSent) {
+                    event(PromptInputPassphrase {
+                        viewModelScope.launch {
+                            when (val result = sendSignerPassphrase.execute(signer.id, it)) {
+                                is Success -> signTransaction(device)
+                                is Error -> event(TransactionDetailsError(result.exception.message.orEmpty()))
+                            }
+                        }
+                    })
+                } else {
+                    signTransaction(device)
                 }
             }
         } else {
             // FIXME
+        }
+    }
+
+    private suspend fun signTransaction(device: Device) {
+        when (val result = signTransactionUseCase.execute(walletId, txId, device)) {
+            is Success -> {
+                updateState { copy(transaction = result.data) }
+                event(SignTransactionSuccess)
+            }
+            is Error -> event(TransactionDetailsError(result.exception.message.orEmpty()))
         }
     }
 

@@ -160,6 +160,9 @@ internal interface NativeLibDomainModule {
     @Binds
     fun bindGetDeviceUseCase(useCase: GetDevicesUseCaseImpl): GetDevicesUseCase
 
+    @Binds
+    fun bindSendSignerPassphrase(useCase: SendSignerPassphraseImpl): SendSignerPassphrase
+
     companion object {
 
         @Singleton

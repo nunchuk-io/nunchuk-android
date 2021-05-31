@@ -17,6 +17,7 @@ import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
 import com.nunchuk.android.transaction.details.TransactionDetailsEvent.*
 import com.nunchuk.android.utils.toDisplayedText
+import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
@@ -45,6 +46,11 @@ class TransactionDetailsActivity : BaseActivity() {
         setupViews()
         observeEvent()
         viewModel.init(walletId = args.walletId, txId = args.txId)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.getTransactionInfo()
     }
 
     private fun observeEvent() {
@@ -103,7 +109,15 @@ class TransactionDetailsActivity : BaseActivity() {
             DeleteTransactionSuccess -> showTransactionDeleteSuccess()
             is ViewBlockchainExplorer -> openExternalLink(event.url)
             is TransactionDetailsError -> showError(event.message)
+            is PromptInputPassphrase -> requireInputPassphrase(event.func)
         }
+    }
+
+    private fun requireInputPassphrase(func: (String) -> Unit) {
+        NCInputDialog(this).showDialog(
+            title = getString(R.string.nc_transaction_enter_passphrase),
+            onConfirmed = func
+        )
     }
 
     private fun showSignTransactionSuccess() {
