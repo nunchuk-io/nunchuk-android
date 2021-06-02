@@ -12,6 +12,7 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.extensions.canBroadCast
+import com.nunchuk.android.extensions.isCompleted
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
@@ -105,7 +106,7 @@ class TransactionDetailsActivity : BaseActivity() {
         binding.sendingBTC.text = transaction.subAmount.getBTCAmount()
         binding.signersContainer.isVisible = !transaction.isReceive
         binding.btnBroadcast.isVisible = transaction.status.canBroadCast()
-        binding.btnViewBlockChain.isVisible = transaction.isReceive
+        binding.btnViewBlockChain.isVisible = transaction.isReceive || transaction.status.isCompleted()
     }
 
     private fun handleEvent(event: TransactionDetailsEvent) {
@@ -169,4 +170,3 @@ class TransactionDetailsActivity : BaseActivity() {
     }
 
 }
-

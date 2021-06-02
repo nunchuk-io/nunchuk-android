@@ -41,6 +41,8 @@ class DynamicQRCodeActivity : AppCompatActivity() {
         bitmaps = args.values.mapNotNull(String::convertToQRCode)
         binding.btnClose.setOnClickListener { finish() }
         handler.post(updateTextTask)
+
+        binding.toolbar.setNavigationOnClickListener { finish() }
     }
 
     private fun bindQrCodes() {

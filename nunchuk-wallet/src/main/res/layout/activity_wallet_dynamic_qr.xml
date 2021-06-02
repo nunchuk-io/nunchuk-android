@@ -3,8 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="@dimen/nc_padding_16">
+    android:layout_height="match_parent">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
@@ -53,7 +52,9 @@
         android:padding="@dimen/nc_padding_16"
         android:text="@string/nc_text_close"
         android:textAllCaps="false"
+        android:textSize="@dimen/nc_text_size_18"
         android:textColor="@color/nc_white_color"
+        app:fontTextStyle="semi_bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 

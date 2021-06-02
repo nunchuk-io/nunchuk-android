@@ -1,5 +1,6 @@
 package com.nunchuk.android.core.base
 
+import android.app.Dialog
 import android.os.Bundle
 import android.os.StrictMode
 import androidx.appcompat.app.AppCompatActivity
@@ -8,6 +9,7 @@ import com.nunchuk.android.core.BuildConfig
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.utils.DisposableManager
+import com.nunchuk.android.widget.NCLoadingDialogCreator
 import dagger.android.AndroidInjection
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
@@ -22,7 +24,21 @@ abstract class BaseActivity : AppCompatActivity(), HasAndroidInjector {
     @Inject
     lateinit var navigator: NunchukNavigator
 
+    @Inject
+    lateinit var ncLoadingDialog: NCLoadingDialogCreator
+
     override fun androidInjector(): AndroidInjector<Any> = androidInjector
+
+    private var dialog: Dialog? = null
+
+    protected fun showLoading() {
+        dialog?.cancel()
+        dialog = ncLoadingDialog.showDialog()
+    }
+
+    protected fun hideLoading() {
+        dialog?.cancel()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         AndroidInjection.inject(this)
@@ -36,6 +52,7 @@ abstract class BaseActivity : AppCompatActivity(), HasAndroidInjector {
         super.onDestroy()
         DisposableManager.instance.dispose()
         ActivityManager.instance.remove(this)
+        dialog?.cancel()
     }
 
     private fun setupStrictMode() {

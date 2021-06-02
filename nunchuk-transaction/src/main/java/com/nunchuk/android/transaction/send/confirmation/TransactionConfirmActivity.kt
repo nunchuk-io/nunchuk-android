@@ -38,6 +38,9 @@ class TransactionConfirmActivity : BaseActivity() {
 
         setupViews()
         observeEvent()
+
+        showLoading()
+
         viewModel.init(
             walletId = args.walletId,
             address = args.address,
@@ -48,7 +51,6 @@ class TransactionConfirmActivity : BaseActivity() {
             manualFeeRate = args.manualFeeRate
         )
     }
-
 
     private fun observeEvent() {
         viewModel.event.observe(this, ::handleEvent)
@@ -74,6 +76,7 @@ class TransactionConfirmActivity : BaseActivity() {
         binding.noteContent.text = args.privateNote
 
         binding.btnConfirm.setOnClickListener {
+            showLoading()
             viewModel.handleConfirmEvent()
         }
 
@@ -91,12 +94,14 @@ class TransactionConfirmActivity : BaseActivity() {
     }
 
     private fun bindChangAddress(changeAddress: String, amount: Amount) {
+        hideLoading()
         binding.changeAddressLabel.text = changeAddress
         binding.changeAddressBTC.text = amount.getBTCAmount()
         binding.changeAddressUSD.text = amount.getUSDAmount()
     }
 
     private fun openTransactionDetailScreen(txId: String) {
+        hideLoading()
         ActivityManager.instance.popUntilRoot()
         navigator.openTransactionDetailsScreen(
             activityContext = this,
@@ -107,6 +112,7 @@ class TransactionConfirmActivity : BaseActivity() {
     }
 
     private fun showCreateTransactionError(message: String) {
+        hideLoading()
         NCToastMessage(this).showError("Create transaction error due to $message")
     }
 
