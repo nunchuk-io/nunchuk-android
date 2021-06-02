@@ -7,7 +7,7 @@ import com.nunchuk.android.core.base.BaseViewHolder
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.utils.formatDate
+import com.nunchuk.android.utils.getFormatDate
 import com.nunchuk.android.utils.toDisplayedText
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.ItemTransactionBinding
@@ -58,7 +58,7 @@ internal class TransactionViewHolder(
             binding.receiverName.text = data.outputs.first().first
         }
         binding.status.text = data.status.toDisplayedText(context)
-        binding.date.text = data.blockTime.formatDate()
+        binding.date.text = data.getFormatDate()
 
         binding.root.setOnClickListener { onItemSelectedListener(data) }
     }

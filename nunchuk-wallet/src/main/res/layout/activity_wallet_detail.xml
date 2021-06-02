@@ -166,6 +166,71 @@
             app:layout_constraintTop_toBottomOf="@+id/viewWalletConfig" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <LinearLayout
+        android:id="@+id/emptyTxContainer"
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/headerContainer" >
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/emptyTransactionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_marginTop="@dimen/nc_padding_8"
+            android:paddingHorizontal="@dimen/nc_padding_16"
+            android:paddingVertical="@dimen/nc_padding_4"
+            android:text="@string/nc_transaction_emtpy_title"
+            android:textColor="@color/nc_primary_dark_color"
+            android:textSize="@dimen/nc_text_size_16"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/headerContainer" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/nc_padding_16"
+            app:cardCornerRadius="@dimen/nc_padding_8"
+            app:cardUseCompatPadding="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingVertical="@dimen/nc_padding_16">
+
+                <ImageView
+                    android:id="@+id/addressQR"
+                    android:layout_width="180dp"
+                    android:layout_height="180dp"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="@dimen/nc_padding_16"
+                    android:src="@drawable/ic_qr"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/emptyTransactionTitle" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/addressText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_8"
+                    android:paddingHorizontal="@dimen/nc_padding_16"
+                    android:paddingVertical="@dimen/nc_padding_4"
+                    android:text="bc1qepuayeutds0ys0q82g3ucad7r0eqk0dpusmxwvlpn5wkjcmhv6sqyulylk"
+                    android:textColor="@color/nc_primary_dark_color"
+                    android:textSize="@dimen/nc_text_size_16"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/headerContainer" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/transactionTitle"
         android:layout_width="match_parent"
@@ -176,6 +241,7 @@
         android:text="@string/nc_transaction"
         android:textColor="@color/nc_primary_dark_color"
         android:textSize="@dimen/nc_text_size_16"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/headerContainer" />
@@ -186,6 +252,7 @@
         android:layout_height="0dp"
         android:layout_marginTop="@dimen/nc_padding_8"
         android:paddingHorizontal="@dimen/nc_padding_16"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/transactionTitle"

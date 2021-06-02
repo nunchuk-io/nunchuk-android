@@ -65,6 +65,7 @@ class SignerInfoActivity : BaseActivity() {
         binding.signerSpec.isVisible = true
         binding.signerSpec.text = signer.toSpec()
         binding.fingerprint.isVisible = false
+        binding.btnRemove.isVisible = !signer.used
     }
 
     private fun handleEvent(event: SignerInfoEvent) {
