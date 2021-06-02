@@ -6,14 +6,15 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.*
+import com.nunchuk.android.qr.convertToQRCode
 import com.nunchuk.android.utils.setUnderline
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.ActivityWalletDetailBinding
-import com.nunchuk.android.wallet.details.WalletDetailsEvent.SendMoneyEvent
-import com.nunchuk.android.wallet.details.WalletDetailsEvent.WalletDetailsError
+import com.nunchuk.android.wallet.details.WalletDetailsEvent.*
 import javax.inject.Inject
 
 class WalletDetailsActivity : BaseActivity() {
@@ -52,6 +53,17 @@ class WalletDetailsActivity : BaseActivity() {
         when (event) {
             is WalletDetailsError -> Toast.makeText(applicationContext, event.message, Toast.LENGTH_SHORT).show()
             is SendMoneyEvent -> navigator.openInputAmountScreen(this, args.walletId, event.amount.pureBTC())
+            is UpdateUnusedAddress -> bindUnusedAddress(event.address)
+        }
+    }
+
+    private fun bindUnusedAddress(address: String) {
+        if (address.isEmpty()) {
+            binding.emptyTxContainer.isVisible = false
+        } else {
+            binding.emptyTxContainer.isVisible = true
+            binding.addressQR.setImageBitmap(address.convertToQRCode())
+            binding.addressText.text = address
         }
     }
 
@@ -66,6 +78,10 @@ class WalletDetailsActivity : BaseActivity() {
         binding.btnSend.isClickable = state.wallet.balance.value > 0
 
         adapter.items = state.transactions
+        val emptyTransactions = state.transactions.isEmpty()
+        binding.emptyTxContainer.isVisible = emptyTransactions
+        binding.transactionTitle.isVisible = !emptyTransactions
+        binding.transactionList.isVisible = !emptyTransactions
     }
 
     private fun setupViews() {
