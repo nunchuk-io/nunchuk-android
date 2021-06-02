@@ -1,5 +1,7 @@
 package com.nunchuk.android.core.util
 
+fun Exception.messageOrUnknownError() = message ?: "Unknown Error"
+
 fun String?.orUnknownError() = this ?: "Unknown Error"
 
 const val BTC_USD_EXCHANGE_RATE = 45000

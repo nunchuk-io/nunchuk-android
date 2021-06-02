@@ -69,9 +69,6 @@ class SignUpActivity : BaseActivity() {
         openLoginScreen()
     }
 
-    private fun showLoading() {
-    }
-
     private fun hideNameError() {
         binding.name.hideError()
     }
