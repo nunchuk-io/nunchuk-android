@@ -1,5 +1,6 @@
 package com.nunchuk.android.utils
 
+import com.nunchuk.android.model.Transaction
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -15,3 +16,5 @@ fun Number.formatDecimal(): String {
         maximumFractionDigits = MAX_FRACTION_DIGITS
     }.format(this)
 }
+
+fun Transaction.getFormatDate(): String = if (blockTime <= 0) "" else (blockTime).formatDate()
