@@ -1,7 +1,7 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Result
-import com.nunchuk.android.nativelib.LibNunchukFacade
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import javax.inject.Inject
 
 interface CheckMnemonicUseCase {
@@ -9,9 +9,9 @@ interface CheckMnemonicUseCase {
 }
 
 internal class CheckMnemonicUseCaseImpl @Inject constructor(
-    private val nunchukFacade: LibNunchukFacade
+    private val nativeSdk: NunchukNativeSdk
 ) : BaseUseCase(), CheckMnemonicUseCase {
 
-    override suspend fun execute(mnemonic: String) = exe { nunchukFacade.checkMnemonic(mnemonic) }
+    override suspend fun execute(mnemonic: String) = exe { nativeSdk.checkMnemonic(mnemonic) }
 
 }

@@ -117,7 +117,12 @@ class TransactionDetailsActivity : BaseActivity() {
             is ViewBlockchainExplorer -> openExternalLink(event.url)
             is TransactionDetailsError -> showError(event.message)
             is PromptInputPassphrase -> requireInputPassphrase(event.func)
+            ExportTransaction -> openExportTransactionScreen()
         }
+    }
+
+    private fun openExportTransactionScreen() {
+        navigator.openExportTransactionScreen(this, args.walletId, args.txId)
     }
 
     private fun requireInputPassphrase(func: (String) -> Unit) {

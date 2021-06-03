@@ -2,7 +2,7 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.nativelib.LibNunchukFacade
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import javax.inject.Inject
@@ -16,7 +16,7 @@ interface GetUnusedSignerFromMasterSignerUseCase {
 }
 
 internal class GetUnusedSignerFromMasterSignerUseCaseImpl @Inject constructor(
-    private val nunchukAndroid: LibNunchukFacade
+    private val nativeSdk: NunchukNativeSdk
 ) : BaseUseCase(), GetUnusedSignerFromMasterSignerUseCase {
 
     override suspend fun execute(
@@ -24,7 +24,7 @@ internal class GetUnusedSignerFromMasterSignerUseCaseImpl @Inject constructor(
         walletType: WalletType,
         addressType: AddressType
     ) = exe {
-        nunchukAndroid.getUnusedSignerFromMasterSigner(
+        nativeSdk.getUnusedSignerFromMasterSigner(
             masterSignerId,
             walletType,
             addressType

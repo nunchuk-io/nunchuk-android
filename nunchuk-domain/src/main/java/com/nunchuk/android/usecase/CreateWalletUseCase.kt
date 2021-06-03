@@ -3,7 +3,7 @@ package com.nunchuk.android.usecase
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.nativelib.LibNunchukFacade
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.type.AddressType
 import javax.inject.Inject
 
@@ -19,7 +19,7 @@ interface CreateWalletUseCase {
 }
 
 internal class CreateWalletUseCaseImpl @Inject constructor(
-    private val nunchukFacade: LibNunchukFacade
+    private val nativeSdk: NunchukNativeSdk
 ) : BaseUseCase(), CreateWalletUseCase {
 
     override suspend fun execute(
@@ -30,7 +30,7 @@ internal class CreateWalletUseCaseImpl @Inject constructor(
         isEscrow: Boolean,
         description: String
     ) = exe {
-        nunchukFacade.createWallet(
+        nativeSdk.createWallet(
             name = name,
             totalRequireSigns = totalRequireSigns,
             signers = signers,

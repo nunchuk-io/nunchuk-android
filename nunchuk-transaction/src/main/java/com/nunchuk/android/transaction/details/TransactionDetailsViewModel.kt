@@ -138,6 +138,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             }
         } else {
             // FIXME
+            event(ExportTransaction)
         }
     }
 

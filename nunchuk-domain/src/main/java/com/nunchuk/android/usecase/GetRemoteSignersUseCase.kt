@@ -2,7 +2,7 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.nativelib.LibNunchukFacade
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import javax.inject.Inject
 
 interface GetRemoteSignersUseCase {
@@ -10,9 +10,9 @@ interface GetRemoteSignersUseCase {
 }
 
 internal class GetRemoteSignersUseCaseImpl @Inject constructor(
-    val libNunchukFacade: LibNunchukFacade
+    private val nativeSdk: NunchukNativeSdk
 ) : BaseUseCase(), GetRemoteSignersUseCase {
 
-    override suspend fun execute() = exe { libNunchukFacade.getRemoteSigners() }
+    override suspend fun execute() = exe { nativeSdk.getRemoteSigners() }
 
 }

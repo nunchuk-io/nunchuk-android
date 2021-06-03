@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.ActivityTransactionInputAmountBinding
 import com.nunchuk.android.transaction.send.amount.InputAmountEvent.*
@@ -41,7 +43,6 @@ class InputAmountActivity : BaseActivity() {
         viewModel.init(args.availableAmount)
     }
 
-
     private fun observeEvent() {
         viewModel.event.observe(this, ::handleEvent)
         viewModel.state.observe(this, ::handleState)
@@ -60,6 +61,8 @@ class InputAmountActivity : BaseActivity() {
         binding.btnContinue.setOnClickListener {
             viewModel.handleContinueEvent()
         }
+        binding.amountBTC.text = args.availableAmount.getBTCAmount()
+        binding.amountUSD.text = args.availableAmount.getUSDAmount()
     }
 
     private fun openAddReceiptScreen(outputAmount: Double) {

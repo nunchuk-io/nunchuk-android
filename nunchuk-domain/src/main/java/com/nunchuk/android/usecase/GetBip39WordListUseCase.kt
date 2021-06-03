@@ -1,7 +1,7 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Result
-import com.nunchuk.android.nativelib.LibNunchukFacade
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import javax.inject.Inject
 
 interface GetBip39WordListUseCase {
@@ -9,9 +9,9 @@ interface GetBip39WordListUseCase {
 }
 
 internal class GetBip39WordListUseCaseImpl @Inject constructor(
-    private val nunchukFacade: LibNunchukFacade
+    private val nativeSdk: NunchukNativeSdk
 ) : BaseUseCase(), GetBip39WordListUseCase {
 
-    override suspend fun execute() = exe { nunchukFacade.getBip39WordList() }
+    override suspend fun execute() = exe { nativeSdk.getBip39WordList() }
 
 }

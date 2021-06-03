@@ -2,7 +2,7 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.nativelib.LibNunchukFacade
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import javax.inject.Inject
 
 interface GetWalletsUseCase {
@@ -10,10 +10,10 @@ interface GetWalletsUseCase {
 }
 
 internal class GetWalletsUseCaseImpl @Inject constructor(
-    private val facade: LibNunchukFacade
+    private val nativeSdk: NunchukNativeSdk
 ) : BaseUseCase(), GetWalletsUseCase {
 
-    override suspend fun execute() = exe { facade.getWallets() }
+    override suspend fun execute() = exe { nativeSdk.getWallets() }
 
 }
 

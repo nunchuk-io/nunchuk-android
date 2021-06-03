@@ -2,7 +2,7 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Result
-import com.nunchuk.android.nativelib.LibNunchukFacade
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import javax.inject.Inject
 
 interface ValueFromAmountUseCase {
@@ -10,11 +10,11 @@ interface ValueFromAmountUseCase {
 }
 
 internal class ValueFromAmountUseCaseImpl @Inject constructor(
-    private val nunchukFacade: LibNunchukFacade
+    private val nativeSdk: NunchukNativeSdk
 ) : BaseUseCase(), ValueFromAmountUseCase {
 
     override suspend fun execute(amount: Amount) = exe {
-        nunchukFacade.valueFromAmount(amount)
+        nativeSdk.valueFromAmount(amount)
     }
 
 }

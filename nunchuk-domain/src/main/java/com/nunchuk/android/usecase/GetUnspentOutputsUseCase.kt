@@ -2,7 +2,7 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.UnspentOutput
-import com.nunchuk.android.nativelib.LibNunchukFacade
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import javax.inject.Inject
 
 interface GetUnspentOutputsUseCase {
@@ -10,11 +10,11 @@ interface GetUnspentOutputsUseCase {
 }
 
 internal class GetUnspentOutputsUseCaseImpl @Inject constructor(
-    private val nunchukFacade: LibNunchukFacade
+    private val nativeSdk: NunchukNativeSdk
 ) : BaseUseCase(), GetUnspentOutputsUseCase {
 
     override suspend fun execute(walletId: String) = exe {
-        nunchukFacade.getUnspentOutputs(walletId)
+        nativeSdk.getUnspentOutputs(walletId)
     }
 
 }

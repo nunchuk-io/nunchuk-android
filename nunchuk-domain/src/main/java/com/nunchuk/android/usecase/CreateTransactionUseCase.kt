@@ -4,7 +4,7 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
-import com.nunchuk.android.nativelib.LibNunchukFacade
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import javax.inject.Inject
 
 interface CreateTransactionUseCase {
@@ -19,7 +19,7 @@ interface CreateTransactionUseCase {
 }
 
 internal class CreateTransactionUseCaseImpl @Inject constructor(
-    private val nunchukFacade: LibNunchukFacade
+    private val nativeSdk: NunchukNativeSdk
 ) : BaseUseCase(), CreateTransactionUseCase {
     override suspend fun execute(
         walletId: String,
@@ -29,7 +29,7 @@ internal class CreateTransactionUseCaseImpl @Inject constructor(
         feeRate: Amount,
         subtractFeeFromAmount: Boolean
     ) = exe {
-        nunchukFacade.createTransactionUseCase(
+        nativeSdk.createTransactionUseCase(
             walletId = walletId,
             outputs = outputs,
             memo = memo,
