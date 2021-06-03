@@ -1,7 +1,7 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Result
-import com.nunchuk.android.nativelib.LibNunchukFacade
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import javax.inject.Inject
 
 interface ExportCoboTransactionUseCase {
@@ -9,11 +9,11 @@ interface ExportCoboTransactionUseCase {
 }
 
 internal class ExportCoboTransactionUseCaseImpl @Inject constructor(
-    private val nunchukFacade: LibNunchukFacade
+    private val nativeSdk: NunchukNativeSdk
 ) : BaseUseCase(), ExportCoboTransactionUseCase {
 
     override suspend fun execute(walletId: String, txId: String) = exe {
-        nunchukFacade.exportCoboTransaction(walletId = walletId, txId = txId)
+        nativeSdk.exportCoboTransaction(walletId = walletId, txId = txId)
     }
 
 }

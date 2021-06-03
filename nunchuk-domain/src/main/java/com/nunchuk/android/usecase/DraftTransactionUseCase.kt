@@ -4,7 +4,7 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
-import com.nunchuk.android.nativelib.LibNunchukFacade
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import javax.inject.Inject
 
 interface DraftTransactionUseCase {
@@ -18,7 +18,7 @@ interface DraftTransactionUseCase {
 }
 
 internal class DraftTransactionUseCaseImpl @Inject constructor(
-    private val nunchukFacade: LibNunchukFacade
+    private val nativeSdk: NunchukNativeSdk
 ) : BaseUseCase(), DraftTransactionUseCase {
     override suspend fun execute(
         walletId: String,
@@ -27,7 +27,7 @@ internal class DraftTransactionUseCaseImpl @Inject constructor(
         feeRate: Amount,
         subtractFeeFromAmount: Boolean
     ) = exe {
-        nunchukFacade.draftTransaction(
+        nativeSdk.draftTransaction(
             walletId = walletId,
             outputs = outputs,
             inputs = inputs,

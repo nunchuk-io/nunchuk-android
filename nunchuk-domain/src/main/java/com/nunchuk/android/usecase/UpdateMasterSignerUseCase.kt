@@ -2,7 +2,7 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.Result
-import com.nunchuk.android.nativelib.LibNunchukFacade
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import javax.inject.Inject
 
 interface UpdateMasterSignerUseCase {
@@ -10,8 +10,8 @@ interface UpdateMasterSignerUseCase {
 }
 
 internal class UpdateMasterSignerUseCaseImpl @Inject constructor(
-    private val nunchukFacade: LibNunchukFacade
+    private val nativeSdk: NunchukNativeSdk
 ) : BaseUseCase(), UpdateMasterSignerUseCase {
-    override suspend fun execute(masterSigner: MasterSigner) = exe { nunchukFacade.updateMasterSigner(masterSigner) }
+    override suspend fun execute(masterSigner: MasterSigner) = exe { nativeSdk.updateMasterSigner(masterSigner) }
 
 }

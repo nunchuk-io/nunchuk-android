@@ -10,6 +10,7 @@ sealed class TransactionDetailsEvent {
     data class PromptInputPassphrase(val func: (String) -> Unit) : TransactionDetailsEvent()
     data class TransactionDetailsError(val message: String) : TransactionDetailsEvent()
     data class ViewBlockchainExplorer(val url: String) : TransactionDetailsEvent()
+    object ExportTransaction : TransactionDetailsEvent()
 }
 
 data class TransactionDetailsState(

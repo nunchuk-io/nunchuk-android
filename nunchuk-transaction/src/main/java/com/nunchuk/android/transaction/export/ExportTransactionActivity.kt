@@ -1,10 +1,14 @@
 package com.nunchuk.android.transaction.export
 
 import android.app.Activity
+import android.graphics.Bitmap
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.qr.convertToQRCode
 import com.nunchuk.android.transaction.databinding.ActivityExportTransactionBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
@@ -15,6 +19,10 @@ class ExportTransactionActivity : BaseActivity() {
     lateinit var factory: NunchukFactory
 
     private val argsExport: ExportTransactionArgs by lazy { ExportTransactionArgs.deserializeFrom(intent) }
+
+    private lateinit var bitmaps: List<Bitmap>
+
+    private var index = 0
 
     private val viewModel: ExportTransactionViewModel by lazy {
         ViewModelProviders.of(this, factory).get(ExportTransactionViewModel::class.java)
@@ -35,6 +43,25 @@ class ExportTransactionActivity : BaseActivity() {
         viewModel.init(walletId = argsExport.walletId, txId = argsExport.txId)
     }
 
+    private val updateTextTask = object : Runnable {
+        override fun run() {
+            handler.postDelayed(this, INTERVAL)
+            bindQrCodes()
+        }
+    }
+
+    private fun bindQrCodes() {
+        calculateIndex()
+        binding.qrCode.setImageBitmap(bitmaps[index])
+    }
+
+    private fun calculateIndex() {
+        index++
+        if (index >= bitmaps.size) {
+            index = 0
+        }
+    }
+
     private fun observeEvent() {
         viewModel.event.observe(this, ::handleEvent)
         viewModel.state.observe(this, ::handleState)
@@ -47,13 +74,20 @@ class ExportTransactionActivity : BaseActivity() {
     }
 
     private fun handleState(state: ExportTransactionState) {
-
+        if (state.qrcode.isNotEmpty()) {
+            bitmaps = state.qrcode.mapNotNull(String::convertToQRCode)
+            handler.post(updateTextTask)
+        }
     }
 
     private fun handleEvent(event: ExportTransactionEvent) {
     }
 
     companion object {
+
+        const val INTERVAL = 500L
+
+        private var handler = Handler(Looper.getMainLooper())
 
         fun start(activityContext: Activity, walletId: String, txId: String) {
             activityContext.startActivity(

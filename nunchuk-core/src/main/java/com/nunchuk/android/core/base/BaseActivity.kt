@@ -24,8 +24,7 @@ abstract class BaseActivity : AppCompatActivity(), HasAndroidInjector {
     @Inject
     lateinit var navigator: NunchukNavigator
 
-    @Inject
-    lateinit var ncLoadingDialog: NCLoadingDialogCreator
+    private lateinit var creator: NCLoadingDialogCreator
 
     override fun androidInjector(): AndroidInjector<Any> = androidInjector
 
@@ -33,7 +32,7 @@ abstract class BaseActivity : AppCompatActivity(), HasAndroidInjector {
 
     protected fun showLoading() {
         dialog?.cancel()
-        dialog = ncLoadingDialog.showDialog()
+        dialog = creator.showDialog()
     }
 
     protected fun hideLoading() {
@@ -46,6 +45,7 @@ abstract class BaseActivity : AppCompatActivity(), HasAndroidInjector {
         super.onCreate(savedInstanceState)
         overridePendingTransition(R.anim.enter, R.anim.exit)
         ActivityManager.instance.add(this)
+        creator = NCLoadingDialogCreator(this)
     }
 
     override fun onDestroy() {

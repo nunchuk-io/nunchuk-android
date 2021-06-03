@@ -1,7 +1,7 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Result
-import com.nunchuk.android.nativelib.LibNunchukFacade
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import javax.inject.Inject
 
 interface DeleteMasterSignerUseCase {
@@ -9,11 +9,11 @@ interface DeleteMasterSignerUseCase {
 }
 
 internal class DeleteMasterSignerUseCaseImpl @Inject constructor(
-    private val nunchukFacade: LibNunchukFacade
+    private val nativeSdk: NunchukNativeSdk
 ) : BaseUseCase(), DeleteMasterSignerUseCase {
 
     override suspend fun execute(masterSignerId: String) = exe {
-        nunchukFacade.deleteMasterSigner(masterSignerId)
+        nativeSdk.deleteMasterSigner(masterSignerId)
     }
 
 }

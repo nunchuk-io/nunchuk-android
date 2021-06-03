@@ -2,7 +2,7 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Result
-import com.nunchuk.android.nativelib.LibNunchukFacade
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import javax.inject.Inject
 
 const val CONF_TARGET_PRIORITY = 2
@@ -14,11 +14,11 @@ interface EstimateFeeUseCase {
 }
 
 internal class EstimateFeeUseCaseImpl @Inject constructor(
-    private val nunchukFacade: LibNunchukFacade
+    private val nativeSdk: NunchukNativeSdk
 ) : BaseUseCase(), EstimateFeeUseCase {
 
     override suspend fun execute(confTarget: Int) = exe {
-        nunchukFacade.estimateFee(confTarget)
+        nativeSdk.estimateFee(confTarget)
     }
 
 }

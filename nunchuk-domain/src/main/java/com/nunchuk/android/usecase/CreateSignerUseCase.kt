@@ -2,7 +2,7 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.nativelib.LibNunchukFacade
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import javax.inject.Inject
 
 interface CreateSignerUseCase {
@@ -16,7 +16,7 @@ interface CreateSignerUseCase {
 }
 
 internal class CreateSignerUseCaseImpl @Inject constructor(
-    private val nunchukFacade: LibNunchukFacade
+    private val nativeSdk: NunchukNativeSdk
 ) : BaseUseCase(), CreateSignerUseCase {
 
     override suspend fun execute(
@@ -26,7 +26,7 @@ internal class CreateSignerUseCaseImpl @Inject constructor(
         derivationPath: String,
         masterFingerprint: String
     ) = exe {
-        nunchukFacade.createSigner(
+        nativeSdk.createSigner(
             name = name,
             xpub = xpub,
             publicKey = publicKey,

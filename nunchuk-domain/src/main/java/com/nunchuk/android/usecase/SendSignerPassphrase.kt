@@ -1,7 +1,7 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Result
-import com.nunchuk.android.nativelib.LibNunchukFacade
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import javax.inject.Inject
 
 interface SendSignerPassphrase {
@@ -9,11 +9,11 @@ interface SendSignerPassphrase {
 }
 
 internal class SendSignerPassphraseImpl @Inject constructor(
-    private val nunchukFacade: LibNunchukFacade
+    private val nativeSdk: NunchukNativeSdk
 ) : BaseUseCase(), SendSignerPassphrase {
 
     override suspend fun execute(signerId: String, passphrase: String) = exe {
-        nunchukFacade.sendSignerPassphrase(signerId, passphrase)
+        nativeSdk.sendSignerPassphrase(signerId, passphrase)
     }
 
 }

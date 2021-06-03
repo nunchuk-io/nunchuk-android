@@ -1,7 +1,7 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Result
-import com.nunchuk.android.nativelib.LibNunchukFacade
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import javax.inject.Inject
 
 interface CheckAddressValidUseCase {
@@ -9,11 +9,11 @@ interface CheckAddressValidUseCase {
 }
 
 internal class CheckAddressValidUseCaseImpl @Inject constructor(
-    private val nunchukFacade: LibNunchukFacade
+    private val nativeSdk: NunchukNativeSdk
 ) : BaseUseCase(), CheckAddressValidUseCase {
 
     override suspend fun execute(address: String) = exe {
-        nunchukFacade.isValidAddress(address)
+        nativeSdk.isValidAddress(address)
     }
 
 }
