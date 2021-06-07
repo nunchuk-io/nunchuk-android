@@ -83,7 +83,7 @@ class TransactionDetailsActivity : BaseActivity() {
 
     private fun bindSigners(signerMap: Map<String, Boolean>, signers: List<SignerModel>) {
         TransactionSignersViewBinder(
-            container = binding.signersContainer,
+            container = binding.signerListView,
             signerMap = signerMap,
             signers = signers,
             listener = viewModel::handleSignEvent

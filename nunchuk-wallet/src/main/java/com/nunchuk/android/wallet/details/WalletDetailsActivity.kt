@@ -54,6 +54,7 @@ class WalletDetailsActivity : BaseActivity() {
             is WalletDetailsError -> Toast.makeText(applicationContext, event.message, Toast.LENGTH_SHORT).show()
             is SendMoneyEvent -> navigator.openInputAmountScreen(this, args.walletId, event.amount.pureBTC())
             is UpdateUnusedAddress -> bindUnusedAddress(event.address)
+            is OpenDynamicQRScreen -> navigator.openDynamicQRScreen(this, event.descriptors)
         }
     }
 
@@ -92,7 +93,11 @@ class WalletDetailsActivity : BaseActivity() {
         binding.transactionList.adapter = adapter
 
         binding.viewWalletConfig.setUnderline()
-        binding.viewWalletConfig.setOnClickListener { navigator.openWalletConfigScreen(this, args.walletId) }
+        binding.viewWalletConfig.setOnClickListener {
+            //navigator.openWalletConfigScreen(this, args.walletId)
+            //FIXME
+            viewModel.handleBackupWallet()
+        }
         binding.btnReceive.setOnClickListener { navigator.openReceiveTransactionScreen(this, args.walletId) }
         binding.btnSend.setOnClickListener { viewModel.handleSendMoneyEvent() }
         binding.toolbar.setNavigationOnClickListener {

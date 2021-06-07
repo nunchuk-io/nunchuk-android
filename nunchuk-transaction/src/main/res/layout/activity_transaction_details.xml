@@ -417,7 +417,7 @@
         <LinearLayout
             android:id="@+id/signerListView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_marginTop="@dimen/nc_padding_16"
             android:orientation="vertical"
             app:layout_constraintStart_toStartOf="parent"
