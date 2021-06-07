@@ -11,8 +11,10 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.nunchuk.android.arch.args.FragmentArgs
+import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.DialogUpdateWalletBottomSheetBinding
+import com.nunchuk.android.widget.util.addTextChangedCallback
 
 class WalletUpdateBottomSheet : BottomSheetDialogFragment() {
 
@@ -31,8 +33,17 @@ class WalletUpdateBottomSheet : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val value: AppCompatEditText = binding.value
-        value.text?.append(args.walletName)
+
+        setupViews()
+    }
+
+    private fun setupViews() {
+        val editWalletName: AppCompatEditText = binding.editWalletName
+        editWalletName.text?.append(args.walletName)
+
+        editWalletName.addTextChangedCallback {
+            binding.btnSave.isVisible = it.isNotEmpty()
+        }
         binding.iconClose.setOnClickListener {
             onCloseClicked()
         }
@@ -42,7 +53,10 @@ class WalletUpdateBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun onSaveClicked() {
-        listener(binding.value.text.toString())
+        val newWalletName = binding.editWalletName.text.toString()
+        if (newWalletName != args.walletName) {
+            listener(newWalletName)
+        }
         dismiss()
     }
 

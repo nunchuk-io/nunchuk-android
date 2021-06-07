@@ -94,9 +94,9 @@ class WalletDetailsActivity : BaseActivity() {
 
         binding.viewWalletConfig.setUnderline()
         binding.viewWalletConfig.setOnClickListener {
-            //navigator.openWalletConfigScreen(this, args.walletId)
+            navigator.openWalletConfigScreen(this, args.walletId)
             //FIXME
-            viewModel.handleBackupWallet()
+            //viewModel.handleBackupWallet()
         }
         binding.btnReceive.setOnClickListener { navigator.openReceiveTransactionScreen(this, args.walletId) }
         binding.btnSend.setOnClickListener { viewModel.handleSendMoneyEvent() }

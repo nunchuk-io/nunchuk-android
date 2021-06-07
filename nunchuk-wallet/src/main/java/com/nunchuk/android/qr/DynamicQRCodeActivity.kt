@@ -50,6 +50,11 @@ class DynamicQRCodeActivity : AppCompatActivity() {
         binding.qrCode.setImageBitmap(bitmaps[index])
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacks(updateTextTask)
+    }
+
     private fun calculateIndex() {
         index++
         if (index >= bitmaps.size) {

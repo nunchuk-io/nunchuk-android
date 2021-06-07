@@ -59,4 +59,8 @@
 
     <string name="nc_transaction">Transaction</string>
     <string name="nc_transaction_emtpy_title">You don’t have any transaction yet. Here is an address where you can deposit your funds.</string>
+    <string name="nc_wallet_empty_signer_title">You don’t have any signer yet.</string>
+    <string name="nc_wallet_empty_signer_desc">Please add a signer before adding a wallet.</string>
+    <string name="nc_wallet_take_to_add_a_signer">Take me to add a signer</string>
+    <string name="nc_wallet_add_a_wallet">Add a wallet</string>
 </resources>
