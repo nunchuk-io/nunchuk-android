@@ -9,27 +9,19 @@
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
-        style="@style/NunchukLightNoActionBarTheme"
+        style="@style/NCToolbar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:minHeight="?attr/actionBarSize"
-        app:buttonGravity="center_vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:navigationIcon="@drawable/ic_back">
+        app:layout_constraintTop_toTopOf="parent">
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/toolbarTitle"
-            style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
+            style="@style/NCToolbar.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:text="@string/nc_wallet_backup_and_device_registration"
-            android:textColor="@color/nc_black_color"
-            android:textSize="@dimen/nc_text_size_18"
-            app:fontTextStyle="semi_bold" />
+            android:text="@string/nc_wallet_backup_and_device_registration" />
     </androidx.appcompat.widget.Toolbar>
 
     <ProgressBar
@@ -51,7 +43,7 @@
         android:layout_marginTop="@dimen/nc_padding_44"
         android:background="@drawable/nc_circle_whisper_background"
         android:padding="@dimen/nc_padding_16"
-        android:src="@drawable/ic_info"
+        android:src="@drawable/ic_info_amber"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
@@ -87,15 +79,11 @@
 
     <LinearLayout
         android:id="@+id/btnQRCode"
+        style="@style/NCOutlineButton.Dark"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/nc_padding_16"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:background="@drawable/nc_rounded_dark_background"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:padding="@dimen/nc_padding_16"
+        android:layout_marginBottom="@dimen/nc_padding_16"
         app:layout_constraintBottom_toTopOf="@+id/btnUpload"
         app:layout_constraintStart_toStartOf="parent">
 
@@ -106,26 +94,21 @@
             app:tint="@color/nc_white_color" />
 
         <com.nunchuk.android.widget.NCFontTextView
+            style="@style/NCOutlineButton.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_6"
             android:text="@string/nc_text_wallet_qr_code"
-            android:textColor="@color/nc_white_color"
-            android:textSize="@dimen/nc_text_size_14"
-            app:fontTextStyle="semi_bold" />
+            android:textColor="@color/nc_white_color" />
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/btnUpload"
+        style="@style/NCOutlineButton.Light"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginBottom="@dimen/nc_padding_16"
-        android:background="@drawable/nc_rounded_light_background"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:padding="@dimen/nc_padding_16"
         app:layout_constraintBottom_toTopOf="@+id/btnSkipUpload"
         app:layout_constraintStart_toStartOf="parent">
 
@@ -136,27 +119,21 @@
             app:tint="@color/nc_primary_color" />
 
         <com.nunchuk.android.widget.NCFontTextView
+            style="@style/NCOutlineButton.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_6"
-            android:text="@string/nc_wallet_save_configuration"
-            android:textColor="@color/nc_black_color"
-            android:textSize="@dimen/nc_text_size_14"
-            app:fontTextStyle="semi_bold" />
+            android:text="@string/nc_wallet_save_configuration" />
     </LinearLayout>
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btnSkipUpload"
+        style="@style/NCPrimaryButton.Red"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:gravity="center"
-        android:padding="@dimen/nc_padding_16"
         android:text="@string/nc_wallet_skip_upload_configuration"
         android:textColor="@color/nc_primary_color"
-        android:textSize="@dimen/nc_text_size_14"
-        app:fontTextStyle="semi_bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 

@@ -72,37 +72,23 @@
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/signIn"
+        style="@style/NCPrimaryButton.Dark"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:background="@drawable/nc_rounded_dark_background"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:gravity="center"
-        android:padding="@dimen/nc_padding_18"
         android:text="@string/nc_text_sign_in"
-        android:textAllCaps="false"
-        android:textColor="@color/nc_white_color"
-        android:textSize="@dimen/nc_text_size_18"
-        app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/staySignIn" />
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/signUp"
+        style="@style/NCPrimaryButton.Light"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:background="@drawable/nc_rounded_light_background"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:gravity="center"
-        android:padding="@dimen/nc_padding_16"
         android:text="@string/nc_text_create_account"
-        android:textAllCaps="false"
-        android:textColor="@color/nc_primary_color"
-        android:textSize="@dimen/nc_text_size_18"
-        app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/signIn" />
 

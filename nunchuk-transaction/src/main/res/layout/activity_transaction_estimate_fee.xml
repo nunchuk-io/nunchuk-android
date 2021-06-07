@@ -8,27 +8,19 @@
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
-        style="@style/NunchukLightNoActionBarTheme"
+        style="@style/NCToolbar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:minHeight="?attr/actionBarSize"
-        app:buttonGravity="center_vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:navigationIcon="@drawable/ic_back">
+        app:layout_constraintTop_toTopOf="parent">
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/toolbarTitle"
-            style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
+            style="@style/NCToolbar.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:text="@string/nc_transaction_new"
-            android:textColor="@color/nc_black_color"
-            android:textSize="@dimen/nc_text_size_18"
-            app:fontTextStyle="semi_bold" />
+            android:text="@string/nc_transaction_new" />
     </androidx.appcompat.widget.Toolbar>
 
     <com.nunchuk.android.widget.NCFontTextView
@@ -382,19 +374,11 @@
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnContinue"
+        style="@style/NCPrimaryButton.Dark"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
-        android:background="@drawable/nc_rounded_dark_background"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:gravity="center"
-        android:padding="@dimen/nc_padding_16"
-        android:stateListAnimator="@null"
         android:text="@string/nc_text_continue"
-        android:textAllCaps="false"
-        android:textColor="@color/nc_white_color"
-        android:textSize="@dimen/nc_text_size_18"
-        app:fontTextStyle="semi_bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
