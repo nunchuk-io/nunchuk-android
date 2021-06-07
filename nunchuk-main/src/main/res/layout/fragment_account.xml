@@ -1,25 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/nc_text_size_16"
-    tools:context=".components.tabs.account.AccountFragment">
+    android:padding="@dimen/nc_text_size_16">
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnSignOut"
+        style="@style/NCPrimaryButton.Light"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:background="@drawable/nc_rounded_light_background"
-        android:gravity="center"
-        android:padding="@dimen/nc_padding_16"
         android:text="@string/nc_text_sign_out"
-        android:textAllCaps="false"
-        android:textColor="@color/nc_primary_color"
-        android:textSize="@dimen/nc_text_size_18"
-        app:fontTextStyle="semi_bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

@@ -17,17 +17,86 @@
         <item name="colorAccent">@color/nc_accent_color</item>
     </style>
 
-    <style name="NunchukLightNoActionBarTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="NCToolbar">
+        <item name="android:minHeight">?attr/actionBarSize</item>
+        <item name="buttonGravity">center_vertical</item>
+        <item name="navigationIcon">@drawable/ic_back</item>
+    </style>
+
+    <style name="NCToolbar.Text" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
+        <item name="android:layout_gravity">center</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/nc_black_color</item>
+        <item name="android:textSize">@dimen/nc_text_size_18</item>
+        <item name="fontTextStyle">semi_bold</item>
+    </style>
+
+    <style name="NunchukNoActionBar" parent="Theme.AppCompat.Light.NoActionBar" />
+
+    <style name="NunchukNoActionBar.Light" parent="NunchukNoActionBar">
         <item name="colorPrimary">@android:color/transparent</item>
         <item name="colorPrimaryDark">@android:color/transparent</item>
         <item name="colorAccent">@color/nc_accent_color</item>
         <item name="android:windowBackground">@color/nc_white_color</item>
     </style>
 
-    <style name="NunchukDarkNoActionBarTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="NunchukNoActionBar.Dark" parent="NunchukNoActionBar">
         <item name="colorPrimary">@color/nc_primary_color</item>
         <item name="colorPrimaryDark">@color/nc_primary_dark_color</item>
         <item name="colorAccent">@color/nc_accent_color</item>
         <item name="android:windowBackground">@color/nc_white_color</item>
     </style>
+
+    <style name="NCPrimaryButton">
+        <item name="android:foreground">?android:attr/selectableItemBackground</item>
+        <item name="android:gravity">center</item>
+        <item name="android:padding">@dimen/nc_padding_14</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">@dimen/nc_text_size_16</item>
+        <item name="fontTextStyle">semi_bold</item>
+    </style>
+
+    <style name="NCPrimaryButton.Light" parent="NCPrimaryButton">
+        <item name="android:background">@drawable/nc_rounded_light_background</item>
+        <item name="android:textColor">@color/nc_black_color</item>
+    </style>
+
+    <style name="NCPrimaryButton.Dark" parent="NCPrimaryButton">
+        <item name="android:background">@drawable/nc_rounded_dark_background</item>
+        <item name="android:textColor">@color/nc_white_color</item>
+        <item name="android:padding">@dimen/nc_padding_15</item>
+    </style>
+
+    <style name="NCPrimaryButton.Disabled" parent="NCPrimaryButton">
+        <item name="android:background">@drawable/nc_rounded_whisper_disable_background</item>
+        <item name="android:textColor">@color/nc_grey_dark_color</item>
+    </style>
+
+    <style name="NCPrimaryButton.Red" parent="NCPrimaryButton">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:textColor">@color/nc_red_color</item>
+    </style>
+
+    <style name="NCOutlineButton">
+        <item name="android:foreground">?android:attr/selectableItemBackground</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:padding">@dimen/nc_padding_14</item>
+    </style>
+
+    <style name="NCOutlineButton.Dark" parent="NCOutlineButton">
+        <item name="android:background">@drawable/nc_rounded_dark_background</item>
+        <item name="android:padding">@dimen/nc_padding_15</item>
+    </style>
+
+    <style name="NCOutlineButton.Light" parent="NCOutlineButton">
+        <item name="android:background">@drawable/nc_rounded_light_background</item>
+    </style>
+
+    <style name="NCOutlineButton.Text" parent="TextAppearance.AppCompat.Subhead">
+        <item name="fontTextStyle">semi_bold</item>
+        <item name="android:textColor">@color/nc_primary_color</item>
+    </style>
+
 </resources>

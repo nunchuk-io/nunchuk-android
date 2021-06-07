@@ -1,6 +1,7 @@
 package com.nunchuk.android.widget;
 
 import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -9,7 +10,6 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.RectF;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.util.TypedValue;
@@ -27,6 +27,145 @@ public class NCSwitchButton extends View implements Checkable {
     private static final int ANIMATE_STATE_PENDING_RESET = 3;
     private static final int ANIMATE_STATE_PENDING_SETTLE = 4;
     private static final int ANIMATE_STATE_SWITCH = 5;
+    private final android.animation.ArgbEvaluator argbEvaluator = new android.animation.ArgbEvaluator();
+    private int shadowRadius;
+    private int shadowOffset;
+    private int shadowColor;
+    private float viewRadius;
+    private float buttonRadius;
+    private float height;
+    private float left;
+    private float top;
+    private float right;
+    private float bottom;
+    private float centerY;
+    private int background;
+    private int uncheckColor;
+    private int checkedColor;
+    private int borderWidth;
+    private int checkLineColor;
+    private int checkLineWidth;
+    private float checkLineLength;
+    private int uncheckCircleColor;
+    private int uncheckCircleWidth;
+    private float uncheckCircleOffsetX;
+    private float uncheckCircleRadius;
+    private float checkedLineOffsetX;
+    private float checkedLineOffsetY;
+    private int uncheckButtonColor;
+    private int checkedButtonColor;
+    private float buttonMinX;
+    private float buttonMaxX;
+    private Paint buttonPaint;
+    private Paint paint;
+    private ViewState viewState;
+    private ViewState beforeState;
+    private ViewState afterState;
+    private int animateState = ANIMATE_STATE_NONE;
+    private final ValueAnimator.AnimatorUpdateListener animatorUpdateListener = new ValueAnimator.AnimatorUpdateListener() {
+
+        @Override
+        public void onAnimationUpdate(final ValueAnimator animation) {
+            final float value = (Float) animation.getAnimatedValue();
+            switch (animateState) {
+                case ANIMATE_STATE_PENDING_RESET: {
+                }
+                case ANIMATE_STATE_PENDING_DRAG: {
+                    viewState.checkedLineColor = (int) argbEvaluator.evaluate(
+                            value,
+                            beforeState.checkedLineColor,
+                            afterState.checkedLineColor
+                    );
+
+                    viewState.radius = beforeState.radius + (afterState.radius - beforeState.radius) * value;
+
+                    if (animateState != ANIMATE_STATE_PENDING_DRAG) {
+                        viewState.buttonX = beforeState.buttonX + (afterState.buttonX - beforeState.buttonX) * value;
+                    }
+
+                    viewState.checkStateColor = (int) argbEvaluator.evaluate(
+                            value,
+                            beforeState.checkStateColor,
+                            afterState.checkStateColor
+                    );
+
+                    break;
+                }
+                case ANIMATE_STATE_SWITCH: {
+                    viewState.buttonX = beforeState.buttonX + (afterState.buttonX - beforeState.buttonX) * value;
+
+                    final float fraction = (viewState.buttonX - buttonMinX) / (buttonMaxX - buttonMinX);
+
+                    viewState.checkStateColor = (int) argbEvaluator.evaluate(fraction, uncheckColor, checkedColor);
+
+                    viewState.radius = fraction * viewRadius;
+                    viewState.checkedLineColor = (int) argbEvaluator.evaluate(fraction, Color.TRANSPARENT, checkLineColor);
+                    break;
+                }
+                default:
+                case ANIMATE_STATE_DRAGING: {
+                }
+                case ANIMATE_STATE_NONE: {
+                    break;
+                }
+            }
+            postInvalidate();
+        }
+    };
+    private ValueAnimator valueAnimator;
+    private boolean isChecked;
+    private boolean enableEffect;
+    private boolean shadowEffect;
+    private boolean showIndicator;
+    private boolean isTouchingDown;
+    private final Runnable postPendingDrag = () -> {
+        if (!isInAnimating()) {
+            pendingDragState();
+        }
+    };
+    private boolean isUiInited;
+    private boolean isEventBroadcast;
+    private OnCheckedChangeListener onCheckedChangeListener;
+    private final Animator.AnimatorListener animatorListener = new AnimatorListenerAdapter() {
+
+        @Override
+        public void onAnimationEnd(final Animator animation) {
+            switch (animateState) {
+                case ANIMATE_STATE_PENDING_DRAG: {
+                    animateState = ANIMATE_STATE_DRAGING;
+                    viewState.checkedLineColor = Color.TRANSPARENT;
+                    viewState.radius = viewRadius;
+
+                    postInvalidate();
+                    break;
+                }
+                case ANIMATE_STATE_PENDING_RESET: {
+                    animateState = ANIMATE_STATE_NONE;
+                    postInvalidate();
+                    break;
+                }
+                case ANIMATE_STATE_PENDING_SETTLE: {
+                    animateState = ANIMATE_STATE_NONE;
+                    postInvalidate();
+                    broadcastEvent();
+                    break;
+                }
+                case ANIMATE_STATE_SWITCH: {
+                    isChecked = !isChecked;
+                    animateState = ANIMATE_STATE_NONE;
+                    postInvalidate();
+                    broadcastEvent();
+                    break;
+                }
+                default:
+                case ANIMATE_STATE_NONE: {
+                    break;
+                }
+            }
+        }
+
+    };
+    private long touchDownTime;
 
     public NCSwitchButton(final Context context) {
         super(context);
@@ -47,6 +186,50 @@ public class NCSwitchButton extends View implements Checkable {
     public NCSwitchButton(final Context context, final AttributeSet attrs, final int defStyleAttr, final int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         init(context, attrs);
+    }
+
+    private static float dp2px(final float dp) {
+        final Resources r = Resources.getSystem();
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics());
+    }
+
+    private static int dp2pxInt(final float dp) {
+        return (int) dp2px(dp);
+    }
+
+    private static int optInt(final TypedArray typedArray, final int index, final int def) {
+        if (typedArray == null) {
+            return def;
+        }
+        return typedArray.getInt(index, def);
+    }
+
+    private static float optPixelSize(final TypedArray typedArray, final int index, final float def) {
+        if (typedArray == null) {
+            return def;
+        }
+        return typedArray.getDimension(index, def);
+    }
+
+    private static int optPixelSize(final TypedArray typedArray, final int index, final int def) {
+        if (typedArray == null) {
+            return def;
+        }
+        return typedArray.getDimensionPixelOffset(index, def);
+    }
+
+    private static int optColor(final TypedArray typedArray, final int index, final int def) {
+        if (typedArray == null) {
+            return def;
+        }
+        return typedArray.getColor(index, def);
+    }
+
+    private static boolean optBoolean(final TypedArray typedArray, final int index, final boolean def) {
+        if (typedArray == null) {
+            return def;
+        }
+        return typedArray.getBoolean(index, def);
     }
 
     @Override
@@ -156,7 +339,6 @@ public class NCSwitchButton extends View implements Checkable {
         final float viewPadding = Math.max(shadowRadius + shadowOffset, borderWidth);
 
         height = h - viewPadding - viewPadding;
-        width = w - viewPadding - viewPadding;
 
         viewRadius = height * .5f;
         buttonRadius = viewRadius - borderWidth;
@@ -166,7 +348,6 @@ public class NCSwitchButton extends View implements Checkable {
         right = w - viewPadding;
         bottom = h - viewPadding;
 
-        centerX = (left + right) * .5f;
         centerY = (top + bottom) * .5f;
 
         buttonMinX = left + viewRadius;
@@ -291,17 +472,17 @@ public class NCSwitchButton extends View implements Checkable {
     }
 
     @Override
+    public boolean isChecked() {
+        return isChecked;
+    }
+
+    @Override
     public void setChecked(final boolean checked) {
         if (checked == isChecked) {
             postInvalidate();
             return;
         }
         toggle(enableEffect, false);
-    }
-
-    @Override
-    public boolean isChecked() {
-        return isChecked;
     }
 
     @Override
@@ -545,247 +726,6 @@ public class NCSwitchButton extends View implements Checkable {
     public interface OnCheckedChangeListener {
         void onCheckedChanged(NCSwitchButton view, boolean isChecked);
     }
-
-    private static float dp2px(final float dp) {
-        final Resources r = Resources.getSystem();
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics());
-    }
-
-    private static int dp2pxInt(final float dp) {
-        return (int) dp2px(dp);
-    }
-
-    private static int optInt(final TypedArray typedArray, final int index, final int def) {
-        if (typedArray == null) {
-            return def;
-        }
-        return typedArray.getInt(index, def);
-    }
-
-    private static float optPixelSize(final TypedArray typedArray, final int index, final float def) {
-        if (typedArray == null) {
-            return def;
-        }
-        return typedArray.getDimension(index, def);
-    }
-
-    private static int optPixelSize(final TypedArray typedArray, final int index, final int def) {
-        if (typedArray == null) {
-            return def;
-        }
-        return typedArray.getDimensionPixelOffset(index, def);
-    }
-
-    private static int optColor(final TypedArray typedArray, final int index, final int def) {
-        if (typedArray == null) {
-            return def;
-        }
-        return typedArray.getColor(index, def);
-    }
-
-    private static boolean optBoolean(final TypedArray typedArray, final int index, final boolean def) {
-        if (typedArray == null) {
-            return def;
-        }
-        return typedArray.getBoolean(index, def);
-    }
-
-    private int shadowRadius;
-
-    private int shadowOffset;
-
-    private int shadowColor;
-
-    private float viewRadius;
-
-    private float buttonRadius;
-
-    private float height;
-
-    private float width;
-
-    private float left;
-    private float top;
-    private float right;
-    private float bottom;
-    private float centerX;
-    private float centerY;
-
-    private int background;
-
-    private int uncheckColor;
-
-    private int checkedColor;
-
-    private int borderWidth;
-
-    private int checkLineColor;
-
-    private int checkLineWidth;
-
-    private float checkLineLength;
-
-    private int uncheckCircleColor;
-
-    private int uncheckCircleWidth;
-
-    private float uncheckCircleOffsetX;
-
-    private float uncheckCircleRadius;
-
-    private float checkedLineOffsetX;
-
-    private float checkedLineOffsetY;
-
-    private int uncheckButtonColor;
-
-    private int checkedButtonColor;
-
-    private float buttonMinX;
-
-    private float buttonMaxX;
-
-    private Paint buttonPaint;
-
-    private Paint paint;
-
-    private ViewState viewState;
-    private ViewState beforeState;
-    private ViewState afterState;
-
-    private final RectF rect = new RectF();
-
-    private int animateState = ANIMATE_STATE_NONE;
-
-    private ValueAnimator valueAnimator;
-
-    private final android.animation.ArgbEvaluator argbEvaluator = new android.animation.ArgbEvaluator();
-
-    private boolean isChecked;
-
-    private boolean enableEffect;
-
-    private boolean shadowEffect;
-
-    private boolean showIndicator;
-
-    private boolean isTouchingDown;
-
-    private boolean isUiInited;
-
-    private boolean isEventBroadcast;
-
-    private OnCheckedChangeListener onCheckedChangeListener;
-
-    private long touchDownTime;
-
-    private final Runnable postPendingDrag = () -> {
-        if (!isInAnimating()) {
-            pendingDragState();
-        }
-    };
-
-    private final ValueAnimator.AnimatorUpdateListener animatorUpdateListener = new ValueAnimator.AnimatorUpdateListener() {
-
-        @Override
-        public void onAnimationUpdate(final ValueAnimator animation) {
-            final float value = (Float) animation.getAnimatedValue();
-            switch (animateState) {
-                case ANIMATE_STATE_PENDING_RESET: {
-                }
-                case ANIMATE_STATE_PENDING_DRAG: {
-                    viewState.checkedLineColor = (int) argbEvaluator.evaluate(
-                            value,
-                            beforeState.checkedLineColor,
-                            afterState.checkedLineColor
-                    );
-
-                    viewState.radius = beforeState.radius + (afterState.radius - beforeState.radius) * value;
-
-                    if (animateState != ANIMATE_STATE_PENDING_DRAG) {
-                        viewState.buttonX = beforeState.buttonX + (afterState.buttonX - beforeState.buttonX) * value;
-                    }
-
-                    viewState.checkStateColor = (int) argbEvaluator.evaluate(
-                            value,
-                            beforeState.checkStateColor,
-                            afterState.checkStateColor
-                    );
-
-                    break;
-                }
-                case ANIMATE_STATE_SWITCH: {
-                    viewState.buttonX = beforeState.buttonX + (afterState.buttonX - beforeState.buttonX) * value;
-
-                    final float fraction = (viewState.buttonX - buttonMinX) / (buttonMaxX - buttonMinX);
-
-                    viewState.checkStateColor = (int) argbEvaluator.evaluate(fraction, uncheckColor, checkedColor);
-
-                    viewState.radius = fraction * viewRadius;
-                    viewState.checkedLineColor = (int) argbEvaluator.evaluate(fraction, Color.TRANSPARENT, checkLineColor);
-                    break;
-                }
-                default:
-                case ANIMATE_STATE_DRAGING: {
-                }
-                case ANIMATE_STATE_NONE: {
-                    break;
-                }
-            }
-            postInvalidate();
-        }
-    };
-
-    private final Animator.AnimatorListener animatorListener = new Animator.AnimatorListener() {
-        @Override
-        public void onAnimationStart(final Animator animation) {
-        }
-
-        @Override
-        public void onAnimationEnd(final Animator animation) {
-            switch (animateState) {
-                case ANIMATE_STATE_PENDING_DRAG: {
-                    animateState = ANIMATE_STATE_DRAGING;
-                    viewState.checkedLineColor = Color.TRANSPARENT;
-                    viewState.radius = viewRadius;
-
-                    postInvalidate();
-                    break;
-                }
-                case ANIMATE_STATE_PENDING_RESET: {
-                    animateState = ANIMATE_STATE_NONE;
-                    postInvalidate();
-                    break;
-                }
-                case ANIMATE_STATE_PENDING_SETTLE: {
-                    animateState = ANIMATE_STATE_NONE;
-                    postInvalidate();
-                    broadcastEvent();
-                    break;
-                }
-                case ANIMATE_STATE_SWITCH: {
-                    isChecked = !isChecked;
-                    animateState = ANIMATE_STATE_NONE;
-                    postInvalidate();
-                    broadcastEvent();
-                    break;
-                }
-                default:
-                case ANIMATE_STATE_NONE: {
-                    break;
-                }
-            }
-        }
-
-        @Override
-        public void onAnimationCancel(final Animator animation) {
-        }
-
-        @Override
-        public void onAnimationRepeat(final Animator animation) {
-        }
-    };
-
 
     private static class ViewState {
         float buttonX;

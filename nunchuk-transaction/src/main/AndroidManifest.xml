@@ -8,56 +8,56 @@
             android:name=".receive.ReceiveTransactionActivity"
             android:label="@string/nc_transaction_receive"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukLightNoActionBarTheme" />
+            android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
             android:name=".receive.address.details.AddressDetailsActivity"
             android:label="@string/nc_transaction_unused"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukLightNoActionBarTheme" />
+            android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
             android:name=".send.amount.InputAmountActivity"
             android:label="@string/nc_transaction_new"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukLightNoActionBarTheme"
+            android:theme="@style/NunchukNoActionBar.Light"
             android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".send.fee.EstimatedFeeActivity"
             android:label="@string/nc_transaction_new"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukLightNoActionBarTheme" />
+            android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
             android:name=".send.receipt.AddReceiptActivity"
             android:label="@string/nc_transaction_new"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukLightNoActionBarTheme" />
+            android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
             android:name=".send.confirmation.TransactionConfirmActivity"
             android:label="@string/nc_transaction_confirm_transaction"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukLightNoActionBarTheme" />
+            android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
             android:name=".details.TransactionDetailsActivity"
             android:label="@string/nc_transaction_details"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukLightNoActionBarTheme" />
+            android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
             android:name=".export.ExportTransactionActivity"
             android:label="@string/nc_transaction_export_transaction"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukLightNoActionBarTheme" />
+            android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
             android:name=".import.ImportSignatureActivity"
             android:label="@string/nc_transaction_import_signature_via_qr_code"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukLightNoActionBarTheme" />
+            android:theme="@style/NunchukNoActionBar.Light" />
 
     </application>
 

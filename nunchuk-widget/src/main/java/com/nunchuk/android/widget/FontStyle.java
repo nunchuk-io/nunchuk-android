@@ -53,10 +53,6 @@ public class FontStyle {
         return fontName;
     }
 
-    public static Typeface getCurrentTypeface(final Context context, final String fontName) {
-        return getCurrentTypeface(context, 0, fontName);
-    }
-
     public static Typeface getCurrentTypeface(final Context context, final int fontStyle) {
         return getCurrentTypeface(context, fontStyle, null);
     }

@@ -9,6 +9,7 @@
     <dimen name="nc_padding_10">10dp</dimen>
     <dimen name="nc_padding_12">12dp</dimen>
     <dimen name="nc_padding_14">14dp</dimen>
+    <dimen name="nc_padding_15">15dp</dimen>
     <dimen name="nc_padding_16">16dp</dimen>
     <dimen name="nc_padding_18">18dp</dimen>
     <dimen name="nc_padding_20">20dp</dimen>

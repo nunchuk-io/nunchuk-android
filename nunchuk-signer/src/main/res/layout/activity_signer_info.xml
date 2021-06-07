@@ -8,12 +8,10 @@
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
-        android:background="@color/nc_primary_dark_color"
-        style="@style/NunchukLightNoActionBarTheme"
+        style="@style/NCToolbar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:minHeight="?attr/actionBarSize"
-        app:buttonGravity="center_vertical"
+        android:background="@color/nc_primary_dark_color"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -21,15 +19,11 @@
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/toolbarTitle"
-            style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
+            style="@style/NCToolbar.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:gravity="center"
             android:text="@string/nc_text_signer_info"
-            android:textColor="@color/nc_white_color"
-            android:textSize="@dimen/nc_text_size_18"
-            app:fontTextStyle="semi_bold" />
+            android:textColor="@color/nc_white_color" />
     </androidx.appcompat.widget.Toolbar>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -128,38 +122,22 @@ xpub661MyMwAqRbcG8Zah6TcX3QpP5yJApaXcyLK8CJcZkuYjczivsHxVL5qm9cw8BYLYehgFeddK5Wr
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnDone"
+        style="@style/NCPrimaryButton.Dark"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_16"
-        android:layout_marginBottom="@dimen/nc_padding_16"
-        android:background="@drawable/nc_rounded_dark_background"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:gravity="center"
-        android:padding="@dimen/nc_padding_18"
+        android:layout_margin="@dimen/nc_padding_16"
         android:text="@string/nc_text_done"
-        android:textAllCaps="false"
-        android:textColor="@color/nc_white_color"
-        android:textSize="@dimen/nc_text_size_18"
-        app:fontTextStyle="semi_bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/btnRemove"
         app:layout_constraintStart_toStartOf="parent" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btnRemove"
+        style="@style/NCPrimaryButton.Red"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_16"
-        android:layout_marginBottom="@dimen/nc_padding_24"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:gravity="center"
-        android:padding="@dimen/nc_padding_16"
-        android:paddingVertical="@dimen/nc_padding_4"
+        android:layout_margin="@dimen/nc_padding_16"
         android:text="@string/nc_remove_signer"
-        android:textColor="@color/nc_red_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
