@@ -70,6 +70,8 @@
         android:text="@string/nc_text_continue"
         android:textAllCaps="false"
         android:textColor="@color/nc_white_color"
+        android:textSize="@dimen/nc_text_size_18"
+        app:fontTextStyle="semi_bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 

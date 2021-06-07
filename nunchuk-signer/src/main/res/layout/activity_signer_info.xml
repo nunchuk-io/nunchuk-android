@@ -139,9 +139,11 @@ xpub661MyMwAqRbcG8Zah6TcX3QpP5yJApaXcyLK8CJcZkuYjczivsHxVL5qm9cw8BYLYehgFeddK5Wr
         android:padding="@dimen/nc_padding_18"
         android:text="@string/nc_text_done"
         android:textAllCaps="false"
-        app:layout_constraintBottom_toTopOf="@+id/btnRemove"
         android:textColor="@color/nc_white_color"
+        android:textSize="@dimen/nc_text_size_18"
+        app:fontTextStyle="semi_bold"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/btnRemove"
         app:layout_constraintStart_toStartOf="parent" />
 
     <com.nunchuk.android.widget.NCFontTextView
