@@ -10,6 +10,8 @@ import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.qr.convertToQRCode
 import com.nunchuk.android.transaction.databinding.ActivityExportTransactionBinding
+import com.nunchuk.android.transaction.export.ExportTransactionEvent.ExportTransactionError
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
@@ -50,6 +52,11 @@ class ExportTransactionActivity : BaseActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacks(updateTextTask)
+    }
+
     private fun bindQrCodes() {
         calculateIndex()
         binding.qrCode.setImageBitmap(bitmaps[index])
@@ -81,6 +88,9 @@ class ExportTransactionActivity : BaseActivity() {
     }
 
     private fun handleEvent(event: ExportTransactionEvent) {
+        if (event is ExportTransactionError) {
+            NCToastMessage(this).showError(event.message)
+        }
     }
 
     companion object {
