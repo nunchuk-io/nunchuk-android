@@ -76,7 +76,12 @@ internal class WalletsFragment : BaseFragment() {
             AddWalletEvent -> openAddWalletScreen()
             ShowSignerIntroEvent -> openSignerIntroScreen()
             is ShowErrorEvent -> requireActivity().showToast(event.message)
+            WalletEmptySignerEvent -> openWalletIntroScreen()
         }
+    }
+
+    private fun openWalletIntroScreen() {
+        activity?.let(navigator::openWalletIntroScreen)
     }
 
     private fun showWalletState(state: WalletsState) {

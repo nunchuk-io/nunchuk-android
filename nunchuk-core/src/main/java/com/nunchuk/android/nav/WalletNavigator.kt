@@ -36,4 +36,6 @@ interface WalletNavigator {
     fun openDynamicQRScreen(activityContext: Context, values: List<String>)
 
     fun openWalletDetailsScreen(activityContext: Context, walletId: String)
+
+    fun openWalletIntroScreen(activityContext: Context)
 }

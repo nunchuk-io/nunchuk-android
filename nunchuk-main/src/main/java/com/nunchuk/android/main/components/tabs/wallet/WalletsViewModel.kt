@@ -88,7 +88,7 @@ internal class WalletsViewModel @Inject constructor(
         if (hasSigner()) {
             event(AddWalletEvent)
         } else {
-            event(ShowErrorEvent("You need to add signer before creating wallet"))
+            event(WalletEmptySignerEvent)
         }
     }
 

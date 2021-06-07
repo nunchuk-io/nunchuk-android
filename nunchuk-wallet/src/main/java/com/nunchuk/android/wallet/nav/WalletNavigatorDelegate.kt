@@ -13,6 +13,7 @@ import com.nunchuk.android.wallet.backup.BackupWalletActivity
 import com.nunchuk.android.wallet.confirm.WalletConfirmActivity
 import com.nunchuk.android.wallet.config.WalletConfigActivity
 import com.nunchuk.android.wallet.details.WalletDetailsActivity
+import com.nunchuk.android.wallet.intro.WalletIntroActivity
 import com.nunchuk.android.wallet.upload.UploadConfigurationActivity
 
 interface WalletNavigatorDelegate : WalletNavigator {
@@ -68,6 +69,10 @@ interface WalletNavigatorDelegate : WalletNavigator {
 
     override fun openWalletDetailsScreen(activityContext: Context, walletId: String) {
         WalletDetailsActivity.start(activityContext, walletId)
+    }
+
+    override fun openWalletIntroScreen(activityContext: Context) {
+        WalletIntroActivity.start(activityContext)
     }
 
 }

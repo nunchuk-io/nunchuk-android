@@ -12,6 +12,7 @@ import com.nunchuk.android.wallet.confirm.WalletConfirmActivity
 import com.nunchuk.android.wallet.confirm.WalletConfirmModule
 import com.nunchuk.android.wallet.details.WalletDetailsActivity
 import com.nunchuk.android.wallet.details.WalletDetailsModule
+import com.nunchuk.android.wallet.intro.WalletIntroActivity
 import com.nunchuk.android.wallet.upload.UploadConfigurationActivity
 import com.nunchuk.android.wallet.upload.UploadConfigurationModule
 import dagger.Module
@@ -19,6 +20,9 @@ import dagger.android.ContributesAndroidInjector
 
 @Module
 internal interface WalletActivityModule {
+
+    @ContributesAndroidInjector
+    fun walletIntroActivity(): WalletIntroActivity
 
     @ContributesAndroidInjector(modules = [AddWalletModule::class])
     fun addWalletActivity(): AddWalletActivity

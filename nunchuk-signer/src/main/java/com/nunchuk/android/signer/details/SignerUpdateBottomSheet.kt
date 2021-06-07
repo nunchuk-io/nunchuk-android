@@ -11,8 +11,10 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.nunchuk.android.arch.args.FragmentArgs
+import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.DialogUpdateSignerBottomSheetBinding
+import com.nunchuk.android.widget.util.addTextChangedCallback
 
 class SignerUpdateBottomSheet : BottomSheetDialogFragment() {
 
@@ -31,8 +33,17 @@ class SignerUpdateBottomSheet : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val signerNameValue: AppCompatEditText = binding.signerNameValue
-        signerNameValue.text?.append(args.signerName)
+        setupViews()
+    }
+
+    private fun setupViews() {
+        val editSignerName: AppCompatEditText = binding.editSignerName
+        editSignerName.text?.append(args.signerName)
+
+        editSignerName.addTextChangedCallback {
+            binding.btnSave.isVisible = it.isNotEmpty()
+        }
+
         binding.iconClose.setOnClickListener {
             onCloseClicked()
         }
@@ -42,7 +53,10 @@ class SignerUpdateBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun onSaveClicked() {
-        listener(binding.signerNameValue.text.toString())
+        val newSignerName = binding.editSignerName.text.toString()
+        if (newSignerName != args.signerName) {
+            listener(newSignerName)
+        }
         dismiss()
     }
 

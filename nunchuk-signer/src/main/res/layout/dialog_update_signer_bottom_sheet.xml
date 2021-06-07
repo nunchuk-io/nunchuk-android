@@ -21,10 +21,10 @@
         android:layout_height="300dp"
         android:layout_marginTop="@dimen/nc_text_size_16"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/signerNameValue" />
+        app:layout_constraintTop_toBottomOf="@+id/editSignerName" />
 
     <com.nunchuk.android.widget.NCFontEditText
-        android:id="@+id/signerNameValue"
+        android:id="@+id/editSignerName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_16"
