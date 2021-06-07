@@ -126,6 +126,8 @@
         android:text="@string/nc_ssigner_text_dont_set_passphrase"
         android:textAllCaps="false"
         android:textColor="@color/nc_white_color"
+        android:textSize="@dimen/nc_text_size_18"
+        app:fontTextStyle="semi_bold"
         app:layout_constraintBottom_toTopOf="@+id/btnSetPassphrase"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -142,6 +144,8 @@
         android:text="@string/nc_ssigner_text_set_passphrase"
         android:textAllCaps="false"
         android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_18"
+        app:fontTextStyle="semi_bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 

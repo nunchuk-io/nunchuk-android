@@ -83,6 +83,8 @@
         android:text="@string/nc_text_sign_in"
         android:textAllCaps="false"
         android:textColor="@color/nc_white_color"
+        android:textSize="@dimen/nc_text_size_18"
+        app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/staySignIn" />
 
@@ -99,6 +101,8 @@
         android:text="@string/nc_text_create_account"
         android:textAllCaps="false"
         android:textColor="@color/nc_primary_color"
+        android:textSize="@dimen/nc_text_size_18"
+        app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/signIn" />
 

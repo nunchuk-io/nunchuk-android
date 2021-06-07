@@ -144,6 +144,8 @@
             android:text="@string/nc_wallet_send"
             android:textAllCaps="false"
             android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_18"
+            app:fontTextStyle="semi_bold"
             app:layout_constraintEnd_toStartOf="@id/guideline"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/viewWalletConfig" />
@@ -161,6 +163,8 @@
             android:text="@string/nc_wallet_receive"
             android:textAllCaps="false"
             android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_18"
+            app:fontTextStyle="semi_bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/guideline"
             app:layout_constraintTop_toBottomOf="@+id/viewWalletConfig" />
