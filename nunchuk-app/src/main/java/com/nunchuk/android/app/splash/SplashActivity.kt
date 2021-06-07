@@ -10,8 +10,8 @@ import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.isPermissionGranted
 import com.nunchuk.android.core.util.observe
-import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.databinding.ActivitySplashBinding
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
 
@@ -43,16 +43,19 @@ internal class SplashActivity : BaseActivity() {
     }
 
     private fun subscribeEvents() {
-        val activityContext = this
         viewModel.event.observe(owner = this) {
             finish()
-            when (this) {
-                NavCreateAccountEvent -> navigator.openIntroScreen(activityContext)
-                NavActivateAccountEvent -> navigator.openChangePasswordScreen(activityContext)
-                NavSignInEvent -> navigator.openSignInScreen(activityContext)
-                NavHomeScreenEvent -> navigator.openMainScreen(activityContext)
-                is InitErrorEvent -> showToast(error ?: "Internal error")
-            }
+            handleEvent(this)
+        }
+    }
+
+    private fun handleEvent(event: SplashEvent) {
+        when (event) {
+            NavCreateAccountEvent -> navigator.openIntroScreen(this)
+            NavActivateAccountEvent -> navigator.openChangePasswordScreen(this)
+            NavSignInEvent -> navigator.openSignInScreen(this)
+            NavHomeScreenEvent -> navigator.openMainScreen(this)
+            is InitErrorEvent -> NCToastMessage(this).showError(event.error)
         }
     }
 
@@ -64,9 +67,7 @@ internal class SplashActivity : BaseActivity() {
             !isPermissionGranted(WRITE_EXTERNAL_STORAGE) -> {
                 ActivityCompat.requestPermissions(this, arrayOf(WRITE_EXTERNAL_STORAGE), REQUEST_PERMISSION_CODE)
             }
-            else -> {
-                viewModel.initFlow()
-            }
+            else -> viewModel.initFlow()
         }
     }
 

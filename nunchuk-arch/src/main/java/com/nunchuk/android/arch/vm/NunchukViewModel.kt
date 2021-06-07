@@ -4,6 +4,7 @@ import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.SupervisorJob
 
 abstract class NunchukViewModel<State, Event> : ViewModel() {
 
@@ -16,6 +17,8 @@ abstract class NunchukViewModel<State, Event> : ViewModel() {
     val state: LiveData<State> get() = _state
 
     val event: LiveData<Event> get() = _event
+
+    private val viewModelJob = SupervisorJob()
 
     @MainThread
     protected fun updateState(updater: State.() -> State) {
@@ -32,5 +35,10 @@ abstract class NunchukViewModel<State, Event> : ViewModel() {
     }
 
     protected fun getState() = _state.value ?: initialState
+
+    override fun onCleared() {
+        super.onCleared()
+        viewModelJob.cancel()
+    }
 
 }
