@@ -6,10 +6,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.usecase.GetAddressesUseCase
-import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
-import com.nunchuk.android.usecase.GetWalletUseCase
-import com.nunchuk.android.usecase.NewAddressUseCase
+import com.nunchuk.android.usecase.*
 import com.nunchuk.android.wallet.details.WalletDetailsEvent.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -18,6 +15,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val getWalletUseCase: GetWalletUseCase,
     private val addressesUseCase: GetAddressesUseCase,
     private val newAddressUseCase: NewAddressUseCase,
+    private val exportCoboWalletUseCase: ExportCoboWalletUseCase,
     private val getTransactionHistoryUseCase: GetTransactionHistoryUseCase
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
 
@@ -86,6 +84,18 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     fun handleSendMoneyEvent() {
         event(SendMoneyEvent(getState().wallet.balance))
+    }
+
+    fun handleBackupWallet() {
+        viewModelScope.launch {
+            when (val event = exportCoboWalletUseCase.execute(walletId)) {
+                is Success -> {
+                    event(OpenDynamicQRScreen(event.data))
+                }
+                is Error -> {
+                }
+            }
+        }
     }
 
 }
