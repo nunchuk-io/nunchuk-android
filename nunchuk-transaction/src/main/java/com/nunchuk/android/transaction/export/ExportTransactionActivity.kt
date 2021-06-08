@@ -20,7 +20,7 @@ class ExportTransactionActivity : BaseActivity() {
     @Inject
     lateinit var factory: NunchukFactory
 
-    private val argsExport: ExportTransactionArgs by lazy { ExportTransactionArgs.deserializeFrom(intent) }
+    private val args: ExportTransactionArgs by lazy { ExportTransactionArgs.deserializeFrom(intent) }
 
     private lateinit var bitmaps: List<Bitmap>
 
@@ -42,7 +42,7 @@ class ExportTransactionActivity : BaseActivity() {
 
         setupViews()
         observeEvent()
-        viewModel.init(walletId = argsExport.walletId, txId = argsExport.txId)
+        viewModel.init(walletId = args.walletId, txId = args.txId)
     }
 
     private val updateTextTask = object : Runnable {
@@ -75,6 +75,9 @@ class ExportTransactionActivity : BaseActivity() {
     }
 
     private fun setupViews() {
+        binding.btnExportAsFile.setOnClickListener {
+            viewModel.exportTransactionToFile()
+        }
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }

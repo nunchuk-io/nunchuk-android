@@ -54,7 +54,7 @@
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
-            android:name=".import.ImportSignatureActivity"
+            android:name=".imports.ImportTransactionActivity"
             android:label="@string/nc_transaction_import_signature_via_qr_code"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />

@@ -4,6 +4,7 @@ import android.app.Activity
 import com.nunchuk.android.nav.TransactionNavigator
 import com.nunchuk.android.transaction.details.TransactionDetailsActivity
 import com.nunchuk.android.transaction.export.ExportTransactionActivity
+import com.nunchuk.android.transaction.imports.ImportTransactionActivity
 import com.nunchuk.android.transaction.receive.ReceiveTransactionActivity
 import com.nunchuk.android.transaction.receive.address.details.AddressDetailsActivity
 import com.nunchuk.android.transaction.send.amount.InputAmountActivity
@@ -108,7 +109,11 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         walletId: String,
         txId: String
     ) {
-        TransactionDetailsActivity.start(activityContext, walletId, txId)
+        TransactionDetailsActivity.start(
+            activityContext = activityContext,
+            walletId = walletId,
+            txId = txId
+        )
     }
 
     override fun openExportTransactionScreen(
@@ -116,7 +121,21 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         walletId: String,
         txId: String
     ) {
-        ExportTransactionActivity.start(activityContext, walletId, txId)
+        ExportTransactionActivity.start(
+            activityContext = activityContext,
+            walletId = walletId,
+            txId = txId
+        )
+    }
+
+    override fun openImportTransactionScreen(
+        activityContext: Activity,
+        walletId: String
+    ) {
+        ImportTransactionActivity.start(
+            activityContext = activityContext,
+            walletId = walletId
+        )
     }
 
 }

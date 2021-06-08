@@ -16,6 +16,8 @@ import com.nunchuk.android.transaction.send.fee.EstimatedFeeActivity
 import com.nunchuk.android.transaction.send.fee.EstimatedFeeModule
 import com.nunchuk.android.transaction.send.receipt.AddReceiptActivity
 import com.nunchuk.android.transaction.send.receipt.AddReceiptModule
+import com.nunchuk.android.transaction.imports.ImportTransactionActivity
+import com.nunchuk.android.transaction.imports.ImportTransactionModule
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
 
@@ -46,4 +48,6 @@ internal interface TransactionActivityModule {
     @ContributesAndroidInjector(modules = [ExportTransactionModule::class])
     fun exportTransactionActivity(): ExportTransactionActivity
 
+    @ContributesAndroidInjector(modules = [ImportTransactionModule::class])
+    fun importTransactionActivity(): ImportTransactionActivity
 }
