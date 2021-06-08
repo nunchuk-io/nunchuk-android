@@ -3,9 +3,9 @@ package com.nunchuk.android.wallet.upload
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.model.Result
-import com.nunchuk.android.model.Result.*
-import com.nunchuk.android.usecase.CreateWalletFilePathUseCase
+import com.nunchuk.android.model.Result.Error
+import com.nunchuk.android.model.Result.Success
+import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.ExportCoboWalletUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
 import com.nunchuk.android.wallet.upload.UploadConfigurationEvent.*
@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class UploadConfigurationViewModel @Inject constructor(
-    private val createWalletFilePathUseCase: CreateWalletFilePathUseCase,
+    private val createShareFileUseCase: CreateShareFileUseCase,
     private val exportWalletUseCase: ExportWalletUseCase,
     private val exportCoboWalletUseCase: ExportCoboWalletUseCase
 ) : NunchukViewModel<Unit, UploadConfigurationEvent>() {
@@ -29,7 +29,7 @@ internal class UploadConfigurationViewModel @Inject constructor(
     fun handleUploadEvent() {
         event(SetLoadingEvent(true))
         viewModelScope.launch {
-            when (val event = createWalletFilePathUseCase.execute(walletId)) {
+            when (val event = createShareFileUseCase.execute(walletId)) {
                 is Success -> exportWallet(walletId, event.data)
                 is Error -> {
                     event(UploadConfigurationError(event.exception.message.orUnknownError()))

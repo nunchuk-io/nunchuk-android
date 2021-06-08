@@ -57,4 +57,9 @@ interface TransactionNavigator {
         txId: String
     )
 
+    fun openImportTransactionScreen(
+        activityContext: Activity,
+        walletId: String
+    )
+
 }

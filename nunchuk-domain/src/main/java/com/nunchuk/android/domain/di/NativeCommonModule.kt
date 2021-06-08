@@ -1,10 +1,7 @@
 package com.nunchuk.android.domain.di
 
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import com.nunchuk.android.usecase.GetChainTipUseCase
-import com.nunchuk.android.usecase.GetChainTipUseCaseImpl
-import com.nunchuk.android.usecase.GetDevicesUseCase
-import com.nunchuk.android.usecase.GetDevicesUseCaseImpl
+import com.nunchuk.android.usecase.*
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -18,6 +15,9 @@ internal interface NativeCommonModule {
 
     @Binds
     fun bindGetDeviceUseCase(useCase: GetDevicesUseCaseImpl): GetDevicesUseCase
+
+    @Binds
+    fun bindCreateShareFileUseCase(useCase: CreateShareFileUseCaseImpl): CreateShareFileUseCase
 
     companion object {
 

@@ -28,14 +28,14 @@
         android:layout_height="0dp"
         android:layout_alignParentTop="true"
         android:layout_marginVertical="@dimen/nc_padding_24"
-        app:layout_constraintBottom_toTopOf="@+id/btnExportAsFile"
+        app:layout_constraintBottom_toTopOf="@+id/btnImportViaFile"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
         app:zxing_preview_scaling_strategy="fitXY"
         app:zxing_scanner_layout="@layout/view_scanner"
         app:zxing_use_texture_view="true" />
 
     <LinearLayout
-        android:id="@+id/btnExportAsFile"
+        android:id="@+id/btnImportViaFile"
         style="@style/NCOutlineButton.Dark"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

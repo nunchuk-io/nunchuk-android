@@ -26,9 +26,6 @@ internal interface WalletDomainModule {
     fun bindGetWalletUseCase(useCase: GetWalletUseCaseImpl): GetWalletUseCase
 
     @Binds
-    fun bindCreateWalletFilePathUseCase(useCase: CreateWalletFilePathUseCaseImpl): CreateWalletFilePathUseCase
-
-    @Binds
     fun bindUpdateWalletUseCase(useCase: UpdateWalletUseCaseImpl): UpdateWalletUseCase
 
     @Binds
