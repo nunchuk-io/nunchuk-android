@@ -17,6 +17,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:menu="@menu/menu_transaction_details"
         app:navigationIcon="@drawable/ic_back_white">
 
         <com.nunchuk.android.widget.NCFontTextView
@@ -28,27 +29,6 @@
             android:textColor="@color/nc_white_color"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginEnd="@dimen/nc_padding_16"
-            android:gravity="center">
-
-            <ImageView
-                android:id="@+id/menuSearch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/nc_padding_8"
-                android:src="@drawable/ic_search_white" />
-
-            <ImageView
-                android:id="@+id/menuMore"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_more_white" />
-        </LinearLayout>
     </androidx.appcompat.widget.Toolbar>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -127,7 +107,7 @@
 
         <com.nunchuk.android.widget.NCFontButton
             android:id="@+id/btnSend"
-            style="@style/NCPrimaryButton.Light"
+            style="@style/NCPrimaryButton.Light.Solid"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/nc_padding_16"
@@ -139,7 +119,7 @@
 
         <com.nunchuk.android.widget.NCFontButton
             android:id="@+id/btnReceive"
-            style="@style/NCPrimaryButton.Light"
+            style="@style/NCPrimaryButton.Light.Solid"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_8"

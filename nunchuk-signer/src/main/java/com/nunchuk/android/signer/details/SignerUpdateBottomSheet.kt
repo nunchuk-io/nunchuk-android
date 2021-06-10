@@ -7,14 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.fragment.app.FragmentManager
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.nunchuk.android.arch.args.FragmentArgs
 import com.nunchuk.android.arch.ext.isVisible
-import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.DialogUpdateSignerBottomSheetBinding
 import com.nunchuk.android.widget.util.addTextChangedCallback
+import com.nunchuk.android.widget.util.expandDialog
 
 class SignerUpdateBottomSheet : BottomSheetDialogFragment() {
 
@@ -27,7 +25,7 @@ class SignerUpdateBottomSheet : BottomSheetDialogFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = DialogUpdateSignerBottomSheetBinding.inflate(inflater, container, false)
-        dialog?.setOnShowListener(::expandDialog)
+        dialog?.setOnShowListener(DialogInterface::expandDialog)
         return binding.root
     }
 
@@ -66,16 +64,6 @@ class SignerUpdateBottomSheet : BottomSheetDialogFragment() {
 
     fun setListener(listener: (String) -> Unit) {
         this.listener = listener
-    }
-
-    private fun expandDialog(dialog: DialogInterface) {
-        val bottomSheetDialog = dialog as BottomSheetDialog
-        val designBottomSheet: View? = bottomSheetDialog.findViewById(R.id.design_bottom_sheet)
-        designBottomSheet.run {
-            this?.let {
-                BottomSheetBehavior.from(it).state = BottomSheetBehavior.STATE_EXPANDED
-            }
-        }
     }
 
     companion object {

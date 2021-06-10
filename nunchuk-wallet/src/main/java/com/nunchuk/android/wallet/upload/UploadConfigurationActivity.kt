@@ -1,8 +1,6 @@
 package com.nunchuk.android.wallet.upload
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.ext.isVisible
@@ -16,7 +14,6 @@ import com.nunchuk.android.wallet.databinding.ActivityWalletUploadConfigurationB
 import com.nunchuk.android.wallet.upload.UploadConfigurationEvent.*
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
-import java.io.File
 import javax.inject.Inject
 
 class UploadConfigurationActivity : BaseActivity() {
@@ -90,10 +87,7 @@ class UploadConfigurationActivity : BaseActivity() {
     }
 
     private fun shareConfigurationFile(filePath: String) {
-        controller.share(Intent(Intent.ACTION_SEND).apply {
-            putExtra(Intent.EXTRA_STREAM, Uri.fromFile(File(filePath)))
-            type = "*/*"
-        })
+        controller.shareFile(filePath)
     }
 
     companion object {

@@ -14,4 +14,6 @@
 
     <string name="nc_text_cancel">Cancel</string>
     <string name="nc_text_confirm">Confirm</string>
+    <string name="nc_text_more">View more</string>
+    <string name="nc_text_confirmation">Confirmation</string>
 </resources>

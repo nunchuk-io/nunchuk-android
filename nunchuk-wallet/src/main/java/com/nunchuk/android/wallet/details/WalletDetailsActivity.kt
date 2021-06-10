@@ -9,18 +9,24 @@ import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.qr.convertToQRCode
 import com.nunchuk.android.utils.setUnderline
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.ActivityWalletDetailBinding
 import com.nunchuk.android.wallet.details.WalletDetailsEvent.*
+import com.nunchuk.android.wallet.details.WalletDetailsOption.*
+import com.nunchuk.android.widget.NCToastMessage
 import javax.inject.Inject
 
 class WalletDetailsActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: NunchukFactory
+
+    @Inject
+    lateinit var controller: IntentSharingController
 
     private val viewModel: WalletDetailsViewModel by lazy {
         ViewModelProviders.of(this, factory).get(WalletDetailsViewModel::class.java)
@@ -55,7 +61,14 @@ class WalletDetailsActivity : BaseActivity() {
             is SendMoneyEvent -> navigator.openInputAmountScreen(this, args.walletId, event.amount.pureBTC())
             is UpdateUnusedAddress -> bindUnusedAddress(event.address)
             is OpenDynamicQRScreen -> navigator.openDynamicQRScreen(this, event.descriptors)
+            is UploadWalletEvent -> shareConfigurationFile(event.filePath)
+            DeleteWalletSuccess -> walletDeleted()
         }
+    }
+
+    private fun walletDeleted() {
+        NCToastMessage(this).showMessage(getString(R.string.nc_wallet_delete_wallet_success))
+        finish()
     }
 
     private fun bindUnusedAddress(address: String) {
@@ -95,13 +108,45 @@ class WalletDetailsActivity : BaseActivity() {
         binding.viewWalletConfig.setUnderline()
         binding.viewWalletConfig.setOnClickListener {
             navigator.openWalletConfigScreen(this, args.walletId)
-            //FIXME
-            //viewModel.handleBackupWallet()
         }
         binding.btnReceive.setOnClickListener { navigator.openReceiveTransactionScreen(this, args.walletId) }
         binding.btnSend.setOnClickListener { viewModel.handleSendMoneyEvent() }
         binding.toolbar.setNavigationOnClickListener {
             finish()
+        }
+
+        binding.toolbar.setOnMenuItemClickListener { menu ->
+            when (menu.itemId) {
+                R.id.menu_search -> {
+                    Toast.makeText(this, "Coming soon", Toast.LENGTH_SHORT).show()
+                    true
+                }
+                R.id.menu_more -> {
+                    onMoreClicked()
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private fun shareDescriptor(descriptor: String) {
+        controller.shareText(descriptor)
+    }
+
+    private fun shareConfigurationFile(filePath: String) {
+        controller.shareFile(filePath)
+    }
+
+    private fun onMoreClicked() {
+        val bottomSheet = WalletUpdateBottomSheet.show(fragmentManager = supportFragmentManager)
+        bottomSheet.setListener {
+            when (it) {
+                BACKUP -> viewModel.handleBackupWallet()
+                UPLOAD -> viewModel.handleUploadWallet()
+                QR -> viewModel.handleExportWalletQR()
+                DELETE -> viewModel.handleDeleteWallet()
+            }
         }
     }
 

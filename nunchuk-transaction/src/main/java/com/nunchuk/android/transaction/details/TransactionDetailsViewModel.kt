@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.extensions.isPending
 import com.nunchuk.android.model.Device
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.Result.Error
@@ -109,6 +110,12 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
+    fun handleMenuMoreEvent() {
+        if (getState().transaction.status.isPending()) {
+            event(PromptDeleteTransaction)
+        }
+    }
+
     fun handleDeleteTransactionEvent() {
         viewModelScope.launch {
             when (val result = deleteTransactionUseCase.execute(walletId, txId)) {
@@ -137,8 +144,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 }
             }
         } else {
-            // FIXME
-            event(ExportTransaction)
+            event(ImportOrExportTransaction)
         }
     }
 

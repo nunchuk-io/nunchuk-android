@@ -17,10 +17,13 @@ import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
 import com.nunchuk.android.transaction.details.TransactionDetailsEvent.*
+import com.nunchuk.android.transaction.details.TransactionOption.EXPORT
+import com.nunchuk.android.transaction.details.TransactionOption.IMPORT
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.toDisplayedText
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
@@ -73,6 +76,19 @@ class TransactionDetailsActivity : BaseActivity() {
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
+        binding.toolbar.setOnMenuItemClickListener { menu ->
+            when (menu.itemId) {
+                R.id.menu_more -> {
+                    onMoreClicked()
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private fun onMoreClicked() {
+        viewModel.handleMenuMoreEvent()
     }
 
     private fun handleState(state: TransactionDetailsState) {
@@ -117,12 +133,42 @@ class TransactionDetailsActivity : BaseActivity() {
             is ViewBlockchainExplorer -> openExternalLink(event.url)
             is TransactionDetailsError -> showError(event.message)
             is PromptInputPassphrase -> requireInputPassphrase(event.func)
-            ExportTransaction -> openExportTransactionScreen()
+            ImportOrExportTransaction -> importOrExportTransaction()
+            PromptDeleteTransaction -> promptDeleteTransaction()
         }
+    }
+
+    private fun promptDeleteTransaction() {
+        TransactionDetailsBottomSheet.show(supportFragmentManager)
+            .setListener {
+                promptCancelTransactionConfirmation()
+            }
+    }
+
+    private fun promptCancelTransactionConfirmation() {
+        NCWarningDialog(this).showDialog(
+            title = getString(R.string.nc_text_confirmation),
+            message = getString(R.string.nc_transaction_confirmation),
+            onYesClick = { viewModel.handleDeleteTransactionEvent() }
+        )
+    }
+
+    private fun importOrExportTransaction() {
+        TransactionSignBottomSheet.show(supportFragmentManager)
+            .setListener {
+                when (it) {
+                    EXPORT -> openExportTransactionScreen()
+                    IMPORT -> openImportTransactionScreen()
+                }
+            }
     }
 
     private fun openExportTransactionScreen() {
         navigator.openExportTransactionScreen(this, args.walletId, args.txId)
+    }
+
+    private fun openImportTransactionScreen() {
+        navigator.openImportTransactionScreen(this, args.walletId)
     }
 
     private fun requireInputPassphrase(func: (String) -> Unit) {
@@ -150,6 +196,7 @@ class TransactionDetailsActivity : BaseActivity() {
     }
 
     private fun showTransactionDeleteSuccess() {
+        finish()
         NCToastMessage(this).show("Delete transaction success")
     }
 

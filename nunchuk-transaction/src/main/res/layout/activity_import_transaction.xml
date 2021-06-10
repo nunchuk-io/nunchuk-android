@@ -36,7 +36,7 @@
 
     <LinearLayout
         android:id="@+id/btnImportViaFile"
-        style="@style/NCOutlineButton.Dark"
+        style="@style/NCOutlineButton.Light"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
@@ -46,8 +46,7 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_close"
-            app:tint="@color/nc_white_color" />
+            android:src="@drawable/ic_import" />
 
         <com.nunchuk.android.widget.NCFontTextView
             style="@style/NCOutlineButton.Text"
@@ -55,7 +54,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_6"
             android:text="@string/nc_transaction_import_signature_via_file"
-            android:textColor="@color/nc_white_color" />
+            android:textColor="@color/nc_primary_color" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

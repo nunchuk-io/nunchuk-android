@@ -17,4 +17,4 @@ fun Number.formatDecimal(): String {
     }.format(this)
 }
 
-fun Transaction.getFormatDate(): String = if (blockTime <= 0) "" else (blockTime).formatDate()
+fun Transaction.getFormatDate(): String = if (blockTime <= 0) "--/--/--" else (blockTime).formatDate()

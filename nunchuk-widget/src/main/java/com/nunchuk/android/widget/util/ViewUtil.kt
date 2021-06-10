@@ -1,5 +1,6 @@
 package com.nunchuk.android.widget.util
 
+import android.content.DialogInterface
 import android.text.InputFilter
 import android.text.InputType
 import android.text.method.PasswordTransformationMethod
@@ -8,7 +9,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import androidx.annotation.LayoutRes
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.nunchuk.android.widget.NCEditTextView
+import com.nunchuk.android.widget.R
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
@@ -79,4 +83,12 @@ fun ViewGroup.inflate(@LayoutRes resourceId: Int): View {
 
 fun EditText.keepCursorLast() {
     setSelection(text.length)
+}
+
+fun DialogInterface.expandDialog() {
+    val bottomSheetDialog = this as BottomSheetDialog
+    val designBottomSheet: View? = bottomSheetDialog.findViewById(R.id.design_bottom_sheet)
+    designBottomSheet.run {
+        this?.let { BottomSheetBehavior.from(it).state = BottomSheetBehavior.STATE_EXPANDED }
+    }
 }

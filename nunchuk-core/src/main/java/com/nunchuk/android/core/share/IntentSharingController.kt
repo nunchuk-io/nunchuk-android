@@ -4,6 +4,8 @@ import android.app.PendingIntent
 import android.app.PendingIntent.*
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import java.io.File
 import javax.inject.Inject
 
 class IntentSharingController @Inject constructor(val context: Context) {
@@ -15,9 +17,15 @@ class IntentSharingController @Inject constructor(val context: Context) {
         context.startActivity(Intent.createChooser(intent, title, pendingIntent.intentSender))
     }
 
+    fun shareFile(filePath: String) {
+        share(Intent(Intent.ACTION_SEND).apply {
+            putExtra(Intent.EXTRA_STREAM, Uri.fromFile(File(filePath)))
+            type = "*/*"
+        })
+    }
+
     fun shareText(text: String) {
-        share(Intent().apply {
-            action = Intent.ACTION_SEND
+        share(Intent(Intent.ACTION_SEND).apply {
             putExtra(Intent.EXTRA_TEXT, text)
             type = "text/plain"
         })

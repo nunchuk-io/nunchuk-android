@@ -45,34 +45,24 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btnNo"
+        style="@style/NCPrimaryButton.Light"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_24"
         android:layout_marginEnd="@dimen/nc_padding_8"
-        android:background="@drawable/nc_rounded_light_background"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:gravity="center"
-        android:paddingVertical="@dimen/nc_padding_16"
         android:text="@string/nc_text_no"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintEnd_toStartOf="@+id/guideline"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/message" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btnYes"
+        style="@style/NCPrimaryButton.Dark"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_8"
         android:layout_marginTop="@dimen/nc_padding_24"
-        android:background="@drawable/nc_rounded_dark_background"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:gravity="center"
-        android:paddingVertical="@dimen/nc_padding_16"
         android:text="@string/nc_text_yes"
-        android:textColor="@color/nc_white_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/guideline"
         app:layout_constraintTop_toBottomOf="@+id/message" />
