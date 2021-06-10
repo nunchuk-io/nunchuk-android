@@ -61,7 +61,8 @@ class WalletDetailsActivity : BaseActivity() {
             is SendMoneyEvent -> navigator.openInputAmountScreen(this, args.walletId, event.amount.pureBTC())
             is UpdateUnusedAddress -> bindUnusedAddress(event.address)
             is OpenDynamicQRScreen -> navigator.openDynamicQRScreen(this, event.descriptors)
-            is UploadWalletEvent -> shareConfigurationFile(event.filePath)
+            is UploadWalletConfigEvent -> shareConfigurationFile(event.filePath)
+            is BackupWalletDescriptorEvent -> shareDescriptor(event.descriptor)
             DeleteWalletSuccess -> walletDeleted()
         }
     }

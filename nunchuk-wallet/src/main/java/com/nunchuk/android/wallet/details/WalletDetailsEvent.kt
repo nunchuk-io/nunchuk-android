@@ -9,7 +9,8 @@ sealed class WalletDetailsEvent {
     data class SendMoneyEvent(val amount: Amount) : WalletDetailsEvent()
     data class WalletDetailsError(val message: String) : WalletDetailsEvent()
     data class OpenDynamicQRScreen(val descriptors: List<String> = emptyList()) : WalletDetailsEvent()
-    data class UploadWalletEvent(val filePath: String) : WalletDetailsEvent()
+    data class UploadWalletConfigEvent(val filePath: String) : WalletDetailsEvent()
+    data class BackupWalletDescriptorEvent(val descriptor: String) : WalletDetailsEvent()
     object DeleteWalletSuccess : WalletDetailsEvent()
 }
 
