@@ -7,9 +7,11 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.wallet.details.WalletDetailsEvent.*
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 internal class WalletDetailsViewModel @Inject constructor(
@@ -89,7 +91,22 @@ internal class WalletDetailsViewModel @Inject constructor(
     }
 
     fun handleBackupWallet() {
+        viewModelScope.launch {
+            when (val event = createShareFileUseCase.execute("${walletId}_descriptor")) {
+                is Success -> backupWallet(walletId, event.data)
+                is Error -> showError(event)
+            }
+        }
         getState().wallet.description
+    }
+
+    private fun backupWallet(walletId: String, filePath: String) {
+        viewModelScope.launch {
+            when (val event = exportWalletUseCase.execute(walletId, filePath, ExportFormat.DESCRIPTOR)) {
+                is Success -> event(BackupWalletDescriptorEvent(File(filePath).readText(Charsets.UTF_8)))
+                is Error -> showError(event)
+            }
+        }
     }
 
     fun handleUploadWallet() {
@@ -113,7 +130,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private fun uploadWallet(walletId: String, filePath: String) {
         viewModelScope.launch {
             when (val event = exportWalletUseCase.execute(walletId, filePath)) {
-                is Success -> event(UploadWalletEvent(filePath))
+                is Success -> event(UploadWalletConfigEvent(filePath))
                 is Error -> showError(event)
             }
         }
