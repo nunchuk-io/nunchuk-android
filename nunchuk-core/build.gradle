@@ -9,7 +9,7 @@ dependencies {
     implementation project(':nunchuk-widget')
     implementation nunchukDeps.nativeSdk
 
-    implementation androidxDeps.recyclerView
+    implementation androidxDeps.values()
     implementation lifecycleDeps.values()
     implementation networkDeps.values()
     implementation pluginsDeps.kotlinAndroidRuntime

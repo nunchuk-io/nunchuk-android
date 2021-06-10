@@ -8,8 +8,10 @@ import android.os.Looper
 import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.qr.convertToQRCode
 import com.nunchuk.android.transaction.databinding.ActivityExportTransactionBinding
+import com.nunchuk.android.transaction.export.ExportTransactionEvent.ExportToFileSuccess
 import com.nunchuk.android.transaction.export.ExportTransactionEvent.ExportTransactionError
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -19,6 +21,9 @@ class ExportTransactionActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: NunchukFactory
+
+    @Inject
+    lateinit var controller: IntentSharingController
 
     private val args: ExportTransactionArgs by lazy { ExportTransactionArgs.deserializeFrom(intent) }
 
@@ -91,9 +96,14 @@ class ExportTransactionActivity : BaseActivity() {
     }
 
     private fun handleEvent(event: ExportTransactionEvent) {
-        if (event is ExportTransactionError) {
-            NCToastMessage(this).showError(event.message)
+        when (event) {
+            is ExportTransactionError -> NCToastMessage(this).showError(event.message)
+            is ExportToFileSuccess -> shareTransactionFile(event.filePath)
         }
+    }
+
+    private fun shareTransactionFile(filePath: String) {
+        controller.shareFile(filePath)
     }
 
     companion object {

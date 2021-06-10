@@ -62,6 +62,10 @@
         <item name="android:textColor">@color/nc_black_color</item>
     </style>
 
+    <style name="NCPrimaryButton.Light.Solid" parent="NCPrimaryButton.Light">
+        <item name="android:background">@drawable/nc_rounded_light_no_stroke_background</item>
+    </style>
+
     <style name="NCPrimaryButton.Dark" parent="NCPrimaryButton">
         <item name="android:background">@drawable/nc_rounded_dark_background</item>
         <item name="android:textColor">@color/nc_white_color</item>
