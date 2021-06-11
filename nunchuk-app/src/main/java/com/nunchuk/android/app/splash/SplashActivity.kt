@@ -9,7 +9,6 @@ import com.nunchuk.android.app.splash.SplashEvent.*
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.isPermissionGranted
-import com.nunchuk.android.core.util.observe
 import com.nunchuk.android.databinding.ActivitySplashBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
@@ -43,10 +42,7 @@ internal class SplashActivity : BaseActivity() {
     }
 
     private fun subscribeEvents() {
-        viewModel.event.observe(owner = this) {
-            finish()
-            handleEvent(this)
-        }
+        viewModel.event.observe(this, ::handleEvent)
     }
 
     private fun handleEvent(event: SplashEvent) {
@@ -57,6 +53,7 @@ internal class SplashActivity : BaseActivity() {
             NavHomeScreenEvent -> navigator.openMainScreen(this)
             is InitErrorEvent -> NCToastMessage(this).showError(event.error)
         }
+        finish()
     }
 
     private fun requestPermissions() {

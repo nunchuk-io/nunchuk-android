@@ -9,13 +9,15 @@ import com.nunchuk.android.signer.add.AddSignerEvent.*
 import com.nunchuk.android.signer.util.InvalidSignerFormatException
 import com.nunchuk.android.signer.util.SignerInput
 import com.nunchuk.android.signer.util.toSigner
+import com.nunchuk.android.usecase.CreateCoboSignerUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
 
 internal class AddSignerViewModel @Inject constructor(
-    private val createSignerUseCase: CreateSignerUseCase
+    private val createSignerUseCase: CreateSignerUseCase,
+    private val createCoboSignerUseCase: CreateCoboSignerUseCase
 ) : NunchukViewModel<Unit, AddSignerEvent>() {
 
     override val initialState = Unit
@@ -50,6 +52,23 @@ internal class AddSignerViewModel @Inject constructor(
                 doAfterValidate(signerSpec.toSigner())
             } catch (e: InvalidSignerFormatException) {
                 event(InvalidSignerSpecEvent)
+            }
+        }
+    }
+
+    fun handleAddCoboSigner(signerName: String, jsonInfo: String) {
+        if (signerName.isEmpty()) {
+            event(SignerNameRequiredEvent)
+        } else {
+            viewModelScope.launch {
+                val result = createCoboSignerUseCase.execute(
+                    name = signerName,
+                    jsonInfo = jsonInfo
+                )
+                when (result) {
+                    is Success -> event(AddSignerSuccessEvent(id = result.data.masterSignerId, name = result.data.name))
+                    is Error -> event(AddSignerErrorEvent(result.exception.message.orUnknownError()))
+                }
             }
         }
     }

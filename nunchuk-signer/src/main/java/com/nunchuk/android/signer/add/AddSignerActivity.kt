@@ -79,6 +79,7 @@ class AddSignerActivity : BaseActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         QRCodeParser.parse(requestCode, resultCode, data)?.apply {
             binding.signerSpec.getEditTextView().setText(this)
+            viewModel.handleAddCoboSigner(binding.signerName.getEditText(), this)
         }
     }
 
