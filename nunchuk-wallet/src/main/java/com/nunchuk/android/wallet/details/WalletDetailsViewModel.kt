@@ -31,6 +31,9 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     fun init(walletId: String) {
         this.walletId = walletId
+    }
+
+    fun syncData() {
         getWalletDetails()
         getTransactionHistory()
     }

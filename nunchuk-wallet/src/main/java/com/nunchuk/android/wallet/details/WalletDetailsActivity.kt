@@ -10,7 +10,10 @@ import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getConfiguration
+import com.nunchuk.android.core.util.getUSDAmount
+import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.qr.convertToQRCode
 import com.nunchuk.android.utils.setUnderline
 import com.nunchuk.android.wallet.R
@@ -48,6 +51,11 @@ class WalletDetailsActivity : BaseActivity() {
 
         observeEvent()
         viewModel.init(args.walletId)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.syncData()
     }
 
     private fun observeEvent() {
