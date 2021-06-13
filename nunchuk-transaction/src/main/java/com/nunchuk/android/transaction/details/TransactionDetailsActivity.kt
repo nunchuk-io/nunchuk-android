@@ -107,6 +107,7 @@ class TransactionDetailsActivity : BaseActivity() {
     }
 
     private fun bindTransaction(transaction: Transaction) {
+        binding.sendingTo.text = transaction.outputs.first().first
         val pendingSigners = transaction.signers.count { !it.value }
         if (pendingSigners > 0) {
             binding.signatureStatus.text = getString(R.string.nc_transaction_pending_signature, pendingSigners)

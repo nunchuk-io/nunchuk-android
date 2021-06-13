@@ -3,6 +3,9 @@ package com.nunchuk.android.main
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.MenuItem
+import android.widget.TextView
+import androidx.appcompat.app.ActionBar
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
@@ -21,8 +24,11 @@ class MainActivity : BaseActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val navView: BottomNavigationView = binding.navView
+        setupNavigationView()
+    }
 
+    private fun setupNavigationView() {
+        val navView: BottomNavigationView = binding.navView
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
 
         val appBarConfiguration = AppBarConfiguration(
@@ -30,6 +36,22 @@ class MainActivity : BaseActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+        supportActionBar?.apply {
+            displayOptions = ActionBar.DISPLAY_SHOW_CUSTOM
+            setCustomView(R.layout.toolbar_layout)
+        }
+
+        bindToolbarTitle(navView)
+    }
+
+    private fun bindToolbarTitle(navView: BottomNavigationView) {
+        val titleView: TextView? = supportActionBar?.customView?.findViewById(R.id.title)
+        navView.setOnNavigationItemSelectedListener {
+            titleView?.text = it.title
+            true
+        }
+        titleView?.text = navView.getSelectedItem()?.title
     }
 
     companion object {
@@ -40,3 +62,5 @@ class MainActivity : BaseActivity() {
         }
     }
 }
+
+internal fun BottomNavigationView.getSelectedItem(): MenuItem? = menu.findItem(this.selectedItemId)

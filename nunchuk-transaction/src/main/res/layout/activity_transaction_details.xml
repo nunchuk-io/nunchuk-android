@@ -63,13 +63,16 @@
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/sendingTo"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_4"
             android:layout_marginTop="@dimen/nc_padding_4"
+            android:ellipsize="middle"
+            android:singleLine="true"
             android:textColor="@color/nc_black_color"
             android:textSize="@dimen/nc_text_size_16"
             app:fontTextStyle="semi_bold"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/sendingToLabel"
             app:layout_constraintTop_toBottomOf="@+id/status"
             tools:text="FJDFSa...GKgo" />

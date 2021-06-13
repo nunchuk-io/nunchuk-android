@@ -29,9 +29,14 @@ internal class TransactionSignersViewBinder(
             val btnSigned = findViewById<TextView>(R.id.signed)
             val btnSign = findViewById<TextView>(R.id.btnSign)
             btnSign.setOnClickListener { listener(model) }
-            val isSigned = model.isSigned()
-            btnSign.isVisible = !isSigned
-            btnSigned.isVisible = isSigned
+            if (signerMap.count { !it.value } > 0) {
+                val isSigned = model.isSigned()
+                btnSign.isVisible = !isSigned
+                btnSigned.isVisible = isSigned
+            } else {
+                btnSign.isVisible = false
+                btnSigned.isVisible = false
+            }
         }
     }
 
