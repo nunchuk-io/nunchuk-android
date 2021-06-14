@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".components.tabs.message.MessagesFragment">
 
-    <TextView
+    <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/textMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -15,9 +15,10 @@
         android:layout_marginEnd="8dp"
         android:gravity="center"
         android:text="@string/nc_title_message"
-        android:textSize="20sp"
+        android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
