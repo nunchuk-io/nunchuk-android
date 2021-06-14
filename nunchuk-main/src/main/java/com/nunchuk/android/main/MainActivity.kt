@@ -3,12 +3,8 @@ package com.nunchuk.android.main
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.view.MenuItem
-import android.widget.TextView
-import androidx.appcompat.app.ActionBar
+import androidx.navigation.NavController
 import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.nunchuk.android.core.base.BaseActivity
@@ -17,6 +13,7 @@ import com.nunchuk.android.main.databinding.ActivityMainBinding
 class MainActivity : BaseActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,31 +24,24 @@ class MainActivity : BaseActivity() {
         setupNavigationView()
     }
 
-    private fun setupNavigationView() {
-        val navView: BottomNavigationView = binding.navView
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
-
-        val appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.navigation_messages, R.id.navigation_wallets, R.id.navigation_account)
-        )
-        setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
-
-        supportActionBar?.apply {
-            displayOptions = ActionBar.DISPLAY_SHOW_CUSTOM
-            setCustomView(R.layout.toolbar_layout)
-        }
-
-        bindToolbarTitle(navView)
+    private val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
+        binding.toolbarTitle.text = destination.label
     }
 
-    private fun bindToolbarTitle(navView: BottomNavigationView) {
-        val titleView: TextView? = supportActionBar?.customView?.findViewById(R.id.title)
-        navView.setOnNavigationItemSelectedListener {
-            titleView?.text = it.title
-            true
-        }
-        titleView?.text = navView.getSelectedItem()?.title
+    private fun setupNavigationView() {
+        val navView: BottomNavigationView = binding.navView
+        navController = findNavController(R.id.nav_host_fragment_activity_main)
+        navView.setupWithNavController(navController)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        navController.addOnDestinationChangedListener(listener)
+    }
+
+    override fun onPause() {
+        navController.removeOnDestinationChangedListener(listener)
+        super.onPause()
     }
 
     companion object {
@@ -62,5 +52,3 @@ class MainActivity : BaseActivity() {
         }
     }
 }
-
-internal fun BottomNavigationView.getSelectedItem(): MenuItem? = menu.findItem(this.selectedItemId)
