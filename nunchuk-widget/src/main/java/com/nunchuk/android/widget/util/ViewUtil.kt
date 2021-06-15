@@ -30,7 +30,7 @@ fun View.clicks() = callbackFlow {
 
 @ExperimentalCoroutinesApi
 fun EditText.textChanges() = callbackFlow<CharSequence> {
-    val listener = object : SimpleTextWatcher() {
+    val listener = object : TextWatcherAdapter() {
         override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
             offer(s)
         }
@@ -68,7 +68,7 @@ fun NCEditTextView.addTextChangedCallback(callback: (String) -> Unit) {
 }
 
 fun EditText.addTextChangedCallback(callback: (String) -> Unit) {
-    addTextChangedListener(object : SimpleTextWatcher() {
+    addTextChangedListener(object : TextWatcherAdapter() {
         override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
             callback("$s")
         }
@@ -92,3 +92,5 @@ fun DialogInterface.expandDialog() {
         this?.let { BottomSheetBehavior.from(it).state = BottomSheetBehavior.STATE_EXPANDED }
     }
 }
+
+

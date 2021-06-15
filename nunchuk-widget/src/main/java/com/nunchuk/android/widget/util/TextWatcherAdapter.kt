@@ -3,7 +3,7 @@ package com.nunchuk.android.widget.util
 import android.text.Editable
 import android.text.TextWatcher
 
-open class SimpleTextWatcher : TextWatcher {
+open class TextWatcherAdapter : TextWatcher {
 
     override fun afterTextChanged(s: Editable) = Unit
 
