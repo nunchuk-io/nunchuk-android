@@ -41,7 +41,7 @@
             android:layout_height="1dp"
             android:background="@color/nc_whisper_color" />
 
-        <com.nunchuk.android.transaction.receive.address.NonSwipeableViewPager
+        <com.nunchuk.android.widget.NonSwipeViewPager
             android:id="@+id/pagers"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
