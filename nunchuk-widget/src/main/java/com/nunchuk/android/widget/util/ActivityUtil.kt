@@ -3,6 +3,7 @@ package com.nunchuk.android.widget.util
 import android.app.Activity
 import android.view.View.*
 import android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+import androidx.core.content.ContextCompat
 import com.nunchuk.android.widget.R
 
 @Suppress("DEPRECATION")
@@ -23,5 +24,5 @@ fun Activity.setTransparentStatusBar(useDarkTheme: Boolean = true) {
 @Suppress("DEPRECATION")
 fun Activity.setLightStatusBar() {
     window.decorView.systemUiVisibility = SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-    window.statusBarColor = getColor(R.color.nc_white_color)
+    window.statusBarColor = ContextCompat.getColor(this, R.color.nc_white_color)
 }

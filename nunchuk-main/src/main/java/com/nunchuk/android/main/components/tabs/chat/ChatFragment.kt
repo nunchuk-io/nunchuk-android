@@ -1,0 +1,48 @@
+package com.nunchuk.android.main.components.tabs.chat
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.main.databinding.FragmentChatBinding
+
+internal class ChatFragment : BaseFragment() {
+
+    private var _binding: FragmentChatBinding? = null
+
+    private val binding get() = _binding!!
+
+    private lateinit var pagerAdapter: ChatFragmentPagerAdapter
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentChatBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        setupViews()
+    }
+
+    private fun setupViews() {
+        val pagers = binding.pagers
+        val tabs = binding.tabs
+
+        pagerAdapter = ChatFragmentPagerAdapter(requireContext(), fragmentManager = parentFragmentManager)
+        binding.pagers.offscreenPageLimit = ChatFragmentTab.values().size
+        ChatFragmentTab.values().forEach {
+            tabs.addTab(tabs.newTab().setText(it.name))
+        }
+        val position = pagers.currentItem
+        pagers.adapter = pagerAdapter
+        tabs.setupWithViewPager(pagers)
+        pagers.currentItem = position
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}

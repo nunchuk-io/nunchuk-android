@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="nc_title_message">Messages</string>
+    <string name="nc_title_contacts">Contacts</string>
     <string name="nc_title_wallets">Wallets</string>
     <string name="nc_title_signers">Signers</string>
     <string name="nc_title_account">Account</string>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="@dimen/nc_padding_8">
+
+    <ImageView
+        android:id="@+id/avatar"
+        android:layout_width="@dimen/nc_padding_48"
+        android:layout_height="@dimen/nc_padding_48"
+        android:background="@drawable/nc_circle_beeswax_light_background"
+        android:gravity="center"
+        android:padding="@dimen/nc_padding_6"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_chat_bot"
+        android:textColor="@color/nc_black_color"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="HN" />
+
+    <View
+        android:id="@+id/bubble"
+        android:layout_width="@dimen/nc_padding_16"
+        android:layout_height="@dimen/nc_padding_16"
+        android:background="@drawable/nc_chat_grey_bubble_background"
+        app:layout_constraintBottom_toBottomOf="@+id/avatar"
+        app:layout_constraintEnd_toEndOf="@+id/avatar" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/endBarrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="start"
+        app:constraint_referenced_ids="time,count" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/message"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_8"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_14"
+        app:layout_constraintEnd_toStartOf="@+id/endBarrier"
+        app:layout_constraintStart_toEndOf="@+id/avatar"
+        app:layout_constraintTop_toBottomOf="@+id/name"
+        tools:text="Bruce: Welcome to Nunchuk! My name is Bruce Bee. I'm Nunchuk assistant" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_8"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintEnd_toStartOf="@+id/endBarrier"
+        app:layout_constraintStart_toEndOf="@+id/avatar"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Bruce Bee" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/time"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_14"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="1d ago" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/count"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:background="@drawable/nc_circle_whisper_background"
+        android:backgroundTint="@color/nc_orange_color"
+        android:gravity="center"
+        android:padding="@dimen/nc_padding_2"
+        android:textColor="@color/nc_white_color"
+        android:textSize="@dimen/nc_text_size_14"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/time"
+        tools:text="10" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
