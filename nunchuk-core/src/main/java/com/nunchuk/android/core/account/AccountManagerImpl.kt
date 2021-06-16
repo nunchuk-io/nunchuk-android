@@ -18,7 +18,7 @@ interface AccountManager {
 }
 
 @Singleton
-class AccountManagerImpl @Inject constructor(
+internal class AccountManagerImpl @Inject constructor(
     private val accountSharedPref: AccountSharedPref
 ) : AccountManager {
 

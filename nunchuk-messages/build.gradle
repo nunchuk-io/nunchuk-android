@@ -8,12 +8,15 @@ dependencies {
     implementation project(':nunchuk-core')
     implementation project(':nunchuk-domain')
     implementation project(':nunchuk-widget')
+    implementation project(':nunchuk-network')
     implementation nunchukDeps.nativeSdk
 
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()
+    implementation networkDeps.values()
 
-    implementation zxingDeps.values()
+    implementation matrixDeps.matrixSdk
+    implementation workMangerDeps.values()
 
     testImplementation otherTestDeps.junit
 }

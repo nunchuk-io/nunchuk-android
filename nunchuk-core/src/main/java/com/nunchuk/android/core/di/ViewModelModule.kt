@@ -6,7 +6,7 @@ import dagger.Binds
 import dagger.Module
 
 @Module
-interface ViewModelModule {
+internal interface ViewModelModule {
 
     @Binds
     fun bindViewModelFactory(factory: ViewModelFactory): NunchukFactory

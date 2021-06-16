@@ -11,4 +11,5 @@ dependencies {
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()
     implementation networkDeps.values()
+    implementation matrixDeps.matrixSdk
 }
