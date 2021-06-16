@@ -1,15 +1,14 @@
-package com.nunchuk.android.transaction.receive.address
+package com.nunchuk.android.widget
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import androidx.viewpager.widget.ViewPager
 
-class WrapHeightViewPager : ViewPager {
+class NCWrapHeightViewPager : ViewPager {
 
     constructor(context: Context) : super(context)
 
-    constructor(context: Context?, attrs: AttributeSet) : super(context!!, attrs)
+    constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         var heightSpec = heightMeasureSpec
@@ -20,9 +19,9 @@ class WrapHeightViewPager : ViewPager {
             MeasureSpec.getMode(widthMeasureSpec)
         )
         for (i in 0 until childCount) {
-            val child: View = getChildAt(i)
+            val child = getChildAt(i)
             child.measure(childWidthSpec, MeasureSpec.UNSPECIFIED)
-            val h: Int = child.measuredHeight
+            val h = child.measuredHeight
             if (h > height) height = h
         }
         if (height != 0) {

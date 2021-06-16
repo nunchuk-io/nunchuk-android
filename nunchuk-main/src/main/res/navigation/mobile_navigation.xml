@@ -7,9 +7,9 @@
 
     <fragment
         android:id="@+id/navigation_messages"
-        android:name="com.nunchuk.android.main.components.tabs.message.MessagesFragment"
+        android:name="com.nunchuk.android.main.components.tabs.chat.ChatFragment"
         android:label="@string/nc_title_message"
-        tools:layout="@layout/fragment_messages" />
+        tools:layout="@layout/fragment_chat" />
 
     <fragment
         android:id="@+id/navigation_wallets"

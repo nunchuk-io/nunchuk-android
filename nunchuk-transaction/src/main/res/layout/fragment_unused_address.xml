@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:paddingBottom="?attr/actionBarSize">
 
-    <com.nunchuk.android.transaction.receive.address.WrapHeightViewPager
+    <com.nunchuk.android.widget.NCWrapHeightViewPager
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
