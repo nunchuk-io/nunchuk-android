@@ -44,13 +44,13 @@ internal class SignUpViewModel @Inject constructor(
         }
     }
 
-    fun validateEmail(email: String) = when {
+    private fun validateEmail(email: String) = when {
         email.isBlank() -> doAfterValidate(false) { event(EmailRequiredEvent) }
         !emailValidator.valid(email) -> doAfterValidate(false) { event(EmailInvalidEvent) }
         else -> doAfterValidate { event(EmailValidEvent) }
     }
 
-    fun validateName(name: String) = when {
+    private fun validateName(name: String) = when {
         name.isBlank() -> doAfterValidate(false) { event(NameRequiredEvent) }
         !nameValidator.valid(name) -> doAfterValidate(false) { event(NameInvalidEvent) }
         else -> doAfterValidate { event(NameValidEvent) }

@@ -86,8 +86,12 @@ dependencies {
     implementation project(':nunchuk-wallet')
     implementation project(':nunchuk-widget')
     implementation project(':nunchuk-transaction')
+    implementation project(':nunchuk-messages')
     implementation project(':nunchuk-utils')
+
     implementation nunchukDeps.nativeSdk
+    implementation matrixDeps.matrixSdk
+    implementation workMangerDeps.values()
 
     implementation platform(playServices.firebaseBom)
     implementation playServices.firebaseCrashlytics

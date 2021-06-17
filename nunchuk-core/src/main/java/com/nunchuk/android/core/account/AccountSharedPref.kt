@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import com.google.gson.Gson
 import javax.inject.Inject
 
-class AccountSharedPref @Inject constructor(
+internal class AccountSharedPref @Inject constructor(
     context: Context,
     private val gson: Gson
 ) {

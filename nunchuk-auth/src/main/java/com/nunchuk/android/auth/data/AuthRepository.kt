@@ -14,6 +14,8 @@ interface AuthRepository {
     suspend fun recoverPassword(email: String, oldPassword: String, newPassword: String)
 
     suspend fun forgotPassword(email: String)
+
+    suspend fun me(): UserResponse
 }
 
 internal class AuthRepositoryImpl @Inject constructor(
@@ -43,5 +45,7 @@ internal class AuthRepositoryImpl @Inject constructor(
     override suspend fun forgotPassword(email: String) {
         authApi.forgotPassword(ForgotPasswordPayload(email))
     }
+
+    override suspend fun me() = authApi.me().data.user
 
 }

@@ -23,6 +23,7 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="false"
         android:theme="@style/NunchukTheme">
+
         <activity
             android:name=".app.splash.SplashActivity"
             android:exported="true"
@@ -33,6 +34,12 @@
             </intent-filter>
         </activity>
         <activity android:name=".app.intro.IntroActivity" />
+
+        <provider
+            android:name="androidx.work.impl.WorkManagerInitializer"
+            android:authorities="${applicationId}.workmanager-init"
+            tools:node="remove"
+            tools:ignore="MissingClass" />
     </application>
 
 </manifest>

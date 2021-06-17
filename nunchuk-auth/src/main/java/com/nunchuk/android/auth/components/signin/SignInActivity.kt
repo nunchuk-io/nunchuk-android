@@ -8,10 +8,9 @@ import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.signin.SignInEvent.*
 import com.nunchuk.android.auth.databinding.ActivitySigninBinding
-import com.nunchuk.android.auth.util.orUnknownError
 import com.nunchuk.android.auth.util.setUnderlineText
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.util.showToast
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.passwordEnabled
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
@@ -48,13 +47,20 @@ class SignInActivity : BaseActivity() {
                 is EmailValidEvent -> binding.email.hideError()
                 is PasswordRequiredEvent -> binding.password.setError(getString(R.string.nc_text_required))
                 is PasswordValidEvent -> binding.password.hideError()
-                is SignInErrorEvent -> showToast(it.message.orUnknownError())
+                is SignInErrorEvent -> onSignInError(it.message.orEmpty())
                 is SignInSuccessEvent -> openMainScreen()
+                is ProcessingEvent -> showLoading()
             }
         }
     }
 
+    private fun onSignInError(message: String) {
+        hideLoading()
+        NCToastMessage(this).showError(message)
+    }
+
     private fun openMainScreen() {
+        hideLoading()
         finish()
         navigator.openMainScreen(this)
     }

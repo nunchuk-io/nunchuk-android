@@ -5,7 +5,7 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.*
 import com.nunchuk.android.auth.domain.ChangePasswordUseCase
 import com.nunchuk.android.auth.validator.doAfterValidate
-import com.nunchuk.android.core.account.AccountManagerImpl
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import kotlinx.coroutines.launch
@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 internal class ChangePasswordViewModel @Inject constructor(
     private val changePasswordUseCase: ChangePasswordUseCase,
-    accountManager: AccountManagerImpl
+    accountManager: AccountManager
 ) : NunchukViewModel<Unit, ChangePasswordEvent>() {
 
     private val account = accountManager.getAccount()

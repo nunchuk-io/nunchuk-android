@@ -22,4 +22,10 @@ internal interface AuthDomainModule {
     @Binds
     fun bindForgotPasswordUseCase(useCase: ForgotPasswordUseCaseImpl): ForgotPasswordUseCase
 
+    @Binds
+    fun bindGetCurrentUserUseCase(useCase: GetCurrentUserUseCaseImpl): GetCurrentUserUseCase
+
+    @Binds
+    fun bindLoginWithMatrixUseCase(useCase: LoginWithMatrixUseCaseImpl): LoginWithMatrixUseCase
+
 }

@@ -18,8 +18,7 @@ internal class RegisterUseCaseImpl @Inject constructor(
 ) : BaseUseCase(), RegisterUseCase {
 
     override suspend fun execute(name: String, email: String) = exe {
-        val userTokenResponse = authRepository.register(name = name, email = email)
-        userTokenResponse.also {
+        authRepository.register(name = name, email = email).also {
             accountManager.storeAccount(AccountInfo(email = email, token = it.tokenId))
         }
     }

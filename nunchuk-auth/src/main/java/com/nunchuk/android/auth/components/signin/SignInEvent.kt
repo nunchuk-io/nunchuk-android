@@ -6,6 +6,7 @@ internal sealed class SignInEvent {
     object EmailInvalidEvent : SignInEvent()
     object PasswordRequiredEvent : SignInEvent()
     object PasswordValidEvent : SignInEvent()
-    data class SignInSuccessEvent(val token: String) : SignInEvent()
+    object ProcessingEvent : SignInEvent()
+    object SignInSuccessEvent : SignInEvent()
     data class SignInErrorEvent(val message: String?) : SignInEvent()
 }

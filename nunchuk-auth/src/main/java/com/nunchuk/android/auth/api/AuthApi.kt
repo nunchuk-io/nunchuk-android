@@ -3,33 +3,37 @@ package com.nunchuk.android.auth.api
 import com.nunchuk.android.network.Data
 import okhttp3.ResponseBody
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
 
 interface AuthApi {
 
-    @POST("register")
+    @POST("passport/register")
     suspend fun register(
         @Body registerPayload: RegisterPayload
     ): Data<UserTokenResponse>
 
-    @POST("sign-in")
+    @POST("passport/sign-in")
     suspend fun signIn(
         @Body signInPayload: SignInPayload
     ): Data<UserTokenResponse>
 
-    @POST("recover-password")
+    @POST("passport/recover-password")
     suspend fun recoverPassword(
         @Body recoverPasswordPayload: RecoverPasswordPayload
     ): ResponseBody
 
-    @POST("change-password")
+    @POST("passport/change-password")
     suspend fun changePassword(
         @Body changePasswordPayload: ChangePasswordPayload
     ): ResponseBody
 
-    @POST("forgot-password")
+    @POST("passport/forgot-password")
     suspend fun forgotPassword(
         @Body forgotPasswordPayload: ForgotPasswordPayload
     ): ResponseBody
+
+    @GET("user/me")
+    suspend fun me(): Data<UserResponseWrapper>
 
 }
