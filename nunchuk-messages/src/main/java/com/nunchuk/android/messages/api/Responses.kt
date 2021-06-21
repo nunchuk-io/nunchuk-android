@@ -3,6 +3,16 @@ package com.nunchuk.android.messages.api
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
+data class UsersResponseWrapper(
+    @SerializedName("users")
+    val users: List<UserResponse>
+) : Serializable
+
+data class UserResponseWrapper(
+    @SerializedName("user")
+    val user: UserResponse
+) : Serializable
+
 data class UserResponse(
     @SerializedName("id")
     val id: String,
