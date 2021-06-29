@@ -1,4 +1,4 @@
-package com.nunchuk.android.messages.usecase
+package com.nunchuk.android.messages.usecase.contact
 
 import com.nunchuk.android.messages.api.UserResponse
 import com.nunchuk.android.messages.repository.ContactsRepository

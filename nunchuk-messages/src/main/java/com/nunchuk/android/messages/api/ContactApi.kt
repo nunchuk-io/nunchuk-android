@@ -2,23 +2,20 @@ package com.nunchuk.android.messages.api
 
 import com.nunchuk.android.network.Data
 import okhttp3.ResponseBody
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.Query
+import retrofit2.http.*
 
-internal interface UserApi {
+internal interface ContactApi {
 
-    @POST("user/friends/request")
+    @PUT("user/contacts/request")
     suspend fun addContacts(@Body payLoad: AddContactPayload): Data<ResponseBody>
 
-    @GET("user/friends")
+    @GET("user/contacts")
     suspend fun getContacts(): Data<List<UserResponse>>
 
-    @GET("user/friends/request/sent")
+    @GET("user/contacts/request/sent")
     suspend fun getPendingSentContacts(): Data<List<UserResponse>>
 
-    @GET("user/friends/request/received")
+    @GET("user/contacts/request/received")
     suspend fun getPendingApprovalContacts(): Data<List<UserResponse>>
 
     @GET("user/search")

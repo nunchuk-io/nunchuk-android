@@ -31,7 +31,7 @@ class NonSwipeViewPager : ViewPager {
             val viewpager: Class<*> = ViewPager::class.java
             val scroller = viewpager.getDeclaredField("mScroller")
             scroller.isAccessible = true
-            scroller[this] = NonSwipeScroller(context)
+            scroller[this] = NonSwipeScroller(context.applicationContext)
         } catch (e: Exception) {
             e.printStackTrace()
         }
