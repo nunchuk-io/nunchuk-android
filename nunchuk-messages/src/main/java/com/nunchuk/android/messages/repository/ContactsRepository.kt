@@ -2,7 +2,7 @@ package com.nunchuk.android.messages.repository
 
 import com.nunchuk.android.messages.api.AddContactPayload
 import com.nunchuk.android.messages.api.AutoCompleteSearchContactPayload
-import com.nunchuk.android.messages.api.UserApi
+import com.nunchuk.android.messages.api.ContactApi
 import com.nunchuk.android.messages.api.UserResponse
 import javax.inject.Inject
 
@@ -10,7 +10,7 @@ interface ContactsRepository {
 
     suspend fun getContacts(): List<UserResponse>
 
-    suspend fun addContacts(friendId: String)
+    suspend fun addContacts(emails: List<String>)
 
     suspend fun searchContact(email: String): UserResponse
 
@@ -23,13 +23,13 @@ interface ContactsRepository {
 }
 
 internal class ContactsRepositoryImpl @Inject constructor(
-    private val api: UserApi
+    private val api: ContactApi
 ) : ContactsRepository {
 
     override suspend fun getContacts() = api.getContacts().data
 
-    override suspend fun addContacts(friendId: String) {
-        val payload = AddContactPayload(friend_id = friendId)
+    override suspend fun addContacts(emails: List<String>) {
+        val payload = AddContactPayload(emails = emails)
         api.addContacts(payload)
     }
 

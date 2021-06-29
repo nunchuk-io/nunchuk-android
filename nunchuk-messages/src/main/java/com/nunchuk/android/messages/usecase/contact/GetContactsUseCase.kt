@@ -1,4 +1,4 @@
-package com.nunchuk.android.messages.usecase
+package com.nunchuk.android.messages.usecase.contact
 
 import com.nunchuk.android.messages.api.UserResponse
 import com.nunchuk.android.messages.repository.ContactsRepository
@@ -6,15 +6,14 @@ import com.nunchuk.android.model.Result
 import com.nunchuk.android.usecase.BaseUseCase
 import javax.inject.Inject
 
-interface GetSentContactsUseCase {
+interface GetContactsUseCase {
     suspend fun execute(): Result<List<UserResponse>>
 }
 
-internal class GetSentContactsUseCaseImpl @Inject constructor(
+internal class GetContactsUseCaseImpl @Inject constructor(
     private val contactsRepository: ContactsRepository
-) : BaseUseCase(), GetSentContactsUseCase {
+) : BaseUseCase(), GetContactsUseCase {
 
-    override suspend fun execute() = exe {
-        contactsRepository.getPendingSentContacts()
-    }
+    override suspend fun execute() = exe(contactsRepository::getContacts)
+
 }

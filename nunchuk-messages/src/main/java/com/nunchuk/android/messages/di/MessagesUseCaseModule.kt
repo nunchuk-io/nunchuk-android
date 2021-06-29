@@ -1,6 +1,6 @@
 package com.nunchuk.android.messages.di
 
-import com.nunchuk.android.messages.usecase.*
+import com.nunchuk.android.messages.usecase.message.*
 import dagger.Binds
 import dagger.Module
 
@@ -8,18 +8,15 @@ import dagger.Module
 internal interface MessagesUseCaseModule {
 
     @Binds
-    fun bindSearchContactUseCase(useCase: SearchContactUseCaseImpl): SearchContactUseCase
+    fun bindGetRoomsUseCase(useCase: GetRoomSummaryListUseCaseImpl): GetRoomSummaryListUseCase
 
     @Binds
-    fun bindAddContactUseCase(useCase: AddContactUseCaseImpl): AddContactUseCase
+    fun bindCreateRoomUseCase(useCase: CreateRoomUseCaseImpl): CreateRoomUseCase
 
     @Binds
-    fun bindAutoCompleteSearchUseCase(useCase: AutoCompleteSearchUseCaseImpl): AutoCompleteSearchUseCase
+    fun bindCreateDirectRoomUseCase(useCase: CreateDirectRoomUseCaseImpl): CreateDirectRoomUseCase
 
     @Binds
-    fun bindGetReceivedContactsUseCase(useCase: GetReceivedContactsUseCaseImpl): GetReceivedContactsUseCase
-
-    @Binds
-    fun bindGetSentContactsUseCase(useCase: GetSentContactsUseCaseImpl): GetSentContactsUseCase
+    fun bindLeaveRoomUseCase(useCase: LeaveRoomUseCaseImpl): LeaveRoomUseCase
 
 }

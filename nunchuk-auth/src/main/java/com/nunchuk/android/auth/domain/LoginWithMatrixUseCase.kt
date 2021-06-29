@@ -15,7 +15,10 @@ internal class LoginWithMatrixUseCaseImpl @Inject constructor(
 ) : BaseUseCase(), LoginWithMatrixUseCase {
 
     override suspend fun execute(userName: String, password: String) = exe {
-        SessionHolder.currentSession = interceptor.login(userName, password)
+        SessionHolder.currentSession = interceptor.login(userName, password).apply {
+            open()
+            startSync(true)
+        }
     }
 
 }
