@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.ViewModelProviders
+import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseFragment
@@ -24,9 +24,7 @@ internal class WalletsFragment : BaseFragment() {
     @Inject
     lateinit var factory: NunchukFactory
 
-    private val viewModel: WalletsViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(WalletsViewModel::class.java)
-    }
+    private val viewModel: WalletsViewModel by activityViewModels { factory }
 
     private var _binding: FragmentWalletsBinding? = null
     private val binding get() = _binding!!

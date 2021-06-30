@@ -2,7 +2,7 @@ package com.nunchuk.android.wallet.assign
 
 import android.content.Context
 import android.os.Bundle
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.signer.SignerModel
@@ -24,9 +24,7 @@ class AssignSignerActivity : BaseActivity() {
 
     private val args: AssignSignerArgs by lazy { AssignSignerArgs.deserializeFrom(intent) }
 
-    private val viewModel: AssignSignerViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(AssignSignerViewModel::class.java)
-    }
+    private val viewModel: AssignSignerViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityWalletAssignSignerBinding
 

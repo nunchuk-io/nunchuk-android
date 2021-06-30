@@ -3,7 +3,7 @@ package com.nunchuk.android.auth.components.forgot
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.forgot.ForgotPasswordEvent.*
@@ -19,9 +19,7 @@ class ForgotPasswordActivity : BaseActivity() {
     @Inject
     lateinit var factory: ViewModelFactory
 
-    private val viewModel: ForgotPasswordViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(ForgotPasswordViewModel::class.java)
-    }
+    private val viewModel: ForgotPasswordViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityForgotPasswordBinding
 

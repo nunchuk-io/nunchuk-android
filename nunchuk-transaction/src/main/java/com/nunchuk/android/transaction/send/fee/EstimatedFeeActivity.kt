@@ -2,7 +2,7 @@ package com.nunchuk.android.transaction.send.fee
 
 import android.app.Activity
 import android.os.Bundle
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
@@ -23,9 +23,7 @@ class EstimatedFeeActivity : BaseActivity() {
 
     private val args: EstimatedFeeArgs by lazy { EstimatedFeeArgs.deserializeFrom(intent) }
 
-    private val viewModel: EstimatedFeeViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(EstimatedFeeViewModel::class.java)
-    }
+    private val viewModel: EstimatedFeeViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityTransactionEstimateFeeBinding
 

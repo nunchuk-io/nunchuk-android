@@ -3,7 +3,7 @@ package com.nunchuk.android.auth.components.signup
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.signup.SignUpEvent.*
@@ -19,9 +19,7 @@ class SignUpActivity : BaseActivity() {
     @Inject
     lateinit var factory: ViewModelFactory
 
-    private val viewModel: SignUpViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(SignUpViewModel::class.java)
-    }
+    private val viewModel: SignUpViewModel by viewModels { factory }
 
     private lateinit var binding: ActivitySignupBinding
 

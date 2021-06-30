@@ -4,6 +4,7 @@ import dagger.Module
 
 @Module(
     includes = [
+        NunchukPersistenceModule::class
     ]
 )
 interface DatabaseProxyModule

@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.share.IntentSharingController
@@ -31,9 +31,7 @@ class ExportTransactionActivity : BaseActivity() {
 
     private var index = 0
 
-    private val viewModel: ExportTransactionViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(ExportTransactionViewModel::class.java)
-    }
+    private val viewModel: ExportTransactionViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityExportTransactionBinding
 

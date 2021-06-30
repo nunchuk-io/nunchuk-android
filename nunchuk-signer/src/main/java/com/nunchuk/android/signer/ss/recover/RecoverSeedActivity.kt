@@ -3,8 +3,8 @@ package com.nunchuk.android.signer.ss.recover
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.vm.NunchukFactory
@@ -22,9 +22,7 @@ class RecoverSeedActivity : BaseActivity() {
     @Inject
     lateinit var factory: NunchukFactory
 
-    private val viewModel: RecoverSeedViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(RecoverSeedViewModel::class.java)
-    }
+    private val viewModel: RecoverSeedViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityRecoverSeedBinding
 
