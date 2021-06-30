@@ -3,7 +3,7 @@ package com.nunchuk.android.transaction.send.receipt
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
@@ -24,9 +24,7 @@ class AddReceiptActivity : BaseActivity() {
 
     private val args: AddReceiptArgs by lazy { AddReceiptArgs.deserializeFrom(intent) }
 
-    private val viewModel: AddReceiptViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(AddReceiptViewModel::class.java)
-    }
+    private val viewModel: AddReceiptViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityTransactionAddReceiptBinding
 

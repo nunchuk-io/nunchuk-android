@@ -3,7 +3,7 @@ package com.nunchuk.android.transaction.imports
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.transaction.databinding.ActivityImportTransactionBinding
@@ -20,9 +20,7 @@ class ImportTransactionActivity : BaseActivity() {
 
     private val args: ImportTransactionArgs by lazy { ImportTransactionArgs.deserializeFrom(intent) }
 
-    private val viewModel: ImportTransactionViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(ImportTransactionViewModel::class.java)
-    }
+    private val viewModel: ImportTransactionViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityImportTransactionBinding
 

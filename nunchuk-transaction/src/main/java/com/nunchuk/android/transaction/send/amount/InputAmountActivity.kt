@@ -2,7 +2,7 @@ package com.nunchuk.android.transaction.send.amount
 
 import android.content.Context
 import android.os.Bundle
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.getBTCAmount
@@ -24,9 +24,7 @@ class InputAmountActivity : BaseActivity() {
 
     private val args: InputAmountArgs by lazy { InputAmountArgs.deserializeFrom(intent) }
 
-    private val viewModel: InputAmountViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(InputAmountViewModel::class.java)
-    }
+    private val viewModel: InputAmountViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityTransactionInputAmountBinding
 

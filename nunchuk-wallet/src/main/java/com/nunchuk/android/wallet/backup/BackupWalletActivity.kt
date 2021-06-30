@@ -2,7 +2,7 @@ package com.nunchuk.android.wallet.backup
 
 import android.content.Context
 import android.os.Bundle
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
@@ -31,9 +31,7 @@ class BackupWalletActivity : BaseActivity() {
 
     private val args: BackupWalletArgs by lazy { BackupWalletArgs.deserializeFrom(intent) }
 
-    private val viewModel: BackupWalletViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(BackupWalletViewModel::class.java)
-    }
+    private val viewModel: BackupWalletViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityWalletBackupWalletBinding
 

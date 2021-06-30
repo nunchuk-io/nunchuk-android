@@ -3,7 +3,7 @@ package com.nunchuk.android.auth.components.recover
 import android.content.Context
 import android.os.Bundle
 import android.text.method.PasswordTransformationMethod
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.recover.RecoverPasswordEvent.*
@@ -21,9 +21,7 @@ class RecoverPasswordActivity : BaseActivity() {
 
     private val args: RecoverPasswordArgs by lazy { RecoverPasswordArgs.deserializeFrom(intent) }
 
-    private val viewModel: RecoverPasswordViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(RecoverPasswordViewModel::class.java)
-    }
+    private val viewModel: RecoverPasswordViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityRecoverPasswordBinding
 

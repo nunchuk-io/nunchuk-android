@@ -2,7 +2,7 @@ package com.nunchuk.android.transaction.receive
 
 import android.content.Context
 import android.os.Bundle
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.transaction.R
@@ -23,9 +23,7 @@ class ReceiveTransactionActivity : BaseActivity(), TabCountChangeListener {
 
     private val args: ReceiveTransactionArgs by lazy { ReceiveTransactionArgs.deserializeFrom(intent) }
 
-    private val viewModel: ReceiveTransactionViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(ReceiveTransactionViewModel::class.java)
-    }
+    private val viewModel: ReceiveTransactionViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityTransactionReceiveBinding
 

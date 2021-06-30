@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-
-    <corners android:radius="@dimen/nc_padding_8" />
-
-    <solid android:color="@color/nc_white_color" />
-
-</shape>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/nc_padding_8" />
+            <solid android:color="@color/nc_button_press_state_color" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/nc_padding_8" />
+            <solid android:color="@color/nc_white_color" />
+        </shape>
+    </item>
+</selector>

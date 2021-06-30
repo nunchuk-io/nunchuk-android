@@ -3,8 +3,8 @@ package com.nunchuk.android.app.splash
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.app.splash.SplashEvent.*
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
@@ -19,9 +19,7 @@ internal class SplashActivity : BaseActivity() {
     @Inject
     lateinit var factory: ViewModelFactory
 
-    private val viewModel: SplashViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(SplashViewModel::class.java)
-    }
+    private val viewModel: SplashViewModel by viewModels { factory }
 
     private lateinit var binding: ActivitySplashBinding
 

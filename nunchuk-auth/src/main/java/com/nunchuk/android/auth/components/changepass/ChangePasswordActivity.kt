@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.method.PasswordTransformationMethod
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.*
@@ -20,9 +20,7 @@ class ChangePasswordActivity : BaseActivity() {
     @Inject
     lateinit var factory: ViewModelFactory
 
-    private val viewModel: ChangePasswordViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(ChangePasswordViewModel::class.java)
-    }
+    private val viewModel: ChangePasswordViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityChangePasswordBinding
 

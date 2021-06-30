@@ -3,7 +3,7 @@ package com.nunchuk.android.signer.ss.passphrase
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.signer.R
@@ -20,9 +20,7 @@ class SetPassphraseActivity : BaseActivity() {
     @Inject
     lateinit var factory: NunchukFactory
 
-    private val viewModel: SetPassphraseViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(SetPassphraseViewModel::class.java)
-    }
+    private val viewModel: SetPassphraseViewModel by viewModels { factory }
 
     private lateinit var binding: ActivitySetPassphraseBinding
 

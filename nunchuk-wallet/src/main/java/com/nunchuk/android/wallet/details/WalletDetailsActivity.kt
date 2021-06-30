@@ -3,7 +3,7 @@ package com.nunchuk.android.wallet.details
 import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.ext.isVisible
@@ -31,9 +31,7 @@ class WalletDetailsActivity : BaseActivity() {
     @Inject
     lateinit var controller: IntentSharingController
 
-    private val viewModel: WalletDetailsViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(WalletDetailsViewModel::class.java)
-    }
+    private val viewModel: WalletDetailsViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityWalletDetailBinding
 

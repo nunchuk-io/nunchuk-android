@@ -3,7 +3,7 @@ package com.nunchuk.android.signer.ss.create
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
@@ -19,9 +19,7 @@ class CreateNewSeedActivity : BaseActivity() {
     @Inject
     lateinit var factory: NunchukFactory
 
-    private val viewModel: CreateNewSeedViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(CreateNewSeedViewModel::class.java)
-    }
+    private val viewModel: CreateNewSeedViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityCreateSeedBinding
 

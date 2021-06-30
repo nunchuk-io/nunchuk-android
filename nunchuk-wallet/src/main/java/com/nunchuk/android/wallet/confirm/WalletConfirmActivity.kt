@@ -2,7 +2,7 @@ package com.nunchuk.android.wallet.confirm
 
 import android.content.Context
 import android.os.Bundle
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
@@ -25,9 +25,7 @@ class WalletConfirmActivity : BaseActivity() {
 
     private val args: WalletConfirmArgs by lazy { WalletConfirmArgs.deserializeFrom(intent) }
 
-    private val viewModel: WalletConfirmViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(WalletConfirmViewModel::class.java)
-    }
+    private val viewModel: WalletConfirmViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityWalletConfirmationBinding
 

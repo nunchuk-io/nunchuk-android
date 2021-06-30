@@ -2,7 +2,7 @@ package com.nunchuk.android.transaction.send.confirmation
 
 import android.app.Activity
 import android.os.Bundle
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.ActivityManager
@@ -22,9 +22,7 @@ class TransactionConfirmActivity : BaseActivity() {
 
     private val args: TransactionConfirmArgs by lazy { TransactionConfirmArgs.deserializeFrom(intent) }
 
-    private val viewModel: TransactionConfirmViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(TransactionConfirmViewModel::class.java)
-    }
+    private val viewModel: TransactionConfirmViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityTransactionConfirmBinding
 

@@ -5,7 +5,7 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
@@ -34,9 +34,7 @@ class TransactionDetailsActivity : BaseActivity() {
 
     private val args: TransactionDetailsArgs by lazy { TransactionDetailsArgs.deserializeFrom(intent) }
 
-    private val viewModel: TransactionDetailsViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(TransactionDetailsViewModel::class.java)
-    }
+    private val viewModel: TransactionDetailsViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityTransactionDetailsBinding
 

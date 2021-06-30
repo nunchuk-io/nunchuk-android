@@ -77,7 +77,6 @@
                 android:layout_marginStart="@dimen/nc_padding_16"
                 android:layout_marginTop="@dimen/nc_padding_8"
                 android:background="@drawable/nc_rounded_light_background"
-                android:foreground="?android:attr/selectableItemBackground"
                 android:paddingHorizontal="@dimen/nc_padding_16"
                 android:paddingVertical="@dimen/nc_padding_8"
                 android:text="@string/nc_text_add_a_signer"

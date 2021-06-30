@@ -2,7 +2,7 @@ package com.nunchuk.android.signer.ss.confirm
 
 import android.content.Context
 import android.os.Bundle
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
@@ -19,9 +19,7 @@ class ConfirmSeedActivity : BaseActivity() {
     @Inject
     lateinit var factory: NunchukFactory
 
-    private val viewModel: ConfirmSeedViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(ConfirmSeedViewModel::class.java)
-    }
+    private val viewModel: ConfirmSeedViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityConfirmSeedBinding
 

@@ -2,8 +2,8 @@ package com.nunchuk.android.signer.details
 
 import android.content.Context
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModelProviders
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
@@ -22,9 +22,7 @@ class SignerInfoActivity : BaseActivity() {
     @Inject
     lateinit var factory: NunchukFactory
 
-    private val viewModel: SignerInfoViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(SignerInfoViewModel::class.java)
-    }
+    private val viewModel: SignerInfoViewModel by viewModels { factory }
 
     private lateinit var binding: ActivitySignerInfoBinding
 

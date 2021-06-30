@@ -42,7 +42,6 @@
     </style>
 
     <style name="NCPrimaryButton">
-        <item name="android:foreground">?android:attr/selectableItemBackground</item>
         <item name="android:gravity">center</item>
         <item name="android:padding">@dimen/nc_padding_14</item>
         <item name="android:stateListAnimator">@null</item>
@@ -77,7 +76,6 @@
     </style>
 
     <style name="NCOutlineButton">
-        <item name="android:foreground">?android:attr/selectableItemBackground</item>
         <item name="android:gravity">center</item>
         <item name="android:orientation">horizontal</item>
         <item name="android:padding">@dimen/nc_padding_14</item>

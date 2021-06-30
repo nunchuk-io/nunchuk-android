@@ -3,7 +3,7 @@ package com.nunchuk.android.signer.add
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.qr.QRCodeParser
@@ -23,9 +23,7 @@ class AddSignerActivity : BaseActivity() {
     @Inject
     lateinit var factory: NunchukFactory
 
-    private val viewModel: AddSignerViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(AddSignerViewModel::class.java)
-    }
+    private val viewModel: AddSignerViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityAddSignerBinding
 

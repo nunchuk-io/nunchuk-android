@@ -2,7 +2,7 @@ package com.nunchuk.android.signer.ss.name
 
 import android.content.Context
 import android.os.Bundle
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.signer.R
@@ -19,9 +19,7 @@ class AddSoftwareSignerNameActivity : BaseActivity() {
     @Inject
     lateinit var factory: NunchukFactory
 
-    private val viewModel: AddSoftwareSignerNameViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(AddSoftwareSignerNameViewModel::class.java)
-    }
+    private val viewModel: AddSoftwareSignerNameViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityAddNameBinding
 

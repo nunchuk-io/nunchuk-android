@@ -6,7 +6,7 @@ import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.ViewModelProviders
+import androidx.fragment.app.activityViewModels
 import androidx.viewpager.widget.ViewPager
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
@@ -34,9 +34,7 @@ internal class UnusedAddressFragment : BaseFragment() {
 
     private val args: AddressFragmentArgs by lazy { AddressFragmentArgs.deserializeFrom(arguments) }
 
-    private val viewModel: UnusedAddressViewModel by lazy {
-        ViewModelProviders.of(requireActivity(), factory).get(UnusedAddressViewModel::class.java)
-    }
+    private val viewModel: UnusedAddressViewModel by activityViewModels { factory }
 
     private var _binding: FragmentUnusedAddressBinding? = null
     private val binding get() = _binding!!

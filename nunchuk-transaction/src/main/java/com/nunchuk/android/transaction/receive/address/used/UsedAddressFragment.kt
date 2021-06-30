@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.ViewModelProviders
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.arch.vm.NunchukFactory
@@ -23,9 +23,7 @@ internal class UsedAddressFragment : BaseFragment() {
 
     private val args: AddressFragmentArgs by lazy { AddressFragmentArgs.deserializeFrom(arguments) }
 
-    private val viewModel: UsedAddressViewModel by lazy {
-        ViewModelProviders.of(requireActivity(), factory).get(UsedAddressViewModel::class.java)
-    }
+    private val viewModel: UsedAddressViewModel by activityViewModels { factory }
 
     private lateinit var adapter: UsedAddressAdapter
 

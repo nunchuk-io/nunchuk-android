@@ -2,7 +2,7 @@ package com.nunchuk.android.wallet.upload
 
 import android.content.Context
 import android.os.Bundle
-import androidx.lifecycle.ViewModelProviders
+import androidx.activity.viewModels
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
@@ -30,9 +30,7 @@ class UploadConfigurationActivity : BaseActivity() {
 
     private val args: UploadConfigurationArgs by lazy { UploadConfigurationArgs.deserializeFrom(intent) }
 
-    private val viewModel: UploadConfigurationViewModel by lazy {
-        ViewModelProviders.of(this, factory).get(UploadConfigurationViewModel::class.java)
-    }
+    private val viewModel: UploadConfigurationViewModel by viewModels { factory }
 
     private lateinit var binding: ActivityWalletUploadConfigurationBinding
 
