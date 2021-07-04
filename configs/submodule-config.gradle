@@ -48,7 +48,6 @@ dependencies {
     api daggerDeps.dagger
     kapt daggerDeps.processor
     implementation daggerDeps.support
-    implementation daggerDeps.jbAnnotations
 
     // Coroutines
     implementation coroutineDeps.values()

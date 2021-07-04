@@ -19,24 +19,17 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import javax.inject.Inject
 
-internal class WalletsFragment : BaseFragment() {
+internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
 
     private val viewModel: WalletsViewModel by activityViewModels { factory }
 
-    private var _binding: FragmentWalletsBinding? = null
-    private val binding get() = _binding!!
-
-    override fun onCreateView(
+    override fun initializeBinding(
         inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentWalletsBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+        container: ViewGroup?
+    ) = FragmentWalletsBinding.inflate(inflater, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -165,8 +158,4 @@ internal class WalletsFragment : BaseFragment() {
         viewModel.retrieveData()
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
 }
