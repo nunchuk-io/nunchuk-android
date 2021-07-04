@@ -2,5 +2,5 @@
     <string name="app_name">Nunchuk Android</string>
     <string name="nc_text_get_started">Get Started</string>
     <string name="nc_text_welcome_to_nunchuk" tools:ignore="ExtraTranslation">Welcome to Nunchuk</string>
-    <string name="nc_text_intro" tools:ignore="ExtraTranslation">Content TBD sit amet, consectetur \n adipiscing elit. Nunc scelerisque sed \n libero pulvinar egestas.</string>
+    <string name="nc_text_intro" tools:ignore="ExtraTranslation">Where private messaging meets the safest Bitcoin wallet.</string>
 </resources>

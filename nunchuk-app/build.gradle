@@ -116,7 +116,13 @@ dependencies {
 
     debugImplementation debugDatabaseDeps.values()
 
+    // FIXME
     // Kotlin
     implementation "androidx.navigation:navigation-fragment-ktx:2.3.5"
     implementation "androidx.navigation:navigation-ui-ktx:2.3.5"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0'
+
+    // Reactive
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
 }

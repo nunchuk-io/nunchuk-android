@@ -114,20 +114,8 @@
                         app:fontTextStyle="semi_bold"
                         app:layout_constraintEnd_toStartOf="@+id/icArrow"
                         app:layout_constraintStart_toEndOf="@+id/icSplit"
+                        app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
-
-                    <com.nunchuk.android.widget.NCFontTextView
-                        android:id="@+id/subtitle"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="@dimen/nc_padding_8"
-                        android:layout_marginTop="@dimen/nc_padding_4"
-                        android:text="@string/nc_text_air_desc"
-                        android:textColor="@color/nc_black_color"
-                        android:textSize="@dimen/nc_text_size_16"
-                        app:layout_constraintEnd_toStartOf="@+id/icArrow"
-                        app:layout_constraintStart_toEndOf="@+id/icSplit"
-                        app:layout_constraintTop_toBottomOf="@+id/title" />
 
                     <ImageView
                         android:id="@+id/icArrow"

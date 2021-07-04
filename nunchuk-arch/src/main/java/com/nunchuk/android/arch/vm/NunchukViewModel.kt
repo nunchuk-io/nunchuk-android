@@ -4,9 +4,12 @@ import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.SupervisorJob
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 
 abstract class NunchukViewModel<State, Event> : ViewModel() {
+
+    private val disposables = CompositeDisposable()
 
     private val _state = MutableLiveData<State>()
 
@@ -17,8 +20,6 @@ abstract class NunchukViewModel<State, Event> : ViewModel() {
     val state: LiveData<State> get() = _state
 
     val event: LiveData<Event> get() = _event
-
-    private val viewModelJob = SupervisorJob()
 
     @MainThread
     protected fun updateState(updater: State.() -> State) {
@@ -32,8 +33,12 @@ abstract class NunchukViewModel<State, Event> : ViewModel() {
     protected fun getState() = _state.value ?: initialState
 
     override fun onCleared() {
+        disposables.dispose()
         super.onCleared()
-        viewModelJob.cancel()
+    }
+
+    protected fun Disposable.addToDisposables() {
+        disposables.add(this)
     }
 
 }

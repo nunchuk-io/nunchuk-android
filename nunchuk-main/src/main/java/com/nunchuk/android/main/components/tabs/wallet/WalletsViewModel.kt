@@ -4,7 +4,6 @@ import android.util.Log
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.process
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
-import com.nunchuk.android.messages.usecase.contact.GetContactsUseCase
 import com.nunchuk.android.messages.usecase.contact.GetReceivedContactsUseCase
 import com.nunchuk.android.messages.usecase.contact.GetSentContactsUseCase
 import com.nunchuk.android.usecase.GetMasterSignersUseCase
@@ -16,7 +15,6 @@ internal class WalletsViewModel @Inject constructor(
     private val getMasterSignersUseCase: GetMasterSignersUseCase,
     private val getRemoteSignersUseCase: GetRemoteSignersUseCase,
     private val getWalletsUseCase: GetWalletsUseCase,
-    private val getContactsUseCase: GetContactsUseCase,
     private val getSentContactsUseCase: GetSentContactsUseCase,
     private val getReceivedContactsUseCase: GetReceivedContactsUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
@@ -30,7 +28,6 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     private fun getContacts() {
-        process(getContactsUseCase::execute)
         process(getSentContactsUseCase::execute)
         process(getReceivedContactsUseCase::execute)
     }

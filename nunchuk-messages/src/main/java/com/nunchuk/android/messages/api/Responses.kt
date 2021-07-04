@@ -4,12 +4,12 @@ import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
 data class UsersResponseWrapper(
-    @SerializedName("users")
+    @SerializedName("friends")
     val users: List<UserResponse>
 ) : Serializable
 
 data class UserResponseWrapper(
-    @SerializedName("user")
+    @SerializedName("friend")
     val user: UserResponse
 ) : Serializable
 
@@ -21,11 +21,11 @@ data class UserResponse(
     @SerializedName("email")
     val email: String,
     @SerializedName("gender")
-    val gender: String,
+    val gender: String?,
     @SerializedName("avatar")
-    val avatar: String,
+    val avatar: String?,
     @SerializedName("status")
-    val status: String,
+    val status: String?,
     @SerializedName("chat_id")
     val chatId: String,
 ) : Serializable

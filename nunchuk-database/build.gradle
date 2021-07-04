@@ -8,6 +8,8 @@ android {
 }
 
 dependencies {
+    implementation project(':nunchuk-domain')
+
     implementation androidxDeps.values()
     // Room
     kapt roomArch.roomCompiler
