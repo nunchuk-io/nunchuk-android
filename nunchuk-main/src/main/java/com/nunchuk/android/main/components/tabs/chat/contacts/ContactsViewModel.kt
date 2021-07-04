@@ -5,7 +5,7 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.messages.usecase.contact.GetContactsUseCase
 import javax.inject.Inject
 
-internal class ContactViewModel @Inject constructor(
+internal class ContactsViewModel @Inject constructor(
     private val getContactsUseCase: GetContactsUseCase
 ) : NunchukViewModel<ContactsState, ContactsEvent>() {
 

@@ -17,7 +17,7 @@ internal class ContactsFragment : BaseFragment() {
     @Inject
     lateinit var factory: NunchukFactory
 
-    private val viewModel: ContactViewModel by activityViewModels { factory }
+    private val viewModel: ContactsViewModel by activityViewModels { factory }
 
     private lateinit var adapter: ContactsAdapter
 
