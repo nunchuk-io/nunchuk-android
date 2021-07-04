@@ -19,7 +19,7 @@ import com.nunchuk.android.utils.TextUtils
 import com.nunchuk.android.widget.NCToastMessage
 import javax.inject.Inject
 
-internal class UnusedAddressFragment : BaseFragment() {
+internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
@@ -36,13 +36,10 @@ internal class UnusedAddressFragment : BaseFragment() {
 
     private val viewModel: UnusedAddressViewModel by activityViewModels { factory }
 
-    private var _binding: FragmentUnusedAddressBinding? = null
-    private val binding get() = _binding!!
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = FragmentUnusedAddressBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ) = FragmentUnusedAddressBinding.inflate(inflater, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -121,11 +118,6 @@ internal class UnusedAddressFragment : BaseFragment() {
 
     private fun handleEvent(event: UnusedAddressEvent) {
 
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 
     companion object {

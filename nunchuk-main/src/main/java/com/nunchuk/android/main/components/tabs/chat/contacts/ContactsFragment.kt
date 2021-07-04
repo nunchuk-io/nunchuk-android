@@ -12,8 +12,7 @@ import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.main.databinding.FragmentContactsBinding
 import javax.inject.Inject
 
-internal class ContactsFragment : BaseFragment() {
-
+internal class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
     @Inject
     lateinit var factory: NunchukFactory
 
@@ -21,14 +20,10 @@ internal class ContactsFragment : BaseFragment() {
 
     private lateinit var adapter: ContactsAdapter
 
-    private var _binding: FragmentContactsBinding? = null
-    private val binding get() = _binding!!
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = FragmentContactsBinding.inflate(inflater, container, false)
-
-        return binding.root
-    }
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ) = FragmentContactsBinding.inflate(inflater, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

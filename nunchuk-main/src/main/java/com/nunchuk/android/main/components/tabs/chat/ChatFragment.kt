@@ -7,22 +7,17 @@ import android.view.ViewGroup
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.main.databinding.FragmentChatBinding
 
-internal class ChatFragment : BaseFragment() {
-
-    private var _binding: FragmentChatBinding? = null
-
-    private val binding get() = _binding!!
+internal class ChatFragment : BaseFragment<FragmentChatBinding>() {
 
     private lateinit var pagerAdapter: ChatFragmentPagerAdapter
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = FragmentChatBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ) = FragmentChatBinding.inflate(inflater, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupViews()
     }
 
@@ -41,8 +36,4 @@ internal class ChatFragment : BaseFragment() {
         pagers.currentItem = position
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
 }

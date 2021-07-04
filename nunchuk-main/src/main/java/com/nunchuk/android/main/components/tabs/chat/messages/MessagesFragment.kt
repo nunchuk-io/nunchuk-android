@@ -12,7 +12,7 @@ import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.main.databinding.FragmentMessagesBinding
 import javax.inject.Inject
 
-internal class MessagesFragment : BaseFragment() {
+internal class MessagesFragment : BaseFragment<FragmentMessagesBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
@@ -21,14 +21,10 @@ internal class MessagesFragment : BaseFragment() {
 
     private lateinit var adapter: MessagesAdapter
 
-    private var _binding: FragmentMessagesBinding? = null
-    private val binding get() = _binding!!
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = FragmentMessagesBinding.inflate(inflater, container, false)
-
-        return binding.root
-    }
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ) = FragmentMessagesBinding.inflate(inflater, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

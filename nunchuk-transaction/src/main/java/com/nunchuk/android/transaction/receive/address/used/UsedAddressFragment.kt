@@ -16,7 +16,7 @@ import com.nunchuk.android.transaction.receive.address.used.UsedAddressEvent.Get
 import com.nunchuk.android.widget.NCToastMessage
 import javax.inject.Inject
 
-internal class UsedAddressFragment : BaseFragment() {
+internal class UsedAddressFragment : BaseFragment<FragmentUsedAddressBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
@@ -27,13 +27,10 @@ internal class UsedAddressFragment : BaseFragment() {
 
     private lateinit var adapter: UsedAddressAdapter
 
-    private var _binding: FragmentUsedAddressBinding? = null
-    private val binding get() = _binding!!
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = FragmentUsedAddressBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ) = FragmentUsedAddressBinding.inflate(inflater, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

@@ -104,7 +104,6 @@ dependencies {
     api daggerDeps.dagger
     kapt daggerDeps.processor
     implementation daggerDeps.support
-    implementation daggerDeps.jbAnnotations
     implementation reactiveDeps.rxAndroid2
 
     implementation networkDeps.values()
