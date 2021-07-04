@@ -2,12 +2,19 @@ package com.nunchuk.android.main.components.tabs.chat.messages
 
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseViewHolder
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.databinding.ItemMessageBinding
 import com.nunchuk.android.widget.util.inflate
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
+import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
+import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
 internal class MessagesAdapter(
     private val listener: (RoomSummary) -> Unit
@@ -41,10 +48,23 @@ internal class MessageViewHolder(
 
     override fun bind(data: RoomSummary) {
         binding.name.text = data.displayName
-        binding.message.text = "Last message: ..."
+        data.latestPreviewableEvent?.let {
+            binding.message.text = it.lastMessage()
+            binding.time.text = format(it.root.originServerTs)
+        }
+        binding.count.isVisible = data.hasUnreadMessages
         binding.count.text = "${data.notificationCount}"
-        binding.time.text = "1m"
         binding.root.setOnClickListener { listener(data) }
     }
+
+    private fun format(ts: Long?) = ts?.formatDate() ?: "-"
+
+    private fun TimelineEvent.lastMessage(): CharSequence {
+        val senderName = senderInfo.disambiguatedDisplayName
+        val lastMessage = getTextEditableContent() ?: getLastMessageContent()?.body
+        return "$senderName: $lastMessage"
+    }
+
+    private fun Long.formatDate(): String = SimpleDateFormat("dd/MM HH:mm", Locale.US).format(Date(this))
 
 }

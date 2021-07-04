@@ -16,7 +16,6 @@
         android:scaleType="fitCenter"
         android:src="@drawable/ic_chat_bot"
         android:textColor="@color/nc_black_color"
-        app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="HN" />
