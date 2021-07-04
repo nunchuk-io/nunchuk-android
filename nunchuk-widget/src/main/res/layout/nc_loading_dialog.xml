@@ -1,5 +1,5 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/custom_toast_container"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -7,30 +7,40 @@
     android:layout_marginHorizontal="@dimen/nc_padding_24"
     android:background="@drawable/nc_rounded_white_thin_background"
     android:gravity="center"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:padding="@dimen/nc_padding_24">
 
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:gravity="center_vertical"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminateTint="@color/nc_blue_color" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/nc_padding_16"
+            android:text="@string/nc_text_waiting"
+            android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_18" />
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
     <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:indeterminateDrawable="@drawable/nc_progress_icon"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/title"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:id="@+id/waitingHorizontalProgress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/nc_padding_20"
+        android:layout_marginTop="@dimen/nc_padding_10"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/nc_blue_color"
+        tools:max="100" />
 
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:text="Please wait a moment..."
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_18"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-</LinearLayout>
+</androidx.appcompat.widget.LinearLayoutCompat>

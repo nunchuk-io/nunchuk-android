@@ -25,11 +25,6 @@ abstract class NunchukViewModel<State, Event> : ViewModel() {
         _state.value = updater(_state.value ?: initialState)
     }
 
-    @MainThread
-    protected fun setState(state: State) {
-        _state.value = state
-    }
-
     protected fun event(event: Event) {
         _event.value = event
     }

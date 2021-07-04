@@ -19,4 +19,7 @@ internal interface MessagesUseCaseModule {
     @Binds
     fun bindLeaveRoomUseCase(useCase: LeaveRoomUseCaseImpl): LeaveRoomUseCase
 
+    @Binds
+    fun bindJoinRoomUseCase(useCase: JoinRoomUseCaseImpl): JoinRoomUseCase
+
 }

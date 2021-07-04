@@ -1,21 +1,24 @@
 package com.nunchuk.android.main.components.tabs.wallet
 
 import android.util.Log
-import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.util.process
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
-import com.nunchuk.android.model.Result.Error
-import com.nunchuk.android.model.Result.Success
+import com.nunchuk.android.messages.usecase.contact.GetContactsUseCase
+import com.nunchuk.android.messages.usecase.contact.GetReceivedContactsUseCase
+import com.nunchuk.android.messages.usecase.contact.GetSentContactsUseCase
 import com.nunchuk.android.usecase.GetMasterSignersUseCase
 import com.nunchuk.android.usecase.GetRemoteSignersUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class WalletsViewModel @Inject constructor(
     private val getMasterSignersUseCase: GetMasterSignersUseCase,
     private val getRemoteSignersUseCase: GetRemoteSignersUseCase,
-    private val getWalletsUseCase: GetWalletsUseCase
+    private val getWalletsUseCase: GetWalletsUseCase,
+    private val getContactsUseCase: GetContactsUseCase,
+    private val getSentContactsUseCase: GetSentContactsUseCase,
+    private val getReceivedContactsUseCase: GetReceivedContactsUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
 
     override val initialState = WalletsState()
@@ -23,6 +26,13 @@ internal class WalletsViewModel @Inject constructor(
     fun retrieveData() {
         getSigners()
         getWallets()
+        getContacts()
+    }
+
+    private fun getContacts() {
+        process(getContactsUseCase::execute)
+        process(getSentContactsUseCase::execute)
+        process(getReceivedContactsUseCase::execute)
     }
 
     private fun getSigners() {
@@ -31,45 +41,30 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     private fun getRemoteSigners() {
-        viewModelScope.launch {
-            when (val result = getRemoteSignersUseCase.execute()) {
-                is Success -> {
-                    updateState { copy(signers = result.data) }
-                }
-                is Error -> {
-                    updateState { copy(signers = emptyList()) }
-                    Log.e(TAG, "get signers error: ${result.exception.message}")
-                }
-            }
-        }
+        process(getRemoteSignersUseCase::execute, {
+            updateState { copy(signers = it) }
+        }, {
+            updateState { copy(signers = emptyList()) }
+            Log.e(TAG, "get signers error: ${it.message}")
+        })
     }
 
     private fun getMasterSigners() {
-        viewModelScope.launch {
-            when (val result = getMasterSignersUseCase.execute()) {
-                is Success -> {
-                    updateState { copy(masterSigners = result.data) }
-                }
-                is Error -> {
-                    updateState { copy(signers = emptyList()) }
-                    Log.e(TAG, "get signers error: ${result.exception.message}")
-                }
-            }
-        }
+        process(getMasterSignersUseCase::execute, {
+            updateState { copy(masterSigners = it) }
+        }, {
+            updateState { copy(signers = emptyList()) }
+            Log.e(TAG, "get signers error: ${it.message}")
+        })
     }
 
     private fun getWallets() {
-        viewModelScope.launch {
-            when (val result = getWalletsUseCase.execute()) {
-                is Success -> {
-                    updateState { copy(wallets = result.data) }
-                }
-                is Error -> {
-                    updateState { copy(wallets = emptyList()) }
-                    Log.e(TAG, "get wallets error: ${result.exception.message}")
-                }
-            }
-        }
+        process(getWalletsUseCase::execute, {
+            updateState { copy(wallets = it) }
+        }, {
+            updateState { copy(wallets = emptyList()) }
+            Log.e(TAG, "get wallets error: ${it.message}")
+        })
     }
 
     fun handleAddSignerOrWallet() {

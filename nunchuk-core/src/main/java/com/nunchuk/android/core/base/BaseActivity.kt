@@ -30,12 +30,12 @@ abstract class BaseActivity : AppCompatActivity(), HasAndroidInjector {
 
     private var dialog: Dialog? = null
 
-    protected fun showLoading() {
+    fun showLoading() {
         dialog?.cancel()
         dialog = creator.showDialog()
     }
 
-    protected fun hideLoading() {
+    fun hideLoading() {
         dialog?.cancel()
     }
 

@@ -14,6 +14,6 @@ internal class GetReceivedContactsUseCaseImpl @Inject constructor(
     private val contactsRepository: ContactsRepository
 ) : BaseUseCase(), GetReceivedContactsUseCase {
 
-    override suspend fun execute() = exe(contactsRepository::getPendingSentContacts)
+    override suspend fun execute() = exe(contactsRepository::getPendingApprovalContacts)
 
 }
