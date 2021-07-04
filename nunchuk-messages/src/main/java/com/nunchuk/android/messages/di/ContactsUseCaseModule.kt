@@ -22,4 +22,7 @@ internal interface ContactsUseCaseModule {
     @Binds
     fun bindGetSentContactsUseCase(useCase: GetSentContactsUseCaseImpl): GetSentContactsUseCase
 
+    @Binds
+    fun bindGetContactsUseCase(useCase: GetContactsUseCaseImpl): GetContactsUseCase
+
 }

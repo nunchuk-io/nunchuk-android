@@ -29,18 +29,16 @@ class FontInitializer(private val context: Context) {
 
     fun getCurrentTypeface(fontStyle: Int, fontName: String? = null) = getTypeFace(getFontName(fontStyle, fontName))
 
-    private fun getTypeFace(fontName: String?): Typeface {
-        synchronized(FONTS) {
-            return when {
-                fontName == null -> Typeface.DEFAULT
-                FONTS.containsKey(fontName) -> FONTS[fontName]!!
-                else -> try {
-                    val typeface = Typeface.createFromAsset(context.assets, fontName)
-                    FONTS[fontName] = typeface
-                    typeface
-                } catch (ex: Throwable) {
-                    Typeface.DEFAULT
-                }
+    private fun getTypeFace(fontName: String?): Typeface = synchronized(FONTS) {
+        when {
+            fontName == null -> Typeface.DEFAULT
+            FONTS.containsKey(fontName) -> FONTS[fontName]!!
+            else -> try {
+                val typeface = Typeface.createFromAsset(context.assets, fontName)
+                FONTS[fontName] = typeface
+                typeface
+            } catch (ex: Throwable) {
+                Typeface.DEFAULT
             }
         }
     }

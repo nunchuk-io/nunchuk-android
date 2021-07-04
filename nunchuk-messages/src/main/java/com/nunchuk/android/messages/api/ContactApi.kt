@@ -9,7 +9,7 @@ internal interface ContactApi {
     @PUT("user/contacts/request")
     suspend fun addContacts(@Body payLoad: AddContactPayload): Data<ResponseBody>
 
-    @GET("user/contacts")
+    @GET("user/contacts/")
     suspend fun getContacts(): Data<List<UserResponse>>
 
     @GET("user/contacts/request/sent")
