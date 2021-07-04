@@ -1,6 +1,7 @@
 package com.nunchuk.android.messages.api
 
 import com.nunchuk.android.network.Data
+import io.reactivex.Single
 import okhttp3.ResponseBody
 import retrofit2.http.*
 
@@ -10,13 +11,13 @@ internal interface ContactApi {
     suspend fun addContacts(@Body payLoad: AddContactPayload): Data<ResponseBody>
 
     @GET("user/contacts/")
-    suspend fun getContacts(): Data<List<UserResponse>>
+    fun getContacts(): Single<Data<UsersResponseWrapper>>
 
     @GET("user/contacts/request/sent")
-    suspend fun getPendingSentContacts(): Data<List<UserResponse>>
+    suspend fun getPendingSentContacts(): Data<UsersResponseWrapper>
 
     @GET("user/contacts/request/received")
-    suspend fun getPendingApprovalContacts(): Data<List<UserResponse>>
+    suspend fun getPendingApprovalContacts(): Data<UsersResponseWrapper>
 
     @GET("user/search")
     suspend fun searchContact(@Query("email") email: String): Data<UserResponseWrapper>

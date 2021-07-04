@@ -9,6 +9,7 @@ dependencies {
     implementation project(':nunchuk-domain')
     implementation project(':nunchuk-widget')
     implementation project(':nunchuk-network')
+    implementation project(':nunchuk-database')
     implementation nunchukDeps.nativeSdk
 
     implementation androidxDeps.values()

@@ -1,19 +1,27 @@
 package com.nunchuk.android.messages.usecase.contact
 
-import com.nunchuk.android.messages.api.UserResponse
+import android.annotation.SuppressLint
+import com.nunchuk.android.messages.model.Contact
 import com.nunchuk.android.messages.repository.ContactsRepository
-import com.nunchuk.android.model.Result
-import com.nunchuk.android.usecase.BaseUseCase
+import io.reactivex.Flowable
+import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
 interface GetContactsUseCase {
-    suspend fun execute(): Result<List<UserResponse>>
+    fun execute(): Flowable<List<Contact>>
 }
 
 internal class GetContactsUseCaseImpl @Inject constructor(
-    private val contactsRepository: ContactsRepository
-) : BaseUseCase(), GetContactsUseCase {
+    private val repository: ContactsRepository
+) : GetContactsUseCase {
 
-    override suspend fun execute() = exe(contactsRepository::getContacts)
+    @SuppressLint("CheckResult")
+    override fun execute() = with(repository) {
+        getRemoteContacts()
+            .observeOn(Schedulers.io())
+            .subscribeOn(Schedulers.io())
+            .subscribe({}, {})
+        getLocalContacts()
+    }
 
 }
