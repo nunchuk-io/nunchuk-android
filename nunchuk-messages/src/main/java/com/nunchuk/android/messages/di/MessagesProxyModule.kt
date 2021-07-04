@@ -6,6 +6,7 @@ import dagger.Module
     includes = [
         MessagesActivityModule::class,
         ContactsUseCaseModule::class,
+        MessagesUseCaseModule::class,
         MessagesDataModule::class,
         MessagesNetworkModule::class,
         MessagesCommonModule::class
