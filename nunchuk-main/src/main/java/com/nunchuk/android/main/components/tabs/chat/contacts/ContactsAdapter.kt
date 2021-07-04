@@ -40,6 +40,7 @@ internal class ContactViewHolder(
     private val binding = ItemContactBinding.bind(itemView)
 
     override fun bind(data: Contact) {
+        binding.avatar.text = data.name.first().toUpperCase().toString()
         binding.name.text = data.name
         binding.email.text = data.email
         binding.root.setOnClickListener { listener(data) }
