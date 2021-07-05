@@ -10,6 +10,6 @@ import io.reactivex.Flowable
 @Dao
 interface ContactDao : BaseDao<ContactEntity> {
 
-    @Query("SELECT * FROM $TABLE_CONTACT")
-    fun getContacts(): Flowable<List<ContactEntity>>
+    @Query("SELECT * FROM $TABLE_CONTACT WHERE account_id = :accountId")
+    fun getContacts(accountId: String): Flowable<List<ContactEntity>>
 }

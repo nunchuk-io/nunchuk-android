@@ -15,9 +15,9 @@ import javax.inject.Inject
 
 interface ContactsRepository {
 
-    fun getLocalContacts(): Flowable<List<Contact>>
+    fun getLocalContacts(accountId: String): Flowable<List<Contact>>
 
-    fun getRemoteContacts(): Completable
+    fun getRemoteContacts(accountId: String): Completable
 
     suspend fun addContacts(emails: List<String>)
 
@@ -36,11 +36,11 @@ internal class ContactsRepositoryImpl @Inject constructor(
     private val contactDao: ContactDao
 ) : ContactsRepository {
 
-    override fun getLocalContacts() = contactDao.getContacts().map(List<ContactEntity>::toModels)
+    override fun getLocalContacts(accountId: String) = contactDao.getContacts(accountId).map(List<ContactEntity>::toModels)
 
-    override fun getRemoteContacts(): Completable = Completable.fromCallable {
+    override fun getRemoteContacts(accountId: String): Completable = Completable.fromCallable {
         val response = api.getContacts().blockingGet()
-        val items = response.data.users.toEntities()
+        val items = response.data.users.toEntities(accountId)
         contactDao.insert(items)
     }
 

@@ -27,5 +27,8 @@ data class ContactEntity(
     val status: String,
 
     @ColumnInfo(name = "chat_id")
-    val chatId: String
+    val chatId: String,
+
+    @ColumnInfo(name = "account_id")
+    val accountId: String
 )

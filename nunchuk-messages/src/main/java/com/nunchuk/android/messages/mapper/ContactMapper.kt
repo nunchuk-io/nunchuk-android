@@ -16,14 +16,15 @@ fun ContactEntity.toModel() = Contact(
 
 fun List<ContactEntity>.toModels() = map(ContactEntity::toModel)
 
-fun UserResponse.toEntity() = ContactEntity(
+fun UserResponse.toEntity(accountId: String) = ContactEntity(
     id = id,
     name = name,
     email = email,
     gender = gender.orEmpty(),
     avatar = avatar.orEmpty(),
     status = status.orEmpty(),
-    chatId = chatId
+    chatId = chatId,
+    accountId = accountId
 )
 
-fun List<UserResponse>.toEntities() = map(UserResponse::toEntity)
+fun List<UserResponse>.toEntities(accountId: String) = map { it.toEntity(accountId) }
