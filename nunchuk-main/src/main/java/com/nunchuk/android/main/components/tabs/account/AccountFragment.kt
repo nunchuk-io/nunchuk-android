@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.main.databinding.FragmentAccountBinding
 import javax.inject.Inject
 
@@ -37,6 +38,7 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
             val activity = requireActivity()
             navigator.openSignInScreen(activity)
             activity.finish()
+            SessionHolder.currentSession?.close()
         }
     }
 
