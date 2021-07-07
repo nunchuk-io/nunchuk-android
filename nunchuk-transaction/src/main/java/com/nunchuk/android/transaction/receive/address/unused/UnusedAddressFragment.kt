@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import androidx.viewpager.widget.ViewPager
 import com.nunchuk.android.arch.ext.isVisible
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.transaction.R
@@ -20,9 +19,6 @@ import com.nunchuk.android.widget.NCToastMessage
 import javax.inject.Inject
 
 internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     @Inject
     lateinit var textUtils: TextUtils
