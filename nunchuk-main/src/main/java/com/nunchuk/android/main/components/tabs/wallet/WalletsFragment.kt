@@ -86,12 +86,14 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun showAddWalletIntro() {
+        binding.introContainer.isVisible = true
         binding.introTitle.text = getString(R.string.nc_wallet_intro_title)
         binding.introSubtitle.text = getString(R.string.nc_wallet_intro_subtitle)
         binding.btnAdd.text = getString(R.string.nc_text_add_a_wallet)
     }
 
     private fun showAddSignerIntro() {
+        binding.introContainer.isVisible = true
         binding.introTitle.text = getString(R.string.nc_signer_intro_title)
         binding.introSubtitle.text = getString(R.string.nc_signer_intro_subtitle)
         binding.btnAdd.text = getString(R.string.nc_text_add_signer)
