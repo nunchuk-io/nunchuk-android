@@ -7,19 +7,14 @@ import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.transaction.databinding.FragmentUsedAddressBinding
 import com.nunchuk.android.transaction.receive.address.AddressFragmentArgs
 import com.nunchuk.android.transaction.receive.address.used.UsedAddressEvent.GetUsedAddressErrorEvent
 import com.nunchuk.android.widget.NCToastMessage
-import javax.inject.Inject
 
 internal class UsedAddressFragment : BaseFragment<FragmentUsedAddressBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     private val args: AddressFragmentArgs by lazy { AddressFragmentArgs.deserializeFrom(arguments) }
 

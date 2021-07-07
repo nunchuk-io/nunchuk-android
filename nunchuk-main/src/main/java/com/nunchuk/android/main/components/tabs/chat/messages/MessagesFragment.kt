@@ -7,15 +7,10 @@ import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.main.databinding.FragmentMessagesBinding
-import javax.inject.Inject
 
 internal class MessagesFragment : BaseFragment<FragmentMessagesBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     private val viewModel: MessagesViewModel by activityViewModels { factory }
 

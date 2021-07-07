@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.arch.ext.isVisible
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -17,12 +16,8 @@ import com.nunchuk.android.main.databinding.FragmentWalletsBinding
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
-import javax.inject.Inject
 
 internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     private val viewModel: WalletsViewModel by activityViewModels { factory }
 
