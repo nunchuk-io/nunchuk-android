@@ -49,7 +49,7 @@
     <string name="nc_ssigner_set_passphrase_title">Set a passphrase</string>
     <string name="nc_ssigner_text_dont_set_passphrase">I don\'t need a passphrase</string>
     <string name="nc_ssigner_text_set_passphrase">Set passphrase</string>
-    <string name="nc_ssigner_text_set_passphrase_note">Passphrase can be anything you want, and add extra security to your signer. COPY TBD</string>
+    <string name="nc_ssigner_text_set_passphrase_note">Passphrase can be anything you want, and add extra security to your signer.</string>
     <string name="nc_ssigner_text_set_passphrase_warn">Please backup your passphrase along with the seed. You need both to recover your signer.</string>
     <string name="nc_ssigner_confirm_passphrase">Confirm passphrase</string>
     <string name="nc_ssigner_text_name">Name</string>
