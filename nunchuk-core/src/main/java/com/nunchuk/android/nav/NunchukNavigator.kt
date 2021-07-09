@@ -1,3 +1,9 @@
 package com.nunchuk.android.nav
 
-interface NunchukNavigator : AuthNavigator, MainNavigator, SignerNavigator, WalletNavigator, TransactionNavigator
+interface NunchukNavigator :
+    AuthNavigator,
+    MainNavigator,
+    SignerNavigator,
+    WalletNavigator,
+    TransactionNavigator,
+    MessageNavigator

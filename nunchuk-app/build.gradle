@@ -111,7 +111,8 @@ dependencies {
     implementation androidxDeps.values()
     implementation googleDeps.values()
 
-    debugImplementation leakDetectionDeps.leakCanary
+    // FIXME ci disable
+    // debugImplementation leakDetectionDeps.leakCanary
 
     debugImplementation debugDatabaseDeps.values()
 

@@ -7,6 +7,8 @@ data class AccountInfo(
     val email: String = "",
     @SerializedName("token")
     val token: String = "",
+    @SerializedName("chatId")
+    val chatId: String = "",
     @SerializedName("activated")
     val activated: Boolean = false,
     @SerializedName("staySignedIn")

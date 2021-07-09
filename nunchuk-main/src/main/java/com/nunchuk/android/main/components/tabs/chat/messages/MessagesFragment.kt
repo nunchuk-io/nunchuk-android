@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.main.databinding.FragmentMessagesBinding
+import org.matrix.android.sdk.api.session.room.model.RoomSummary
 
 internal class MessagesFragment : BaseFragment<FragmentMessagesBinding>() {
 
@@ -25,15 +26,22 @@ internal class MessagesFragment : BaseFragment<FragmentMessagesBinding>() {
         super.onViewCreated(view, savedInstanceState)
 
         setupViews()
-        viewModel.retrieveMessages()
-
         observeEvent()
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.retrieveMessages()
+    }
+
     private fun setupViews() {
-        adapter = MessagesAdapter {}
+        adapter = MessagesAdapter(::openRoomDetailScreen)
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)
         binding.recyclerView.adapter = adapter
+    }
+
+    private fun openRoomDetailScreen(summary: RoomSummary) {
+        navigator.openRoomDetailActivity(requireContext(), summary.roomId)
     }
 
     private fun observeEvent() {
