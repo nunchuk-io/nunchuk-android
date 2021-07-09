@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="@dimen/nc_padding_8"
+    android:gravity="start"
+    android:orientation="vertical">
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/sender"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        android:paddingVertical='@dimen/nc_padding_12'
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        tools:text="Tom" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/message_partner_background"
+        android:maxWidth="250dp"
+        android:minWidth="100dp"
+        android:paddingVertical="@dimen/nc_padding_12"
+        android:paddingHorizontal="@dimen/nc_padding_18"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        tools:text="Hey Tom, let’s create a wallet together shall we?" />
+
+</LinearLayout>

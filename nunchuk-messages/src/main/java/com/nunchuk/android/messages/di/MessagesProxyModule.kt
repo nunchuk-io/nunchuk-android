@@ -9,7 +9,8 @@ import dagger.Module
         MessagesUseCaseModule::class,
         MessagesDataModule::class,
         MessagesNetworkModule::class,
-        MessagesCommonModule::class
+        MessagesCommonModule::class,
+        MessagesViewModelModule::class
     ]
 )
 interface MessagesProxyModule

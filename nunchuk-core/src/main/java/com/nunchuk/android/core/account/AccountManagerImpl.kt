@@ -1,5 +1,6 @@
 package com.nunchuk.android.core.account
 
+import com.nunchuk.android.core.matrix.SessionHolder
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -9,6 +10,8 @@ interface AccountManager {
     fun isAccountActivated(): Boolean
 
     fun isStaySignedIn(): Boolean
+
+    fun isLinkedWithMatrix(): Boolean
 
     fun getAccount(): AccountInfo
 
@@ -27,6 +30,9 @@ internal class AccountManagerImpl @Inject constructor(
     override fun isAccountActivated() = accountSharedPref.getAccountInfo().activated
 
     override fun isStaySignedIn() = accountSharedPref.getAccountInfo().staySignedIn
+
+    override fun isLinkedWithMatrix() = SessionHolder.currentSession != null
+            && accountSharedPref.getAccountInfo().chatId.isNotEmpty()
 
     override fun getAccount() = accountSharedPref.getAccountInfo()
 

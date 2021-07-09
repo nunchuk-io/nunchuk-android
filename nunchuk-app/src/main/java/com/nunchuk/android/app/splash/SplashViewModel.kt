@@ -19,11 +19,9 @@ internal class SplashViewModel @Inject constructor(
     override val initialState = Unit
 
     fun initFlow() {
-        process({
-            getAppSettingUseCase.execute()
-        }, ::initNunchuk, {
+        process(getAppSettingUseCase::execute, ::initNunchuk) {
             event(InitErrorEvent(it.messageOrUnknownError()))
-        })
+        }
     }
 
     private fun initNunchuk(appSettings: AppSettings) {
@@ -40,7 +38,7 @@ internal class SplashViewModel @Inject constructor(
         when {
             !accountManager.isAccountExisted() -> event(NavCreateAccountEvent)
             !accountManager.isAccountActivated() -> event(NavActivateAccountEvent)
-            !accountManager.isStaySignedIn() -> event(NavSignInEvent)
+            !accountManager.isStaySignedIn() || !accountManager.isLinkedWithMatrix() -> event(NavSignInEvent)
             else -> event(NavHomeScreenEvent)
         }
     }

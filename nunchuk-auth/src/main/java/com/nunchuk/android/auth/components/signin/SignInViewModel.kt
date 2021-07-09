@@ -46,9 +46,7 @@ internal class SignInViewModel @Inject constructor(
     }
 
     private fun getCurrentUser(token: String) {
-        process({
-            getCurrentUserUseCase.execute()
-        }, { loginWithMatrix(it, token) }, {
+        process(getCurrentUserUseCase::execute, { loginWithMatrix(it, token) }, {
             event(SignInErrorEvent(it.message))
         })
     }
