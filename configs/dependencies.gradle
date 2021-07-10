@@ -107,7 +107,7 @@ ext {
     playServices = [
             location           : "com.google.android.gms:play-services-location:${playServiceVersion}",
             maps               : "com.google.android.gms:play-services-maps:${playServiceVersion}",
-            firebaseBom        : "com.google.firebase:firebase-bom:26.6.0",
+            firebaseBom        : "com.google.firebase:firebase-bom:28.2.1",
             firebaseAnalytics  : "com.google.firebase:firebase-analytics-ktx",
             firebaseCrashlytics: "com.google.firebase:firebase-crashlytics-ktx"
     ]
