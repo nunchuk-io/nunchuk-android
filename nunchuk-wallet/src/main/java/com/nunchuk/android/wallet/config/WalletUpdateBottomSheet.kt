@@ -1,32 +1,25 @@
 package com.nunchuk.android.wallet.config
 
-import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.fragment.app.FragmentManager
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.nunchuk.android.arch.args.FragmentArgs
 import com.nunchuk.android.arch.ext.isVisible
+import com.nunchuk.android.core.base.BaseBottomSheetDialogFragment
 import com.nunchuk.android.wallet.databinding.DialogUpdateWalletBottomSheetBinding
 import com.nunchuk.android.widget.util.addTextChangedCallback
-import com.nunchuk.android.widget.util.expandDialog
 
-class WalletUpdateBottomSheet : BottomSheetDialogFragment() {
+class WalletUpdateBottomSheet : BaseBottomSheetDialogFragment<DialogUpdateWalletBottomSheetBinding>() {
 
     private lateinit var listener: (String) -> Unit
 
-    private var _binding: DialogUpdateWalletBottomSheetBinding? = null
-    private val binding get() = _binding!!
-
     private val args: WalletUpdateBottomSheetArgs by lazy { WalletUpdateBottomSheetArgs.deserializeFrom(arguments) }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = DialogUpdateWalletBottomSheetBinding.inflate(inflater, container, false)
-        dialog?.setOnShowListener(DialogInterface::expandDialog)
-        return binding.root
+    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): DialogUpdateWalletBottomSheetBinding {
+        return DialogUpdateWalletBottomSheetBinding.inflate(inflater, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

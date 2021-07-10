@@ -1,27 +1,20 @@
 package com.nunchuk.android.wallet.details
 
-import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentManager
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.nunchuk.android.core.base.BaseBottomSheetDialogFragment
 import com.nunchuk.android.wallet.databinding.DialogBackupWalletBottomSheetBinding
 import com.nunchuk.android.wallet.details.WalletDetailsOption.*
-import com.nunchuk.android.widget.util.expandDialog
 
-internal class WalletUpdateBottomSheet : BottomSheetDialogFragment() {
+internal class WalletUpdateBottomSheet : BaseBottomSheetDialogFragment<DialogBackupWalletBottomSheetBinding>() {
 
     private lateinit var listener: (WalletDetailsOption) -> Unit
 
-    private var _binding: DialogBackupWalletBottomSheetBinding? = null
-    private val binding get() = _binding!!
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = DialogBackupWalletBottomSheetBinding.inflate(inflater, container, false)
-        dialog?.setOnShowListener(DialogInterface::expandDialog)
-        return binding.root
+    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): DialogBackupWalletBottomSheetBinding {
+        return DialogBackupWalletBottomSheetBinding.inflate(inflater, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
