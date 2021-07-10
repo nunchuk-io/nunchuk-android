@@ -1,28 +1,21 @@
 package com.nunchuk.android.transaction.details
 
-import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentManager
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.nunchuk.android.core.base.BaseBottomSheetDialogFragment
 import com.nunchuk.android.transaction.databinding.DialogTransactionSignBottomSheetBinding
 import com.nunchuk.android.transaction.details.TransactionOption.EXPORT
 import com.nunchuk.android.transaction.details.TransactionOption.IMPORT
-import com.nunchuk.android.widget.util.expandDialog
 
-class TransactionSignBottomSheet : BottomSheetDialogFragment() {
+class TransactionSignBottomSheet : BaseBottomSheetDialogFragment<DialogTransactionSignBottomSheetBinding>() {
 
     private lateinit var listener: (TransactionOption) -> Unit
 
-    private var _binding: DialogTransactionSignBottomSheetBinding? = null
-    private val binding get() = _binding!!
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = DialogTransactionSignBottomSheetBinding.inflate(inflater, container, false)
-        dialog?.setOnShowListener(DialogInterface::expandDialog)
-        return binding.root
+    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): DialogTransactionSignBottomSheetBinding {
+        return DialogTransactionSignBottomSheetBinding.inflate(inflater, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -52,4 +45,6 @@ class TransactionSignBottomSheet : BottomSheetDialogFragment() {
 
         fun show(fragmentManager: FragmentManager) = TransactionSignBottomSheet().apply { show(fragmentManager, TAG) }
     }
+
+
 }
