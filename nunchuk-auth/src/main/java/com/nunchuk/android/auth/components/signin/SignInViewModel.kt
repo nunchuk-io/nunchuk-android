@@ -5,13 +5,12 @@ import com.nunchuk.android.auth.components.signin.SignInEvent.*
 import com.nunchuk.android.auth.domain.GetCurrentUserUseCase
 import com.nunchuk.android.auth.domain.LoginWithMatrixUseCase
 import com.nunchuk.android.auth.domain.SignInUseCase
-import com.nunchuk.android.auth.validator.EmailValidator
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.core.util.process
+import com.nunchuk.android.utils.EmailValidator
 import javax.inject.Inject
 
 internal class SignInViewModel @Inject constructor(
-    private val emailValidator: EmailValidator,
     private val signInUseCase: SignInUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val loginWithMatrixUseCase: LoginWithMatrixUseCase
@@ -23,7 +22,7 @@ internal class SignInViewModel @Inject constructor(
 
     private fun validateEmail(email: String) = when {
         email.isBlank() -> doAfterValidate(false) { event(EmailRequiredEvent) }
-        !emailValidator.valid(email) -> doAfterValidate(false) { event(EmailInvalidEvent) }
+        !EmailValidator.valid(email) -> doAfterValidate(false) { event(EmailInvalidEvent) }
         else -> doAfterValidate { event(EmailValidEvent) }
     }
 

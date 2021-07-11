@@ -34,6 +34,9 @@ internal class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
         adapter = ContactsAdapter {}
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)
         binding.recyclerView.adapter = adapter
+        binding.fab.setOnClickListener {
+            navigator.openAddContactsScreen(parentFragmentManager)
+        }
     }
 
     private fun observeEvent() {

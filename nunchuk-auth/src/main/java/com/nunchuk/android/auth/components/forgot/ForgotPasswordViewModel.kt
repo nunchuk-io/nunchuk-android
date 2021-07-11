@@ -3,14 +3,13 @@ package com.nunchuk.android.auth.components.forgot
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.auth.domain.ForgotPasswordUseCase
-import com.nunchuk.android.auth.validator.EmailValidator
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.model.Result
+import com.nunchuk.android.utils.EmailValidator
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class ForgotPasswordViewModel @Inject constructor(
-    private val emailValidator: EmailValidator,
     private val forgotPasswordUseCase: ForgotPasswordUseCase,
 ) : NunchukViewModel<Unit, ForgotPasswordEvent>() {
 
@@ -30,7 +29,7 @@ internal class ForgotPasswordViewModel @Inject constructor(
 
     private fun validateEmail(email: String) = when {
         email.isBlank() -> doAfterValidate(false) { event(ForgotPasswordEvent.EmailRequiredEvent) }
-        !emailValidator.valid(email) -> doAfterValidate(false) { event(ForgotPasswordEvent.EmailInvalidEvent) }
+        !EmailValidator.valid(email) -> doAfterValidate(false) { event(ForgotPasswordEvent.EmailInvalidEvent) }
         else -> doAfterValidate { event(ForgotPasswordEvent.EmailValidEvent) }
     }
 

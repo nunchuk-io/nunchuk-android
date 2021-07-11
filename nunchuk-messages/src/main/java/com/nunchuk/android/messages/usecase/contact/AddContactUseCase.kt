@@ -1,20 +1,17 @@
 package com.nunchuk.android.messages.usecase.contact
 
 import com.nunchuk.android.messages.repository.ContactsRepository
-import com.nunchuk.android.model.Result
-import com.nunchuk.android.usecase.BaseUseCase
+import io.reactivex.Single
 import javax.inject.Inject
 
 interface AddContactUseCase {
-    suspend fun execute(emails: List<String>): Result<Unit>
+    fun execute(emails: List<String>): Single<List<String>>
 }
 
 internal class AddContactUseCaseImpl @Inject constructor(
     private val repository: ContactsRepository
-) : BaseUseCase(), AddContactUseCase {
+) : AddContactUseCase {
 
-    override suspend fun execute(emails: List<String>) = exe {
-        repository.addContacts(emails)
-    }
+    override fun execute(emails: List<String>) = repository.addContacts(emails)
 
 }
