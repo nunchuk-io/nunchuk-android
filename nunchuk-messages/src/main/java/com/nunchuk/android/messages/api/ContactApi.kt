@@ -8,7 +8,7 @@ import retrofit2.http.*
 internal interface ContactApi {
 
     @PUT("user/contacts/request")
-    fun addContacts(@Body payLoad: AddContactPayload): Single<Data<ResponseBody>>
+    fun addContacts(@Body payLoad: AddContactPayload): Single<Data<AddContactsResponse>>
 
     @GET("user/contacts/")
     fun getContacts(): Single<Data<UsersResponseWrapper>>

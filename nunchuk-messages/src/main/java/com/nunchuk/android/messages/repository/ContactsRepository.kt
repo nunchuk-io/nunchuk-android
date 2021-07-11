@@ -47,7 +47,7 @@ internal class ContactsRepositoryImpl @Inject constructor(
 
     override fun addContacts(emails: List<String>): Single<List<String>> {
         val payload = AddContactPayload(emails = emails)
-        return api.addContacts(payload).map { emptyList() }
+        return api.addContacts(payload).map { it.data.failedEmails ?: emptyList() }
     }
 
     override suspend fun searchContact(email: String) = api.searchContact(email).data.user

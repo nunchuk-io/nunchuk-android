@@ -29,3 +29,8 @@ data class UserResponse(
     @SerializedName("chat_id")
     val chatId: String,
 ) : Serializable
+
+data class AddContactsResponse(
+    @SerializedName("failed_emails")
+    val failedEmails: List<String>?
+) : Serializable

@@ -7,12 +7,11 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
 import com.nunchuk.android.messages.R
-import com.nunchuk.android.utils.EmailValidator
 
 class EmailsViewBinder(
     private val container: ViewGroup,
-    private val emails: List<String>,
-    val onItemSelectedListener: (String) -> Unit,
+    private val emails: List<EmailWithState>,
+    val callback: (EmailWithState) -> Unit,
 ) {
 
     private val context: Context = container.context
@@ -32,18 +31,18 @@ class EmailsViewBinder(
         }
     }
 
-    private fun bindItem(position: Int, model: String) {
+    private fun bindItem(position: Int, model: EmailWithState) {
         container[position].apply {
             val textView = findViewById<TextView>(R.id.email)
-            textView.text = model
-            if (EmailValidator.valid(model)) {
+            textView.text = model.email
+            if (model.valid) {
                 background = ContextCompat.getDrawable(context, R.drawable.nc_rounded_green_background)
                 textView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_check_circle_outline_24, 0, R.drawable.ic_close, 0)
             } else {
                 background = ContextCompat.getDrawable(context, R.drawable.nc_rounded_red_background)
                 textView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_error_outline_24, 0, R.drawable.ic_close, 0)
             }
-            setOnClickListener { onItemSelectedListener(model) }
+            setOnClickListener { callback(model) }
         }
     }
 
