@@ -41,10 +41,9 @@ class TransactionSignBottomSheet : BaseBottomSheetDialogFragment<DialogTransacti
     }
 
     companion object {
-        private const val TAG = "UpdateSignerBottomSheet"
+        private const val TAG = "TransactionSignBottomSheet"
 
         fun show(fragmentManager: FragmentManager) = TransactionSignBottomSheet().apply { show(fragmentManager, TAG) }
     }
-
 
 }

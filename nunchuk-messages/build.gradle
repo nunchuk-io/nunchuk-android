@@ -12,6 +12,8 @@ dependencies {
     implementation project(':nunchuk-database')
     implementation nunchukDeps.nativeSdk
 
+    implementation 'com.google.android.flexbox:flexbox:3.0.0'
+
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()
     implementation networkDeps.values()

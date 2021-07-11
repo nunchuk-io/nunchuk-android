@@ -4,19 +4,18 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.auth.components.signup.SignUpEvent.*
 import com.nunchuk.android.auth.domain.RegisterUseCase
-import com.nunchuk.android.auth.validator.EmailValidator
 import com.nunchuk.android.auth.validator.NameValidator
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.network.NunchukApiException
 import com.nunchuk.android.network.accountExisted
+import com.nunchuk.android.utils.EmailValidator
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class SignUpViewModel @Inject constructor(
     private val nameValidator: NameValidator,
-    private val emailValidator: EmailValidator,
     private val registerUseCase: RegisterUseCase
 ) : NunchukViewModel<Unit, SignUpEvent>() {
 
@@ -46,7 +45,7 @@ internal class SignUpViewModel @Inject constructor(
 
     private fun validateEmail(email: String) = when {
         email.isBlank() -> doAfterValidate(false) { event(EmailRequiredEvent) }
-        !emailValidator.valid(email) -> doAfterValidate(false) { event(EmailInvalidEvent) }
+        !EmailValidator.valid(email) -> doAfterValidate(false) { event(EmailInvalidEvent) }
         else -> doAfterValidate { event(EmailValidEvent) }
     }
 

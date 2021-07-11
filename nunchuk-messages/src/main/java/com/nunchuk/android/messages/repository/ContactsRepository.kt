@@ -11,6 +11,7 @@ import com.nunchuk.android.persistence.dao.ContactDao
 import com.nunchuk.android.persistence.entity.ContactEntity
 import io.reactivex.Completable
 import io.reactivex.Flowable
+import io.reactivex.Single
 import javax.inject.Inject
 
 interface ContactsRepository {
@@ -19,7 +20,7 @@ interface ContactsRepository {
 
     fun getRemoteContacts(accountId: String): Completable
 
-    suspend fun addContacts(emails: List<String>)
+    fun addContacts(emails: List<String>): Single<List<String>>
 
     suspend fun searchContact(email: String): UserResponse
 
@@ -44,9 +45,9 @@ internal class ContactsRepositoryImpl @Inject constructor(
         contactDao.insert(items)
     }
 
-    override suspend fun addContacts(emails: List<String>) {
+    override fun addContacts(emails: List<String>): Single<List<String>> {
         val payload = AddContactPayload(emails = emails)
-        api.addContacts(payload)
+        return api.addContacts(payload).map { emptyList() }
     }
 
     override suspend fun searchContact(email: String) = api.searchContact(email).data.user
