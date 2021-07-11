@@ -26,8 +26,12 @@ internal class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
 
         setupViews()
 
-        viewModel.retrieveContacts()
         observeEvent()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.retrieveContacts()
     }
 
     private fun setupViews() {

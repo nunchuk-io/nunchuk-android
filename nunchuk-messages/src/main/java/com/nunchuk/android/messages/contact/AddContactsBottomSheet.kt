@@ -12,9 +12,9 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseBottomSheetDialogFragment
-import com.nunchuk.android.messages.contact.AddContactsEvent.AllEmailValidEvent
-import com.nunchuk.android.messages.contact.AddContactsEvent.InvalidEmailEvent
+import com.nunchuk.android.messages.contact.AddContactsEvent.*
 import com.nunchuk.android.messages.databinding.BottomSheetAddContactsBinding
+import com.nunchuk.android.widget.NCToastMessage
 import dagger.android.support.AndroidSupportInjection
 import javax.inject.Inject
 
@@ -50,7 +50,7 @@ class AddContactsBottomSheet : BaseBottomSheetDialogFragment<BottomSheetAddConta
         bindEmailList(state.emails)
     }
 
-    private fun bindEmailList(emails: List<String>) {
+    private fun bindEmailList(emails: List<EmailWithState>) {
         if (emails.isEmpty()) {
             binding.emails.removeAllViews()
         } else {
@@ -62,7 +62,19 @@ class AddContactsBottomSheet : BaseBottomSheetDialogFragment<BottomSheetAddConta
         when (event) {
             InvalidEmailEvent -> showErrorMessage(true)
             AllEmailValidEvent -> showErrorMessage(false)
+            AddContactSuccessEvent -> showAddContactSuccess()
+            is AddContactsErrorEvent -> showAddContactError(event.message)
         }
+    }
+
+    private fun showAddContactError(message: String) {
+        NCToastMessage(requireActivity()).showError(message)
+        dismiss()
+    }
+
+    private fun showAddContactSuccess() {
+        NCToastMessage(requireActivity()).showMessage("Add contact success")
+        dismiss()
     }
 
     private fun showErrorMessage(show: Boolean) {

@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:paddingBottom="@dimen/nc_padding_24"
-    app:behavior_hideable="false"
+    app:behavior_hideable="true"
     app:behavior_peekHeight="90dp">
 
     <RelativeLayout
