@@ -1,20 +1,22 @@
 package com.nunchuk.android.core.share
 
+import android.app.Activity
 import android.app.PendingIntent
 import android.app.PendingIntent.*
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import java.io.File
-import javax.inject.Inject
 
-class IntentSharingController @Inject constructor(val context: Context) {
+class IntentSharingController private constructor(val activityContext: Activity) {
 
-    private val receiver: Intent = Intent(context, IntentSharingReceiver::class.java)
-    private val pendingIntent: PendingIntent = getBroadcast(context, 0, receiver, FLAG_IMMUTABLE or FLAG_UPDATE_CURRENT)
+    private val receiver: Intent = Intent(activityContext, IntentSharingReceiver::class.java)
+    private val pendingIntent: PendingIntent = getBroadcast(activityContext, 0, receiver, FLAG_IMMUTABLE or FLAG_UPDATE_CURRENT)
 
     fun share(intent: Intent, title: String = "Nunchuk") {
-        context.startActivity(Intent.createChooser(intent, title, pendingIntent.intentSender))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            activityContext.startActivity(Intent.createChooser(intent, title, pendingIntent.intentSender))
+        }
     }
 
     fun shareFile(filePath: String) {
@@ -29,6 +31,10 @@ class IntentSharingController @Inject constructor(val context: Context) {
             putExtra(Intent.EXTRA_TEXT, text)
             type = "text/plain"
         })
+    }
+
+    companion object {
+        fun from(activityContext: Activity) = IntentSharingController(activityContext)
     }
 
 }

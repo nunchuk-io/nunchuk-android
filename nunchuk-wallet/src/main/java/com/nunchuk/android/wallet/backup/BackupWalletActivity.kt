@@ -22,8 +22,7 @@ class BackupWalletActivity : BaseActivity() {
     @Inject
     lateinit var factory: NunchukFactory
 
-    @Inject
-    lateinit var controller: IntentSharingController
+    private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 
     private val listener: IntentSharingListener = IntentSharingListenerWrapper {
         navigator.openUploadConfigurationScreen(this, args.walletId)

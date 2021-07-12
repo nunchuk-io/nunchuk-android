@@ -23,8 +23,7 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
     @Inject
     lateinit var textUtils: TextUtils
 
-    @Inject
-    lateinit var controller: IntentSharingController
+    private val controller: IntentSharingController by lazy { IntentSharingController.from(requireActivity()) }
 
     lateinit var adapter: UnusedAddressAdapter
 
