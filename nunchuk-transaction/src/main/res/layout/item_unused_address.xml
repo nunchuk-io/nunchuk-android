@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_gravity="center_horizontal">
 
-    <com.google.android.material.card.MaterialCardView
+    <androidx.cardview.widget.CardView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:cardCornerRadius="@dimen/nc_padding_8"
@@ -40,6 +40,6 @@
                 tools:text="bc1qepuayeutds0ys0q82g3ucad7r0eqk0dpusmxwvlpn5wkjcmhv6sqyulylk" />
         </androidx.appcompat.widget.LinearLayoutCompat>
 
-    </com.google.android.material.card.MaterialCardView>
+    </androidx.cardview.widget.CardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
