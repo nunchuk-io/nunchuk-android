@@ -12,7 +12,6 @@ import androidx.annotation.LayoutRes
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.nunchuk.android.widget.NCEditTextView
-import com.nunchuk.android.widget.R
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
@@ -87,10 +86,11 @@ fun EditText.keepCursorLast() {
 
 fun DialogInterface.expandDialog() {
     val bottomSheetDialog = this as BottomSheetDialog
-    val designBottomSheet: View? = bottomSheetDialog.findViewById(R.id.design_bottom_sheet)
-    designBottomSheet.run {
-        this?.let { BottomSheetBehavior.from(it).state = BottomSheetBehavior.STATE_EXPANDED }
+    val designBottomSheet: View? = bottomSheetDialog.findViewById(com.google.android.material.R.id.design_bottom_sheet)
+    designBottomSheet?.let {
+        BottomSheetBehavior.from(it).state = BottomSheetBehavior.STATE_EXPANDED
     }
 }
+
 
 
