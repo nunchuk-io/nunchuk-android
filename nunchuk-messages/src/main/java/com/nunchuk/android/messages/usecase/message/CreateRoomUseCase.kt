@@ -9,18 +9,19 @@ import org.matrix.android.sdk.api.session.room.model.create.CreateRoomPreset
 import javax.inject.Inject
 
 interface CreateRoomUseCase {
-    suspend fun execute(name: String, userIds: List<String>): Result<Room>
+    suspend fun execute(displayName: String, userIds: List<String>): Result<Room>
 }
 
 internal class CreateRoomUseCaseImpl @Inject constructor(
 ) : BaseMessageUseCase(), CreateRoomUseCase {
 
-    override suspend fun execute(name: String, userIds: List<String>) = exe {
+    override suspend fun execute(displayName: String, userIds: List<String>) = exe {
         val params = CreateRoomParams().apply {
             visibility = RoomDirectoryVisibility.PUBLIC
             isDirect = false
             invitedUserIds.addAll(userIds)
             preset = CreateRoomPreset.PRESET_PUBLIC_CHAT
+            name = displayName
         }
         session.getRoom(session.createRoom(params)) ?: throw RoomCreationException()
     }
