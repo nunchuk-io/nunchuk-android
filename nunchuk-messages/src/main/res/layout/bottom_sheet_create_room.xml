@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/nc_bottom_sheet_background"
@@ -46,7 +47,9 @@
             android:padding="@dimen/nc_padding_4"
             android:text="Done"
             android:textColor="@color/nc_black_color"
-            android:textSize="@dimen/nc_text_size_16" />
+            android:textSize="@dimen/nc_text_size_16"
+            android:visibility="gone"
+            tools:visibility="visible" />
 
     </RelativeLayout>
 
@@ -76,11 +79,12 @@
         android:id="@+id/input"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/nc_padding_16"
         android:layout_marginStart="@dimen/nc_padding_4"
+        android:layout_marginEnd="@dimen/nc_padding_16"
         android:backgroundTint="@color/nc_whisper_color"
         android:hint="Name or email"
-        android:textSize="@dimen/nc_text_size_14"
+        android:textColor="@color/nc_primary_color"
+        android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintStart_toEndOf="@+id/to"
         app:layout_constraintTop_toBottomOf="@id/receipts" />
 
