@@ -40,7 +40,7 @@ internal class MessagesFragment : BaseFragment<FragmentMessagesBinding>() {
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)
         binding.recyclerView.adapter = adapter
         binding.fab.setOnClickListener {
-            navigator.openCreateRoomScreen(parentFragmentManager)
+            navigator.openCreateRoomScreen(requireActivity().supportFragmentManager)
         }
     }
 

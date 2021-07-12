@@ -39,7 +39,7 @@ internal class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)
         binding.recyclerView.adapter = adapter
         binding.fab.setOnClickListener {
-            navigator.openAddContactsScreen(parentFragmentManager)
+            navigator.openAddContactsScreen(requireActivity().supportFragmentManager)
         }
     }
 
