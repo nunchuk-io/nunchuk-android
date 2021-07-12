@@ -86,10 +86,11 @@
                     android:id="@+id/input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Type email here"
                     android:backgroundTint="@color/nc_whisper_color"
+                    android:hint="Type email here"
                     android:inputType="textEmailAddress"
-                    android:textSize="@dimen/nc_text_size_14" />
+                    android:textColor="@color/nc_primary_color"
+                    android:textSize="@dimen/nc_text_size_16" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
         </androidx.core.widget.NestedScrollView>
