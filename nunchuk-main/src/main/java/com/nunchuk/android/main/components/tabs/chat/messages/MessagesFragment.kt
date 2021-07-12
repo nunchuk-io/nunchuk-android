@@ -26,6 +26,7 @@ internal class MessagesFragment : BaseFragment<FragmentMessagesBinding>() {
         super.onViewCreated(view, savedInstanceState)
 
         setupViews()
+
         observeEvent()
     }
 
@@ -38,6 +39,9 @@ internal class MessagesFragment : BaseFragment<FragmentMessagesBinding>() {
         adapter = MessagesAdapter(::openRoomDetailScreen)
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)
         binding.recyclerView.adapter = adapter
+        binding.fab.setOnClickListener {
+            navigator.openCreateRoomScreen(parentFragmentManager)
+        }
     }
 
     private fun openRoomDetailScreen(summary: RoomSummary) {

@@ -9,4 +9,6 @@ interface MessageNavigator {
 
     fun openAddContactsScreen(fragmentManager: FragmentManager)
 
+    fun openCreateRoomScreen(fragmentManager: FragmentManager)
+
 }
