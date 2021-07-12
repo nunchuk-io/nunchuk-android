@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:padding="@dimen/nc_padding_16">
 
-    <com.google.android.material.card.MaterialCardView
+    <androidx.cardview.widget.CardView
         android:id="@+id/qrCodeContainer"
         android:layout_width="@dimen/nc_height_60"
         android:layout_height="@dimen/nc_height_60"
@@ -21,7 +21,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="fitCenter" />
-    </com.google.android.material.card.MaterialCardView>
+    </androidx.cardview.widget.CardView>
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/address"
