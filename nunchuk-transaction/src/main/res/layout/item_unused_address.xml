@@ -25,8 +25,7 @@
             <ImageView
                 android:id="@+id/qrCode"
                 android:layout_width="300dp"
-                android:layout_height="300dp"
-                android:background="@drawable/nc_toast_error_background" />
+                android:layout_height="300dp" />
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/address"
