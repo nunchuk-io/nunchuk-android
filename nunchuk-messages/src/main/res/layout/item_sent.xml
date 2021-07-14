@@ -23,7 +23,7 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/name"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:textColor="@color/nc_black_color"
@@ -35,7 +35,7 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/email"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_4"
@@ -44,5 +44,19 @@
         app:layout_constraintStart_toEndOf="@+id/avatar"
         app:layout_constraintTop_toBottomOf="@+id/name"
         tools:text="hugonguyen@gmail.com" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/withdraw"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/nc_padding_16"
+        android:text="Withdraw"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Hugo Nguyen" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

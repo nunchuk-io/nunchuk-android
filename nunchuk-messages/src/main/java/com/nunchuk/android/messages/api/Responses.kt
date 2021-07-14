@@ -4,6 +4,11 @@ import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
 data class UsersResponseWrapper(
+    @SerializedName("users")
+    val users: List<UserResponse>
+) : Serializable
+
+data class ContactResponseWrapper(
     @SerializedName("friends")
     val users: List<UserResponse>
 ) : Serializable

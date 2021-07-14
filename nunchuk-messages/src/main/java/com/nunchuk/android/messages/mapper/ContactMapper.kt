@@ -4,7 +4,7 @@ import com.nunchuk.android.messages.api.UserResponse
 import com.nunchuk.android.messages.model.Contact
 import com.nunchuk.android.persistence.entity.ContactEntity
 
-fun ContactEntity.toModel() = Contact(
+internal fun ContactEntity.toModel() = Contact(
     id = id,
     name = name,
     email = email,
@@ -14,9 +14,9 @@ fun ContactEntity.toModel() = Contact(
     chatId = chatId
 )
 
-fun List<ContactEntity>.toModels() = map(ContactEntity::toModel)
+internal fun List<ContactEntity>.toModels() = map(ContactEntity::toModel)
 
-fun UserResponse.toEntity(accountId: String) = ContactEntity(
+internal fun UserResponse.toEntity(accountId: String) = ContactEntity(
     id = id,
     name = name,
     email = email,
@@ -27,4 +27,4 @@ fun UserResponse.toEntity(accountId: String) = ContactEntity(
     accountId = accountId
 )
 
-fun List<UserResponse>.toEntities(accountId: String) = map { it.toEntity(accountId) }
+internal fun List<UserResponse>.toEntities(accountId: String) = map { it.toEntity(accountId) }

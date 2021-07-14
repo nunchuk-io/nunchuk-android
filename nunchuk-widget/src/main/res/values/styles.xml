@@ -116,6 +116,13 @@
         <item name="tabTextColor">@color/nc_white_color</item>
     </style>
 
+    <style name="NCTabLayout.Light" parent="NCTabLayout">
+        <item name="tabIndicatorColor">@color/nc_primary_color</item>
+        <item name="tabBackground">@color/nc_white_color</item>
+        <item name="tabSelectedTextColor">@color/nc_primary_color</item>
+        <item name="tabTextColor">@color/nc_primary_color</item>
+    </style>
+
     <style name="NCTextAppearance" parent="TextAppearance.Design.Tab">
         <item name="textAllCaps">false</item>
         <item name="android:textAllCaps">false</item>

@@ -82,7 +82,7 @@ class CreateRoomBottomSheet : BaseBottomSheetDialogFragment<BottomSheetCreateRoo
     }
 
     private fun onRoomCreated(roomId: String) {
-        dismiss()
+        cleanUp()
         navigator.openRoomDetailActivity(requireActivity(), roomId = roomId)
     }
 
@@ -92,7 +92,7 @@ class CreateRoomBottomSheet : BaseBottomSheetDialogFragment<BottomSheetCreateRoo
 
     private fun showNoContactsError() {
         NCToastMessage(requireActivity()).show("You don't have any contacts")
-        dismiss()
+        cleanUp()
     }
 
     private fun setupViews() {
@@ -105,12 +105,20 @@ class CreateRoomBottomSheet : BaseBottomSheetDialogFragment<BottomSheetCreateRoo
         binding.contactList.adapter = adapter
 
         binding.closeBtn.setOnClickListener {
-            dismiss()
+            cleanUp()
         }
         binding.input.addTextChangedCallback(viewModel::handleInput)
         binding.doneBtn.setOnClickListener {
             viewModel.handleDone()
         }
+    }
+
+    private fun cleanUp() {
+        viewModel.cleanUp()
+        binding.input.setText("")
+        adapter.items = emptyList()
+        binding.receipts.removeAllViews()
+        dismiss()
     }
 
     companion object {

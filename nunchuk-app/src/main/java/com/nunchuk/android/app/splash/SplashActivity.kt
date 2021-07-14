@@ -45,7 +45,6 @@ internal class SplashActivity : BaseActivity() {
 
     private fun handleEvent(event: SplashEvent) {
         when (event) {
-            NavCreateAccountEvent -> navigator.openIntroScreen(this)
             NavActivateAccountEvent -> navigator.openChangePasswordScreen(this)
             NavSignInEvent -> navigator.openSignInScreen(this)
             NavHomeScreenEvent -> navigator.openMainScreen(this)

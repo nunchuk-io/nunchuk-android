@@ -52,7 +52,7 @@ internal class MessageViewHolder(
             binding.message.text = it.lastMessage()
             binding.time.text = format(it.root.originServerTs)
         }
-        binding.count.isVisible = data.hasUnreadMessages
+        binding.count.isVisible = data.hasUnreadMessages && (data.notificationCount > 0)
         binding.count.text = "${data.notificationCount}"
         binding.root.setOnClickListener { listener(data) }
     }

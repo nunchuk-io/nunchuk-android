@@ -86,7 +86,7 @@ class SignInActivity : BaseActivity() {
 
     private fun onSignInClick() {
         viewModel.handleSignIn(
-            email = binding.email.getEditText(),
+            email = binding.email.getEditText().trim(),
             password = binding.password.getEditText(),
         )
     }
