@@ -2,8 +2,6 @@ package com.nunchuk.android.app.splash
 
 sealed class SplashEvent {
 
-    object NavCreateAccountEvent : SplashEvent()
-
     object NavActivateAccountEvent : SplashEvent()
 
     object NavSignInEvent : SplashEvent()

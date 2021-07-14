@@ -7,6 +7,39 @@
     android:layout_marginTop="@dimen/nc_padding_8"
     android:paddingVertical="@dimen/nc_padding_8">
 
+    <ImageView
+        android:id="@+id/accept"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="@drawable/nc_circle_dark_stroke_background"
+        android:src="@drawable/ic_accept"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/cancel"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginEnd="@dimen/nc_padding_8"
+        android:background="@drawable/nc_circle_dark_stroke_background"
+        android:src="@drawable/ic_cancel"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/accept"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/email"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_14"
+        app:layout_constraintStart_toEndOf="@+id/avatar"
+        app:layout_constraintTop_toBottomOf="@+id/name"
+        tools:text="hugonguyen@gmail.com" />
+
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/avatar"
         android:layout_width="@dimen/nc_padding_48"
@@ -32,17 +65,5 @@
         app:layout_constraintStart_toEndOf="@+id/avatar"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Hugo Nguyen" />
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/email"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_4"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_14"
-        app:layout_constraintStart_toEndOf="@+id/avatar"
-        app:layout_constraintTop_toBottomOf="@+id/name"
-        tools:text="hugonguyen@gmail.com" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

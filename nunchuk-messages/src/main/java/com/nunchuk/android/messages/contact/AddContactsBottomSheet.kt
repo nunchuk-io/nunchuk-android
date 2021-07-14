@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.contact
 
+import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
 import android.view.KeyEvent
@@ -22,6 +23,8 @@ class AddContactsBottomSheet : BaseBottomSheetDialogFragment<BottomSheetAddConta
 
     @Inject
     lateinit var factory: NunchukFactory
+
+    var listener: () -> Unit = {}
 
     private val viewModel: AddContactsViewModel by activityViewModels { factory }
 
@@ -69,12 +72,12 @@ class AddContactsBottomSheet : BaseBottomSheetDialogFragment<BottomSheetAddConta
 
     private fun showAddContactError(message: String) {
         NCToastMessage(requireActivity()).showError(message)
-        dismiss()
+        cleanUp()
     }
 
     private fun showAddContactSuccess() {
         NCToastMessage(requireActivity()).showMessage("Add contact success")
-        dismiss()
+        cleanUp()
     }
 
     private fun showErrorMessage(show: Boolean) {
@@ -87,12 +90,20 @@ class AddContactsBottomSheet : BaseBottomSheetDialogFragment<BottomSheetAddConta
             binding.input.setText("")
         }
         binding.closeBtn.setOnClickListener {
-            dismiss()
+            cleanUp()
         }
 
         binding.sendBtn.setOnClickListener {
             viewModel.handleSend()
         }
+    }
+
+    private fun cleanUp() {
+        viewModel.cleanUp()
+        binding.input.setText("")
+        binding.emails.removeAllViews()
+        listener()
+        dismiss()
     }
 
     companion object {

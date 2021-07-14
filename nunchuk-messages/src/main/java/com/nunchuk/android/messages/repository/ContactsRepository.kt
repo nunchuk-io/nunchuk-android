@@ -1,12 +1,10 @@
 package com.nunchuk.android.messages.repository
 
-import com.nunchuk.android.messages.api.AddContactPayload
-import com.nunchuk.android.messages.api.AutoCompleteSearchContactPayload
-import com.nunchuk.android.messages.api.ContactApi
-import com.nunchuk.android.messages.api.UserResponse
-import com.nunchuk.android.messages.mapper.toEntities
-import com.nunchuk.android.messages.mapper.toModels
+import com.nunchuk.android.messages.api.*
+import com.nunchuk.android.messages.mapper.*
 import com.nunchuk.android.messages.model.Contact
+import com.nunchuk.android.messages.model.ReceiveContact
+import com.nunchuk.android.messages.model.SentContact
 import com.nunchuk.android.persistence.dao.ContactDao
 import com.nunchuk.android.persistence.entity.ContactEntity
 import io.reactivex.Completable
@@ -22,11 +20,15 @@ interface ContactsRepository {
 
     fun addContacts(emails: List<String>): Single<List<String>>
 
+    fun getPendingSentContacts(): Single<List<SentContact>>
+
+    fun getPendingApprovalContacts(): Single<List<ReceiveContact>>
+
+    fun acceptContact(contactId: String): Completable
+
+    fun cancelContact(contactId: String): Completable
+
     suspend fun searchContact(email: String): UserResponse
-
-    suspend fun getPendingSentContacts(): List<UserResponse>
-
-    suspend fun getPendingApprovalContacts(): List<UserResponse>
 
     suspend fun autoCompleteSearch(keyword: String): List<UserResponse>
 
@@ -39,7 +41,7 @@ internal class ContactsRepositoryImpl @Inject constructor(
 
     override fun getLocalContacts(accountId: String) = contactDao.getContacts(accountId).map(List<ContactEntity>::toModels)
 
-    override fun getRemoteContacts(accountId: String): Completable = Completable.fromCallable {
+    override fun getRemoteContacts(accountId: String) = Completable.fromCallable {
         val response = api.getContacts().blockingGet()
         val items = response.data.users.toEntities(accountId)
         contactDao.insert(items)
@@ -50,11 +52,21 @@ internal class ContactsRepositoryImpl @Inject constructor(
         return api.addContacts(payload).map { it.data.failedEmails ?: emptyList() }
     }
 
+    override fun getPendingSentContacts() = api.getPendingSentContacts().map { it.data.users.toSentContacts() }
+
+    override fun getPendingApprovalContacts() = api.getPendingApprovalContacts().map { it.data.users.toReceiveContacts() }
+
+    override fun acceptContact(contactId: String): Completable {
+        val payload = AcceptRequestPayload(contactId)
+        return api.acceptContact(payload)
+    }
+
+    override fun cancelContact(contactId: String): Completable {
+        val payload = CancelRequestPayload(contactId)
+        return api.cancelRequest(payload)
+    }
+
     override suspend fun searchContact(email: String) = api.searchContact(email).data.user
-
-    override suspend fun getPendingSentContacts() = api.getPendingSentContacts().data.users
-
-    override suspend fun getPendingApprovalContacts() = api.getPendingApprovalContacts().data.users
 
     override suspend fun autoCompleteSearch(keyword: String): List<UserResponse> {
         val payload = AutoCompleteSearchContactPayload(keyword)

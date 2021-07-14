@@ -9,3 +9,7 @@ data class Contact(
     val status: String,
     val chatId: String
 )
+
+data class SentContact(val contact: Contact)
+
+data class ReceiveContact(val contact: Contact)

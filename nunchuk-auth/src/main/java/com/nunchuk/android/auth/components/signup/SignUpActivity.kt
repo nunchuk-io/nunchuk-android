@@ -42,7 +42,7 @@ class SignUpActivity : BaseActivity() {
     }
 
     private fun onRegisterClicked() {
-        viewModel.handleRegister(binding.name.getEditText(), binding.email.getEditText())
+        viewModel.handleRegister(binding.name.getEditText().trim(), binding.email.getEditText().trim())
     }
 
     private fun observeEvent() {

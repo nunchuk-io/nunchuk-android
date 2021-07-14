@@ -8,6 +8,16 @@ data class AddContactPayload(
     val emails: List<String>
 ) : Serializable
 
+data class CancelRequestPayload(
+    @SerializedName("friend_id")
+    val accountId: String
+) : Serializable
+
+data class AcceptRequestPayload(
+    @SerializedName("friend_id")
+    val accountId: String
+) : Serializable
+
 data class AutoCompleteSearchContactPayload(
     @SerializedName("q")
     val keyword: String

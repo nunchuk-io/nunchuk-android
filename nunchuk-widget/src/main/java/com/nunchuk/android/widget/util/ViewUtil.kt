@@ -9,8 +9,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import androidx.annotation.LayoutRes
+import com.google.android.material.R
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.nunchuk.android.widget.NCEditTextView
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
@@ -90,6 +92,34 @@ fun DialogInterface.expandDialog() {
     designBottomSheet?.let {
         BottomSheetBehavior.from(it).state = BottomSheetBehavior.STATE_EXPANDED
     }
+}
+
+fun BottomSheetDialogFragment.addStateChangedCallback(
+    onExpanded: () -> Unit = {},
+    onCollapsed: () -> Unit = {},
+    onHidden: () -> Unit = {}
+) {
+    (dialog?.findViewById(R.id.design_bottom_sheet) as ViewGroup?)?.let {
+        val bottomSheetBehavior = BottomSheetBehavior.from(it)
+        bottomSheetBehavior.peekHeight = BottomSheetBehavior.PEEK_HEIGHT_AUTO
+        bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+            override fun onStateChanged(view: View, i: Int) {
+                if (BottomSheetBehavior.STATE_EXPANDED == i) {
+                    onExpanded()
+                }
+                if (BottomSheetBehavior.STATE_COLLAPSED == i) {
+                    onCollapsed()
+                }
+                if (BottomSheetBehavior.STATE_HIDDEN == i) {
+                    dismiss()
+                    onHidden()
+                }
+            }
+
+            override fun onSlide(view: View, v: Float) {}
+        })
+    }
+
 }
 
 

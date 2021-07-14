@@ -11,6 +11,7 @@ import android.view.WindowManager.LayoutParams.MATCH_PARENT
 import androidx.viewbinding.ViewBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.nunchuk.android.core.R
+import com.nunchuk.android.widget.util.addStateChangedCallback
 import com.nunchuk.android.widget.util.expandDialog
 
 abstract class BaseBottomSheetDialogFragment<out Binding : ViewBinding> : BottomSheetDialogFragment() {
@@ -36,4 +37,18 @@ abstract class BaseBottomSheetDialogFragment<out Binding : ViewBinding> : Bottom
         return binding.root
     }
 
+    override fun onStart() {
+        super.onStart()
+        addStateChangedCallback(onExpanded = ::onExpanded, onCollapsed = ::onCollapsed, onHidden = ::onHidden)
+    }
+
+    open fun onExpanded() {}
+
+    open fun onCollapsed() {
+        dismiss()
+    }
+
+    open fun onHidden() {
+        dismiss()
+    }
 }

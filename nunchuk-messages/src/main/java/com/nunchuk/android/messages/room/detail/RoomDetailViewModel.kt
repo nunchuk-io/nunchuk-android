@@ -1,10 +1,12 @@
 package com.nunchuk.android.messages.room.detail
 
+import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.messages.room.detail.RoomDetailEvent.RoomNotFoundEvent
 import com.nunchuk.android.messages.util.addMessageListener
+import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
@@ -25,6 +27,9 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun onRetrievedRoom(room: Room) {
         this.room = room
+        viewModelScope.launch {
+            room.join()
+        }
         updateState { copy(roomInfo = room.getRoomInfo()) }
         retrieveData()
     }

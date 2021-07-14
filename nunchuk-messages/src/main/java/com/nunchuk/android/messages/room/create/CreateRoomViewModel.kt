@@ -70,6 +70,10 @@ class CreateRoomViewModel @Inject constructor(
         })
     }
 
+    fun cleanUp() {
+        updateState { CreateRoomState.empty() }
+    }
+
 }
 
 private fun String.isContains(word: String): Boolean {

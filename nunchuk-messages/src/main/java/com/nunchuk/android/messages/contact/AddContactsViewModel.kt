@@ -67,4 +67,8 @@ class AddContactsViewModel @Inject constructor(
         updateState { copy(emails = updatedEmails) }
     }
 
+    fun cleanUp() {
+        updateState { AddContactsState.empty() }
+    }
+
 }

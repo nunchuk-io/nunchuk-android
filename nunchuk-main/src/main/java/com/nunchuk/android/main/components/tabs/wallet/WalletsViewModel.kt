@@ -4,8 +4,6 @@ import android.util.Log
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.process
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
-import com.nunchuk.android.messages.usecase.contact.GetReceivedContactsUseCase
-import com.nunchuk.android.messages.usecase.contact.GetSentContactsUseCase
 import com.nunchuk.android.usecase.GetMasterSignersUseCase
 import com.nunchuk.android.usecase.GetRemoteSignersUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
@@ -15,8 +13,6 @@ internal class WalletsViewModel @Inject constructor(
     private val getMasterSignersUseCase: GetMasterSignersUseCase,
     private val getRemoteSignersUseCase: GetRemoteSignersUseCase,
     private val getWalletsUseCase: GetWalletsUseCase,
-    private val getSentContactsUseCase: GetSentContactsUseCase,
-    private val getReceivedContactsUseCase: GetReceivedContactsUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
 
     override val initialState = WalletsState()
@@ -24,12 +20,6 @@ internal class WalletsViewModel @Inject constructor(
     fun retrieveData() {
         getSigners()
         getWallets()
-        getContacts()
-    }
-
-    private fun getContacts() {
-        process(getSentContactsUseCase::execute)
-        process(getReceivedContactsUseCase::execute)
     }
 
     private fun getSigners() {

@@ -7,7 +7,9 @@ interface MessageNavigator {
 
     fun openRoomDetailActivity(activityContext: Context, roomId: String)
 
-    fun openAddContactsScreen(fragmentManager: FragmentManager)
+    fun openAddContactsScreen(fragmentManager: FragmentManager, onDismiss: () -> Unit = {})
+
+    fun openPendingContactsScreen(fragmentManager: FragmentManager, onDismiss: () -> Unit = {})
 
     fun openCreateRoomScreen(fragmentManager: FragmentManager)
 

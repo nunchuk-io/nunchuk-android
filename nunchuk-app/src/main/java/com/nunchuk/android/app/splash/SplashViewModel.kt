@@ -36,9 +36,9 @@ internal class SplashViewModel @Inject constructor(
 
     private fun handleNavigation() {
         when {
-            !accountManager.isAccountExisted() -> event(NavCreateAccountEvent)
+            !accountManager.isAccountExisted() -> event(NavSignInEvent)
             !accountManager.isAccountActivated() -> event(NavActivateAccountEvent)
-            !accountManager.isStaySignedIn() || !accountManager.isLinkedWithMatrix() -> event(NavSignInEvent)
+            !accountManager.isStaySignedIn() || !accountManager.isLinkedWithMatrix() || !accountManager.isAccountExisted()-> event(NavSignInEvent)
             else -> event(NavHomeScreenEvent)
         }
     }

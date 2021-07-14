@@ -3,6 +3,8 @@ package com.nunchuk.android.messages.di
 import androidx.lifecycle.ViewModel
 import com.nunchuk.android.arch.vm.ViewModelKey
 import com.nunchuk.android.messages.contact.AddContactsViewModel
+import com.nunchuk.android.messages.pending.receive.ReceivedViewModel
+import com.nunchuk.android.messages.pending.sent.SentViewModel
 import com.nunchuk.android.messages.room.create.CreateRoomViewModel
 import com.nunchuk.android.messages.room.detail.RoomDetailViewModel
 import dagger.Binds
@@ -26,5 +28,15 @@ interface MessagesViewModelModule {
     @IntoMap
     @ViewModelKey(CreateRoomViewModel::class)
     fun bindCreateRoomViewModel(viewModel: CreateRoomViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(ReceivedViewModel::class)
+    fun bindReceivedViewModel(viewModel: ReceivedViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(SentViewModel::class)
+    fun bindSentViewModel(viewModel: SentViewModel): ViewModel
 
 }
