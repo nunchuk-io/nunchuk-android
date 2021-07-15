@@ -1,6 +1,5 @@
 package com.nunchuk.android.messages.contact
 
-import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
 import android.view.KeyEvent
@@ -107,7 +106,7 @@ class AddContactsBottomSheet : BaseBottomSheetDialogFragment<BottomSheetAddConta
     }
 
     companion object {
-        private const val TAG = "AddContactsBottomSheetDialog"
+        private const val TAG = "AddContactsBottomSheet"
         fun show(fragmentManager: FragmentManager) = AddContactsBottomSheet().apply {
             show(fragmentManager, TAG)
         }

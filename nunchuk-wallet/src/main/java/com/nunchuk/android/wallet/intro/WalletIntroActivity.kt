@@ -28,7 +28,7 @@ class WalletIntroActivity : BaseActivity() {
 
     private fun openAddSignerScreen() {
         finish()
-        navigator.openAddAirSignerIntroScreen(this)
+        navigator.openSignerIntroScreen(this)
     }
 
     companion object {
