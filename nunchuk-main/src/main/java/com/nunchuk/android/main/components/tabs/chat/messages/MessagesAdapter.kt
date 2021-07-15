@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseViewHolder
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.databinding.ItemMessageBinding
+import com.nunchuk.android.widget.swipe.SwipeLayout
 import com.nunchuk.android.widget.util.inflate
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -17,7 +18,8 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 internal class MessagesAdapter(
-    private val listener: (RoomSummary) -> Unit
+    private val enterRoom: (RoomSummary) -> Unit,
+    private val removeRoom: (RoomSummary) -> Unit
 ) : RecyclerView.Adapter<MessageViewHolder>() {
 
     internal var items: List<RoomSummary> = ArrayList()
@@ -28,7 +30,7 @@ internal class MessagesAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = MessageViewHolder(
         parent.inflate(R.layout.item_message),
-        listener
+        enterRoom, removeRoom
     )
 
     override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
@@ -41,7 +43,8 @@ internal class MessagesAdapter(
 
 internal class MessageViewHolder(
     itemView: View,
-    val listener: (RoomSummary) -> Unit
+    private val enterRoom: (RoomSummary) -> Unit,
+    private val removeRoom: (RoomSummary) -> Unit
 ) : BaseViewHolder<RoomSummary>(itemView) {
 
     private val binding = ItemMessageBinding.bind(itemView)
@@ -54,7 +57,11 @@ internal class MessageViewHolder(
         }
         binding.count.isVisible = data.hasUnreadMessages && (data.notificationCount > 0)
         binding.count.text = "${data.notificationCount}"
-        binding.root.setOnClickListener { listener(data) }
+        binding.itemLayout.setOnClickListener { enterRoom(data) }
+        binding.delete.setOnClickListener { removeRoom(data) }
+
+        binding.swipeLayout.showMode = SwipeLayout.ShowMode.PullOut
+        binding.swipeLayout.addDrag(SwipeLayout.DragEdge.Left, binding.actionLayout)
     }
 
     private fun format(ts: Long?) = ts?.formatDate() ?: "-"

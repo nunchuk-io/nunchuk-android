@@ -28,7 +28,11 @@ class RoomDetailViewModel @Inject constructor(
     private fun onRetrievedRoom(room: Room) {
         this.room = room
         viewModelScope.launch {
-            room.join()
+            try {
+                room.join()
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            }
         }
         updateState { copy(roomInfo = room.getRoomInfo()) }
         retrieveData()
