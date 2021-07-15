@@ -109,7 +109,8 @@ ext {
             maps               : "com.google.android.gms:play-services-maps:${playServiceVersion}",
             firebaseBom        : "com.google.firebase:firebase-bom:28.2.1",
             firebaseAnalytics  : "com.google.firebase:firebase-analytics-ktx",
-            firebaseCrashlytics: "com.google.firebase:firebase-crashlytics-ktx"
+            firebaseCrashlytics: "com.google.firebase:firebase-crashlytics-ktx",
+            firebasePerf       : 'com.google.firebase:firebase-perf-ktx'
     ]
 
     daggerDeps = [

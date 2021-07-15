@@ -25,6 +25,12 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
 
     private fun observeEvent() {
         viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
+        viewModel.state.observe(viewLifecycleOwner, ::handleState)
+    }
+
+    private fun handleState(state: AccountState) {
+        binding.appVersion.text = state.appVersion
+        binding.email.text = state.email
     }
 
     private fun handleEvent(event: AccountEvent) {
