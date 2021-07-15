@@ -96,6 +96,7 @@ dependencies {
     implementation platform(playServices.firebaseBom)
     implementation playServices.firebaseCrashlytics
     implementation playServices.firebaseAnalytics
+    implementation playServices.firebasePerf
 
     implementation lifecycleDeps.values()
 
