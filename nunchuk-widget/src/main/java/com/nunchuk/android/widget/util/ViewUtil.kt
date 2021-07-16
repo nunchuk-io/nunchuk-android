@@ -4,6 +4,7 @@ import android.content.DialogInterface
 import android.text.InputFilter
 import android.text.InputType
 import android.text.method.PasswordTransformationMethod
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -120,6 +121,30 @@ fun BottomSheetDialogFragment.addStateChangedCallback(
         })
     }
 
+}
+
+fun EditText.setOnEnterOrSpaceListener(callback: () -> Unit) {
+    setOnKeyListener(object : View.OnKeyListener {
+        override fun onKey(v: View, keyCode: Int, event: KeyEvent): Boolean {
+            if (event.action == KeyEvent.ACTION_DOWN && (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_SPACE)) {
+                callback()
+                return true
+            }
+            return false
+        }
+    })
+}
+
+fun EditText.setOnEnterListener(callback: () -> Unit) {
+    setOnKeyListener(object : View.OnKeyListener {
+        override fun onKey(v: View, keyCode: Int, event: KeyEvent): Boolean {
+            if (event.action == KeyEvent.ACTION_DOWN && (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                callback()
+                return true
+            }
+            return false
+        }
+    })
 }
 
 

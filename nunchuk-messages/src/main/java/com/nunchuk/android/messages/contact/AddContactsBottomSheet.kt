@@ -2,11 +2,9 @@ package com.nunchuk.android.messages.contact
 
 import android.content.Context
 import android.os.Bundle
-import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.activityViewModels
@@ -15,6 +13,7 @@ import com.nunchuk.android.core.base.BaseBottomSheetDialogFragment
 import com.nunchuk.android.messages.contact.AddContactsEvent.*
 import com.nunchuk.android.messages.databinding.BottomSheetAddContactsBinding
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.util.setOnEnterOrSpaceListener
 import dagger.android.support.AndroidSupportInjection
 import javax.inject.Inject
 
@@ -84,7 +83,7 @@ class AddContactsBottomSheet : BaseBottomSheetDialogFragment<BottomSheetAddConta
     }
 
     private fun setupViews() {
-        binding.input.setOnEnterListener {
+        binding.input.setOnEnterOrSpaceListener {
             viewModel.handleAddEmail(binding.input.text.toString())
             binding.input.setText("")
         }
@@ -112,16 +111,4 @@ class AddContactsBottomSheet : BaseBottomSheetDialogFragment<BottomSheetAddConta
         }
     }
 
-}
-
-fun EditText.setOnEnterListener(callback: () -> Unit) {
-    setOnKeyListener(object : View.OnKeyListener {
-        override fun onKey(v: View, keyCode: Int, event: KeyEvent): Boolean {
-            if (event.action == KeyEvent.ACTION_DOWN && (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_SPACE)) {
-                callback()
-                return true
-            }
-            return false
-        }
-    })
 }

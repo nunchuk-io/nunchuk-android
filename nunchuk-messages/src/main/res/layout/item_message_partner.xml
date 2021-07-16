@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -8,13 +9,31 @@
     android:orientation="vertical">
 
     <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/avatar"
+        android:layout_width="@dimen/nc_padding_48"
+        android:layout_height="@dimen/nc_padding_48"
+        android:layout_marginBottom="@dimen/nc_padding_8"
+        android:background="@drawable/nc_circle_beeswax_light_background"
+        android:gravity="center"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_20"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Z" />
+
+    <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/sender"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_4"
         android:gravity="start"
-        android:paddingVertical='@dimen/nc_padding_12'
+        android:paddingVertical="@dimen/nc_padding_8"
         android:textColor="@color/nc_black_color"
         android:textSize="@dimen/nc_text_size_16"
+        app:layout_constraintStart_toEndOf="@id/avatar"
+        app:layout_constraintTop_toTopOf="parent"
         tools:text="Tom" />
 
     <com.nunchuk.android.widget.NCFontTextView
@@ -24,10 +43,12 @@
         android:background="@drawable/message_partner_background"
         android:maxWidth="250dp"
         android:minWidth="100dp"
-        android:paddingVertical="@dimen/nc_padding_12"
         android:paddingHorizontal="@dimen/nc_padding_18"
+        android:paddingVertical="@dimen/nc_padding_12"
         android:textColor="@color/nc_black_color"
         android:textSize="@dimen/nc_text_size_16"
+        app:layout_constraintStart_toStartOf="@id/sender"
+        app:layout_constraintTop_toBottomOf="@id/sender"
         tools:text="Hey Tom, let’s create a wallet together shall we?" />
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

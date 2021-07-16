@@ -2,20 +2,19 @@ package com.nunchuk.android.messages.room.detail
 
 import android.content.Context
 import android.os.Bundle
-import android.view.View
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.databinding.ActivityRoomDetailBinding
 import com.nunchuk.android.messages.room.detail.RoomDetailEvent.ContactNotFoundEvent
 import com.nunchuk.android.messages.room.detail.RoomDetailEvent.RoomNotFoundEvent
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
+import com.nunchuk.android.widget.util.setOnEnterListener
 import javax.inject.Inject
 
-class RoomDetailActivity : BaseActivity(), View.OnClickListener {
+class RoomDetailActivity : BaseActivity() {
 
     @Inject
     lateinit var factory: ViewModelFactory
@@ -70,7 +69,8 @@ class RoomDetailActivity : BaseActivity(), View.OnClickListener {
         binding = ActivityRoomDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.send.setOnClickListener(this)
+        binding.send.setOnClickListener { sendMessage() }
+        binding.editText.setOnEnterListener(::sendMessage)
 
         roomAdapter = RoomDetailsAdapter(this)
         binding.recyclerView.adapter = roomAdapter
@@ -89,12 +89,6 @@ class RoomDetailActivity : BaseActivity(), View.OnClickListener {
             runOnUiThread {
                 binding.editText.setText("")
             }
-        }
-    }
-
-    override fun onClick(p0: View?) {
-        when (p0!!.id) {
-            R.id.send -> sendMessage()
         }
     }
 

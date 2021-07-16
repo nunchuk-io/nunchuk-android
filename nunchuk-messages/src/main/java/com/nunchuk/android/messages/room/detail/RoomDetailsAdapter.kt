@@ -42,13 +42,16 @@ class RoomDetailsAdapter(
         when (messageData.type) {
             MessageType.CHAT_MINE.index -> holder.message.text = content
             MessageType.CHAT_PARTNER.index -> {
+                holder.avatar?.text = "${userName.first().toUpperCase()}"
                 holder.sender?.text = userName
                 holder.message.text = content
             }
         }
     }
 
+    // FIXME
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val avatar: TextView? = itemView.findViewById(R.id.avatar)
         val sender: TextView? = itemView.findViewById(R.id.sender)
         val message: TextView = itemView.findViewById(R.id.message)
     }
