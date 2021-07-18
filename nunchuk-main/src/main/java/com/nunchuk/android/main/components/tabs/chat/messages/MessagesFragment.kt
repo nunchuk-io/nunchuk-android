@@ -8,6 +8,9 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.showLoading
+import com.nunchuk.android.main.components.tabs.chat.messages.MessagesEvent.LoadingEvent
 import com.nunchuk.android.main.databinding.FragmentMessagesBinding
 import com.nunchuk.android.messages.util.DateFormatter
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -63,7 +66,17 @@ internal class MessagesFragment : BaseFragment<FragmentMessagesBinding>() {
     }
 
     private fun handleEvent(event: MessagesEvent) {
+        when (event) {
+            is LoadingEvent -> handleLoading(event.loading)
+        }
+    }
 
+    private fun handleLoading(loading: Boolean) {
+        if (loading) {
+            showLoading()
+        } else {
+            hideLoading()
+        }
     }
 
     companion object {
