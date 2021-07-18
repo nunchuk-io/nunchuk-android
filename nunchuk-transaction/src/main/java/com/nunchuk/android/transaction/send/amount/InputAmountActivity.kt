@@ -54,6 +54,7 @@ class InputAmountActivity : BaseActivity() {
         }
         binding.mainCurrency.setText(0L.formatDecimal())
         binding.mainCurrency.addTextChangedCallback(viewModel::handleAmountChanged)
+        binding.mainCurrency.requestFocus()
         binding.btnSendAll.setOnClickListener { openAddReceiptScreen(args.availableAmount) }
         binding.btnSwitch.setOnClickListener { viewModel.switchCurrency() }
         binding.btnContinue.setOnClickListener {
