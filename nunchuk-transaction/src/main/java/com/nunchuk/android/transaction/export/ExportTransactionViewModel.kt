@@ -5,8 +5,7 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
-import com.nunchuk.android.transaction.export.ExportTransactionEvent.ExportToFileSuccess
-import com.nunchuk.android.transaction.export.ExportTransactionEvent.ExportTransactionError
+import com.nunchuk.android.transaction.export.ExportTransactionEvent.*
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.ExportCoboTransactionUseCase
 import com.nunchuk.android.usecase.ExportTransactionUseCase
@@ -32,6 +31,7 @@ internal class ExportTransactionViewModel @Inject constructor(
 
     fun exportTransactionToFile() {
         viewModelScope.launch {
+            event(LoadingEvent)
             when (val result = createShareFileUseCase.execute("${walletId}_${txId}")) {
                 is Success -> exportTransaction(result.data)
                 is Error -> event(ExportTransactionError(result.exception.messageOrUnknownError()))

@@ -53,15 +53,28 @@ class ImportTransactionActivity : BaseActivity() {
 
     private fun handleEvent(event: ImportTransactionEvent) {
         when (event) {
-            is ImportTransactionError -> NCToastMessage(this).showError("Import failed :${event.message}")
-            ImportTransactionSuccess -> NCToastMessage(this).showMessage("Transaction Imported")
+            is ImportTransactionError -> onImportTransactionSuccess(event)
+            ImportTransactionSuccess -> onImportTransactionError()
         }
+    }
+
+    private fun onImportTransactionError() {
+        hideLoading()
+        NCToastMessage(this).showMessage("Transaction Imported")
+    }
+
+    private fun onImportTransactionSuccess(event: ImportTransactionError) {
+        hideLoading()
+        NCToastMessage(this).showError("Import failed :${event.message}")
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         super.onActivityResult(requestCode, resultCode, intent)
         if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
-            intent?.data?.path?.let(viewModel::importTransaction)
+            intent?.data?.path?.let {
+                showLoading()
+                viewModel.importTransaction(it)
+            }
         }
     }
 

@@ -12,6 +12,7 @@ sealed class TransactionDetailsEvent {
     data class ViewBlockchainExplorer(val url: String) : TransactionDetailsEvent()
     object PromptDeleteTransaction : TransactionDetailsEvent()
     object ImportOrExportTransaction : TransactionDetailsEvent()
+    object LoadingEvent : TransactionDetailsEvent()
 }
 
 data class TransactionDetailsState(

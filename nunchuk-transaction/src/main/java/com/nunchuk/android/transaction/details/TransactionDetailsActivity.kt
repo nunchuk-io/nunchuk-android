@@ -134,21 +134,20 @@ class TransactionDetailsActivity : BaseActivity() {
             is PromptInputPassphrase -> requireInputPassphrase(event.func)
             ImportOrExportTransaction -> importOrExportTransaction()
             PromptDeleteTransaction -> promptDeleteTransaction()
+            LoadingEvent -> showLoading()
         }
     }
 
     private fun promptDeleteTransaction() {
         TransactionDetailsBottomSheet.show(supportFragmentManager)
-            .setListener {
-                promptCancelTransactionConfirmation()
-            }
+            .setListener(::promptCancelTransactionConfirmation)
     }
 
     private fun promptCancelTransactionConfirmation() {
         NCWarningDialog(this).showDialog(
             title = getString(R.string.nc_text_confirmation),
             message = getString(R.string.nc_transaction_confirmation),
-            onYesClick = { viewModel.handleDeleteTransactionEvent() }
+            onYesClick = viewModel::handleDeleteTransactionEvent
         )
     }
 
@@ -178,10 +177,12 @@ class TransactionDetailsActivity : BaseActivity() {
     }
 
     private fun showSignTransactionSuccess() {
+        hideLoading()
         NCToastMessage(this).show("Transaction signed successful")
     }
 
     private fun showBroadcastTransactionSuccess() {
+        hideLoading()
         NCToastMessage(this).show("Transaction broadcast successful")
     }
 
@@ -200,6 +201,7 @@ class TransactionDetailsActivity : BaseActivity() {
     }
 
     private fun showError(message: String) {
+        hideLoading()
         NCToastMessage(this).showError(message)
     }
 

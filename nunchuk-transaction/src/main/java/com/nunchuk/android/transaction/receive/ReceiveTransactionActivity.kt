@@ -39,7 +39,6 @@ class ReceiveTransactionActivity : BaseActivity(), TabCountChangeListener {
         observeEvent()
     }
 
-
     private fun observeEvent() {
         viewModel.event.observe(this, ::handleEvent)
         viewModel.state.observe(this, ::handleState)
