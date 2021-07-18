@@ -38,6 +38,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:gravity="center">
 
             <com.nunchuk.android.widget.NCFontEditText
@@ -51,16 +53,15 @@
                 android:minWidth="50dp"
                 android:textColor="@color/nc_primary_dark_color"
                 android:textCursorDrawable="@null"
-                android:textSize="@dimen/nc_text_size_24"
-                app:fontTextStyle="semi_bold"
-                tools:text="0.00100"/>
+                android:textSize="@dimen/nc_text_size_32"
+                app:fontTextStyle="semi_bold"/>
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/mainCurrencyLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/nc_primary_dark_color"
-                android:textSize="@dimen/nc_text_size_24"
+                android:textSize="@dimen/nc_text_size_32"
                 app:fontTextStyle="semi_bold"
                 tools:text="BTC" />
         </LinearLayout>
