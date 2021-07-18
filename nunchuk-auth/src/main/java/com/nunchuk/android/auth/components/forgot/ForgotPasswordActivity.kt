@@ -50,13 +50,20 @@ class ForgotPasswordActivity : BaseActivity() {
                 EmailInvalidEvent -> showEmailError(R.string.nc_text_email_invalid)
                 EmailRequiredEvent -> showEmailError(R.string.nc_text_required)
                 EmailValidEvent -> hideEmailError()
+                LoadingEvent -> showLoading()
                 is ForgotPasswordSuccessEvent -> openRecoverPasswordScreen(it.email)
-                is ForgotPasswordErrorEvent -> showToast(it.errorMessage.orUnknownError())
+                is ForgotPasswordErrorEvent -> forgotPasswordError(it)
             }
         }
     }
 
+    private fun forgotPasswordError(event: ForgotPasswordErrorEvent) {
+        hideLoading()
+        showToast(event.errorMessage.orUnknownError())
+    }
+
     private fun openRecoverPasswordScreen(email: String) {
+        hideLoading()
         navigator.openRecoverPasswordScreen(this, email)
     }
 

@@ -42,18 +42,21 @@ class RecoverPasswordActivity : BaseActivity() {
     }
 
     private fun observeEvent() {
-        viewModel.event.observe(this) {
-            when (it) {
-                is OldPasswordRequiredEvent -> binding.oldPassword.setError(getString(R.string.nc_text_required))
-                is OldPasswordValidEvent -> binding.oldPassword.hideError()
-                is NewPasswordRequiredEvent -> binding.newPassword.setError(getString(R.string.nc_text_required))
-                is NewPasswordValidEvent -> binding.newPassword.hideError()
-                is ConfirmPasswordRequiredEvent -> binding.confirmPassword.setError(getString(R.string.nc_text_required))
-                is ConfirmPasswordValidEvent -> binding.confirmPassword.hideError()
-                is ConfirmPasswordNotMatchedEvent -> binding.confirmPassword.setError(getString(R.string.nc_text_password_does_not_match))
-                is RecoverPasswordErrorEvent -> showChangePasswordError(it.errorMessage.orUnknownError())
-                is RecoverPasswordSuccessEvent -> openLoginScreen()
-            }
+        viewModel.event.observe(this, ::handleEvent)
+    }
+
+    private fun handleEvent(event: RecoverPasswordEvent) {
+        when (event) {
+            is OldPasswordRequiredEvent -> binding.oldPassword.setError(getString(R.string.nc_text_required))
+            is OldPasswordValidEvent -> binding.oldPassword.hideError()
+            is NewPasswordRequiredEvent -> binding.newPassword.setError(getString(R.string.nc_text_required))
+            is NewPasswordValidEvent -> binding.newPassword.hideError()
+            is ConfirmPasswordRequiredEvent -> binding.confirmPassword.setError(getString(R.string.nc_text_required))
+            is ConfirmPasswordValidEvent -> binding.confirmPassword.hideError()
+            is ConfirmPasswordNotMatchedEvent -> binding.confirmPassword.setError(getString(R.string.nc_text_password_does_not_match))
+            is RecoverPasswordErrorEvent -> showChangePasswordError(event.errorMessage.orUnknownError())
+            is RecoverPasswordSuccessEvent -> openLoginScreen()
+            is LoadingEvent -> showLoading()
         }
     }
 
@@ -67,11 +70,13 @@ class RecoverPasswordActivity : BaseActivity() {
     }
 
     private fun openLoginScreen() {
+        hideLoading()
         finish()
         navigator.openSignInScreen(this)
     }
 
     private fun showChangePasswordError(errorMessage: String) {
+        hideLoading()
         showToast(errorMessage)
     }
 
