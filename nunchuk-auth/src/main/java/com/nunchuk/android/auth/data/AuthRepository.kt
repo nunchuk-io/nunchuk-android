@@ -34,12 +34,12 @@ internal class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun changePassword(oldPassword: String, newPassword: String) {
         val payload = ChangePasswordPayload(oldPassword = oldPassword, newPassword = newPassword)
-        authApi.changePassword(payload)
+        authApi.changePassword(payload).data
     }
 
     override suspend fun recoverPassword(email: String, oldPassword: String, newPassword: String) {
         val payload = RecoverPasswordPayload(email = email, forgotPasswordToken = oldPassword, newPassword = newPassword)
-        authApi.recoverPassword(payload)
+        authApi.recoverPassword(payload).data
     }
 
     override suspend fun forgotPassword(email: String) {
