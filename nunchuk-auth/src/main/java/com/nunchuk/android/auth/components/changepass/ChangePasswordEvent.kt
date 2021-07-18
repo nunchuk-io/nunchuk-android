@@ -10,5 +10,6 @@ internal sealed class ChangePasswordEvent {
     object NewPasswordValidEvent : ChangePasswordEvent()
     object ConfirmPasswordValidEvent : ChangePasswordEvent()
     object ChangePasswordSuccessEvent : ChangePasswordEvent()
+    object LoadingEvent : ChangePasswordEvent()
     data class ChangePasswordSuccessError(val errorMessage: String?) : ChangePasswordEvent()
 }
