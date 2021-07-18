@@ -20,20 +20,8 @@
             style="@style/NCToolbar.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/nc_wallet_backup_and_device_registration" />
+            android:text="@string/nc_wallet_review_wallet_title" />
     </androidx.appcompat.widget.Toolbar>
-
-    <ProgressBar
-        android:id="@+id/progress"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:indeterminate="true"
-        android:indeterminateTint="@color/nc_blue_color"
-        android:visibility="gone"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        tools:visibility="visible" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/walletNameLabel"

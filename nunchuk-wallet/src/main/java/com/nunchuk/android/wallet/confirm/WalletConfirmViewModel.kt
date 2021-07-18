@@ -16,7 +16,9 @@ import com.nunchuk.android.usecase.DraftWalletUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.wallet.confirm.WalletConfirmEvent.*
 import kotlinx.coroutines.launch
+import java.util.*
 import javax.inject.Inject
+import kotlin.collections.ArrayList
 
 internal class WalletConfirmViewModel @Inject constructor(
     private val getUnusedSignerFromMasterSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
@@ -98,3 +100,7 @@ internal class WalletConfirmViewModel @Inject constructor(
     }
 
 }
+
+internal fun String.isWalletExisted() = this.toLowerCase(Locale.getDefault()).startsWith(WALLET_EXISTED)
+
+internal const val WALLET_EXISTED = "wallet existed"
