@@ -83,6 +83,7 @@
         android:layout_marginEnd="@dimen/nc_padding_16"
         android:backgroundTint="@color/nc_whisper_color"
         android:hint="Name or email"
+        android:minWidth="250dp"
         android:textColor="@color/nc_primary_color"
         android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintStart_toEndOf="@+id/to"

@@ -16,5 +16,5 @@
     <string name="nc_text_confirm">Confirm</string>
     <string name="nc_text_more">View more</string>
     <string name="nc_text_confirmation">Confirmation</string>
-    <string name="nc_text_waiting">Please wait a moment…</string>
+    <string name="nc_text_waiting">Please wait…</string>
 </resources>

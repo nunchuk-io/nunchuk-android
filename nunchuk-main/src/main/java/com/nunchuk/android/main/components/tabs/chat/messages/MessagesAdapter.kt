@@ -7,17 +7,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseViewHolder
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.databinding.ItemMessageBinding
+import com.nunchuk.android.messages.util.DateFormatter
+import com.nunchuk.android.messages.util.lastMessage
 import com.nunchuk.android.widget.swipe.SwipeLayout
 import com.nunchuk.android.widget.util.inflate
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
-import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
-import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
-import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
-import java.text.SimpleDateFormat
-import java.util.*
-import kotlin.collections.ArrayList
 
 internal class MessagesAdapter(
+    private val dateFormatter: DateFormatter,
     private val enterRoom: (RoomSummary) -> Unit,
     private val removeRoom: (RoomSummary) -> Unit
 ) : RecyclerView.Adapter<MessageViewHolder>() {
@@ -29,6 +26,7 @@ internal class MessagesAdapter(
         }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = MessageViewHolder(
+        dateFormatter,
         parent.inflate(R.layout.item_message),
         enterRoom, removeRoom
     )
@@ -42,6 +40,7 @@ internal class MessagesAdapter(
 }
 
 internal class MessageViewHolder(
+    private val dateFormatter: DateFormatter,
     itemView: View,
     private val enterRoom: (RoomSummary) -> Unit,
     private val removeRoom: (RoomSummary) -> Unit
@@ -53,7 +52,7 @@ internal class MessageViewHolder(
         binding.name.text = data.displayName
         data.latestPreviewableEvent?.let {
             binding.message.text = it.lastMessage()
-            binding.time.text = format(it.root.originServerTs)
+            binding.time.text = it.root.originServerTs?.let(dateFormatter::formatDateAndTime) ?: "-"
         }
         binding.count.isVisible = data.hasUnreadMessages && (data.notificationCount > 0)
         binding.count.text = "${data.notificationCount}"
@@ -63,15 +62,5 @@ internal class MessageViewHolder(
         binding.swipeLayout.showMode = SwipeLayout.ShowMode.PullOut
         binding.swipeLayout.addDrag(SwipeLayout.DragEdge.Left, binding.actionLayout)
     }
-
-    private fun format(ts: Long?) = ts?.formatDate() ?: "-"
-
-    private fun TimelineEvent.lastMessage(): CharSequence {
-        val senderName = senderInfo.disambiguatedDisplayName
-        val lastMessage = getTextEditableContent() ?: getLastMessageContent()?.body
-        return "$senderName: $lastMessage"
-    }
-
-    private fun Long.formatDate(): String = SimpleDateFormat("dd/MM HH:mm", Locale.US).format(Date(this))
 
 }
