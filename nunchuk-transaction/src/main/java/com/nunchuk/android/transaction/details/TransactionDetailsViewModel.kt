@@ -91,6 +91,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun handleBroadcastEvent() {
         viewModelScope.launch {
+            event(LoadingEvent)
             when (val result = broadcastTransactionUseCase.execute(walletId, txId)) {
                 is Success -> {
                     updateTransaction(result.data)

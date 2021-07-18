@@ -89,6 +89,7 @@ internal class TransactionConfirmViewModel @Inject constructor(
 
     private fun createNewTransaction() {
         viewModelScope.launch {
+            event(LoadingEvent)
             when (val result = createTransactionUseCase.execute(
                 walletId = walletId,
                 outputs = mapOf(address to sendAmount.toAmount()),

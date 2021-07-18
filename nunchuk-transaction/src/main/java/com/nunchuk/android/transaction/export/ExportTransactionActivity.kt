@@ -11,8 +11,7 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.qr.convertToQRCode
 import com.nunchuk.android.transaction.databinding.ActivityExportTransactionBinding
-import com.nunchuk.android.transaction.export.ExportTransactionEvent.ExportToFileSuccess
-import com.nunchuk.android.transaction.export.ExportTransactionEvent.ExportTransactionError
+import com.nunchuk.android.transaction.export.ExportTransactionEvent.*
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
@@ -94,8 +93,15 @@ class ExportTransactionActivity : BaseActivity() {
 
     private fun handleEvent(event: ExportTransactionEvent) {
         when (event) {
-            is ExportTransactionError -> NCToastMessage(this).showError(event.message)
-            is ExportToFileSuccess -> shareTransactionFile(event.filePath)
+            is ExportTransactionError -> {
+                hideLoading()
+                NCToastMessage(this).showError(event.message)
+            }
+            is ExportToFileSuccess -> {
+                hideLoading()
+                shareTransactionFile(event.filePath)
+            }
+            LoadingEvent -> showLoading()
         }
     }
 

@@ -74,7 +74,6 @@ class TransactionConfirmActivity : BaseActivity() {
         binding.noteContent.text = args.privateNote
 
         binding.btnConfirm.setOnClickListener {
-            showLoading()
             viewModel.handleConfirmEvent()
         }
 
@@ -88,6 +87,7 @@ class TransactionConfirmActivity : BaseActivity() {
             is CreateTxErrorEvent -> showCreateTransactionError(event.message)
             is CreateTxSuccessEvent -> openTransactionDetailScreen(event.txId)
             is UpdateChangeAddress -> bindChangAddress(event.address, event.amount)
+            LoadingEvent -> showLoading()
         }
     }
 
