@@ -40,8 +40,10 @@ class AddContactsViewModel @Inject constructor(
     fun handleSend() {
         val emails = getState().emails
         if (emails.isNotEmpty() && emails.all(EmailWithState::valid)) {
+            event(LoadingEvent(true))
             addContactUseCase.execute(emails.map(EmailWithState::email))
                 .defaultSchedulers()
+                .doAfterTerminate { event(LoadingEvent(false)) }
                 .subscribe({
                     if (it.isEmpty()) {
                         event(AddContactSuccessEvent)

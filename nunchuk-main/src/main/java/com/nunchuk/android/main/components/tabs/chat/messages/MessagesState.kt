@@ -10,4 +10,6 @@ data class MessagesState(val rooms: List<RoomSummary>) {
 
 }
 
-sealed class MessagesEvent
+sealed class MessagesEvent {
+    data class LoadingEvent(val loading: Boolean) : MessagesEvent()
+}

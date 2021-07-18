@@ -4,4 +4,6 @@ import com.nunchuk.android.messages.model.ReceiveContact
 
 data class ReceivedState(val contacts: List<ReceiveContact> = emptyList())
 
-sealed class ReceivedEvent
+sealed class ReceivedEvent {
+    data class LoadingEvent(val loading: Boolean) : ReceivedEvent()
+}

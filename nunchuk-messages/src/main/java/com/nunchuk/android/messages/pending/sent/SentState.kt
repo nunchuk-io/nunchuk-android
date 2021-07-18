@@ -4,4 +4,6 @@ import com.nunchuk.android.messages.model.SentContact
 
 data class SentState(val contacts: List<SentContact> = emptyList())
 
-sealed class SentEvent
+sealed class SentEvent {
+    data class LoadingEvent(val loading: Boolean) : SentEvent()
+}

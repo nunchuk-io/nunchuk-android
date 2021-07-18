@@ -12,6 +12,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseBottomSheetDialogFragment
+import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.messages.databinding.BottomSheetCreateRoomBinding
 import com.nunchuk.android.messages.model.Contact
 import com.nunchuk.android.messages.room.create.CreateRoomEvent.*
@@ -82,11 +84,13 @@ class CreateRoomBottomSheet : BaseBottomSheetDialogFragment<BottomSheetCreateRoo
     }
 
     private fun onRoomCreated(roomId: String) {
+        hideLoading()
         cleanUp()
         navigator.openRoomDetailActivity(requireActivity(), roomId = roomId)
     }
 
     private fun showRoomCreateError(message: String) {
+        hideLoading()
         NCToastMessage(requireActivity()).show(message)
     }
 
@@ -109,6 +113,7 @@ class CreateRoomBottomSheet : BaseBottomSheetDialogFragment<BottomSheetCreateRoo
         }
         binding.input.addTextChangedCallback(viewModel::handleInput)
         binding.doneBtn.setOnClickListener {
+            showLoading()
             viewModel.handleDone()
         }
     }

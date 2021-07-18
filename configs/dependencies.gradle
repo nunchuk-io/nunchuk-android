@@ -41,9 +41,9 @@ ext {
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 0
-    PATCH_VERSION = 2
+    PATCH_VERSION = 3
 
-    VERSION_CODE = 02
+    VERSION_CODE = 03
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",

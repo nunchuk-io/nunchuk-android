@@ -8,6 +8,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.messages.databinding.FragmentReceivedBinding
 
 internal class ReceivedFragment : BaseFragment<FragmentReceivedBinding>() {
@@ -44,6 +46,13 @@ internal class ReceivedFragment : BaseFragment<FragmentReceivedBinding>() {
     }
 
     private fun handleEvent(event: ReceivedEvent) {
+        if (event is ReceivedEvent.LoadingEvent) {
+            if (event.loading) {
+                showLoading()
+            } else {
+                hideLoading()
+            }
+        }
     }
 
     private fun setupViews() {

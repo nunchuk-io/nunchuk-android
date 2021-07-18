@@ -10,6 +10,8 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseBottomSheetDialogFragment
+import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.messages.contact.AddContactsEvent.*
 import com.nunchuk.android.messages.databinding.BottomSheetAddContactsBinding
 import com.nunchuk.android.widget.NCToastMessage
@@ -65,7 +67,14 @@ class AddContactsBottomSheet : BaseBottomSheetDialogFragment<BottomSheetAddConta
             AllEmailValidEvent -> showErrorMessage(false)
             AddContactSuccessEvent -> showAddContactSuccess()
             is AddContactsErrorEvent -> showAddContactError(event.message)
+            is LoadingEvent -> handleLoading(event.loading)
         }
+    }
+
+    private fun handleLoading(loading: Boolean) = if (loading) {
+        showLoading()
+    } else {
+        hideLoading()
     }
 
     private fun showAddContactError(message: String) {

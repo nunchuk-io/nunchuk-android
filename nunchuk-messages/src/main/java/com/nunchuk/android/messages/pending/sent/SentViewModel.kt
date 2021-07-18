@@ -3,6 +3,7 @@ package com.nunchuk.android.messages.pending.sent
 import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.messages.model.SentContact
+import com.nunchuk.android.messages.pending.sent.SentEvent.LoadingEvent
 import com.nunchuk.android.messages.repository.ContactsRepository
 import com.nunchuk.android.messages.usecase.contact.GetSentContactsUseCase
 import javax.inject.Inject
@@ -26,8 +27,10 @@ class SentViewModel @Inject constructor(
     }
 
     fun handleWithDraw(contact: SentContact) {
+        event(LoadingEvent(true))
         contactsRepository.cancelContact(contact.contact.id)
             .defaultSchedulers()
+            .doAfterTerminate { event(LoadingEvent(false)) }
             .subscribe(::retrieveData) {}
             .addToDisposables()
     }

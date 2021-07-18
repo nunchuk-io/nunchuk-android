@@ -8,7 +8,10 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.messages.databinding.FragmentSentBinding
+import com.nunchuk.android.messages.model.SentContact
 
 internal class SentFragment : BaseFragment<FragmentSentBinding>() {
 
@@ -44,12 +47,23 @@ internal class SentFragment : BaseFragment<FragmentSentBinding>() {
     }
 
     private fun handleEvent(event: SentEvent) {
+        if (event is SentEvent.LoadingEvent) {
+            if (event.loading) {
+                showLoading()
+            } else {
+                hideLoading()
+            }
+        }
     }
 
     private fun setupViews() {
-        adapter = SentAdapter(viewModel::handleWithDraw)
+        adapter = SentAdapter(::handleWithdrawEvent)
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, false)
         binding.recyclerView.adapter = adapter
+    }
+
+    private fun handleWithdrawEvent(contact: SentContact) {
+        viewModel.handleWithDraw(contact)
     }
 
     companion object {
