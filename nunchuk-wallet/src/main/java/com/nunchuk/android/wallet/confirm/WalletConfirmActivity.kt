@@ -3,7 +3,6 @@ package com.nunchuk.android.wallet.confirm
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.signer.toModel
@@ -47,17 +46,37 @@ class WalletConfirmActivity : BaseActivity() {
 
     private fun handleEvent(event: WalletConfirmEvent) {
         when (event) {
-            is SetLoadingEvent -> binding.progress.isVisible = event.showLoading
-            is CreateWalletSuccessEvent -> navigator.openBackupWalletScreen(this, event.walletId, event.descriptor)
-            is CreateWalletErrorEvent -> NCToastMessage(this).showWarning(event.message)
+            is SetLoadingEvent -> handleLoading(event.showLoading)
+            is CreateWalletSuccessEvent -> onCreateWalletSuccess(event)
+            is CreateWalletErrorEvent -> onCreateWalletError(event)
         }
+    }
+
+    private fun handleLoading(showLoading: Boolean) {
+        if (showLoading) {
+            showLoading()
+        } else {
+            hideLoading()
+        }
+    }
+
+    private fun onCreateWalletError(event: CreateWalletErrorEvent) {
+        val message = event.message
+        NCToastMessage(this).showWarning(message)
+        if (message.isWalletExisted()) {
+            navigator.openMainScreen(this)
+        }
+    }
+
+    private fun onCreateWalletSuccess(event: CreateWalletSuccessEvent) {
+        navigator.openBackupWalletScreen(this, event.walletId, event.descriptor)
     }
 
     private fun setupViews() {
         binding.walletName.text = args.walletName
         val signers = args.masterSigners.map(MasterSigner::toModel) + args.remoteSigners.map(SingleSigner::toModel)
-        val configutation = "${args.totalRequireSigns}/${signers.size}"
-        binding.multisigConfigutation.text = configutation
+        val configuration = "${args.totalRequireSigns}/${signers.size}"
+        binding.multisigConfigutation.text = configuration
 
         binding.walletType.text = args.walletType.toReadableString(this)
         binding.addressType.text = args.addressType.toReadableString(this)

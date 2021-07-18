@@ -60,8 +60,8 @@ class WalletConfigActivity : BaseActivity() {
     private fun handleState(wallet: Wallet) {
         binding.walletName.text = wallet.name
 
-        val configutation = "${wallet.getConfiguration()} ${getString(R.string.nc_wallet_multisig)}"
-        binding.multisigConfigutation.text = configutation
+        val configuration = "${wallet.getConfiguration()} ${getString(R.string.nc_wallet_multisig)}"
+        binding.multiSigConfiguration.text = configuration
 
         binding.walletType.text = (if (wallet.escrow) WalletType.ESCROW else WalletType.MULTI_SIG).toReadableString(this)
         binding.addressType.text = wallet.addressType.toReadableString(this)

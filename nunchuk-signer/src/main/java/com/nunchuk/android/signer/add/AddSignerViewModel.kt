@@ -30,6 +30,7 @@ internal class AddSignerViewModel @Inject constructor(
 
     private fun doAfterValidate(signerName: String, signerInput: SignerInput) {
         viewModelScope.launch {
+            event(LoadingEvent)
             val result = createSignerUseCase.execute(
                 name = signerName,
                 xpub = signerInput.xpub,
@@ -61,6 +62,7 @@ internal class AddSignerViewModel @Inject constructor(
             event(SignerNameRequiredEvent)
         } else {
             viewModelScope.launch {
+                event(LoadingEvent)
                 val result = createCoboSignerUseCase.execute(
                     name = signerName,
                     jsonInfo = jsonInfo

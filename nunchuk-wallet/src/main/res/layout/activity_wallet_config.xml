@@ -24,18 +24,6 @@
             android:text="@string/nc_text_wallet_config_title" />
     </androidx.appcompat.widget.Toolbar>
 
-    <ProgressBar
-        android:id="@+id/progress"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:indeterminate="true"
-        android:indeterminateTint="@color/nc_blue_color"
-        android:visibility="gone"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        tools:visibility="visible" />
-
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline"
         android:layout_width="match_parent"
@@ -59,7 +47,7 @@
         tools:text="Nunchuk Fun Fund" />
 
     <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/multisigConfigutation"
+        android:id="@+id/multiSigConfiguration"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:paddingVertical="@dimen/nc_padding_2"
@@ -85,7 +73,7 @@
         android:textSize="@dimen/nc_text_size_14"
         app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/multisigConfigutation" />
+        app:layout_constraintTop_toBottomOf="@+id/multiSigConfiguration" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/walletType"
