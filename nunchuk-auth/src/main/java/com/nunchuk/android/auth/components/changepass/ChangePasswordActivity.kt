@@ -50,6 +50,7 @@ class ChangePasswordActivity : BaseActivity() {
                 is ChangePasswordSuccessError -> showChangePasswordError(it.errorMessage.orUnknownError())
                 is ChangePasswordSuccessEvent -> openLoginScreen()
                 is ShowEmailSentEvent -> showEmailConfirmation(it.email)
+                LoadingEvent -> showLoading()
             }
         }
     }
@@ -68,11 +69,13 @@ class ChangePasswordActivity : BaseActivity() {
     }
 
     private fun openLoginScreen() {
+        hideLoading()
         finish()
         navigator.openSignInScreen(this)
     }
 
     private fun showChangePasswordError(errorMessage: String) {
+        hideLoading()
         showToast(errorMessage)
     }
 

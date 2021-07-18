@@ -33,6 +33,7 @@ internal class ChangePasswordViewModel @Inject constructor(
             val isConfirmPasswordValid = validateConfirmPassword(confirmPassword)
             val isConfirmPasswordMatched = validateConfirmPasswordMatched(newPassword, confirmPassword)
             if (isOldPasswordValid && isNewPasswordValid && isConfirmPasswordValid && isConfirmPasswordMatched) {
+                event(LoadingEvent)
                 val result = changePasswordUseCase.execute(oldPassword, newPassword)
                 if (result is Success) {
                     event(ChangePasswordSuccessEvent)
