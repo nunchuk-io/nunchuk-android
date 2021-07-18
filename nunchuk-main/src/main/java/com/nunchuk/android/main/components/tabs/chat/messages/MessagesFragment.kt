@@ -9,11 +9,16 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.main.databinding.FragmentMessagesBinding
+import com.nunchuk.android.messages.util.DateFormatter
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
+import javax.inject.Inject
 
 internal class MessagesFragment : BaseFragment<FragmentMessagesBinding>() {
 
     private val viewModel: MessagesViewModel by activityViewModels { factory }
+
+    @Inject
+    lateinit var dateFormatter: DateFormatter
 
     private lateinit var adapter: MessagesAdapter
 
@@ -36,7 +41,7 @@ internal class MessagesFragment : BaseFragment<FragmentMessagesBinding>() {
     }
 
     private fun setupViews() {
-        adapter = MessagesAdapter(::openRoomDetailScreen, viewModel::removeRoom)
+        adapter = MessagesAdapter(dateFormatter, ::openRoomDetailScreen, viewModel::removeRoom)
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)
         binding.recyclerView.adapter = adapter
         binding.fab.setOnClickListener {
