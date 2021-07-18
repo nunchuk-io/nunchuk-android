@@ -26,6 +26,7 @@ internal class SignUpViewModel @Inject constructor(
         val isEmailValid = validateEmail(email)
         if (isNameValid && isEmailValid) {
             viewModelScope.launch {
+                event(LoadingEvent)
                 when (val result = registerUseCase.execute(name = name, email = email)) {
                     is Success -> event(SignUpSuccessEvent)
                     is Error -> handleException(result)

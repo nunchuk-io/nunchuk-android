@@ -9,5 +9,6 @@ internal sealed class RecoverPasswordEvent {
     object NewPasswordValidEvent : RecoverPasswordEvent()
     object ConfirmPasswordValidEvent : RecoverPasswordEvent()
     object RecoverPasswordSuccessEvent : RecoverPasswordEvent()
+    object LoadingEvent : RecoverPasswordEvent()
     data class RecoverPasswordErrorEvent(val errorMessage: String?) : RecoverPasswordEvent()
 }

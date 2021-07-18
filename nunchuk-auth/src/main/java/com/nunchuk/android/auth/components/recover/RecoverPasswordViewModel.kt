@@ -28,6 +28,7 @@ internal class RecoverPasswordViewModel @Inject constructor(
             val isConfirmPasswordValid = validateConfirmPassword(confirmPassword)
             val isConfirmPasswordMatched = validateConfirmPasswordMatched(newPassword, confirmPassword)
             if (isOldPasswordValid && isNewPasswordValid && isConfirmPasswordValid && isConfirmPasswordMatched) {
+                event(LoadingEvent)
                 val result = recoverPasswordUseCase.execute(email, oldPassword, newPassword)
                 if (result is Success) {
                     event(RecoverPasswordSuccessEvent)

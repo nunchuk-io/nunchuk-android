@@ -42,27 +42,36 @@ class SignUpActivity : BaseActivity() {
     }
 
     private fun onRegisterClicked() {
+        showLoading()
         viewModel.handleRegister(binding.name.getEditText().trim(), binding.email.getEditText().trim())
     }
 
     private fun observeEvent() {
-        viewModel.event.observe(this) {
-            when (it) {
-                NameRequiredEvent -> showNameError(R.string.nc_text_required)
-                NameInvalidEvent -> showNameError(R.string.nc_text_name_invalid)
-                EmailInvalidEvent -> showEmailError(R.string.nc_text_email_invalid)
-                EmailRequiredEvent -> showEmailError(R.string.nc_text_required)
-                NameValidEvent -> hideNameError()
-                EmailValidEvent -> hideEmailError()
-                LoadingEvent -> showLoading()
-                is SignUpSuccessEvent -> openChangePasswordScreen()
-                is SignUpErrorEvent -> showToast(it.errorMessage.orUnknownError())
-                is AccountExistedEvent -> switchLoginPage(it.errorMessage.orUnknownError())
-            }
+        viewModel.event.observe(this, ::handleEvent)
+    }
+
+    private fun handleEvent(event: SignUpEvent) {
+        when (event) {
+            NameRequiredEvent -> showNameError(R.string.nc_text_required)
+            NameInvalidEvent -> showNameError(R.string.nc_text_name_invalid)
+            EmailInvalidEvent -> showEmailError(R.string.nc_text_email_invalid)
+            EmailRequiredEvent -> showEmailError(R.string.nc_text_required)
+            NameValidEvent -> hideNameError()
+            EmailValidEvent -> hideEmailError()
+            LoadingEvent -> showLoading()
+            is SignUpSuccessEvent -> openChangePasswordScreen()
+            is SignUpErrorEvent -> openSignUpError(event.errorMessage.orUnknownError())
+            is AccountExistedEvent -> switchLoginPage(event.errorMessage.orUnknownError())
         }
     }
 
+    private fun openSignUpError(message: String) {
+        hideLoading()
+        showToast(message)
+    }
+
     private fun switchLoginPage(message: String) {
+        hideLoading()
         showToast(message)
         openLoginScreen()
     }
@@ -89,6 +98,7 @@ class SignUpActivity : BaseActivity() {
     }
 
     private fun openChangePasswordScreen() {
+        hideLoading()
         finish()
         navigator.openChangePasswordScreen(this)
     }

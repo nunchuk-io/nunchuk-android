@@ -4,6 +4,7 @@ internal sealed class ForgotPasswordEvent {
     object EmailRequiredEvent : ForgotPasswordEvent()
     object EmailInvalidEvent : ForgotPasswordEvent()
     object EmailValidEvent : ForgotPasswordEvent()
+    object LoadingEvent : ForgotPasswordEvent()
     data class ForgotPasswordSuccessEvent(val email: String) : ForgotPasswordEvent()
     data class ForgotPasswordErrorEvent(val errorMessage: String?) : ForgotPasswordEvent()
 }
