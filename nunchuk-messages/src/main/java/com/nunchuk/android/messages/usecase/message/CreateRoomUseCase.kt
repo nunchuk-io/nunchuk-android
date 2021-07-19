@@ -17,10 +17,10 @@ internal class CreateRoomUseCaseImpl @Inject constructor(
 
     override suspend fun execute(displayName: String, userIds: List<String>) = exe {
         val params = CreateRoomParams().apply {
-            visibility = RoomDirectoryVisibility.PUBLIC
+            visibility = RoomDirectoryVisibility.PRIVATE
             isDirect = false
             invitedUserIds.addAll(userIds)
-            preset = CreateRoomPreset.PRESET_PUBLIC_CHAT
+            preset = CreateRoomPreset.PRESET_PRIVATE_CHAT
             name = displayName
         }
         session.getRoom(session.createRoom(params)) ?: throw RoomCreationException()

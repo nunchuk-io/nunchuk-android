@@ -8,6 +8,7 @@ import com.nunchuk.android.core.util.process
 import com.nunchuk.android.main.components.tabs.chat.messages.MessagesEvent.LoadingEvent
 import com.nunchuk.android.messages.usecase.message.GetRoomSummaryListUseCase
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
+import com.nunchuk.android.messages.util.sortByLastMessage
 import io.reactivex.Completable
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
@@ -23,13 +24,19 @@ internal class MessagesViewModel @Inject constructor(
     override val initialState = MessagesState.empty()
 
     fun retrieveMessages() {
-        process(getRoomSummaryListUseCase::execute, {
-            event(LoadingEvent(false))
-            updateState { copy(rooms = it) }
-        }, {
-            event(LoadingEvent(false))
-            updateState { copy(rooms = emptyList()) }
-        })
+        process(getRoomSummaryListUseCase::execute, ::onRetrieveMessageSuccess) {
+            onRetrieveMessageError()
+        }
+    }
+
+    private fun onRetrieveMessageError() {
+        event(LoadingEvent(false))
+        updateState { copy(rooms = emptyList()) }
+    }
+
+    private fun onRetrieveMessageSuccess(roomSummaryList: List<RoomSummary>) {
+        event(LoadingEvent(false))
+        updateState { copy(rooms = roomSummaryList.sortByLastMessage()) }
     }
 
     fun removeRoom(roomSummary: RoomSummary) {
