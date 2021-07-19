@@ -13,7 +13,7 @@ internal interface ContactApi {
     @GET("user/contacts/")
     fun getContacts(): Single<Data<ContactResponseWrapper>>
 
-    @HTTP(method = "DELETE", path = "user/friends/request", hasBody = true)
+    @HTTP(method = "DELETE", path = "user/contacts/request", hasBody = true)
     fun cancelRequest(@Body payLoad: CancelRequestPayload): Completable
 
     @POST("user/friends/accept")
