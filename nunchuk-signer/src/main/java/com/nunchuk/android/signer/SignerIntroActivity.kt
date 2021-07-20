@@ -7,18 +7,14 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.signer.databinding.ActivitySignerIntroBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 
-class SignerIntroActivity : BaseActivity() {
+class SignerIntroActivity : BaseActivity<ActivitySignerIntroBinding>() {
 
-    private lateinit var binding: ActivitySignerIntroBinding
+    override fun initializeBinding() = ActivitySignerIntroBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
-        binding = ActivitySignerIntroBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
     }
 

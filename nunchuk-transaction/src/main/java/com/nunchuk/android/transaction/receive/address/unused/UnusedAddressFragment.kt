@@ -6,9 +6,9 @@ import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.viewpager.widget.ViewPager
-import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.transaction.R

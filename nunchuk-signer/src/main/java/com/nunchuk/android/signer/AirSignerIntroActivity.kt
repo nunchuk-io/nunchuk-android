@@ -7,18 +7,14 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.signer.databinding.ActivityBeforeAddAirSignerBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 
-class AirSignerIntroActivity : BaseActivity() {
+class AirSignerIntroActivity : BaseActivity<ActivityBeforeAddAirSignerBinding>() {
 
-    private lateinit var binding: ActivityBeforeAddAirSignerBinding
+    override fun initializeBinding() = ActivityBeforeAddAirSignerBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
-        binding = ActivityBeforeAddAirSignerBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
     }
 

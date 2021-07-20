@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.ext.isVisible
+import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.qr.QRCodeParser
@@ -17,7 +17,7 @@ import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setMaxLength
 import javax.inject.Inject
 
-class AddReceiptActivity : BaseActivity() {
+class AddReceiptActivity : BaseActivity<ActivityTransactionAddReceiptBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
@@ -26,21 +26,16 @@ class AddReceiptActivity : BaseActivity() {
 
     private val viewModel: AddReceiptViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivityTransactionAddReceiptBinding
+    override fun initializeBinding() = ActivityTransactionAddReceiptBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
-        binding = ActivityTransactionAddReceiptBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
         observeEvent()
         viewModel.init()
     }
-
 
     private fun observeEvent() {
         viewModel.event.observe(this, ::handleEvent)
@@ -71,7 +66,8 @@ class AddReceiptActivity : BaseActivity() {
     }
 
     private fun handleState(state: AddReceiptState) {
-        binding.privateNoteCounter.text = "${state.privateNote.length}/$MAX_NOTE_LENGTH"
+        val privateNoteCounter = "${state.privateNote.length}/$MAX_NOTE_LENGTH"
+        binding.privateNoteCounter.text = privateNoteCounter
     }
 
     private fun handleEvent(event: AddReceiptEvent) {

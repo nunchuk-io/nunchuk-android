@@ -14,14 +14,14 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
-class CreateNewSeedActivity : BaseActivity() {
+class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
 
     private val viewModel: CreateNewSeedViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivityCreateSeedBinding
+    override fun initializeBinding() = ActivityCreateSeedBinding.inflate(layoutInflater)
 
     private lateinit var adapter: CreateNewSeedAdapter
 
@@ -29,14 +29,8 @@ class CreateNewSeedActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
-        binding = ActivityCreateSeedBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
-
         observeEvent()
-
         viewModel.init()
     }
 

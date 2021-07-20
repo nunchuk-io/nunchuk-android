@@ -5,9 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatEditText
+import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.arch.args.FragmentArgs
-import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.core.base.BaseBottomSheetDialogFragment
 import com.nunchuk.android.signer.databinding.DialogUpdateSignerBottomSheetBinding
 import com.nunchuk.android.widget.util.addTextChangedCallback

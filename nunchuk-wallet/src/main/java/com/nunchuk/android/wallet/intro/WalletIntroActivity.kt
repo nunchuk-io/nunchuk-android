@@ -7,18 +7,14 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.wallet.databinding.ActivityWalletIntroBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 
-class WalletIntroActivity : BaseActivity() {
+class WalletIntroActivity : BaseActivity<ActivityWalletIntroBinding>() {
 
-    private lateinit var binding: ActivityWalletIntroBinding
+    override fun initializeBinding() = ActivityWalletIntroBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
-        binding = ActivityWalletIntroBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
     }
 

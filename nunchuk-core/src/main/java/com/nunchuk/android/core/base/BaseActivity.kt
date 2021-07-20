@@ -3,6 +3,7 @@ package com.nunchuk.android.core.base
 import android.app.Dialog
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.arch.R
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.nav.NunchukNavigator
@@ -14,7 +15,7 @@ import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasAndroidInjector
 import javax.inject.Inject
 
-abstract class BaseActivity : AppCompatActivity(), HasAndroidInjector {
+abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity(), HasAndroidInjector {
 
     @Inject
     lateinit var androidInjector: DispatchingAndroidInjector<Any>
@@ -23,6 +24,10 @@ abstract class BaseActivity : AppCompatActivity(), HasAndroidInjector {
     lateinit var navigator: NunchukNavigator
 
     private lateinit var creator: NCLoadingDialogCreator
+
+    protected lateinit var binding: Binding
+
+    abstract fun initializeBinding(): Binding
 
     override fun androidInjector(): AndroidInjector<Any> = androidInjector
 
@@ -40,7 +45,10 @@ abstract class BaseActivity : AppCompatActivity(), HasAndroidInjector {
     override fun onCreate(savedInstanceState: Bundle?) {
         AndroidInjection.inject(this)
         super.onCreate(savedInstanceState)
+        binding = initializeBinding()
+        setContentView(binding.root)
         overridePendingTransition(R.anim.enter, R.anim.exit)
+
         ActivityManager.instance.add(this)
         creator = NCLoadingDialogCreator(this)
     }

@@ -6,7 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.ext.isVisible
+import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.signer.SignerModel
@@ -27,7 +27,7 @@ import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
-class TransactionDetailsActivity : BaseActivity() {
+class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
@@ -36,16 +36,12 @@ class TransactionDetailsActivity : BaseActivity() {
 
     private val viewModel: TransactionDetailsViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivityTransactionDetailsBinding
+    override fun initializeBinding() = ActivityTransactionDetailsBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
-        binding = ActivityTransactionDetailsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
         observeEvent()
         viewModel.init(walletId = args.walletId, txId = args.txId)

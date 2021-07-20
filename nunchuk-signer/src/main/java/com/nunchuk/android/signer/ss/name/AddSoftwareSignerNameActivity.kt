@@ -14,27 +14,22 @@ import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setMaxLength
 import javax.inject.Inject
 
-class AddSoftwareSignerNameActivity : BaseActivity() {
+class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
 
     private val viewModel: AddSoftwareSignerNameViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivityAddNameBinding
-
     private val args: AddSoftwareSignerNameArgs by lazy { AddSoftwareSignerNameArgs.deserializeFrom(intent) }
+
+    override fun initializeBinding() = ActivityAddNameBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
-        binding = ActivityAddNameBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
-
         observeEvent()
     }
 

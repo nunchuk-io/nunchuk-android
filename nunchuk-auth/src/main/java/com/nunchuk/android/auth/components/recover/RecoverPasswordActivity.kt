@@ -14,7 +14,7 @@ import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
 
-class RecoverPasswordActivity : BaseActivity() {
+class RecoverPasswordActivity : BaseActivity<ActivityRecoverPasswordBinding>() {
 
     @Inject
     lateinit var factory: ViewModelFactory
@@ -23,7 +23,7 @@ class RecoverPasswordActivity : BaseActivity() {
 
     private val viewModel: RecoverPasswordViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivityRecoverPasswordBinding
+    override fun initializeBinding() = ActivityRecoverPasswordBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,10 +31,6 @@ class RecoverPasswordActivity : BaseActivity() {
         setTransparentStatusBar(false)
 
         viewModel.initData(args.email)
-
-        binding = ActivityRecoverPasswordBinding.inflate(layoutInflater)
-
-        setContentView(binding.root)
 
         setupViews()
 

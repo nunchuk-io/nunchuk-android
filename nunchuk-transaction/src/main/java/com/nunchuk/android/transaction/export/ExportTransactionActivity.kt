@@ -16,7 +16,7 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
-class ExportTransactionActivity : BaseActivity() {
+class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
@@ -31,16 +31,12 @@ class ExportTransactionActivity : BaseActivity() {
 
     private val viewModel: ExportTransactionViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivityExportTransactionBinding
+    override fun initializeBinding() = ActivityExportTransactionBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
-        binding = ActivityExportTransactionBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
         observeEvent()
         viewModel.init(walletId = args.walletId, txId = args.txId)

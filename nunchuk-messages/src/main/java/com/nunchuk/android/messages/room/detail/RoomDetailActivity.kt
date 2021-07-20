@@ -14,7 +14,7 @@ import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnEnterListener
 import javax.inject.Inject
 
-class RoomDetailActivity : BaseActivity() {
+class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
     @Inject
     lateinit var factory: ViewModelFactory
@@ -23,20 +23,17 @@ class RoomDetailActivity : BaseActivity() {
 
     private val args: RoomDetailArgs by lazy { RoomDetailArgs.deserializeFrom(intent) }
 
-    private lateinit var binding: ActivityRoomDetailBinding
-
     private lateinit var roomAdapter: RoomDetailsAdapter
+
+    override fun initializeBinding() = ActivityRoomDetailBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
         setupViews()
-
-        viewModel.initialize(args.roomId)
-
         observeEvent()
+        viewModel.initialize(args.roomId)
     }
 
     private fun observeEvent() {
@@ -66,9 +63,6 @@ class RoomDetailActivity : BaseActivity() {
     }
 
     private fun setupViews() {
-        binding = ActivityRoomDetailBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         binding.send.setOnClickListener { sendMessage() }
         binding.editText.setOnEnterListener(::sendMessage)
 

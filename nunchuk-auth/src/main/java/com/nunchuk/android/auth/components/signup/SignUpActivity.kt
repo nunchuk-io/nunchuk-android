@@ -14,25 +14,20 @@ import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
 
-class SignUpActivity : BaseActivity() {
+class SignUpActivity : BaseActivity<ActivitySignupBinding>() {
 
     @Inject
     lateinit var factory: ViewModelFactory
 
     private val viewModel: SignUpViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivitySignupBinding
+    override fun initializeBinding() = ActivitySignupBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setTransparentStatusBar(false)
-
-        binding = ActivitySignupBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
-
         observeEvent()
     }
 

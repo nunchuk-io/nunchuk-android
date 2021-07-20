@@ -17,7 +17,7 @@ import com.nunchuk.android.wallet.databinding.ActivityWalletAssignSignerBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
-class AssignSignerActivity : BaseActivity() {
+class AssignSignerActivity : BaseActivity<ActivityWalletAssignSignerBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
@@ -26,15 +26,12 @@ class AssignSignerActivity : BaseActivity() {
 
     private val viewModel: AssignSignerViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivityWalletAssignSignerBinding
+    override fun initializeBinding() = ActivityWalletAssignSignerBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
-        binding = ActivityWalletAssignSignerBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
         setupViews()
         observeEvent()

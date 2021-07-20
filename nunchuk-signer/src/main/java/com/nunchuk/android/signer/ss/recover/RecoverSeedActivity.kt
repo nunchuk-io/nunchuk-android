@@ -17,27 +17,22 @@ import com.nunchuk.android.widget.util.heightExtended
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
-class RecoverSeedActivity : BaseActivity() {
+class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
 
     private val viewModel: RecoverSeedViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivityRecoverSeedBinding
-
     private lateinit var adapter: RecoverSeedSuggestionAdapter
+
+    override fun initializeBinding() = ActivityRecoverSeedBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
-        binding = ActivityRecoverSeedBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
-
         observeEvent()
     }
 
