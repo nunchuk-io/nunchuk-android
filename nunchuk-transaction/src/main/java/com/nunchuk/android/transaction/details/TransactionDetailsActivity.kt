@@ -180,6 +180,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
     private fun showBroadcastTransactionSuccess() {
         hideLoading()
         NCToastMessage(this).show("Transaction broadcast successful")
+        navigator.openMainScreen(this)
     }
 
     private fun openExternalLink(url: String) {
