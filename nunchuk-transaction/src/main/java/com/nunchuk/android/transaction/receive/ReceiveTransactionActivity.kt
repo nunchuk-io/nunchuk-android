@@ -2,8 +2,6 @@ package com.nunchuk.android.transaction.receive
 
 import android.content.Context
 import android.os.Bundle
-import androidx.activity.viewModels
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.ActivityTransactionReceiveBinding
@@ -12,36 +10,20 @@ import com.nunchuk.android.transaction.receive.address.AddressPagerAdapter
 import com.nunchuk.android.transaction.receive.address.AddressTab
 import com.nunchuk.android.transaction.receive.address.AddressTab.*
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
 
-class ReceiveTransactionActivity : BaseActivity(), TabCountChangeListener {
+class ReceiveTransactionActivity : BaseActivity<ActivityTransactionReceiveBinding>(), TabCountChangeListener {
 
     private lateinit var pagerAdapter: AddressPagerAdapter
 
-    @Inject
-    lateinit var factory: NunchukFactory
-
     private val args: ReceiveTransactionArgs by lazy { ReceiveTransactionArgs.deserializeFrom(intent) }
 
-    private val viewModel: ReceiveTransactionViewModel by viewModels { factory }
-
-    private lateinit var binding: ActivityTransactionReceiveBinding
+    override fun initializeBinding() = ActivityTransactionReceiveBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
-        binding = ActivityTransactionReceiveBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
-        observeEvent()
-    }
-
-    private fun observeEvent() {
-        viewModel.event.observe(this, ::handleEvent)
-        viewModel.state.observe(this, ::handleState)
     }
 
     private fun setupViews() {
@@ -61,13 +43,6 @@ class ReceiveTransactionActivity : BaseActivity(), TabCountChangeListener {
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
-    }
-
-    private fun handleState(state: ReceiveTransactionState) {
-
-    }
-
-    private fun handleEvent(event: ReceiveTransactionEvent) {
     }
 
     override fun onChange(tab: AddressTab, count: Int) {

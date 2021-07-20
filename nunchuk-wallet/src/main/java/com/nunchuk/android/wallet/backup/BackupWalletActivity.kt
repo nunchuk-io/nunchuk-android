@@ -3,7 +3,7 @@ package com.nunchuk.android.wallet.backup
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.ext.isVisible
+import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.share.IntentSharingController
@@ -17,7 +17,7 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
-class BackupWalletActivity : BaseActivity() {
+class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
@@ -32,19 +32,14 @@ class BackupWalletActivity : BaseActivity() {
 
     private val viewModel: BackupWalletViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivityWalletBackupWalletBinding
+    override fun initializeBinding() = ActivityWalletBackupWalletBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
-        binding = ActivityWalletBackupWalletBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
         observeEvent()
-
         viewModel.init(args.walletId, args.descriptor)
     }
 

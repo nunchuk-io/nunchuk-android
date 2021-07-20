@@ -7,20 +7,16 @@ import com.nunchuk.android.qr.convertToQRCode
 import com.nunchuk.android.transaction.databinding.ActivityAddressDetailsBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 
-class AddressDetailsActivity : BaseActivity() {
+class AddressDetailsActivity : BaseActivity<ActivityAddressDetailsBinding>() {
 
     private val args: AddressDetailsArgs by lazy { AddressDetailsArgs.deserializeFrom(intent) }
 
-    private lateinit var binding: ActivityAddressDetailsBinding
+    override fun initializeBinding() = ActivityAddressDetailsBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
-        binding = ActivityAddressDetailsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
     }
 

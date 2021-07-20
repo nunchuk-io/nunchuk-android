@@ -14,22 +14,19 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
 
-internal class SplashActivity : BaseActivity() {
+internal class SplashActivity : BaseActivity<ActivitySplashBinding>() {
 
     @Inject
     lateinit var factory: ViewModelFactory
 
     private val viewModel: SplashViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivitySplashBinding
+    override fun initializeBinding() = ActivitySplashBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setTransparentStatusBar()
-
-        binding = ActivitySplashBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
         subscribeEvents()
     }

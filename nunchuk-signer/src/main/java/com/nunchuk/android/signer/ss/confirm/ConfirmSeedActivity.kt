@@ -14,14 +14,14 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
-class ConfirmSeedActivity : BaseActivity() {
+class ConfirmSeedActivity : BaseActivity<ActivityConfirmSeedBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
 
     private val viewModel: ConfirmSeedViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivityConfirmSeedBinding
+    override fun initializeBinding() = ActivityConfirmSeedBinding.inflate(layoutInflater)
 
     private val args: ConfirmSeedArgs by lazy { ConfirmSeedArgs.deserializeFrom(intent) }
 
@@ -31,14 +31,8 @@ class ConfirmSeedActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
-        binding = ActivityConfirmSeedBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
-
         observeEvent()
-
         viewModel.init(args.mnemonic)
     }
 

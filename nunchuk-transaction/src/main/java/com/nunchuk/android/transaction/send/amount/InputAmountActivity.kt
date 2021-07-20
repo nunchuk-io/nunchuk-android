@@ -17,7 +17,7 @@ import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
-class InputAmountActivity : BaseActivity() {
+class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
@@ -26,16 +26,12 @@ class InputAmountActivity : BaseActivity() {
 
     private val viewModel: InputAmountViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivityTransactionInputAmountBinding
+    override fun initializeBinding() = ActivityTransactionInputAmountBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
-        binding = ActivityTransactionInputAmountBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
         observeEvent()
         viewModel.init(args.availableAmount)
@@ -52,7 +48,7 @@ class InputAmountActivity : BaseActivity() {
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
-        binding.mainCurrency.setText(0L.formatDecimal())
+        binding.mainCurrency.setText("")
         binding.mainCurrency.addTextChangedCallback(viewModel::handleAmountChanged)
         binding.mainCurrency.requestFocus()
         binding.btnSendAll.setOnClickListener { openAddReceiptScreen(args.availableAmount) }
@@ -86,13 +82,12 @@ class InputAmountActivity : BaseActivity() {
 
             val secondaryCurrency = "${state.amountBTC.formatDecimal()} ${getString(R.string.nc_currency_btc)}"
             binding.secondaryCurrency.text = secondaryCurrency
-
         }
     }
 
     private fun handleEvent(event: InputAmountEvent) {
         when (event) {
-            is SwapCurrencyEvent -> binding.mainCurrency.setText(event.amount.formatDecimal())
+            is SwapCurrencyEvent -> binding.mainCurrency.setText(if (event.amount > 0) event.amount.formatDecimal() else "")
             is AcceptAmountEvent -> openAddReceiptScreen(event.amount)
             InsufficientFundsEvent -> NCToastMessage(this).showError(getString(R.string.nc_transaction_insufficient_funds))
         }

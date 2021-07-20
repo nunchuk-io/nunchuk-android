@@ -15,28 +15,23 @@ import com.nunchuk.android.widget.util.passwordEnabled
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
-class SetPassphraseActivity : BaseActivity() {
+class SetPassphraseActivity : BaseActivity<ActivitySetPassphraseBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
 
     private val viewModel: SetPassphraseViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivitySetPassphraseBinding
-
     private val args: SetPassphraseActivityArgs by lazy { SetPassphraseActivityArgs.deserializeFrom(intent) }
+
+    override fun initializeBinding() = ActivitySetPassphraseBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
-        binding = ActivitySetPassphraseBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         viewModel.init(args.mnemonic, args.signerName)
         setupViews()
-
         observeEvent()
     }
 

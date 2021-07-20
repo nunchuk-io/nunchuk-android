@@ -9,11 +9,11 @@ import com.nunchuk.android.core.base.BaseActivity
 fun Activity.showToast(message: String) = Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 
 fun Activity.showLoading() {
-    (this as BaseActivity).showLoading()
+    (this as BaseActivity<*>).showLoading()
 }
 
 fun Activity.hideLoading() {
-    (this as BaseActivity).hideLoading()
+    (this as BaseActivity<*>).hideLoading()
 }
 
 fun Fragment.showLoading() {

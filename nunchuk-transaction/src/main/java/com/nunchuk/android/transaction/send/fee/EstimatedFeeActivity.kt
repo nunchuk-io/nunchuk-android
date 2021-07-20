@@ -3,7 +3,7 @@ package com.nunchuk.android.transaction.send.fee
 import android.app.Activity
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.ext.isVisible
+import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.getBTCAmount
@@ -16,7 +16,7 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
-class EstimatedFeeActivity : BaseActivity() {
+class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
@@ -25,20 +25,15 @@ class EstimatedFeeActivity : BaseActivity() {
 
     private val viewModel: EstimatedFeeViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivityTransactionEstimateFeeBinding
+    override fun initializeBinding() = ActivityTransactionEstimateFeeBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
-        binding = ActivityTransactionEstimateFeeBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
         observeEvent()
     }
-
 
     private fun observeEvent() {
         viewModel.event.observe(this, ::handleEvent)

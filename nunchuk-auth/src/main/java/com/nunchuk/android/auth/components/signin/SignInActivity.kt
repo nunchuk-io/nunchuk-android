@@ -15,22 +15,19 @@ import com.nunchuk.android.widget.util.passwordEnabled
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
 
-class SignInActivity : BaseActivity() {
+class SignInActivity : BaseActivity<ActivitySigninBinding>() {
 
     @Inject
     lateinit var factory: ViewModelFactory
 
     private val viewModel: SignInViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivitySigninBinding
+    override fun initializeBinding() = ActivitySigninBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setTransparentStatusBar(false)
-
-        binding = ActivitySigninBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
         setupViews()
 

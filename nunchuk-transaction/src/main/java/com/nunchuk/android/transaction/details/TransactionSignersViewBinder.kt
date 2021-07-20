@@ -2,7 +2,7 @@ package com.nunchuk.android.transaction.details
 
 import android.view.ViewGroup
 import android.widget.TextView
-import com.nunchuk.android.arch.ext.isVisible
+import androidx.core.view.isVisible
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.transaction.R

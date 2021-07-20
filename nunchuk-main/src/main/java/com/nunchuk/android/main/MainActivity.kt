@@ -10,16 +10,14 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 
-class MainActivity : BaseActivity() {
+class MainActivity : BaseActivity<ActivityMainBinding>() {
 
-    private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
+
+    override fun initializeBinding() = ActivityMainBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
         setupNavigationView()
     }
@@ -51,4 +49,5 @@ class MainActivity : BaseActivity() {
             })
         }
     }
+
 }

@@ -19,30 +19,24 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
-class WalletConfigActivity : BaseActivity() {
+class WalletConfigActivity : BaseActivity<ActivityWalletConfigBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
 
     private val viewModel: WalletConfigViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivityWalletConfigBinding
-
     private val args: WalletConfigArgs by lazy { WalletConfigArgs.deserializeFrom(intent) }
+
+    override fun initializeBinding() = ActivityWalletConfigBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
-        binding = ActivityWalletConfigBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
-
         observeEvent()
         viewModel.init(args.walletId)
-
     }
 
     private fun observeEvent() {

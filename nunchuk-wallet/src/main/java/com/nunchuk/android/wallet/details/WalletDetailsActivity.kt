@@ -4,9 +4,9 @@ import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.nunchuk.android.arch.ext.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.share.IntentSharingController
@@ -23,7 +23,7 @@ import com.nunchuk.android.wallet.details.WalletDetailsOption.*
 import com.nunchuk.android.widget.NCToastMessage
 import javax.inject.Inject
 
-class WalletDetailsActivity : BaseActivity() {
+class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
@@ -32,20 +32,16 @@ class WalletDetailsActivity : BaseActivity() {
 
     private val viewModel: WalletDetailsViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivityWalletDetailBinding
-
     private lateinit var adapter: TransactionAdapter
 
     private val args: WalletDetailsArgs by lazy { WalletDetailsArgs.deserializeFrom(intent) }
 
+    override fun initializeBinding() = ActivityWalletDetailBinding.inflate(layoutInflater)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityWalletDetailBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
-
         observeEvent()
         viewModel.init(args.walletId)
     }

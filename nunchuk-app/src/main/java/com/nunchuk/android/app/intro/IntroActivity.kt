@@ -7,17 +7,14 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.databinding.ActivityIntroBinding
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 
-internal class IntroActivity : BaseActivity() {
+internal class IntroActivity : BaseActivity<ActivityIntroBinding>() {
 
-    private lateinit var binding: ActivityIntroBinding
+    override fun initializeBinding() = ActivityIntroBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setTransparentStatusBar()
-
-        binding = ActivityIntroBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
         binding.btnGetStarted.setOnClickListener {
             finish()

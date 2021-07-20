@@ -4,7 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
-import com.nunchuk.android.arch.ext.isVisible
+import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.showToast
@@ -17,28 +17,23 @@ import com.nunchuk.android.signer.details.SignerInfoEvent.*
 import com.nunchuk.android.widget.NCToastMessage
 import javax.inject.Inject
 
-class SignerInfoActivity : BaseActivity() {
+class SignerInfoActivity : BaseActivity<ActivitySignerInfoBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
 
     private val viewModel: SignerInfoViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivitySignerInfoBinding
+    override fun initializeBinding() = ActivitySignerInfoBinding.inflate(layoutInflater)
 
     private val args: SignerInfoArgs by lazy { SignerInfoArgs.deserializeFrom(intent) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivitySignerInfoBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
-
         observeEvent()
         viewModel.init(args.id, args.software)
-
     }
 
     private fun observeEvent() {

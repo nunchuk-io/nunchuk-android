@@ -20,9 +20,9 @@ import dagger.android.AndroidInjector
 import javax.inject.Singleton
 
 @Module(includes = [AndroidInjectionModule::class])
-internal abstract class BootstrapModule {
+internal interface BootstrapModule {
     @Binds
-    abstract fun application(app: NunchukApplication): Context
+    fun application(app: NunchukApplication): Context
 }
 
 @Singleton

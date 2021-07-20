@@ -15,7 +15,7 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
-class TransactionConfirmActivity : BaseActivity() {
+class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
@@ -24,21 +24,15 @@ class TransactionConfirmActivity : BaseActivity() {
 
     private val viewModel: TransactionConfirmViewModel by viewModels { factory }
 
-    private lateinit var binding: ActivityTransactionConfirmBinding
+    override fun initializeBinding() = ActivityTransactionConfirmBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-
-        binding = ActivityTransactionConfirmBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
         setupViews()
         observeEvent()
-
         showLoading()
-
         viewModel.init(
             walletId = args.walletId,
             address = args.address,

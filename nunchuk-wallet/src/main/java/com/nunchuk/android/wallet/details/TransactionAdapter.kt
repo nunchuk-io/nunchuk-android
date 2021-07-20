@@ -46,12 +46,13 @@ internal class TransactionViewHolder(
     private val binding = ItemTransactionBinding.bind(itemView)
 
     override fun bind(data: Transaction) {
-        binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
         if (data.isReceive) {
+            binding.sendTo.text = context.getString(R.string.nc_transaction_receive_from)
             binding.amountBTC.text = data.subAmount.getBTCAmount()
             binding.amountUSD.text = data.subAmount.getUSDAmount()
             binding.receiverName.text = data.receiveOutput.first().first
         } else {
+            binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
             binding.amountBTC.text = "- ${data.subAmount.getBTCAmount()}"
             binding.amountUSD.text = "- ${data.subAmount.getUSDAmount()}"
             binding.receiverName.text = data.outputs.first().first
