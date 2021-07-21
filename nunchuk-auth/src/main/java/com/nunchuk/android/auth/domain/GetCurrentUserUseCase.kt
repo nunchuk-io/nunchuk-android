@@ -16,8 +16,9 @@ internal class GetCurrentUserUseCaseImpl @Inject constructor(
 ) : BaseUseCase(), GetCurrentUserUseCase {
 
     override suspend fun execute() = exe {
-        authRepository.me().chatId.apply {
-            accountManager.storeAccount(accountManager.getAccount().copy(chatId = this))
+        val userResponse = authRepository.me()
+        userResponse.chatId.apply {
+            accountManager.storeAccount(accountManager.getAccount().copy(chatId = this, name = userResponse.name))
         }
     }
 

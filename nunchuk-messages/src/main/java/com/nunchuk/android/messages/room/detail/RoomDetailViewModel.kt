@@ -9,15 +9,19 @@ import com.nunchuk.android.messages.util.addMessageListener
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.Room
+import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import javax.inject.Inject
 
 class RoomDetailViewModel @Inject constructor(
-    private val accountManager: AccountManager
+    accountManager: AccountManager
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
 
     private lateinit var room: Room
+
+    private val currentName = accountManager.getAccount().name
+    private val currentId = accountManager.getAccount().chatId
 
     override val initialState = RoomDetailState.empty()
 
@@ -34,13 +38,13 @@ class RoomDetailViewModel @Inject constructor(
                 e.printStackTrace()
             }
         }
-        updateState { copy(roomInfo = room.getRoomInfo()) }
+        updateState { copy(roomInfo = room.getRoomInfo(currentName)) }
         retrieveData()
     }
 
     private fun retrieveData() {
         room.addMessageListener {
-            updateState { copy(messages = it.toMessages(accountManager.getAccount().chatId)) }
+            updateState { copy(messages = it.toMessages(currentId)) }
         }
     }
 
@@ -50,14 +54,22 @@ class RoomDetailViewModel @Inject constructor(
 
 }
 
-fun Room.getRoomInfo(): RoomInfo {
-    val roomSummary = roomSummary()
+fun Room.getRoomInfo(currentName: String): RoomInfo {
+    val roomSummary: RoomSummary? = roomSummary()
     return if (roomSummary != null) {
-        RoomInfo(roomSummary.displayName, roomSummary.joinedMembersCount ?: 0)
+        RoomInfo(roomSummary.getRoomName(currentName), roomSummary.joinedMembersCount ?: 0)
     } else {
         RoomInfo.empty()
     }
+}
 
+fun RoomSummary.getRoomName(currentName: String): String {
+    val split = displayName.split(",")
+    return if (split.size == 2) {
+        split.firstOrNull { it != currentName }.orEmpty()
+    } else {
+        displayName
+    }
 }
 
 internal fun List<TimelineEvent>.toMessages(chatId: String) = sortedBy { it.root.ageLocalTs }.map { it.toMessage(chatId) }

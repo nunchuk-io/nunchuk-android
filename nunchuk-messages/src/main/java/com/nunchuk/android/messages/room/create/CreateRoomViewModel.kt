@@ -2,6 +2,7 @@ package com.nunchuk.android.messages.room.create
 
 import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.util.process
 import com.nunchuk.android.messages.model.Contact
 import com.nunchuk.android.messages.room.create.CreateRoomEvent.CreateRoomErrorEvent
@@ -10,12 +11,14 @@ import com.nunchuk.android.messages.usecase.contact.GetContactsUseCase
 import com.nunchuk.android.messages.usecase.message.CreateRoomUseCase
 import java.util.*
 import javax.inject.Inject
-import kotlin.collections.ArrayList
 
 class CreateRoomViewModel @Inject constructor(
+    accountManager: AccountManager,
     private val getContactsUseCase: GetContactsUseCase,
     private val createRoomUseCase: CreateRoomUseCase
 ) : NunchukViewModel<CreateRoomState, CreateRoomEvent>() {
+
+    private val currentName: String = accountManager.getAccount().name
 
     private var contacts: List<Contact> = ArrayList()
 
@@ -61,7 +64,7 @@ class CreateRoomViewModel @Inject constructor(
 
     fun handleDone() {
         val receipts = getState().receipts
-        val roomName = receipts.joinToString(separator = ",", transform = Contact::name)
+        val roomName = receipts.joinToString(separator = ",", transform = Contact::name) + "," + currentName
         val userIds = receipts.map(Contact::chatId)
         process({ createRoomUseCase.execute(roomName, userIds) }, {
             event(CreateRoomSuccessEvent(it.roomId))

@@ -9,17 +9,17 @@ import org.matrix.android.sdk.api.session.room.model.create.CreateRoomPreset
 import javax.inject.Inject
 
 interface CreateRoomUseCase {
-    suspend fun execute(displayName: String, userIds: List<String>): Result<Room>
+    suspend fun execute(displayName: String, invitedUserIds: List<String>): Result<Room>
 }
 
 internal class CreateRoomUseCaseImpl @Inject constructor(
 ) : BaseMessageUseCase(), CreateRoomUseCase {
 
-    override suspend fun execute(displayName: String, userIds: List<String>) = exe {
+    override suspend fun execute(displayName: String, invitedUserIds: List<String>) = exe {
         val params = CreateRoomParams().apply {
             visibility = RoomDirectoryVisibility.PRIVATE
-            isDirect = false
-            invitedUserIds.addAll(userIds)
+            isDirect = invitedUserIds.size == 1
+            this.invitedUserIds.addAll(invitedUserIds)
             preset = CreateRoomPreset.PRESET_PRIVATE_CHAT
             name = displayName
         }

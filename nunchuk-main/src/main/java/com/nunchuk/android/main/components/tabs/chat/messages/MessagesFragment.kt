@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showLoading
@@ -22,6 +23,9 @@ internal class MessagesFragment : BaseFragment<FragmentMessagesBinding>() {
 
     @Inject
     lateinit var dateFormatter: DateFormatter
+
+    @Inject
+    lateinit var accountManager: AccountManager
 
     private lateinit var adapter: MessagesAdapter
 
@@ -44,7 +48,7 @@ internal class MessagesFragment : BaseFragment<FragmentMessagesBinding>() {
     }
 
     private fun setupViews() {
-        adapter = MessagesAdapter(dateFormatter, ::openRoomDetailScreen, viewModel::removeRoom)
+        adapter = MessagesAdapter(accountManager.getAccount().name, dateFormatter, ::openRoomDetailScreen, viewModel::removeRoom)
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)
         binding.recyclerView.adapter = adapter
         binding.fab.setOnClickListener {
