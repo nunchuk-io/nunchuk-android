@@ -40,6 +40,7 @@ internal class MessagesFragment : BaseFragment<FragmentMessagesBinding>() {
         setupViews()
 
         observeEvent()
+        viewModel.retrieveMessages()
     }
 
     override fun onResume() {
