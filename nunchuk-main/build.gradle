@@ -5,6 +5,7 @@ dependencies {
 
     implementation project(':nunchuk-arch')
     implementation project(':nunchuk-core')
+    implementation project(':nunchuk-contact')
     implementation project(':nunchuk-domain')
     implementation project(':nunchuk-wallet')
     implementation project(':nunchuk-signer')

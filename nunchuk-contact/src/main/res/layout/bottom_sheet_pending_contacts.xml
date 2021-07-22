@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/nc_bottom_sheet_background"
+    android:minHeight="700dp"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/nc_padding_24"
+    app:behavior_hideable="true"
+    app:behavior_peekHeight="90dp">
+
+    <RelativeLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/nc_padding_16">
+
+        <ImageView
+            android:id="@+id/closeBtn"
+            android:layout_width="@dimen/nc_padding_24"
+            android:layout_height="@dimen/nc_padding_24"
+            android:layout_alignParentStart="true"
+            android:foreground="?android:selectableItemBackground"
+            android:padding="4dp"
+            android:src="@drawable/ic_close" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:text="Requests"
+            android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_18"
+            app:fontTextStyle="semi_bold" />
+
+    </RelativeLayout>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <com.nunchuk.android.widget.NCFontTabLayout
+            android:id="@+id/tabs"
+            style="@style/NCTabLayout.Light"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <com.nunchuk.android.widget.NonSwipeViewPager
+            android:id="@+id/pagers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+</androidx.appcompat.widget.LinearLayoutCompat>
