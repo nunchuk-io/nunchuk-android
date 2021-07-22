@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.main.databinding.FragmentContactsBinding
-import com.nunchuk.android.messages.model.Contact
+import com.nunchuk.android.model.Contact
 
 internal class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
 

@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseViewHolder
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.databinding.ItemContactBinding
-import com.nunchuk.android.messages.model.Contact
+import com.nunchuk.android.model.Contact
 import com.nunchuk.android.widget.util.inflate
 
 internal class ContactsAdapter(

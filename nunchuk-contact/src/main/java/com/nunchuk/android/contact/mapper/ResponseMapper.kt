@@ -1,0 +1,21 @@
+package com.nunchuk.android.contact.mapper
+
+import com.nunchuk.android.contact.api.UserResponse
+import com.nunchuk.android.model.Contact
+import com.nunchuk.android.model.ReceiveContact
+import com.nunchuk.android.model.SentContact
+
+internal fun UserResponse.toModel() = Contact(
+    id = id,
+    name = name,
+    email = email,
+    gender = gender.orEmpty(),
+    avatar = avatar.orEmpty(),
+    status = status.orEmpty(),
+    chatId = chatId
+)
+
+internal fun List<UserResponse>.toSentContacts() = map { SentContact(it.toModel()) }
+
+internal fun List<UserResponse>.toReceiveContacts() = map { ReceiveContact(it.toModel()) }
+
