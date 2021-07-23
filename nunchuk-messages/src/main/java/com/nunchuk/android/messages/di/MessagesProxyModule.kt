@@ -6,7 +6,8 @@ import dagger.Module
     includes = [
         MessagesActivityModule::class,
         MessagesUseCaseModule::class,
-        MessagesViewModelModule::class
+        MessagesViewModelModule::class,
+        MessagesFragmentModule::class
     ]
 )
 interface MessagesProxyModule
