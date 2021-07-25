@@ -7,6 +7,16 @@
             android:name=".components.detail.RoomDetailActivity"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".components.direct.ChatInfoActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".components.group.ChatGroupInfoActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
     </application>
 
 </manifest>

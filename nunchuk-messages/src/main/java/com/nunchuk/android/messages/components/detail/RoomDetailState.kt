@@ -17,4 +17,6 @@ data class RoomInfo(val roomName: String, val memberCount: Int) {
 sealed class RoomDetailEvent {
     object RoomNotFoundEvent : RoomDetailEvent()
     object ContactNotFoundEvent : RoomDetailEvent()
+    object OpenChatInfoEvent : RoomDetailEvent()
+    object OpenChatGroupInfoEvent : RoomDetailEvent()
 }

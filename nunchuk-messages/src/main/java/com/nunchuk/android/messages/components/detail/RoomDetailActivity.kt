@@ -6,8 +6,7 @@ import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.messages.components.detail.RoomDetailEvent.ContactNotFoundEvent
-import com.nunchuk.android.messages.components.detail.RoomDetailEvent.RoomNotFoundEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.databinding.ActivityRoomDetailBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -54,6 +53,8 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         when (event) {
             RoomNotFoundEvent -> finishWithMessage("Room not found!")
             ContactNotFoundEvent -> finishWithMessage("Contact not found!")
+            OpenChatGroupInfoEvent -> navigator.openChatGroupInfoScreen(this, args.roomId)
+            OpenChatInfoEvent -> navigator.openChatInfoScreen(this, args.roomId)
         }
     }
 
@@ -73,6 +74,9 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
         binding.toolbar.setNavigationOnClickListener {
             finish()
+        }
+        binding.toolbar.setOnClickListener {
+            viewModel.handleTitleClick()
         }
     }
 

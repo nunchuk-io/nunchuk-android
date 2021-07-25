@@ -9,6 +9,7 @@
     <color name="nc_blue_color">#1A9CB7</color>
     <color name="nc_grey_dark_color">#595959</color>
     <color name="nc_grey_color">#808080</color>
+    <color name="nc_grey_light">#F5F5F5</color>
     <color name="nc_whisper_color">#EAEAEA</color>
     <color name="nc_red_color">#D2232A</color>
     <color name="nc_green_color">#A7F0BA</color>
