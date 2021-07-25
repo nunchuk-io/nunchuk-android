@@ -8,7 +8,7 @@
             android:exported="false" />
 
         <activity
-            android:name="com.nunchuk.android.qr.ScannerActivity"
+            android:name=".qr.ScannerActivity"
             android:screenOrientation="portrait" />
     </application>
 </manifest>

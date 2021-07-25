@@ -10,6 +10,8 @@ import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.wallet.details.WalletDetailsEvent.*
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
@@ -65,10 +67,9 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     private fun getUnusedAddresses() {
         viewModelScope.launch {
-            when (val result = addressesUseCase.execute(walletId = walletId, used = false, internal = false)) {
-                is Success -> onRetrieveUnusedAddress(result.data)
-                is Error -> generateNewAddress()
-            }
+            addressesUseCase.execute(walletId = walletId)
+                .catch { generateNewAddress() }
+                .collect { onRetrieveUnusedAddress(it) }
         }
     }
 
@@ -82,10 +83,9 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     private fun generateNewAddress() {
         viewModelScope.launch {
-            when (val result = newAddressUseCase.execute(walletId = walletId)) {
-                is Success -> event(UpdateUnusedAddress(result.data))
-                is Error -> UpdateUnusedAddress("")
-            }
+            newAddressUseCase.execute(walletId = walletId)
+                .catch { UpdateUnusedAddress("") }
+                .collect { UpdateUnusedAddress(it) }
         }
     }
 

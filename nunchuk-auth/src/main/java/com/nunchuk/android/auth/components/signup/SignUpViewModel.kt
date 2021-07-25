@@ -6,10 +6,10 @@ import com.nunchuk.android.auth.components.signup.SignUpEvent.*
 import com.nunchuk.android.auth.domain.RegisterUseCase
 import com.nunchuk.android.auth.validator.NameValidator
 import com.nunchuk.android.auth.validator.doAfterValidate
+import com.nunchuk.android.core.network.NunchukApiException
+import com.nunchuk.android.core.network.accountExisted
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
-import com.nunchuk.android.network.NunchukApiException
-import com.nunchuk.android.network.accountExisted
 import com.nunchuk.android.utils.EmailValidator
 import kotlinx.coroutines.launch
 import javax.inject.Inject

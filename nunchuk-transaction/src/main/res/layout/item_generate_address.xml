@@ -23,8 +23,9 @@
             android:paddingVertical="@dimen/nc_padding_8">
 
             <RelativeLayout
-                android:layout_width="350dp"
-                android:layout_height="350dp"
+                android:id="@+id/qaCodeContainer"
+                android:layout_width="300dp"
+                android:layout_height="300dp"
                 android:layout_gravity="center"
                 android:background="@drawable/nc_rounded_whisper_background"
                 android:gravity="center">

@@ -2,8 +2,8 @@ package com.nunchuk.android.messages.nav
 
 import android.content.Context
 import androidx.fragment.app.FragmentManager
-import com.nunchuk.android.messages.components.room.create.CreateRoomBottomSheet
-import com.nunchuk.android.messages.components.room.detail.RoomDetailActivity
+import com.nunchuk.android.messages.components.create.CreateRoomBottomSheet
+import com.nunchuk.android.messages.components.detail.RoomDetailActivity
 import com.nunchuk.android.nav.MessageNavigator
 
 interface MessageNavigatorDelegate : MessageNavigator {

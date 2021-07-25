@@ -9,13 +9,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.qr.convertToQRCode
 import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getConfiguration
-import com.nunchuk.android.core.util.getUSDAmount
-import com.nunchuk.android.core.util.pureBTC
-import com.nunchuk.android.qr.convertToQRCode
-import com.nunchuk.android.utils.setUnderline
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.ActivityWalletDetailBinding
 import com.nunchuk.android.wallet.details.WalletDetailsEvent.*

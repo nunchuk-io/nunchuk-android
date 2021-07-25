@@ -4,7 +4,7 @@
 
     <application>
         <activity
-            android:name=".components.room.detail.RoomDetailActivity"
+            android:name=".components.detail.RoomDetailActivity"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
     </application>

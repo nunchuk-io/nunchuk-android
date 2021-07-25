@@ -10,6 +10,7 @@ import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.wallet.config.SignersViewBinder
 import com.nunchuk.android.wallet.confirm.WalletConfirmEvent.*
 import com.nunchuk.android.wallet.databinding.ActivityWalletConfirmationBinding
 import com.nunchuk.android.wallet.util.toReadableString

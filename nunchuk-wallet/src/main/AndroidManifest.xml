@@ -41,7 +41,7 @@
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
-            android:name="com.nunchuk.android.qr.DynamicQRCodeActivity"
+            android:name="com.nunchuk.android.core.qr.DynamicQRCodeActivity"
             android:label="@string/nc_text_wallet_qr_code"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />

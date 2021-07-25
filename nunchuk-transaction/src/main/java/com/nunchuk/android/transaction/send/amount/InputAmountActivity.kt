@@ -5,13 +5,13 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
+import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.ActivityTransactionInputAmountBinding
 import com.nunchuk.android.transaction.send.amount.InputAmountEvent.*
-import com.nunchuk.android.utils.formatDecimal
-import com.nunchuk.android.utils.setUnderline
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar

@@ -2,20 +2,25 @@ package com.nunchuk.android.auth.domain
 
 import com.nunchuk.android.core.matrix.MatrixInterceptor
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.model.Result
-import com.nunchuk.android.usecase.BaseUseCase
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import org.matrix.android.sdk.api.session.Session
 import javax.inject.Inject
 
 interface LoginWithMatrixUseCase {
-    suspend fun execute(userName: String, password: String): Result<Unit>
+    suspend fun execute(userName: String, password: String): Flow<Session>
 }
 
 internal class LoginWithMatrixUseCaseImpl @Inject constructor(
     private val interceptor: MatrixInterceptor
-) : BaseUseCase(), LoginWithMatrixUseCase {
+) : LoginWithMatrixUseCase {
 
-    override suspend fun execute(userName: String, password: String) = exe {
-        SessionHolder.currentSession = interceptor.login(userName, password).apply {
+    override suspend fun execute(
+        userName: String,
+        password: String
+    ) = interceptor.login(userName, password).map {
+        it.apply {
+            SessionHolder.currentSession = this
             open()
             startSync(true)
         }

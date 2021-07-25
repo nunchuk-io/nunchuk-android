@@ -6,8 +6,8 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.qr.QRCodeParser
-import com.nunchuk.android.qr.startQRCodeScan
+import com.nunchuk.android.core.qr.QRCodeParser
+import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.add.AddSignerEvent.*
 import com.nunchuk.android.signer.databinding.ActivityAddSignerBinding

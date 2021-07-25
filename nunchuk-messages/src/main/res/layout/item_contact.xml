@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="@dimen/nc_padding_8"
-    android:paddingVertical="@dimen/nc_padding_8">
+    android:layout_marginTop="@dimen/nc_padding_8">
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/avatar"
@@ -26,6 +25,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
+        android:paddingTop="@dimen/nc_padding_8"
         android:textColor="@color/nc_black_color"
         android:textSize="@dimen/nc_text_size_16"
         app:fontTextStyle="semi_bold"
@@ -39,6 +39,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_4"
+        android:paddingBottom="@dimen/nc_padding_8"
         android:textColor="@color/nc_black_color"
         android:textSize="@dimen/nc_text_size_14"
         app:layout_constraintStart_toEndOf="@+id/avatar"

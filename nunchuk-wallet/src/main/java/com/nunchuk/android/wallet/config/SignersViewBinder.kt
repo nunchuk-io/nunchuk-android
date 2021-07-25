@@ -1,38 +1,35 @@
 package com.nunchuk.android.wallet.config
 
 import android.view.ViewGroup
-import android.widget.CheckBox
-import android.widget.TextView
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.databinding.ItemAssignSignerBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
-import java.util.*
 
 internal class SignersViewBinder(
     container: ViewGroup,
     signers: List<SignerModel>,
-) : AbsViewBinder<SignerModel>(container, signers) {
+) : AbsViewBinder<SignerModel, ItemAssignSignerBinding>(container, signers) {
 
-    override val layoutId: Int = R.layout.item_assign_signer
+    override fun initializeBinding() = ItemAssignSignerBinding.inflate(inflater, container, false)
 
     override fun bindItem(position: Int, model: SignerModel) {
-        val itemView = container.getChildAt(position)
-        val signerName = itemView.findViewById<TextView>(R.id.signerName)
-        val avatar = itemView.findViewById<TextView>(R.id.avatar)
-        val xfp = itemView.findViewById<TextView>(R.id.xpf)
-        val warn = itemView.findViewById<TextView>(R.id.warning)
-        val checkBox = itemView.findViewById<CheckBox>(R.id.checkbox)
+        val binding = ItemAssignSignerBinding.bind(container.getChildAt(position))
+        val signerType = if (model.software) {
+            context.getString(R.string.nc_signer_type_software)
+        } else {
+            context.getString(R.string.nc_signer_type_air_gapped)
+        }
+        binding.signerType.text = signerType
 
-        val signerType = if (model.software) context.getString(R.string.nc_signer_type_software) else context.getString(R.string.nc_signer_type_air_gapped)
-        itemView.findViewById<TextView>(R.id.signerType).text = signerType
-
-        warn.isVisible = model.used
-        avatar.text = model.name.shorten().toUpperCase(Locale.getDefault())
-        signerName.text = model.name
+        binding.warning.isVisible = model.used
+        binding.avatar.text = model.name.shorten()
+        binding.signerName.text = model.name
         val xfpValue = "XFP: ${model.fingerPrint}"
-        xfp.text = xfpValue
-        checkBox.isVisible = false
+        binding.xpf.text = xfpValue
+        binding.checkbox.isVisible = false
     }
+
 }

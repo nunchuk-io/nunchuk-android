@@ -1,7 +1,6 @@
 ext {
     // Library Version
     androidxVersion = '1.0.0'
-    supportLibrary = '28.0.0'
     mutlidexVersion = '2.0.0'
     constraintLayoutVersion = '1.1.3'
     playServiceVersion = '16.0.0'
@@ -107,7 +106,7 @@ ext {
     playServices = [
             location           : "com.google.android.gms:play-services-location:${playServiceVersion}",
             maps               : "com.google.android.gms:play-services-maps:${playServiceVersion}",
-            firebaseBom        : "com.google.firebase:firebase-bom:28.2.1",
+            firebaseBom        : "com.google.firebase:firebase-bom:28.3.0",
             firebaseAnalytics  : "com.google.firebase:firebase-analytics-ktx",
             firebaseCrashlytics: "com.google.firebase:firebase-crashlytics-ktx",
             firebasePerf       : 'com.google.firebase:firebase-perf-ktx'

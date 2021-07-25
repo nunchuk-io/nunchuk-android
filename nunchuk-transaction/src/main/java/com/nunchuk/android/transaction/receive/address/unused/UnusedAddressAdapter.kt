@@ -4,12 +4,11 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
-import com.nunchuk.android.qr.convertToQRCode
+import com.nunchuk.android.core.qr.convertToQRCode
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.transaction.databinding.ItemUnusedAddressBinding
 
 class UnusedAddressAdapter(private val context: Context, private val listener: (String?) -> Unit) : PagerAdapter() {
 
@@ -40,15 +39,12 @@ class UnusedAddressAdapter(private val context: Context, private val listener: (
     }
 
     private fun createNormalItem(layoutInflater: LayoutInflater, position: Int): View {
-        val view: View = layoutInflater.inflate(R.layout.item_unused_address, null)
-
-        val imageView: ImageView = view.findViewById(R.id.qrCode)
-        val textView: TextView = view.findViewById(R.id.address)
+        val binding = ItemUnusedAddressBinding.inflate(layoutInflater, null, false)
         val address = items[position]
-        imageView.setImageBitmap(address.convertToQRCode())
-        textView.text = address
-        view.setOnClickListener { listener(address) }
-        return view
+        binding.qrCode.setImageBitmap(address.convertToQRCode())
+        binding.address.text = address
+        binding.root.setOnClickListener { listener(address) }
+        return binding.root
     }
 
     private fun createEmptyItem(layoutInflater: LayoutInflater): View {

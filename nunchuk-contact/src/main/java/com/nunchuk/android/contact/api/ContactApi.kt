@@ -1,6 +1,6 @@
 package com.nunchuk.android.contact.api
 
-import com.nunchuk.android.network.Data
+import com.nunchuk.android.core.network.Data
 import io.reactivex.Completable
 import io.reactivex.Single
 import retrofit2.http.*

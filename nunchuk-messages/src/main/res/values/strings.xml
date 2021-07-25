@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="nc_message_hint">Type your message…</string>
+    <string name="nc_message_name_or_email">Name or email</string>
+    <string name="nc_message_to">To:</string>
+    <string name="nc_message_new_chat">New Chat</string>
 </resources>

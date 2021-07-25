@@ -5,10 +5,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseViewHolder
 import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getFormatDate
 import com.nunchuk.android.core.util.getUSDAmount
+import com.nunchuk.android.core.util.toDisplayedText
 import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.utils.getFormatDate
-import com.nunchuk.android.utils.toDisplayedText
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.ItemTransactionBinding
 import com.nunchuk.android.widget.util.inflate

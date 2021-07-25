@@ -4,9 +4,6 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MasterSigner
-import com.nunchuk.android.model.Result
-import com.nunchuk.android.model.Result.Error
-import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
@@ -15,13 +12,15 @@ import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.DraftWalletUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.wallet.confirm.WalletConfirmEvent.*
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
 import kotlin.collections.ArrayList
 
 internal class WalletConfirmViewModel @Inject constructor(
-    private val getUnusedSignerFromMasterSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
+    private val getUnusedSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
     private val draftWalletUseCase: DraftWalletUseCase,
     private val createWalletUseCase: CreateWalletUseCase
 ) : NunchukViewModel<Unit, WalletConfirmEvent>() {
@@ -41,10 +40,9 @@ internal class WalletConfirmViewModel @Inject constructor(
         viewModelScope.launch {
             val unusedSignerSigners = ArrayList<SingleSigner>()
             masterSigners.forEach {
-                val result: Result<SingleSigner> = getUnusedSignerFromMasterSignerUseCase.execute(it.id, walletType, addressType)
-                if (result is Success) {
-                    unusedSignerSigners.add(result.data)
-                }
+                getUnusedSignerUseCase
+                    .execute(it.id, walletType, addressType)
+                    .collect { signer -> unusedSignerSigners.add(signer) }
             }
             draftWallet(walletName, totalRequireSigns, addressType, walletType, unusedSignerSigners + remoteSigners)
         }
@@ -57,44 +55,40 @@ internal class WalletConfirmViewModel @Inject constructor(
         walletType: WalletType,
         signers: List<SingleSigner>
     ) {
-        val result = draftWalletUseCase.execute(
+        draftWalletUseCase.execute(
             name = walletName,
             totalRequireSigns = totalRequireSigns,
             signers = signers,
             addressType = addressType,
             isEscrow = walletType == ESCROW
-        )
-        when (result) {
-            is Success -> {
-                descriptor = result.data
-                createWallet(walletName, totalRequireSigns, signers, addressType, walletType)
-            }
-            is Error -> {
-                event(CreateWalletErrorEvent(result.exception.message.orUnknownError()))
-                event(SetLoadingEvent(false))
-            }
+        ).catch {
+            event(CreateWalletErrorEvent(it.message.orUnknownError()))
+            event(SetLoadingEvent(false))
+        }.collect {
+            descriptor = it
+            createWallet(walletName, totalRequireSigns, signers, addressType, walletType)
         }
     }
 
-    private suspend fun createWallet(
+    private fun createWallet(
         walletName: String,
         totalRequireSigns: Int,
         signers: List<SingleSigner>,
         addressType: AddressType,
         walletType: WalletType
     ) {
-        val result = createWalletUseCase.execute(
-            name = walletName,
-            totalRequireSigns = totalRequireSigns,
-            signers = signers,
-            addressType = addressType,
-            isEscrow = walletType == ESCROW
-        )
-        when (result) {
-            is Success -> event(CreateWalletSuccessEvent(result.data.id, descriptor))
-            is Error -> {
-                event(CreateWalletErrorEvent(result.exception.message.orUnknownError()))
+        viewModelScope.launch {
+            createWalletUseCase.execute(
+                name = walletName,
+                totalRequireSigns = totalRequireSigns,
+                signers = signers,
+                addressType = addressType,
+                isEscrow = walletType == ESCROW
+            ).catch {
+                event(CreateWalletErrorEvent(it.message.orUnknownError()))
                 event(SetLoadingEvent(false))
+            }.collect {
+                event(CreateWalletSuccessEvent(it.id, descriptor))
             }
         }
     }

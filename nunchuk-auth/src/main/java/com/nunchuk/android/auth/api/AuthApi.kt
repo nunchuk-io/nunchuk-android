@@ -1,6 +1,6 @@
 package com.nunchuk.android.auth.api
 
-import com.nunchuk.android.network.Data
+import com.nunchuk.android.core.network.Data
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST

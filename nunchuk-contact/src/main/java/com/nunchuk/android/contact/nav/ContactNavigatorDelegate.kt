@@ -1,8 +1,8 @@
 package com.nunchuk.android.contact.nav
 
 import androidx.fragment.app.FragmentManager
-import com.nunchuk.android.contact.add.AddContactsBottomSheet
-import com.nunchuk.android.contact.pending.PendingContactsBottomSheet
+import com.nunchuk.android.contact.components.add.AddContactsBottomSheet
+import com.nunchuk.android.contact.components.pending.PendingContactsBottomSheet
 import com.nunchuk.android.nav.ContactNavigator
 
 interface ContactNavigatorDelegate : ContactNavigator {
