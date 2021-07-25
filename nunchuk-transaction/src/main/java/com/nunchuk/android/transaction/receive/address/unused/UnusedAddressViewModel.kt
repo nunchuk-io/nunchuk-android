@@ -2,11 +2,11 @@ package com.nunchuk.android.transaction.receive.address.unused
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.model.Result.Error
-import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.transaction.receive.address.unused.UnusedAddressEvent.GenerateAddressErrorEvent
 import com.nunchuk.android.usecase.GetAddressesUseCase
 import com.nunchuk.android.usecase.NewAddressUseCase
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -26,20 +26,29 @@ internal class UnusedAddressViewModel @Inject constructor(
 
     private fun getUnusedAddresses() {
         viewModelScope.launch {
-            when (val result = addressesUseCase.execute(walletId = walletId, used = false, internal = false)) {
-                is Error -> updateState { copy(addresses = emptyList()) }
-                is Success -> updateState { copy(addresses = result.data) }
-            }
+            addressesUseCase.execute(walletId = walletId)
+                .catch { onError() }
+                .collect { onSuccess(it) }
         }
 
     }
 
+    private fun onError() {
+        updateState { copy(addresses = emptyList()) }
+    }
+
+    private fun onSuccess(addresses: List<String>) {
+        updateState { copy(addresses = addresses) }
+        if (addresses.isEmpty()) {
+            generateAddress()
+        }
+    }
+
     fun generateAddress() {
         viewModelScope.launch {
-            when (val result = newAddressUseCase.execute(walletId = walletId)) {
-                is Error -> event(GenerateAddressErrorEvent(result.exception.message.orEmpty()))
-                is Success -> getUnusedAddresses()
-            }
+            newAddressUseCase.execute(walletId = walletId)
+                .catch { event(GenerateAddressErrorEvent(it.message.orEmpty())) }
+                .collect { getUnusedAddresses() }
         }
     }
 

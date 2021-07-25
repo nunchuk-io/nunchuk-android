@@ -1,13 +1,18 @@
 package com.nunchuk.android.auth.components.signin
 
+import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.auth.components.signin.SignInEvent.*
 import com.nunchuk.android.auth.domain.GetCurrentUserUseCase
 import com.nunchuk.android.auth.domain.LoginWithMatrixUseCase
 import com.nunchuk.android.auth.domain.SignInUseCase
 import com.nunchuk.android.auth.validator.doAfterValidate
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.process
 import com.nunchuk.android.utils.EmailValidator
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class SignInViewModel @Inject constructor(
@@ -51,11 +56,19 @@ internal class SignInViewModel @Inject constructor(
     }
 
     private fun loginWithMatrix(userName: String, password: String) {
-        process({
+        viewModelScope.launch {
             loginWithMatrixUseCase.execute(userName, password)
-        }, { event(SignInSuccessEvent) }, {
-            event(SignInErrorEvent(it.message))
-        })
+                .catch {
+                    event(SignInErrorEvent(it.message))
+                }
+                .collect {
+                    event(SignInSuccessEvent)
+                    SessionHolder.currentSession = it.apply {
+                        open()
+                        startSync(true)
+                    }
+                }
+        }
     }
 
     fun storeStaySignedIn(staySignedIn: Boolean) {

@@ -9,6 +9,8 @@ import com.nunchuk.android.transaction.receive.address.UsedAddressModel
 import com.nunchuk.android.transaction.receive.address.used.UsedAddressEvent.GetUsedAddressErrorEvent
 import com.nunchuk.android.usecase.GetAddressBalanceUseCase
 import com.nunchuk.android.usecase.GetAddressesUseCase
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -28,10 +30,9 @@ internal class UsedAddressViewModel @Inject constructor(
 
     private fun getUnusedAddress() {
         viewModelScope.launch {
-            when (val result = getAddressesUseCase.execute(walletId = walletId, used = true)) {
-                is Success -> getAddressBalance(result.data)
-                is Error -> event(GetUsedAddressErrorEvent(result.exception.message.orEmpty()))
-            }
+            getAddressesUseCase.execute(walletId = walletId, used = true)
+                .catch { event(GetUsedAddressErrorEvent(it.message.orEmpty())) }
+                .collect { getAddressBalance(it) }
         }
     }
 

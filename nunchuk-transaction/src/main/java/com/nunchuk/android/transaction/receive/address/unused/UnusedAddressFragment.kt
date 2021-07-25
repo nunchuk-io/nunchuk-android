@@ -11,10 +11,10 @@ import androidx.fragment.app.activityViewModels
 import androidx.viewpager.widget.ViewPager
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.core.util.TextUtils
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.FragmentUnusedAddressBinding
 import com.nunchuk.android.transaction.receive.address.AddressFragmentArgs
-import com.nunchuk.android.utils.TextUtils
 import com.nunchuk.android.widget.NCToastMessage
 import javax.inject.Inject
 
@@ -50,8 +50,9 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
         binding.viewPager.pageMargin = dipToPixels(context, context.resources.getDimension(R.dimen.nc_padding_4)).toInt()
         binding.viewPager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
             override fun onPageSelected(position: Int) {
-                showAddresses(position < adapter.items.size)
-                binding.addressCount.text = "${binding.viewPager.currentItem + 1}/${adapter.items.size} address"
+                val size = adapter.items.size
+                showAddresses(position < size)
+                bindCount(size)
             }
         })
         binding.btnCopy.setOnClickListener {
@@ -100,8 +101,15 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
         val hasUnusedAddresses = addresses.isNotEmpty()
         showAddresses(hasUnusedAddresses)
         if (hasUnusedAddresses) {
-            binding.addressCount.text = "${binding.viewPager.currentItem + 1}/${addresses.size} address"
+            val size = addresses.size
+            bindCount(size)
         }
+    }
+
+    private fun bindCount(size: Int) {
+        val current = binding.viewPager.currentItem + 1
+        val count = "$current/$size address"
+        binding.addressCount.text = count
     }
 
     private fun showAddresses(hasUnusedAddresses: Boolean) {

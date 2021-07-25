@@ -7,7 +7,7 @@
     android:layout_gravity="center_horizontal">
 
     <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:cardCornerRadius="@dimen/nc_padding_8"
         app:cardUseCompatPadding="true"
@@ -15,7 +15,8 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="match_parent"
+            android:id="@+id/qaCodeContainer"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:gravity="center"
@@ -33,6 +34,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="@dimen/nc_padding_8"
                 android:lines="2"
+                android:gravity="center"
                 android:textColor="@color/nc_black_color"
                 android:textSize="@dimen/nc_text_size_16"
                 tools:text="bc1qepuayeutds0ys0q82g3ucad7r0eqk0dpusmxwvlpn5wkjcmhv6sqyulylk" />

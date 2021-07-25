@@ -2,10 +2,11 @@ package com.nunchuk.android.wallet.assign
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.usecase.GetMasterSignersUseCase
 import com.nunchuk.android.usecase.GetRemoteSignersUseCase
 import com.nunchuk.android.wallet.assign.AssignSignerEvent.AssignSignerCompletedEvent
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,13 +24,15 @@ internal class AssignSignerViewModel @Inject constructor(
 
     private fun getSigners() {
         viewModelScope.launch {
-            val result = getRemoteSignersUseCase.execute()
-            updateState { copy(remoteSigners = if (result is Success) result.data else emptyList()) }
+            getRemoteSignersUseCase.execute()
+                .catch { updateState { copy(remoteSigners = emptyList()) } }
+                .collect { updateState { copy(remoteSigners = it) } }
         }
 
         viewModelScope.launch {
-            val result = getMasterSignersUseCase.execute()
-            updateState { copy(masterSigners = if (result is Success) result.data else emptyList()) }
+            getMasterSignersUseCase.execute()
+                .catch { updateState { copy(masterSigners = emptyList()) } }
+                .collect { updateState { copy(masterSigners = it) } }
         }
     }
 

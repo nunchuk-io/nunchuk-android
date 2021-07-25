@@ -1,6 +1,6 @@
 package com.nunchuk.android.messages.di
 
-import com.nunchuk.android.messages.components.room.detail.RoomDetailActivity
+import com.nunchuk.android.messages.components.detail.RoomDetailActivity
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
 

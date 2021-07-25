@@ -25,7 +25,7 @@ const val DEBOUNCE = 500L
 @ExperimentalCoroutinesApi
 fun View.clicks() = callbackFlow {
     setOnClickListener {
-        offer(Unit)
+        trySend(Unit).isSuccess
     }
     awaitClose { setOnClickListener {} }
 }
@@ -34,7 +34,7 @@ fun View.clicks() = callbackFlow {
 fun EditText.textChanges() = callbackFlow<CharSequence> {
     val listener = object : TextWatcherAdapter() {
         override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-            offer(s)
+            trySend(s).isSuccess
         }
     }
     addTextChangedListener(listener)
@@ -89,7 +89,7 @@ fun EditText.keepCursorLast() {
 
 fun DialogInterface.expandDialog() {
     val bottomSheetDialog = this as BottomSheetDialog
-    val designBottomSheet: View? = bottomSheetDialog.findViewById(com.google.android.material.R.id.design_bottom_sheet)
+    val designBottomSheet: View? = bottomSheetDialog.findViewById(R.id.design_bottom_sheet)
     designBottomSheet?.let {
         BottomSheetBehavior.from(it).state = BottomSheetBehavior.STATE_EXPANDED
     }

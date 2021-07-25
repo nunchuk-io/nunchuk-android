@@ -4,11 +4,11 @@ import android.content.Context
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentStatePagerAdapter
+import com.nunchuk.android.contact.components.contacts.ContactsFragment
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.chat.ChatFragmentTab.CONTACTS
 import com.nunchuk.android.main.components.tabs.chat.ChatFragmentTab.MESSAGES
-import com.nunchuk.android.main.components.tabs.chat.contacts.ContactsFragment
-import com.nunchuk.android.main.components.tabs.chat.messages.MessagesFragment
+import com.nunchuk.android.messages.components.list.RoomsFragment
 
 class ChatFragmentPagerAdapter(
     private val context: Context,
@@ -17,7 +17,7 @@ class ChatFragmentPagerAdapter(
 
     override fun getItem(position: Int): Fragment {
         return when (position) {
-            MESSAGES.position -> MessagesFragment.newInstance()
+            MESSAGES.position -> RoomsFragment.newInstance()
             CONTACTS.position -> ContactsFragment.newInstance()
             else -> throw IllegalArgumentException("Invalid position $position")
         }

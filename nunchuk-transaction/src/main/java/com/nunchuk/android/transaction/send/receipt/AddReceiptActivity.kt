@@ -7,8 +7,8 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.qr.QRCodeParser
-import com.nunchuk.android.qr.startQRCodeScan
+import com.nunchuk.android.core.qr.QRCodeParser
+import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.ActivityTransactionAddReceiptBinding
 import com.nunchuk.android.transaction.send.receipt.AddReceiptEvent.*

@@ -13,6 +13,8 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.details.TransactionDetailsEvent.*
 import com.nunchuk.android.usecase.*
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -53,20 +55,17 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun getTransactionInfo() {
         viewModelScope.launch {
-            masterSigners = when (val result = getMasterSignersUseCase.execute()) {
-                is Success -> result.data
-                is Error -> emptyList()
-            }
+            getMasterSignersUseCase.execute()
+                .catch { masterSigners = emptyList() }
+                .collect { masterSigners = it }
 
-            remoteSigners = when (val result = getRemoteSignersUseCase.execute()) {
-                is Success -> result.data
-                is Error -> emptyList()
-            }
+            getRemoteSignersUseCase.execute()
+                .catch { remoteSigners = emptyList() }
+                .collect { remoteSigners = it }
 
-            when (val result = getTransactionUseCase.execute(walletId, txId)) {
-                is Success -> onRetrieveTransactionSuccess(result.data)
-                is Error -> event(TransactionDetailsError(result.exception.message.orEmpty()))
-            }
+            getTransactionUseCase.execute(walletId, txId)
+                .catch { event(TransactionDetailsError(it.message.orEmpty())) }
+                .collect { onRetrieveTransactionSuccess(it) }
         }
     }
 

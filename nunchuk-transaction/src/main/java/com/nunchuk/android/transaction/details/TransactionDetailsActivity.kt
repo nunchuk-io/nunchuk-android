@@ -11,6 +11,7 @@ import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.toDisplayedText
 import com.nunchuk.android.extensions.canBroadCast
 import com.nunchuk.android.extensions.isCompleted
 import com.nunchuk.android.model.Transaction
@@ -20,7 +21,6 @@ import com.nunchuk.android.transaction.details.TransactionDetailsEvent.*
 import com.nunchuk.android.transaction.details.TransactionOption.EXPORT
 import com.nunchuk.android.transaction.details.TransactionOption.IMPORT
 import com.nunchuk.android.type.TransactionStatus
-import com.nunchuk.android.utils.toDisplayedText
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog

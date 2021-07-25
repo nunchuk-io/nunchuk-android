@@ -1,10 +1,11 @@
 package com.nunchuk.android.usecase
 
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.type.AddressType
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface CreateWalletUseCase {
@@ -15,7 +16,7 @@ interface CreateWalletUseCase {
         addressType: AddressType,
         isEscrow: Boolean,
         description: String = ""
-    ): Result<Wallet>
+    ): Flow<Wallet>
 }
 
 internal class CreateWalletUseCaseImpl @Inject constructor(
@@ -29,14 +30,16 @@ internal class CreateWalletUseCaseImpl @Inject constructor(
         addressType: AddressType,
         isEscrow: Boolean,
         description: String
-    ) = exe {
-        nativeSdk.createWallet(
-            name = name,
-            totalRequireSigns = totalRequireSigns,
-            signers = signers,
-            addressType = addressType,
-            isEscrow = isEscrow,
-            description = description
+    ) = flow {
+        emit(
+            nativeSdk.createWallet(
+                name = name,
+                totalRequireSigns = totalRequireSigns,
+                signers = signers,
+                addressType = addressType,
+                isEscrow = isEscrow,
+                description = description
+            )
         )
     }
 }
