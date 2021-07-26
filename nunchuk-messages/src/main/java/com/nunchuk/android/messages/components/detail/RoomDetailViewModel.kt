@@ -41,11 +41,11 @@ class RoomDetailViewModel @Inject constructor(
                 e.printStackTrace()
             }
         }
-        updateState { copy(roomInfo = room.getRoomInfo(currentName)) }
         retrieveData()
     }
 
-    private fun retrieveData() {
+    fun retrieveData() {
+        updateState { copy(roomInfo = room.getRoomInfo(currentName)) }
         timeline.addListener(TimelineListenerAdapter {
             val messages = it.filter(TimelineEvent::isMessageEvent)
             updateState { copy(messages = messages.toMessages(currentId)) }

@@ -7,4 +7,6 @@ data class ChatGroupInfoState(val summary: RoomSummary? = null, val roomMembers:
 
 sealed class ChatGroupInfoEvent {
     object RoomNotFoundEvent : ChatGroupInfoEvent()
+    data class UpdateRoomNameError(val message: String) : ChatGroupInfoEvent()
+    data class UpdateRoomNameSuccess(val name: String) : ChatGroupInfoEvent()
 }
