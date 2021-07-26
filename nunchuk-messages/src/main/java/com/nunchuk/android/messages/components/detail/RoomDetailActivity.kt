@@ -36,6 +36,11 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         viewModel.initialize(args.roomId)
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.retrieveData()
+    }
+
     private fun observeEvent() {
         viewModel.state.observe(this, ::handleState)
         viewModel.event.observe(this, ::handleEvent)
