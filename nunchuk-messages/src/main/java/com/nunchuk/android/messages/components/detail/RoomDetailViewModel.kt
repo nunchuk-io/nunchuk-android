@@ -4,11 +4,14 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.messages.components.detail.RoomDetailEvent.RoomNotFoundEvent
+import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.util.addMessageListener
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.Room
+import org.matrix.android.sdk.api.session.room.members.RoomMemberQueryParams
+import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -52,6 +55,20 @@ class RoomDetailViewModel @Inject constructor(
         room.sendTextMessage(content)
     }
 
+    fun handleTitleClick() {
+        if (room.isDirectRoom()) {
+            event(OpenChatInfoEvent)
+        } else {
+            event(OpenChatGroupInfoEvent)
+        }
+    }
+
+}
+
+fun Room.isDirectRoom(): Boolean {
+    val queryParams = RoomMemberQueryParams.Builder().build()
+    val roomMembers: List<RoomMemberSummary> = getRoomMembers(queryParams)
+    return roomSummary()?.isDirect.orFalse() || roomMembers.size == 2
 }
 
 fun Room.getRoomInfo(currentName: String): RoomInfo {
@@ -61,6 +78,11 @@ fun Room.getRoomInfo(currentName: String): RoomInfo {
     } else {
         RoomInfo.empty()
     }
+}
+
+fun Room.getRoomMemberList(): List<RoomMemberSummary> {
+    val queryParams = RoomMemberQueryParams.Builder().build()
+    return getRoomMembers(queryParams)
 }
 
 fun RoomSummary.getRoomName(currentName: String): String {

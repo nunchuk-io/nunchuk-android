@@ -9,4 +9,7 @@ interface MessageNavigator {
 
     fun openCreateRoomScreen(fragmentManager: FragmentManager)
 
+    fun openChatInfoScreen(activityContext: Context, roomId: String)
+
+    fun openChatGroupInfoScreen(activityContext: Context, roomId: String)
 }

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="NCText">
+        <item name="android:textColor">@color/nc_primary_color</item>
+    </style>
+
+    <style name="NCText.Heading" parent="NCText">
+        <item name="android:textSize">@dimen/nc_text_size_24</item>
+    </style>
+
+    <style name="NCText.Title" parent="NCText">
+        <item name="android:textSize">@dimen/nc_text_size_16</item>
+    </style>
+
+    <style name="NCText.Title.Large" parent="NCText.Title">
+        <item name="android:textSize">@dimen/nc_text_size_18</item>
+        <item name="fontTextStyle">semi_bold</item>
+    </style>
+
+    <style name="NCText.Title.Small" parent="NCText.Title">
+        <item name="android:textSize">@dimen/nc_text_size_14</item>
+    </style>
+
+    <style name="NCText.Body" parent="NCText">
+        <item name="android:textSize">@dimen/nc_text_size_16</item>
+    </style>
+
+    <style name="NCText.Body.Small" parent="NCText.Body">
+        <item name="android:textSize">@dimen/nc_text_size_14</item>
+        <item name="android:textColor">@color/nc_grey_dark_color</item>
+    </style>
+
+</resources>
