@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
@@ -47,6 +48,14 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         if (state.messages.isNotEmpty()) {
             binding.recyclerView.scrollToPosition(roomAdapter.messages.size - 1)
         }
+        binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                if (!recyclerView.canScrollVertically(1)) {
+                    viewModel.handleLoadMore()
+                }
+            }
+        })
     }
 
     private fun handleEvent(event: RoomDetailEvent) {

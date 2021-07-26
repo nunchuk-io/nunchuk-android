@@ -6,9 +6,9 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseViewHolder
 import com.nunchuk.android.messages.R
-import com.nunchuk.android.messages.components.detail.getRoomName
 import com.nunchuk.android.messages.databinding.ItemMessageBinding
 import com.nunchuk.android.messages.util.DateFormatter
+import com.nunchuk.android.messages.util.getRoomName
 import com.nunchuk.android.messages.util.lastMessage
 import com.nunchuk.android.widget.swipe.SwipeLayout
 import com.nunchuk.android.widget.util.inflate
