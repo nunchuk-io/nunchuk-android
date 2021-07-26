@@ -4,7 +4,7 @@ import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.messages.components.detail.getRoomMemberList
+import com.nunchuk.android.messages.util.getRoomMemberList
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.share.GetContactsUseCase
 import org.matrix.android.sdk.api.session.room.Room

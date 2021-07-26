@@ -2,7 +2,7 @@ package com.nunchuk.android.messages.components.group
 
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.messages.components.detail.getRoomMemberList
+import com.nunchuk.android.messages.util.getRoomMemberList
 import org.matrix.android.sdk.api.session.room.Room
 import javax.inject.Inject
 
