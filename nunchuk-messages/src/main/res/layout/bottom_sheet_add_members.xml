@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/nc_bottom_sheet_background"
+    android:minHeight="700dp"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/nc_padding_24"
+    app:behavior_hideable="true"
+    app:behavior_peekHeight="100dp">
+
+    <RelativeLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/nc_padding_16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/closeBtn"
+            android:layout_width="@dimen/nc_padding_24"
+            android:layout_height="@dimen/nc_padding_24"
+            android:layout_alignParentStart="true"
+            android:foreground="?android:selectableItemBackground"
+            android:padding="4dp"
+            android:src="@drawable/ic_close" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/addBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:text="@string/nc_message_add_members"
+            android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_18"
+            app:fontTextStyle="semi_bold" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/doneBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:foreground="?android:selectableItemBackground"
+            android:padding="@dimen/nc_padding_4"
+            android:text="@string/nc_text_done"
+            android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_16"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+    </RelativeLayout>
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/to"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:text="@string/nc_message_to"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/header" />
+
+    <com.google.android.flexbox.FlexboxLayout
+        android:id="@+id/receipts"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:flexWrap="wrap"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/to"
+        app:layout_constraintTop_toTopOf="@+id/to" />
+
+    <com.nunchuk.android.widget.NCFontEditText
+        android:id="@+id/input"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_4"
+        android:layout_marginEnd="@dimen/nc_padding_16"
+        android:backgroundTint="@color/nc_whisper_color"
+        android:hint="@string/nc_message_name_or_email"
+        android:minWidth="250dp"
+        android:textColor="@color/nc_primary_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/to"
+        app:layout_constraintTop_toBottomOf="@id/receipts" />
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        android:background="@color/nc_whisper_color"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/input" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/contactList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/divider" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

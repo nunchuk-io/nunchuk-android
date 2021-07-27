@@ -6,9 +6,9 @@ import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.shorten
-import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.messages.components.group.ChatGroupInfoEvent.*
 import com.nunchuk.android.messages.components.group.ChatGroupInfoOption.*
+import com.nunchuk.android.messages.components.group.action.AddMembersBottomSheet
 import com.nunchuk.android.messages.components.group.action.EditGroupNameBottomSheet
 import com.nunchuk.android.messages.databinding.ActivityGroupChatInfoBinding
 import com.nunchuk.android.widget.NCToastMessage
@@ -49,10 +49,14 @@ class ChatGroupInfoActivity : BaseActivity<ActivityGroupChatInfoBinding>() {
         bottomSheet.listener = {
             when (it) {
                 EDIT -> openEditGroupName()
-                ADD -> showToast("Add")
-                LEAVE -> showToast("Leave")
+                ADD -> openAddMembers()
+                LEAVE -> viewModel.handleLeaveGroup()
             }
         }
+    }
+
+    private fun openAddMembers() {
+        AddMembersBottomSheet.show(supportFragmentManager, args.roomId)
     }
 
     private fun openEditGroupName() {
@@ -83,6 +87,8 @@ class ChatGroupInfoActivity : BaseActivity<ActivityGroupChatInfoBinding>() {
             RoomNotFoundEvent -> NCToastMessage(this).showError("Room not found")
             is UpdateRoomNameError -> NCToastMessage(this).showError(event.message)
             is UpdateRoomNameSuccess -> updateRoomName(event)
+            is LeaveRoomError -> NCToastMessage(this).showError(event.message)
+            LeaveRoomSuccess -> navigator.openMainScreen(this)
         }
     }
 

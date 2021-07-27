@@ -9,4 +9,6 @@ sealed class ChatGroupInfoEvent {
     object RoomNotFoundEvent : ChatGroupInfoEvent()
     data class UpdateRoomNameError(val message: String) : ChatGroupInfoEvent()
     data class UpdateRoomNameSuccess(val name: String) : ChatGroupInfoEvent()
+    object LeaveRoomSuccess : ChatGroupInfoEvent()
+    data class LeaveRoomError(val message: String) : ChatGroupInfoEvent()
 }
