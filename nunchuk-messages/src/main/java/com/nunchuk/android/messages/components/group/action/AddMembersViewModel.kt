@@ -1,35 +1,37 @@
-package com.nunchuk.android.messages.components.create
+package com.nunchuk.android.messages.components.group.action
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.messages.components.create.CreateRoomEvent.CreateRoomErrorEvent
-import com.nunchuk.android.messages.components.create.CreateRoomEvent.CreateRoomSuccessEvent
-import com.nunchuk.android.messages.usecase.message.CreateRoomUseCase
+import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.messages.components.create.isContains
+import com.nunchuk.android.messages.components.group.action.AddMembersEvent.AddMembersError
+import com.nunchuk.android.messages.components.group.action.AddMembersEvent.AddMembersSuccessEvent
+import com.nunchuk.android.messages.components.group.toMatrixError
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.share.GetContactsUseCase
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.session.room.Room
 import java.util.*
 import javax.inject.Inject
 
-class CreateRoomViewModel @Inject constructor(
-    accountManager: AccountManager,
-    private val getContactsUseCase: GetContactsUseCase,
-    private val createRoomUseCase: CreateRoomUseCase
-) : NunchukViewModel<CreateRoomState, CreateRoomEvent>() {
-
-    private val currentName: String = accountManager.getAccount().name
+class AddMembersViewModel @Inject constructor(
+    private val getContactsUseCase: GetContactsUseCase
+) : NunchukViewModel<AddMembersState, AddMembersEvent>() {
 
     private var contacts: List<Contact> = ArrayList()
+
+    private lateinit var room: Room
 
     init {
         getContacts()
     }
 
-    override val initialState = CreateRoomState.empty()
+    override val initialState = AddMembersState()
+
+    fun initRoom(roomId: String) {
+        room = SessionHolder.currentSession?.getRoom(roomId)!!
+    }
 
     private fun getContacts() {
         getContactsUseCase.execute()
@@ -37,7 +39,6 @@ class CreateRoomViewModel @Inject constructor(
             .subscribe({
                 contacts = it
             }, {
-
             })
             .addToDisposables()
     }
@@ -67,27 +68,22 @@ class CreateRoomViewModel @Inject constructor(
 
     fun handleDone() {
         val receipts = getState().receipts
-        val roomName = receipts.joinToString(separator = ",", transform = Contact::name) + "," + currentName
         val userIds = receipts.map(Contact::chatId)
 
-        createRoomUseCase.execute(roomName, userIds)
-            .catch {
-                event(CreateRoomErrorEvent(it.message.orEmpty()))
+        viewModelScope.launch {
+            try {
+                userIds.map {
+                    room.invite(it)
+                }
+                event(AddMembersSuccessEvent)
+            } catch (t: Throwable) {
+                event(AddMembersError(t.toMatrixError()))
             }
-            .onEach {
-                event(CreateRoomSuccessEvent(it.roomId))
-            }
-            .launchIn(viewModelScope)
-
+        }
     }
 
     fun cleanUp() {
-        updateState { CreateRoomState.empty() }
+        updateState { AddMembersState() }
     }
 
-}
-
-fun String.isContains(word: String): Boolean {
-    val locale = Locale.getDefault()
-    return toLowerCase(locale).contains(word.toLowerCase(locale))
 }

@@ -4,8 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.messages.components.group.ChatGroupInfoEvent.UpdateRoomNameError
-import com.nunchuk.android.messages.components.group.ChatGroupInfoEvent.UpdateRoomNameSuccess
+import com.nunchuk.android.messages.components.group.ChatGroupInfoEvent.*
 import com.nunchuk.android.messages.util.getRoomMemberList
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.failure.Failure
@@ -38,6 +37,17 @@ class ChatGroupInfoViewModel @Inject constructor(
                 event(UpdateRoomNameSuccess(name))
             } catch (e: Throwable) {
                 event(UpdateRoomNameError(e.toMatrixError()))
+            }
+        }
+    }
+
+    fun handleLeaveGroup() {
+        viewModelScope.launch {
+            try {
+                room.leave()
+                event(LeaveRoomSuccess)
+            } catch (e: Throwable) {
+                event(LeaveRoomError(e.toMatrixError()))
             }
         }
     }
