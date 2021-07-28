@@ -2,16 +2,16 @@ package com.nunchuk.android.messages.components.detail
 
 import android.content.Context
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.Adapter
+import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.nunchuk.android.core.util.shorten
-import com.nunchuk.android.messages.R
+import com.nunchuk.android.messages.databinding.ItemMessageMeBinding
+import com.nunchuk.android.messages.databinding.ItemMessagePartnerBinding
 
 class RoomDetailsAdapter(
     val context: Context
-) : RecyclerView.Adapter<RoomDetailsAdapter.ViewHolder>() {
+) : Adapter<ViewHolder>() {
 
     internal var messages: List<Message> = ArrayList()
         set(value) {
@@ -19,13 +19,14 @@ class RoomDetailsAdapter(
             notifyDataSetChanged()
         }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view: View = when (viewType) {
-            MessageType.CHAT_MINE.index -> LayoutInflater.from(context).inflate(R.layout.item_message_me, parent, false)
-            MessageType.CHAT_PARTNER.index -> LayoutInflater.from(context).inflate(R.layout.item_message_partner, parent, false)
-            else -> throw IllegalArgumentException("Invalid type")
-        }
-        return ViewHolder(view)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = when (viewType) {
+        MessageType.CHAT_MINE.index -> MineViewHolder(
+            ItemMessageMeBinding.inflate(LayoutInflater.from(context), parent, false)
+        )
+        MessageType.CHAT_PARTNER.index -> PartnerHolder(
+            ItemMessagePartnerBinding.inflate(LayoutInflater.from(context), parent, false)
+        )
+        else -> throw IllegalArgumentException("Invalid type")
     }
 
     override fun getItemCount(): Int {
@@ -38,23 +39,29 @@ class RoomDetailsAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val messageData = messages[position]
-        val userName = messageData.sender
-        val content = messageData.content
-        when (messageData.type) {
-            MessageType.CHAT_MINE.index -> holder.message.text = content
-            MessageType.CHAT_PARTNER.index -> {
-                holder.avatar?.text = userName.shorten()
-                holder.sender?.text = userName
-                holder.message.text = content
-            }
+        when (getItemViewType(position)) {
+            MessageType.CHAT_MINE.index -> (holder as MineViewHolder).bind(messageData)
+            MessageType.CHAT_PARTNER.index -> (holder as PartnerHolder).bind(messageData)
         }
     }
 
-    // FIXME
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val avatar: TextView? = itemView.findViewById(R.id.avatar)
-        val sender: TextView? = itemView.findViewById(R.id.sender)
-        val message: TextView = itemView.findViewById(R.id.message)
+    internal class MineViewHolder(val binding: ItemMessageMeBinding) : ViewHolder(binding.root) {
+
+        fun bind(messageData: Message) {
+            binding.message.text = messageData.content
+        }
+
+    }
+
+    internal class PartnerHolder(val binding: ItemMessagePartnerBinding) : ViewHolder(binding.root) {
+
+        fun bind(messageData: Message) {
+            val userName = messageData.sender
+            binding.avatar.text = userName.shorten()
+            binding.sender.text = userName
+            binding.message.text = messageData.content
+        }
+
     }
 
 }

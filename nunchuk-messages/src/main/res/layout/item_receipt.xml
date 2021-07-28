@@ -1,17 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.nunchuk.android.widget.NCFontTextView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/email"
-    android:maxLines="1"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:layout_marginEnd="@dimen/nc_padding_8"
     android:layout_marginBottom="@dimen/nc_padding_4"
-    android:background="@drawable/nc_rounded_green_background"
-    android:drawableStart="@drawable/ic_check_circle_outline_24"
-    android:drawableEnd="@drawable/ic_close"
-    android:drawablePadding="@dimen/nc_padding_8"
-    android:paddingHorizontal="@dimen/nc_padding_8"
-    android:paddingVertical="@dimen/nc_padding_4"
-    android:textColor="@color/nc_black_color"
-    android:textSize="@dimen/nc_text_size_16"
-    tools:text="Hugo Nguyen" />
+    android:background="@drawable/nc_rounded_whisper_background">
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/avatar"
+        style="@style/NCText.Body"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="@drawable/nc_circle_beeswax_light_background"
+        android:gravity="center"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="HZ" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/name"
+        style="@style/NCText.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:drawableEnd="@drawable/ic_close"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:layout_marginStart="@dimen/nc_padding_8"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/avatar"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Hugo Nguyen" />
+
+    <View
+        android:layout_width="12dp"
+        app:layout_constraintBottom_toBottomOf="@id/name"
+        app:layout_constraintTop_toTopOf="@id/name"
+        app:layout_constraintStart_toEndOf="@+id/name"
+        android:layout_height="1dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
