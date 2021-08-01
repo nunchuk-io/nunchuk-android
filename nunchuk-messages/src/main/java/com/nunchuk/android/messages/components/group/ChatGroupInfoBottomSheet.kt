@@ -5,11 +5,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentManager
-import com.nunchuk.android.core.base.BaseBottomSheetDialogFragment
+import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.messages.components.group.ChatGroupInfoOption.*
 import com.nunchuk.android.messages.databinding.BottomSheetChatGroupInfoBinding
 
-class ChatGroupInfoBottomSheet : BaseBottomSheetDialogFragment<BottomSheetChatGroupInfoBinding>() {
+class ChatGroupInfoBottomSheet : BaseBottomSheet<BottomSheetChatGroupInfoBinding>() {
 
     lateinit var listener: (ChatGroupInfoOption) -> Unit
 

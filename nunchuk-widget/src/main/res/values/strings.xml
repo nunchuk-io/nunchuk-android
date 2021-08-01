@@ -17,4 +17,6 @@
     <string name="nc_text_more">View more</string>
     <string name="nc_text_confirmation">Confirmation</string>
     <string name="nc_text_waiting">Please wait…</string>
+
+    <string name="nc_text_qr_code">QR code</string>
 </resources>

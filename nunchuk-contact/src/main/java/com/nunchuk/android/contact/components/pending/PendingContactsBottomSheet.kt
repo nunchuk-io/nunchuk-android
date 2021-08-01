@@ -8,10 +8,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.contact.databinding.BottomSheetPendingContactsBinding
-import com.nunchuk.android.core.base.BaseBottomSheetDialogFragment
+import com.nunchuk.android.core.base.BaseBottomSheet
 import dagger.android.support.AndroidSupportInjection
 
-class PendingContactsBottomSheet : BaseBottomSheetDialogFragment<BottomSheetPendingContactsBinding>() {
+class PendingContactsBottomSheet : BaseBottomSheet<BottomSheetPendingContactsBinding>() {
 
     private lateinit var pagerAdapter: PendingContactsPagerAdapter
 

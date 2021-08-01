@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.args.FragmentArgs
 import com.nunchuk.android.arch.vm.NunchukFactory
-import com.nunchuk.android.core.base.BaseBottomSheetDialogFragment
+import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.messages.components.create.ContactsAdapter
@@ -26,7 +26,7 @@ import com.nunchuk.android.widget.util.addTextChangedCallback
 import dagger.android.support.AndroidSupportInjection
 import javax.inject.Inject
 
-class AddMembersBottomSheet : BaseBottomSheetDialogFragment<BottomSheetAddMembersBinding>() {
+class AddMembersBottomSheet : BaseBottomSheet<BottomSheetAddMembersBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory

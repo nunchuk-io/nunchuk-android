@@ -42,7 +42,7 @@
         android:drawableStart="@drawable/ic_qr"
         android:drawablePadding="@dimen/nc_padding_8"
         android:padding="@dimen/nc_padding_16"
-        android:text="@string/nc_wallet_qr_code"
+        android:text="@string/nc_text_qr_code"
         android:textColor="@color/nc_black_color"
         android:textSize="@dimen/nc_text_size_16" />
 
