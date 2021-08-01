@@ -40,6 +40,7 @@
                 android:id="@+id/introImg"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/nc_padding_24"
                 android:background="@drawable/nc_circle_whisper_background"
                 android:padding="@dimen/nc_padding_16"
                 android:src="@drawable/ic_info_amber"
