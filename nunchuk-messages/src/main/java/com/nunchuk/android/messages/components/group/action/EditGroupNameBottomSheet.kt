@@ -7,11 +7,11 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.arch.args.FragmentArgs
-import com.nunchuk.android.core.base.BaseBottomSheetDialogFragment
+import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.messages.databinding.DialogUpdateGroupNameBottomSheetBinding
 import com.nunchuk.android.widget.util.addTextChangedCallback
 
-class EditGroupNameBottomSheet : BaseBottomSheetDialogFragment<DialogUpdateGroupNameBottomSheetBinding>() {
+class EditGroupNameBottomSheet : BaseBottomSheet<DialogUpdateGroupNameBottomSheetBinding>() {
 
     private lateinit var listener: (String) -> Unit
 

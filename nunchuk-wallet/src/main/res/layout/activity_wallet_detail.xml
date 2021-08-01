@@ -136,7 +136,7 @@
         android:orientation="vertical"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/headerContainer" >
+        app:layout_constraintTop_toBottomOf="@+id/headerContainer">
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/emptyTransactionTitle"
@@ -146,7 +146,7 @@
             android:layout_marginTop="@dimen/nc_padding_8"
             android:paddingHorizontal="@dimen/nc_padding_16"
             android:paddingVertical="@dimen/nc_padding_4"
-            android:text="@string/nc_transaction_emtpy_title"
+            android:text="@string/nc_transaction_empty_title"
             android:textColor="@color/nc_primary_dark_color"
             android:textSize="@dimen/nc_text_size_16"
             app:layout_constraintEnd_toEndOf="parent"

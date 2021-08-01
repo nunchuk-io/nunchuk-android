@@ -2,15 +2,15 @@ package com.nunchuk.android.transaction.nav
 
 import android.app.Activity
 import com.nunchuk.android.nav.TransactionNavigator
-import com.nunchuk.android.transaction.details.TransactionDetailsActivity
-import com.nunchuk.android.transaction.export.ExportTransactionActivity
-import com.nunchuk.android.transaction.imports.ImportTransactionActivity
-import com.nunchuk.android.transaction.receive.ReceiveTransactionActivity
-import com.nunchuk.android.transaction.receive.address.details.AddressDetailsActivity
-import com.nunchuk.android.transaction.send.amount.InputAmountActivity
-import com.nunchuk.android.transaction.send.confirmation.TransactionConfirmActivity
-import com.nunchuk.android.transaction.send.fee.EstimatedFeeActivity
-import com.nunchuk.android.transaction.send.receipt.AddReceiptActivity
+import com.nunchuk.android.transaction.components.details.TransactionDetailsActivity
+import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
+import com.nunchuk.android.transaction.components.imports.ImportTransactionActivity
+import com.nunchuk.android.transaction.components.receive.ReceiveTransactionActivity
+import com.nunchuk.android.transaction.components.receive.address.details.AddressDetailsActivity
+import com.nunchuk.android.transaction.components.send.amount.InputAmountActivity
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmActivity
+import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeActivity
+import com.nunchuk.android.transaction.components.send.receipt.AddReceiptActivity
 
 interface TransactionNavigatorDelegate : TransactionNavigator {
 

@@ -5,13 +5,13 @@ import com.nunchuk.android.nav.SignerNavigator
 import com.nunchuk.android.signer.AirSignerIntroActivity
 import com.nunchuk.android.signer.SignerIntroActivity
 import com.nunchuk.android.signer.SoftwareSignerIntroActivity
-import com.nunchuk.android.signer.add.AddSignerActivity
-import com.nunchuk.android.signer.details.SignerInfoActivity
-import com.nunchuk.android.signer.ss.confirm.ConfirmSeedActivity
-import com.nunchuk.android.signer.ss.create.CreateNewSeedActivity
-import com.nunchuk.android.signer.ss.name.AddSoftwareSignerNameActivity
-import com.nunchuk.android.signer.ss.passphrase.SetPassphraseActivity
-import com.nunchuk.android.signer.ss.recover.RecoverSeedActivity
+import com.nunchuk.android.signer.components.add.AddSignerActivity
+import com.nunchuk.android.signer.components.details.SignerInfoActivity
+import com.nunchuk.android.signer.components.ss.confirm.ConfirmSeedActivity
+import com.nunchuk.android.signer.components.ss.create.CreateNewSeedActivity
+import com.nunchuk.android.signer.components.ss.name.AddSoftwareSignerNameActivity
+import com.nunchuk.android.signer.components.ss.passphrase.SetPassphraseActivity
+import com.nunchuk.android.signer.components.ss.recover.RecoverSeedActivity
 
 interface SignerNavigatorDelegate : SignerNavigator {
 

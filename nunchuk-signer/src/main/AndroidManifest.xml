@@ -5,13 +5,13 @@
     <application>
 
         <activity
-            android:name=".add.AddSignerActivity"
+            android:name=".components.add.AddSignerActivity"
             android:label="@string/nc_create_signer_title"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
-            android:name=".details.SignerInfoActivity"
+            android:name=".components.details.SignerInfoActivity"
             android:label="@string/nc_text_signer_info"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Dark" />
@@ -35,32 +35,32 @@
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
-            android:name=".ss.create.CreateNewSeedActivity"
+            android:name=".components.ss.create.CreateNewSeedActivity"
             android:label="@string/nc_ssigner_new_seed_title"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
-            android:name=".ss.confirm.ConfirmSeedActivity"
+            android:name=".components.ss.confirm.ConfirmSeedActivity"
             android:label="@string/nc_ssigner_new_seed_title"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
-            android:name=".ss.recover.RecoverSeedActivity"
+            android:name=".components.ss.recover.RecoverSeedActivity"
             android:label="@string/nc_ssigner_recover_seed"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan"
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
-            android:name=".ss.name.AddSoftwareSignerNameActivity"
+            android:name=".components.ss.name.AddSoftwareSignerNameActivity"
             android:label="@string/nc_ssigner_add_name_title"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
-            android:name=".ss.passphrase.SetPassphraseActivity"
+            android:name=".components.ss.passphrase.SetPassphraseActivity"
             android:label="@string/nc_ssigner_set_passphrase_title"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />

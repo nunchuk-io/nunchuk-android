@@ -1,20 +1,20 @@
 package com.nunchuk.android.wallet.di
 
-import com.nunchuk.android.wallet.add.AddWalletActivity
-import com.nunchuk.android.wallet.add.AddWalletModule
-import com.nunchuk.android.wallet.assign.AssignSignerActivity
-import com.nunchuk.android.wallet.assign.AssignSignerModule
-import com.nunchuk.android.wallet.backup.BackupWalletActivity
-import com.nunchuk.android.wallet.backup.BackupWalletModule
-import com.nunchuk.android.wallet.config.WalletConfigActivity
-import com.nunchuk.android.wallet.config.WalletConfigModule
-import com.nunchuk.android.wallet.confirm.WalletConfirmActivity
-import com.nunchuk.android.wallet.confirm.WalletConfirmModule
-import com.nunchuk.android.wallet.details.WalletDetailsActivity
-import com.nunchuk.android.wallet.details.WalletDetailsModule
-import com.nunchuk.android.wallet.intro.WalletIntroActivity
-import com.nunchuk.android.wallet.upload.UploadConfigurationActivity
-import com.nunchuk.android.wallet.upload.UploadConfigurationModule
+import com.nunchuk.android.wallet.components.add.AddWalletActivity
+import com.nunchuk.android.wallet.components.add.AddWalletModule
+import com.nunchuk.android.wallet.components.assign.AssignSignerActivity
+import com.nunchuk.android.wallet.components.assign.AssignSignerModule
+import com.nunchuk.android.wallet.components.backup.BackupWalletActivity
+import com.nunchuk.android.wallet.components.backup.BackupWalletModule
+import com.nunchuk.android.wallet.components.config.WalletConfigActivity
+import com.nunchuk.android.wallet.components.config.WalletConfigModule
+import com.nunchuk.android.wallet.components.confirm.WalletConfirmActivity
+import com.nunchuk.android.wallet.components.confirm.WalletConfirmModule
+import com.nunchuk.android.wallet.components.details.WalletDetailsActivity
+import com.nunchuk.android.wallet.components.details.WalletDetailsModule
+import com.nunchuk.android.wallet.components.intro.WalletIntroActivity
+import com.nunchuk.android.wallet.components.upload.UploadConfigurationActivity
+import com.nunchuk.android.wallet.components.upload.UploadConfigurationModule
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
 
