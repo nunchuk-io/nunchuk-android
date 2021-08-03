@@ -6,7 +6,8 @@
         <activity
             android:name=".components.detail.RoomDetailActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukNoActionBar.Light" />
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".components.direct.ChatInfoActivity"
