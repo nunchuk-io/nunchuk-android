@@ -16,10 +16,10 @@
         app:navigationIcon="@drawable/ic_back">
 
         <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="64dp"
             android:layout_gravity="center"
+            android:layout_marginEnd="64dp"
             android:gravity="center"
             android:orientation="vertical">
 
@@ -27,14 +27,14 @@
                 android:id="@+id/toolbarTitle"
                 style="@style/NCToolbar.Text"
                 android:layout_width="wrap_content"
-                android:maxLines="2"
-                android:ellipsize="end"
                 android:layout_height="wrap_content"
-                tools:text="Hugo Nunchuk,Hugo Android,Hung Tran,tung nunchuk,hung.tran" />
+                android:ellipsize="end"
+                android:maxLines="2"
+                tools:text="Hugo Nunchuk" />
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/memberCount"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:paddingBottom="@dimen/nc_padding_4"
