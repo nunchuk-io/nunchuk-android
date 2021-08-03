@@ -92,6 +92,8 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         binding.toolbar.setOnClickListener {
             viewModel.handleTitleClick()
         }
+
+        binding.recyclerView.smoothScrollToLastItem()
     }
 
     private fun sendMessage() {
@@ -111,3 +113,18 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 }
 
+fun RecyclerView.smoothScrollToLastItem(delay: Long = DELAY) {
+    addOnLayoutChangeListener { _, _, _, _, bottom, _, _, _, oldBottom ->
+        if (bottom < oldBottom) {
+            postDelayed({
+                adapter?.itemCount?.let {
+                    if (it > 0) {
+                        smoothScrollToPosition(it - 1)
+                    }
+                }
+            }, delay)
+        }
+    }
+}
+
+const val DELAY = 100L
