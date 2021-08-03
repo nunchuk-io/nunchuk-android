@@ -31,8 +31,9 @@ fun Activity.setLightStatusBar() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         window.decorView.systemUiVisibility = SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
     } else {
-        window.decorView.systemUiVisibility = SYSTEM_UI_FLAG_LAYOUT_STABLE or SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        window.decorView.systemUiVisibility = SYSTEM_UI_FLAG_LAYOUT_STABLE or SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
     }
+
     window.statusBarColor = ContextCompat.getColor(this, R.color.nc_white_color)
 }
 

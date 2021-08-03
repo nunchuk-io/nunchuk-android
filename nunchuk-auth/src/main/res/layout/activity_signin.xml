@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/nc_white_color"
+    android:fitsSystemWindows="true"
     android:gravity="center"
     android:orientation="vertical"
     android:paddingVertical="@dimen/nc_padding_16"
