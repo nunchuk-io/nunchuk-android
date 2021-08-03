@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/nc_white_color"
+    android:fitsSystemWindows="true"
     tools:ignore="ContentDescription">
 
     <androidx.appcompat.widget.Toolbar
