@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseViewHolder
+import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.databinding.ItemMessageBinding
 import com.nunchuk.android.messages.util.DateFormatter
@@ -53,11 +54,13 @@ class MessageViewHolder(
     private val binding = ItemMessageBinding.bind(itemView)
 
     override fun bind(data: RoomSummary) {
-        binding.name.text = data.getRoomName(currentName)
+        val roomName = data.getRoomName(currentName)
+        binding.name.text = roomName
         data.latestPreviewableEvent?.let {
             binding.message.text = it.lastMessage()
             binding.time.text = it.root.originServerTs?.let(dateFormatter::formatDateAndTime) ?: "-"
         }
+        binding.avatar.text = roomName.shorten()
         binding.count.isVisible = data.hasUnreadMessages && (data.notificationCount > 0)
         binding.count.text = "${data.notificationCount}"
         binding.itemLayout.setOnClickListener { enterRoom(data) }

@@ -7,9 +7,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.databinding.ActivityRoomDetailBinding
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnEnterListener
 import javax.inject.Inject
@@ -80,6 +82,9 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     private fun setupViews() {
         binding.send.setOnClickListener { sendMessage() }
         binding.editText.setOnEnterListener(::sendMessage)
+        binding.editText.addTextChangedCallback {
+            enableButton(it.isNotEmpty())
+        }
 
         roomAdapter = RoomDetailsAdapter(this)
         binding.recyclerView.adapter = roomAdapter
@@ -94,6 +99,16 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         }
 
         binding.recyclerView.smoothScrollToLastItem()
+    }
+
+    private fun enableButton(isEnabled: Boolean) {
+        binding.send.isEnabled = isEnabled
+        binding.send.isClickable = isEnabled
+        if (isEnabled) {
+            binding.send.setImageResource(R.drawable.ic_send)
+        } else {
+            binding.send.setImageResource(R.drawable.ic_send_disabled)
+        }
     }
 
     private fun sendMessage() {
