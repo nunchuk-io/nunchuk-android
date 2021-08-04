@@ -37,15 +37,12 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/message"
+        style="@style/NCText.Body"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/message_partner_background"
         android:maxWidth="250dp"
-        android:minWidth="100dp"
-        android:paddingHorizontal="@dimen/nc_padding_18"
-        android:paddingVertical="@dimen/nc_padding_12"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
+        android:padding="@dimen/nc_padding_12"
         app:layout_constraintStart_toStartOf="@id/sender"
         app:layout_constraintTop_toBottomOf="@id/sender"
         tools:text="Hey Tom, let’s create a wallet together shall we?" />
