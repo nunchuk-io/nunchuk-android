@@ -5,11 +5,13 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.countWords
 import com.nunchuk.android.core.util.lastWord
 import com.nunchuk.android.core.util.replaceLastWord
-import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.signer.components.ss.recover.RecoverSeedEvent.*
 import com.nunchuk.android.usecase.CheckMnemonicUseCase
 import com.nunchuk.android.usecase.GetBip39WordListUseCase
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,14 +33,15 @@ internal class RecoverSeedViewModel @Inject constructor(
     }
 
     fun handleInputEvent(mnemonic: String) {
-        if (mnemonic != getState().mnemonic) {
-            updateState { copy(mnemonic = mnemonic) }
-            val word = mnemonic.lastWord()
+        val withoutSpace = mnemonic.trim()
+        if (withoutSpace != getState().mnemonic) {
+            updateState { copy(mnemonic = withoutSpace) }
+            val word = withoutSpace.lastWord()
             if (word.isNotEmpty()) {
                 filter(word)
             }
         }
-        event(CanGoNextStepEvent(mnemonic.countWords() == NUM_WORDS))
+        event(CanGoNextStepEvent(withoutSpace.countWords() == NUM_WORDS))
     }
 
     private fun filter(word: String) {
@@ -62,16 +65,16 @@ internal class RecoverSeedViewModel @Inject constructor(
     }
 
     private fun checkMnemonic(mnemonic: String) {
-        viewModelScope.launch {
-            when (checkMnemonicUseCase.execute(mnemonic)) {
-                is Error -> event(InvalidMnemonicEvent)
-                is Success -> event(ValidMnemonicEvent(mnemonic))
+        checkMnemonicUseCase.execute(mnemonic)
+            .catch { event(InvalidMnemonicEvent) }
+            .onEach {
+                event(ValidMnemonicEvent(mnemonic))
             }
-        }
+            .launchIn(viewModelScope)
     }
 
     companion object {
-        private const val MAX_WORDS = 10
+        private const val MAX_WORDS = 100
         private const val NUM_WORDS = 24
     }
 

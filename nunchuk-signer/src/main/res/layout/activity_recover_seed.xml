@@ -40,7 +40,9 @@
         android:id="@+id/mnemonic"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/nc_padding_16"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        app:edit_gravity="top"
         app:edit_title="@string/nc_ssigner_recover_seed_phrase"
         app:edit_title_color="@color/nc_black_color"
         app:errorEnabled="true"
@@ -51,10 +53,11 @@
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_margin="@dimen/nc_padding_16"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_8"
         app:layout_constraintBottom_toTopOf="@+id/btnContinue"
-        app:layout_constraintTop_toBottomOf="@+id/mnemonic"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/mnemonic" />
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnContinue"

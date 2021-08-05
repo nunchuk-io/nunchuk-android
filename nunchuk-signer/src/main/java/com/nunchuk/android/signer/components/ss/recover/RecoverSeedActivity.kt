@@ -68,12 +68,13 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
     }
 
     private fun updateMnemonic(mnemonic: String) {
-        binding.mnemonic.getEditTextView().setText(mnemonic)
-        binding.mnemonic.getEditTextView().setSelection(mnemonic.length)
+        val withSpace = "$mnemonic "
+        binding.mnemonic.getEditTextView().setText(withSpace)
+        binding.mnemonic.getEditTextView().setSelection(mnemonic.length + 1)
     }
 
     private fun setupViews() {
-        binding.mnemonic.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_60))
+        binding.mnemonic.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_120))
         binding.mnemonic.addTextChangedCallback(viewModel::handleInputEvent)
         adapter = RecoverSeedSuggestionAdapter(viewModel::handleSelectWord)
         binding.recyclerView.layoutManager = LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)
