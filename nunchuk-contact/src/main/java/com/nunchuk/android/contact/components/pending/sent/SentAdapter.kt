@@ -44,7 +44,6 @@ internal class ContactViewHolder(
         val contact = data.contact
         binding.avatar.text = contact.name.shorten()
         binding.name.text = contact.name
-        binding.email.text = contact.email
         binding.withdraw.setOnClickListener { listener(data) }
     }
 

@@ -41,16 +41,15 @@ class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)
         binding.recyclerView.adapter = adapter
         binding.fab.setOnClickListener {
-            navigator.openAddContactsScreen(requireActivity().supportFragmentManager, viewModel::retrieveContacts)
+            navigator.openAddContactsScreen(childFragmentManager, viewModel::retrieveContacts)
         }
         binding.viewAll.setOnClickListener {
-            navigator.openPendingContactsScreen(requireActivity().supportFragmentManager, viewModel::retrieveContacts)
+            navigator.openPendingContactsScreen(childFragmentManager, viewModel::retrieveContacts)
         }
     }
 
     private fun observeEvent() {
         viewModel.state.observe(viewLifecycleOwner, ::handleState)
-        viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
     }
 
     private fun handleState(state: ContactsState) {
@@ -76,9 +75,6 @@ class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
         if (hasPendingContacts) {
             bindPendingContact(pendingContacts.first())
         }
-    }
-
-    private fun handleEvent(event: ContactsEvent) {
     }
 
     companion object {

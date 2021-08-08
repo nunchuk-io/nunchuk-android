@@ -2,7 +2,7 @@
 <resources>
     <string name="nc_wallet_add_wallet_title">Add a wallet</string>
     <string name="nc_wallet_wallet_name">Wallet name</string>
-    <string name="nc_wallet_wallet_type">Wallet type</string>
+    <string name="nc_wallet_wallet_type">Customize wallet type</string>
     <string name="nc_wallet_standard_wallet">Standard wallet</string>
 
     <string name="nc_wallet_escrow_wallet">Escrow wallet</string>

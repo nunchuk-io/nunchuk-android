@@ -8,6 +8,7 @@ import com.nunchuk.android.core.network.ApiConstant.HTTP_CONNECT_TIMEOUT
 import com.nunchuk.android.core.network.ApiConstant.HTTP_READ_TIMEOUT
 import com.nunchuk.android.core.network.BuildConfig
 import com.nunchuk.android.core.network.HeaderInterceptor
+import com.nunchuk.android.core.network.UnauthorizedInterceptor
 import dagger.Module
 import dagger.Provides
 import okhttp3.OkHttpClient
@@ -30,7 +31,8 @@ class NetworkModule @Inject constructor() {
     @Provides
     fun provideOkHttpClient(
         loggingInterceptor: HttpLoggingInterceptor,
-        headerInterceptor: HeaderInterceptor
+        headerInterceptor: HeaderInterceptor,
+        unauthorizedInterceptor: UnauthorizedInterceptor
     ): OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(HTTP_CONNECT_TIMEOUT, TimeUnit.SECONDS)
         .readTimeout(HTTP_READ_TIMEOUT, TimeUnit.SECONDS)

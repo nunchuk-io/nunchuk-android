@@ -51,7 +51,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:padding="@dimen/nc_padding_4"
         android:textColor="@color/nc_grey_dark_color"
         app:layout_constraintBottom_toBottomOf="@+id/walletNameLabel"
         app:layout_constraintEnd_toEndOf="parent"
@@ -60,107 +59,144 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/walletType"
-        android:layout_width="match_parent"
+        style="@style/NCText.Body"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_24"
         android:text="@string/nc_wallet_wallet_type"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
+        app:layout_constraintEnd_toStartOf="@+id/customizeWalletTypeSwitch"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/walletName" />
+        app:layout_constraintTop_toBottomOf="@+id/customizeAddressContainer" />
 
     <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/standardWalletType"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/nc_text_size_16"
-        android:layout_marginTop="@dimen/nc_padding_16"
-        android:text="@string/nc_wallet_standard_wallet"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_18"
-        app:layout_constraintEnd_toStartOf="@+id/standardWalletRadio"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/walletType" />
-
-    <RadioButton
-        android:id="@+id/standardWalletRadio"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/nc_padding_16"
-        android:buttonTint="@color/nc_black_color"
-        app:layout_constraintBottom_toBottomOf="@+id/standardWalletType"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/standardWalletType" />
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/escrowWalletType"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/nc_text_size_16"
-        android:layout_marginTop="@dimen/nc_padding_16"
-        android:text="@string/nc_wallet_escrow_wallet"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_18"
-        app:layout_constraintEnd_toStartOf="@+id/standardWalletRadio"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/standardWalletType" />
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/escrowWalletDesc"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_4"
-        android:layout_marginEnd="@dimen/nc_text_size_16"
-        android:text="@string/nc_wallet_escrow_wallet_desc"
-        android:textColor="@color/nc_grey_dark_color"
-        android:textSize="@dimen/nc_text_size_12"
-        app:layout_constraintEnd_toStartOf="@+id/standardWalletRadio"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/escrowWalletType" />
-
-    <RadioButton
-        android:id="@+id/escrowWalletRadio"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/nc_padding_16"
-        android:buttonTint="@color/nc_black_color"
-        app:layout_constraintBottom_toBottomOf="@+id/escrowWalletDesc"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/escrowWalletType" />
-
-    <View
-        android:id="@+id/divider"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="@dimen/nc_padding_24"
-        android:background="#EAEAEA"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/escrowWalletDesc" />
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/customizeAddressType"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/nc_text_size_16"
-        android:layout_marginTop="@dimen/nc_padding_16"
-        android:text="@string/nc_wallet_customize_address_type"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_18"
-        app:layout_constraintEnd_toStartOf="@+id/customizeAddressSwitch"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/divider" />
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/defaultAddressType"
+        android:id="@+id/defaultWalletType"
+        style="@style/NCText.Body.Small"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_4"
         android:text="@string/nc_wallet_default_address_type"
         android:textColor="@color/nc_grey_dark_color"
-        android:textSize="@dimen/nc_text_size_12"
+        app:layout_constraintEnd_toStartOf="@+id/customizeWalletTypeSwitch"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/walletType" />
+
+    <com.nunchuk.android.widget.NCSwitchButton
+        android:id="@+id/customizeWalletTypeSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/nc_padding_16"
+        app:layout_constraintBottom_toBottomOf="@+id/defaultWalletType"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/walletType"
+        app:sb_checked_color="@color/nc_primary_color" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/customizeWalletContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/defaultWalletType"
+        tools:visibility="visible">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/standardWalletType"
+            style="@style/NCText.Body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/nc_text_size_16"
+            android:text="@string/nc_wallet_standard_wallet"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/defaultWalletLabel"
+            style="@style/NCText.Body.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/nc_padding_4"
+            android:layout_marginEnd="@dimen/nc_text_size_16"
+            android:background="@drawable/nc_rounded_whisper_inverted_background"
+            android:paddingHorizontal="@dimen/nc_padding_16"
+            android:paddingVertical="@dimen/nc_padding_4"
+            android:text="@string/nc_wallet_default"
+            app:fontTextStyle="semi_bold"
+            app:layout_constraintBottom_toBottomOf="@+id/standardWalletType"
+            app:layout_constraintStart_toEndOf="@+id/standardWalletType"
+            app:layout_constraintTop_toTopOf="@+id/standardWalletType" />
+
+        <RadioButton
+            android:id="@+id/standardWalletRadio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/nc_padding_16"
+            android:buttonTint="@color/nc_black_color"
+            android:checked="true"
+            app:layout_constraintBottom_toBottomOf="@+id/standardWalletType"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/standardWalletType" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/escrowWalletType"
+            android:layout_width="0dp"
+            style="@style/NCText.Body"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/nc_text_size_16"
+            android:layout_marginTop="@dimen/nc_padding_16"
+            android:text="@string/nc_wallet_escrow_wallet"
+            app:layout_constraintEnd_toStartOf="@+id/standardWalletRadio"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/standardWalletType" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/escrowWalletDesc"
+            style="@style/NCText.Body.Small"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/nc_padding_16"
+            android:layout_marginTop="@dimen/nc_padding_4"
+            android:layout_marginEnd="@dimen/nc_text_size_16"
+            android:text="@string/nc_wallet_escrow_wallet_desc"
+            android:textColor="@color/nc_grey_dark_color"
+            app:layout_constraintEnd_toStartOf="@+id/standardWalletRadio"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/escrowWalletType" />
+
+        <RadioButton
+            android:id="@+id/escrowWalletRadio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/nc_padding_16"
+            android:buttonTint="@color/nc_black_color"
+            app:layout_constraintBottom_toBottomOf="@+id/escrowWalletDesc"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/escrowWalletType" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/customizeAddressType"
+        style="@style/NCText.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_text_size_16"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:text="@string/nc_wallet_customize_address_type"
+        app:layout_constraintEnd_toStartOf="@+id/customizeAddressSwitch"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/walletName" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/defaultAddressType"
+        style="@style/NCText.Body.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:text="@string/nc_wallet_default_address_type"
+        android:textColor="@color/nc_grey_dark_color"
         app:layout_constraintEnd_toStartOf="@+id/customizeAddressSwitch"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/customizeAddressType" />
@@ -186,38 +222,25 @@
         tools:visibility="visible">
 
         <com.nunchuk.android.widget.NCFontTextView
-            android:id="@+id/addressType"
-            android:layout_width="match_parent"
+            android:id="@+id/nativeSegwitType"
+            style="@style/NCText.Body"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/nc_padding_16"
-            android:text="@string/nc_wallet_address_type"
-            android:textColor="@color/nc_black_color"
-            android:textSize="@dimen/nc_text_size_12"
+            android:text="@string/nc_wallet_native_segwit_wallet"
+            app:layout_constraintEnd_toStartOf="@+id/nativeSegwitRadio"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <com.nunchuk.android.widget.NCFontTextView
-            android:id="@+id/nativeSegwitType"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/nc_padding_16"
-            android:layout_marginTop="@dimen/nc_padding_8"
-            android:text="@string/nc_wallet_native_segwit_wallet"
-            android:textColor="@color/nc_black_color"
-            android:textSize="@dimen/nc_text_size_16"
-            app:layout_constraintEnd_toStartOf="@+id/nativeSegwitRadio"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/addressType" />
-
-        <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/nativeSegwitDesc"
+            style="@style/NCText.Body.Small"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/nc_padding_16"
             android:layout_marginTop="@dimen/nc_padding_4"
             android:text="@string/nc_wallet_native_segwit_desc"
             android:textColor="@color/nc_grey_dark_color"
-            android:textSize="@dimen/nc_text_size_12"
             app:layout_constraintEnd_toStartOf="@+id/nativeSegwitRadio"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/nativeSegwitType" />
@@ -234,6 +257,7 @@
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/nestedSegwitType"
+            style="@style/NCText.Body"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/nc_padding_16"
@@ -245,7 +269,8 @@
             app:layout_constraintTop_toBottomOf="@+id/nativeSegwitDesc" />
 
         <com.nunchuk.android.widget.NCFontTextView
-            android:id="@+id/defaultLabel"
+            android:id="@+id/defaultAddressLabel"
+            style="@style/NCText.Body.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_4"
@@ -254,21 +279,20 @@
             android:paddingHorizontal="@dimen/nc_padding_16"
             android:paddingVertical="@dimen/nc_padding_4"
             android:text="@string/nc_wallet_default"
-            android:textColor="@color/nc_black_color"
-            android:textSize="@dimen/nc_text_size_10"
+            app:fontTextStyle="semi_bold"
             app:layout_constraintBottom_toBottomOf="@+id/nestedSegwitType"
             app:layout_constraintStart_toEndOf="@+id/nestedSegwitType"
             app:layout_constraintTop_toTopOf="@+id/nestedSegwitType" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/nestedSegwitDesc"
+            style="@style/NCText.Body.Small"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/nc_padding_16"
             android:layout_marginTop="@dimen/nc_padding_4"
             android:text="@string/nc_wallet_nested_segwit_desc"
             android:textColor="@color/nc_grey_dark_color"
-            android:textSize="@dimen/nc_text_size_12"
             app:layout_constraintEnd_toStartOf="@+id/nestedSegwitRadio"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/nestedSegwitType" />
@@ -279,32 +303,32 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/nc_padding_16"
             android:buttonTint="@color/nc_black_color"
+            android:checked="true"
             app:layout_constraintBottom_toBottomOf="@+id/nestedSegwitType"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/nestedSegwitDesc" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/legacyType"
+            style="@style/NCText.Body"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/nc_padding_16"
             android:layout_marginTop="@dimen/nc_padding_8"
             android:text="@string/nc_wallet_legacy_wallet"
-            android:textColor="@color/nc_black_color"
-            android:textSize="@dimen/nc_text_size_16"
             app:layout_constraintEnd_toStartOf="@+id/legacyRadio"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/nestedSegwitDesc" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/legacyDesc"
+            style="@style/NCText.Body.Small"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/nc_padding_16"
             android:layout_marginTop="@dimen/nc_padding_4"
             android:text="@string/nc_wallet_legacy_desc"
             android:textColor="@color/nc_grey_dark_color"
-            android:textSize="@dimen/nc_text_size_12"
             app:layout_constraintEnd_toStartOf="@+id/legacyRadio"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/legacyType" />

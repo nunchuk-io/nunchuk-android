@@ -20,7 +20,8 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:orientation="vertical"
-            android:paddingHorizontal="@dimen/nc_padding_16">
+            android:paddingHorizontal="@dimen/nc_padding_16"
+            tools:visibility="gone">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -74,14 +75,14 @@
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/message"
+                style="@style/NCText.Body.Small"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/nc_padding_8"
                 android:layout_marginTop="@dimen/nc_padding_4"
                 android:ellipsize="end"
                 android:singleLine="true"
-                android:textColor="@color/nc_black_color"
-                android:textSize="@dimen/nc_text_size_14"
+                android:textColor="@color/nc_grey_color"
                 app:layout_constraintEnd_toStartOf="@+id/endBarrier"
                 app:layout_constraintStart_toEndOf="@+id/avatar"
                 app:layout_constraintTop_toBottomOf="@+id/name"
@@ -89,14 +90,12 @@
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/name"
+                style="@style/NCText.Title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/nc_padding_8"
                 android:ellipsize="end"
                 android:maxLines="2"
-                android:textColor="@color/nc_black_color"
-                android:textSize="@dimen/nc_text_size_16"
-                app:fontTextStyle="semi_bold"
                 app:layout_constraintEnd_toStartOf="@+id/endBarrier"
                 app:layout_constraintStart_toEndOf="@+id/avatar"
                 app:layout_constraintTop_toTopOf="parent"

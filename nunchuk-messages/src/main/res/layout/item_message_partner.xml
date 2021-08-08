@@ -24,13 +24,13 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/sender"
+        style="@style/NCText.Body.Small"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_4"
         android:gravity="start"
         android:paddingVertical="@dimen/nc_padding_8"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
+        android:textColor="@color/nc_grey_dark_color"
         app:layout_constraintStart_toEndOf="@id/avatar"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Tom" />

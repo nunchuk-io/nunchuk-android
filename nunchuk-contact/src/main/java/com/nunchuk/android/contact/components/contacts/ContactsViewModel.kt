@@ -15,7 +15,7 @@ class ContactsViewModel @Inject constructor(
     private val getContactsUseCase: GetContactsUseCase,
     private val getSentContactsUseCase: GetSentContactsUseCase,
     private val getReceivedContactsUseCase: GetReceivedContactsUseCase
-) : NunchukViewModel<ContactsState, ContactsEvent>() {
+) : NunchukViewModel<ContactsState, Unit>() {
 
     override val initialState = ContactsState.empty()
 
@@ -34,11 +34,11 @@ class ContactsViewModel @Inject constructor(
             getReceivedContactsUseCase.execute()
         ) { sent, receive -> sent.map(SentContact::contact) + receive.map(ReceiveContact::contact) }
             .defaultSchedulers()
-            .subscribe(::onPendingContactSuccess, ::onPendingContactError)
+            .subscribe(::onPendingContactSuccess) { onPendingContactError() }
             .addToDisposables()
     }
 
-    private fun onPendingContactError(throwable: Throwable) {
+    private fun onPendingContactError() {
         updateState { copy(pendingContacts = emptyList()) }
     }
 

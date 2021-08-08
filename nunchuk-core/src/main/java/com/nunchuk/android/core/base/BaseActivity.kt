@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.arch.R
 import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.core.network.UnauthorizedEventBus
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.utils.DisposableManager
 import com.nunchuk.android.widget.NCLoadingDialogCreator
@@ -40,6 +41,18 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity(), HasAnd
 
     fun hideLoading() {
         dialog?.cancel()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        UnauthorizedEventBus.instance().subscribe {
+            navigator.openSignInScreen(this)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        UnauthorizedEventBus.instance().unsubscribe()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

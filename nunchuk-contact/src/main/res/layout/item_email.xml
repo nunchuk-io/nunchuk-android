@@ -2,6 +2,7 @@
 <com.nunchuk.android.widget.NCFontTextView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/email"
+    style="@style/NCText.Body"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_marginBottom="@dimen/nc_padding_4"
@@ -11,6 +12,4 @@
     android:drawablePadding="@dimen/nc_padding_8"
     android:paddingHorizontal="@dimen/nc_padding_8"
     android:paddingVertical="@dimen/nc_padding_4"
-    android:textColor="@color/nc_black_color"
-    android:textSize="@dimen/nc_text_size_16"
     tools:text="hung.tran@nunchuk.io" />

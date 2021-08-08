@@ -26,12 +26,11 @@
             android:src="@drawable/ic_close" />
 
         <com.nunchuk.android.widget.NCFontTextView
+            style="@style/NCText.Title.Large"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
-            android:text="Requests"
-            android:textColor="@color/nc_black_color"
-            android:textSize="@dimen/nc_text_size_18"
+            android:text="@string/nc_contact_requests"
             app:fontTextStyle="semi_bold" />
 
     </RelativeLayout>
