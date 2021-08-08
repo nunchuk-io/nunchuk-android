@@ -1,4 +1,4 @@
-package com.nunchuk.android.wallet.components.confirm
+package com.nunchuk.android.wallet.components.review
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
@@ -11,18 +11,18 @@ import com.nunchuk.android.type.WalletType.ESCROW
 import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.DraftWalletUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
-import com.nunchuk.android.wallet.components.confirm.WalletConfirmEvent.*
+import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.*
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
 
-internal class WalletConfirmViewModel @Inject constructor(
+internal class ReviewWalletViewModel @Inject constructor(
     private val getUnusedSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
     private val draftWalletUseCase: DraftWalletUseCase,
     private val createWalletUseCase: CreateWalletUseCase
-) : NunchukViewModel<Unit, WalletConfirmEvent>() {
+) : NunchukViewModel<Unit, ReviewWalletEvent>() {
 
     override val initialState = Unit
     private var descriptor = ""

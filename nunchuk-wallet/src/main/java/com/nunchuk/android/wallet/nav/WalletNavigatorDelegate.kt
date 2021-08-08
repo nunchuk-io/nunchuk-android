@@ -11,7 +11,7 @@ import com.nunchuk.android.wallet.components.add.AddWalletActivity
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletActivity
 import com.nunchuk.android.wallet.components.backup.BackupWalletActivity
 import com.nunchuk.android.wallet.components.config.WalletConfigActivity
-import com.nunchuk.android.wallet.components.confirm.WalletConfirmActivity
+import com.nunchuk.android.wallet.components.review.ReviewWalletActivity
 import com.nunchuk.android.wallet.components.details.WalletDetailsActivity
 import com.nunchuk.android.wallet.components.intro.WalletEmptySignerActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationActivity
@@ -31,7 +31,7 @@ interface WalletNavigatorDelegate : WalletNavigator {
         ConfigureWalletActivity.start(activityContext, walletName, walletType, addressType)
     }
 
-    override fun openWalletConfirmScreen(
+    override fun openReviewWalletScreen(
         activityContext: Context,
         walletName: String,
         walletType: WalletType,
@@ -40,7 +40,7 @@ interface WalletNavigatorDelegate : WalletNavigator {
         masterSigners: List<MasterSigner>,
         remoteSigners: List<SingleSigner>
     ) {
-        WalletConfirmActivity.start(
+        ReviewWalletActivity.start(
             activityContext = activityContext,
             walletName = walletName,
             walletType = walletType,

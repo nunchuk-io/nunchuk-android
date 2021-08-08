@@ -14,7 +14,6 @@
         android:gravity="center"
         android:textColor="@color/nc_black_color"
         app:fontTextStyle="semi_bold"
-        app:layout_constraintBottom_toBottomOf="@+id/xpf"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="TN" />

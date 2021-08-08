@@ -6,9 +6,9 @@
     <string name="nc_title_signers">Signers</string>
     <string name="nc_title_account">Account</string>
     <string name="nc_signer_intro_title">Please add a signer before adding a wallet</string>
-    <string name="nc_wallet_intro_title">You can begin creating a wallet</string>
-    <string name="nc_signer_intro_subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris posuere justo semper</string>
-    <string name="nc_wallet_intro_subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris posuere justo semper</string>
+    <string name="nc_wallet_intro_title">Looks like you have added a signer</string>
+    <string name="nc_signer_intro_subtitle">Software and air-gapped signers are supported.</string>
+    <string name="nc_wallet_intro_subtitle">Do you want to add a Bitcoin wallet?</string>
     <string name="nc_text_add_a_signer">Add a signer</string>
     <string name="nc_text_add_a_wallet">Add a wallet</string>
     <string name="nc_text_do_this_later">I’ll do this later</string>

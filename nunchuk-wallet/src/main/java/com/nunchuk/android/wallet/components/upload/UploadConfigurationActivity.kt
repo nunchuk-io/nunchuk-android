@@ -3,7 +3,6 @@ package com.nunchuk.android.wallet.components.upload
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.share.IntentSharingController
@@ -67,7 +66,7 @@ class UploadConfigurationActivity : BaseActivity<ActivityWalletUploadConfigurati
 
     private fun handleEvent(event: UploadConfigurationEvent) {
         when (event) {
-            is SetLoadingEvent -> binding.progress.isVisible = event.showLoading
+            is SetLoadingEvent -> if (event.showLoading) showLoading() else hideLoading()
             is ExportWalletSuccessEvent -> shareConfigurationFile(event.filePath)
             is UploadConfigurationError -> NCToastMessage(this).showWarning(event.message)
             is OpenDynamicQRScreen -> openDynamicQRScreen(event)

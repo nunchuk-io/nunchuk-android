@@ -1,4 +1,4 @@
-package com.nunchuk.android.wallet.components.confirm
+package com.nunchuk.android.wallet.components.review
 
 import android.content.Context
 import android.content.Intent
@@ -9,7 +9,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 
-data class WalletConfirmArgs(
+data class ReviewWalletArgs(
     val walletName: String,
     val walletType: WalletType,
     val addressType: AddressType,
@@ -18,7 +18,7 @@ data class WalletConfirmArgs(
     val remoteSigners: List<SingleSigner>
 ) : ActivityArgs {
 
-    override fun buildIntent(activityContext: Context) = Intent(activityContext, WalletConfirmActivity::class.java).apply {
+    override fun buildIntent(activityContext: Context) = Intent(activityContext, ReviewWalletActivity::class.java).apply {
         putExtra(EXTRA_WALLET_NAME, walletName)
         putExtra(EXTRA_WALLET_TYPE, walletType)
         putExtra(EXTRA_ADDRESS_TYPE, addressType)
@@ -35,7 +35,7 @@ data class WalletConfirmArgs(
         private const val EXTRA_MASTER_SIGNERS = "EXTRA_MASTER_SIGNERS"
         private const val EXTRA_REMOTE_SIGNERS = "EXTRA_REMOTE_SIGNERS"
 
-        fun deserializeFrom(intent: Intent): WalletConfirmArgs = WalletConfirmArgs(
+        fun deserializeFrom(intent: Intent): ReviewWalletArgs = ReviewWalletArgs(
             intent.extras.getStringValue(EXTRA_WALLET_NAME),
             intent.getSerializableExtra(EXTRA_WALLET_TYPE) as WalletType,
             intent.getSerializableExtra(EXTRA_ADDRESS_TYPE) as AddressType,

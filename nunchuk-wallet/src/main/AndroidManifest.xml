@@ -5,7 +5,7 @@
     <application>
         <activity
             android:name=".components.add.AddWalletActivity"
-            android:label="@string/nc_wallet_create_wallet_title"
+            android:label="@string/nc_wallet_add_wallet_title"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light"
             android:windowSoftInputMode="adjustResize" />
@@ -17,7 +17,7 @@
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
-            android:name=".components.confirm.WalletConfirmActivity"
+            android:name=".components.review.ReviewWalletActivity"
             android:label="@string/nc_wallet_review_wallet_title"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />

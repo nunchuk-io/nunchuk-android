@@ -26,51 +26,48 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/walletNameLabel"
+        style="@style/NCText.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
         android:text="@string/nc_wallet_wallet_name"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintEnd_toStartOf="@+id/walletName"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/walletName"
+        style="@style/NCText.Title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:fontTextStyle="semi_bold"
+        app:layout_constraintBottom_toBottomOf="@+id/walletNameLabel"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/walletNameLabel"
         tools:text="Nunchuk Fun Fund" />
 
     <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/multisigConfigutationLabel"
+        android:id="@+id/configurationLabel"
+        style="@style/NCText.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_text_size_16"
+        android:layout_marginTop="@dimen/nc_text_size_12"
         android:gravity="center_vertical"
-        android:text="@string/nc_wallet_multisig_configuration"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
-        app:layout_constraintEnd_toStartOf="@+id/multisigConfigutation"
+        android:text="@string/nc_wallet_configuration"
+        app:layout_constraintEnd_toStartOf="@+id/configuration"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/walletNameLabel" />
 
     <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/multisigConfigutation"
+        android:id="@+id/configuration"
+        style="@style/NCText.Title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_text_size_16"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:fontTextStyle="semi_bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/walletName"
@@ -84,17 +81,16 @@
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:background="#EAEAEA"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/multisigConfigutation" />
+        app:layout_constraintTop_toBottomOf="@+id/configuration" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/walletTypeLabel"
+        style="@style/NCText.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_text_size_16"
+        android:layout_marginTop="@dimen/nc_padding_24"
         android:text="@string/nc_wallet_wallet_type"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintEnd_toStartOf="@+id/walletType"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/topDivider" />
@@ -102,40 +98,38 @@
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/walletType"
         android:layout_width="0dp"
+        style="@style/NCText.Title"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_text_size_16"
         android:layout_marginStart="@dimen/nc_padding_16"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:fontTextStyle="semi_bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/topDivider"
+        app:layout_constraintTop_toTopOf="@+id/walletTypeLabel"
+        app:layout_constraintBottom_toBottomOf="@+id/walletTypeLabel"
         tools:text="Standard Wallet" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/addressTypeLabel"
+        style="@style/NCText.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_text_size_16"
         android:text="@string/nc_wallet_address_type"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintEnd_toStartOf="@+id/addressType"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/walletType" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/addressType"
+        style="@style/NCText.Title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_text_size_16"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:fontTextStyle="semi_bold"
+        app:layout_constraintBottom_toBottomOf="@+id/addressTypeLabel"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/walletType"
+        app:layout_constraintTop_toTopOf="@+id/addressTypeLabel"
         tools:text="Nested Segwit" />
 
     <View
@@ -150,14 +144,13 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/assignSignersHeader"
+        style="@style/NCText.Title.Small"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/nc_padding_16"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_24"
         android:padding="@dimen/nc_padding_4"
         android:text="@string/nc_wallet_assigned_signers"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_14"
         app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/middleDivider" />

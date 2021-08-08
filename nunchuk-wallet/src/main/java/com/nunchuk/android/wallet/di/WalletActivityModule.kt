@@ -8,8 +8,8 @@ import com.nunchuk.android.wallet.components.backup.BackupWalletActivity
 import com.nunchuk.android.wallet.components.backup.BackupWalletModule
 import com.nunchuk.android.wallet.components.config.WalletConfigActivity
 import com.nunchuk.android.wallet.components.config.WalletConfigModule
-import com.nunchuk.android.wallet.components.confirm.WalletConfirmActivity
-import com.nunchuk.android.wallet.components.confirm.WalletConfirmModule
+import com.nunchuk.android.wallet.components.review.ReviewWalletActivity
+import com.nunchuk.android.wallet.components.review.ReviewWalletModule
 import com.nunchuk.android.wallet.components.details.WalletDetailsActivity
 import com.nunchuk.android.wallet.components.details.WalletDetailsModule
 import com.nunchuk.android.wallet.components.intro.WalletEmptySignerActivity
@@ -30,8 +30,8 @@ internal interface WalletActivityModule {
     @ContributesAndroidInjector(modules = [ConfigureWalletModule::class])
     fun configureWalletActivity(): ConfigureWalletActivity
 
-    @ContributesAndroidInjector(modules = [WalletConfirmModule::class])
-    fun walletConfirmActivity(): WalletConfirmActivity
+    @ContributesAndroidInjector(modules = [ReviewWalletModule::class])
+    fun reviewWalletActivity(): ReviewWalletActivity
 
     @ContributesAndroidInjector(modules = [BackupWalletModule::class])
     fun backupWalletActivity(): BackupWalletActivity
