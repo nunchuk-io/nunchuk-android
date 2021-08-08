@@ -42,7 +42,7 @@
         app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
         <com.nunchuk.android.widget.NCFontTextView
-            android:id="@+id/multisigConfiguration"
+            android:id="@+id/configuration"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_16"
@@ -59,27 +59,27 @@
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/btcAmount"
+            style="@style/NCText.Heading"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/nc_padding_8"
             android:paddingHorizontal="@dimen/nc_padding_8"
             android:paddingVertical="@dimen/nc_padding_4"
             android:textColor="@color/nc_white_color"
-            android:textSize="@dimen/nc_text_size_24"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/multisigConfiguration"
+            app:layout_constraintTop_toBottomOf="@+id/configuration"
             tools:text="1.00000001 BTC" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/cashAmount"
+            style="@style/NCText.Body.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/nc_text_size_8"
             android:paddingHorizontal="@dimen/nc_padding_8"
             android:paddingVertical="@dimen/nc_padding_4"
             android:textColor="@color/nc_white_color"
-            android:textSize="@dimen/nc_text_size_14"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/btcAmount"
@@ -87,6 +87,7 @@
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/viewWalletConfig"
+            style="@style/NCText.Body"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/nc_padding_16"
@@ -94,7 +95,6 @@
             android:paddingVertical="@dimen/nc_padding_4"
             android:text="@string/nc_wallet_view_wallet_config"
             android:textColor="@color/nc_white_color"
-            android:textSize="@dimen/nc_text_size_16"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/cashAmount" />

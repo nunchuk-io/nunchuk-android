@@ -47,7 +47,7 @@
         tools:text="Nunchuk Fun Fund" />
 
     <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/multiSigConfiguration"
+        android:id="@+id/configuration"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:paddingVertical="@dimen/nc_padding_2"
@@ -72,7 +72,7 @@
         android:text="@string/nc_wallet_wallet_type"
         app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/multiSigConfiguration" />
+        app:layout_constraintTop_toBottomOf="@+id/configuration" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/walletType"

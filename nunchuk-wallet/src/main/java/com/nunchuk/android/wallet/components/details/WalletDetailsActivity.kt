@@ -11,11 +11,15 @@ import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.qr.convertToQRCode
 import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getUSDAmount
+import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import com.nunchuk.android.wallet.components.details.WalletDetailsOption.*
 import com.nunchuk.android.wallet.databinding.ActivityWalletDetailBinding
+import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.widget.NCToastMessage
 import javax.inject.Inject
 
@@ -82,8 +86,7 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
     private fun handleState(state: WalletDetailsState) {
         val wallet = state.wallet
 
-        val multisigConfiguration = "${wallet.getConfiguration()} ${getString(R.string.nc_wallet_multisig)}"
-        binding.multisigConfiguration.text = multisigConfiguration
+        binding.configuration.bindWalletConfiguration(wallet)
 
         binding.btcAmount.text = wallet.getBTCAmount()
         binding.cashAmount.text = wallet.getUSDAmount()

@@ -1,18 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.nunchuk.android.widget.NCFontTextView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/word"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_marginEnd="@dimen/nc_padding_16"
-    android:foreground="?android:attr/selectableItemBackground"
-    android:background="@drawable/nc_rounded_light_thin_background"
-    android:gravity="center"
-    android:padding="@dimen/nc_padding_14"
-    android:textColor="@color/nc_black_color"
-    android:textSize="@dimen/nc_text_size_16"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent"
-    tools:text="Computer" />
+    android:layout_marginEnd="@dimen/nc_padding_8"
+    app:cardCornerRadius="@dimen/nc_padding_8"
+    app:cardUseCompatPadding="true">
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/word"
+        style="@style/NCText.Body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:gravity="center"
+        android:paddingHorizontal="@dimen/nc_padding_12"
+        android:paddingVertical="@dimen/nc_padding_8"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Computer" />
+</androidx.cardview.widget.CardView>
+

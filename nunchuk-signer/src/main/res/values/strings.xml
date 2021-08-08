@@ -32,7 +32,7 @@
     <string name="nc_signer_before_start_device_unlock_content">Please enter the PIN to unlock the device. You might also need to enter a PASSPHRASE on-device, if PASSPHRASE is enabled.</string>
 
     <string name="nc_ssigner_title">Add a software signer</string>
-    <string name="nc_ssigner_new_seed_title">New wallet seed</string>
+    <string name="nc_ssigner_new_seed_title">New signer seed</string>
     <string name="nc_ssigner_new_seed">Create new seed</string>
     <string name="nc_ssigner_recover_seed">Recover existing seed</string>
     <string name="nc_ssigner_description">The private keys for this signer are stored and encrypted locally on this device. Please keep your device safe to prevent your signer from being compromised.</string>
@@ -40,7 +40,7 @@
     <string name="nc_ssigner_new_seed_warning">Never share recovery phrase with anyone. Without it you won’t be able to access your account. Avoid having a digital copy.</string>
 
     <string name="nc_ssigner_recover_seed_phrase">Your recovery phrase</string>
-    <string name="nc_ssigner_recover_seed_phrase_note">Please enter the seed words recovery mnemonic phrase. Separate each word with a single space only (No commas or any other punctuation)</string>
+    <string name="nc_ssigner_recover_seed_phrase_note">Please enter the mnemonic recovery phrase.</string>
 
     <string name="nc_ssigner_confirm_seed_title">Confirm recovery phrase</string>
     <string name="nc_ssigner_confirm_seed_note">Please confirm the recovery phrase</string>
@@ -57,4 +57,6 @@
 
     <string name="nc_signer_bad_ratio_not_recommend">It is not recommended for the software signers to have complete control of the wallet. Software signers are not as safe as hardware signers. Are you sure you want to proceed?</string>
     <string name="nc_signer_bad_ratio_recommend">It is recommended for the hardware signers to have complete control of the wallet. Software signers are not as safe as hardware signers. Are you sure you want to proceed?</string>
+    <string name="nc_signer_passphrase">Passphrase</string>
+    <string name="nc_signer_optional">(optional)</string>
 </resources>

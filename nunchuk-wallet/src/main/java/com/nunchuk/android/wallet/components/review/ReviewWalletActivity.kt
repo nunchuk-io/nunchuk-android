@@ -13,6 +13,7 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.components.config.SignersViewBinder
 import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.*
 import com.nunchuk.android.wallet.databinding.ActivityReviewWalletBinding
+import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -72,8 +73,10 @@ class ReviewWalletActivity : BaseActivity<ActivityReviewWalletBinding>() {
     private fun setupViews() {
         binding.walletName.text = args.walletName
         val signers = args.masterSigners.map(MasterSigner::toModel) + args.remoteSigners.map(SingleSigner::toModel)
-        val configuration = "${args.totalRequireSigns}/${signers.size}"
-        binding.configuration.text = configuration
+        binding.configuration.bindWalletConfiguration(
+            totalSigns = args.totalRequireSigns,
+            assignedSigns = signers.size
+        )
 
         binding.walletType.text = args.walletType.toReadableString(this)
         binding.addressType.text = args.addressType.toReadableString(this)

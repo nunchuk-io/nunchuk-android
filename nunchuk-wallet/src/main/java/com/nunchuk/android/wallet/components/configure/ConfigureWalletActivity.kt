@@ -11,9 +11,9 @@ import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
-import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.AssignSignerCompletedEvent
 import com.nunchuk.android.wallet.databinding.ActivityConfigureWalletBinding
+import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
@@ -71,10 +71,14 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>() {
     }
 
     private fun handleState(state: ConfigureWalletState) {
+        val totalRequireSigns = state.totalRequireSigns
+        val assignedSigns = state.selectedPFXs.size
         bindSigners(state.masterSigners.map(MasterSigner::toModel) + state.remoteSigners.map(SingleSigner::toModel), state.selectedPFXs)
-        bindTotalRequireSigns(state.totalRequireSigns)
-        val totalRequireSignsValue = "${state.totalRequireSigns}/${state.selectedPFXs.size} ${getString(R.string.nc_wallet_multisig)}"
-        binding.totalRequireSigns.text = totalRequireSignsValue
+        bindTotalRequireSigns(totalRequireSigns)
+        binding.totalRequireSigns.bindWalletConfiguration(
+            totalSigns = totalRequireSigns,
+            assignedSigns = assignedSigns
+        )
     }
 
     private fun bindTotalRequireSigns(totalRequireSigns: Int) {
