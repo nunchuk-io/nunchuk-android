@@ -51,6 +51,7 @@
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/beforeStart"
+                style="@style/NCText.Heading"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/nc_padding_16"
@@ -58,13 +59,13 @@
                 android:gravity="center"
                 android:paddingVertical="@dimen/nc_padding_8"
                 android:text="@string/nc_create_signer_before_you_start"
-                android:textColor="@color/nc_black_color"
-                android:textSize="@dimen/nc_text_size_24"
+                app:fontTextStyle="semi_bold"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/introImg" />
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/desc"
+                style="@style/NCText.Body"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/nc_padding_16"
@@ -72,8 +73,6 @@
                 android:gravity="center"
                 android:padding="@dimen/nc_padding_8"
                 android:text="@string/nc_create_signer_description"
-                android:textColor="@color/nc_black_color"
-                android:textSize="@dimen/nc_text_size_16"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/beforeStart" />
 
@@ -107,16 +106,15 @@
 
                     <com.nunchuk.android.widget.NCFontTextView
                         android:id="@+id/title"
+                        style="@style/NCText.Title"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginHorizontal="@dimen/nc_padding_8"
                         android:text="@string/nc_create_signer_title"
-                        android:textColor="@color/nc_black_color"
-                        android:textSize="@dimen/nc_text_size_16"
                         app:fontTextStyle="semi_bold"
+                        app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toStartOf="@+id/icArrow"
                         app:layout_constraintStart_toEndOf="@+id/icSplit"
-                        app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
                     <ImageView
@@ -161,12 +159,11 @@
 
                     <com.nunchuk.android.widget.NCFontTextView
                         android:id="@+id/sTitle"
+                        style="@style/NCText.Title"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginHorizontal="@dimen/nc_padding_16"
                         android:text="@string/nc_text_nunchuk_as_signer"
-                        android:textColor="@color/nc_black_color"
-                        android:textSize="@dimen/nc_text_size_16"
                         app:fontTextStyle="semi_bold"
                         app:layout_constraintEnd_toStartOf="@+id/icSArrow"
                         app:layout_constraintStart_toEndOf="@+id/icSSplit"
@@ -174,13 +171,12 @@
 
                     <com.nunchuk.android.widget.NCFontTextView
                         android:id="@+id/sSubtitle"
+                        style="@style/NCText.Body"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginHorizontal="@dimen/nc_padding_16"
                         android:layout_marginTop="@dimen/nc_padding_4"
                         android:text="@string/nc_text_ss_desc"
-                        android:textColor="@color/nc_black_color"
-                        android:textSize="@dimen/nc_text_size_16"
                         app:layout_constraintEnd_toStartOf="@+id/icSArrow"
                         app:layout_constraintStart_toEndOf="@+id/icSSplit"
                         app:layout_constraintTop_toBottomOf="@+id/sTitle" />

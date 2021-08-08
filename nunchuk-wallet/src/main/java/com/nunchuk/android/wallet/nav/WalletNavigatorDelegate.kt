@@ -8,12 +8,12 @@ import com.nunchuk.android.nav.WalletNavigator
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.components.add.AddWalletActivity
-import com.nunchuk.android.wallet.components.assign.AssignSignerActivity
+import com.nunchuk.android.wallet.components.configure.ConfigureWalletActivity
 import com.nunchuk.android.wallet.components.backup.BackupWalletActivity
 import com.nunchuk.android.wallet.components.config.WalletConfigActivity
 import com.nunchuk.android.wallet.components.confirm.WalletConfirmActivity
 import com.nunchuk.android.wallet.components.details.WalletDetailsActivity
-import com.nunchuk.android.wallet.components.intro.WalletIntroActivity
+import com.nunchuk.android.wallet.components.intro.WalletEmptySignerActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationActivity
 
 interface WalletNavigatorDelegate : WalletNavigator {
@@ -28,7 +28,7 @@ interface WalletNavigatorDelegate : WalletNavigator {
         walletType: WalletType,
         addressType: AddressType
     ) {
-        AssignSignerActivity.start(activityContext, walletName, walletType, addressType)
+        ConfigureWalletActivity.start(activityContext, walletName, walletType, addressType)
     }
 
     override fun openWalletConfirmScreen(
@@ -71,8 +71,8 @@ interface WalletNavigatorDelegate : WalletNavigator {
         WalletDetailsActivity.start(activityContext, walletId)
     }
 
-    override fun openWalletIntroScreen(activityContext: Context) {
-        WalletIntroActivity.start(activityContext)
+    override fun openWalletEmptySignerScreen(activityContext: Context) {
+        WalletEmptySignerActivity.start(activityContext)
     }
 
 }

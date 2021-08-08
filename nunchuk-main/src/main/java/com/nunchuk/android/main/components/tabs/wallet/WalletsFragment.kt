@@ -67,7 +67,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun openWalletIntroScreen() {
-        activity?.let(navigator::openWalletIntroScreen)
+        activity?.let(navigator::openWalletEmptySignerScreen)
     }
 
     private fun showWalletState(state: WalletsState) {

@@ -4,12 +4,12 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.wallet.databinding.ActivityWalletIntroBinding
+import com.nunchuk.android.wallet.databinding.ActivityWalletEmptySignerBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 
-class WalletIntroActivity : BaseActivity<ActivityWalletIntroBinding>() {
+class WalletEmptySignerActivity : BaseActivity<ActivityWalletEmptySignerBinding>() {
 
-    override fun initializeBinding() = ActivityWalletIntroBinding.inflate(layoutInflater)
+    override fun initializeBinding() = ActivityWalletEmptySignerBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,7 +30,7 @@ class WalletIntroActivity : BaseActivity<ActivityWalletIntroBinding>() {
     companion object {
 
         fun start(activityContext: Context) {
-            activityContext.startActivity(Intent(activityContext, WalletIntroActivity::class.java))
+            activityContext.startActivity(Intent(activityContext, WalletEmptySignerActivity::class.java))
         }
     }
 

@@ -21,42 +21,39 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/signerName"
+        style="@style/NCText.Body"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toEndOf="@+id/avatar"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Tom’s Trezor Model T" />
 
     <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/signerType"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_4"
-        android:background="@drawable/nc_rounded_whisper_background"
-        android:paddingHorizontal="@dimen/nc_padding_8"
-        android:paddingVertical="@dimen/nc_padding_4"
-        android:text="Air-gapped signer"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_12"
-        app:layout_constraintStart_toEndOf="@+id/avatar"
-        app:layout_constraintTop_toBottomOf="@+id/signerName" />
-
-    <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/xpf"
+        style="@style/NCText.Body.Small"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_4"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_14"
         app:layout_constraintStart_toEndOf="@+id/avatar"
-        app:layout_constraintTop_toBottomOf="@+id/signerType"
+        app:layout_constraintTop_toBottomOf="@+id/signerName"
         tools:text="XFP: 79EB35F4" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/signerType"
+        style="@style/NCText.Body.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_8"
+        android:background="@drawable/nc_rounded_whisper_background"
+        android:paddingHorizontal="@dimen/nc_padding_8"
+        android:text="@string/nc_signer_air_gapped"
+        app:fontTextStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/xpf"
+        app:layout_constraintStart_toEndOf="@+id/xpf"
+        app:layout_constraintTop_toTopOf="@+id/xpf" />
 
     <CheckBox
         android:id="@+id/checkbox"
@@ -70,21 +67,28 @@
         app:layout_constraintTop_toTopOf="@+id/avatar"
         tools:checked="true" />
 
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="avatar,xpf,signerType" />
+
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/warning"
+        style="@style/NCText.Body.Small"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_4"
         android:drawableStart="@drawable/ic_warn"
-        android:paddingHorizontal="@dimen/nc_padding_4"
         android:drawablePadding="@dimen/nc_padding_4"
+        android:paddingHorizontal="@dimen/nc_padding_4"
         android:paddingVertical="@dimen/nc_padding_4"
         android:text="@string/nc_wallet_signer_has_been_used_warning"
         android:textColor="@color/nc_beeswax_dark"
-        android:textSize="@dimen/nc_text_size_14"
         android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/xpf"
-        app:layout_goneMarginTop="@dimen/nc_padding_4"
+        app:layout_constraintTop_toBottomOf="@+id/barrier"
         tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
