@@ -34,29 +34,29 @@
         tools:text="Hugo Nguyen" />
 
     <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/email"
+        android:id="@+id/status"
+        style="@style/NCText.Body.Small"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_4"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_14"
+        android:background="@drawable/nc_rounded_whisper_background"
+        android:backgroundTint="#D0E2FF"
+        android:paddingHorizontal="@dimen/nc_padding_8"
+        android:text="@string/nc_contact_status_pending"
         app:layout_constraintStart_toEndOf="@+id/avatar"
-        app:layout_constraintTop_toBottomOf="@+id/name"
-        tools:text="hugonguyen@gmail.com" />
+        app:layout_constraintTop_toBottomOf="@+id/name" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/withdraw"
+        style="@style/NCText.Body"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/nc_padding_16"
-        android:text="Withdraw"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
+        android:text="@string/nc_contact_withdraw"
         app:fontTextStyle="semi_bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="Hugo Nguyen" />
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -108,15 +108,15 @@
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/walletEmpty"
+            style="@style/NCText.Body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/nc_padding_8"
             android:gravity="center"
             android:paddingVertical="@dimen/nc_padding_8"
             android:text="@string/nc_text_you_have_not_add_wallet"
-            android:textColor="@color/nc_black_color"
-            android:textSize="@dimen/nc_text_size_14"
-            android:visibility="gone" />
+            android:visibility="gone"
+            tools:visibility="visible" />
 
         <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/walletList"

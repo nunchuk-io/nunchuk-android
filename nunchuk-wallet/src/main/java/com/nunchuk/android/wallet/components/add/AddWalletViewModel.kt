@@ -25,6 +25,10 @@ internal class AddWalletViewModel @Inject constructor(
         updateState { copy(walletType = ESCROW) }
     }
 
+    fun setDefaultWalletType() {
+        updateState { copy(walletType = MULTI_SIG) }
+    }
+
     fun setDefaultAddressType() {
         updateState { copy(addressType = NESTED_SEGWIT) }
     }

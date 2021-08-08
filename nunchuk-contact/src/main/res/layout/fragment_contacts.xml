@@ -95,13 +95,12 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/empty"
+        style="@style/NCText.Body"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:paddingVertical="@dimen/nc_padding_4"
         android:text="@string/nc_contact_no_contact"
-        android:textColor="@color/nc_primary_color"
-        android:textSize="@dimen/nc_text_size_16"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -114,13 +113,12 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/pendingContacts"
         tools:listitem="@layout/item_contact"
         tools:visibility="gone" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <com.nunchuk.android.widget.NCMovableFloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

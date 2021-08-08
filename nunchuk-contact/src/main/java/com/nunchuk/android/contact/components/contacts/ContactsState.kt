@@ -9,5 +9,3 @@ data class ContactsState(val contacts: List<Contact>, val pendingContacts: List<
     }
 
 }
-
-sealed class ContactsEvent

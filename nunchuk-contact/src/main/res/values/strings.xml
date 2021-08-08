@@ -6,4 +6,7 @@
     <string name="nc_contact_pending">Pending</string>
     <string name="nc_contact_received">Received</string>
     <string name="nc_contact_sent">Sent</string>
+    <string name="nc_contact_withdraw">Withdraw</string>
+    <string name="nc_contact_status_pending">Pending</string>
+    <string name="nc_contact_requests">Requests</string>
 </resources>

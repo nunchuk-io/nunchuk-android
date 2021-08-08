@@ -106,7 +106,8 @@ class AddWalletActivity : BaseActivity<ActivityWalletAddBinding>() {
     private fun setupViews() {
         binding.walletName.getEditTextView().filters = arrayOf(LengthFilter(MAX_LENGTH))
 
-        binding.customizeAddressSwitch.setOnCheckedChangeListener { _, checked -> handleCustomizeCustomerChanged(checked) }
+        binding.customizeAddressSwitch.setOnCheckedChangeListener { _, checked -> handleCustomizeAddressChanged(checked) }
+        binding.customizeWalletTypeSwitch.setOnCheckedChangeListener { _, checked -> handleCustomizeWalletChanged(checked) }
 
         binding.standardWalletRadio.setOnCheckedChangeListener { _, checked -> if (checked) viewModel.setStandardWalletType() }
         binding.escrowWalletRadio.setOnCheckedChangeListener { _, checked -> if (checked) viewModel.setEscrowWalletType() }
@@ -122,12 +123,17 @@ class AddWalletActivity : BaseActivity<ActivityWalletAddBinding>() {
         }
     }
 
-    private fun handleCustomizeCustomerChanged(checked: Boolean) {
-        if (checked) {
-            binding.customizeAddressContainer.isVisible = true
-        } else {
+    private fun handleCustomizeAddressChanged(checked: Boolean) {
+        binding.customizeAddressContainer.isVisible = checked
+        if (!checked) {
             viewModel.setDefaultAddressType()
-            binding.customizeAddressContainer.isVisible = false
+        }
+    }
+
+    private fun handleCustomizeWalletChanged(checked: Boolean) {
+        binding.customizeWalletContainer.isVisible = checked
+        if (!checked) {
+            viewModel.setDefaultWalletType()
         }
     }
 
