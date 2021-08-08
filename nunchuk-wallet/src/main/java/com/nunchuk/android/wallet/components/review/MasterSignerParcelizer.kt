@@ -1,4 +1,4 @@
-package com.nunchuk.android.wallet.components.confirm
+package com.nunchuk.android.wallet.components.review
 
 import android.os.Parcelable
 import com.nunchuk.android.model.Device

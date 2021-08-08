@@ -17,7 +17,7 @@ interface WalletNavigator {
         addressType: AddressType
     )
 
-    fun openWalletConfirmScreen(
+    fun openReviewWalletScreen(
         activityContext: Context,
         walletName: String,
         walletType: WalletType,

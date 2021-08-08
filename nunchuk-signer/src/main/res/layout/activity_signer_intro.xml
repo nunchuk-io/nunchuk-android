@@ -109,7 +109,7 @@
                         style="@style/NCText.Title"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="@dimen/nc_padding_8"
+                        android:layout_marginHorizontal="@dimen/nc_padding_16"
                         android:text="@string/nc_create_signer_title"
                         app:fontTextStyle="semi_bold"
                         app:layout_constraintBottom_toBottomOf="parent"

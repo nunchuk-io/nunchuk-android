@@ -3,7 +3,6 @@ package com.nunchuk.android.wallet.components.backup
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.share.IntentSharingController
@@ -68,7 +67,7 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
 
     private fun handleEvent(event: BackupWalletEvent) {
         when (event) {
-            is SetLoadingEvent -> binding.progress.isVisible = event.showLoading
+            is SetLoadingEvent -> if (event.showLoading) showLoading() else hideLoading()
             is BackupDescriptorEvent -> shareDescriptor(event.descriptor)
             is SkipBackupWalletEvent -> navigator.openUploadConfigurationScreen(this, event.walletId)
         }

@@ -59,7 +59,7 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>() {
         masterSigners: List<MasterSigner>,
         remoteSigners: List<SingleSigner>
     ) {
-        navigator.openWalletConfirmScreen(
+        navigator.openReviewWalletScreen(
             activityContext = this,
             walletName = args.walletName,
             walletType = args.walletType,
