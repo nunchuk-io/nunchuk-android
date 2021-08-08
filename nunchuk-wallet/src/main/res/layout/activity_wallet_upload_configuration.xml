@@ -27,8 +27,8 @@
 
     <ImageView
         android:id="@+id/iconInfo"
-        android:layout_width="96dp"
-        android:layout_height="96dp"
+        android:layout_width="@dimen/nc_icon_large_size"
+        android:layout_height="@dimen/nc_icon_large_size"
         android:layout_marginTop="@dimen/nc_padding_44"
         android:background="@drawable/nc_circle_whisper_background"
         android:padding="@dimen/nc_padding_16"

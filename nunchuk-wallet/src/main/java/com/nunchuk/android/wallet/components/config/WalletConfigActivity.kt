@@ -6,7 +6,6 @@ import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.getConfiguration
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.type.WalletType
@@ -14,6 +13,7 @@ import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameSuccessEvent
 import com.nunchuk.android.wallet.databinding.ActivityWalletConfigBinding
+import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -54,8 +54,7 @@ class WalletConfigActivity : BaseActivity<ActivityWalletConfigBinding>() {
     private fun handleState(wallet: Wallet) {
         binding.walletName.text = wallet.name
 
-        val configuration = "${wallet.getConfiguration()} ${getString(R.string.nc_wallet_multisig)}"
-        binding.multiSigConfiguration.text = configuration
+        binding.configuration.bindWalletConfiguration(wallet)
 
         binding.walletType.text = (if (wallet.escrow) WalletType.ESCROW else WalletType.MULTI_SIG).toReadableString(this)
         binding.addressType.text = wallet.addressType.toReadableString(this)

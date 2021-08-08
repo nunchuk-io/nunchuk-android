@@ -9,11 +9,10 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/wordNum"
+        style="@style/NCText.Title.Small"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/nc_padding_8"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -21,6 +20,7 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/firstWord"
+        style="@style/NCText.Body"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_8"
@@ -28,9 +28,8 @@
         android:background="@drawable/nc_rounded_light_thin_background"
         android:gravity="center"
         android:paddingVertical="@dimen/nc_padding_14"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintEnd_toStartOf="@+id/leftGuideline"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/wordNum"
         tools:text="Computer" />
@@ -44,6 +43,7 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/secondWord"
+        style="@style/NCText.Body"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_8"
@@ -51,8 +51,6 @@
         android:background="@drawable/nc_rounded_light_thin_background"
         android:gravity="center"
         android:paddingVertical="@dimen/nc_padding_14"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
         app:layout_constraintStart_toEndOf="@+id/leftGuideline"
         app:layout_constraintTop_toBottomOf="@+id/wordNum"
@@ -67,6 +65,7 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/thirdWord"
+        style="@style/NCText.Body"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_8"
@@ -74,8 +73,6 @@
         android:background="@drawable/nc_rounded_light_thin_background"
         android:gravity="center"
         android:paddingVertical="@dimen/nc_padding_14"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/rightGuideline"
         app:layout_constraintTop_toBottomOf="@+id/wordNum"

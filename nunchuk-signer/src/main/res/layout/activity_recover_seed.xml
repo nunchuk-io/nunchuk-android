@@ -25,29 +25,41 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/desc"
+        style="@style/NCText.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="@dimen/nc_padding_16"
         android:paddingVertical="@dimen/nc_padding_8"
         android:text="@string/nc_ssigner_recover_seed_phrase_note"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/mnemonicLabel"
+        style="@style/NCText.Body.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        android:layout_marginEnd="@dimen/nc_padding_16"
+        android:padding="@dimen/nc_padding_4"
+        android:text="@string/nc_ssigner_recover_seed_phrase"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/desc" />
 
     <com.nunchuk.android.widget.NCEditTextView
         android:id="@+id/mnemonic"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_8"
         app:edit_gravity="top"
-        app:edit_title="@string/nc_ssigner_recover_seed_phrase"
         app:edit_title_color="@color/nc_black_color"
         app:errorEnabled="true"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/desc" />
+        app:layout_constraintTop_toBottomOf="@+id/mnemonicLabel" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"

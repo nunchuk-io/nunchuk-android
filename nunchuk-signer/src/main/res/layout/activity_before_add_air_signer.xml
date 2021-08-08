@@ -25,8 +25,8 @@
 
     <ImageView
         android:id="@+id/icNote"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="@dimen/nc_icon_large_size"
+        android:layout_height="@dimen/nc_icon_large_size"
         android:layout_marginTop="@dimen/nc_padding_24"
         android:background="@drawable/nc_circle_whisper_background"
         android:padding="@dimen/nc_padding_16"
@@ -37,6 +37,7 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/note"
+        style="@style/NCText.Body"
         android:gravity="center"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -44,8 +45,6 @@
         android:layout_marginTop="@dimen/nc_padding_24"
         android:paddingVertical="@dimen/nc_padding_8"
         android:text="@string/nc_signer_before_start_note"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/icNote" />
 
@@ -66,6 +65,7 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/initTitle"
+        style="@style/NCText.Title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
@@ -79,13 +79,13 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/initContent"
+        style="@style/NCText.Body"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_8"
         android:layout_marginEnd="@dimen/nc_padding_16"
         android:text="@string/nc_signer_before_start_initialize_content"
-        android:textColor="#323E4A"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/initNum"
         app:layout_constraintTop_toBottomOf="@+id/initTitle" />
@@ -106,27 +106,27 @@
         app:layout_constraintTop_toBottomOf="@+id/initContent" />
 
     <com.nunchuk.android.widget.NCFontTextView
-        android:layout_width="0dp"
         android:id="@+id/unlockTitle"
+        style="@style/NCText.Title"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_24"
         android:gravity="center"
         android:text="@string/nc_signer_before_start_device_unlock"
-        android:textColor="@color/nc_black_color"
         app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toEndOf="@+id/initNum"
         app:layout_constraintTop_toBottomOf="@+id/initContent" />
 
     <com.nunchuk.android.widget.NCFontTextView
-        android:layout_width="0dp"
         android:id="@+id/unlockContent"
+        style="@style/NCText.Body"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_8"
         android:layout_marginEnd="@dimen/nc_padding_16"
         android:text="@string/nc_signer_before_start_device_unlock_content"
-        android:textColor="#323E4A"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/initNum"
         app:layout_constraintTop_toBottomOf="@+id/unlockTitle" />

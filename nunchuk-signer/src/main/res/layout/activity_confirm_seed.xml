@@ -26,14 +26,13 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/note"
+        style="@style/NCText.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_24"
         android:paddingVertical="@dimen/nc_padding_8"
         android:text="@string/nc_ssigner_confirm_seed_note"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
