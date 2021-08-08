@@ -29,6 +29,13 @@ data class ErrorResponse(
 
 class NunchukApiException(val code: Int = 0, override val message: String = "Unknown error") : Exception(message)
 
-fun NunchukApiException.accountExisted() = code == -100
+fun NunchukApiException.accountExisted() = code == ApiErrorCode.ACCOUNT_EXISTED
+
+fun NunchukApiException.isUnauthorized() = code == ApiErrorCode.UNAUTHORIZED
+
+object ApiErrorCode {
+    const val ACCOUNT_EXISTED = -100
+    const val UNAUTHORIZED = 401
+}
 
 

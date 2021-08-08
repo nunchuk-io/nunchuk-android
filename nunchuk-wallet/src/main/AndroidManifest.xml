@@ -11,8 +11,8 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
-            android:name=".components.assign.AssignSignerActivity"
-            android:label="@string/nc_wallet_assign_signer_title"
+            android:name=".components.configure.ConfigureWalletActivity"
+            android:label="@string/nc_wallet_configure_title"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
@@ -53,7 +53,7 @@
             android:theme="@style/NunchukNoActionBar.Dark" />
 
         <activity
-            android:name=".components.intro.WalletIntroActivity"
+            android:name=".components.intro.WalletEmptySignerActivity"
             android:label="@string/nc_wallet_add_a_wallet"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Dark" />

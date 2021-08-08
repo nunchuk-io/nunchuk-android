@@ -25,11 +25,10 @@
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/signerName"
+            style="@style/NCText.Body"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_16"
-            android:textColor="@color/nc_black_color"
-            android:textSize="@dimen/nc_text_size_16"
             app:fontTextStyle="semi_bold"
             app:layout_constraintStart_toEndOf="@+id/icPin"
             app:layout_constraintTop_toTopOf="parent"
@@ -37,28 +36,24 @@
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/signerType"
+            style="@style/NCText.Body.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/nc_padding_16"
-            android:layout_marginTop="@dimen/nc_padding_8"
+            android:layout_marginTop="@dimen/nc_padding_4"
             android:background="@drawable/nc_rounded_whisper_background"
             android:paddingHorizontal="@dimen/nc_padding_8"
-            android:paddingVertical="@dimen/nc_padding_4"
-            android:text="@string/nc_signer_type_air_gapped"
-            android:textColor="@color/nc_black_color"
-            android:textSize="@dimen/nc_text_size_14"
-            app:layout_constraintStart_toEndOf="@+id/icPin"
+            android:text="@string/nc_signer_air_gapped"
+            app:fontTextStyle="bold"
+            app:layout_constraintStart_toStartOf="@+id/signerName"
             app:layout_constraintTop_toBottomOf="@+id/signerName" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/xpf"
+            style="@style/NCText.Body.Small"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/nc_padding_16"
-            android:layout_marginTop="@dimen/nc_padding_8"
-            android:textColor="@color/nc_black_color"
-            android:textSize="@dimen/nc_text_size_14"
-            app:layout_constraintStart_toEndOf="@+id/icPin"
+            android:layout_marginTop="@dimen/nc_padding_4"
+            app:layout_constraintStart_toStartOf="@+id/signerName"
             app:layout_constraintTop_toBottomOf="@+id/signerType"
             tools:text="XFP: 79EB35F4" />
 

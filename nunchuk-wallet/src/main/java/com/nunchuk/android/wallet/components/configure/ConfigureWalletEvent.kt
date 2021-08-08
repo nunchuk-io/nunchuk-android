@@ -1,17 +1,17 @@
-package com.nunchuk.android.wallet.components.assign
+package com.nunchuk.android.wallet.components.configure
 
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 
-sealed class AssignSignerEvent {
+sealed class ConfigureWalletEvent {
     data class AssignSignerCompletedEvent(
         val totalRequireSigns: Int = 0,
         val masterSigners: List<MasterSigner>,
         val remoteSigners: List<SingleSigner>
-    ) : AssignSignerEvent()
+    ) : ConfigureWalletEvent()
 }
 
-data class AssignSignerState(
+data class ConfigureWalletState(
     val totalRequireSigns: Int = 0,
     val masterSigners: List<MasterSigner> = emptyList(),
     val remoteSigners: List<SingleSigner> = emptyList(),

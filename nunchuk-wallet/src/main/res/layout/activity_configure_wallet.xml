@@ -21,76 +21,8 @@
             style="@style/NCToolbar.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/nc_wallet_assign_signer_title" />
+            android:text="@string/nc_wallet_configure_title" />
     </androidx.appcompat.widget.Toolbar>
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/requiredSignerLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/nc_padding_16"
-        android:padding="@dimen/nc_padding_4"
-        android:text="@string/nc_wallet_required_signers"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
-        app:fontTextStyle="semi_bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/requiredSignerDesc"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/nc_padding_16"
-        android:padding="@dimen/nc_padding_4"
-        android:text="@string/nc_wallet_required_signer_desc"
-        android:textColor="#757575"
-        android:textSize="@dimen/nc_text_size_12"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/requiredSignerLabel" />
-
-    <ImageView
-        android:id="@+id/iconMinus"
-        android:layout_width="@dimen/nc_padding_28"
-        android:layout_height="@dimen/nc_padding_28"
-        android:layout_marginEnd="@dimen/nc_padding_8"
-        android:background="@drawable/nc_circle_dark_stroke_background"
-        android:padding="@dimen/nc_padding_8"
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_minus"
-        app:layout_constraintBottom_toBottomOf="@+id/requiredSignerDesc"
-        app:layout_constraintEnd_toStartOf="@id/requiredSingerCounter"
-        app:layout_constraintTop_toTopOf="@+id/requiredSignerLabel" />
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/requiredSingerCounter"
-        android:layout_width="@dimen/nc_padding_32"
-        android:layout_height="@dimen/nc_padding_32"
-        android:layout_marginEnd="@dimen/nc_padding_8"
-        android:background="@drawable/nc_edit_text_bg"
-        android:gravity="center"
-        android:inputType="number"
-        android:maxLength="4"
-        android:minWidth="@dimen/nc_padding_30"
-        android:textColor="@color/nc_primary_color"
-        android:textSize="@dimen/nc_text_size_14"
-        app:layout_constraintBottom_toBottomOf="@id/iconPlus"
-        app:layout_constraintEnd_toStartOf="@id/iconPlus"
-        app:layout_constraintTop_toTopOf="@id/iconPlus"
-        tools:text="2" />
-
-    <ImageView
-        android:id="@+id/iconPlus"
-        android:layout_width="@dimen/nc_padding_28"
-        android:layout_height="@dimen/nc_padding_28"
-        android:layout_marginEnd="@dimen/nc_padding_16"
-        android:background="@drawable/nc_circle_dark_stroke_background"
-        android:padding="@dimen/nc_padding_6"
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_plus"
-        app:layout_constraintBottom_toBottomOf="@+id/requiredSignerDesc"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/requiredSignerLabel" />
 
     <View
         android:id="@+id/divider"
@@ -98,22 +30,21 @@
         android:layout_height="1dp"
         android:layout_marginTop="@dimen/nc_padding_16"
         android:background="#EAEAEA"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/requiredSignerDesc" />
+        app:layout_constraintBottom_toTopOf="@+id/requireSignerContainer"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/assignSignerDesc"
+        style="@style/NCText.Title.Small"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
         android:padding="@dimen/nc_padding_4"
         android:text="@string/nc_wallet_assign_signer_desc"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_14"
         app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/divider" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -123,7 +54,7 @@
         android:fillViewport="true"
         android:fitsSystemWindows="true"
         android:paddingBottom="@dimen/nc_padding_4"
-        app:layout_constraintBottom_toTopOf="@+id/totalRequireSignsContainer"
+        app:layout_constraintBottom_toTopOf="@+id/requireSignerContainer"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/assignSignerDesc">
 
@@ -133,6 +64,80 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" />
     </androidx.core.widget.NestedScrollView>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/requireSignerContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/totalRequireSignsContainer"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/requiredSignerLabel"
+            style="@style/NCText.Body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/nc_padding_16"
+            android:padding="@dimen/nc_padding_4"
+            android:text="@string/nc_wallet_required_signers"
+            app:fontTextStyle="semi_bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/requiredSignerDesc"
+            style="@style/NCText.Title.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/nc_padding_16"
+            android:padding="@dimen/nc_padding_4"
+            android:text="@string/nc_wallet_required_signer_desc"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/requiredSignerLabel" />
+
+        <ImageView
+            android:id="@+id/iconMinus"
+            android:layout_width="@dimen/nc_padding_28"
+            android:layout_height="@dimen/nc_padding_28"
+            android:layout_marginEnd="@dimen/nc_padding_8"
+            android:background="@drawable/nc_circle_dark_stroke_background"
+            android:padding="@dimen/nc_padding_8"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_minus"
+            app:layout_constraintBottom_toBottomOf="@+id/requiredSignerDesc"
+            app:layout_constraintEnd_toStartOf="@id/requiredSingerCounter"
+            app:layout_constraintTop_toTopOf="@+id/requiredSignerLabel" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/requiredSingerCounter"
+            android:layout_width="@dimen/nc_padding_32"
+            android:layout_height="@dimen/nc_padding_32"
+            android:layout_marginEnd="@dimen/nc_padding_8"
+            android:background="@drawable/nc_edit_text_bg"
+            android:gravity="center"
+            android:inputType="number"
+            android:maxLength="4"
+            android:minWidth="@dimen/nc_padding_30"
+            android:textColor="@color/nc_primary_color"
+            android:textSize="@dimen/nc_text_size_14"
+            app:layout_constraintBottom_toBottomOf="@id/iconPlus"
+            app:layout_constraintEnd_toStartOf="@id/iconPlus"
+            app:layout_constraintTop_toTopOf="@id/iconPlus"
+            tools:text="2" />
+
+        <ImageView
+            android:id="@+id/iconPlus"
+            android:layout_width="@dimen/nc_padding_28"
+            android:layout_height="@dimen/nc_padding_28"
+            android:layout_marginEnd="@dimen/nc_padding_16"
+            android:background="@drawable/nc_circle_dark_stroke_background"
+            android:padding="@dimen/nc_padding_6"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_plus"
+            app:layout_constraintBottom_toBottomOf="@+id/requiredSignerDesc"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/requiredSignerLabel" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <LinearLayout
         android:id="@+id/totalRequireSignsContainer"
@@ -147,23 +152,21 @@
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/currentConfig"
+            style="@style/NCText.Title.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="@dimen/nc_padding_4"
-            android:text="@string/nc_wallet_your_current_config"
-            android:textColor="@color/nc_black_color"
-            android:textSize="@dimen/nc_text_size_14" />
+            android:text="@string/nc_wallet_your_current_config" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/totalRequireSigns"
+            style="@style/NCText.Title.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/nc_rounded_whisper_background"
             android:paddingHorizontal="@dimen/nc_text_size_12"
             android:paddingVertical="@dimen/nc_padding_2"
             android:text="@string/nc_wallet_multisig"
-            android:textColor="@color/nc_black_color"
-            android:textSize="@dimen/nc_text_size_14"
             tools:text="2/3 Multisig" />
     </LinearLayout>
 

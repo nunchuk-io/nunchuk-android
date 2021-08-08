@@ -1,21 +1,21 @@
-package com.nunchuk.android.wallet.components.assign
+package com.nunchuk.android.wallet.components.configure
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.usecase.GetMasterSignersUseCase
 import com.nunchuk.android.usecase.GetRemoteSignersUseCase
-import com.nunchuk.android.wallet.components.assign.AssignSignerEvent.AssignSignerCompletedEvent
+import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.AssignSignerCompletedEvent
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-internal class AssignSignerViewModel @Inject constructor(
+internal class ConfigureWalletViewModel @Inject constructor(
     private val getMasterSignersUseCase: GetMasterSignersUseCase,
     private val getRemoteSignersUseCase: GetRemoteSignersUseCase
-) : NunchukViewModel<AssignSignerState, AssignSignerEvent>() {
+) : NunchukViewModel<ConfigureWalletState, ConfigureWalletEvent>() {
 
-    override val initialState = AssignSignerState()
+    override val initialState = ConfigureWalletState()
 
     fun init() {
         updateState { initialState }

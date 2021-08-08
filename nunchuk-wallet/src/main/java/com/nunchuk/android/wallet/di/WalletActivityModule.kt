@@ -2,8 +2,8 @@ package com.nunchuk.android.wallet.di
 
 import com.nunchuk.android.wallet.components.add.AddWalletActivity
 import com.nunchuk.android.wallet.components.add.AddWalletModule
-import com.nunchuk.android.wallet.components.assign.AssignSignerActivity
-import com.nunchuk.android.wallet.components.assign.AssignSignerModule
+import com.nunchuk.android.wallet.components.configure.ConfigureWalletActivity
+import com.nunchuk.android.wallet.components.configure.ConfigureWalletModule
 import com.nunchuk.android.wallet.components.backup.BackupWalletActivity
 import com.nunchuk.android.wallet.components.backup.BackupWalletModule
 import com.nunchuk.android.wallet.components.config.WalletConfigActivity
@@ -12,7 +12,7 @@ import com.nunchuk.android.wallet.components.confirm.WalletConfirmActivity
 import com.nunchuk.android.wallet.components.confirm.WalletConfirmModule
 import com.nunchuk.android.wallet.components.details.WalletDetailsActivity
 import com.nunchuk.android.wallet.components.details.WalletDetailsModule
-import com.nunchuk.android.wallet.components.intro.WalletIntroActivity
+import com.nunchuk.android.wallet.components.intro.WalletEmptySignerActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationModule
 import dagger.Module
@@ -22,13 +22,13 @@ import dagger.android.ContributesAndroidInjector
 internal interface WalletActivityModule {
 
     @ContributesAndroidInjector
-    fun walletIntroActivity(): WalletIntroActivity
+    fun walletEmptySignerActivity(): WalletEmptySignerActivity
 
     @ContributesAndroidInjector(modules = [AddWalletModule::class])
     fun addWalletActivity(): AddWalletActivity
 
-    @ContributesAndroidInjector(modules = [AssignSignerModule::class])
-    fun assignSignerActivity(): AssignSignerActivity
+    @ContributesAndroidInjector(modules = [ConfigureWalletModule::class])
+    fun configureWalletActivity(): ConfigureWalletActivity
 
     @ContributesAndroidInjector(modules = [WalletConfirmModule::class])
     fun walletConfirmActivity(): WalletConfirmActivity

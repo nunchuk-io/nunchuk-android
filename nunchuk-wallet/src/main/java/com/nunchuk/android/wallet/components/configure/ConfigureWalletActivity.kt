@@ -1,4 +1,4 @@
-package com.nunchuk.android.wallet.components.assign
+package com.nunchuk.android.wallet.components.configure
 
 import android.content.Context
 import android.os.Bundle
@@ -12,21 +12,21 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.R
-import com.nunchuk.android.wallet.components.assign.AssignSignerEvent.AssignSignerCompletedEvent
-import com.nunchuk.android.wallet.databinding.ActivityWalletAssignSignerBinding
+import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.AssignSignerCompletedEvent
+import com.nunchuk.android.wallet.databinding.ActivityConfigureWalletBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
-class AssignSignerActivity : BaseActivity<ActivityWalletAssignSignerBinding>() {
+class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
 
-    private val args: AssignSignerArgs by lazy { AssignSignerArgs.deserializeFrom(intent) }
+    private val args: ConfigureWalletArgs by lazy { ConfigureWalletArgs.deserializeFrom(intent) }
 
-    private val viewModel: AssignSignerViewModel by viewModels { factory }
+    private val viewModel: ConfigureWalletViewModel by viewModels { factory }
 
-    override fun initializeBinding() = ActivityWalletAssignSignerBinding.inflate(layoutInflater)
+    override fun initializeBinding() = ActivityConfigureWalletBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,7 +44,7 @@ class AssignSignerActivity : BaseActivity<ActivityWalletAssignSignerBinding>() {
         viewModel.state.observe(this, ::handleState)
     }
 
-    private fun handleEvent(event: AssignSignerEvent) {
+    private fun handleEvent(event: ConfigureWalletEvent) {
         when (event) {
             is AssignSignerCompletedEvent -> openWalletConfirmScreen(
                 totalRequireSigns = event.totalRequireSigns,
@@ -54,7 +54,11 @@ class AssignSignerActivity : BaseActivity<ActivityWalletAssignSignerBinding>() {
         }
     }
 
-    private fun openWalletConfirmScreen(totalRequireSigns: Int, masterSigners: List<MasterSigner>, remoteSigners: List<SingleSigner>) {
+    private fun openWalletConfirmScreen(
+        totalRequireSigns: Int,
+        masterSigners: List<MasterSigner>,
+        remoteSigners: List<SingleSigner>
+    ) {
         navigator.openWalletConfirmScreen(
             activityContext = this,
             walletName = args.walletName,
@@ -66,7 +70,7 @@ class AssignSignerActivity : BaseActivity<ActivityWalletAssignSignerBinding>() {
         )
     }
 
-    private fun handleState(state: AssignSignerState) {
+    private fun handleState(state: ConfigureWalletState) {
         bindSigners(state.masterSigners.map(MasterSigner::toModel) + state.remoteSigners.map(SingleSigner::toModel), state.selectedPFXs)
         bindTotalRequireSigns(state.totalRequireSigns)
         val totalRequireSignsValue = "${state.totalRequireSigns}/${state.selectedPFXs.size} ${getString(R.string.nc_wallet_multisig)}"
@@ -94,7 +98,7 @@ class AssignSignerActivity : BaseActivity<ActivityWalletAssignSignerBinding>() {
     companion object {
 
         fun start(activityContext: Context, walletName: String, walletType: WalletType, addressType: AddressType) {
-            activityContext.startActivity(AssignSignerArgs(walletName, walletType, addressType).buildIntent(activityContext))
+            activityContext.startActivity(ConfigureWalletArgs(walletName, walletType, addressType).buildIntent(activityContext))
         }
     }
 

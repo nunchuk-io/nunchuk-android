@@ -1,4 +1,4 @@
-package com.nunchuk.android.wallet.components.assign
+package com.nunchuk.android.wallet.components.configure
 
 import android.view.ViewGroup
 import androidx.core.view.get

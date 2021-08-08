@@ -19,7 +19,7 @@
     </style>
 
     <style name="NCText.Title.Small" parent="NCText.Title">
-        <item name="android:textSize">@dimen/nc_text_size_14</item>
+        <item name="android:textSize">@dimen/nc_text_size_12</item>
     </style>
 
     <style name="NCText.Body" parent="NCText">
@@ -27,8 +27,7 @@
     </style>
 
     <style name="NCText.Body.Small" parent="NCText.Body">
-        <item name="android:textSize">@dimen/nc_text_size_14</item>
-        <item name="android:textColor">@color/nc_grey_dark_color</item>
+        <item name="android:textSize">@dimen/nc_text_size_12</item>
     </style>
 
 </resources>

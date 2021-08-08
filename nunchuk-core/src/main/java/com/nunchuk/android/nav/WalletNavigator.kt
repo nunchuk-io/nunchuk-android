@@ -37,5 +37,5 @@ interface WalletNavigator {
 
     fun openWalletDetailsScreen(activityContext: Context, walletId: String)
 
-    fun openWalletIntroScreen(activityContext: Context)
+    fun openWalletEmptySignerScreen(activityContext: Context)
 }

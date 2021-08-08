@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="nc_create_signer_title">Add an air-gapped signer</string>
+    <string name="nc_create_signer_title">Add air-gapped signer</string>
     <string name="nc_add_signer_title">Add a signer</string>
     <string name="nc_text_signer_info">Signer Info</string>
     <string name="nc_error_invalid_signer_spec">Invalid Signer Spec</string>
@@ -21,7 +21,7 @@
     <string name="nc_text_signer_name">Signer name</string>
     <string name="nc_text_signer_spec">Signer spec (Master key fingerprint)</string>
     <string name="nc_text_add_signer">Add Signer</string>
-    <string name="nc_text_nunchuk_as_signer">Use Nunchuk as a software signer</string>
+    <string name="nc_text_nunchuk_as_signer">Add software signer</string>
     <string name="nc_text_ss_desc">The software signer is managed by the app.</string>
 
     <string name="nc_signer_before_start_title">Before you start</string>
