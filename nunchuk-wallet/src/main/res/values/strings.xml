@@ -2,7 +2,8 @@
 <resources>
     <string name="nc_wallet_add_wallet_title">Add a wallet</string>
     <string name="nc_wallet_wallet_name">Wallet name</string>
-    <string name="nc_wallet_wallet_type">Customize wallet type</string>
+    <string name="nc_wallet_wallet_type">Wallet type</string>
+    <string name="nc_wallet_customize_wallet_type">Customize wallet type</string>
     <string name="nc_wallet_standard_wallet">Standard wallet</string>
 
     <string name="nc_wallet_escrow_wallet">Escrow wallet</string>
@@ -22,7 +23,7 @@
 
     <string name="nc_wallet_configure_title">Configure wallet</string>
     <string name="nc_wallet_default">Default</string>
-    <string name="nc_wallet_your_current_config">Your wallet config</string>
+    <string name="nc_wallet_your_current_config">Current wallet config</string>
     <string name="nc_wallet_multisig">Multisig</string>
     <string name="nc_wallet_assign_signer_desc">Assign at least 1 signer to the wallet.</string>
     <string name="nc_wallet_required_signer_desc">Number of Signatures \nRequired to Unlock Funds</string>

@@ -13,8 +13,11 @@ data class Data<out T>(
     val data: T
         get() {
             if (_data != null) return _data
-            if (_error != null) {
-                throw NunchukApiException(_error.code, _error.message)
+            _error?.apply {
+                if (code == ApiErrorCode.UNAUTHORIZED) {
+                    UnauthorizedEventBus.instance().publish()
+                }
+                throw NunchukApiException(code, message)
             }
             throw NunchukApiException()
         }
@@ -30,8 +33,6 @@ data class ErrorResponse(
 class NunchukApiException(val code: Int = 0, override val message: String = "Unknown error") : Exception(message)
 
 fun NunchukApiException.accountExisted() = code == ApiErrorCode.ACCOUNT_EXISTED
-
-fun NunchukApiException.isUnauthorized() = code == ApiErrorCode.UNAUTHORIZED
 
 object ApiErrorCode {
     const val ACCOUNT_EXISTED = -100
