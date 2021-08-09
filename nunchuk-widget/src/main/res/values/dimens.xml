@@ -21,6 +21,9 @@
     <dimen name="nc_padding_32">32dp</dimen>
     <dimen name="nc_padding_44">44dp</dimen>
     <dimen name="nc_padding_48">48dp</dimen>
+    <dimen name="nc_padding_56">56dp</dimen>
+    <dimen name="nc_padding_64">64dp</dimen>
+    <dimen name="nc_padding_72">72dp</dimen>
 
     <dimen name="nc_text_size_8">8sp</dimen>
     <dimen name="nc_text_size_9">9sp</dimen>
