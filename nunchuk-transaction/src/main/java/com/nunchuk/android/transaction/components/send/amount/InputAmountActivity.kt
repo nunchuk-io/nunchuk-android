@@ -57,7 +57,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             viewModel.handleContinueEvent()
         }
         binding.amountBTC.text = args.availableAmount.getBTCAmount()
-        binding.amountUSD.text = args.availableAmount.getUSDAmount()
+        binding.amountUSD.text = "(${args.availableAmount.getUSDAmount()})"
     }
 
     private fun openAddReceiptScreen(outputAmount: Double) {

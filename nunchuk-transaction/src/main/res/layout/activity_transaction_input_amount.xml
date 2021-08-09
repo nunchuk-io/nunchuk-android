@@ -70,28 +70,27 @@
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/secondaryCurrency"
+            style="@style/NCText.Body.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/nc_padding_4"
-            android:textColor="@color/nc_primary_dark_color"
-            android:textSize="@dimen/nc_text_size_14"
             tools:text="$0 USD" />
     </LinearLayout>
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btnSendAll"
+        style="@style/NCText.Body.Small"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:foreground="?android:attr/selectableItemBackground"
         android:padding="@dimen/nc_padding_16"
         android:text="@string/nc_transaction_send_all"
-        android:textColor="@color/nc_primary_dark_color"
-        android:textSize="@dimen/nc_text_size_14"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/currencyContainer" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btnSwitch"
+        style="@style/NCText.Body.Small"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:drawableStart="@drawable/ic_switch"
@@ -99,35 +98,43 @@
         android:foreground="?android:attr/selectableItemBackground"
         android:padding="@dimen/nc_padding_16"
         android:text="@string/nc_transaction_switch_to_btc"
-        android:textColor="@color/nc_primary_dark_color"
-        android:textSize="@dimen/nc_text_size_14"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/currencyContainer" />
 
     <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/amountBTC"
+        android:id="@+id/balanceLabel"
+        style="@style/NCText.Title.Small"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_24"
-        android:textColor="@color/nc_primary_dark_color"
-        android:textSize="@dimen/nc_text_size_16"
+        android:text="@string/nc_transaction_balance"
         app:fontTextStyle="semi_bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnSendAll"
+        app:layout_constraintTop_toBottomOf="@+id/btnSendAll" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/amountBTC"
+        style="@style/NCText.Body.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/balanceLabel"
         tools:text="$0.001 BTC" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/amountUSD"
+        style="@style/NCText.Body.Small"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_4"
-        android:textColor="@color/nc_primary_dark_color"
-        android:textSize="@dimen/nc_text_size_14"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/amountBTC"
-        tools:text="$50.00 USD" />
+        tools:text="($50.00 USD)" />
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnContinue"

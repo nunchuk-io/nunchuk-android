@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.arch.R
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.network.UnauthorizedEventBus
 import com.nunchuk.android.nav.NunchukNavigator
@@ -23,6 +24,9 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity(), HasAnd
 
     @Inject
     lateinit var navigator: NunchukNavigator
+
+    @Inject
+    lateinit var accountManager: AccountManager
 
     private lateinit var creator: NCLoadingDialogCreator
 
@@ -46,6 +50,7 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity(), HasAnd
     override fun onResume() {
         super.onResume()
         UnauthorizedEventBus.instance().subscribe {
+            accountManager.signOut()
             navigator.openSignInScreen(this)
         }
     }

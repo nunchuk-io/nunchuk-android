@@ -38,6 +38,7 @@ class NetworkModule @Inject constructor() {
         .readTimeout(HTTP_READ_TIMEOUT, TimeUnit.SECONDS)
         .addInterceptor(loggingInterceptor)
         .addInterceptor(headerInterceptor)
+        .addInterceptor(unauthorizedInterceptor)
         .build()
 
     @Provides
