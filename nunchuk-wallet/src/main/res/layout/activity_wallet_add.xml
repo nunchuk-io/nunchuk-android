@@ -121,7 +121,6 @@
             android:layout_marginEnd="@dimen/nc_text_size_16"
             android:background="@drawable/nc_rounded_whisper_inverted_background"
             android:paddingHorizontal="@dimen/nc_padding_16"
-            android:paddingVertical="@dimen/nc_padding_4"
             android:text="@string/nc_wallet_default"
             app:fontTextStyle="semi_bold"
             app:layout_constraintBottom_toBottomOf="@+id/standardWalletType"
@@ -145,7 +144,7 @@
             style="@style/NCText.Body"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/nc_text_size_16"
-            android:layout_marginTop="@dimen/nc_padding_16"
+            android:layout_marginTop="@dimen/nc_padding_8"
             android:text="@string/nc_wallet_escrow_wallet"
             app:layout_constraintEnd_toStartOf="@+id/standardWalletRadio"
             app:layout_constraintStart_toStartOf="parent"
@@ -224,11 +223,10 @@
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/nativeSegwitType"
             style="@style/NCText.Body"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/nc_padding_16"
             android:text="@string/nc_wallet_native_segwit_wallet"
-            app:layout_constraintEnd_toStartOf="@+id/nativeSegwitRadio"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -251,6 +249,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/nc_padding_16"
             android:buttonTint="@color/nc_black_color"
+            android:checked="true"
             app:layout_constraintBottom_toBottomOf="@+id/nativeSegwitDesc"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/nativeSegwitType" />
@@ -263,8 +262,6 @@
             android:layout_marginHorizontal="@dimen/nc_padding_16"
             android:layout_marginTop="@dimen/nc_padding_8"
             android:text="@string/nc_wallet_nested_segwit_wallet"
-            android:textColor="@color/nc_black_color"
-            android:textSize="@dimen/nc_text_size_16"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/nativeSegwitDesc" />
 
@@ -277,12 +274,11 @@
             android:layout_marginEnd="@dimen/nc_text_size_16"
             android:background="@drawable/nc_rounded_whisper_inverted_background"
             android:paddingHorizontal="@dimen/nc_padding_16"
-            android:paddingVertical="@dimen/nc_padding_4"
             android:text="@string/nc_wallet_default"
             app:fontTextStyle="semi_bold"
-            app:layout_constraintBottom_toBottomOf="@+id/nestedSegwitType"
-            app:layout_constraintStart_toEndOf="@+id/nestedSegwitType"
-            app:layout_constraintTop_toTopOf="@+id/nestedSegwitType" />
+            app:layout_constraintBottom_toBottomOf="@+id/nativeSegwitType"
+            app:layout_constraintStart_toEndOf="@+id/nativeSegwitType"
+            app:layout_constraintTop_toTopOf="@+id/nativeSegwitType" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/nestedSegwitDesc"
@@ -303,7 +299,6 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/nc_padding_16"
             android:buttonTint="@color/nc_black_color"
-            android:checked="true"
             app:layout_constraintBottom_toBottomOf="@+id/nestedSegwitType"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/nestedSegwitDesc" />
