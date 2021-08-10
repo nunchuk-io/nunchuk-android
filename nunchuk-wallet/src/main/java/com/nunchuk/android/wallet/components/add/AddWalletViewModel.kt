@@ -30,7 +30,7 @@ internal class AddWalletViewModel @Inject constructor(
     }
 
     fun setDefaultAddressType() {
-        updateState { copy(addressType = NESTED_SEGWIT) }
+        updateState { copy(addressType = NATIVE_SEGWIT) }
     }
 
     fun setNestedAddressType() {
