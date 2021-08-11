@@ -58,7 +58,7 @@ internal class SplashActivity : BaseActivity<ActivitySplashBinding>() {
             !isPermissionGranted(WRITE_EXTERNAL_STORAGE) -> {
                 ActivityCompat.requestPermissions(this, arrayOf(WRITE_EXTERNAL_STORAGE), REQUEST_PERMISSION_CODE)
             }
-            else -> viewModel.initFlow()
+            else -> viewModel.handleNavigation()
         }
     }
 

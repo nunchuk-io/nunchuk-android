@@ -1,32 +1,27 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.AppSettings
-import com.nunchuk.android.model.Result
-import com.nunchuk.android.model.Result.Error
-import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.type.Chain
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 const val URL_TEMPLATE = "https://blockstream.info/%1s/tx/%2s"
 
 interface GetBlockchainExplorerUrlUseCase {
-    suspend fun execute(txId: String): Result<String>
+    fun execute(txId: String): Flow<String>
 }
 
 internal class GetBlockchainExplorerUrlUseCaseImpl @Inject constructor(
     private val appSettingsUseCase: GetAppSettingsUseCase
-) : BaseUseCase(), GetBlockchainExplorerUrlUseCase {
+) : GetBlockchainExplorerUrlUseCase {
 
-    override suspend fun execute(txId: String) = exe {
-        when (val result = appSettingsUseCase.execute()) {
-            is Success -> formatUrl(result, txId)
-            is Error -> throw Exception(result.exception)
-        }
-    }
+    override fun execute(txId: String) = appSettingsUseCase.execute().map { formatUrl(it, txId) }
 
     private fun formatUrl(
-        result: Success<AppSettings>,
+        settings: AppSettings,
         txId: String
-    ) = String.format(URL_TEMPLATE, (if (result.data.chain == Chain.TESTNET) "testnet" else "main"), txId)
+    ) = String.format(URL_TEMPLATE, (if (settings.chain == Chain.TESTNET) "testnet" else "main"), txId)
 
 }
+

@@ -7,18 +7,20 @@ import com.nunchuk.android.auth.domain.GetCurrentUserUseCase
 import com.nunchuk.android.auth.domain.LoginWithMatrixUseCase
 import com.nunchuk.android.auth.domain.SignInUseCase
 import com.nunchuk.android.auth.validator.doAfterValidate
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.util.process
+import com.nunchuk.android.usecase.InitNunchukUseCase
 import com.nunchuk.android.utils.EmailValidator
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.*
+import org.matrix.android.sdk.api.session.Session
 import javax.inject.Inject
 
 internal class SignInViewModel @Inject constructor(
     private val signInUseCase: SignInUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
-    private val loginWithMatrixUseCase: LoginWithMatrixUseCase
+    private val loginWithMatrixUseCase: LoginWithMatrixUseCase,
+    private val initNunchukUseCase: InitNunchukUseCase,
+    private val accountManager: AccountManager
 ) : NunchukViewModel<Unit, SignInEvent>() {
 
     private var staySignedIn = true
@@ -40,35 +42,34 @@ internal class SignInViewModel @Inject constructor(
         val isEmailValid = validateEmail(email)
         val isPasswordValid = validatePassword(password)
         if (isEmailValid && isPasswordValid) {
-            event(ProcessingEvent)
-            process({
-                signInUseCase.execute(email = email, password = password, staySignedIn = staySignedIn)
-            }, ::getCurrentUser, {
-                event(SignInErrorEvent(it.message))
-            })
+            signInUseCase.execute(email = email, password = password, staySignedIn = staySignedIn)
+                .onStart { event(ProcessingEvent) }
+                .catch { event(SignInErrorEvent(it.message)) }
+                .flatMapConcat { getCurrentUser(it) }
+                .onEach { event(SignInSuccessEvent) }
+                .launchIn(viewModelScope)
         }
     }
 
-    private fun getCurrentUser(token: String) {
-        process(getCurrentUserUseCase::execute, { loginWithMatrix(it, token) }, {
-            event(SignInErrorEvent(it.message))
-        })
+    private fun getCurrentUser(token: String): Flow<Unit> {
+        return getCurrentUserUseCase.execute()
+            .flatMapConcat { loginWithMatrix(it, token) }
+            .flatMapConcat { initNunchuk() }
     }
 
-    private fun loginWithMatrix(userName: String, password: String) {
-        viewModelScope.launch {
-            loginWithMatrixUseCase.execute(userName, password)
-                .catch {
-                    event(SignInErrorEvent(it.message))
+    private fun initNunchuk(): Flow<Unit> {
+        val account = accountManager.getAccount()
+        return initNunchukUseCase.execute(account.email, account.chatId)
+    }
+
+    private fun loginWithMatrix(userName: String, password: String): Flow<Session> {
+        return loginWithMatrixUseCase.execute(userName, password)
+            .onEach {
+                SessionHolder.currentSession = it.apply {
+                    open()
+                    startSync(true)
                 }
-                .collect {
-                    event(SignInSuccessEvent)
-                    SessionHolder.currentSession = it.apply {
-                        open()
-                        startSync(true)
-                    }
-                }
-        }
+            }
     }
 
     fun storeStaySignedIn(staySignedIn: Boolean) {

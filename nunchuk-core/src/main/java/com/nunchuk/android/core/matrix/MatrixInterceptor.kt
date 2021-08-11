@@ -7,7 +7,7 @@ import org.matrix.android.sdk.api.session.Session
 import javax.inject.Inject
 
 interface MatrixInterceptor {
-    suspend fun login(username: String, password: String): Flow<Session>
+    fun login(username: String, password: String): Flow<Session>
 }
 
 internal class MatrixInterceptorImpl @Inject constructor(
@@ -15,7 +15,7 @@ internal class MatrixInterceptorImpl @Inject constructor(
     private val headerProvider: HeaderProvider
 ) : MatrixInterceptor {
 
-    override suspend fun login(username: String, password: String) = flow {
+    override fun login(username: String, password: String) = flow {
         emit(
             matrixProvider.getMatrix()
                 .authenticationService()

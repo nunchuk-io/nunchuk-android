@@ -1,13 +1,17 @@
 package com.nunchuk.android.auth.data
 
 import com.nunchuk.android.auth.api.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface AuthRepository {
 
     suspend fun register(name: String, email: String): UserTokenResponse
 
-    suspend fun login(email: String, password: String): UserTokenResponse
+    fun login(email: String, password: String): Flow<UserTokenResponse>
 
     suspend fun changePassword(oldPassword: String, newPassword: String)
 
@@ -15,7 +19,7 @@ interface AuthRepository {
 
     suspend fun forgotPassword(email: String)
 
-    suspend fun me(): UserResponse
+    fun me(): Flow<UserResponse>
 }
 
 internal class AuthRepositoryImpl @Inject constructor(
@@ -27,10 +31,10 @@ internal class AuthRepositoryImpl @Inject constructor(
         return authApi.register(payload).data
     }
 
-    override suspend fun login(email: String, password: String): UserTokenResponse {
+    override fun login(email: String, password: String) = flow {
         val payload = SignInPayload(email = email, password = password)
-        return authApi.signIn(payload).data
-    }
+        emit(authApi.signIn(payload).data)
+    }.flowOn(Dispatchers.IO)
 
     override suspend fun changePassword(oldPassword: String, newPassword: String) {
         val payload = ChangePasswordPayload(oldPassword = oldPassword, newPassword = newPassword)
@@ -46,6 +50,8 @@ internal class AuthRepositoryImpl @Inject constructor(
         authApi.forgotPassword(ForgotPasswordPayload(email))
     }
 
-    override suspend fun me() = authApi.me().data.user
+    override fun me() = flow {
+        emit(authApi.me().data.user)
+    }.flowOn(Dispatchers.IO)
 
 }
