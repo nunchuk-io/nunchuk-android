@@ -15,6 +15,8 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.usecase.*
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -102,12 +104,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun handleViewBlockchainEvent() {
-        viewModelScope.launch {
-            when (val result = getBlockchainExplorerUrlUseCase.execute(txId)) {
-                is Success -> event(ViewBlockchainExplorer(result.data))
-                is Error -> event(TransactionDetailsError(result.exception.message.orEmpty()))
-            }
-        }
+        getBlockchainExplorerUrlUseCase.execute(txId)
+            .catch { event(TransactionDetailsError(it.message.orEmpty())) }
+            .onEach { event(ViewBlockchainExplorer(it)) }
+            .launchIn(viewModelScope)
     }
 
     fun handleMenuMoreEvent() {

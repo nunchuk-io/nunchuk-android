@@ -8,14 +8,14 @@ import org.matrix.android.sdk.api.session.Session
 import javax.inject.Inject
 
 interface LoginWithMatrixUseCase {
-    suspend fun execute(userName: String, password: String): Flow<Session>
+    fun execute(userName: String, password: String): Flow<Session>
 }
 
 internal class LoginWithMatrixUseCaseImpl @Inject constructor(
     private val interceptor: MatrixInterceptor
 ) : LoginWithMatrixUseCase {
 
-    override suspend fun execute(
+    override fun execute(
         userName: String,
         password: String
     ) = interceptor.login(userName, password).map {

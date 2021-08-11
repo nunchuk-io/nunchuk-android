@@ -3,16 +3,17 @@ package com.nunchuk.android.auth.domain
 import com.nunchuk.android.auth.api.UserTokenResponse
 import com.nunchuk.android.auth.data.AuthRepository
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.usecase.BaseUseCase
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 interface SignInUseCase {
-    suspend fun execute(
+    fun execute(
         email: String,
         password: String,
         staySignedIn: Boolean = true
-    ): Result<String>
+    ): Flow<String>
 }
 
 internal class SignInUseCaseImpl @Inject constructor(
@@ -20,15 +21,14 @@ internal class SignInUseCaseImpl @Inject constructor(
     private val accountManager: AccountManager
 ) : BaseUseCase(), SignInUseCase {
 
-    override suspend fun execute(email: String, password: String, staySignedIn: Boolean) = exe {
-        val tokenResponse = authRepository.login(
-            email = email,
-            password = password
-        ).apply { storeAccount(email, this, staySignedIn) }
-        tokenResponse.tokenId
+    override fun execute(email: String, password: String, staySignedIn: Boolean) = authRepository.login(
+        email = email,
+        password = password
+    ).map {
+        storeAccount(email, it, staySignedIn)
     }
 
-    private fun storeAccount(email: String, response: UserTokenResponse, staySignedIn: Boolean) {
+    private fun storeAccount(email: String, response: UserTokenResponse, staySignedIn: Boolean): String {
         val account = accountManager.getAccount()
         accountManager.storeAccount(
             account.copy(
@@ -38,6 +38,7 @@ internal class SignInUseCaseImpl @Inject constructor(
                 staySignedIn = staySignedIn
             )
         )
+        return response.tokenId
     }
 
 }

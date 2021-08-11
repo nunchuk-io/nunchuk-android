@@ -2,24 +2,23 @@ package com.nunchuk.android.auth.domain
 
 import com.nunchuk.android.auth.data.AuthRepository
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.model.Result
-import com.nunchuk.android.usecase.BaseUseCase
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 interface GetCurrentUserUseCase {
-    suspend fun execute(): Result<String>
+    fun execute(): Flow<String>
 }
 
 internal class GetCurrentUserUseCaseImpl @Inject constructor(
     private val accountManager: AccountManager,
     private val authRepository: AuthRepository,
-) : BaseUseCase(), GetCurrentUserUseCase {
+) : GetCurrentUserUseCase {
 
-    override suspend fun execute() = exe {
-        val userResponse = authRepository.me()
-        userResponse.chatId.apply {
-            accountManager.storeAccount(accountManager.getAccount().copy(chatId = this, name = userResponse.name))
+    override fun execute() = authRepository.me()
+        .map {
+            it.chatId.apply {
+                accountManager.storeAccount(accountManager.getAccount().copy(chatId = this, name = it.name))
+            }
         }
-    }
-
 }
