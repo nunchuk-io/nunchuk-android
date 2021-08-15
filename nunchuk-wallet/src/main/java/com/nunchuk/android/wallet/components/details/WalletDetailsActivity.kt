@@ -86,6 +86,7 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
     private fun handleState(state: WalletDetailsState) {
         val wallet = state.wallet
 
+        binding.toolbarTitle.text = wallet.name
         binding.configuration.bindWalletConfiguration(wallet)
 
         binding.btcAmount.text = wallet.getBTCAmount()

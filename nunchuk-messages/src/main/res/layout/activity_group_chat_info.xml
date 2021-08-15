@@ -30,22 +30,33 @@
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:layout_marginTop="@dimen/nc_padding_24"
-        android:background="@drawable/nc_circle_whisper_background"
+        android:background="@drawable/nc_circle_beeswax_light_background"
         android:gravity="center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        tools:text="HT" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/badge"
+        style="@style/NCText.Body.Small"
+        android:layout_width="@dimen/nc_padding_24"
+        android:layout_height="@dimen/nc_padding_24"
+        android:background="@drawable/nc_circle_dark_background"
+        android:gravity="center"
+        android:textColor="@color/nc_white_color"
+        app:layout_constraintBottom_toBottomOf="@+id/avatarHolder"
+        app:layout_constraintEnd_toEndOf="@+id/avatarHolder"
+        tools:text="5" />
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/avatar"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_marginTop="@dimen/nc_padding_24"
-        android:visibility="invisible"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_members"
+        app:layout_constraintBottom_toBottomOf="@+id/avatarHolder"
+        app:layout_constraintEnd_toEndOf="@+id/avatarHolder"
+        app:layout_constraintStart_toStartOf="@+id/avatarHolder"
+        app:layout_constraintTop_toTopOf="@+id/avatarHolder" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/name"
@@ -59,7 +70,7 @@
         android:maxLines="2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/avatar"
+        app:layout_constraintTop_toBottomOf="@+id/avatarHolder"
         tools:text="Khoa Pham, Hugo Nguyen, Ace Le, Hung Tran, Tung Cong, Chi Le, Hugo Android" />
 
     <com.nunchuk.android.widget.NCFontTextView

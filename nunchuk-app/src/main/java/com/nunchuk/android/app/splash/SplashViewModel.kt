@@ -6,9 +6,11 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.usecase.InitNunchukUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class SplashViewModel @Inject constructor(
@@ -20,10 +22,13 @@ internal class SplashViewModel @Inject constructor(
 
     private fun initFlow() {
         val account = accountManager.getAccount()
-        initNunchukUseCase.execute(account.email, account.chatId)
-            .catch { event(InitErrorEvent(it.message.orUnknownError())) }
-            .onEach { event(NavHomeScreenEvent) }
-            .launchIn(viewModelScope)
+        viewModelScope.launch {
+            initNunchukUseCase.execute(account.email, account.chatId)
+                .flowOn(Dispatchers.IO)
+                .catch { event(InitErrorEvent(it.message.orUnknownError())) }
+                .flowOn(Dispatchers.Main)
+                .collect { event(NavHomeScreenEvent) }
+        }
     }
 
     fun handleNavigation() {

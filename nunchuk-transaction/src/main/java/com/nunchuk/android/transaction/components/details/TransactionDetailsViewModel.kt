@@ -13,10 +13,8 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
 import com.nunchuk.android.usecase.*
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -105,8 +103,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun handleViewBlockchainEvent() {
         getBlockchainExplorerUrlUseCase.execute(txId)
+            .flowOn(Dispatchers.IO)
             .catch { event(TransactionDetailsError(it.message.orEmpty())) }
             .onEach { event(ViewBlockchainExplorer(it)) }
+            .flowOn(Dispatchers.Main)
             .launchIn(viewModelScope)
     }
 

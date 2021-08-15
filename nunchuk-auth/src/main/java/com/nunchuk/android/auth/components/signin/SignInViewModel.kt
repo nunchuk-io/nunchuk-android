@@ -11,6 +11,7 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.usecase.InitNunchukUseCase
 import com.nunchuk.android.utils.EmailValidator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import org.matrix.android.sdk.api.session.Session
 import javax.inject.Inject
@@ -43,10 +44,12 @@ internal class SignInViewModel @Inject constructor(
         val isPasswordValid = validatePassword(password)
         if (isEmailValid && isPasswordValid) {
             signInUseCase.execute(email = email, password = password, staySignedIn = staySignedIn)
+                .flowOn(Dispatchers.IO)
                 .onStart { event(ProcessingEvent) }
                 .catch { event(SignInErrorEvent(it.message)) }
                 .flatMapConcat { getCurrentUser(it) }
                 .onEach { event(SignInSuccessEvent) }
+                .flowOn(Dispatchers.Main)
                 .launchIn(viewModelScope)
         }
     }

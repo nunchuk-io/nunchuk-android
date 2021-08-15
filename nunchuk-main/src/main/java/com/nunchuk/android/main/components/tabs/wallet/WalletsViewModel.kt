@@ -7,8 +7,10 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.usecase.GetMasterSignersUseCase
 import com.nunchuk.android.usecase.GetRemoteSignersUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -33,10 +35,12 @@ internal class WalletsViewModel @Inject constructor(
     private fun getRemoteSigners() {
         viewModelScope.launch {
             getRemoteSignersUseCase.execute()
+                .flowOn(Dispatchers.IO)
                 .catch {
                     updateState { copy(signers = emptyList()) }
                     Log.e(TAG, "get signers error: ${it.message}")
                 }
+                .flowOn(Dispatchers.Main)
                 .collect { updateState { copy(signers = it) } }
         }
     }
@@ -44,10 +48,12 @@ internal class WalletsViewModel @Inject constructor(
     private fun getMasterSigners() {
         viewModelScope.launch {
             getMasterSignersUseCase.execute()
+                .flowOn(Dispatchers.IO)
                 .catch {
                     updateState { copy(signers = emptyList()) }
                     Log.e(TAG, "get signers error: ${it.message}")
                 }
+                .flowOn(Dispatchers.Main)
                 .collect { updateState { copy(masterSigners = it) } }
         }
     }
@@ -55,10 +61,12 @@ internal class WalletsViewModel @Inject constructor(
     private fun getWallets() {
         viewModelScope.launch {
             getWalletsUseCase.execute()
+                .flowOn(Dispatchers.IO)
                 .catch {
                     updateState { copy(wallets = emptyList()) }
                     Log.e(TAG, "get wallets error: ${it.message}")
                 }
+                .flowOn(Dispatchers.Main)
                 .collect { updateState { copy(wallets = it) } }
         }
     }

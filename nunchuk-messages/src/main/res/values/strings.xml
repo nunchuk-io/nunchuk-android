@@ -7,8 +7,8 @@
     <string name="nc_message_group_chat_info">Group chat Info</string>
     <string name="nc_message_chat_info">Chat Info</string>
     <string name="nc_message_mute_conversation">Mute conversation</string>
-    <string name="nc_message_more_option">More Option</string>
-    <string name="nc_message_create_shared_wallet">Create shared wallet</string>
+    <string name="nc_message_more_option">More \nOption</string>
+    <string name="nc_message_create_shared_wallet">Create \nshared \nwallet</string>
     <string name="nc_message_edit_group_name">Edit group name</string>
     <string name="nc_message_add_members">Add members</string>
     <string name="nc_message_leave_group">Leave group</string>
