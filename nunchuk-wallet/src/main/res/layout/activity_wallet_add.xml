@@ -76,7 +76,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_4"
-        android:text="@string/nc_wallet_default_address_type"
+        android:text="@string/nc_wallet_default_wallet_type"
         android:textColor="@color/nc_grey_dark_color"
         app:layout_constraintEnd_toStartOf="@+id/customizeWalletTypeSwitch"
         app:layout_constraintStart_toStartOf="parent"

@@ -9,7 +9,9 @@ import com.nunchuk.android.messages.components.create.CreateRoomEvent.CreateRoom
 import com.nunchuk.android.messages.usecase.message.CreateRoomUseCase
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.share.GetContactsUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import java.util.*
@@ -71,12 +73,10 @@ class CreateRoomViewModel @Inject constructor(
         val userIds = receipts.map(Contact::chatId)
 
         createRoomUseCase.execute(roomName, userIds)
-            .catch {
-                event(CreateRoomErrorEvent(it.message.orEmpty()))
-            }
-            .onEach {
-                event(CreateRoomSuccessEvent(it.roomId))
-            }
+            .flowOn(Dispatchers.IO)
+            .catch { event(CreateRoomErrorEvent(it.message.orEmpty())) }
+            .onEach { event(CreateRoomSuccessEvent(it.roomId)) }
+            .flowOn(Dispatchers.Main)
             .launchIn(viewModelScope)
 
     }

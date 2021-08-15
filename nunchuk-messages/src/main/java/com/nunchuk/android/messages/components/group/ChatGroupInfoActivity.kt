@@ -5,12 +5,12 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.messages.components.group.ChatGroupInfoEvent.*
 import com.nunchuk.android.messages.components.group.ChatGroupInfoOption.*
 import com.nunchuk.android.messages.components.group.action.AddMembersBottomSheet
 import com.nunchuk.android.messages.components.group.action.EditGroupNameBottomSheet
 import com.nunchuk.android.messages.databinding.ActivityGroupChatInfoBinding
+import com.nunchuk.android.messages.util.getMembersCount
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
@@ -75,10 +75,10 @@ class ChatGroupInfoActivity : BaseActivity<ActivityGroupChatInfoBinding>() {
     private fun handleState(state: ChatGroupInfoState) {
         state.summary?.let {
             binding.name.text = it.name
-            binding.avatarHolder.text = it.name.shorten()
-            val count = it.joinedMembersCount?.or(0)
+            val count = it.getMembersCount()
             binding.membersCountTop.text = "$count Members"
             binding.members.text = "Members ($count)"
+            binding.badge.text = "$count"
         }
     }
 

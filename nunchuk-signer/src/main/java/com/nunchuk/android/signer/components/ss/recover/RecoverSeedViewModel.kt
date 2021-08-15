@@ -9,7 +9,9 @@ import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.signer.components.ss.recover.RecoverSeedEvent.*
 import com.nunchuk.android.usecase.CheckMnemonicUseCase
 import com.nunchuk.android.usecase.GetBip39WordListUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -66,10 +68,10 @@ internal class RecoverSeedViewModel @Inject constructor(
 
     private fun checkMnemonic(mnemonic: String) {
         checkMnemonicUseCase.execute(mnemonic)
+            .flowOn(Dispatchers.IO)
             .catch { event(InvalidMnemonicEvent) }
-            .onEach {
-                event(ValidMnemonicEvent(mnemonic))
-            }
+            .onEach { event(ValidMnemonicEvent(mnemonic)) }
+            .flowOn(Dispatchers.Main)
             .launchIn(viewModelScope)
     }
 

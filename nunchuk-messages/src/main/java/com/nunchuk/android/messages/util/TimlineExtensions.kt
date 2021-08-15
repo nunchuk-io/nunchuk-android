@@ -36,7 +36,7 @@ fun Room.isDirectRoom(): Boolean {
 fun Room.getRoomInfo(currentName: String): RoomInfo {
     val roomSummary: RoomSummary? = roomSummary()
     return if (roomSummary != null) {
-        RoomInfo(roomSummary.getRoomName(currentName), roomSummary.joinedMembersCount ?: 0)
+        RoomInfo(roomSummary.getRoomName(currentName), roomSummary.getMembersCount())
     } else {
         RoomInfo.empty()
     }
@@ -63,3 +63,5 @@ fun TimelineEvent.toMessage(chatId: String) = Message(
     content = root.getClearContent().toModel<MessageContent>()?.body.orEmpty(),
     type = if (chatId == senderInfo.userId) MessageType.CHAT_MINE.index else MessageType.CHAT_PARTNER.index
 )
+
+fun RoomSummary.getMembersCount() = otherMemberIds.size + 1
