@@ -85,6 +85,8 @@ dependencies {
     implementation project(':nunchuk-network')
     implementation project(':nunchuk-signer')
     implementation project(':nunchuk-wallet')
+    implementation project(':nunchuk-wallet-personal')
+    implementation project(':nunchuk-wallet-shared')
     implementation project(':nunchuk-widget')
     implementation project(':nunchuk-transaction')
     implementation project(':nunchuk-messages')

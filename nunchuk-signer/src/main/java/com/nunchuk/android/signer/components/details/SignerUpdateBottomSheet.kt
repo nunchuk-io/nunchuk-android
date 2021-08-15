@@ -9,6 +9,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.arch.args.FragmentArgs
 import com.nunchuk.android.core.base.BaseBottomSheet
+import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.signer.databinding.DialogUpdateSignerBottomSheetBinding
 import com.nunchuk.android.widget.util.addTextChangedCallback
 
@@ -30,6 +31,7 @@ class SignerUpdateBottomSheet : BaseBottomSheet<DialogUpdateSignerBottomSheetBin
     private fun setupViews() {
         val editSignerName: AppCompatEditText = binding.editSignerName
         editSignerName.text?.append(args.signerName)
+        binding.btnSave.setUnderline()
 
         editSignerName.addTextChangedCallback {
             binding.btnSave.isVisible = it.isNotEmpty()
