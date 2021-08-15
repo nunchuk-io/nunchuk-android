@@ -1,20 +1,24 @@
 package com.nunchuk.android.wallet.nav
 
+import android.app.Activity
 import android.content.Context
 import com.nunchuk.android.core.qr.DynamicQRCodeActivity
+import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.WalletNavigator
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.components.add.AddWalletActivity
-import com.nunchuk.android.wallet.components.configure.ConfigureWalletActivity
 import com.nunchuk.android.wallet.components.backup.BackupWalletActivity
 import com.nunchuk.android.wallet.components.config.WalletConfigActivity
-import com.nunchuk.android.wallet.components.review.ReviewWalletActivity
+import com.nunchuk.android.wallet.components.configure.ConfigureWalletActivity
 import com.nunchuk.android.wallet.components.details.WalletDetailsActivity
 import com.nunchuk.android.wallet.components.intro.WalletEmptySignerActivity
+import com.nunchuk.android.wallet.components.review.ReviewWalletActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationActivity
+import com.nunchuk.android.wallet.shared.components.configure.ConfigureSharedWalletActivity
+import com.nunchuk.android.wallet.shared.components.create.CreateSharedWalletActivity
 
 interface WalletNavigatorDelegate : WalletNavigator {
 
@@ -73,6 +77,30 @@ interface WalletNavigatorDelegate : WalletNavigator {
 
     override fun openWalletEmptySignerScreen(activityContext: Context) {
         WalletEmptySignerActivity.start(activityContext)
+    }
+
+    override fun openCreateSharedWalletScreen(activityContext: Context) {
+        CreateSharedWalletActivity.start(activityContext)
+    }
+
+    override fun openConfigureSharedWalletScreen(
+        activityContext: Context,
+        walletName: String,
+        walletType: WalletType,
+        addressType: AddressType
+    ) {
+        ConfigureSharedWalletActivity.start(activityContext, walletName, walletType, addressType)
+    }
+
+    override fun openReviewSharedWalletScreen(
+        activityContext: Context,
+        walletName: String,
+        walletType: WalletType,
+        addressType: AddressType,
+        totalSigns: Int,
+        requireSigns: Int
+    ) {
+        (activityContext as Activity).showToast("Coming soon")
     }
 
 }

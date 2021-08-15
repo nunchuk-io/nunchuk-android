@@ -5,7 +5,9 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.text.SpannableString
 import android.text.style.UnderlineSpan
+import android.widget.Button
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import com.nunchuk.android.core.R
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.type.TransactionStatus.*
@@ -34,4 +36,16 @@ fun TransactionStatus.toDisplayedText(context: Context) = when (this) {
     PENDING_CONFIRMATION -> context.getString(R.string.nc_transaction_pending_confirmation)
     REPLACED -> context.getString(R.string.nc_transaction_replaced)
     CONFIRMED -> context.getString(R.string.nc_transaction_confirmed)
+}
+
+fun Button.bindEnableState(enable: Boolean) {
+    isEnabled = enable
+    isClickable = enable
+    if (enable) {
+        background = ContextCompat.getDrawable(context, R.drawable.nc_rounded_dark_background)
+        setTextColor(ContextCompat.getColor(context, R.color.nc_white_color))
+    } else {
+        background = ContextCompat.getDrawable(context, R.drawable.nc_rounded_whisper_disable_background)
+        setTextColor(ContextCompat.getColor(context, R.color.nc_grey_dark_color))
+    }
 }

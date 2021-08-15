@@ -8,6 +8,7 @@ dependencies {
     implementation project(':nunchuk-contact')
     implementation project(':nunchuk-domain')
     implementation project(':nunchuk-wallet')
+    implementation project(':nunchuk-wallet-core')
     implementation project(':nunchuk-signer')
     implementation project(':nunchuk-widget')
     implementation project(':nunchuk-messages')

@@ -4,11 +4,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.util.bindEnableState
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.ss.recover.RecoverSeedEvent.*
 import com.nunchuk.android.signer.databinding.ActivityRecoverSeedBinding
@@ -51,19 +51,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             InvalidMnemonicEvent -> binding.mnemonic.setError(getString(R.string.nc_error_invalid_signer_spec))
             is ValidMnemonicEvent -> navigator.openAddSoftwareSignerNameScreen(this, event.mnemonic)
             is UpdateMnemonicEvent -> updateMnemonic(event.mnemonic)
-            is CanGoNextStepEvent -> bindButtonState(event.canGoNext)
-        }
-    }
-
-    private fun bindButtonState(enable: Boolean) {
-        binding.btnContinue.isEnabled = enable
-        binding.btnContinue.isClickable = enable
-        if (enable) {
-            binding.btnContinue.setTextColor(ContextCompat.getColor(this, R.color.nc_white_color))
-            binding.btnContinue.background = ContextCompat.getDrawable(this, R.drawable.nc_rounded_dark_background)
-        } else {
-            binding.btnContinue.setTextColor(ContextCompat.getColor(this, R.color.nc_grey_dark_color))
-            binding.btnContinue.background = ContextCompat.getDrawable(this, R.drawable.nc_rounded_whisper_disable_background)
+            is CanGoNextStepEvent -> binding.btnContinue.bindEnableState(event.canGoNext)
         }
     }
 

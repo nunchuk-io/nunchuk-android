@@ -31,9 +31,8 @@ class ChatInfoActivity : BaseActivity<ActivityChatInfoBinding>() {
     }
 
     private fun setupViews() {
-        binding.toolbar.setNavigationOnClickListener {
-            finish()
-        }
+        binding.toolbar.setNavigationOnClickListener { finish() }
+        binding.joinWallet.setOnClickListener { navigator.openCreateSharedWalletScreen(this) }
     }
 
     private fun observeEvent() {
