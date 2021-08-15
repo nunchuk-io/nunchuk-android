@@ -6,16 +6,9 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 
-interface WalletNavigator {
+interface PersonalWalletNavigator {
 
     fun openAddWalletScreen(activityContext: Context)
-
-    fun openAssignSignerScreen(
-        activityContext: Context,
-        walletName: String,
-        walletType: WalletType,
-        addressType: AddressType
-    )
 
     fun openReviewWalletScreen(
         activityContext: Context,
@@ -25,6 +18,33 @@ interface WalletNavigator {
         totalRequireSigns: Int,
         masterSigners: List<MasterSigner>,
         remoteSigners: List<SingleSigner>
+    )
+}
+
+interface SharedWalletNavigator {
+
+    fun openCreateSharedWalletScreen(activityContext: Context)
+
+    fun openConfigureSharedWalletScreen(activityContext: Context, walletName: String, walletType: WalletType, addressType: AddressType)
+
+    fun openReviewSharedWalletScreen(
+        activityContext: Context,
+        walletName: String,
+        walletType: WalletType,
+        addressType: AddressType,
+        totalSigns: Int,
+        requireSigns: Int
+    )
+
+}
+
+interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
+
+    fun openAssignSignerScreen(
+        activityContext: Context,
+        walletName: String,
+        walletType: WalletType,
+        addressType: AddressType
     )
 
     fun openBackupWalletScreen(activityContext: Context, walletId: String, descriptor: String)

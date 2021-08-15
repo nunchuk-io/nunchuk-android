@@ -36,12 +36,9 @@ class ChatGroupInfoActivity : BaseActivity<ActivityGroupChatInfoBinding>() {
     }
 
     private fun setupViews() {
-        binding.more.setOnClickListener {
-            onMoreSelected()
-        }
-        binding.toolbar.setNavigationOnClickListener {
-            finish()
-        }
+        binding.more.setOnClickListener { onMoreSelected() }
+        binding.toolbar.setNavigationOnClickListener { finish() }
+        binding.joinWallet.setOnClickListener { navigator.openCreateSharedWalletScreen(this) }
     }
 
     private fun onMoreSelected() {

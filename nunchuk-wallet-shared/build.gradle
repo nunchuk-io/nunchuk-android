@@ -7,6 +7,7 @@ dependencies {
     implementation project(':nunchuk-core')
     implementation project(':nunchuk-domain')
     implementation project(':nunchuk-widget')
+    implementation project(':nunchuk-wallet-core')
 
     implementation nunchukDeps.nativeSdk
 

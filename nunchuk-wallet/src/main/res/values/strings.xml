@@ -1,35 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="nc_wallet_add_wallet_title">Add a wallet</string>
-    <string name="nc_wallet_wallet_name">Wallet name</string>
-    <string name="nc_wallet_wallet_type">Wallet type</string>
-    <string name="nc_wallet_customize_wallet_type">Customize wallet type</string>
-    <string name="nc_wallet_standard_wallet">Standard wallet</string>
-
-    <string name="nc_wallet_escrow_wallet">Escrow wallet</string>
-    <string name="nc_wallet_escrow_wallet_desc">A special single-use wallet, designed to hold funds temporarily.</string>
-    <string name="nc_wallet_native_segwit_wallet">Native segwit</string>
-    <string name="nc_wallet_native_segwit_desc">Highest fee saving</string>
-    <string name="nc_wallet_nested_segwit_wallet">Nested segwit</string>
-    <string name="nc_wallet_nested_segwit_desc">Medium fee saving</string>
-
-    <string name="nc_wallet_legacy_wallet">Legacy</string>
-    <string name="nc_wallet_legacy_desc">No fee saving</string>
-
-    <string name="nc_wallet_address_type">Address type</string>
-    <string name="nc_wallet_customize_address_type">Customize address type</string>
-    <string name="nc_wallet_default_address_type">Default: Native segwit</string>
-    <string name="nc_wallet_default_wallet_type">Default: Standard wallet</string>
-    <string name="nc_wallet_name_hint_text">Nunchuk’s Fun Fund</string>
-
-    <string name="nc_wallet_configure_title">Configure wallet</string>
-    <string name="nc_wallet_default">Default</string>
-    <string name="nc_wallet_your_current_config">Current wallet config</string>
-    <string name="nc_wallet_multisig">Multisig</string>
-    <string name="nc_wallet_assign_signer_desc">Assign at least 1 signer to the wallet.</string>
-    <string name="nc_wallet_required_signer_desc">Number of Signatures \nRequired to Unlock Funds</string>
-    <string name="nc_wallet_required_signers">Required signers</string>
-
     <string name="nc_wallet_review_wallet_title">Review Wallet</string>
     <string name="nc_wallet_assigned_signers">Assigned signers</string>
     <string name="nc_wallet_configuration">Wallet configuration</string>
@@ -70,8 +40,4 @@
     <string name="nc_wallet_upload_success">Upload wallet success</string>
     <string name="nc_wallet_delete_wallet">Delete wallet</string>
     <string name="nc_wallet_delete_wallet_success">Delete wallet success</string>
-    <string name="nc_signer_air_gapped">Air-gapped</string>
-    <string name="nc_wallet_save_wallet_descriptors">Save wallet descriptors</string>
-    <string name="nc_wallet_not_configured">Not configured</string>
-    <string name="nc_wallet_single_sig">Single-sig</string>
 </resources>

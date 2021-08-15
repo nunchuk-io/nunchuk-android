@@ -103,8 +103,8 @@
             android:orientation="vertical">
 
             <androidx.appcompat.widget.LinearLayoutCompat
-                android:layout_width="48dp"
                 android:id="@+id/joinWallet"
+                android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:background="@drawable/nc_circle_whisper_background"
                 android:gravity="center"

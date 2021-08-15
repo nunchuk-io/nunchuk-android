@@ -5,7 +5,7 @@ import androidx.core.view.isVisible
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.wallet.R
-import com.nunchuk.android.wallet.databinding.ItemAssignSignerBinding
+import com.nunchuk.android.wallet.core.databinding.ItemAssignSignerBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
 
 internal class SignersViewBinder(
