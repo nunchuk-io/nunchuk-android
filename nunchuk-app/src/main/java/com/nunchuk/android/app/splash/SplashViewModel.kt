@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.app.splash.SplashEvent.*
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.usecase.InitNunchukUseCase
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +24,7 @@ internal class SplashViewModel @Inject constructor(
     private fun initFlow() {
         val account = accountManager.getAccount()
         viewModelScope.launch {
-            initNunchukUseCase.execute(account.email, account.chatId)
+            initNunchukUseCase.execute(account.email, account.chatId, SessionHolder.sendEventExecutor)
                 .flowOn(Dispatchers.IO)
                 .catch { event(InitErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)

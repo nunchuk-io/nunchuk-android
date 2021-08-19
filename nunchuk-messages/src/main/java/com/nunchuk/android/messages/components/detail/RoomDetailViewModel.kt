@@ -23,6 +23,7 @@ class RoomDetailViewModel @Inject constructor(
     private lateinit var timeline: Timeline
 
     private val currentName = accountManager.getAccount().name
+
     private val currentId = accountManager.getAccount().chatId
 
     override val initialState = RoomDetailState.empty()
@@ -33,6 +34,7 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun onRetrievedRoom(room: Room) {
         this.room = room
+        SessionHolder.currentRoom = room
         timeline = room.createTimeline(null, TimelineSettings(initialSize = PAGINATION, true))
         viewModelScope.launch {
             try {
@@ -47,7 +49,7 @@ class RoomDetailViewModel @Inject constructor(
     fun retrieveData() {
         updateState { copy(roomInfo = room.getRoomInfo(currentName)) }
         timeline.addListener(TimelineListenerAdapter {
-            val messages = it.filter(TimelineEvent::isMessageEvent)
+            val messages = it.filter(TimelineEvent::isDisplayable)
             updateState { copy(messages = messages.toMessages(currentId)) }
         })
         timeline.start()
