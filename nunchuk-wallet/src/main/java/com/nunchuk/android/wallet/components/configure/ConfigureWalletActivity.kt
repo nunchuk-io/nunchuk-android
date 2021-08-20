@@ -71,12 +71,12 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>() {
     }
 
     private fun handleState(state: ConfigureWalletState) {
-        val totalRequireSigns = state.totalRequireSigns
-        val requireSigns = state.selectedPFXs.size
+        val requireSigns = state.totalRequireSigns
+        val totalSigns = state.selectedPFXs.size
         bindSigners(state.masterSigners.map(MasterSigner::toModel) + state.remoteSigners.map(SingleSigner::toModel), state.selectedPFXs)
-        bindTotalRequireSigns(totalRequireSigns)
+        bindTotalRequireSigns(requireSigns)
         binding.totalRequireSigns.bindWalletConfiguration(
-            totalSigns = totalRequireSigns,
+            totalSigns = totalSigns,
             requireSigns = requireSigns
         )
     }
