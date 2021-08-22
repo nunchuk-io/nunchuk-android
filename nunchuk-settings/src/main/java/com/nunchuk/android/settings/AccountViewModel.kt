@@ -1,11 +1,8 @@
-package com.nunchuk.android.main.components.tabs.account
+package com.nunchuk.android.settings
 
-import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.provider.AppInfoProvider
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class AccountViewModel @Inject constructor(
@@ -18,7 +15,7 @@ internal class AccountViewModel @Inject constructor(
     init {
         updateState {
             copy(
-                email = accountManager.getAccount().email,
+                account = accountManager.getAccount(),
                 appVersion = appInfoProvider.getAppVersion()
             )
         }
@@ -26,14 +23,7 @@ internal class AccountViewModel @Inject constructor(
 
     fun handleSignOutEvent() {
         accountManager.signOut()
-        signOutMatrix()
         event(AccountEvent.SignOutEvent)
-    }
-
-    private fun signOutMatrix() {
-        viewModelScope.launch {
-            SessionHolder.currentSession?.signOut(true)
-        }
     }
 
 }

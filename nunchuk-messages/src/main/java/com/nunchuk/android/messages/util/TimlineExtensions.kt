@@ -15,7 +15,7 @@ fun List<RoomSummary>.sortByLastMessage(): List<RoomSummary> {
 fun Room.isDirectRoom(): Boolean {
     val queryParams = RoomMemberQueryParams.Builder().build()
     val roomMembers: List<RoomMemberSummary> = getRoomMembers(queryParams)
-    return roomSummary()?.isDirect.orFalse() || roomMembers.size == 2
+    return roomSummary()?.isDirect.orFalse() || roomMembers.size == DIRECT_CHAT_MEMBERS_COUNT
 }
 
 fun Room.getRoomInfo(currentName: String): RoomInfo {
@@ -34,7 +34,7 @@ fun Room.getRoomMemberList(): List<RoomMemberSummary> {
 
 fun RoomSummary.getRoomName(currentName: String): String {
     val split = displayName.split(",")
-    return if (split.size == 2) {
+    return if (split.size == DIRECT_CHAT_MEMBERS_COUNT) {
         split.firstOrNull { it != currentName }.orEmpty()
     } else {
         displayName
@@ -44,3 +44,6 @@ fun RoomSummary.getRoomName(currentName: String): String {
 fun List<TimelineEvent>.toMessages(chatId: String) = sortedBy { it.root.ageLocalTs }.map { it.toMessage(chatId) }
 
 fun RoomSummary.getMembersCount() = otherMemberIds.size + 1
+fun RoomSummary.isGroupChat() = getMembersCount() > DIRECT_CHAT_MEMBERS_COUNT
+
+const val DIRECT_CHAT_MEMBERS_COUNT = 2

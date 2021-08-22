@@ -19,7 +19,7 @@
 
     <fragment
         android:id="@+id/navigation_account"
-        android:name="com.nunchuk.android.main.components.tabs.account.AccountFragment"
+        android:name="com.nunchuk.android.settings.AccountFragment"
         android:label="@string/nc_title_account"
         tools:layout="@layout/fragment_account" />
 </navigation>

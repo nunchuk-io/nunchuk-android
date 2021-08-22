@@ -1,7 +1,6 @@
 package com.nunchuk.android.main.di
 
 import com.nunchuk.android.main.MainActivity
-import com.nunchuk.android.main.components.tabs.account.AccountFragment
 import com.nunchuk.android.main.components.tabs.chat.ChatFragment
 import com.nunchuk.android.main.components.tabs.wallet.WalletsFragment
 import dagger.Module
@@ -23,8 +22,5 @@ internal interface MainFragmentModule {
 
     @ContributesAndroidInjector
     fun walletsFragment(): WalletsFragment
-
-    @ContributesAndroidInjector
-    fun accountFragment(): AccountFragment
 
 }

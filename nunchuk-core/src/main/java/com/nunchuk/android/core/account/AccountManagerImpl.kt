@@ -1,6 +1,8 @@
 package com.nunchuk.android.core.account
 
 import com.nunchuk.android.core.matrix.SessionHolder
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,6 +44,9 @@ internal class AccountManagerImpl @Inject constructor(
 
     override fun signOut() {
         accountSharedPref.clearAccountInfo()
+        GlobalScope.launch {
+            SessionHolder.currentSession?.signOut(true)
+        }
     }
 
 }

@@ -94,6 +94,7 @@ dependencies {
     implementation project(':nunchuk-transaction')
     implementation project(':nunchuk-messages')
     implementation project(':nunchuk-utils')
+    implementation project(':nunchuk-settings')
 
     implementation nunchukDeps.nativeSdk
     implementation matrixDeps.matrixSdk

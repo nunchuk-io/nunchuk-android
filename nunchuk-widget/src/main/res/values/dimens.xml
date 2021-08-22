@@ -19,6 +19,7 @@
     <dimen name="nc_padding_28">28dp</dimen>
     <dimen name="nc_padding_30">30dp</dimen>
     <dimen name="nc_padding_32">32dp</dimen>
+    <dimen name="nc_padding_36">36dp</dimen>
     <dimen name="nc_padding_44">44dp</dimen>
     <dimen name="nc_padding_48">48dp</dimen>
     <dimen name="nc_padding_56">56dp</dimen>

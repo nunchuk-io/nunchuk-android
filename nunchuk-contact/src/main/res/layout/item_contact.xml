@@ -8,17 +8,15 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/avatar"
+        style="@style/NCText.Title"
         android:layout_width="@dimen/nc_padding_48"
         android:layout_height="@dimen/nc_padding_48"
         android:background="@drawable/nc_circle_beeswax_light_background"
         android:gravity="center"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_20"
-        app:fontTextStyle="semi_bold"
         app:layout_constraintBottom_toBottomOf="@+id/email"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="Z" />
+        tools:text="HN" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/name"
