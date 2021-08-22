@@ -5,23 +5,15 @@ import com.google.gson.Gson
 import com.nunchuk.android.messages.components.detail.Message
 import com.nunchuk.android.messages.components.detail.MessageType
 import com.nunchuk.android.messages.components.detail.NotificationMessage
-import org.matrix.android.sdk.api.session.events.model.EventType
-import org.matrix.android.sdk.api.session.events.model.isTextMessage
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
+import org.matrix.android.sdk.api.session.room.model.RoomNameContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
-
-fun TimelineEvent.isDisplayable() = isMessageEvent() || isNunchukEvent() || isNotificationType()
-
-fun TimelineEvent.isNotificationType() = root.getClearType() == EventType.STATE_ROOM_MEMBER
-
-fun TimelineEvent.isMessageEvent() = root.isTextMessage()
-
-fun TimelineEvent.isNunchukEvent() = root.type == "io.nunchuk.wallet"
 
 fun TimelineEvent.lastMessage(): CharSequence {
     val senderName = senderInfo.disambiguatedDisplayName
@@ -36,39 +28,47 @@ fun TimelineEvent.toMessage(chatId: String): Message {
             Message(
                 sender = senderSafe(),
                 content = Gson().toJson(root.getClearContent()),
+                time = time(),
                 type = chatType(chatId)
             )
         }
-        isNotificationType() -> {
-            NotificationMessage(
-                sender = senderSafe(),
-                content = root.content.toModel<RoomMemberContent>()?.displayName.orGuest(),
-                type = MessageType.NOTIFICATION.index,
-                membership = membership()
-            )
-        }
-        else -> {
+        isMessageEvent() -> {
             Message(
                 sender = senderSafe(),
                 content = root.getClearContent().toModel<MessageContent>()?.body.orEmpty(),
                 root.sendState,
+                time = time(),
                 type = chatType(chatId)
+            )
+        }
+        else -> {
+            NotificationMessage(
+                sender = senderSafe(),
+                content = root.content.toModel<RoomMemberContent>()?.displayName ?: senderSafe(),
+                time = time(),
+                timelineEvent = this
             )
         }
     }
 }
 
 private fun TimelineEvent.chatType(chatId: String) = if (chatId == senderInfo.userId) {
-    MessageType.CHAT_MINE.index
+    MessageType.TYPE_CHAT_MINE.index
 } else {
-    MessageType.CHAT_PARTNER.index
+    MessageType.TYPE_CHAT_PARTNER.index
 }
 
-private fun TimelineEvent.senderSafe() = senderInfo.displayName.orGuest()
+private fun TimelineEvent.senderSafe() = senderInfo.displayNameOrId()
 
-private fun String?.orGuest() = this ?: "Guest"
+private fun SenderInfo?.displayNameOrId(): String = this?.displayName ?: this?.userId ?: "Guest"
 
-private fun TimelineEvent.membership(): Membership {
+fun TimelineEvent.membership(): Membership {
     val content = root.content.toModel<RoomMemberContent>()
     return content?.membership ?: Membership.NONE
 }
+
+fun TimelineEvent.nameChange(): String? {
+    return root.content.toModel<RoomNameContent>()?.name
+}
+
+private fun TimelineEvent.time() = root.originServerTs ?: 0

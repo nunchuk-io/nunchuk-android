@@ -123,11 +123,11 @@
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/time"
+                style="@style/NCText.Body.Small"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/nc_padding_16"
-                android:textColor="@color/nc_black_color"
-                android:textSize="@dimen/nc_text_size_14"
+                android:layout_marginTop="@dimen/nc_padding_4"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="1d ago" />

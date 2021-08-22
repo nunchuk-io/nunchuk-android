@@ -13,7 +13,6 @@ import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
 import com.nunchuk.android.messages.databinding.FragmentMessagesBinding
-import com.nunchuk.android.messages.util.DateFormatter
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import javax.inject.Inject
 
@@ -22,12 +21,9 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     private val viewModel: RoomsViewModel by activityViewModels { factory }
 
     @Inject
-    lateinit var dateFormatter: DateFormatter
-
-    @Inject
     lateinit var accountManager: AccountManager
 
-    private lateinit var adapter: MessagesAdapter
+    private lateinit var adapter: RoomAdapter
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -49,7 +45,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     }
 
     private fun setupViews() {
-        adapter = MessagesAdapter(accountManager.getAccount().name, dateFormatter, ::openRoomDetailScreen, viewModel::removeRoom)
+        adapter = RoomAdapter(accountManager.getAccount().name, ::openRoomDetailScreen, viewModel::removeRoom)
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)
         binding.recyclerView.adapter = adapter
         binding.fab.setOnClickListener {

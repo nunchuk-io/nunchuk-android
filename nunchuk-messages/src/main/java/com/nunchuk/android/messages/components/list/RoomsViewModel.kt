@@ -10,6 +10,10 @@ import com.nunchuk.android.messages.usecase.message.GetRoomSummaryListUseCase
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.messages.util.sortByLastMessage
 import io.reactivex.Completable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -24,8 +28,12 @@ class RoomsViewModel @Inject constructor(
     override val initialState = RoomsState.empty()
 
     fun retrieveMessages() {
-        process(getRoomSummaryListUseCase::execute, ::onRetrieveMessageSuccess) {
-            onRetrieveMessageError()
+        viewModelScope.launch {
+            getRoomSummaryListUseCase.execute()
+                .flowOn(Dispatchers.IO)
+                .catch { onRetrieveMessageError() }
+                .flowOn(Dispatchers.Main)
+                .collect { onRetrieveMessageSuccess(it) }
         }
     }
 

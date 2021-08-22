@@ -25,7 +25,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
     private val args: RoomDetailArgs by lazy { RoomDetailArgs.deserializeFrom(intent) }
 
-    private lateinit var roomAdapter: RoomDetailsAdapter
+    private lateinit var adapter: MessagesAdapter
 
     override fun initializeBinding() = ActivityRoomDetailBinding.inflate(layoutInflater)
 
@@ -51,9 +51,9 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     private fun handleState(state: RoomDetailState) {
         binding.toolbarTitle.text = state.roomInfo.roomName
         binding.memberCount.text = "${state.roomInfo.memberCount} members"
-        roomAdapter.messages = ArrayList(state.messages)
+        adapter.chatModels = ArrayList(state.messages.groupByDate())
         if (state.messages.isNotEmpty()) {
-            binding.recyclerView.scrollToPosition(roomAdapter.messages.size - 1)
+            binding.recyclerView.scrollToPosition(adapter.chatModels.size - 1)
         }
         binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -86,8 +86,8 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             enableButton(it.isNotEmpty())
         }
 
-        roomAdapter = RoomDetailsAdapter(this)
-        binding.recyclerView.adapter = roomAdapter
+        adapter = MessagesAdapter(this)
+        binding.recyclerView.adapter = adapter
         val layoutManager = LinearLayoutManager(this)
         binding.recyclerView.layoutManager = layoutManager
 
