@@ -2,4 +2,10 @@
 <resources>
     <string name="nc_wallet_create_shared_wallet">Create shared wallet</string>
     <string name="nc_wallet_configure_shared_wallet">Configure shared wallet</string>
+    <string name="nc_wallet_review_shared_wallet_title">Review shared wallet</string>
+    <string name="nc_wallet_assign_signer_title">Assign signer</string>
+
+    <string name="nc_wallet_assign_signer">Continue to assign signer</string>
+    <string name="nc_wallet_assign_signers_and_send_invite">Assign signers and send invite</string>
+    <string name="nc_wallet_slots_left_in_the_wallet">%d slots left in the wallet</string>
 </resources>

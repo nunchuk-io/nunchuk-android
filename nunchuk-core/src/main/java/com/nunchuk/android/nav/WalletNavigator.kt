@@ -36,11 +36,20 @@ interface SharedWalletNavigator {
         requireSigns: Int
     )
 
+    fun openAssignSignerSharedWalletScreen(
+        activityContext: Context,
+        walletName: String,
+        walletType: WalletType,
+        addressType: AddressType,
+        totalSigns: Int,
+        requireSigns: Int
+    )
+
 }
 
 interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
 
-    fun openAssignSignerScreen(
+    fun openConfigureWalletScreen(
         activityContext: Context,
         walletName: String,
         walletType: WalletType,

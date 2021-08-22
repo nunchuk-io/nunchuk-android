@@ -18,5 +18,19 @@
             android:theme="@style/NunchukNoActionBar.Light"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".components.review.ReviewSharedWalletActivity"
+            android:label="@string/nc_wallet_review_shared_wallet_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".components.assign.AssignSignerSharedWalletActivity"
+            android:label="@string/nc_wallet_assign_signer_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
+
     </application>
 </manifest>

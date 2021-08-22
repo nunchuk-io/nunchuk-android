@@ -1,9 +1,7 @@
 package com.nunchuk.android.wallet.nav
 
-import android.app.Activity
 import android.content.Context
 import com.nunchuk.android.core.qr.DynamicQRCodeActivity
-import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.WalletNavigator
@@ -17,8 +15,10 @@ import com.nunchuk.android.wallet.components.details.WalletDetailsActivity
 import com.nunchuk.android.wallet.components.intro.WalletEmptySignerActivity
 import com.nunchuk.android.wallet.components.review.ReviewWalletActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationActivity
+import com.nunchuk.android.wallet.shared.components.assign.AssignSignerSharedWalletActivity
 import com.nunchuk.android.wallet.shared.components.configure.ConfigureSharedWalletActivity
 import com.nunchuk.android.wallet.shared.components.create.CreateSharedWalletActivity
+import com.nunchuk.android.wallet.shared.components.review.ReviewSharedWalletActivity
 
 interface WalletNavigatorDelegate : WalletNavigator {
 
@@ -26,7 +26,7 @@ interface WalletNavigatorDelegate : WalletNavigator {
         AddWalletActivity.start(activityContext)
     }
 
-    override fun openAssignSignerScreen(
+    override fun openConfigureWalletScreen(
         activityContext: Context,
         walletName: String,
         walletType: WalletType,
@@ -100,7 +100,18 @@ interface WalletNavigatorDelegate : WalletNavigator {
         totalSigns: Int,
         requireSigns: Int
     ) {
-        (activityContext as Activity).showToast("Coming soon")
+        ReviewSharedWalletActivity.start(activityContext, walletName, walletType, addressType, totalSigns, requireSigns)
+    }
+
+    override fun openAssignSignerSharedWalletScreen(
+        activityContext: Context,
+        walletName: String,
+        walletType: WalletType,
+        addressType: AddressType,
+        totalSigns: Int,
+        requireSigns: Int
+    ) {
+        AssignSignerSharedWalletActivity.start(activityContext, walletName, walletType, addressType, totalSigns, requireSigns)
     }
 
 }

@@ -31,4 +31,6 @@
     <string name="nc_wallet_save_wallet_descriptors">Save wallet descriptors</string>
     <string name="nc_wallet_not_configured">Not configured</string>
     <string name="nc_wallet_single_sig">Single-sig</string>
+
+    <string name="nc_wallet_configuration">Wallet configuration</string>
 </resources>

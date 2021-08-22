@@ -7,13 +7,13 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface GetMasterSignersUseCase {
-    suspend fun execute(): Flow<List<MasterSigner>>
+    fun execute(): Flow<List<MasterSigner>>
 }
 
 internal class GetMasterSignersUseCaseImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
 ) : GetMasterSignersUseCase {
 
-    override suspend fun execute() = flow { emit(nativeSdk.getMasterSigners()) }
+    override fun execute() = flow { emit(nativeSdk.getMasterSigners()) }
 
 }

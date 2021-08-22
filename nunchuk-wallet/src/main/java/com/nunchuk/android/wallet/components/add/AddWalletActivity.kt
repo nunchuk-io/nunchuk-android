@@ -90,7 +90,7 @@ class AddWalletActivity : BaseActivity<ActivityWalletAddBinding>() {
     }
 
     private fun openAssignSignerScreen(walletName: String, walletType: WalletType, addressType: AddressType) {
-        navigator.openAssignSignerScreen(this, walletName, walletType, addressType)
+        navigator.openConfigureWalletScreen(this, walletName, walletType, addressType)
     }
 
     private fun bindWalletType(walletType: WalletType) {

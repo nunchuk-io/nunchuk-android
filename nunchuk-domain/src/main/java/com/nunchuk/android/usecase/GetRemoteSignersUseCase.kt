@@ -7,13 +7,13 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface GetRemoteSignersUseCase {
-    suspend fun execute(): Flow<List<SingleSigner>>
+    fun execute(): Flow<List<SingleSigner>>
 }
 
 internal class GetRemoteSignersUseCaseImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
 ) : GetRemoteSignersUseCase {
 
-    override suspend fun execute() = flow { emit(nativeSdk.getRemoteSigners()) }
+    override fun execute() = flow { emit(nativeSdk.getRemoteSigners()) }
 
 }
