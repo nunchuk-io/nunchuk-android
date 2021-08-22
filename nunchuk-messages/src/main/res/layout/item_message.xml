@@ -52,19 +52,38 @@
             android:paddingVertical="@dimen/nc_padding_8">
 
             <com.nunchuk.android.widget.NCFontTextView
-                android:id="@+id/avatar"
+                android:id="@+id/avatarHolder"
+                style="@style/NCText.Title"
                 android:layout_width="@dimen/nc_padding_48"
                 android:layout_height="@dimen/nc_padding_48"
-                android:layout_marginTop="@dimen/nc_padding_4"
-                android:layout_marginBottom="@dimen/nc_padding_4"
                 android:background="@drawable/nc_circle_beeswax_light_background"
                 android:gravity="center"
-                android:textColor="@color/nc_black_color"
-                android:textSize="@dimen/nc_text_size_20"
-                app:fontTextStyle="semi_bold"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="Z" />
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/badge"
+                style="@style/NCText.Body.Small"
+                android:layout_width="@dimen/nc_padding_16"
+                android:layout_height="@dimen/nc_padding_16"
+                android:background="@drawable/nc_circle_dark_background"
+                android:gravity="center"
+                android:textColor="@color/nc_white_color"
+                android:textSize="@dimen/nc_text_size_10"
+                app:layout_constraintBottom_toBottomOf="@+id/avatarHolder"
+                app:layout_constraintEnd_toEndOf="@+id/avatarHolder"
+                tools:text="5" />
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/avatar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_members"
+                app:layout_constraintBottom_toBottomOf="@+id/avatarHolder"
+                app:layout_constraintEnd_toEndOf="@+id/avatarHolder"
+                app:layout_constraintStart_toStartOf="@+id/avatarHolder"
+                app:layout_constraintTop_toTopOf="@+id/avatarHolder" />
 
             <androidx.constraintlayout.widget.Barrier
                 android:id="@+id/endBarrier"
@@ -84,20 +103,21 @@
                 android:singleLine="true"
                 android:textColor="@color/nc_grey_color"
                 app:layout_constraintEnd_toStartOf="@+id/endBarrier"
-                app:layout_constraintStart_toEndOf="@+id/avatar"
+                app:layout_constraintStart_toEndOf="@+id/avatarHolder"
                 app:layout_constraintTop_toBottomOf="@+id/name"
                 tools:text="Bruce: Welcome to Nunchuk! My name is Bruce Bee. I'm Nunchuk assistant" />
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/name"
                 style="@style/NCText.Title"
+                android:layout_marginStart="@dimen/nc_padding_12"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/nc_padding_8"
                 android:ellipsize="end"
                 android:maxLines="2"
                 app:layout_constraintEnd_toStartOf="@+id/endBarrier"
-                app:layout_constraintStart_toEndOf="@+id/avatar"
+                app:layout_constraintStart_toEndOf="@+id/avatarHolder"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="Bruce Bee" />
 

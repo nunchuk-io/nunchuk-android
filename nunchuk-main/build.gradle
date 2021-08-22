@@ -12,6 +12,7 @@ dependencies {
     implementation project(':nunchuk-signer')
     implementation project(':nunchuk-widget')
     implementation project(':nunchuk-messages')
+    implementation project(':nunchuk-settings')
     implementation nunchukDeps.nativeSdk
     implementation matrixDeps.matrixSdk
     implementation pluginsDeps.kotlinAndroidRuntime

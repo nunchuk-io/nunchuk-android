@@ -50,8 +50,9 @@
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/avatar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="@dimen/nc_padding_36"
+        android:layout_height="@dimen/nc_padding_18"
+        android:scaleType="fitCenter"
         android:src="@drawable/ic_members"
         app:layout_constraintBottom_toBottomOf="@+id/avatarHolder"
         app:layout_constraintEnd_toEndOf="@+id/avatarHolder"

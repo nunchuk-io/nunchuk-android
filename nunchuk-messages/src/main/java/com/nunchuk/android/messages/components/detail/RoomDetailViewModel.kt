@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.components.detail
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
@@ -49,6 +50,7 @@ class RoomDetailViewModel @Inject constructor(
     fun retrieveData() {
         updateState { copy(roomInfo = room.getRoomInfo(currentName)) }
         timeline.addListener(TimelineListenerAdapter {
+            Log.d("TimelineEvent", "$it")
             val messages = it.filter(TimelineEvent::isDisplayable)
             updateState { copy(messages = messages.toMessages(currentId)) }
         })

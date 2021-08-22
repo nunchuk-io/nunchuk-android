@@ -1,6 +1,5 @@
 package com.nunchuk.android.messages.util
 
-import android.util.Log
 import com.google.gson.Gson
 import com.nunchuk.android.messages.components.detail.Message
 import com.nunchuk.android.messages.components.detail.MessageType
@@ -42,7 +41,6 @@ fun TimelineEvent.lastMessage(): CharSequence {
 
 fun TimelineEvent.toMessage(chatId: String): Message {
     return if (isNunchukEvent()) {
-        Log.d("HTRAN", "nunchuk event::${Gson().toJson(root.getClearContent())}")
         Message(
             sender = senderInfo.displayName ?: "Guest",
             content = Gson().toJson(root.getClearContent()),

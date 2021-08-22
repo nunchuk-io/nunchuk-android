@@ -3,7 +3,6 @@ package com.nunchuk.android.main.di
 import androidx.lifecycle.ViewModel
 import com.nunchuk.android.arch.vm.ViewModelKey
 import com.nunchuk.android.contact.components.contacts.ContactsViewModel
-import com.nunchuk.android.main.components.tabs.account.AccountViewModel
 import com.nunchuk.android.main.components.tabs.wallet.WalletsViewModel
 import com.nunchuk.android.messages.components.list.RoomsViewModel
 import dagger.Binds
@@ -17,11 +16,6 @@ internal interface MainViewModelModule {
     @IntoMap
     @ViewModelKey(WalletsViewModel::class)
     fun bindWalletsViewModel(viewModel: WalletsViewModel): ViewModel
-
-    @Binds
-    @IntoMap
-    @ViewModelKey(AccountViewModel::class)
-    fun bindAccountViewModel(viewModel: AccountViewModel): ViewModel
 
     @Binds
     @IntoMap

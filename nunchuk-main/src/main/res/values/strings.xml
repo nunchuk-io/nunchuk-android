@@ -15,6 +15,4 @@
 
     <string name="nc_text_you_have_not_add_wallet">You have not added a wallet.</string>
     <string name="nc_text_you_have_not_add_signer">You have not added a signer.</string>
-
-    <string name="nc_text_sign_out">Sign Out</string>
 </resources>

@@ -7,10 +7,12 @@
 
     <style name="NCText.Heading" parent="NCText">
         <item name="android:textSize">@dimen/nc_text_size_24</item>
+        <item name="fontTextStyle">semi_bold</item>
     </style>
 
     <style name="NCText.Title" parent="NCText">
         <item name="android:textSize">@dimen/nc_text_size_16</item>
+        <item name="fontTextStyle">semi_bold</item>
     </style>
 
     <style name="NCText.Title.Large" parent="NCText.Title">

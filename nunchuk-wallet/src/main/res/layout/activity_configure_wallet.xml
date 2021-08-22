@@ -110,8 +110,8 @@
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/requiredSingerCounter"
-            android:layout_width="@dimen/nc_padding_32"
-            android:layout_height="@dimen/nc_padding_32"
+            android:layout_width="@dimen/nc_padding_36"
+            android:layout_height="@dimen/nc_padding_36"
             android:layout_marginEnd="@dimen/nc_padding_8"
             android:background="@drawable/nc_edit_text_bg"
             android:gravity="center"

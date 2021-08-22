@@ -8,9 +8,7 @@ import com.nunchuk.android.core.base.BaseViewHolder
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.databinding.ItemMessageBinding
-import com.nunchuk.android.messages.util.DateFormatter
-import com.nunchuk.android.messages.util.getRoomName
-import com.nunchuk.android.messages.util.lastMessage
+import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.widget.swipe.SwipeLayout
 import com.nunchuk.android.widget.util.inflate
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -60,7 +58,15 @@ class MessageViewHolder(
             binding.message.text = it.lastMessage()
             binding.time.text = it.root.originServerTs?.let(dateFormatter::formatDateAndTime) ?: "-"
         }
-        binding.avatar.text = roomName.shorten()
+        val isGroupChat = data.isGroupChat()
+        if (isGroupChat) {
+            binding.avatarHolder.text = ""
+            binding.badge.text = "${data.getMembersCount()}"
+        } else {
+            binding.avatarHolder.text = roomName.shorten()
+        }
+        binding.badge.isVisible = isGroupChat
+        binding.avatar.isVisible = isGroupChat
         binding.count.isVisible = data.hasUnreadMessages && (data.notificationCount > 0)
         binding.count.text = "${data.notificationCount}"
         binding.itemLayout.setOnClickListener { enterRoom(data) }
