@@ -7,8 +7,6 @@ dependencies {
     implementation project(':nunchuk-core')
     implementation project(':nunchuk-domain')
     implementation project(':nunchuk-widget')
-    implementation project(':nunchuk-signer-airgap')
-    implementation project(':nunchuk-signer-software')
     implementation project(':nunchuk-signer-core')
     implementation nunchukDeps.nativeSdk
 

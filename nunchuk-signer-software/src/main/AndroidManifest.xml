@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.nunchuk.android.signer.software">
+
+    <application>
+
+        <activity
+            android:name=".SoftwareSignerIntroActivity"
+            android:label="@string/nc_ssigner_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".components.create.CreateNewSeedActivity"
+            android:label="@string/nc_ssigner_new_seed_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".components.confirm.ConfirmSeedActivity"
+            android:label="@string/nc_ssigner_new_seed_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".components.recover.RecoverSeedActivity"
+            android:label="@string/nc_ssigner_recover_seed"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustPan" />
+
+        <activity
+            android:name=".components.name.AddSoftwareSignerNameActivity"
+            android:label="@string/nc_ssigner_add_name_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".components.passphrase.SetPassphraseActivity"
+            android:label="@string/nc_ssigner_set_passphrase_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+    </application>
+</manifest>

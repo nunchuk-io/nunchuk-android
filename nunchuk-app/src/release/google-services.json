@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "949430607337",
+    "project_id": "nunchuk-android-dev",
+    "storage_bucket": "nunchuk-android-dev.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:949430607337:android:9b1f60151bb6633f6f3f78",
+        "android_client_info": {
+          "package_name": "com.nunchuk.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "949430607337-2ffp4nrufpilm8mve7edv0oetu28q47p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nunchuk.android",
+            "certificate_hash": "8628ca0734c7c7a951ef60f0824a3d6d5920388a"
+          }
+        },
+        {
+          "client_id": "949430607337-2h62a3m91np3aksdala8nqjupofs61mq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANoyVlGSLJox59F7x5p-KpxwwRXnyqFzU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "949430607337-2h62a3m91np3aksdala8nqjupofs61mq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
