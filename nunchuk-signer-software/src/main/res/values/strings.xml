@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nc_ssigner_title">Add a software signer</string>
+    <string name="nc_ssigner_new_seed_title">New signer seed</string>
+    <string name="nc_ssigner_new_seed">Create new seed</string>
+    <string name="nc_ssigner_recover_seed">Recover existing seed</string>
+    <string name="nc_ssigner_description">The private keys for this signer are stored and encrypted locally on this device. Please keep your device safe to prevent your signer from being compromised.</string>
+    <string name="nc_ssigner_new_seed_note">Please take a moment to write down this mnemonic phrase. It’s your backup, you can use to restore wallet on another device.</string>
+    <string name="nc_ssigner_new_seed_warning">Never share recovery phrase with anyone. Without it you won’t be able to access your account. Avoid having a digital copy.</string>
+
+    <string name="nc_ssigner_recover_seed_phrase">Your recovery phrase</string>
+    <string name="nc_ssigner_recover_seed_phrase_note">Please enter the mnemonic recovery phrase.</string>
+
+    <string name="nc_ssigner_confirm_seed_title">Confirm recovery phrase</string>
+    <string name="nc_ssigner_confirm_seed_note">Please confirm the recovery phrase</string>
+    <string name="nc_ssigner_confirm_seed_error">Incorrect words. Please try again.</string>
+    <string name="nc_ssigner_add_name_title">Give your signer a name</string>
+    <string name="nc_ssigner_set_passphrase_title">Set a passphrase</string>
+    <string name="nc_ssigner_text_dont_set_passphrase">I don\'t need a passphrase</string>
+    <string name="nc_ssigner_text_set_passphrase">Set passphrase</string>
+    <string name="nc_ssigner_text_set_passphrase_note">Passphrase can be anything you want, and add extra security to your signer.</string>
+    <string name="nc_ssigner_text_set_passphrase_warn">Please backup your passphrase along with the seed. You need both to recover your signer.</string>
+    <string name="nc_ssigner_confirm_passphrase">Confirm passphrase</string>
+    <string name="nc_ssigner_text_name">Name</string>
+
+    <string name="nc_text_confirm_passphrase_not_matched">Confirm passphrase does not match</string>
+    <string name="nc_error_invalid_signer_spec">Invalid Signer Spec</string>
+    <string name="nc_signer_passphrase">Passphrase</string>
+    <string name="nc_signer_optional">(optional)</string>
+</resources>
