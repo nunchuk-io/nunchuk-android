@@ -58,7 +58,7 @@ class MessageViewHolder(
             binding.message.text = it.lastMessage()
             binding.time.text = it.root.originServerTs?.let(dateFormatter::formatDateAndTime) ?: "-"
         }
-        val isGroupChat = data.isGroupChat()
+        val isGroupChat = !data.isDirectChat()
         if (isGroupChat) {
             binding.avatarHolder.text = ""
             binding.badge.text = "${data.getMembersCount()}"

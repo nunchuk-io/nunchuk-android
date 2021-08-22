@@ -16,4 +16,15 @@
     <string name="nc_message_invalid_email">That does not look like a valid email address</string>
     <string name="nc_message_email_hint">Type email here</string>
     <string name="nc_message_add_members_title">Enter the emails of your contacts, separated by spaces</string>
+
+    <string name="nc_message_member_left_group"><![CDATA[<b>%1s</b> has left the group chat]]></string>
+    <string name="nc_message_member_join_group"><![CDATA[<b>%1s</b> has joined the group chat]]></string>
+    <string name="nc_message_member_kick_group"><![CDATA[<b>%1s</b> has been kicked off the group chat]]></string>
+    <string name="nc_message_member_ban_group"><![CDATA[<b>%1s</b> has been ban from the group chat]]></string>
+    <string name="nc_message_member_invite_group"><![CDATA[<b>%1s</b> has invited <b>%2s</b> to the group chat]]></string>
+
+    <string name="nc_message_status_delivered">Delivered</string>
+    <string name="nc_message_status_sending">Sending</string>
+    <string name="nc_message_status_failed">Send failed</string>
+    <string name="nc_message_status_unknown">Unknown</string>
 </resources>

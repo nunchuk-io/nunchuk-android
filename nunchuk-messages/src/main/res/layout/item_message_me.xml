@@ -18,4 +18,13 @@
         android:paddingHorizontal="@dimen/nc_padding_18"
         tools:text="Sounds good Khoa, let’s get this bread" />
 
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/status"
+        style="@style/NCText.Body.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:textColor="@color/nc_grey_dark_color"
+        tools:text="Delivered" />
+
 </LinearLayout>
