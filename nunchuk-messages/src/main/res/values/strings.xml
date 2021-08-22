@@ -27,4 +27,7 @@
     <string name="nc_message_status_sending">Sending</string>
     <string name="nc_message_status_failed">Send failed</string>
     <string name="nc_message_status_unknown">Unknown</string>
+
+    <string name="nc_message_create_room"><![CDATA[<b>%1s</b> has created the group chat]]></string>
+    <string name="nc_message_name_changed"><![CDATA[<b>%1s</b> has changed group name to <b>%2s</b>]]></string>
 </resources>

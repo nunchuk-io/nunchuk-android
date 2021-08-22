@@ -7,18 +7,19 @@ import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseViewHolder
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.messages.R
-import com.nunchuk.android.messages.databinding.ItemMessageBinding
+import com.nunchuk.android.messages.databinding.ItemRoomBinding
 import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.widget.swipe.SwipeLayout
 import com.nunchuk.android.widget.util.inflate
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
+import java.util.*
+import kotlin.collections.ArrayList
 
-class MessagesAdapter(
+class RoomAdapter(
     private val currentName: String,
-    private val dateFormatter: DateFormatter,
     private val enterRoom: (RoomSummary) -> Unit,
     private val removeRoom: (RoomSummary) -> Unit
-) : RecyclerView.Adapter<MessageViewHolder>() {
+) : RecyclerView.Adapter<RoomViewHolder>() {
 
     internal var items: List<RoomSummary> = ArrayList()
         set(value) {
@@ -26,14 +27,14 @@ class MessagesAdapter(
             notifyDataSetChanged()
         }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = MessageViewHolder(
-        parent.inflate(R.layout.item_message),
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = RoomViewHolder(
+        parent.inflate(R.layout.item_room),
         currentName,
-        dateFormatter,
-        enterRoom, removeRoom
+        enterRoom,
+        removeRoom
     )
 
-    override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
         holder.bind(items[position])
     }
 
@@ -41,22 +42,21 @@ class MessagesAdapter(
 
 }
 
-class MessageViewHolder(
+class RoomViewHolder(
     itemView: View,
     private val currentName: String,
-    private val dateFormatter: DateFormatter,
     private val enterRoom: (RoomSummary) -> Unit,
     private val removeRoom: (RoomSummary) -> Unit
 ) : BaseViewHolder<RoomSummary>(itemView) {
 
-    private val binding = ItemMessageBinding.bind(itemView)
+    private val binding = ItemRoomBinding.bind(itemView)
 
     override fun bind(data: RoomSummary) {
         val roomName = data.getRoomName(currentName)
         binding.name.text = roomName
         data.latestPreviewableEvent?.let {
             binding.message.text = it.lastMessage()
-            binding.time.text = it.root.originServerTs?.let(dateFormatter::formatDateAndTime) ?: "-"
+            binding.time.text = it.root.originServerTs?.let { time -> Date(time).formatMessageDate() } ?: "-"
         }
         val isGroupChat = !data.isDirectChat()
         if (isGroupChat) {
@@ -72,7 +72,7 @@ class MessageViewHolder(
         binding.itemLayout.setOnClickListener { enterRoom(data) }
         binding.delete.setOnClickListener { removeRoom(data) }
 
-        binding.swipeLayout.showMode = SwipeLayout.ShowMode.PullOut
+        binding.swipeLayout.showMode = SwipeLayout.ShowMode.LayDown
         binding.swipeLayout.addDrag(SwipeLayout.DragEdge.Left, binding.actionLayout)
     }
 
