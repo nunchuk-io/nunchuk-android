@@ -10,6 +10,7 @@ dependencies {
     implementation project(':nunchuk-wallet-core')
 
     implementation nunchukDeps.nativeSdk
+    implementation matrixDeps.matrixSdk
 
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()

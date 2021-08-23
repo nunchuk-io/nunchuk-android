@@ -7,6 +7,8 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.util.*
+import com.nunchuk.android.model.SendEventExecutor
+import com.nunchuk.android.model.SendEventHelper
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
@@ -45,6 +47,14 @@ class RoomDetailViewModel @Inject constructor(
             }
         }
         retrieveData()
+        SendEventHelper.executor = object : SendEventExecutor {
+            override fun execute(roomId: String, type: String, content: String): String {
+                viewModelScope.launch {
+                    room.sendEvent(type, content.toMatrixContent())
+                }
+                return ""
+            }
+        }
     }
 
     fun retrieveData() {
