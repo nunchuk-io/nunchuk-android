@@ -1,18 +1,18 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.AppSettings
-import com.nunchuk.android.model.SendEventExecutor
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface InitNunchukUseCase {
     fun execute(
         passphrase: String,
-        accountId: String,
-        executor: SendEventExecutor
+        accountId: String
     ): Flow<Unit>
 }
 
@@ -21,17 +21,23 @@ internal class InitNunchukUseCaseImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
 ) : BaseUseCase(), InitNunchukUseCase {
 
-    override fun execute(passphrase: String, accountId: String, executor: SendEventExecutor): Flow<Unit> {
-        return getAppSettingUseCase.execute().flatMapConcat { initNunchuk(it, passphrase, accountId, executor = executor) }
+    override fun execute(
+        passphrase: String,
+        accountId: String
+    ) = getAppSettingUseCase.execute().flatMapConcat {
+        initNunchuk(
+            appSettings = it,
+            passphrase = passphrase,
+            accountId = accountId
+        )
     }
 
     private fun initNunchuk(
         appSettings: AppSettings,
         passphrase: String,
-        accountId: String,
-        executor: SendEventExecutor
+        accountId: String
     ) = flow {
-        emit(nativeSdk.initNunchuk(appSettings, passphrase, accountId, executor))
-    }
+        emit(nativeSdk.initNunchuk(appSettings, passphrase, accountId))
+    }.flowOn(Dispatchers.IO)
 
 }

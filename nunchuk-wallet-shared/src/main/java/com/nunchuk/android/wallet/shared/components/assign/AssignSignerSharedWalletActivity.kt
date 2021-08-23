@@ -70,7 +70,16 @@ class AssignSignerSharedWalletActivity : BaseActivity<ActivityAssignSignerBindin
 
     private fun setupViews() {
         binding.signersContainer.removeAllViews()
-        binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }
+        binding.btnContinue.setOnClickListener {
+            viewModel.handleContinueEvent(
+                walletName = args.walletName,
+                walletType = args.walletType,
+                addressType = args.addressType,
+                totalSigns = args.totalSigns,
+                requireSigns = args.requireSigns
+
+            )
+        }
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
