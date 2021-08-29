@@ -17,7 +17,5 @@ dependencies {
 
     implementation zxingDeps.values()
 
-    implementation loggingDeps.timber
-
     testImplementation otherTestDeps.junit
 }

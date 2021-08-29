@@ -17,7 +17,13 @@ internal class JoinWalletUseCaseImpl @Inject constructor(
 
     override fun execute(roomId: String, signers: List<SingleSigner>) = flow {
         emit(
-            signers.map { nativeSdk.joinSharedWallet(roomId, it) }.last()
+            signers.mapNotNull {
+                try {
+                    nativeSdk.joinSharedWallet(roomId, it)
+                } catch (t: Throwable) {
+                    null
+                }
+            }.last()
         )
     }
 

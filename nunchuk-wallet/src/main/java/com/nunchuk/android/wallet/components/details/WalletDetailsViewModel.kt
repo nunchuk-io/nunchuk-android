@@ -10,8 +10,8 @@ import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
@@ -42,19 +42,24 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     private fun getWalletDetails() {
         viewModelScope.launch {
-            when (val result = getWalletUseCase.execute(walletId)) {
-                is Success -> updateState { copy(wallet = result.data) }
-                is Error -> event(WalletDetailsError(result.exception.message.orUnknownError()))
-            }
+            getWalletUseCase.execute(walletId)
+                .onStart { event(Loading(true)) }
+                .flowOn(Dispatchers.IO)
+                .catch { event(WalletDetailsError(it.message.orUnknownError())) }
+                .flowOn(Dispatchers.Main)
+                .onCompletion { event(Loading(false)) }
+                .collect { updateState { copy(wallet = it) } }
         }
     }
 
     private fun getTransactionHistory() {
         viewModelScope.launch {
-            when (val result = getTransactionHistoryUseCase.execute(walletId)) {
-                is Success -> onRetrievedTransactionHistory(result.data)
-                is Error -> event(WalletDetailsError(result.exception.message.orUnknownError()))
-            }
+            getTransactionHistoryUseCase.execute(walletId)
+                .flowOn(Dispatchers.IO)
+                .catch { event(WalletDetailsError(it.message.orUnknownError())) }
+                .flowOn(Dispatchers.Main)
+                .onCompletion { event(Loading(false)) }
+                .collect { onRetrievedTransactionHistory(it) }
         }
     }
 

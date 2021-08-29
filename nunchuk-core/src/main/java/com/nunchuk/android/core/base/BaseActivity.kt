@@ -47,6 +47,10 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity(), HasAnd
         dialog?.cancel()
     }
 
+    fun showOrHideLoading(loading: Boolean) {
+        if (loading) showLoading() else hideLoading()
+    }
+
     override fun onResume() {
         super.onResume()
         UnauthorizedEventBus.instance().subscribe {

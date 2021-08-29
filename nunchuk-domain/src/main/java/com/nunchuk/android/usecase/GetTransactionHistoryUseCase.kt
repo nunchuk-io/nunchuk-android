@@ -1,19 +1,20 @@
 package com.nunchuk.android.usecase
 
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface GetTransactionHistoryUseCase {
-    suspend fun execute(walletId: String, count: Int = 1000, skip: Int = 0): Result<List<Transaction>>
+    fun execute(walletId: String, count: Int = 1000, skip: Int = 0): Flow<List<Transaction>>
 }
 
 internal class GetTransactionHistoryUseCaseImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
-) : BaseUseCase(), GetTransactionHistoryUseCase {
+) : GetTransactionHistoryUseCase {
 
-    override suspend fun execute(walletId: String, count: Int, skip: Int) = exe {
-        nativeSdk.getTransactionHistory(walletId = walletId, count = count, skip = skip)
+    override fun execute(walletId: String, count: Int, skip: Int) = flow {
+        emit(nativeSdk.getTransactionHistory(walletId = walletId, count = count, skip = skip))
     }
 }

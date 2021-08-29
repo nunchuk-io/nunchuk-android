@@ -53,8 +53,8 @@ class RoomDetailViewModel @Inject constructor(
     private fun getAllRoomWallets() {
         getAllRoomWalletsUseCase.execute()
             .flowOn(IO)
-            .catch { Timber.e(TAG, "get room wallets failed:$it") }
-            .onEach { Timber.d(TAG, "room wallets $it") }
+            .catch { Timber.e("get room wallets failed:$it") }
+            .onEach { Timber.d("room wallets $it") }
             .launchIn(viewModelScope)
     }
 
@@ -89,7 +89,7 @@ class RoomDetailViewModel @Inject constructor(
         timeline = room.createTimeline(null, TimelineSettings(initialSize = PAGINATION, true))
         timeline.removeAllListeners()
         timeline.addListener(TimelineListenerAdapter {
-            Timber.d(TAG, "$it")
+            Timber.d("$it")
             val messages = it.filter(TimelineEvent::isDisplayable)
             updateState { copy(messages = messages.toMessages(currentId)) }
             consume(messages.filter(TimelineEvent::isNunchukEvent))
@@ -108,11 +108,11 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     private fun consume(event: NunchukMatrixEvent) {
-        Timber.d(TAG, "consume($event)")
+        Timber.d("consume($event)")
         consumeEventUseCase.execute(event)
             .flowOn(IO)
-            .catch { Timber.e(TAG, "consume failed:$it") }
-            .onEach { Timber.d(TAG, "consumed $event") }
+            .catch { Timber.e("consume failed:$it") }
+            .onEach { Timber.d("consumed $event") }
             .launchIn(viewModelScope)
     }
 
@@ -135,7 +135,6 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     companion object {
-        private const val TAG = "RoomDetailViewModel"
         private const val PAGINATION = 50
     }
 

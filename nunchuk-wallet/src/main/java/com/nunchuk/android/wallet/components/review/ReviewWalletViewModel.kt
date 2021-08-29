@@ -12,10 +12,11 @@ import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.DraftWalletUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.*
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.util.*
+import kotlinx.coroutines.runBlocking
+import timber.log.Timber
 import javax.inject.Inject
 
 internal class ReviewWalletViewModel @Inject constructor(
@@ -25,6 +26,7 @@ internal class ReviewWalletViewModel @Inject constructor(
 ) : NunchukViewModel<Unit, ReviewWalletEvent>() {
 
     override val initialState = Unit
+
     private var descriptor = ""
 
     fun handleContinueEvent(
@@ -35,65 +37,59 @@ internal class ReviewWalletViewModel @Inject constructor(
         masterSigners: List<MasterSigner>,
         remoteSigners: List<SingleSigner>
     ) {
-        event(SetLoadingEvent(true))
         viewModelScope.launch {
-            val unusedSignerSigners = ArrayList<SingleSigner>()
-            masterSigners.forEach {
-                getUnusedSignerUseCase
-                    .execute(it.id, walletType, addressType)
-                    .collect { signer -> unusedSignerSigners.add(signer) }
-            }
-            draftWallet(walletName, totalRequireSigns, addressType, walletType, unusedSignerSigners + remoteSigners)
+            convertMasterSigners(masterSigners, walletType, addressType)
+                .onStart { event(SetLoadingEvent(true)) }
+                .flowOn(Dispatchers.IO)
+                .map {
+                    val signers = it + remoteSigners
+                    Timber.d("signers:$signers")
+                    draftWalletUseCase.execute(
+                        name = walletName,
+                        totalRequireSigns = totalRequireSigns,
+                        signers = signers,
+                        addressType = addressType,
+                        isEscrow = walletType == ESCROW
+                    )
+                    Timber.d("descriptor:$descriptor")
+                    signers
+                }
+                .flowOn(Dispatchers.IO)
+                .flatMapMerge {
+                    createWalletUseCase.execute(
+                        name = walletName,
+                        totalRequireSigns = totalRequireSigns,
+                        signers = it,
+                        addressType = addressType,
+                        isEscrow = walletType == ESCROW
+                    )
+                }
+                .flowOn(Dispatchers.IO)
+                .flowOn(Dispatchers.Main)
+                .catch {
+                    Timber.d("create wallet error:$it")
+                    event(CreateWalletErrorEvent(it.message.orUnknownError()))
+                }
+                .onEach {
+                    Timber.d("create wallet completed:$it")
+                    event(CreateWalletSuccessEvent(it.id, descriptor))
+                }
+                .collect {
+                    event(SetLoadingEvent(false))
+                }
         }
     }
 
-    private suspend fun draftWallet(
-        walletName: String,
-        totalRequireSigns: Int,
-        addressType: AddressType,
+    private fun convertMasterSigners(
+        masterSigners: List<MasterSigner>,
         walletType: WalletType,
-        signers: List<SingleSigner>
-    ) {
-        draftWalletUseCase.execute(
-            name = walletName,
-            totalRequireSigns = totalRequireSigns,
-            signers = signers,
-            addressType = addressType,
-            isEscrow = walletType == ESCROW
-        ).catch {
-            event(CreateWalletErrorEvent(it.message.orUnknownError()))
-            event(SetLoadingEvent(false))
-        }.collect {
-            descriptor = it
-            createWallet(walletName, totalRequireSigns, signers, addressType, walletType)
-        }
-    }
-
-    private fun createWallet(
-        walletName: String,
-        totalRequireSigns: Int,
-        signers: List<SingleSigner>,
-        addressType: AddressType,
-        walletType: WalletType
-    ) {
-        viewModelScope.launch {
-            createWalletUseCase.execute(
-                name = walletName,
-                totalRequireSigns = totalRequireSigns,
-                signers = signers,
-                addressType = addressType,
-                isEscrow = walletType == ESCROW
-            ).catch {
-                event(CreateWalletErrorEvent(it.message.orUnknownError()))
-                event(SetLoadingEvent(false))
-            }.collect {
-                event(CreateWalletSuccessEvent(it.id, descriptor))
+        addressType: AddressType
+    ) = combine(
+        masterSigners.map {
+            runBlocking {
+                getUnusedSignerUseCase.execute(it.id, walletType, addressType)
             }
         }
-    }
+    ) { it.toList() }.flowOn(Dispatchers.IO)
 
 }
-
-internal fun String.isWalletExisted() = this.toLowerCase(Locale.getDefault()).startsWith(WALLET_EXISTED)
-
-internal const val WALLET_EXISTED = "wallet existed"

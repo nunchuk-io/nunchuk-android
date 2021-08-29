@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface DraftWalletUseCase {
-    suspend fun execute(
+    fun execute(
         name: String,
         totalRequireSigns: Int,
         signers: List<SingleSigner>,
@@ -22,7 +22,7 @@ internal class DraftWalletUseCaseImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
 ) : DraftWalletUseCase {
 
-    override suspend fun execute(
+    override fun execute(
         name: String,
         totalRequireSigns: Int,
         signers: List<SingleSigner>,

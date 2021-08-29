@@ -4,6 +4,7 @@ import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 
 sealed class ConfigureWalletEvent {
+    data class Loading(val loading: Boolean) : ConfigureWalletEvent()
     data class AssignSignerCompletedEvent(
         val totalRequireSigns: Int = 0,
         val masterSigners: List<MasterSigner>,

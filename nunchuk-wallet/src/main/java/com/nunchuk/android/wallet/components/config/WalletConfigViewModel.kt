@@ -3,12 +3,15 @@ package com.nunchuk.android.wallet.components.config
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameSuccessEvent
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -28,22 +31,24 @@ internal class WalletConfigViewModel @Inject constructor(
 
     private fun getWalletDetails() {
         viewModelScope.launch {
-            when (val result = getWalletUseCase.execute(walletId)) {
-                is Result.Success -> updateState { result.data }
-                is Result.Error -> event(UpdateNameErrorEvent(result.exception.message.orUnknownError()))
-            }
+            getWalletUseCase.execute(walletId)
+                .flowOn(Dispatchers.IO)
+                .catch { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
+                .flowOn(Dispatchers.Main)
+                .collect { updateState { it } }
         }
     }
 
     fun handleEditCompleteEvent(walletName: String) {
         viewModelScope.launch {
-            when (val result = updateWalletUseCase.execute(getState().copy(name = walletName))) {
-                is Result.Success -> {
+            updateWalletUseCase.execute(getState().copy(name = walletName))
+                .flowOn(Dispatchers.IO)
+                .catch { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
+                .flowOn(Dispatchers.Main)
+                .collect {
                     updateState { copy(name = walletName) }
                     event(UpdateNameSuccessEvent)
                 }
-                is Result.Error -> event(UpdateNameErrorEvent(result.exception.message.orUnknownError()))
-            }
         }
     }
 

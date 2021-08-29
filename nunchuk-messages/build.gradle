@@ -20,7 +20,5 @@ dependencies {
     implementation matrixDeps.matrixSdk
     implementation workMangerDeps.values()
 
-    implementation loggingDeps.timber
-
     testImplementation otherTestDeps.junit
 }

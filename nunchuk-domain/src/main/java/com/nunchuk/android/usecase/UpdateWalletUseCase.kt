@@ -1,20 +1,21 @@
 package com.nunchuk.android.usecase
 
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface UpdateWalletUseCase {
-    suspend fun execute(wallet: Wallet): Result<Boolean>
+    fun execute(wallet: Wallet): Flow<Boolean>
 }
 
 internal class UpdateWalletUseCaseImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
-) : BaseUseCase(), UpdateWalletUseCase {
+) : UpdateWalletUseCase {
 
-    override suspend fun execute(wallet: Wallet) = exe {
-        nativeSdk.updateWallet(wallet)
+    override fun execute(wallet: Wallet) = flow {
+        emit(nativeSdk.updateWallet(wallet))
     }
 
 }
