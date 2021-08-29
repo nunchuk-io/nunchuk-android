@@ -11,8 +11,7 @@ internal data class WalletsState(
 )
 
 internal sealed class WalletsEvent {
-    data class WalletLoading(val loading: Boolean) : WalletsEvent()
-    data class SignersLoading(val loading: Boolean) : WalletsEvent()
+    data class Loading(val loading: Boolean) : WalletsEvent()
     data class ShowErrorEvent(val message: String) : WalletsEvent()
     object AddWalletEvent : WalletsEvent()
     object ShowSignerIntroEvent : WalletsEvent()

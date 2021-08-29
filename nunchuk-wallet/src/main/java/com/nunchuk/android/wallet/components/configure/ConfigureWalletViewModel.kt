@@ -2,17 +2,14 @@ package com.nunchuk.android.wallet.components.configure
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.usecase.GetMasterSignersUseCase
-import com.nunchuk.android.usecase.GetRemoteSignersUseCase
-import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.AssignSignerCompletedEvent
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
+import com.nunchuk.android.usecase.GetCompoundSignersUseCase
+import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
 internal class ConfigureWalletViewModel @Inject constructor(
-    private val getMasterSignersUseCase: GetMasterSignersUseCase,
-    private val getRemoteSignersUseCase: GetRemoteSignersUseCase
+    private val getCompoundSignersUseCase: GetCompoundSignersUseCase
 ) : NunchukViewModel<ConfigureWalletState, ConfigureWalletEvent>() {
 
     override val initialState = ConfigureWalletState()
@@ -23,17 +20,14 @@ internal class ConfigureWalletViewModel @Inject constructor(
     }
 
     private fun getSigners() {
-        viewModelScope.launch {
-            getRemoteSignersUseCase.execute()
-                .catch { updateState { copy(remoteSigners = emptyList()) } }
-                .collect { updateState { copy(remoteSigners = it) } }
-        }
-
-        viewModelScope.launch {
-            getMasterSignersUseCase.execute()
-                .catch { updateState { copy(masterSigners = emptyList()) } }
-                .collect { updateState { copy(masterSigners = it) } }
-        }
+        getCompoundSignersUseCase.execute()
+            .onStart { event(Loading(true)) }
+            .flowOn(Dispatchers.IO)
+            .catch { updateState { copy(masterSigners = emptyList(), remoteSigners = emptyList()) } }
+            .onEach { updateState { copy(masterSigners = it.first, remoteSigners = it.second) } }
+            .flowOn(Dispatchers.Main)
+            .onCompletion { event(Loading(false)) }
+            .launchIn(viewModelScope)
     }
 
     fun updateSelectedXfps(xfp: String, checked: Boolean) {

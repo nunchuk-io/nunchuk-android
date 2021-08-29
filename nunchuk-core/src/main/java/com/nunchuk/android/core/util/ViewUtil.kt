@@ -3,8 +3,7 @@ package com.nunchuk.android.core.util
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.text.SpannableString
-import android.text.style.UnderlineSpan
+import android.graphics.Paint
 import android.widget.Button
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -22,11 +21,8 @@ class TextUtils @Inject constructor(val context: Context) {
 
 }
 
-fun TextView.setUnderline(text: String = "${getText()}") {
-    SpannableString(text).apply {
-        setSpan(UnderlineSpan(), 0, text.length, 0)
-        setText(this)
-    }
+fun TextView.setUnderline() {
+    paintFlags = paintFlags or Paint.UNDERLINE_TEXT_FLAG
 }
 
 fun TransactionStatus.toDisplayedText(context: Context) = when (this) {

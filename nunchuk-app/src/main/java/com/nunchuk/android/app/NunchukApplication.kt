@@ -3,12 +3,14 @@ package com.nunchuk.android.app
 import android.app.Application
 import android.content.Context
 import androidx.multidex.MultiDex
+import com.nunchuk.android.BuildConfig
 import com.nunchuk.android.app.di.BootstrapInjectors
 import com.nunchuk.android.core.matrix.MatrixInitializer
 import com.nunchuk.android.util.FileHelper
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasAndroidInjector
+import timber.log.Timber
 import javax.inject.Inject
 
 internal class NunchukApplication : Application(), HasAndroidInjector {
@@ -27,7 +29,9 @@ internal class NunchukApplication : Application(), HasAndroidInjector {
 
     override fun onCreate() {
         super.onCreate()
-
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
+        }
         BootstrapInjectors.inject(this)
         fileHelper.getOrCreateNunchukRootDir()
         matrix.initialize()

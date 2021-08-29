@@ -58,12 +58,13 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
 
     private fun handleEvent(event: WalletDetailsEvent) {
         when (event) {
-            is WalletDetailsError -> Toast.makeText(applicationContext, event.message, Toast.LENGTH_SHORT).show()
+            is WalletDetailsError -> NCToastMessage(this).showError(event.message)
             is SendMoneyEvent -> navigator.openInputAmountScreen(this, args.walletId, event.amount.pureBTC())
             is UpdateUnusedAddress -> bindUnusedAddress(event.address)
             is OpenDynamicQRScreen -> navigator.openDynamicQRScreen(this, event.descriptors)
             is UploadWalletConfigEvent -> shareConfigurationFile(event.filePath)
             is BackupWalletDescriptorEvent -> shareDescriptor(event.descriptor)
+            is Loading -> showOrHideLoading(event.loading)
             DeleteWalletSuccess -> walletDeleted()
         }
     }

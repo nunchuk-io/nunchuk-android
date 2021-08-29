@@ -7,6 +7,7 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.type.WalletType.ESCROW
 import com.nunchuk.android.type.WalletType.MULTI_SIG
 import com.nunchuk.android.wallet.core.R
+import java.util.*
 
 fun WalletType.toReadableString(context: Context): String {
     return when (this) {
@@ -28,4 +29,8 @@ fun AddressType.toReadableString(context: Context): String {
 internal class UnsupportedWalletTypeException : Exception()
 
 internal class UnsupportedAddressTypeException : Exception()
+
+fun String.isWalletExisted() = this.toLowerCase(Locale.getDefault()).startsWith(WALLET_EXISTED)
+
+internal const val WALLET_EXISTED = "wallet existed"
 

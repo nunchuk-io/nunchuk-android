@@ -12,6 +12,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.AssignSignerCompletedEvent
+import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.Loading
 import com.nunchuk.android.wallet.databinding.ActivityConfigureWalletBinding
 import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -51,6 +52,7 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>() {
                 masterSigners = event.masterSigners,
                 remoteSigners = event.remoteSigners
             )
+            is Loading -> showOrHideLoading(event.loading)
         }
     }
 

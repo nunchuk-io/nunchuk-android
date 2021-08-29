@@ -63,9 +63,13 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             ShowSignerIntroEvent -> openSignerIntroScreen()
             WalletEmptySignerEvent -> openWalletIntroScreen()
             is ShowErrorEvent -> requireActivity().showToast(event.message)
-            is SignersLoading -> binding.signerProgress.isVisible = event.loading
-            is WalletLoading -> binding.walletProgress.isVisible = event.loading
+            is Loading -> handleLoading(event)
         }
+    }
+
+    private fun handleLoading(event: Loading) {
+        binding.signerProgress.isVisible = event.loading
+        binding.walletProgress.isVisible = event.loading
     }
 
     private fun openWalletIntroScreen() {
@@ -75,8 +79,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     private fun showWalletState(state: WalletsState) {
         val signers = state.masterSigners.map(MasterSigner::toModel) + state.signers.map(SingleSigner::toModel)
         showIntro(signers, state.wallets)
-        showSigners(signers)
         showWallets(state.wallets)
+        showSigners(signers)
     }
 
     private fun showIntro(signers: List<SignerModel>, wallets: List<Wallet>) {

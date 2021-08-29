@@ -13,7 +13,8 @@ abstract class NunchukViewModel<State, Event> : ViewModel() {
 
     private val _state = MutableLiveData<State>()
 
-    private val _event = SingleLiveEvent<Event>()
+    // TODO investigate side effect
+    private val _event = MutableLiveData<Event>()
 
     protected abstract val initialState: State
 
@@ -26,7 +27,6 @@ abstract class NunchukViewModel<State, Event> : ViewModel() {
         _state.value = updater(_state.value ?: initialState)
     }
 
-    @MainThread
     protected fun event(event: Event) {
         _event.postValue(event)
     }

@@ -9,8 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.util.hideLoading
-import com.nunchuk.android.core.util.showLoading
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
 import com.nunchuk.android.messages.databinding.FragmentMessagesBinding
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -68,15 +67,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
     private fun handleEvent(event: RoomsEvent) {
         when (event) {
-            is LoadingEvent -> handleLoading(event.loading)
-        }
-    }
-
-    private fun handleLoading(loading: Boolean) {
-        if (loading) {
-            showLoading()
-        } else {
-            hideLoading()
+            is LoadingEvent -> showOrHideLoading(event.loading)
         }
     }
 

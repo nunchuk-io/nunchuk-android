@@ -14,6 +14,7 @@ import com.nunchuk.android.wallet.components.config.SignersViewBinder
 import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.*
 import com.nunchuk.android.wallet.databinding.ActivityReviewWalletBinding
 import com.nunchuk.android.wallet.util.bindWalletConfiguration
+import com.nunchuk.android.wallet.util.isWalletExisted
 import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -44,17 +45,9 @@ class ReviewWalletActivity : BaseActivity<ActivityReviewWalletBinding>() {
 
     private fun handleEvent(event: ReviewWalletEvent) {
         when (event) {
-            is SetLoadingEvent -> handleLoading(event.showLoading)
+            is SetLoadingEvent -> showOrHideLoading(event.showLoading)
             is CreateWalletSuccessEvent -> onCreateWalletSuccess(event)
             is CreateWalletErrorEvent -> onCreateWalletError(event)
-        }
-    }
-
-    private fun handleLoading(showLoading: Boolean) {
-        if (showLoading) {
-            showLoading()
-        } else {
-            hideLoading()
         }
     }
 

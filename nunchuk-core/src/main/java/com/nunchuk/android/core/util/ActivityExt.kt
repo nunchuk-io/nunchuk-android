@@ -16,10 +16,18 @@ fun Activity.hideLoading() {
     (this as BaseActivity<*>).hideLoading()
 }
 
+fun Activity.showOrHideLoading(loading: Boolean) {
+    (this as BaseActivity<*>).showOrHideLoading(loading)
+}
+
 fun Fragment.showLoading() {
     activity?.let(FragmentActivity::showLoading)
 }
 
 fun Fragment.hideLoading() {
     activity?.let(FragmentActivity::hideLoading)
+}
+
+fun Fragment.showOrHideLoading(loading: Boolean) {
+    activity?.showOrHideLoading(loading)
 }
