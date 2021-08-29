@@ -6,6 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="@dimen/nc_padding_4"
     android:background="@color/nc_white_color"
+    android:foreground="?attr/selectableItemBackground"
     android:orientation="vertical">
 
     <com.nunchuk.android.widget.swipe.SwipeLayout
@@ -49,6 +50,7 @@
             android:id="@+id/itemLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/nc_white_color"
             android:paddingVertical="@dimen/nc_padding_8">
 
             <com.nunchuk.android.widget.NCFontTextView

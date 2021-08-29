@@ -9,3 +9,12 @@ internal data class WalletsState(
     val signers: List<SingleSigner> = emptyList(),
     val masterSigners: List<MasterSigner> = emptyList()
 )
+
+internal sealed class WalletsEvent {
+    data class WalletLoading(val loading: Boolean) : WalletsEvent()
+    data class SignersLoading(val loading: Boolean) : WalletsEvent()
+    data class ShowErrorEvent(val message: String) : WalletsEvent()
+    object AddWalletEvent : WalletsEvent()
+    object ShowSignerIntroEvent : WalletsEvent()
+    object WalletEmptySignerEvent : WalletsEvent()
+}

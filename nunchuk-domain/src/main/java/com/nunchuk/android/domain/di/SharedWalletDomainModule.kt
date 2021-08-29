@@ -10,4 +10,22 @@ internal interface SharedWalletDomainModule {
     @Binds
     fun bindInitWalletUseCase(useCase: InitWalletUseCaseImpl): InitWalletUseCase
 
+    @Binds
+    fun bindJoinWalletUseCase(useCase: JoinWalletUseCaseImpl): JoinWalletUseCase
+
+    @Binds
+    fun bindCancelWalletUseCase(useCase: CancelWalletUseCaseImpl): CancelWalletUseCase
+
+    @Binds
+    fun bindLeaveWalletUseCase(useCase: LeaveWalletUseCaseImpl): LeaveWalletUseCase
+
+    @Binds
+    fun bindGetRoomWalletUseCase(useCase: GetRoomWalletUseCaseImpl): GetRoomWalletUseCase
+
+    @Binds
+    fun bindGetAllRoomWalletsUseCase(useCase: GetAllRoomWalletsUseCaseImpl): GetAllRoomWalletsUseCase
+
+    @Binds
+    fun bindConsumeEventUseCase(useCase: ConsumeEventUseCaseImpl): ConsumeEventUseCase
+
 }

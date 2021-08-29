@@ -37,8 +37,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:gravity="center"
-            android:src="@drawable/ic_camera"
-            android:textColor="@color/nc_white_color" />
+            android:src="@drawable/ic_camera" />
     </androidx.cardview.widget.CardView>
 
     <androidx.appcompat.widget.AppCompatImageView

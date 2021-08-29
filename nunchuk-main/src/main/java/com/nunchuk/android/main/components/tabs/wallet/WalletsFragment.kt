@@ -61,8 +61,10 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         when (event) {
             AddWalletEvent -> openAddWalletScreen()
             ShowSignerIntroEvent -> openSignerIntroScreen()
-            is ShowErrorEvent -> requireActivity().showToast(event.message)
             WalletEmptySignerEvent -> openWalletIntroScreen()
+            is ShowErrorEvent -> requireActivity().showToast(event.message)
+            is SignersLoading -> binding.signerProgress.isVisible = event.loading
+            is WalletLoading -> binding.walletProgress.isVisible = event.loading
         }
     }
 

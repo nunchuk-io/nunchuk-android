@@ -1,10 +1,12 @@
 package com.nunchuk.android.contact.components.add
 
-import com.nunchuk.android.arch.ext.defaultSchedulers
+import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.contact.components.add.AddContactsEvent.*
 import com.nunchuk.android.contact.usecase.AddContactUseCase
 import com.nunchuk.android.utils.EmailValidator
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
 class AddContactsViewModel @Inject constructor(
@@ -40,20 +42,26 @@ class AddContactsViewModel @Inject constructor(
     fun handleSend() {
         val emails = getState().emails
         if (emails.isNotEmpty() && emails.all(EmailWithState::valid)) {
-            event(LoadingEvent(true))
             addContactUseCase.execute(emails.map(EmailWithState::email))
-                .defaultSchedulers()
-                .doAfterTerminate { event(LoadingEvent(false)) }
-                .subscribe({
-                    if (it.isEmpty()) {
-                        event(AddContactSuccessEvent)
-                    } else {
-                        updateEmailsError(it)
-                    }
-                }, {
-                    event(AddContactsErrorEvent(it.message.orEmpty()))
-                })
-                .addToDisposables()
+                .onStart { event(LoadingEvent(true)) }
+                .flowOn(Dispatchers.IO)
+                .catch { onSendError(it) }
+                .onEach { onSendCompleted(it) }
+                .flowOn(Dispatchers.Main)
+                .onCompletion { event(LoadingEvent(false)) }
+                .launchIn(viewModelScope)
+        }
+    }
+
+    private fun onSendError(t: Throwable) {
+        event(AddContactsErrorEvent(t.message.orEmpty()))
+    }
+
+    private fun onSendCompleted(it: List<String>) {
+        if (it.isEmpty()) {
+            event(AddContactSuccessEvent)
+        } else {
+            updateEmailsError(it)
         }
     }
 

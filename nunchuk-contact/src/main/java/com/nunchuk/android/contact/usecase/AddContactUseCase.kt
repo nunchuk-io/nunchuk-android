@@ -1,11 +1,11 @@
 package com.nunchuk.android.contact.usecase
 
 import com.nunchuk.android.contact.repository.ContactsRepository
-import io.reactivex.Single
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 interface AddContactUseCase {
-    fun execute(emails: List<String>): Single<List<String>>
+    fun execute(emails: List<String>): Flow<List<String>>
 }
 
 internal class AddContactUseCaseImpl @Inject constructor(

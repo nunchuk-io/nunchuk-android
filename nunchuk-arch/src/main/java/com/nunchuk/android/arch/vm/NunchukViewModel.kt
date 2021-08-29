@@ -28,7 +28,7 @@ abstract class NunchukViewModel<State, Event> : ViewModel() {
 
     @MainThread
     protected fun event(event: Event) {
-        _event.value = event
+        _event.postValue(event)
     }
 
     protected fun getState() = _state.value ?: initialState
