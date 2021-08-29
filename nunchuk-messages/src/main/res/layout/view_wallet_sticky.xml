@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/wallet_sticky"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="@dimen/nc_padding_8"
+    app:cardUseCompatPadding="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:padding="@dimen/nc_padding_8">
+
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="20dp"
+            android:layout_height="wrap_content"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_joint_wallet"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/nc_padding_8"
+            android:layout_marginTop="@dimen/nc_padding_4"
+            android:background="@drawable/nc_rounded_red_background"
+            android:paddingHorizontal="@dimen/nc_padding_8"
+            android:text="@string/nc_message_pending_signers"
+            android:textColor="@color/nc_primary_color"
+            android:textSize="@dimen/nc_text_size_10"
+            app:layout_constraintStart_toEndOf="@+id/icon"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/configuration"
+            style="@style/NCText.Body.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_4"
+            app:layout_constraintStart_toStartOf="@+id/status"
+            app:layout_constraintTop_toBottomOf="@+id/status"
+            tools:text="2/3 Standard Wallet" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/name"
+            style="@style/NCText.Title.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_4"
+            app:layout_constraintStart_toStartOf="@+id/status"
+            app:layout_constraintTop_toBottomOf="@+id/configuration"
+            tools:text="Nunchuk Fun Fund" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>
+

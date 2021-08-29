@@ -4,10 +4,9 @@ import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 
 sealed class AssignSignerEvent {
+    data class AssignSignerErrorEvent(val message: String) : AssignSignerEvent()
     data class AssignSignerCompletedEvent(
-        val totalRequireSigns: Int = 0,
-        val masterSigners: List<MasterSigner>,
-        val remoteSigners: List<SingleSigner>
+        val roomId: String
     ) : AssignSignerEvent()
 }
 

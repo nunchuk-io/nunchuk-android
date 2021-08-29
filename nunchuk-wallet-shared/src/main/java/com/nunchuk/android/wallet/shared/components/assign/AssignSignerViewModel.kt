@@ -8,7 +8,6 @@ import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
-import com.nunchuk.android.usecase.InitWalletUseCase
 import com.nunchuk.android.usecase.JoinWalletUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -19,8 +18,7 @@ import javax.inject.Inject
 internal class AssignSignerViewModel @Inject constructor(
     private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     private val getUnusedSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
-    private val joinWalletUseCase: JoinWalletUseCase,
-    private val initWalletUseCase: InitWalletUseCase
+    private val joinWalletUseCase: JoinWalletUseCase
 ) : NunchukViewModel<AssignSignerState, AssignSignerEvent>() {
 
     override val initialState = AssignSignerState()
@@ -52,55 +50,13 @@ internal class AssignSignerViewModel @Inject constructor(
         }
     }
 
-    fun handleContinueEvent(
-        walletName: String,
-        walletType: WalletType,
-        addressType: AddressType,
-        totalSigns: Int,
-        requireSigns: Int
-    ) {
-        SessionHolder.currentRoom?.roomId?.let {
-            initWallet(
-                roomId = it,
-                walletName = walletName,
-                walletType = walletType,
-                addressType = addressType,
-                totalSigns = totalSigns,
-                requireSigns = requireSigns
-            )
-        }
-    }
-
-    private fun initWallet(
-        roomId: String,
-        walletName: String,
-        walletType: WalletType,
-        addressType: AddressType,
-        totalSigns: Int,
-        requireSigns: Int
-    ) {
-        initWalletUseCase.execute(
-            roomId = roomId,
-            name = walletName,
-            totalSigns = totalSigns,
-            requireSigns = requireSigns,
-            addressType = addressType,
-            isEscrow = walletType == WalletType.ESCROW
-        )
-            .flowOn(Dispatchers.IO)
-            .catch { Timber.e(TAG, "init wallet error,", it) }
-            .onEach {
-                Timber.d(TAG, "init wallet completed $it")
-                doAssignSigners(walletType, addressType)
-            }
-            .flowOn(Dispatchers.Main)
-            .launchIn(viewModelScope)
-    }
-
-    private fun doAssignSigners(walletType: WalletType, addressType: AddressType) {
+    fun handleContinueEvent(walletType: WalletType, addressType: AddressType) {
         val state = getState()
-        val masterSigners = state.masterSigners
-        val remoteSigners = state.remoteSigners
+        val masterSigners = state.masterSigners.filter { it.device.masterFingerprint in state.selectedPFXs }
+        val remoteSigners = state.remoteSigners.filter { it.masterFingerprint in state.selectedPFXs }
+
+        if (masterSigners.isEmpty() && remoteSigners.isEmpty()) return
+
         viewModelScope.launch {
             val unusedSignerSigners = ArrayList<SingleSigner>()
             masterSigners.forEach {
@@ -109,11 +65,11 @@ internal class AssignSignerViewModel @Inject constructor(
                     .collect { signer -> unusedSignerSigners.add(signer) }
             }
 
-            SessionHolder.currentRoom?.let {
-                joinWalletUseCase.execute(it.roomId, remoteSigners + unusedSignerSigners)
+            SessionHolder.currentRoom?.let { room ->
+                joinWalletUseCase.execute(room.roomId, remoteSigners + unusedSignerSigners)
                     .flowOn(Dispatchers.IO)
-                    .catch { t -> Timber.e(TAG, "init wallet error,", t) }
-                    .onEach { doAssignSigners(walletType, addressType) }
+                    .catch { Timber.e(TAG, "init wallet error,", it) }
+                    .onEach { event(AssignSignerEvent.AssignSignerCompletedEvent(room.roomId)) }
                     .flowOn(Dispatchers.Main)
                     .launchIn(viewModelScope)
             }

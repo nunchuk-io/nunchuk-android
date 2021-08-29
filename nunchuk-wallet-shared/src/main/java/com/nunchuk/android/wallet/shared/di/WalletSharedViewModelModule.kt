@@ -5,6 +5,7 @@ import com.nunchuk.android.arch.vm.ViewModelKey
 import com.nunchuk.android.wallet.shared.components.assign.AssignSignerViewModel
 import com.nunchuk.android.wallet.shared.components.configure.ConfigureSharedWalletViewModel
 import com.nunchuk.android.wallet.shared.components.create.CreateSharedWalletViewModel
+import com.nunchuk.android.wallet.shared.components.review.ReviewSharedWalletViewModel
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoMap
@@ -26,5 +27,10 @@ internal interface WalletSharedViewModelModule {
     @IntoMap
     @ViewModelKey(AssignSignerViewModel::class)
     fun bindAssignSignerViewModel(viewModel: AssignSignerViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(ReviewSharedWalletViewModel::class)
+    fun bindReviewSharedWalletViewModel(viewModel: ReviewSharedWalletViewModel): ViewModel
 
 }

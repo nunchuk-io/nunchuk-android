@@ -52,7 +52,7 @@
 
     <style name="NCPrimaryButton.Light" parent="NCPrimaryButton">
         <item name="android:background">@drawable/nc_rounded_light_background</item>
-        <item name="android:textColor">@color/nc_black_color</item>
+        <item name="android:textColor">@color/nc_primary_color</item>
     </style>
 
     <style name="NCPrimaryButton.Light.Solid" parent="NCPrimaryButton.Light">

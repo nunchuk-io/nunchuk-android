@@ -5,18 +5,10 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
-import com.nunchuk.android.messages.components.detail.holder.MessageDateHolder
-import com.nunchuk.android.messages.components.detail.holder.MessageMineViewHolder
-import com.nunchuk.android.messages.components.detail.holder.MessageNotificationHolder
-import com.nunchuk.android.messages.components.detail.holder.MessagePartnerHolder
-import com.nunchuk.android.messages.databinding.ItemDateBinding
-import com.nunchuk.android.messages.databinding.ItemMessageMeBinding
-import com.nunchuk.android.messages.databinding.ItemMessageNotificationBinding
-import com.nunchuk.android.messages.databinding.ItemMessagePartnerBinding
+import com.nunchuk.android.messages.components.detail.holder.*
+import com.nunchuk.android.messages.databinding.*
 
-internal class MessagesAdapter(
-    val context: Context
-) : Adapter<ViewHolder>() {
+internal class MessagesAdapter(val context: Context) : Adapter<ViewHolder>() {
 
     internal var chatModels: List<AbsChatModel> = ArrayList()
         set(value) {
@@ -37,6 +29,12 @@ internal class MessagesAdapter(
         MessageType.TYPE_DATE.index -> MessageDateHolder(
             ItemDateBinding.inflate(LayoutInflater.from(context), parent, false)
         )
+        MessageType.TYPE_NUNCHUK_CARD.index -> NunchukCardHolder(
+            ItemWalletInfoBinding.inflate(LayoutInflater.from(context), parent, false)
+        )
+        MessageType.TYPE_NUNCHUK_NOTIFICATION.index -> NunchukNotificationHolder(
+            ItemNunchukNotificationBinding.inflate(LayoutInflater.from(context), parent, false)
+        )
         else -> throw IllegalArgumentException("Invalid type")
     }
 
@@ -51,6 +49,8 @@ internal class MessagesAdapter(
             MessageType.TYPE_CHAT_PARTNER.index -> (holder as MessagePartnerHolder).bind((messageData as MessageModel).message)
             MessageType.TYPE_NOTIFICATION.index -> (holder as MessageNotificationHolder).bind((messageData as MessageModel).message as NotificationMessage)
             MessageType.TYPE_DATE.index -> (holder as MessageDateHolder).bind(messageData as DateModel)
+            MessageType.TYPE_NUNCHUK_CARD.index -> (holder as NunchukCardHolder).bind((messageData as MessageModel).message as NunchukWalletMessage)
+            MessageType.TYPE_NUNCHUK_NOTIFICATION.index -> (holder as NunchukNotificationHolder).bind((messageData as MessageModel).message as NunchukWalletMessage)
         }
     }
 

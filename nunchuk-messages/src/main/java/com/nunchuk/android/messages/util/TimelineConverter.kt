@@ -2,7 +2,9 @@ package com.nunchuk.android.messages.util
 
 import com.google.gson.Gson
 import com.nunchuk.android.messages.components.detail.Message
+import com.nunchuk.android.messages.components.detail.MessageType
 import com.nunchuk.android.messages.components.detail.NotificationMessage
+import com.nunchuk.android.messages.components.detail.NunchukWalletMessage
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
@@ -14,12 +16,28 @@ fun List<TimelineEvent>.toMessages(chatId: String) = sortedBy { it.root.ageLocal
 fun TimelineEvent.toMessage(chatId: String): Message {
     Timber.d(TAG, "$this")
     return when {
-        isNunchukEvent() -> {
-            Message(
+        isNunchukWalletEvent() -> {
+            val content = root.content?.toMap().orEmpty()
+            val msgType = WalletEventType.of(content[KEY] as String)
+            NunchukWalletMessage(
                 sender = senderSafe(),
                 content = Gson().toJson(root.getClearContent()),
                 time = time(),
-                type = chatType(chatId)
+                timelineEvent = this,
+                eventType = root.type!!,
+                msgType = WalletEventType.of(content[KEY] as String),
+                type = if (msgType == WalletEventType.INIT) MessageType.TYPE_NUNCHUK_CARD.index else MessageType.TYPE_NUNCHUK_NOTIFICATION.index
+            )
+        }
+        isNunchukTransactionEvent() -> {
+            val content = root.content?.toMap().orEmpty()
+            NunchukWalletMessage(
+                sender = senderSafe(),
+                content = Gson().toJson(root.getClearContent()),
+                time = time(),
+                timelineEvent = this,
+                eventType = root.type!!,
+                msgType = WalletEventType.of(content[KEY] as String)
             )
         }
         isMessageEvent() -> {

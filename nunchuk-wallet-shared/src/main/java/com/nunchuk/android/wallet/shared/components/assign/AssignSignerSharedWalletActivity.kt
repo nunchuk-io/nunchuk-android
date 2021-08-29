@@ -5,15 +5,18 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.shared.R
+import com.nunchuk.android.wallet.shared.components.assign.AssignSignerEvent.AssignSignerCompletedEvent
+import com.nunchuk.android.wallet.shared.components.assign.AssignSignerEvent.AssignSignerErrorEvent
 import com.nunchuk.android.wallet.shared.databinding.ActivityAssignSignerBinding
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
@@ -46,8 +49,14 @@ class AssignSignerSharedWalletActivity : BaseActivity<ActivityAssignSignerBindin
 
     private fun handleEvent(event: AssignSignerEvent) {
         when (event) {
-            is AssignSignerEvent.AssignSignerCompletedEvent -> showToast("Coming soon")
+            is AssignSignerCompletedEvent -> openRoom(event.roomId)
+            is AssignSignerErrorEvent -> NCToastMessage(this).showError(event.message)
         }
+    }
+
+    private fun openRoom(roomId: String) {
+        ActivityManager.instance.popUntilRoot()
+        navigator.openRoomDetailActivity(this, roomId)
     }
 
     private fun handleState(state: AssignSignerState) {
@@ -71,12 +80,8 @@ class AssignSignerSharedWalletActivity : BaseActivity<ActivityAssignSignerBindin
         binding.signersContainer.removeAllViews()
         binding.btnContinue.setOnClickListener {
             viewModel.handleContinueEvent(
-                walletName = args.walletName,
                 walletType = args.walletType,
-                addressType = args.addressType,
-                totalSigns = args.totalSigns,
-                requireSigns = args.requireSigns
-
+                addressType = args.addressType
             )
         }
         binding.toolbar.setNavigationOnClickListener {
