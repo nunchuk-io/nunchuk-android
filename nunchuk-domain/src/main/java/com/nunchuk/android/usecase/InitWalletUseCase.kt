@@ -1,5 +1,6 @@
 package com.nunchuk.android.usecase
 
+import com.nunchuk.android.model.NunchukMatrixEvent
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.type.AddressType
 import kotlinx.coroutines.flow.Flow
@@ -14,7 +15,7 @@ interface InitWalletUseCase {
         requireSigns: Int,
         addressType: AddressType,
         isEscrow: Boolean,
-    ): Flow<Unit>
+    ): Flow<NunchukMatrixEvent>
 }
 
 internal class InitWalletUseCaseImpl @Inject constructor(
@@ -29,19 +30,15 @@ internal class InitWalletUseCaseImpl @Inject constructor(
         addressType: AddressType,
         isEscrow: Boolean,
     ) = flow {
-        try {
-            emit(
-                nativeSdk.initWallet(
-                    roomId = roomId,
-                    name = name,
-                    totalSigns = totalSigns,
-                    requireSigns = requireSigns,
-                    addressType = addressType,
-                    isEscrow = isEscrow
-                )
+        emit(
+            nativeSdk.initSharedWallet(
+                roomId = roomId,
+                name = name,
+                totalSigns = totalSigns,
+                requireSigns = requireSigns,
+                addressType = addressType,
+                isEscrow = isEscrow
             )
-        } catch (t: Throwable) {
-            emit(Unit)
-        }
+        )
     }
 }

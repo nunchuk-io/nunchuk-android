@@ -106,6 +106,16 @@
             app:layout_constraintTop_toBottomOf="@+id/introSubtitle"
             app:layout_constraintTop_toTopOf="@id/btnAdd" />
 
+        <ProgressBar
+            android:id="@+id/wallet_progress"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/nc_primary_color"
+            android:indeterminateTintMode="src_in" />
+
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/walletEmpty"
             style="@style/NCText.Body"
@@ -137,6 +147,16 @@
             android:paddingVertical="@dimen/nc_padding_8"
             android:text="@string/nc_title_signers"
             app:fontTextStyle="semi_bold" />
+
+        <ProgressBar
+            android:id="@+id/signer_progress"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/nc_primary_color"
+            android:indeterminateTintMode="src_in" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/signerEmpty"

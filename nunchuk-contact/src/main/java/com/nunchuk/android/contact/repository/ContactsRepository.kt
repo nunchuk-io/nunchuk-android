@@ -10,6 +10,9 @@ import com.nunchuk.android.persistence.entity.ContactEntity
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Single
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 interface ContactsRepository {
@@ -18,7 +21,7 @@ interface ContactsRepository {
 
     fun getRemoteContacts(accountId: String): Completable
 
-    fun addContacts(emails: List<String>): Single<List<String>>
+    fun addContacts(emails: List<String>): Flow<List<String>>
 
     fun getPendingSentContacts(): Single<List<SentContact>>
 
@@ -28,9 +31,9 @@ interface ContactsRepository {
 
     fun cancelContact(contactId: String): Completable
 
-    suspend fun searchContact(email: String): UserResponse
+    fun searchContact(email: String): Flow<UserResponse>
 
-    suspend fun autoCompleteSearch(keyword: String): List<UserResponse>
+    fun autoCompleteSearch(keyword: String): Flow<List<UserResponse>>
 
 }
 
@@ -47,10 +50,10 @@ internal class ContactsRepositoryImpl @Inject constructor(
         contactDao.insert(items)
     }
 
-    override fun addContacts(emails: List<String>): Single<List<String>> {
+    override fun addContacts(emails: List<String>): Flow<List<String>> = flow {
         val payload = AddContactPayload(emails = emails)
-        return api.addContacts(payload).map { it.data.failedEmails ?: emptyList() }
-    }
+        emit(api.addContacts(payload))
+    }.map { it.data.failedEmails ?: emptyList() }
 
     override fun getPendingSentContacts() = api.getPendingSentContacts().map { it.data.users.toSentContacts() }
 
@@ -66,11 +69,17 @@ internal class ContactsRepositoryImpl @Inject constructor(
         return api.cancelRequest(payload)
     }
 
-    override suspend fun searchContact(email: String) = api.searchContact(email).data.user
+    override fun searchContact(email: String) = flow {
+        emit(
+            api.searchContact(email).data.user
+        )
+    }
 
-    override suspend fun autoCompleteSearch(keyword: String): List<UserResponse> {
+    override fun autoCompleteSearch(keyword: String) = flow {
         val payload = AutoCompleteSearchContactPayload(keyword)
-        return api.autoCompleteSearch(payload).data.users
+        emit(
+            api.autoCompleteSearch(payload).data.users
+        )
     }
 
 }

@@ -40,7 +40,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.retrieveData()
+        viewModel.retrieveTimelineEvents()
     }
 
     private fun observeEvent() {

@@ -8,7 +8,7 @@ import retrofit2.http.*
 internal interface ContactApi {
 
     @PUT("user/contacts/request")
-    fun addContacts(@Body payLoad: AddContactPayload): Single<Data<AddContactsResponse>>
+    suspend fun addContacts(@Body payLoad: AddContactPayload): Data<AddContactsResponse>
 
     @GET("user/contacts/")
     fun getContacts(): Single<Data<ContactResponseWrapper>>
@@ -16,7 +16,7 @@ internal interface ContactApi {
     @HTTP(method = "DELETE", path = "user/contacts/request", hasBody = true)
     fun cancelRequest(@Body payLoad: CancelRequestPayload): Completable
 
-    @POST("user/friends/accept")
+    @POST("user/contacts/accept")
     fun acceptContact(@Body payload: AcceptRequestPayload): Completable
 
     @GET("user/contacts/request/sent")

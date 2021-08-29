@@ -14,7 +14,9 @@
         style="?android:attr/progressBarStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:indeterminateTint="@color/nc_primary_color" />
+        android:indeterminate="true"
+        android:indeterminateTint="@color/nc_primary_color"
+        android:indeterminateTintMode="src_in" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/title"

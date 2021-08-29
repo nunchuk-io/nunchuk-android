@@ -63,4 +63,7 @@ internal interface SignerDomainModule {
     @Binds
     fun bindGetUnusedSignerFromMasterSignerUseCase(useCase: GetUnusedSignerFromMasterSignerUseCaseImpl): GetUnusedSignerFromMasterSignerUseCase
 
+    @Binds
+    fun bindGetCompoundSignersUseCase(useCase: GetCompoundSignersUseCaseImpl): GetCompoundSignersUseCase
+
 }

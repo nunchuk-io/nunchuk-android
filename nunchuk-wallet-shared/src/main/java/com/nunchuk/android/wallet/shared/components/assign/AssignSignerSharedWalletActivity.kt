@@ -13,7 +13,6 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.shared.R
-import com.nunchuk.android.wallet.shared.components.assign.ConfigureWalletEvent.AssignSignerCompletedEvent
 import com.nunchuk.android.wallet.shared.databinding.ActivityAssignSignerBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
@@ -45,13 +44,13 @@ class AssignSignerSharedWalletActivity : BaseActivity<ActivityAssignSignerBindin
         viewModel.state.observe(this, ::handleState)
     }
 
-    private fun handleEvent(event: ConfigureWalletEvent) {
+    private fun handleEvent(event: AssignSignerEvent) {
         when (event) {
-            is AssignSignerCompletedEvent -> showToast("Coming soon")
+            is AssignSignerEvent.AssignSignerCompletedEvent -> showToast("Coming soon")
         }
     }
 
-    private fun handleState(state: ConfigureWalletState) {
+    private fun handleState(state: AssignSignerState) {
         bindSigners(state.masterSigners.map(MasterSigner::toModel) + state.remoteSigners.map(SingleSigner::toModel), state.selectedPFXs)
         val slot = args.requireSigns - state.selectedPFXs.size
         binding.slot.text = getString(R.string.nc_wallet_slots_left_in_the_wallet, slot)

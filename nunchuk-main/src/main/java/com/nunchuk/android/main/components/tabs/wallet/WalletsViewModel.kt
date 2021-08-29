@@ -4,71 +4,50 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
-import com.nunchuk.android.usecase.GetMasterSignersUseCase
-import com.nunchuk.android.usecase.GetRemoteSignersUseCase
+import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
 internal class WalletsViewModel @Inject constructor(
-    private val getMasterSignersUseCase: GetMasterSignersUseCase,
-    private val getRemoteSignersUseCase: GetRemoteSignersUseCase,
+    private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     private val getWalletsUseCase: GetWalletsUseCase,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
 
     override val initialState = WalletsState()
 
     fun retrieveData() {
-        getSigners()
         getWallets()
+        getSigners()
     }
 
     private fun getSigners() {
-        getMasterSigners()
-        getRemoteSigners()
-    }
-
-    private fun getRemoteSigners() {
-        viewModelScope.launch {
-            getRemoteSignersUseCase.execute()
-                .flowOn(Dispatchers.IO)
-                .catch {
-                    updateState { copy(signers = emptyList()) }
-                    Log.e(TAG, "get signers error: ${it.message}")
-                }
-                .flowOn(Dispatchers.Main)
-                .collect { updateState { copy(signers = it) } }
-        }
-    }
-
-    private fun getMasterSigners() {
-        viewModelScope.launch {
-            getMasterSignersUseCase.execute()
-                .flowOn(Dispatchers.IO)
-                .catch {
-                    updateState { copy(signers = emptyList()) }
-                    Log.e(TAG, "get signers error: ${it.message}")
-                }
-                .flowOn(Dispatchers.Main)
-                .collect { updateState { copy(masterSigners = it) } }
-        }
+        getCompoundSignersUseCase.execute()
+            .onStart { event(SignersLoading(true)) }
+            .flowOn(Dispatchers.IO)
+            .catch {
+                updateState { copy(signers = emptyList(), masterSigners = emptyList()) }
+                Log.e(TAG, "get signers error: ${it.message}")
+            }
+            .flowOn(Dispatchers.Main)
+            .onCompletion { event(SignersLoading(false)) }
+            .onEach { updateState { copy(masterSigners = it.first, signers = it.second) } }
+            .launchIn(viewModelScope)
     }
 
     private fun getWallets() {
-        viewModelScope.launch {
-            getWalletsUseCase.execute()
-                .flowOn(Dispatchers.IO)
-                .catch {
-                    updateState { copy(wallets = emptyList()) }
-                    Log.e(TAG, "get wallets error: ${it.message}")
-                }
-                .flowOn(Dispatchers.Main)
-                .collect { updateState { copy(wallets = it) } }
-        }
+        getWalletsUseCase.execute()
+            .onStart { event(WalletLoading(true)) }
+            .flowOn(Dispatchers.IO)
+            .catch {
+                updateState { copy(wallets = emptyList()) }
+                Log.e(TAG, "get wallets error: ${it.message}")
+            }
+            .flowOn(Dispatchers.Main)
+            .onCompletion { event(WalletLoading(false)) }
+            .onEach { updateState { copy(wallets = it) } }
+            .launchIn(viewModelScope)
     }
 
     fun handleAddSignerOrWallet() {

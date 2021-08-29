@@ -7,14 +7,14 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface GetWalletsUseCase {
-    suspend fun execute(): Flow<List<Wallet>>
+    fun execute(): Flow<List<Wallet>>
 }
 
 internal class GetWalletsUseCaseImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
 ) : GetWalletsUseCase {
 
-    override suspend fun execute() = flow { emit(nativeSdk.getWallets()) }
+    override fun execute() = flow { emit(nativeSdk.getWallets()) }
 
 }
 
