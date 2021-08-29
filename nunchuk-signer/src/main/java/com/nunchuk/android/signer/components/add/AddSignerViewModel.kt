@@ -2,13 +2,13 @@ package com.nunchuk.android.signer.components.add
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.signer.InvalidSignerFormatException
+import com.nunchuk.android.core.signer.SignerInput
+import com.nunchuk.android.core.signer.toSigner
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.signer.components.add.AddSignerEvent.*
-import com.nunchuk.android.signer.util.InvalidSignerFormatException
-import com.nunchuk.android.signer.util.SignerInput
-import com.nunchuk.android.signer.util.toSigner
 import com.nunchuk.android.usecase.CreateCoboSignerUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import kotlinx.coroutines.launch

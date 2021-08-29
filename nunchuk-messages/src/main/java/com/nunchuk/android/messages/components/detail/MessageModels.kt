@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.components.detail
 
+import com.nunchuk.android.messages.util.WalletEventType
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import java.io.Serializable
@@ -25,21 +26,18 @@ data class NotificationMessage(
     MessageType.TYPE_NOTIFICATION.index
 )
 
-enum class MessageType(val index: Int) {
-    TYPE_CHAT_MINE(0),
-    TYPE_CHAT_PARTNER(1),
-    TYPE_NOTIFICATION(2),
-    TYPE_DATE(3)
-}
-
-abstract class AbsChatModel {
-    abstract fun getType(): Int
-}
-
-class DateModel(val date: String) : AbsChatModel() {
-    override fun getType(): Int = MessageType.TYPE_DATE.index
-}
-
-class MessageModel(val message: Message) : AbsChatModel() {
-    override fun getType(): Int = message.type
-}
+data class NunchukWalletMessage(
+    override val sender: String,
+    override val content: String,
+    override val time: Long,
+    val timelineEvent: TimelineEvent,
+    val eventType: String,
+    val msgType: WalletEventType,
+    override val type: Int = MessageType.TYPE_NUNCHUK_CARD.index
+) : Message(
+    sender,
+    content,
+    SendState.UNKNOWN,
+    time,
+    type
+)
