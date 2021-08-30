@@ -3,13 +3,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="@dimen/nc_padding_16"
+    android:layout_gravity="end"
+    android:layout_marginVertical="@dimen/nc_padding_8"
     android:background="@android:color/transparent"
-    android:maxWidth="250dp"
-    android:orientation="vertical">
+    android:gravity="end"
+    android:orientation="vertical"
+    tools:layout_margin="@dimen/nc_padding_16">
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:background="@drawable/message_wallet_top_background"
         android:orientation="vertical"
@@ -20,6 +22,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/nc_rounded_red_background"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:paddingHorizontal="@dimen/nc_padding_8"
             android:text="@string/nc_message_pending_signers"
             android:textColor="@color/nc_primary_color"
@@ -31,6 +35,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/nc_padding_8"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:text="@string/nc_message_creating_wallet" />
 
         <com.nunchuk.android.widget.NCFontTextView
@@ -39,6 +45,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/nc_padding_8"
+            android:ellipsize="end"
+            android:maxLines="1"
             tools:text="Nunchuk Fun Fund" />
 
         <com.nunchuk.android.widget.NCFontTextView
@@ -49,18 +57,19 @@
             android:layout_marginTop="@dimen/nc_padding_8"
             android:drawableStart="@drawable/ic_pending_signatures"
             android:drawablePadding="@dimen/nc_padding_4"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:text="@string/nc_message_pending_signers_to_assign" />
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
         android:background="@drawable/message_wallet_bottom_background"
         android:baselineAligned="false"
         android:gravity="center"
         android:orientation="horizontal"
-        android:paddingVertical="@dimen/nc_padding_16">
+        android:paddingVertical="@dimen/nc_padding_12">
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/cancel"
@@ -68,11 +77,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginHorizontal="@dimen/nc_padding_32"
+            android:layout_marginHorizontal="@dimen/nc_padding_12"
             android:layout_weight="1"
             android:gravity="center"
-            android:paddingHorizontal="@dimen/nc_padding_16"
-            android:paddingVertical="@dimen/nc_padding_12"
+            android:padding="@dimen/nc_padding_12"
             android:text="@string/nc_text_cancel" />
 
         <com.nunchuk.android.widget.NCFontTextView
@@ -80,12 +88,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginHorizontal="@dimen/nc_padding_32"
+            android:layout_marginHorizontal="@dimen/nc_padding_12"
             android:layout_weight="1"
             android:background="@drawable/nc_rounded_light_background"
             android:gravity="center"
-            android:paddingHorizontal="@dimen/nc_padding_16"
-            android:paddingVertical="@dimen/nc_padding_12"
+            android:padding="@dimen/nc_padding_12"
             android:text="@string/nc_message_view_config" />
     </LinearLayout>
 </LinearLayout>
