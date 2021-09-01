@@ -17,7 +17,7 @@ data class Data<out T>(
                 if (code == ApiErrorCode.UNAUTHORIZED) {
                     UnauthorizedEventBus.instance().publish()
                 }
-                throw NunchukApiException(code, message)
+                throw NunchukApiException(code, message.orEmpty())
             }
             throw NunchukApiException()
         }
@@ -27,7 +27,7 @@ data class ErrorResponse(
     @SerializedName("code")
     val code: Int = 0,
     @SerializedName("message")
-    val message: String
+    val message: String?
 ) : Serializable
 
 class NunchukApiException(val code: Int = 0, override val message: String = "Unknown error") : Exception(message)

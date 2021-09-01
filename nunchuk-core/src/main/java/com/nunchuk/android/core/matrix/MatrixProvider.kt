@@ -12,6 +12,8 @@ internal class MatrixProvider @Inject constructor(val context: Context) {
 
     fun getServerConfig() = HomeServerConnectionConfig
         .Builder()
-        .withHomeServerUri(Uri.parse("http://matrix.nunchuk.io"))
+        .withHomeServerUri(Uri.parse(HOME_SERVER_URI))
         .build()
 }
+
+internal const val HOME_SERVER_URI = "http://matrix.nunchuk.io"

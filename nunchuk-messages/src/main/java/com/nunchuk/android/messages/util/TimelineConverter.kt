@@ -6,12 +6,18 @@ import com.nunchuk.android.messages.components.detail.MessageType
 import com.nunchuk.android.messages.components.detail.NotificationMessage
 import com.nunchuk.android.messages.components.detail.NunchukWalletMessage
 import org.matrix.android.sdk.api.session.events.model.toModel
-import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import timber.log.Timber
 
-fun List<TimelineEvent>.toMessages(chatId: String) = sortedBy { it.root.ageLocalTs }.map { it.toMessage(chatId) }
+fun List<TimelineEvent>.toMessages(chatId: String) = sortedBy { it.root.ageLocalTs }.mapNotNull { it.toMessageSafe(chatId) }
+
+fun TimelineEvent.toMessageSafe(chatId: String): Message? = try {
+    toMessage(chatId)
+} catch (e: Exception) {
+    Timber.e(e)
+    null
+}
 
 fun TimelineEvent.toMessage(chatId: String): Message {
     Timber.d(TAG, "$this")
@@ -52,7 +58,7 @@ fun TimelineEvent.toMessage(chatId: String): Message {
         else -> {
             NotificationMessage(
                 sender = senderSafe(),
-                content = root.content.toModel<RoomMemberContent>()?.displayName ?: senderSafe(),
+                content = Gson().toJson(root.getClearContent()),
                 time = time(),
                 timelineEvent = this
             )

@@ -10,7 +10,7 @@ import com.nunchuk.android.model.NunchukMatrixEvent
 import com.nunchuk.android.model.SendEventExecutor
 import com.nunchuk.android.model.SendEventHelper
 import com.nunchuk.android.usecase.ConsumeEventUseCase
-import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
+import com.nunchuk.android.usecase.GetRoomWalletUseCase
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -25,7 +25,7 @@ import javax.inject.Inject
 class RoomDetailViewModel @Inject constructor(
     accountManager: AccountManager,
     private val consumeEventUseCase: ConsumeEventUseCase,
-    private val getAllRoomWalletsUseCase: GetAllRoomWalletsUseCase
+    private val getRoomWalletUseCase: GetRoomWalletUseCase
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
 
     private lateinit var room: Room
@@ -47,14 +47,13 @@ class RoomDetailViewModel @Inject constructor(
         joinRoom()
         retrieveTimelineEvents()
         sendEvent()
-        getAllRoomWallets()
+        getRoomWallet()
     }
 
-    private fun getAllRoomWallets() {
-        getAllRoomWalletsUseCase.execute()
-            .flowOn(IO)
-            .catch { Timber.e("get room wallets failed:$it") }
-            .onEach { Timber.d("room wallets $it") }
+    private fun getRoomWallet() {
+        getRoomWalletUseCase.execute(roomId = room.roomId)
+            .catch { Timber.e("get room failed:$it") }
+            .onEach { Timber.d("room wallet $it") }
             .launchIn(viewModelScope)
     }
 
