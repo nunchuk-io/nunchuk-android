@@ -68,7 +68,7 @@ internal class AssignSignerViewModel @Inject constructor(
             SessionHolder.currentRoom?.let { room ->
                 joinWalletUseCase.execute(room.roomId, remoteSigners + unusedSignerSigners)
                     .flowOn(Dispatchers.IO)
-                    .catch { Timber.e(TAG, "init wallet error,", it) }
+                    .catch { Timber.e(TAG, "join wallet error,", it) }
                     .onEach { event(AssignSignerEvent.AssignSignerCompletedEvent(room.roomId)) }
                     .flowOn(Dispatchers.Main)
                     .launchIn(viewModelScope)
