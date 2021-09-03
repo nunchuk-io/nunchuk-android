@@ -1,7 +1,9 @@
 package com.nunchuk.android.contact.usecase
 
 import com.nunchuk.android.contact.repository.ContactsRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface AddContactUseCase {
@@ -12,6 +14,6 @@ internal class AddContactUseCaseImpl @Inject constructor(
     private val repository: ContactsRepository
 ) : AddContactUseCase {
 
-    override fun execute(emails: List<String>) = repository.addContacts(emails)
+    override fun execute(emails: List<String>) = repository.addContacts(emails).flowOn(Dispatchers.IO)
 
 }

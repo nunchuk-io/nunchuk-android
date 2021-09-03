@@ -71,11 +71,13 @@ class AddContactsBottomSheet : BaseBottomSheet<BottomSheetAddContactsBinding>() 
     }
 
     private fun showAddContactError(message: String) {
+        showOrHideLoading(false)
         NCToastMessage(requireActivity()).showError(message)
         cleanUp()
     }
 
     private fun showAddContactSuccess() {
+        showOrHideLoading(false)
         NCToastMessage(requireActivity()).showMessage("Add contact success")
         cleanUp()
     }

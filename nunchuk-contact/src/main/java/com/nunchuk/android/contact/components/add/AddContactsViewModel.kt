@@ -44,11 +44,9 @@ class AddContactsViewModel @Inject constructor(
         if (emails.isNotEmpty() && emails.all(EmailWithState::valid)) {
             addContactUseCase.execute(emails.map(EmailWithState::email))
                 .onStart { event(LoadingEvent(true)) }
-                .flowOn(Dispatchers.IO)
+                .flowOn(Dispatchers.Main)
                 .catch { onSendError(it) }
                 .onEach { onSendCompleted(it) }
-                .flowOn(Dispatchers.Main)
-                .onCompletion { event(LoadingEvent(false)) }
                 .launchIn(viewModelScope)
         }
     }

@@ -12,6 +12,9 @@ before_script:
 
 buildDevelopment:
   interruptible: true
+  only:
+    changes:
+      - nunchuk-app/release_notes.txt
   stage: build
   script:
     - ./gradlew assembleDevelopmentDebug appDistributionUploadDevelopmentDebug
