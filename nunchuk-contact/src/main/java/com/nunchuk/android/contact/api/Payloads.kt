@@ -9,12 +9,12 @@ data class AddContactPayload(
 ) : Serializable
 
 data class CancelRequestPayload(
-    @SerializedName("friend_id")
+    @SerializedName("contact_id")
     val accountId: String
 ) : Serializable
 
 data class AcceptRequestPayload(
-    @SerializedName("friend_id")
+    @SerializedName("contact_id")
     val accountId: String
 ) : Serializable
 

@@ -1,6 +1,7 @@
 package com.nunchuk.android.auth.data
 
 import com.nunchuk.android.auth.api.*
+import com.nunchuk.android.core.network.ApiSuccessException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -13,7 +14,7 @@ interface AuthRepository {
 
     fun login(email: String, password: String): Flow<UserTokenResponse>
 
-    suspend fun changePassword(oldPassword: String, newPassword: String)
+    fun changePassword(oldPassword: String, newPassword: String): Flow<Unit>
 
     suspend fun recoverPassword(email: String, oldPassword: String, newPassword: String)
 
@@ -36,18 +37,32 @@ internal class AuthRepositoryImpl @Inject constructor(
         emit(authApi.signIn(payload).data)
     }.flowOn(Dispatchers.IO)
 
-    override suspend fun changePassword(oldPassword: String, newPassword: String) {
+    override fun changePassword(oldPassword: String, newPassword: String) = flow {
         val payload = ChangePasswordPayload(oldPassword = oldPassword, newPassword = newPassword)
-        authApi.changePassword(payload).data
-    }
+        emit(
+            try {
+                authApi.changePassword(payload).data
+            } catch (e: ApiSuccessException) {
+                e.printStackTrace()
+            }
+        )
+    }.flowOn(Dispatchers.IO)
 
     override suspend fun recoverPassword(email: String, oldPassword: String, newPassword: String) {
         val payload = RecoverPasswordPayload(email = email, forgotPasswordToken = oldPassword, newPassword = newPassword)
-        authApi.recoverPassword(payload).data
+        try {
+            authApi.recoverPassword(payload)
+        } catch (e: ApiSuccessException) {
+            e.printStackTrace()
+        }
     }
 
     override suspend fun forgotPassword(email: String) {
-        authApi.forgotPassword(ForgotPasswordPayload(email))
+        try {
+            authApi.forgotPassword(ForgotPasswordPayload(email))
+        } catch (e: ApiSuccessException) {
+            e.printStackTrace()
+        }
     }
 
     override fun me() = flow {

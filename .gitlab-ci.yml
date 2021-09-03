@@ -8,13 +8,20 @@ before_script:
   - echo "sdk.dir=${ANDROID_HOME}" >> local.properties
   - echo "ndk.dir=${ANDROID_NDK_HOME}" >> local.properties
   - chmod +x ./gradlew
+  - export FIREBASE_TOKEN=1//0gsy1LpYlyhipCgYIARAAGBASNgF-L9Ir8BMFlGPgO26TPvZkh2ww5UATzm4Lb_ccjRXIZm7aprm0LZdMrg41geGD4Viaq2OA6Q
 
-buildDebug:
+buildDevelopment:
   interruptible: true
   stage: build
   script:
-    - ./gradlew clean assembleDebug --stacktrace
+    - ./gradlew assembleDevelopmentDebug appDistributionUploadDevelopmentDebug
   artifacts:
     paths:
       - nunchuk-app/build/outputs/
 
+buildProduction:
+  stage: build
+  only:
+    - /^android.\d+.\d+.\d+$/
+  script:
+    - ./gradlew bundleProductionRelease appDistributionUploadProductionRelease -PappDistribution-artifactType="AAB"

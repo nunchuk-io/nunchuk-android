@@ -63,10 +63,12 @@ internal class SignInViewModel @Inject constructor(
     private fun initNunchuk(): Flow<Unit> {
         val account = accountManager.getAccount()
         return initNunchukUseCase.execute(account.email, account.chatId)
+            .catch { event(SignInErrorEvent(it.message)) }
     }
 
     private fun loginWithMatrix(userName: String, password: String): Flow<Session> {
         return loginWithMatrixUseCase.execute(userName, password)
+            .catch { event(SignInErrorEvent(it.message)) }
             .onEach {
                 SessionHolder.currentSession = it.apply {
                     open()
