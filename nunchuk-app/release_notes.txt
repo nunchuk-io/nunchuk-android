@@ -1,1 +1,2 @@
 - [Matrix Integration] Adapt matrix authentication.
+- [Contact] add contacts disposable.
