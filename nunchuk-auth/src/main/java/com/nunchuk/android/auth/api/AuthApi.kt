@@ -20,17 +20,17 @@ interface AuthApi {
     @POST("passport/recover-password")
     suspend fun recoverPassword(
         @Body recoverPasswordPayload: RecoverPasswordPayload
-    ): Data<Any>
+    ): Data<Unit>
 
     @POST("passport/change-password")
     suspend fun changePassword(
         @Body changePasswordPayload: ChangePasswordPayload
-    ): Data<Any>
+    ): Data<Unit>
 
     @POST("passport/forgot-password")
     suspend fun forgotPassword(
         @Body forgotPasswordPayload: ForgotPasswordPayload
-    ): Data<Any>
+    ): Data<Unit>
 
     @GET("user/me")
     suspend fun me(): Data<UserResponseWrapper>

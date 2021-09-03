@@ -4,6 +4,7 @@ apply plugin: 'kotlin-kapt'
 apply from: '../configs/dependencies.gradle'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
+apply plugin: 'com.google.firebase.appdistribution'
 
 android {
     compileSdkVersion androidConfig.compileSdkVersion
@@ -38,6 +39,28 @@ android {
             debuggable false
             multiDexKeepFile file('multidex-config.txt')
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard.conf'
+        }
+    }
+
+    flavorDimensions "env"
+    productFlavors {
+        production {
+            firebaseAppDistribution {
+                appId = "1:712097058578:android:3a7fe0dc4e6b89b713edcb"
+                releaseNotesFile = "nunchuk-app/release_notes.txt"
+                testers = "hung.tran@nunchuk.io"
+                groups = "testers"
+            }
+            dimension "env"
+        }
+        development {
+            firebaseAppDistribution {
+                appId = "1:712097058578:android:3a7fe0dc4e6b89b713edcb"
+                releaseNotesFile = "nunchuk-app/release_notes.txt"
+                testers = "hung.tran@nunchuk.io"
+                groups = "testers"
+            }
+            dimension "env"
         }
     }
 

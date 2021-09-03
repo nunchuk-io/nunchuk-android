@@ -1,5 +1,6 @@
 package com.nunchuk.android.signer.software.components.confirm
 
+import timber.log.Timber
 import kotlin.random.Random
 
 data class PhraseWordGroup(
@@ -16,10 +17,14 @@ data class PhraseWord(
 )
 
 internal fun List<String>.random3LastPhraseWords(): List<PhraseWordGroup> {
+    Timber.d("random3LastPhraseWords($this)")
     val usedIndexes = ArrayList<Int>()
     val result = ArrayList<PhraseWordGroup>(NUMBER_WORD_TO_CONFIRM)
-    (0 until (NUMBER_WORD_TO_CONFIRM))
-        .map { size - NUMBER_WORD_TO_CONFIRM + it }
+    (0 until NUMBER_WORD_TO_CONFIRM)
+        .forEach { usedIndexes.add(size + it - NUMBER_WORD_TO_CONFIRM) }
+
+    (0 until NUMBER_WORD_TO_CONFIRM)
+        .map { size + it - NUMBER_WORD_TO_CONFIRM }
         .mapTo(result) { randomPhraseWordGroup(it, usedIndexes) }
     result.sortBy(PhraseWordGroup::index)
     return result
@@ -27,14 +32,12 @@ internal fun List<String>.random3LastPhraseWords(): List<PhraseWordGroup> {
 
 internal fun List<String>.randomPhraseWordGroup(groupIndex: Int, usedIndexes: ArrayList<Int>): PhraseWordGroup {
     return when (Random.nextInt(0, NUMBER_WORD_TO_CONFIRM)) {
-        0 -> {
-            PhraseWordGroup(
-                index = groupIndex,
-                firstWord = PhraseWord(this[groupIndex], true),
-                secondWord = randomPhraseWord(usedIndexes),
-                thirdWord = randomPhraseWord(usedIndexes)
-            )
-        }
+        0 -> PhraseWordGroup(
+            index = groupIndex,
+            firstWord = PhraseWord(this[groupIndex], true),
+            secondWord = randomPhraseWord(usedIndexes),
+            thirdWord = randomPhraseWord(usedIndexes)
+        )
         1 -> PhraseWordGroup(
             index = groupIndex,
             firstWord = randomPhraseWord(usedIndexes),
@@ -50,15 +53,19 @@ internal fun List<String>.randomPhraseWordGroup(groupIndex: Int, usedIndexes: Ar
     }
 }
 
-internal fun randomNotDuplicatedNum(size: Int, usedIndexes: ArrayList<Int>): Int {
-    var randomNum = Random.nextInt(0, size - 1)
-    while (usedIndexes.contains(randomNum)) {
+internal fun List<String>.randomNotDuplicatedNum(size: Int, usedIndexes: ArrayList<Int>): Int {
+    Timber.d("used(${this.filterIndexed { index, _ -> index in usedIndexes }})")
+    var randomNum: Int
+    do {
         randomNum = Random.nextInt(0, size - 1)
-    }
+    } while (usedIndexes.contains(randomNum))
     usedIndexes.add(randomNum)
+    Timber.d("random(${this[randomNum]})")
     return randomNum
 }
 
-internal fun List<String>.randomPhraseWord(usedIndexes: ArrayList<Int>) = PhraseWord(this[randomNotDuplicatedNum(size, usedIndexes)])
+internal fun List<String>.randomPhraseWord(usedIndexes: ArrayList<Int>): PhraseWord {
+    return PhraseWord(this[randomNotDuplicatedNum(size, usedIndexes)])
+}
 
 internal const val NUMBER_WORD_TO_CONFIRM = 3

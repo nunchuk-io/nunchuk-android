@@ -90,7 +90,9 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
 
     companion object {
         fun start(activityContext: Context) {
-            activityContext.startActivity(Intent(activityContext, SignInActivity::class.java))
+            val intent = Intent(activityContext, SignInActivity::class.java)
+                .apply {  }
+            activityContext.startActivity(intent)
         }
     }
 
