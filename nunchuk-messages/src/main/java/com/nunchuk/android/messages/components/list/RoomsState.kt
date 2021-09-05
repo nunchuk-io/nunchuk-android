@@ -1,11 +1,12 @@
 package com.nunchuk.android.messages.components.list
 
+import com.nunchuk.android.model.RoomWallet
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 
-data class RoomsState(val rooms: List<RoomSummary>) {
+data class RoomsState(val rooms: List<RoomSummary>, val roomWallets: List<RoomWallet>) {
 
     companion object {
-        fun empty() = RoomsState(emptyList())
+        fun empty() = RoomsState(emptyList(), emptyList())
     }
 
 }

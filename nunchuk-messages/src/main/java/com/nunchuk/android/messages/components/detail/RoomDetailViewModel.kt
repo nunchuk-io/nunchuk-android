@@ -7,11 +7,14 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.model.NunchukMatrixEvent
+import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.SendEventExecutor
 import com.nunchuk.android.model.SendEventHelper
+import com.nunchuk.android.usecase.CancelWalletUseCase
 import com.nunchuk.android.usecase.ConsumeEventUseCase
 import com.nunchuk.android.usecase.GetRoomWalletUseCase
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
@@ -24,6 +27,7 @@ import javax.inject.Inject
 
 class RoomDetailViewModel @Inject constructor(
     accountManager: AccountManager,
+    private val cancelWalletUseCase: CancelWalletUseCase,
     private val consumeEventUseCase: ConsumeEventUseCase,
     private val getRoomWalletUseCase: GetRoomWalletUseCase
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
@@ -53,8 +57,12 @@ class RoomDetailViewModel @Inject constructor(
     private fun getRoomWallet() {
         getRoomWalletUseCase.execute(roomId = room.roomId)
             .catch { Timber.e("get room failed:$it") }
-            .onEach { Timber.d("room wallet $it") }
+            .onEach { onGetRoomWallet(it) }
             .launchIn(viewModelScope)
+    }
+
+    private fun onGetRoomWallet(roomWallet: RoomWallet) {
+        updateState { copy(roomWallet = roomWallet) }
     }
 
     private fun storeRoom(room: Room) {
@@ -66,6 +74,8 @@ class RoomDetailViewModel @Inject constructor(
         SendEventHelper.executor = object : SendEventExecutor {
             override fun execute(roomId: String, type: String, content: String): String {
                 viewModelScope.launch {
+                    Timber.d("sendEvent($roomId, $type, $content)")
+                    Timber.d("sendEventWithMatrixContent($roomId, $type, $content)")
                     room.sendEvent(type, content.toMatrixContent())
                 }
                 return ""
@@ -98,20 +108,23 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun consume(events: List<TimelineEvent>) {
         viewModelScope.launch {
-            events.asFlow()
+            events.map(TimelineEvent::toNunchukMatrixEvent)
+                .sortedBy(NunchukMatrixEvent::time)
+                .asFlow()
                 .flowOn(IO)
-                .collect {
-                    consume(it.toNunchukMatrixEvent())
-                }
+                .collect { consume(it) }
         }
     }
 
     private fun consume(event: NunchukMatrixEvent) {
-        Timber.d("consume($event)")
+        Timber.d("\nconsuming($event)\n")
         consumeEventUseCase.execute(event)
             .flowOn(IO)
-            .catch { Timber.e("consume failed:$it") }
-            .onEach { Timber.d("consumed $event") }
+            .catch { Timber.e("\nconsume failed:$it") }
+            .onEach {
+                delay(500)
+                Timber.d("\nconsumed $event")
+            }
             .launchIn(viewModelScope)
     }
 
@@ -131,6 +144,18 @@ class RoomDetailViewModel @Inject constructor(
         if (timeline.hasMoreToLoad(BACKWARDS)) {
             timeline.paginate(BACKWARDS, PAGINATION)
         }
+    }
+
+    fun cancelWallet() {
+        viewModelScope.launch {
+            cancelWalletUseCase.execute(room.roomId)
+                .catch { Timber.e("cancel wallet error", it) }
+                .collect { Timber.d("cancel wallet success") }
+        }
+    }
+
+    fun viewConfig() {
+
     }
 
     companion object {

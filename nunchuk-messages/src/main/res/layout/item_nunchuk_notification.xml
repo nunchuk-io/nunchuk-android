@@ -10,6 +10,7 @@
     android:drawableStart="@drawable/ic_info"
     android:drawableEnd="@drawable/ic_arrow"
     android:drawablePadding="@dimen/nc_padding_8"
+    android:foreground="?attr/selectableItemBackground"
     android:gravity="start|center_vertical"
     android:orientation="horizontal"
     android:padding="@dimen/nc_padding_8"

@@ -8,7 +8,10 @@ import com.nunchuk.android.messages.components.detail.NunchukWalletMessage
 import com.nunchuk.android.messages.databinding.ItemNunchukNotificationBinding
 import com.nunchuk.android.messages.util.WalletEventType
 
-internal class NunchukNotificationHolder(val binding: ItemNunchukNotificationBinding) : RecyclerView.ViewHolder(binding.root) {
+internal class NunchukNotificationHolder(
+    val binding: ItemNunchukNotificationBinding,
+    val viewConfig: () -> Unit
+) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(model: NunchukWalletMessage) {
         val sender = model.sender
@@ -18,6 +21,7 @@ internal class NunchukNotificationHolder(val binding: ItemNunchukNotificationBin
                 val body = (map["body"] as Map<String, String>?).orEmpty()
                 val fingerPrint = body["key"]?.toSigner()?.fingerPrint.orEmpty()
                 binding.notification.text = getString(R.string.nc_message_wallet_join, sender, fingerPrint)
+                binding.root.setOnClickListener { viewConfig() }
             }
             WalletEventType.CREATE -> {
                 binding.notification.text = getString(R.string.nc_message_wallet_created)

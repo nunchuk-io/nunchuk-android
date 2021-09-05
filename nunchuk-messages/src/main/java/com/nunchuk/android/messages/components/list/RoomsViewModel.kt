@@ -9,11 +9,14 @@ import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
 import com.nunchuk.android.messages.usecase.message.GetRoomSummaryListUseCase
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.messages.util.sortByLastMessage
+import com.nunchuk.android.model.RoomWallet
+import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
 import io.reactivex.Completable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -21,6 +24,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class RoomsViewModel @Inject constructor(
+    private val getAllRoomWalletsUseCase: GetAllRoomWalletsUseCase,
     private val getRoomSummaryListUseCase: GetRoomSummaryListUseCase,
     private val leaveRoomUseCase: LeaveRoomUseCase
 ) : NunchukViewModel<RoomsState, RoomsEvent>() {
@@ -30,6 +34,7 @@ class RoomsViewModel @Inject constructor(
     fun retrieveMessages() {
         viewModelScope.launch {
             getRoomSummaryListUseCase.execute()
+                .zip(getAllRoomWalletsUseCase.execute()) { rooms, wallets -> rooms to wallets }
                 .flowOn(Dispatchers.IO)
                 .catch { onRetrieveMessageError() }
                 .flowOn(Dispatchers.Main)
@@ -42,9 +47,9 @@ class RoomsViewModel @Inject constructor(
         updateState { copy(rooms = emptyList()) }
     }
 
-    private fun onRetrieveMessageSuccess(roomSummaryList: List<RoomSummary>) {
+    private fun onRetrieveMessageSuccess(p: Pair<List<RoomSummary>, List<RoomWallet>>) {
         event(LoadingEvent(false))
-        updateState { copy(rooms = roomSummaryList.sortByLastMessage()) }
+        updateState { copy(rooms = p.first.sortByLastMessage(), roomWallets = roomWallets) }
     }
 
     fun removeRoom(roomSummary: RoomSummary) {

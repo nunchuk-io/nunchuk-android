@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import androidx.annotation.LayoutRes
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.R
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -117,6 +118,22 @@ fun EditText.setOnEnterListener(callback: () -> Unit) {
         }
     })
 }
+
+fun RecyclerView.smoothScrollToLastItem(delay: Long = DELAY) {
+    addOnLayoutChangeListener { _, _, _, _, bottom, _, _, _, oldBottom ->
+        if (bottom < oldBottom) {
+            postDelayed({
+                adapter?.itemCount?.let {
+                    if (it > 0) {
+                        smoothScrollToPosition(it - 1)
+                    }
+                }
+            }, delay)
+        }
+    }
+}
+
+const val DELAY = 100L
 
 
 

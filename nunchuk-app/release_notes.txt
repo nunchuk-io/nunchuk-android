@@ -1,2 +1,3 @@
 - [Matrix Integration] Adapt matrix authentication.
-- [Contact] add contacts disposable.
+- [Contact] Add contacts disposable.
+- [Room] Introduce skeleton view.

@@ -27,17 +27,15 @@ internal class InitNunchukUseCaseImpl @Inject constructor(
     ) = getAppSettingUseCase.execute().flatMapConcat {
         initNunchuk(
             appSettings = it,
-            passphrase = passphrase,
             accountId = accountId
         )
     }
 
     private fun initNunchuk(
         appSettings: AppSettings,
-        passphrase: String,
         accountId: String
     ) = flow {
-        emit(nativeSdk.initNunchuk(appSettings, passphrase, accountId))
+        emit(nativeSdk.initNunchuk(appSettings, "", accountId))
     }.flowOn(Dispatchers.IO)
 
 }

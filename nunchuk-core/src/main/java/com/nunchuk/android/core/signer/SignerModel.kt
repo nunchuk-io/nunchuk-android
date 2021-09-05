@@ -35,7 +35,7 @@ data class SignerInput(
 class InvalidSignerFormatException : Exception()
 
 fun String.toSigner(): SignerInput {
-    val pattern = Pattern.compile("^\\[([^/]+)/(.*)]([^/]+).*\$")
+    val pattern = Pattern.compile("^\\[([0-9a-f]{8})/(.*)]([^/]+).*\$")
     val matcher = pattern.matcher(this)
     if (matcher.find()) {
         val fingerPrint = requireNotNull(matcher.group(1))

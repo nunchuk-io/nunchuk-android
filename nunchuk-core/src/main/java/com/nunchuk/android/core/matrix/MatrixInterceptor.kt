@@ -1,6 +1,5 @@
 package com.nunchuk.android.core.matrix
 
-import android.net.Uri
 import com.nunchuk.android.core.network.HeaderProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -24,10 +23,7 @@ internal class MatrixInterceptorImpl @Inject constructor(
             emit(
                 authenticationService
                     .directAuthentication(
-                        homeServerConnectionConfig = matrixProvider.getServerConfig().copy(
-                            homeServerUri = result.homeServerUrl.let { Uri.parse(it) },
-                            identityServerUri = result.identityServerUrl?.let { Uri.parse(it) }
-                        ),
+                        homeServerConnectionConfig = matrixProvider.getServerConfig(),
                         matrixId = username,
                         password = password,
                         initialDeviceName = "Android ${headerProvider.getDeviceId()}"

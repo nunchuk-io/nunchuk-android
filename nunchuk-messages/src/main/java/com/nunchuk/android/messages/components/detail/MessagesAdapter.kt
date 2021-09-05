@@ -8,7 +8,11 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.nunchuk.android.messages.components.detail.holder.*
 import com.nunchuk.android.messages.databinding.*
 
-internal class MessagesAdapter(val context: Context) : Adapter<ViewHolder>() {
+internal class MessagesAdapter(
+    val context: Context,
+    private val cancelWallet: () -> Unit,
+    private val viewConfig: () -> Unit
+) : Adapter<ViewHolder>() {
 
     internal var chatModels: List<AbsChatModel> = ArrayList()
         set(value) {
@@ -30,10 +34,13 @@ internal class MessagesAdapter(val context: Context) : Adapter<ViewHolder>() {
             ItemDateBinding.inflate(LayoutInflater.from(context), parent, false)
         )
         MessageType.TYPE_NUNCHUK_CARD.index -> NunchukCardHolder(
-            ItemWalletInfoBinding.inflate(LayoutInflater.from(context), parent, false)
+            ItemWalletInfoBinding.inflate(LayoutInflater.from(context), parent, false),
+            cancelWallet,
+            viewConfig
         )
         MessageType.TYPE_NUNCHUK_NOTIFICATION.index -> NunchukNotificationHolder(
-            ItemNunchukNotificationBinding.inflate(LayoutInflater.from(context), parent, false)
+            ItemNunchukNotificationBinding.inflate(LayoutInflater.from(context), parent, false),
+            viewConfig
         )
         else -> throw IllegalArgumentException("Invalid type")
     }
@@ -45,12 +52,24 @@ internal class MessagesAdapter(val context: Context) : Adapter<ViewHolder>() {
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val messageData = chatModels[position]
         when (getItemViewType(position)) {
-            MessageType.TYPE_CHAT_MINE.index -> (holder as MessageMineViewHolder).bind((messageData as MessageModel).message)
-            MessageType.TYPE_CHAT_PARTNER.index -> (holder as MessagePartnerHolder).bind((messageData as MessageModel).message)
-            MessageType.TYPE_NOTIFICATION.index -> (holder as MessageNotificationHolder).bind((messageData as MessageModel).message as NotificationMessage)
-            MessageType.TYPE_DATE.index -> (holder as MessageDateHolder).bind(messageData as DateModel)
-            MessageType.TYPE_NUNCHUK_CARD.index -> (holder as NunchukCardHolder).bind((messageData as MessageModel).message as NunchukWalletMessage)
-            MessageType.TYPE_NUNCHUK_NOTIFICATION.index -> (holder as NunchukNotificationHolder).bind((messageData as MessageModel).message as NunchukWalletMessage)
+            MessageType.TYPE_CHAT_MINE.index -> {
+                (holder as MessageMineViewHolder).bind((messageData as MessageModel).message)
+            }
+            MessageType.TYPE_CHAT_PARTNER.index -> {
+                (holder as MessagePartnerHolder).bind((messageData as MessageModel).message)
+            }
+            MessageType.TYPE_NOTIFICATION.index -> {
+                (holder as MessageNotificationHolder).bind((messageData as MessageModel).message as NotificationMessage)
+            }
+            MessageType.TYPE_DATE.index -> {
+                (holder as MessageDateHolder).bind(messageData as DateModel)
+            }
+            MessageType.TYPE_NUNCHUK_CARD.index -> {
+                (holder as NunchukCardHolder).bind((messageData as MessageModel).message as NunchukWalletMessage)
+            }
+            MessageType.TYPE_NUNCHUK_NOTIFICATION.index -> {
+                (holder as NunchukNotificationHolder).bind((messageData as MessageModel).message as NunchukWalletMessage)
+            }
         }
     }
 
