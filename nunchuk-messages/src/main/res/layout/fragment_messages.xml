@@ -28,4 +28,11 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <include
+        android:id="@+id/skeletonContainer"
+        layout="@layout/view_skeleton"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/nc_padding_8" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

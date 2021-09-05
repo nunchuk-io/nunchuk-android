@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface CancelWalletUseCase {
-    fun execute(roomId: String, reason: String): Flow<NunchukMatrixEvent>
+    fun execute(roomId: String, reason: String = ""): Flow<NunchukMatrixEvent>
 }
 
 internal class CancelWalletUseCaseImpl @Inject constructor(

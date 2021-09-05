@@ -3,6 +3,7 @@ package com.nunchuk.android.messages.components.detail
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.vm.ViewModelFactory
@@ -10,10 +11,13 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.databinding.ActivityRoomDetailBinding
+import com.nunchuk.android.messages.databinding.ViewWalletStickyBinding
+import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnEnterListener
+import com.nunchuk.android.widget.util.smoothScrollToLastItem
 import javax.inject.Inject
 
 class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
@@ -26,6 +30,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     private val args: RoomDetailArgs by lazy { RoomDetailArgs.deserializeFrom(intent) }
 
     private lateinit var adapter: MessagesAdapter
+    private lateinit var stickyBinding: ViewWalletStickyBinding
 
     override fun initializeBinding() = ActivityRoomDetailBinding.inflate(layoutInflater)
 
@@ -55,14 +60,15 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         if (state.messages.isNotEmpty()) {
             binding.recyclerView.scrollToPosition(adapter.chatModels.size - 1)
         }
-        binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                super.onScrollStateChanged(recyclerView, newState)
-                if (!recyclerView.canScrollVertically(1)) {
-                    viewModel.handleLoadMore()
-                }
-            }
-        })
+        stickyBinding.root.isVisible = state.roomWallet != null
+        state.roomWallet?.let(::bindRoomWalletSticker)
+    }
+
+    private fun bindRoomWalletSticker(wallet: RoomWallet) {
+        val roomWalletData = wallet.jsonContent.toRoomWalletData()
+        stickyBinding.name.text = roomWalletData.name
+        val ratio = "${roomWalletData.requireSigners} / ${roomWalletData.totalSigners} standard wallet"
+        stickyBinding.configuration.text = ratio
     }
 
     private fun handleEvent(event: RoomDetailEvent) {
@@ -80,13 +86,16 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 
     private fun setupViews() {
+        stickyBinding = ViewWalletStickyBinding.bind(binding.walletStickyContainer.root)
+        stickyBinding.root.setOnClickListener {  }
+
         binding.send.setOnClickListener { sendMessage() }
         binding.editText.setOnEnterListener(::sendMessage)
         binding.editText.addTextChangedCallback {
             enableButton(it.isNotEmpty())
         }
 
-        adapter = MessagesAdapter(this)
+        adapter = MessagesAdapter(this, viewModel::cancelWallet, viewModel::viewConfig)
         binding.recyclerView.adapter = adapter
         val layoutManager = LinearLayoutManager(this)
         binding.recyclerView.layoutManager = layoutManager
@@ -99,6 +108,14 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         }
 
         binding.recyclerView.smoothScrollToLastItem()
+        binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                if (!recyclerView.canScrollVertically(1)) {
+                    viewModel.handleLoadMore()
+                }
+            }
+        })
     }
 
     private fun enableButton(isEnabled: Boolean) {
@@ -127,19 +144,3 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         }
     }
 }
-
-fun RecyclerView.smoothScrollToLastItem(delay: Long = DELAY) {
-    addOnLayoutChangeListener { _, _, _, _, bottom, _, _, _, oldBottom ->
-        if (bottom < oldBottom) {
-            postDelayed({
-                adapter?.itemCount?.let {
-                    if (it > 0) {
-                        smoothScrollToPosition(it - 1)
-                    }
-                }
-            }, delay)
-        }
-    }
-}
-
-const val DELAY = 100L

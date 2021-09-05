@@ -16,4 +16,4 @@ internal class MatrixProvider @Inject constructor(val context: Context) {
         .build()
 }
 
-internal const val HOME_SERVER_URI = "http://matrix.nunchuk.io"
+internal const val HOME_SERVER_URI = "https://matrix.nunchuk.io"

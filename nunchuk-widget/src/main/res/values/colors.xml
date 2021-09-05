@@ -27,4 +27,5 @@
     <color name="nc_edit_text_stroke_error_color">#FFD7D9</color>
 
     <color name="nc_button_press_state_color">@color/nc_blue_color</color>
+    <color name="nc_skeleton_color">#EEEEEE</color>
 </resources>
