@@ -1,3 +1,5 @@
+What's news:
+- [Room Wallet] Send join/cancel events.
 - [Matrix Integration] Adapt matrix authentication.
 - [Contact] Add contacts disposable.
 - [Room] Introduce skeleton view.
