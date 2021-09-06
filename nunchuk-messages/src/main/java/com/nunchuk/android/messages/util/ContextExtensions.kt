@@ -1,19 +1,16 @@
 package com.nunchuk.android.messages.util
 
-import org.json.JSONArray
-import org.json.JSONObject
+import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import org.matrix.android.sdk.api.session.events.model.toContent
 
-fun String.toMatrixContent() = JSONObject(this).toMap().toContent()
+internal val gson = GsonBuilder()
+    .apply {
+        registerTypeAdapter(object : TypeToken<Map<String, Any>>() {}.type, JsonMapDeserializer())
+    }.create()
 
-fun JSONObject.toMap(): Map<String, *> = keys().asSequence().associateWith {
-    when (val value = this[it]) {
-        is JSONArray -> {
-            val map = (0 until value.length()).associate { key -> "$key" to value[key] }
-            JSONObject(map).toMap().values.toList()
-        }
-        is JSONObject -> value.toMap()
-        JSONObject.NULL -> null
-        else -> value
-    }
-}
+
+fun String.toMatrixContent() = gson.fromJson<Map<String, Any>>(
+    this,
+    object : TypeToken<Map<String, Any>>() {}.type
+).toContent()
