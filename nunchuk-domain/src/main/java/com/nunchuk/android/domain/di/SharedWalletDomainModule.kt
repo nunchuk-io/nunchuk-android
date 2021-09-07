@@ -28,4 +28,7 @@ internal interface SharedWalletDomainModule {
     @Binds
     fun bindConsumeEventUseCase(useCase: ConsumeEventUseCaseImpl): ConsumeEventUseCase
 
+    @Binds
+    fun bindCreateSharedWalletUseCase(useCase: CreateSharedWalletUseCaseImpl): CreateSharedWalletUseCase
+
 }

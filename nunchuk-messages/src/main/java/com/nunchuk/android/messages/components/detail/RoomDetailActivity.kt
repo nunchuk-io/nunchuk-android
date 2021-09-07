@@ -77,6 +77,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             ContactNotFoundEvent -> finishWithMessage("Contact not found!")
             OpenChatGroupInfoEvent -> navigator.openChatGroupInfoScreen(this, args.roomId)
             OpenChatInfoEvent -> navigator.openChatInfoScreen(this, args.roomId)
+            RoomWalletCreatedEvent -> NCToastMessage(this).show(R.string.nc_message_wallet_created)
         }
     }
 
@@ -87,7 +88,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
     private fun setupViews() {
         stickyBinding = ViewWalletStickyBinding.bind(binding.walletStickyContainer.root)
-        stickyBinding.root.setOnClickListener {  }
+        stickyBinding.root.setOnClickListener { }
 
         binding.send.setOnClickListener { sendMessage() }
         binding.editText.setOnEnterListener(::sendMessage)
@@ -95,7 +96,13 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             enableButton(it.isNotEmpty())
         }
 
-        adapter = MessagesAdapter(this, viewModel::cancelWallet, viewModel::viewConfig)
+        adapter = MessagesAdapter(
+            context = this,
+            cancelWallet = viewModel::cancelWallet,
+            denyWallet = viewModel::denyWallet,
+            viewConfig = viewModel::viewConfig,
+            finalizeWallet = viewModel::finalizeWallet
+        )
         binding.recyclerView.adapter = adapter
         val layoutManager = LinearLayoutManager(this)
         binding.recyclerView.layoutManager = layoutManager

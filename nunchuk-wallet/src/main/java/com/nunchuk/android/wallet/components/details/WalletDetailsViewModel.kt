@@ -66,7 +66,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     private fun onRetrievedTransactionHistory(result: List<Transaction>) {
         updateState { copy(transactions = result) }
         if (result.isEmpty()) {
-            getUnusedAddresses()
+            //FIXME
+            //getUnusedAddresses()
         }
     }
 

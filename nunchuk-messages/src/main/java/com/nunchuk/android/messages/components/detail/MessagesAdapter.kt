@@ -11,7 +11,9 @@ import com.nunchuk.android.messages.databinding.*
 internal class MessagesAdapter(
     val context: Context,
     private val cancelWallet: () -> Unit,
-    private val viewConfig: () -> Unit
+    private val denyWallet: () -> Unit,
+    private val viewConfig: () -> Unit,
+    private val finalizeWallet: () -> Unit
 ) : Adapter<ViewHolder>() {
 
     internal var chatModels: List<AbsChatModel> = ArrayList()
@@ -35,12 +37,14 @@ internal class MessagesAdapter(
         )
         MessageType.TYPE_NUNCHUK_CARD.index -> NunchukCardHolder(
             ItemWalletInfoBinding.inflate(LayoutInflater.from(context), parent, false),
-            cancelWallet,
-            viewConfig
+            denyWallet = denyWallet,
+            cancelWallet = viewConfig,
+            viewConfig = cancelWallet,
         )
         MessageType.TYPE_NUNCHUK_NOTIFICATION.index -> NunchukNotificationHolder(
             ItemNunchukNotificationBinding.inflate(LayoutInflater.from(context), parent, false),
-            viewConfig
+            viewConfig = viewConfig,
+            finalizeWallet = finalizeWallet
         )
         else -> throw IllegalArgumentException("Invalid type")
     }

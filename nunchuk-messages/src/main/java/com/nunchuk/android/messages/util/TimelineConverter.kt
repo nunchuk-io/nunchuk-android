@@ -32,7 +32,8 @@ fun TimelineEvent.toMessage(chatId: String): Message {
                 timelineEvent = this,
                 eventType = root.type!!,
                 msgType = WalletEventType.of(content[KEY] as String),
-                type = if (msgType == WalletEventType.INIT) MessageType.TYPE_NUNCHUK_CARD.index else MessageType.TYPE_NUNCHUK_NOTIFICATION.index
+                type = if (msgType == WalletEventType.INIT) MessageType.TYPE_NUNCHUK_CARD.index else MessageType.TYPE_NUNCHUK_NOTIFICATION.index,
+                isOwner = chatId == senderInfo.userId
             )
         }
         isNunchukTransactionEvent() -> {

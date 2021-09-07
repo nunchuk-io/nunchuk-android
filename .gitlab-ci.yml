@@ -10,6 +10,7 @@ before_script:
   - chmod +x ./gradlew
   - export FIREBASE_TOKEN=1//0gsy1LpYlyhipCgYIARAAGBASNgF-L9Ir8BMFlGPgO26TPvZkh2ww5UATzm4Lb_ccjRXIZm7aprm0LZdMrg41geGD4Viaq2OA6Q
 
+# TODO: separate build-test-deploy phases
 buildDevelopment:
   interruptible: true
   only:
@@ -18,9 +19,8 @@ buildDevelopment:
   stage: build
   script:
     - ./gradlew assembleDevelopmentDebug appDistributionUploadDevelopmentDebug
-  artifacts:
-    paths:
-      - nunchuk-app/build/outputs/
+  except:
+    - develop
 
 buildProduction:
   stage: build
