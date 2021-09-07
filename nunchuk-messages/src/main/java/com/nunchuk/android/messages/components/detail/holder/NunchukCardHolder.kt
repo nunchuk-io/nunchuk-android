@@ -6,10 +6,10 @@ import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.NunchukWalletMessage
 import com.nunchuk.android.messages.components.detail.toRoomWalletData
 import com.nunchuk.android.messages.databinding.ItemWalletInfoBinding
-import timber.log.Timber
 
 internal class NunchukCardHolder(
     val binding: ItemWalletInfoBinding,
+    val denyWallet: () -> Unit,
     val cancelWallet: () -> Unit,
     val viewConfig: () -> Unit
 ) : RecyclerView.ViewHolder(binding.root) {
@@ -19,14 +19,17 @@ internal class NunchukCardHolder(
     fun bind(model: NunchukWalletMessage) {
         val map = model.timelineEvent.root.content?.toMap().orEmpty()
         val body = gson.toJson(map["body"])
-        Timber.d("body:${gson.toJson(map["body"])}")
         val initData = body.toRoomWalletData(gson)
         val ratio = "${initData.requireSigners} / ${initData.totalSigners}"
+        val context = itemView.context
+        binding.cancelWallet.text = context.getString(
+            if (model.isOwner) R.string.nc_message_cancel_wallet else R.string.nc_message_deny_wallet
+        )
 
         binding.name.text = initData.name
-        binding.configuration.text = itemView.context.getString(R.string.nc_message_creating_wallet, ratio)
-        binding.pendingSignatures.text = itemView.context.getString(R.string.nc_message_pending_signers_to_assign, initData.requireSigners)
-        binding.cancelWallet.setOnClickListener { cancelWallet() }
+        binding.configuration.text = context.getString(R.string.nc_message_creating_wallet, ratio)
+        binding.pendingSignatures.text = context.getString(R.string.nc_message_pending_signers_to_assign, initData.requireSigners)
+        binding.cancelWallet.setOnClickListener { if (model.isOwner) cancelWallet() else denyWallet() }
         binding.viewConfig.setOnClickListener { viewConfig() }
     }
 

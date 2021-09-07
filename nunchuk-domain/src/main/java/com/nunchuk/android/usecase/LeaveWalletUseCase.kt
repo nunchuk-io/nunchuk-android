@@ -7,16 +7,16 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface LeaveWalletUseCase {
-    fun execute(roomId: String, roomEventId: String, reason: String): Flow<NunchukMatrixEvent>
+    fun execute(roomId: String, joinEventId: String, reason: String = ""): Flow<NunchukMatrixEvent>
 }
 
 internal class LeaveWalletUseCaseImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
 ) : LeaveWalletUseCase {
 
-    override fun execute(roomId: String, roomEventId: String, reason: String) = flow {
+    override fun execute(roomId: String, joinEventId: String, reason: String) = flow {
         emit(
-            nativeSdk.leaveSharedWallet(roomId = roomId, joinEventId = roomEventId, reason = reason)
+            nativeSdk.leaveSharedWallet(roomId = roomId, joinEventId = joinEventId, reason = reason)
         )
     }
 

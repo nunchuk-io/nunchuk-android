@@ -35,9 +35,12 @@
     <string name="nc_message_pending_signers_to_assign">Pending %1d signers to be assigned</string>
     <string name="nc_message_view_config">View config</string>
 
+    <string name="nc_message_cancel_wallet">Cancel Wallet</string>
+    <string name="nc_message_deny_wallet">Deny Wallet</string>
     <string name="nc_message_wallet_cancel"><![CDATA[<b>%1s</b> canceled the wallet]]></string>
     <string name="nc_message_wallet_join"><![CDATA[<b>%1s</b> added a signer <b>%2s</b>]]></string>
     <string name="nc_message_wallet_ready"><![CDATA[The required number of signer has been assigned. Waiting for creator to create the wallet]]></string>
-    <string name="nc_message_wallet_created">shared wallet has been created</string>
+    <string name="nc_message_wallet_finalize"><![CDATA[The required number of signers has been assigned. <b><u>Finalize wallet</u></b>]]></string>
+    <string name="nc_message_wallet_created">Shared wallet has been created</string>
 
 </resources>

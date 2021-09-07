@@ -12,6 +12,7 @@ import com.nunchuk.android.model.SendEventExecutor
 import com.nunchuk.android.model.SendEventHelper
 import com.nunchuk.android.usecase.CancelWalletUseCase
 import com.nunchuk.android.usecase.ConsumeEventUseCase
+import com.nunchuk.android.usecase.CreateSharedWalletUseCase
 import com.nunchuk.android.usecase.GetRoomWalletUseCase
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.delay
@@ -29,7 +30,8 @@ class RoomDetailViewModel @Inject constructor(
     accountManager: AccountManager,
     private val cancelWalletUseCase: CancelWalletUseCase,
     private val consumeEventUseCase: ConsumeEventUseCase,
-    private val getRoomWalletUseCase: GetRoomWalletUseCase
+    private val getRoomWalletUseCase: GetRoomWalletUseCase,
+    private val createSharedWalletUseCase: CreateSharedWalletUseCase
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
 
     private lateinit var room: Room
@@ -74,8 +76,6 @@ class RoomDetailViewModel @Inject constructor(
         SendEventHelper.executor = object : SendEventExecutor {
             override fun execute(roomId: String, type: String, content: String): String {
                 viewModelScope.launch {
-                    Timber.d("sendEvent($roomId, $type, $content)")
-                    Timber.d("sendEventWithMatrixContent($roomId, $type, $content)")
                     room.sendEvent(type, content.toMatrixContent())
                 }
                 return ""
@@ -98,7 +98,6 @@ class RoomDetailViewModel @Inject constructor(
         timeline = room.createTimeline(null, TimelineSettings(initialSize = PAGINATION, true))
         timeline.removeAllListeners()
         timeline.addListener(TimelineListenerAdapter {
-            Timber.d("$it")
             val messages = it.filter(TimelineEvent::isDisplayable)
             updateState { copy(messages = messages.toMessages(currentId)) }
             consume(messages.filter(TimelineEvent::isNunchukEvent))
@@ -117,13 +116,11 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     private fun consume(event: NunchukMatrixEvent) {
-        Timber.d("\nconsuming($event)\n")
         consumeEventUseCase.execute(event)
             .flowOn(IO)
             .catch { Timber.e("\nconsume failed:$it") }
             .onEach {
                 delay(500)
-                Timber.d("\nconsumed $event")
             }
             .launchIn(viewModelScope)
     }
@@ -150,12 +147,28 @@ class RoomDetailViewModel @Inject constructor(
         viewModelScope.launch {
             cancelWalletUseCase.execute(room.roomId)
                 .catch { Timber.e("cancel wallet error", it) }
-                .collect { Timber.d("cancel wallet success") }
+                .collect { getRoomWallet() }
+        }
+    }
+
+    fun finalizeWallet() {
+        viewModelScope.launch {
+            createSharedWalletUseCase.execute(room.roomId)
+                .catch { Timber.e("finalize wallet error", it) }
+                .collect {
+                    getRoomWallet()
+                    event(RoomWalletCreatedEvent)
+                }
         }
     }
 
     fun viewConfig() {
 
+    }
+
+    fun denyWallet() {
+        // FIXME
+        cancelWallet()
     }
 
     companion object {

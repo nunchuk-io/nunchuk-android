@@ -33,7 +33,8 @@ data class NunchukWalletMessage(
     val timelineEvent: TimelineEvent,
     val eventType: String,
     val msgType: WalletEventType,
-    override val type: Int = MessageType.TYPE_NUNCHUK_CARD.index
+    override val type: Int = MessageType.TYPE_NUNCHUK_CARD.index,
+    val isOwner: Boolean = false
 ) : Message(
     sender,
     content,

@@ -25,4 +25,5 @@ sealed class RoomDetailEvent {
     object ContactNotFoundEvent : RoomDetailEvent()
     object OpenChatInfoEvent : RoomDetailEvent()
     object OpenChatGroupInfoEvent : RoomDetailEvent()
+    object RoomWalletCreatedEvent : RoomDetailEvent()
 }
