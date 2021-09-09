@@ -30,6 +30,7 @@ internal class RecoverSeedViewModel @Inject constructor(
             val result = getBip39WordListUseCase.execute()
             if (result is Success) {
                 bip39Words = ArrayList(result.data)
+                updateState { copy(suggestions = bip39Words.take(MAX_WORDS)) }
             }
         }
     }

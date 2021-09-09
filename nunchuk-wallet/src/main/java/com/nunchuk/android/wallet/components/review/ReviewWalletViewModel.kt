@@ -70,12 +70,9 @@ internal class ReviewWalletViewModel @Inject constructor(
                     Timber.d("create wallet error:$it")
                     event(CreateWalletErrorEvent(it.message.orUnknownError()))
                 }
-                .onEach {
+                .collect {
                     Timber.d("create wallet completed:$it")
                     event(CreateWalletSuccessEvent(it.id, descriptor))
-                }
-                .collect {
-                    event(SetLoadingEvent(false))
                 }
         }
     }

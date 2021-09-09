@@ -44,7 +44,6 @@
             android:id="@+id/configuration"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/nc_text_size_16"
             android:background="@drawable/nc_rounded_whisper_background"
             android:paddingHorizontal="@dimen/nc_padding_12"
             android:paddingVertical="@dimen/nc_padding_2"
@@ -132,10 +131,12 @@
     <LinearLayout
         android:id="@+id/emptyTxContainer"
         android:layout_width="match_parent"
-        android:orientation="vertical"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/headerContainer">
+        app:layout_constraintTop_toBottomOf="@+id/headerContainer"
+        tools:visibility="visible">
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/emptyTransactionTitle"
@@ -155,7 +156,8 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/nc_padding_16"
+            android:layout_marginHorizontal="@dimen/nc_padding_16"
+            android:layout_marginVertical="@dimen/nc_padding_2"
             app:cardCornerRadius="@dimen/nc_padding_8"
             app:cardUseCompatPadding="true">
 
@@ -171,10 +173,10 @@
                     android:layout_height="180dp"
                     android:layout_gravity="center"
                     android:layout_marginTop="@dimen/nc_padding_16"
-                    android:src="@drawable/ic_qr"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/emptyTransactionTitle" />
+                    app:layout_constraintTop_toBottomOf="@id/emptyTransactionTitle"
+                    tools:src="@drawable/ic_qr" />
 
                 <com.nunchuk.android.widget.NCFontTextView
                     android:id="@+id/addressText"
@@ -183,12 +185,12 @@
                     android:layout_marginTop="@dimen/nc_padding_8"
                     android:paddingHorizontal="@dimen/nc_padding_16"
                     android:paddingVertical="@dimen/nc_padding_4"
-                    android:text="bc1qepuayeutds0ys0q82g3ucad7r0eqk0dpusmxwvlpn5wkjcmhv6sqyulylk"
                     android:textColor="@color/nc_primary_dark_color"
                     android:textSize="@dimen/nc_text_size_16"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/headerContainer" />
+                    app:layout_constraintTop_toBottomOf="@+id/headerContainer"
+                    tools:text="bc1qepuayeutds0ys0q82g3ucad7r0eqk0dpusmxwvlpn5wkjcmhv6sqyulylk" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 

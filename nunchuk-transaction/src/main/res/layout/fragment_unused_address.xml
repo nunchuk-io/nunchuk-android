@@ -12,9 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_24"
-        android:clipToPadding="false"
         android:orientation="horizontal"
-        android:paddingHorizontal="@dimen/nc_padding_16"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

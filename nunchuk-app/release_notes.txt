@@ -1,5 +1,5 @@
 What's news:
-- [LibNunchuk] Change testnet server.
+- [LibNunchuk] Change testnet server / update lib httpcore.
 - [Room Wallet] Send finalize event.
 - [Room Wallet] Send join/cancel events.
 - [Matrix Integration] Adapt matrix authentication.

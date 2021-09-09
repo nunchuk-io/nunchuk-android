@@ -1,8 +1,6 @@
 package com.nunchuk.android.transaction.components.receive.address.unused
 
-import android.content.Context
 import android.os.Bundle
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -47,7 +45,6 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
         val context = requireContext()
         adapter = UnusedAddressAdapter(context, ::handleItemClicked)
         binding.viewPager.adapter = adapter
-        binding.viewPager.pageMargin = dipToPixels(context, context.resources.getDimension(R.dimen.nc_padding_4)).toInt()
         binding.viewPager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
             override fun onPageSelected(position: Int) {
                 val size = adapter.items.size
@@ -131,9 +128,3 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
     }
 
 }
-
-fun dipToPixels(context: Context, dipValue: Float): Float {
-    val metrics = context.resources.displayMetrics
-    return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dipValue, metrics)
-}
-

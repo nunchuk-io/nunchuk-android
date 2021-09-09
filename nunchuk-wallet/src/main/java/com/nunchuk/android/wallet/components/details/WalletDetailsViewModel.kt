@@ -11,8 +11,12 @@ import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -47,18 +51,17 @@ internal class WalletDetailsViewModel @Inject constructor(
                 .flowOn(Dispatchers.IO)
                 .catch { event(WalletDetailsError(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
-                .onCompletion { event(Loading(false)) }
-                .collect { updateState { copy(wallet = it) } }
+                .collect {
+                    updateState { copy(wallet = it) }
+                    event(Loading(false))
+                }
         }
     }
 
     private fun getTransactionHistory() {
         viewModelScope.launch {
             getTransactionHistoryUseCase.execute(walletId)
-                .flowOn(Dispatchers.IO)
                 .catch { event(WalletDetailsError(it.message.orUnknownError())) }
-                .flowOn(Dispatchers.Main)
-                .onCompletion { event(Loading(false)) }
                 .collect { onRetrievedTransactionHistory(it) }
         }
     }
@@ -66,8 +69,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private fun onRetrievedTransactionHistory(result: List<Transaction>) {
         updateState { copy(transactions = result) }
         if (result.isEmpty()) {
-            //FIXME
-            //getUnusedAddresses()
+            getUnusedAddresses()
         }
     }
 
@@ -90,8 +92,14 @@ internal class WalletDetailsViewModel @Inject constructor(
     private fun generateNewAddress() {
         viewModelScope.launch {
             newAddressUseCase.execute(walletId = walletId)
-                .catch { UpdateUnusedAddress("") }
-                .collect { UpdateUnusedAddress(it) }
+                .catch {
+                    Timber.e("generate new address error", it)
+                    UpdateUnusedAddress("")
+                }
+                .collect {
+                    Timber.d("generate new address completed $it")
+                    UpdateUnusedAddress(it)
+                }
         }
     }
 

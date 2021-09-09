@@ -20,7 +20,7 @@ internal class GetAppSettingsUseCaseImpl @Inject constructor(
             AppSettings(
                 chain = Chain.TESTNET,
                 hwiPath = "bin/hwi",
-                testnetServers = listOf("testnet.nunchuk.io:50001"),
+                testnetServers = listOf("testnet.nunchuk.io:51001"),
                 backendType = BackendType.ELECTRUM,
                 storagePath = getOrCreateRootDirUseCase.execute()
             )

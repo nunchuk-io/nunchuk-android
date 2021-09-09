@@ -52,6 +52,7 @@ class ReviewWalletActivity : BaseActivity<ActivityReviewWalletBinding>() {
     }
 
     private fun onCreateWalletError(event: CreateWalletErrorEvent) {
+        showOrHideLoading(false)
         val message = event.message
         NCToastMessage(this).showWarning(message)
         if (message.isWalletExisted()) {
@@ -60,6 +61,7 @@ class ReviewWalletActivity : BaseActivity<ActivityReviewWalletBinding>() {
     }
 
     private fun onCreateWalletSuccess(event: CreateWalletSuccessEvent) {
+        showOrHideLoading(false)
         navigator.openBackupWalletScreen(this, event.walletId, event.descriptor)
     }
 
