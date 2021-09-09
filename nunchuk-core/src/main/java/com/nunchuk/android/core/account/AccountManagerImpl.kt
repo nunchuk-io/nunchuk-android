@@ -3,6 +3,7 @@ package com.nunchuk.android.core.account
 import com.nunchuk.android.core.matrix.SessionHolder
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,8 +34,7 @@ internal class AccountManagerImpl @Inject constructor(
 
     override fun isStaySignedIn() = accountSharedPref.getAccountInfo().staySignedIn
 
-    override fun isLinkedWithMatrix() = SessionHolder.currentSession != null
-            && accountSharedPref.getAccountInfo().chatId.isNotEmpty()
+    override fun isLinkedWithMatrix() = SessionHolder.hasActiveSession() && accountSharedPref.getAccountInfo().chatId.isNotEmpty()
 
     override fun getAccount() = accountSharedPref.getAccountInfo()
 
@@ -45,7 +45,12 @@ internal class AccountManagerImpl @Inject constructor(
     override fun signOut() {
         accountSharedPref.clearAccountInfo()
         GlobalScope.launch {
-            SessionHolder.currentSession?.signOut(true)
+            try {
+                SessionHolder.activeSession?.signOut(true)
+                SessionHolder.activeSession = null
+            } catch (t: Throwable) {
+                Timber.e("signOut error ", t)
+            }
         }
     }
 

@@ -70,10 +70,7 @@ internal class SignInViewModel @Inject constructor(
         return loginWithMatrixUseCase.execute(userName, password)
             .catch { event(SignInErrorEvent(it.message)) }
             .onEach {
-                SessionHolder.currentSession = it.apply {
-                    open()
-                    startSync(true)
-                }
+                SessionHolder.storeActiveSession(it)
             }
     }
 

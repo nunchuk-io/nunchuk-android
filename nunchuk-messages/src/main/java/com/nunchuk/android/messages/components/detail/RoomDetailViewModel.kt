@@ -45,7 +45,7 @@ class RoomDetailViewModel @Inject constructor(
     override val initialState = RoomDetailState.empty()
 
     fun initialize(roomId: String) {
-        SessionHolder.currentSession?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
+        SessionHolder.activeSession?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
     }
 
     private fun onRetrievedRoom(room: Room) {

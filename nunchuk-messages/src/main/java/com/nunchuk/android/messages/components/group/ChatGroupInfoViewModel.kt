@@ -19,7 +19,7 @@ class ChatGroupInfoViewModel @Inject constructor(
     override val initialState = ChatGroupInfoState()
 
     fun initialize(roomId: String) {
-        SessionHolder.currentSession?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(ChatGroupInfoEvent.RoomNotFoundEvent)
+        SessionHolder.activeSession?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
     }
 
     private fun onRetrievedRoom(room: Room) {

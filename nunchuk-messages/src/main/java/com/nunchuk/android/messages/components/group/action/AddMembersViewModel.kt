@@ -30,7 +30,7 @@ class AddMembersViewModel @Inject constructor(
     override val initialState = AddMembersState()
 
     fun initRoom(roomId: String) {
-        room = SessionHolder.currentSession?.getRoom(roomId)!!
+        room = SessionHolder.activeSession?.getRoom(roomId)!!
     }
 
     private fun getContacts() {
