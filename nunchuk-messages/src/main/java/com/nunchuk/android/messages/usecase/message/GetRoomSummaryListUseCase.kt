@@ -38,7 +38,7 @@ internal class GetRoomSummaryListUseCaseImpl @Inject constructor(
     }
 
     private suspend fun leaveRoom(summary: RoomSummary) {
-        SessionHolder.currentSession?.getRoom(summary.roomId)?.let {
+        SessionHolder.activeSession?.getRoom(summary.roomId)?.let {
             leaveRoomUseCase.execute(it)
         }
     }

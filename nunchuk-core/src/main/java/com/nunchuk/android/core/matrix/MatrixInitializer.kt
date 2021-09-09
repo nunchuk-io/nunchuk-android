@@ -17,9 +17,7 @@ class MatrixInitializer @Inject constructor(private val context: Context) {
         val matrix = Matrix.getInstance(context)
         val lastSession = matrix.authenticationService().getLastAuthenticatedSession()
         if (lastSession != null) {
-            SessionHolder.currentSession = lastSession
-            lastSession.open()
-            lastSession.startSync(true)
+            SessionHolder.storeActiveSession(lastSession)
         }
     }
 

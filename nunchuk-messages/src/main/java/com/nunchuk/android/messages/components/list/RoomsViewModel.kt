@@ -83,7 +83,7 @@ class RoomsViewModel @Inject constructor(
             .addToDisposables()
     }
 
-    private fun getRoom(roomSummary: RoomSummary) = SessionHolder.currentSession?.getRoom(roomSummary.roomId)
+    private fun getRoom(roomSummary: RoomSummary) = SessionHolder.activeSession?.getRoom(roomSummary.roomId)
 
     companion object {
         private const val DELAY_IN_SECONDS = 2L

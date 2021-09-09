@@ -8,5 +8,5 @@ import org.matrix.android.sdk.api.session.Session
 abstract class BaseMessageUseCase : BaseUseCase() {
 
     protected val session: Session
-        get() = SessionHolder.currentSession ?: throw SessionLostException()
+        get() = SessionHolder.activeSession ?: throw SessionLostException()
 }
