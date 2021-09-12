@@ -4,7 +4,7 @@
 
     <application>
         <activity
-            android:name=".components.add.AddWalletActivity"
+            android:name=".personal.components.add.AddWalletActivity"
             android:label="@string/nc_wallet_add_wallet_title"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light"

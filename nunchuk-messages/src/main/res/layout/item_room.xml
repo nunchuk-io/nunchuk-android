@@ -106,7 +106,7 @@
                 android:textColor="@color/nc_grey_color"
                 app:layout_constraintEnd_toStartOf="@+id/endBarrier"
                 app:layout_constraintStart_toEndOf="@+id/avatarHolder"
-                app:layout_constraintTop_toBottomOf="@+id/name"
+                app:layout_constraintTop_toBottomOf="@+id/share_icon"
                 tools:text="Bruce: Welcome to Nunchuk! My name is Bruce Bee. I'm Nunchuk assistant" />
 
             <com.nunchuk.android.widget.NCFontTextView
@@ -122,6 +122,22 @@
                 app:layout_constraintStart_toEndOf="@+id/avatarHolder"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="Bruce Bee" />
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/share_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/nc_padding_4"
+                android:background="@drawable/nc_rounded_whisper_background"
+                android:drawableStart="@drawable/ic_wallet_small"
+                android:drawablePadding="@dimen/nc_padding_4"
+                android:paddingHorizontal="@dimen/nc_padding_8"
+                android:text="@string/nc_text_shared"
+                android:textColor="@color/nc_primary_color"
+                android:textSize="@dimen/nc_text_size_10"
+                app:layout_constraintStart_toStartOf="@+id/name"
+                app:layout_constraintTop_toBottomOf="@+id/name"
+                tools:text="Shared" />
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/time"

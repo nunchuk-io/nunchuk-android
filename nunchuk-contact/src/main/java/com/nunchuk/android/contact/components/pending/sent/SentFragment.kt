@@ -12,6 +12,7 @@ import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.model.SentContact
+import androidx.core.view.isVisible
 
 internal class SentFragment : BaseFragment<FragmentSentBinding>() {
 
@@ -44,6 +45,7 @@ internal class SentFragment : BaseFragment<FragmentSentBinding>() {
 
     private fun handleState(state: SentState) {
         adapter.items = state.contacts
+        binding.skeletonContainer.root.isVisible = state.contacts.isEmpty()
     }
 
     private fun handleEvent(event: SentEvent) {

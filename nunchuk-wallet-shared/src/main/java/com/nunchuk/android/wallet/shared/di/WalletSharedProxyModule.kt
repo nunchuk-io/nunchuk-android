@@ -8,4 +8,4 @@ import dagger.Module
         WalletSharedViewModelModule::class
     ]
 )
-interface WalletSharedModule
+interface WalletSharedProxyModule

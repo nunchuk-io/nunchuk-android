@@ -18,10 +18,11 @@ internal class WalletsViewBinder(
     override fun initializeBinding() = ItemWalletBinding.inflate(inflater, container, false)
 
     override fun bindItem(position: Int, model: Wallet) {
+        val balance = "(${model.getUSDAmount()})"
         val binding = ItemWalletBinding.bind(container[position])
         binding.walletName.text = model.name
         binding.btc.text = model.getBTCAmount()
-        binding.balance.text = model.getUSDAmount()
+        binding.balance.text = balance
         binding.config.bindWalletConfiguration(model)
         binding.root.setOnClickListener { callback(model.id) }
     }

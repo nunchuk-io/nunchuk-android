@@ -32,5 +32,12 @@
             android:theme="@style/NunchukNoActionBar.Light"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".components.config.SharedWalletConfigActivity"
+            android:label="@string/nc_wallet_shared_wallet_config_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
+
     </application>
 </manifest>

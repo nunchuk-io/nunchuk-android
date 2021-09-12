@@ -1,11 +1,11 @@
-package com.nunchuk.android.wallet.components.add
+package com.nunchuk.android.wallet.personal.components.add
 
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.type.AddressType.*
 import com.nunchuk.android.type.WalletType.ESCROW
 import com.nunchuk.android.type.WalletType.MULTI_SIG
-import com.nunchuk.android.wallet.components.add.AddWalletEvent.WalletNameRequiredEvent
-import com.nunchuk.android.wallet.components.add.AddWalletEvent.WalletSetupDoneEvent
+import com.nunchuk.android.wallet.personal.components.add.AddWalletEvent.WalletNameRequiredEvent
+import com.nunchuk.android.wallet.personal.components.add.AddWalletEvent.WalletSetupDoneEvent
 import javax.inject.Inject
 
 internal class AddWalletViewModel @Inject constructor(

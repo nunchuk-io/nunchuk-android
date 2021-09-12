@@ -1,4 +1,4 @@
-package com.nunchuk.android.wallet.components.add
+package com.nunchuk.android.wallet.personal.components.add
 
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.AddressType.NATIVE_SEGWIT
