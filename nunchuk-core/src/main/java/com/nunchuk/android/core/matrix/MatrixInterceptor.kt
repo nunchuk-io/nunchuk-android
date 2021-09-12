@@ -19,8 +19,7 @@ internal class MatrixInterceptorImpl @Inject constructor(
 
     override fun login(username: String, password: String) = flow {
         emit(
-            matrixProvider.getMatrix()
-                .authenticationService()
+            authenticationService
                 .directAuthentication(
                     homeServerConnectionConfig = matrixProvider.getServerConfig(),
                     matrixId = username,
