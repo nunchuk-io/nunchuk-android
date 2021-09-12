@@ -46,7 +46,10 @@ internal class AccountManagerImpl @Inject constructor(
         accountSharedPref.clearAccountInfo()
         GlobalScope.launch {
             try {
-                SessionHolder.activeSession?.signOut(true)
+                SessionHolder.activeSession?.apply {
+                    close()
+                    signOut(true)
+                }
                 SessionHolder.activeSession = null
             } catch (t: Throwable) {
                 Timber.e("signOut error ", t)
