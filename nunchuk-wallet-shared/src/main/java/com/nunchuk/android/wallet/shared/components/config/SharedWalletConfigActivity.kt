@@ -6,8 +6,10 @@ import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.model.RoomWalletData
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.components.config.WalletUpdateBottomSheet
 import com.nunchuk.android.wallet.shared.R
@@ -37,7 +39,6 @@ class SharedWalletConfigActivity : BaseActivity<ActivitySharedWalletConfigBindin
         setLightStatusBar()
         setupViews()
         observeEvent()
-        viewModel.init(args.walletId)
     }
 
     private fun observeEvent() {
@@ -69,6 +70,23 @@ class SharedWalletConfigActivity : BaseActivity<ActivitySharedWalletConfigBindin
             navigator.openMainScreen(this)
         }
         binding.toolbar.setNavigationOnClickListener { finish() }
+
+        args.roomWalletData?.let(::bindWalletData)
+    }
+
+    private fun bindWalletData(roomWalletData: RoomWalletData) {
+        binding.walletName.text = roomWalletData.name
+        binding.configuration.bindWalletConfiguration(
+            totalSigns = roomWalletData.totalSigners,
+            requireSigns = roomWalletData.requireSigners
+        )
+
+        binding.walletType.text = (if (roomWalletData.isEscrow) WalletType.ESCROW else WalletType.MULTI_SIG).toReadableString(this)
+        binding.addressType.text = AddressType.values().firstOrNull { it.name == roomWalletData.addressType }?.toReadableString(this)
+
+        binding.toolbar.setNavigationOnClickListener {
+            finish()
+        }
     }
 
     private fun onEditClicked() {
@@ -86,8 +104,8 @@ class SharedWalletConfigActivity : BaseActivity<ActivitySharedWalletConfigBindin
 
     companion object {
 
-        fun start(activityContext: Context, walletId: String) {
-            activityContext.startActivity(SharedWalletConfigArgs(walletId = walletId).buildIntent(activityContext))
+        fun start(activityContext: Context, roomWalletData: RoomWalletData) {
+            activityContext.startActivity(SharedWalletConfigArgs(roomWalletData = roomWalletData).buildIntent(activityContext))
         }
     }
 

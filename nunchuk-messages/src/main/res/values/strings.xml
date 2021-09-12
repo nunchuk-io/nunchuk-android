@@ -31,6 +31,7 @@
     <string name="nc_message_create_room"><![CDATA[<b>%1s</b> has created the group chat]]></string>
     <string name="nc_message_name_changed"><![CDATA[<b>%1s</b> has changed group name to <b>%2s</b>]]></string>
     <string name="nc_message_pending_signers">Pending signers</string>
+    <string name="nc_message_pending_finalization">Pending finalization</string>
     <string name="nc_message_creating_wallet">Creating a %1s standard wallet</string>
     <string name="nc_message_pending_signers_to_assign">Pending %1d signers to be assigned</string>
     <string name="nc_message_view_config">View config</string>
@@ -42,5 +43,8 @@
     <string name="nc_message_wallet_ready"><![CDATA[The required number of signer has been assigned. Waiting for creator to create the wallet]]></string>
     <string name="nc_message_wallet_finalize"><![CDATA[The required number of signers has been assigned. <b><u>Finalize wallet</u></b>]]></string>
     <string name="nc_message_wallet_created">Shared wallet has been created</string>
+
+    <string name="nc_wallet_standard_wallet">Standard wallet</string>
+    <string name="nc_wallet_escrow_wallet">Escrow wallet</string>
 
 </resources>

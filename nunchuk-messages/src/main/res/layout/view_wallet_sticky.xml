@@ -35,6 +35,7 @@
             android:text="@string/nc_message_pending_signers"
             android:textColor="@color/nc_primary_color"
             android:textSize="@dimen/nc_text_size_10"
+            app:fontTextStyle="semi_bold"
             app:layout_constraintStart_toEndOf="@+id/icon"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -54,6 +55,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/nc_padding_4"
+            app:fontTextStyle="semi_bold"
             app:layout_constraintStart_toStartOf="@+id/status"
             app:layout_constraintTop_toBottomOf="@+id/configuration"
             tools:text="Nunchuk Fun Fund" />

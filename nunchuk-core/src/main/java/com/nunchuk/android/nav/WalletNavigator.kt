@@ -2,6 +2,7 @@ package com.nunchuk.android.nav
 
 import android.content.Context
 import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.model.RoomWalletData
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
@@ -43,6 +44,11 @@ interface SharedWalletNavigator {
         addressType: AddressType,
         totalSigns: Int,
         requireSigns: Int
+    )
+
+    fun openSharedWalletConfigScreen(
+        activityContext: Context,
+        roomWalletData: RoomWalletData
     )
 
 }

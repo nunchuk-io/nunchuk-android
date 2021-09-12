@@ -51,12 +51,13 @@ internal class ReviewSharedWalletViewModel @Inject constructor(
         totalSigns: Int,
         requireSigns: Int
     ) {
+        // FIXME swap requireSigns, totalSigns when nativesdk updated
         viewModelScope.launch {
             initWalletUseCase.execute(
                 roomId = roomId,
                 name = walletName,
-                totalSigns = totalSigns,
-                requireSigns = requireSigns,
+                totalSigns = requireSigns,
+                requireSigns = totalSigns,
                 addressType = addressType,
                 isEscrow = walletType == WalletType.ESCROW
             )

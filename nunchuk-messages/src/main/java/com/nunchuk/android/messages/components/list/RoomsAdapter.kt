@@ -13,7 +13,6 @@ import com.nunchuk.android.widget.swipe.SwipeLayout
 import com.nunchuk.android.widget.util.inflate
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import java.util.*
-import kotlin.collections.ArrayList
 
 class RoomAdapter(
     private val currentName: String,
@@ -21,7 +20,9 @@ class RoomAdapter(
     private val removeRoom: (RoomSummary) -> Unit
 ) : RecyclerView.Adapter<RoomViewHolder>() {
 
-    internal var items: List<RoomSummary> = ArrayList()
+    internal var roomWallets: List<String> = ArrayList()
+
+    internal var roomSummaries: List<RoomSummary> = ArrayList()
         set(value) {
             field = value
             notifyDataSetChanged()
@@ -29,21 +30,23 @@ class RoomAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = RoomViewHolder(
         parent.inflate(R.layout.item_room),
+        roomWallets,
         currentName,
         enterRoom,
         removeRoom
     )
 
     override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
-        holder.bind(items[position])
+        holder.bind(roomSummaries[position])
     }
 
-    override fun getItemCount() = items.size
+    override fun getItemCount() = roomSummaries.size
 
 }
 
 class RoomViewHolder(
     itemView: View,
+    private val roomWallets: List<String>,
     private val currentName: String,
     private val enterRoom: (RoomSummary) -> Unit,
     private val removeRoom: (RoomSummary) -> Unit
@@ -69,6 +72,8 @@ class RoomViewHolder(
         binding.avatar.isVisible = isGroupChat
         binding.count.isVisible = data.hasUnreadMessages && (data.notificationCount > 0)
         binding.count.text = "${data.notificationCount}"
+        binding.shareIcon.isVisible = data.roomId in roomWallets
+
         binding.itemLayout.setOnClickListener { enterRoom(data) }
         binding.delete.setOnClickListener { removeRoom(data) }
 

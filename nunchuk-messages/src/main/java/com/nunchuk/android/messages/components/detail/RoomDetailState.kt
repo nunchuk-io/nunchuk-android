@@ -1,6 +1,7 @@
 package com.nunchuk.android.messages.components.detail
 
 import com.nunchuk.android.model.RoomWallet
+import com.nunchuk.android.model.RoomWalletData
 
 data class RoomDetailState(
     val roomInfo: RoomInfo,
@@ -26,4 +27,8 @@ sealed class RoomDetailEvent {
     object OpenChatInfoEvent : RoomDetailEvent()
     object OpenChatGroupInfoEvent : RoomDetailEvent()
     object RoomWalletCreatedEvent : RoomDetailEvent()
+    data class ViewWalletConfigEvent(
+        val roomId: String,
+        val roomWalletData: RoomWalletData
+    ) : RoomDetailEvent()
 }

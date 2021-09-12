@@ -69,8 +69,8 @@ class ReviewWalletActivity : BaseActivity<ActivityReviewWalletBinding>() {
         binding.walletName.text = args.walletName
         val signers = args.masterSigners.map(MasterSigner::toModel) + args.remoteSigners.map(SingleSigner::toModel)
         binding.configuration.bindWalletConfiguration(
-            totalSigns = args.totalRequireSigns,
-            requireSigns = signers.size
+            requireSigns = args.totalRequireSigns,
+            totalSigns = signers.size
         )
 
         binding.walletType.text = args.walletType.toReadableString(this)

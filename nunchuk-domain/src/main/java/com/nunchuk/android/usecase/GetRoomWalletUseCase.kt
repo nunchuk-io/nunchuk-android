@@ -3,7 +3,9 @@ package com.nunchuk.android.usecase
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import timber.log.Timber
 import javax.inject.Inject
 
 interface GetRoomWalletUseCase {
@@ -33,6 +35,9 @@ internal class GetAllRoomWalletsUseCaseImpl @Inject constructor(
         emit(
             nativeSdk.getAllRoomWallets()
         )
+    }.catch {
+        Timber.e("Get all room wallets error ", it)
+        emit(emptyList())
     }
 
 }

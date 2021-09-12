@@ -12,7 +12,6 @@ import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.databinding.ActivityRoomDetailBinding
 import com.nunchuk.android.messages.databinding.ViewWalletStickyBinding
-import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -55,20 +54,14 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
     private fun handleState(state: RoomDetailState) {
         binding.toolbarTitle.text = state.roomInfo.roomName
-        binding.memberCount.text = "${state.roomInfo.memberCount} members"
+        val membersCount = "${state.roomInfo.memberCount} members"
+        binding.memberCount.text = membersCount
         adapter.chatModels = ArrayList(state.messages.groupByDate())
         if (state.messages.isNotEmpty()) {
             binding.recyclerView.scrollToPosition(adapter.chatModels.size - 1)
         }
         stickyBinding.root.isVisible = state.roomWallet != null
-        state.roomWallet?.let(::bindRoomWalletSticker)
-    }
-
-    private fun bindRoomWalletSticker(wallet: RoomWallet) {
-        val roomWalletData = wallet.jsonContent.toRoomWalletData()
-        stickyBinding.name.text = roomWalletData.name
-        val ratio = "${roomWalletData.requireSigners} / ${roomWalletData.totalSigners} standard wallet"
-        stickyBinding.configuration.text = ratio
+        state.roomWallet?.let(stickyBinding::bindRoomWallet)
     }
 
     private fun handleEvent(event: RoomDetailEvent) {
@@ -78,6 +71,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             OpenChatGroupInfoEvent -> navigator.openChatGroupInfoScreen(this, args.roomId)
             OpenChatInfoEvent -> navigator.openChatInfoScreen(this, args.roomId)
             RoomWalletCreatedEvent -> NCToastMessage(this).show(R.string.nc_message_wallet_created)
+            is ViewWalletConfigEvent -> navigator.openSharedWalletConfigScreen(this, event.roomWalletData)
         }
     }
 
@@ -112,6 +106,9 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         }
         binding.toolbar.setOnClickListener {
             viewModel.handleTitleClick()
+        }
+        binding.add.setOnClickListener {
+            navigator.openCreateSharedWalletScreen(this)
         }
 
         binding.recyclerView.smoothScrollToLastItem()

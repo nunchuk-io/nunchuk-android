@@ -38,8 +38,8 @@ internal class MessagesAdapter(
         MessageType.TYPE_NUNCHUK_CARD.index -> NunchukCardHolder(
             ItemWalletInfoBinding.inflate(LayoutInflater.from(context), parent, false),
             denyWallet = denyWallet,
-            cancelWallet = viewConfig,
-            viewConfig = cancelWallet,
+            cancelWallet = cancelWallet,
+            viewConfig = viewConfig
         )
         MessageType.TYPE_NUNCHUK_NOTIFICATION.index -> NunchukNotificationHolder(
             ItemNunchukNotificationBinding.inflate(LayoutInflater.from(context), parent, false),
