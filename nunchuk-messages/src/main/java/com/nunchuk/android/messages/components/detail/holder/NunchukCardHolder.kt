@@ -4,8 +4,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.NunchukWalletMessage
-import com.nunchuk.android.messages.components.detail.toRoomWalletData
 import com.nunchuk.android.messages.databinding.ItemWalletInfoBinding
+import com.nunchuk.android.model.toRoomWalletData
 
 internal class NunchukCardHolder(
     val binding: ItemWalletInfoBinding,

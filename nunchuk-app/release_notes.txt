@@ -1,4 +1,5 @@
 What's news:
+- [Room Wallet] Share wallet config screen.
 - [Matrix] Crash on logout.
 - [LibNunchuk] Change testnet server / update lib httpcore.
 - [Room Wallet] Send finalize event.

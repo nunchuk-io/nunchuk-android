@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.components.detail.holder
 
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.signer.toSigner
 import com.nunchuk.android.core.util.getHtmlString
@@ -41,6 +42,11 @@ internal class NunchukNotificationHolder(
             }
             else -> {
             }
+        }
+        if (model.msgType == WalletEventType.CREATE) {
+            binding.root.background = ContextCompat.getDrawable(itemView.context, R.drawable.nc_slime_tint_background)
+        } else {
+            binding.root.background = ContextCompat.getDrawable(itemView.context, R.drawable.nc_rounded_whisper_disable_background)
         }
 
     }

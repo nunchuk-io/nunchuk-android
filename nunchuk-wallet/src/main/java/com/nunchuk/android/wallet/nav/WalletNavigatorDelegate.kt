@@ -3,11 +3,11 @@ package com.nunchuk.android.wallet.nav
 import android.content.Context
 import com.nunchuk.android.core.qr.DynamicQRCodeActivity
 import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.model.RoomWalletData
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.WalletNavigator
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
-import com.nunchuk.android.wallet.personal.components.add.AddWalletActivity
 import com.nunchuk.android.wallet.components.backup.BackupWalletActivity
 import com.nunchuk.android.wallet.components.config.WalletConfigActivity
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletActivity
@@ -15,7 +15,9 @@ import com.nunchuk.android.wallet.components.details.WalletDetailsActivity
 import com.nunchuk.android.wallet.components.intro.WalletEmptySignerActivity
 import com.nunchuk.android.wallet.components.review.ReviewWalletActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationActivity
+import com.nunchuk.android.wallet.personal.components.add.AddWalletActivity
 import com.nunchuk.android.wallet.shared.components.assign.AssignSignerSharedWalletActivity
+import com.nunchuk.android.wallet.shared.components.config.SharedWalletConfigActivity
 import com.nunchuk.android.wallet.shared.components.configure.ConfigureSharedWalletActivity
 import com.nunchuk.android.wallet.shared.components.create.CreateSharedWalletActivity
 import com.nunchuk.android.wallet.shared.components.review.ReviewSharedWalletActivity
@@ -112,6 +114,13 @@ interface WalletNavigatorDelegate : WalletNavigator {
         requireSigns: Int
     ) {
         AssignSignerSharedWalletActivity.start(activityContext, walletName, walletType, addressType, totalSigns, requireSigns)
+    }
+
+    override fun openSharedWalletConfigScreen(
+        activityContext: Context,
+        roomWalletData: RoomWalletData
+    ) {
+        SharedWalletConfigActivity.start(activityContext, roomWalletData)
     }
 
 }

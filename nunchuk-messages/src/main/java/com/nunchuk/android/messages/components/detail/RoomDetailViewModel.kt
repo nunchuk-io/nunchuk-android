@@ -6,10 +6,7 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.util.*
-import com.nunchuk.android.model.NunchukMatrixEvent
-import com.nunchuk.android.model.RoomWallet
-import com.nunchuk.android.model.SendEventExecutor
-import com.nunchuk.android.model.SendEventHelper
+import com.nunchuk.android.model.*
 import com.nunchuk.android.usecase.CancelWalletUseCase
 import com.nunchuk.android.usecase.ConsumeEventUseCase
 import com.nunchuk.android.usecase.CreateSharedWalletUseCase
@@ -51,9 +48,9 @@ class RoomDetailViewModel @Inject constructor(
     private fun onRetrievedRoom(room: Room) {
         storeRoom(room)
         joinRoom()
+        getRoomWallet()
         retrieveTimelineEvents()
         sendEvent()
-        getRoomWallet()
     }
 
     private fun getRoomWallet() {
@@ -163,7 +160,9 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     fun viewConfig() {
-
+        getState().roomWallet?.jsonContent?.toRoomWalletData()?.let {
+            event(ViewWalletConfigEvent(room.roomId, it))
+        }
     }
 
     fun denyWallet() {

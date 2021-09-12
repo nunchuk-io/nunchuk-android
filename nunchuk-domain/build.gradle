@@ -1,5 +1,6 @@
 apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
+apply plugin: 'kotlin-parcelize'
 
 dependencies {
     implementation nunchukDeps.nativeSdk
@@ -9,4 +10,6 @@ dependencies {
     api daggerDeps.dagger
     kapt daggerDeps.processor
     implementation daggerDeps.support
+
+    implementation networkDeps.values()
 }
