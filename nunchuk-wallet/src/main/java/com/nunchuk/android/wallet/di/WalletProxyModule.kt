@@ -1,12 +1,14 @@
 package com.nunchuk.android.wallet.di
 
-import com.nunchuk.android.wallet.shared.di.WalletSharedModule
+import com.nunchuk.android.wallet.personal.di.WalletPersonalProxyModule
+import com.nunchuk.android.wallet.shared.di.WalletSharedProxyModule
 import dagger.Module
 
 @Module(
     includes = [
         WalletActivityModule::class,
-        WalletSharedModule::class
+        WalletSharedProxyModule::class,
+        WalletPersonalProxyModule::class
     ]
 )
 interface WalletProxyModule

@@ -17,7 +17,6 @@
     <string name="nc_wallet_upload_configuration">For multisig wallets, some devices require the wallet configuration file to be uploaded to the device before the wallet can be used.\n\nChoose the export option according to your device type. Please check your device manual.</string>
     <string name="nc_wallet_save_configuration">Save configuration</string>
     <string name="nc_wallet_skip_upload_configuration">Skip upload configuration</string>
-    <string name="nc_text_change_wallet_success">The Wallet has been changed successfully</string>
     <string name="nc_text_wallet_name">Wallet name</string>
 
     <string name="nc_text_wallet_config_title">Wallet config</string>

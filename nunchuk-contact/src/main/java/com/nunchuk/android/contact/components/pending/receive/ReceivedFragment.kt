@@ -11,6 +11,7 @@ import com.nunchuk.android.contact.databinding.FragmentReceivedBinding
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showLoading
+import androidx.core.view.isVisible
 
 internal class ReceivedFragment : BaseFragment<FragmentReceivedBinding>() {
 
@@ -43,6 +44,7 @@ internal class ReceivedFragment : BaseFragment<FragmentReceivedBinding>() {
 
     private fun handleState(state: ReceivedState) {
         adapter.items = state.contacts
+        binding.skeletonContainer.root.isVisible = state.contacts.isEmpty()
     }
 
     private fun handleEvent(event: ReceivedEvent) {

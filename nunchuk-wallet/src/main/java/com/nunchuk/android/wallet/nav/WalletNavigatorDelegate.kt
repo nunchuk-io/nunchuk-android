@@ -7,7 +7,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.WalletNavigator
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
-import com.nunchuk.android.wallet.components.add.AddWalletActivity
+import com.nunchuk.android.wallet.personal.components.add.AddWalletActivity
 import com.nunchuk.android.wallet.components.backup.BackupWalletActivity
 import com.nunchuk.android.wallet.components.config.WalletConfigActivity
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletActivity

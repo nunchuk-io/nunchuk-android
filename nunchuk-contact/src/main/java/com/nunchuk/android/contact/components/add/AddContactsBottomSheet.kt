@@ -83,6 +83,7 @@ class AddContactsBottomSheet : BaseBottomSheet<BottomSheetAddContactsBinding>() 
     }
 
     private fun showErrorMessage(show: Boolean) {
+        showOrHideLoading(false)
         binding.errorText.isVisible = show
     }
 

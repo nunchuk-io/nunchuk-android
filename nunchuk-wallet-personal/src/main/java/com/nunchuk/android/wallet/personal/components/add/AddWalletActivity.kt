@@ -1,4 +1,4 @@
-package com.nunchuk.android.wallet.components.add
+package com.nunchuk.android.wallet.personal.components.add
 
 import android.content.Context
 import android.content.Intent
@@ -11,10 +11,10 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.AddressType.*
 import com.nunchuk.android.type.WalletType
-import com.nunchuk.android.wallet.R
-import com.nunchuk.android.wallet.components.add.AddWalletEvent.WalletNameRequiredEvent
-import com.nunchuk.android.wallet.components.add.AddWalletEvent.WalletSetupDoneEvent
-import com.nunchuk.android.wallet.databinding.ActivityWalletAddBinding
+import com.nunchuk.android.wallet.personal.components.add.AddWalletEvent.WalletNameRequiredEvent
+import com.nunchuk.android.wallet.personal.components.add.AddWalletEvent.WalletSetupDoneEvent
+import com.nunchuk.android.wallet.personal.R
+import com.nunchuk.android.wallet.personal.databinding.ActivityWalletAddBinding
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject

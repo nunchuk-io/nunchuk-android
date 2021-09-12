@@ -4,12 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.widget.AppCompatEditText
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
-import com.nunchuk.android.arch.args.FragmentArgs
 import com.nunchuk.android.core.base.BaseBottomSheet
-import com.nunchuk.android.wallet.databinding.DialogUpdateWalletBottomSheetBinding
+import com.nunchuk.android.wallet.core.databinding.DialogUpdateWalletBottomSheetBinding
 import com.nunchuk.android.widget.util.addTextChangedCallback
 
 class WalletUpdateBottomSheet : BaseBottomSheet<DialogUpdateWalletBottomSheetBinding>() {
@@ -18,9 +16,10 @@ class WalletUpdateBottomSheet : BaseBottomSheet<DialogUpdateWalletBottomSheetBin
 
     private val args: WalletUpdateBottomSheetArgs by lazy { WalletUpdateBottomSheetArgs.deserializeFrom(arguments) }
 
-    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): DialogUpdateWalletBottomSheetBinding {
-        return DialogUpdateWalletBottomSheetBinding.inflate(inflater, container, false)
-    }
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ) = DialogUpdateWalletBottomSheetBinding.inflate(inflater, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -29,10 +28,9 @@ class WalletUpdateBottomSheet : BaseBottomSheet<DialogUpdateWalletBottomSheetBin
     }
 
     private fun setupViews() {
-        val editWalletName: AppCompatEditText = binding.editWalletName
-        editWalletName.text?.append(args.walletName)
+        binding.editWalletName.text?.append(args.walletName)
 
-        editWalletName.addTextChangedCallback {
+        binding.editWalletName.addTextChangedCallback {
             binding.btnSave.isVisible = it.isNotEmpty()
         }
         binding.iconClose.setOnClickListener {
@@ -69,20 +67,5 @@ class WalletUpdateBottomSheet : BaseBottomSheet<DialogUpdateWalletBottomSheetBin
         fun show(fragmentManager: FragmentManager, walletName: String): WalletUpdateBottomSheet {
             return newInstance(walletName).apply { show(fragmentManager, TAG) }
         }
-    }
-}
-
-data class WalletUpdateBottomSheetArgs(val walletName: String) : FragmentArgs {
-
-    override fun buildBundle() = Bundle().apply {
-        putString(EXTRA_WALLET_NAME, walletName)
-    }
-
-    companion object {
-        private const val EXTRA_WALLET_NAME = "EXTRA_WALLET_NAME"
-
-        fun deserializeFrom(data: Bundle?) = WalletUpdateBottomSheetArgs(
-            data?.getString(EXTRA_WALLET_NAME).orEmpty()
-        )
     }
 }

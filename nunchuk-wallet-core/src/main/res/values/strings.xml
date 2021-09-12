@@ -33,4 +33,5 @@
     <string name="nc_wallet_single_sig">Single-sig</string>
 
     <string name="nc_wallet_configuration">Wallet configuration</string>
+    <string name="nc_text_change_wallet_success">The Wallet has been changed successfully</string>
 </resources>
