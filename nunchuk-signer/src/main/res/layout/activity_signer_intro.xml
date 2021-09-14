@@ -50,20 +50,6 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <com.nunchuk.android.widget.NCFontTextView
-                android:id="@+id/beforeStart"
-                style="@style/NCText.Heading"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/nc_padding_16"
-                android:layout_marginTop="@dimen/nc_padding_24"
-                android:gravity="center"
-                android:paddingVertical="@dimen/nc_padding_8"
-                android:text="@string/nc_create_signer_before_you_start"
-                app:fontTextStyle="semi_bold"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/introImg" />
-
-            <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/desc"
                 style="@style/NCText.Body"
                 android:layout_width="match_parent"
@@ -74,7 +60,7 @@
                 android:padding="@dimen/nc_padding_8"
                 android:text="@string/nc_create_signer_description"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/beforeStart" />
+                app:layout_constraintTop_toBottomOf="@+id/introImg" />
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/btnAddAirSigner"

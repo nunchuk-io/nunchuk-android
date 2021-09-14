@@ -22,9 +22,9 @@
     <string name="nc_transaction_total_amount">Total amount</string>
     <string name="nc_transaction_customize_fee_setting">Customize fee setting</string>
     <string name="nc_transaction_subtract_fee_title">Subtract fee from send amount</string>
-    <string name="nc_transaction_subtract_fee_desc">The fee will be deducted from the amount being sent. The recipient will receive less bitcoins than you entered in the amount fee</string>
+    <string name="nc_transaction_subtract_fee_desc">The fee will be deducted from the amount being sent. The recipient will receive less bitcoin than you entered in the amount fee.</string>
     <string name="nc_transaction_manual_fee_rate">Manual fee rate</string>
-    <string name="nc_transaction_manual_fee_rate_desc">You can replace by fee later if necessary</string>
+    <string name="nc_transaction_manual_fee_rate_desc">You can replace-by-fee later if necessary.</string>
     <string name="nc_transaction_fee_rate_unit">sat/vbyte</string>
     <string name="nc_transaction_processing_speed">Processing speed</string>
     <string name="nc_transaction_priority_rate">Priority rate:</string>
@@ -47,7 +47,7 @@
     <string name="nc_transaction_more_details">More details</string>
     <string name="nc_transaction_less_details">Less details</string>
     <string name="nc_transaction_pending_signature">Pending %d signature</string>
-    <string name="nc_transaction_member_signers">Member signers</string>
+    <string name="nc_transaction_member_signers">Member keys</string>
     <string name="nc_transaction_enough_signers">Enough signatures has been collected</string>
     <string name="nc_text_n_a">N/A</string>
     <string name="nc_transaction_signed">Signed</string>
