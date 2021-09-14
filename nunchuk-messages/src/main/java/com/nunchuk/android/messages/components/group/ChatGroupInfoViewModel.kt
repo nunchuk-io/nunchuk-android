@@ -6,12 +6,20 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.messages.components.group.ChatGroupInfoEvent.*
 import com.nunchuk.android.messages.util.getRoomMemberList
+import com.nunchuk.android.model.RoomWallet
+import com.nunchuk.android.usecase.GetRoomWalletUseCase
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.session.room.Room
+import timber.log.Timber
 import javax.inject.Inject
 
+// TODO eliminate duplicated
 class ChatGroupInfoViewModel @Inject constructor(
+    private val getRoomWalletUseCase: GetRoomWalletUseCase
 ) : NunchukViewModel<ChatGroupInfoState, ChatGroupInfoEvent>() {
 
     private lateinit var room: Room
@@ -28,6 +36,18 @@ class ChatGroupInfoViewModel @Inject constructor(
             updateState { copy(summary = it) }
         }
         updateState { copy(roomMembers = room.getRoomMemberList()) }
+        getRoomWallet()
+    }
+
+    private fun getRoomWallet() {
+        getRoomWalletUseCase.execute(roomId = room.roomId)
+            .catch { Timber.e("get room failed:$it") }
+            .onEach { onGetRoomWallet(it) }
+            .launchIn(viewModelScope)
+    }
+
+    private fun onGetRoomWallet(roomWallet: RoomWallet) {
+        updateState { copy(roomWallet = roomWallet) }
     }
 
     fun handleEditName(name: String) {

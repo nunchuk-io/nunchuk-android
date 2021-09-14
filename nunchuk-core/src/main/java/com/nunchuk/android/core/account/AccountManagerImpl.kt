@@ -2,6 +2,9 @@ package com.nunchuk.android.core.account
 
 import com.nunchuk.android.core.matrix.SessionHolder
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -45,16 +48,17 @@ internal class AccountManagerImpl @Inject constructor(
     override fun signOut() {
         accountSharedPref.clearAccountInfo()
         GlobalScope.launch {
-            try {
-                SessionHolder.activeSession?.apply {
-                    close()
-                    signOut(true)
-                }
-                SessionHolder.activeSession = null
-            } catch (t: Throwable) {
-                Timber.e("signOut error ", t)
+            signOutMatrix().catch {
+                Timber.e("signOut error ", it)
             }
         }
+    }
+
+    private fun signOutMatrix(): Flow<Unit> = flow {
+        SessionHolder.activeSession?.apply {
+            signOut(true)
+        }
+        SessionHolder.activeSession = null
     }
 
 }

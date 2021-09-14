@@ -142,6 +142,11 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        viewModel.cleanUp()
+    }
+
     companion object {
         fun start(activityContext: Context, roomId: String) {
             activityContext.startActivity(RoomDetailArgs(roomId = roomId).buildIntent(activityContext))

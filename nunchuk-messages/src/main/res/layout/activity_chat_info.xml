@@ -102,15 +102,26 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/joinWalletContainer" />
 
+    <include
+        android:id="@+id/wallet_container"
+        layout="@layout/item_wallet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/joinWalletLabel"
+        tools:visibility="visible" />
+
     <View
         android:id="@+id/divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_24"
+        android:layout_marginTop="@dimen/nc_padding_16"
         android:background="@color/nc_whisper_color"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/joinWalletLabel" />
+        app:layout_constraintTop_toBottomOf="@+id/wallet_container" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/muteConversation"

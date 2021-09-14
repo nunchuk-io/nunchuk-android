@@ -3,8 +3,11 @@ package com.nunchuk.android.messages.components.group
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.databinding.ItemWalletBinding
+import com.nunchuk.android.messages.components.detail.bindRoomWallet
 import com.nunchuk.android.messages.components.group.ChatGroupInfoEvent.*
 import com.nunchuk.android.messages.components.group.ChatGroupInfoOption.*
 import com.nunchuk.android.messages.components.group.action.AddMembersBottomSheet
@@ -24,6 +27,8 @@ class ChatGroupInfoActivity : BaseActivity<ActivityGroupChatInfoBinding>() {
 
     private val args: ChatGroupInfoArgs by lazy { ChatGroupInfoArgs.deserializeFrom(intent) }
 
+    private lateinit var walletBinding: ItemWalletBinding
+
     override fun initializeBinding() = ActivityGroupChatInfoBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,6 +44,7 @@ class ChatGroupInfoActivity : BaseActivity<ActivityGroupChatInfoBinding>() {
         binding.more.setOnClickListener { onMoreSelected() }
         binding.toolbar.setNavigationOnClickListener { finish() }
         binding.joinWallet.setOnClickListener { navigator.openCreateSharedWalletScreen(this) }
+        walletBinding = ItemWalletBinding.bind(binding.walletContainer.root)
     }
 
     private fun onMoreSelected() {
@@ -76,6 +82,10 @@ class ChatGroupInfoActivity : BaseActivity<ActivityGroupChatInfoBinding>() {
             binding.membersCountTop.text = "$count Members"
             binding.members.text = "Members ($count)"
             binding.badge.text = "$count"
+        }
+        state.roomWallet?.let {
+            walletBinding.root.isVisible = true
+            walletBinding.bindRoomWallet(it)
         }
     }
 

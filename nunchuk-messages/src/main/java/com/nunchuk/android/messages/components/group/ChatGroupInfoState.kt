@@ -1,9 +1,14 @@
 package com.nunchuk.android.messages.components.group
 
+import com.nunchuk.android.model.RoomWallet
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 
-data class ChatGroupInfoState(val summary: RoomSummary? = null, val roomMembers: List<RoomMemberSummary> = emptyList())
+data class ChatGroupInfoState(
+    val summary: RoomSummary? = null,
+    val roomMembers: List<RoomMemberSummary> = emptyList(),
+    val roomWallet: RoomWallet? = null
+)
 
 sealed class ChatGroupInfoEvent {
     object RoomNotFoundEvent : ChatGroupInfoEvent()
