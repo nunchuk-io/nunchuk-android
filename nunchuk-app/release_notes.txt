@@ -1,4 +1,5 @@
 What's news:
+- [Room Wallet] Show wallet in group / direct chat detail.
 - [Room Wallet] Share wallet config screen.
 - [Matrix] Crash on logout.
 - [LibNunchuk] Change testnet server / update lib httpcore.

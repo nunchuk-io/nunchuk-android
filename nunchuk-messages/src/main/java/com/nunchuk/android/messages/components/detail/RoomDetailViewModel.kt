@@ -170,6 +170,10 @@ class RoomDetailViewModel @Inject constructor(
         cancelWallet()
     }
 
+    fun cleanUp() {
+        timeline.removeAllListeners()
+    }
+
     companion object {
         private const val PAGINATION = 50
     }

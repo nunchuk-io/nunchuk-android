@@ -49,7 +49,7 @@ class RoomsViewModel @Inject constructor(
 
     private fun onRetrieveMessageSuccess(p: Pair<List<RoomSummary>, List<RoomWallet>>) {
         event(LoadingEvent(false))
-        updateState { copy(rooms = p.first.sortByLastMessage(), roomWallets = roomWallets) }
+        updateState { copy(rooms = p.first.sortByLastMessage(), roomWallets = p.second) }
     }
 
     fun removeRoom(roomSummary: RoomSummary) {
