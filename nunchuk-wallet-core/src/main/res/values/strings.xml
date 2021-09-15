@@ -7,9 +7,9 @@
     <string name="nc_wallet_default">Default</string>
     <string name="nc_wallet_your_current_config">Current wallet config</string>
     <string name="nc_wallet_multisig">Multisig</string>
-    <string name="nc_wallet_assign_signer_desc">Assign at least 1 signer to the wallet.</string>
-    <string name="nc_wallet_required_signer_desc">Number of Signatures \nRequired to Unlock Funds</string>
-    <string name="nc_wallet_required_signers">Required signers</string>
+    <string name="nc_wallet_assign_signer_desc">Assign at least 1 key to the wallet</string>
+    <string name="nc_wallet_required_signer_desc">Number of signatures \nrequired to unlock funds</string>
+    <string name="nc_wallet_required_signers">Required keys</string>
 
     <string name="nc_wallet_escrow_wallet">Escrow wallet</string>
     <string name="nc_wallet_escrow_wallet_desc">A special single-use wallet, designed to hold funds temporarily.</string>
@@ -34,5 +34,5 @@
 
     <string name="nc_wallet_configuration">Wallet configuration</string>
     <string name="nc_text_change_wallet_success">The Wallet has been changed successfully</string>
-    <string name="nc_wallet_assigned_signers">Assigned signers</string>
+    <string name="nc_wallet_assigned_signers">Assigned keys</string>
 </resources>

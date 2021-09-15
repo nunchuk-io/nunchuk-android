@@ -6,6 +6,6 @@
     <string name="nc_signer_before_start_initialize">Initialize the brand new device</string>
     <string name="nc_signer_before_start_initialize_content">Follow your vendor\'s instruction on how to set up a device with a seed.</string>
     <string name="nc_signer_before_start_device_unlock">Ensure your device is unlocked</string>
-    <string name="nc_signer_before_start_device_unlock_content">Please enter the PIN to unlock the device. You might also need to enter a PASSPHRASE on-device, if PASSPHRASE is enabled.</string>
+    <string name="nc_signer_before_start_device_unlock_content">To unlock the device, you might need to enter a PIN and/or a PASSPHRASE on the device.</string>
 
 </resources>

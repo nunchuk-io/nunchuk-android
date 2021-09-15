@@ -3,17 +3,17 @@
     <string name="nc_wallet_review_wallet_title">Review Wallet</string>
     <string name="nc_wallet_has_been_created">Wallet has been created</string>
     <string name="nc_wallet_create_wallet">Create wallet</string>
-    <string name="nc_wallet_signer_has_been_used_warning">This air-gapped signer has already been used. Key reuse is not recommended</string>
+    <string name="nc_wallet_signer_has_been_used_warning">This air-gapped key has already been used. Key reuse is not recommended</string>
 
     <string name="nc_wallet_backup_and_device_registration">Backup and device registration</string>
     <string name="nc_wallet_backup_your_wallet">Please save your wallet configuration</string>
     <string name="nc_wallet_backup_wallet_description">The wallet configuration does not contain the private keys, but you should still keep it safe for privacy. You can also access the wallet configuration via the wallet home screen.</string>
-    <string name="nc_wallet_backup_wallet_description_hint">Tip: you need both the seed(s) and wallet configuration to recover your wallet.</string>
+    <string name="nc_wallet_backup_wallet_description_hint">Tip: you need both the keys and wallet configuration to recover your wallet.</string>
     <string name="nc_wallet_save_wallet_descriptor">Save wallet descriptors</string>
     <string name="nc_wallet_skip_backup">Skip backup</string>
 
     <string name="nc_wallet_upload_configuration_title">Upload wallet configuration</string>
-    <string name="nc_wallet_upload_configuration">For multisig wallets, some devices require the wallet configuration file to be uploaded to the device before the wallet can be used.\n\nChoose the export option according to your device type. Please check your device manual.</string>
+    <string name="nc_wallet_upload_configuration">If you have hardware keys in your multisig wallet, you might be required to upload the wallet configuration file onto the hardware before the key can be used.\n\nChoose the export option according to your hardware type. Please check the vendor’s manual.</string>
     <string name="nc_wallet_save_configuration">Save configuration</string>
     <string name="nc_wallet_skip_upload_configuration">Skip upload configuration</string>
     <string name="nc_text_wallet_name">Wallet name</string>
@@ -27,10 +27,10 @@
     <string name="nc_wallet_receive">Receive</string>
 
     <string name="nc_transaction">Transaction</string>
-    <string name="nc_transaction_empty_title">You don’t have any transaction yet. Here is an address where you can deposit your funds.</string>
-    <string name="nc_wallet_empty_signer_title">You don’t have any signer yet.</string>
-    <string name="nc_wallet_empty_signer_desc">Please add a signer before adding a wallet.</string>
-    <string name="nc_wallet_take_to_add_a_signer">Take me to add a signer</string>
+    <string name="nc_transaction_empty_title">You don’t have any transactions yet. Here is an address where you can deposit your funds.</string>
+    <string name="nc_wallet_empty_signer_title">You don’t have any key yet.</string>
+    <string name="nc_wallet_empty_signer_desc">Please add a key before adding a wallet.</string>
+    <string name="nc_wallet_take_to_add_a_signer">Take me to add a key</string>
     <string name="nc_wallet_add_a_wallet">Add a wallet</string>
     <string name="nc_wallet_backup_wallet">Backup wallet</string>
     <string name="nc_wallet_upload_device_registration">Upload device registration</string>

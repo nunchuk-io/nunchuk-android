@@ -4,9 +4,11 @@
     <string name="nc_wallet_configure_shared_wallet">Configure shared wallet</string>
     <string name="nc_wallet_review_shared_wallet_title">Review shared wallet</string>
     <string name="nc_wallet_shared_wallet_config_title">Wallet config</string>
-    <string name="nc_wallet_assign_signer_title">Assign signer</string>
+    <string name="nc_wallet_assign_signer_title">Assign key</string>
 
-    <string name="nc_wallet_assign_signer">Continue to assign signer</string>
-    <string name="nc_wallet_assign_signers_and_send_invite">Assign signers and send invite</string>
+    <string name="nc_wallet_assign_signer">Continue to assign key</string>
+    <string name="nc_wallet_assign_signers_and_send_invite">Assign keys and send invite</string>
     <string name="nc_wallet_slots_left_in_the_wallet">%d slots left in the wallet</string>
+    <string name="nc_wallet_total_number_keys">Total number of keys</string>
+    <string name="nc_wallet_total_number_keys_in_wallet">Total number of keys \nin the wallet</string>
 </resources>

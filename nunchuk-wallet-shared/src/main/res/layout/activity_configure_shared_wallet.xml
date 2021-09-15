@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_16"
             android:padding="@dimen/nc_padding_4"
-            android:text="Total number of signers"
+            android:text="@string/nc_wallet_total_number_keys"
             app:fontTextStyle="semi_bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -50,7 +50,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_16"
             android:padding="@dimen/nc_padding_4"
-            android:text="Total number of signers \nin the wallet"
+            android:text="@string/nc_wallet_total_number_keys_in_wallet"
             android:textColor="@color/nc_grey_dark_color"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/totalSignerLabel" />

@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="nc_create_signer_title">Add air-gapped signer</string>
+    <string name="nc_create_signer_title">Add air-gapped key</string>
     <string name="nc_add_signer_title">Add a signer</string>
-    <string name="nc_text_signer_info">Signer Info</string>
+    <string name="nc_text_signer_info">Key Info</string>
     <string name="nc_error_invalid_signer_spec">Invalid Signer Spec</string>
     <string name="nc_error_signer_existed">Signer Existed</string>
 
     <string name="nc_text_add_signer_success">%s has been added successfully</string>
     <string name="nc_text_set_passphrase_success">Passphrase has been set successfully</string>
-    <string name="nc_text_change_signer_success">Signer name has been updated</string>
+    <string name="nc_text_change_signer_success">Key name has been updated</string>
     <string name="nc_text_change_signer_error">The signer name hasn\'t been updated</string>
 
     <string name="nc_title_signer_info">Signer Info</string>
-    <string name="nc_remove_signer">Remove signer</string>
+    <string name="nc_remove_signer">Remove key</string>
     <string name="nc_signer_air_gapped">Air-gapped</string>
 
     <string name="nc_create_signer_before_you_start">Before you start</string>
-    <string name="nc_create_signer_description">You can only add air-gapped and software signers via this mobile app. If you need to add a wired signer, please do so via our desktop Nunchuk app.</string>
-    <string name="nc_add_signer_via_qr_code">Add signer spec via QR</string>
-    <string name="nc_text_signer_name">Signer name</string>
-    <string name="nc_text_signer_spec">Signer spec (Master key fingerprint)</string>
-    <string name="nc_text_add_signer">Add Signer</string>
-    <string name="nc_text_nunchuk_as_signer">Add software signer</string>
-    <string name="nc_text_ss_desc">The software signer is managed by the app.</string>
+    <string name="nc_create_signer_description">You can only add air-gapped and software keys via this mobile app. If you need to add a wired key, please do so via the Nunchuk desktop app.</string>
+    <string name="nc_add_signer_via_qr_code">Add key spec via QR</string>
+    <string name="nc_text_signer_name">Key name</string>
+    <string name="nc_text_signer_spec">Key spec</string>
+    <string name="nc_text_add_signer">Add key</string>
+    <string name="nc_text_nunchuk_as_signer">Add software key</string>
+    <string name="nc_text_ss_desc">The software key is managed by the app.</string>
 
-    <string name="nc_signer_bad_ratio_not_recommend">It is not recommended for the software signers to have complete control of the wallet. Software signers are not as safe as hardware signers. Are you sure you want to proceed?</string>
-    <string name="nc_signer_bad_ratio_recommend">It is recommended for the hardware signers to have complete control of the wallet. Software signers are not as safe as hardware signers. Are you sure you want to proceed?</string>
+    <string name="nc_signer_bad_ratio_not_recommend">It is not recommended for the software keys to have complete control of the wallet. Software keys are not as safe as hardware keys. Are you sure you want to proceed?</string>
+    <string name="nc_signer_bad_ratio_recommend">It is recommended for the hardware keys to have complete control of the wallet. Software keys are not as safe as hardware keys. Are you sure you want to proceed?</string>
 </resources>

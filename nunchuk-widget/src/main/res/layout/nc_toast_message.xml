@@ -29,6 +29,6 @@
             android:layout_height="wrap_content"
             android:textColor="@color/nc_black_color"
             tools:textColor="@color/nc_white_color"
-            tools:text="Your signer has been added successfully" />
+            tools:text="Your key has been added successfully" />
     </LinearLayout>
 </LinearLayout>
