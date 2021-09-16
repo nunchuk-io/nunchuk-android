@@ -15,7 +15,12 @@ interface TransactionNavigator {
         balance: String
     )
 
-    fun openInputAmountScreen(activityContext: Activity, walletId: String, availableAmount: Double)
+    fun openInputAmountScreen(
+        activityContext: Activity,
+        roomId: String = "",
+        walletId: String,
+        availableAmount: Double
+    )
 
     fun openAddReceiptScreen(
         activityContext: Activity,

@@ -38,11 +38,13 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
 
     override fun openInputAmountScreen(
         activityContext: Activity,
+        roomId: String,
         walletId: String,
         availableAmount: Double
     ) {
         InputAmountActivity.start(
             activityContext = activityContext,
+            roomId = roomId,
             walletId = walletId,
             availableAmount = availableAmount
         )

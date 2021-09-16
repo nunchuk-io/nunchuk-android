@@ -43,8 +43,16 @@ class ChatGroupInfoActivity : BaseActivity<ActivityGroupChatInfoBinding>() {
     private fun setupViews() {
         binding.more.setOnClickListener { onMoreSelected() }
         binding.toolbar.setNavigationOnClickListener { finish() }
-        binding.joinWallet.setOnClickListener { navigator.openCreateSharedWalletScreen(this) }
+        binding.joinWallet.setOnClickListener { viewModel.createWalletOrTransaction() }
         walletBinding = ItemWalletBinding.bind(binding.walletContainer.root)
+    }
+
+    private fun openCreateSharedWalletScreen() {
+        navigator.openCreateSharedWalletScreen(this)
+    }
+
+    private fun openInputAmountScreen(roomId: String, walletId: String, amount: Double) {
+        navigator.openInputAmountScreen(activityContext = this, roomId = roomId, walletId = walletId, availableAmount = amount)
     }
 
     private fun onMoreSelected() {
@@ -83,7 +91,7 @@ class ChatGroupInfoActivity : BaseActivity<ActivityGroupChatInfoBinding>() {
             binding.members.text = "Members ($count)"
             binding.badge.text = "$count"
         }
-        state.roomWallet?.let {
+        state.wallet?.let {
             walletBinding.root.isVisible = true
             walletBinding.bindRoomWallet(it)
         }
@@ -96,6 +104,8 @@ class ChatGroupInfoActivity : BaseActivity<ActivityGroupChatInfoBinding>() {
             is UpdateRoomNameSuccess -> updateRoomName(event)
             is LeaveRoomError -> NCToastMessage(this).showError(event.message)
             LeaveRoomSuccess -> navigator.openMainScreen(this)
+            CreateSharedWalletEvent -> openCreateSharedWalletScreen()
+            is CreateTransactionEvent -> openInputAmountScreen(roomId = event.roomId, walletId = event.walletId, amount = event.availableAmount)
         }
     }
 

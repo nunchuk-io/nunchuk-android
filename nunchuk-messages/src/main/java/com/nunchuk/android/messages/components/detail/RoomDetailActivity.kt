@@ -61,7 +61,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             binding.recyclerView.scrollToPosition(adapter.chatModels.size - 1)
         }
         stickyBinding.root.isVisible = state.roomWallet != null
-        state.roomWallet?.let(stickyBinding::bindRoomWallet)
+        state.roomWallet?.let { stickyBinding.bindRoomWallet(it, viewModel::viewConfig) }
     }
 
     private fun handleEvent(event: RoomDetailEvent) {
