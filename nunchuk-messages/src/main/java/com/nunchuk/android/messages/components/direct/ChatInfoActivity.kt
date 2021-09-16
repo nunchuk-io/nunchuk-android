@@ -9,7 +9,9 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.databinding.ItemWalletBinding
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.messages.components.detail.bindRoomWallet
+import com.nunchuk.android.messages.components.direct.ChatInfoEvent.*
 import com.nunchuk.android.messages.databinding.ActivityChatInfoBinding
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
@@ -37,8 +39,16 @@ class ChatInfoActivity : BaseActivity<ActivityChatInfoBinding>() {
 
     private fun setupViews() {
         binding.toolbar.setNavigationOnClickListener { finish() }
-        binding.joinWallet.setOnClickListener { navigator.openCreateSharedWalletScreen(this) }
+        binding.joinWallet.setOnClickListener { viewModel.createWalletOrTransaction() }
         walletBinding = ItemWalletBinding.bind(binding.walletContainer.root)
+    }
+
+    private fun openCreateSharedWalletScreen() {
+        navigator.openCreateSharedWalletScreen(this)
+    }
+
+    private fun openInputAmountScreen(roomId: String, walletId: String, amount: Double) {
+        navigator.openInputAmountScreen(activityContext = this, roomId = roomId, walletId = walletId, availableAmount = amount)
     }
 
     private fun observeEvent() {
@@ -52,13 +62,18 @@ class ChatInfoActivity : BaseActivity<ActivityChatInfoBinding>() {
             binding.email.text = it.email
             binding.avatarHolder.text = it.name.shorten()
         }
-        state.roomWallet?.let {
+        state.wallet?.let {
             walletBinding.root.isVisible = true
             walletBinding.bindRoomWallet(it)
         }
     }
 
     private fun handleEvent(event: ChatInfoEvent) {
+        when (event) {
+            RoomNotFoundEvent -> NCToastMessage(this).showError("Room not found")
+            CreateSharedWalletEvent -> openCreateSharedWalletScreen()
+            is CreateTransactionEvent -> openInputAmountScreen(roomId = event.roomId, walletId = event.walletId, amount = event.availableAmount)
+        }
     }
 
     companion object {

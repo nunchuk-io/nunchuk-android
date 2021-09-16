@@ -4,13 +4,17 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.messages.components.group.ChatGroupInfoEvent.*
 import com.nunchuk.android.messages.util.getRoomMemberList
 import com.nunchuk.android.model.RoomWallet
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.usecase.GetRoomWalletUseCase
+import com.nunchuk.android.usecase.GetWalletUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.session.room.Room
@@ -19,7 +23,8 @@ import javax.inject.Inject
 
 // TODO eliminate duplicated
 class ChatGroupInfoViewModel @Inject constructor(
-    private val getRoomWalletUseCase: GetRoomWalletUseCase
+    private val getRoomWalletUseCase: GetRoomWalletUseCase,
+    private val getWalletUseCase: GetWalletUseCase
 ) : NunchukViewModel<ChatGroupInfoState, ChatGroupInfoEvent>() {
 
     private lateinit var room: Room
@@ -40,14 +45,27 @@ class ChatGroupInfoViewModel @Inject constructor(
     }
 
     private fun getRoomWallet() {
-        getRoomWalletUseCase.execute(roomId = room.roomId)
-            .catch { Timber.e("get room failed:$it") }
-            .onEach { onGetRoomWallet(it) }
-            .launchIn(viewModelScope)
+        viewModelScope.launch {
+            getRoomWalletUseCase.execute(roomId = room.roomId)
+                .catch { Timber.e("get room failed:$it") }
+                .flowOn(Dispatchers.Main)
+                .collect { onGetRoomWallet(it) }
+        }
+
     }
 
     private fun onGetRoomWallet(roomWallet: RoomWallet) {
         updateState { copy(roomWallet = roomWallet) }
+        viewModelScope.launch {
+            getWalletUseCase.execute(walletId = roomWallet.walletId)
+                .catch { Timber.e("get wallet failed:$it") }
+                .flowOn(Dispatchers.Main)
+                .collect { onGetWallet(it) }
+        }
+    }
+
+    private fun onGetWallet(wallet: Wallet) {
+        updateState { copy(wallet = wallet) }
     }
 
     fun handleEditName(name: String) {
@@ -69,6 +87,15 @@ class ChatGroupInfoViewModel @Inject constructor(
             } catch (e: Throwable) {
                 event(LeaveRoomError(e.toMatrixError()))
             }
+        }
+    }
+
+    fun createWalletOrTransaction() {
+        val wallet = getState().wallet
+        if (wallet == null) {
+            event(CreateSharedWalletEvent)
+        } else if (wallet.balance.value > 0L) {
+            event(CreateTransactionEvent(room.roomId, wallet.id, wallet.balance.pureBTC()))
         }
     }
 }

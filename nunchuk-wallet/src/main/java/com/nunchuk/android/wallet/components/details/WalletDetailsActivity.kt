@@ -59,7 +59,7 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
     private fun handleEvent(event: WalletDetailsEvent) {
         when (event) {
             is WalletDetailsError -> NCToastMessage(this).showError(event.message)
-            is SendMoneyEvent -> navigator.openInputAmountScreen(this, args.walletId, event.amount.pureBTC())
+            is SendMoneyEvent -> openInputAmountScreen(event)
             is UpdateUnusedAddress -> bindUnusedAddress(event.address)
             is OpenDynamicQRScreen -> navigator.openDynamicQRScreen(this, event.descriptors)
             is UploadWalletConfigEvent -> shareConfigurationFile(event.filePath)
@@ -67,6 +67,14 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
             is Loading -> showOrHideLoading(event.loading)
             DeleteWalletSuccess -> walletDeleted()
         }
+    }
+
+    private fun openInputAmountScreen(event: SendMoneyEvent) {
+        navigator.openInputAmountScreen(
+            activityContext = this,
+            walletId = args.walletId,
+            availableAmount = event.amount.pureBTC()
+        )
     }
 
     private fun walletDeleted() {

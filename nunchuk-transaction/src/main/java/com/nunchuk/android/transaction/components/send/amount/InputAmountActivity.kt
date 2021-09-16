@@ -95,9 +95,10 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
 
     companion object {
 
-        fun start(activityContext: Context, walletId: String, availableAmount: Double) {
+        fun start(activityContext: Context, roomId: String = "", walletId: String, availableAmount: Double) {
             activityContext.startActivity(
                 InputAmountArgs(
+                    roomId = roomId,
                     walletId = walletId,
                     availableAmount = availableAmount
                 ).buildIntent(activityContext)
