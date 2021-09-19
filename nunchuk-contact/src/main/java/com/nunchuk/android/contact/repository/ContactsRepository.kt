@@ -35,6 +35,8 @@ interface ContactsRepository {
 
     fun autoCompleteSearch(keyword: String): Flow<List<UserResponse>>
 
+    fun updateContact(imageUrl: String): Flow<UserResponse>
+
 }
 
 internal class ContactsRepositoryImpl @Inject constructor(
@@ -79,6 +81,13 @@ internal class ContactsRepositoryImpl @Inject constructor(
         val payload = AutoCompleteSearchContactPayload(keyword)
         emit(
             api.autoCompleteSearch(payload).data.users
+        )
+    }
+
+    override fun updateContact(imageUrl: String): Flow<UserResponse> = flow {
+        val payload = UpdateContactPayload(imageUrl)
+        emit(
+            api.updateContact(payload).data.user
         )
     }
 

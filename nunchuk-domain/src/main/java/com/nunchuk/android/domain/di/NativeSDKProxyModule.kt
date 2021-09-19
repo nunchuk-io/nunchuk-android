@@ -8,7 +8,8 @@ import dagger.Module
         SignerDomainModule::class,
         WalletDomainModule::class,
         SharedWalletDomainModule::class,
-        TransactionDomainModule::class
+        TransactionDomainModule::class,
+        RoomTransactionDomainModule::class
     ]
 )
 interface NativeSDKProxyModule

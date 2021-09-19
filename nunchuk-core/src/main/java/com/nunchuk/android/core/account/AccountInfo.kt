@@ -14,5 +14,7 @@ data class AccountInfo(
     @SerializedName("activated")
     val activated: Boolean = false,
     @SerializedName("staySignedIn")
-    val staySignedIn: Boolean = false
+    val staySignedIn: Boolean = false,
+    @SerializedName("avatar_url")
+    val avatarUrl: String? = ""
 )

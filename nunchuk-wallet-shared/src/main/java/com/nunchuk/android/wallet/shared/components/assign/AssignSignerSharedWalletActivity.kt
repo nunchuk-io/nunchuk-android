@@ -61,12 +61,12 @@ class AssignSignerSharedWalletActivity : BaseActivity<ActivityAssignSignerBindin
 
     private fun handleState(state: AssignSignerState) {
         bindSigners(state.masterSigners.map(MasterSigner::toModel) + state.remoteSigners.map(SingleSigner::toModel), state.selectedPFXs)
-        val slot = args.requireSigns - state.selectedPFXs.size
+        val slot = args.totalSigns - state.selectedPFXs.size
         binding.slot.text = getString(R.string.nc_wallet_slots_left_in_the_wallet, slot)
     }
 
     private fun bindSigners(signers: List<SignerModel>, selectedPFXs: List<String>) {
-        val canSelect = args.requireSigns - selectedPFXs.size
+        val canSelect = args.totalSigns - selectedPFXs.size
         SignersViewBinder(
             container = binding.signersContainer,
             signers = signers,

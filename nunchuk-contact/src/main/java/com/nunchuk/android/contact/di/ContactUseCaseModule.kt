@@ -1,9 +1,6 @@
 package com.nunchuk.android.contact.di
 
 import com.nunchuk.android.contact.usecase.*
-import com.nunchuk.android.contact.usecase.AddContactUseCaseImpl
-import com.nunchuk.android.contact.usecase.AutoCompleteSearchUseCaseImpl
-import com.nunchuk.android.contact.usecase.SearchContactUseCaseImpl
 import com.nunchuk.android.share.GetContactsUseCase
 import dagger.Binds
 import dagger.Module
@@ -28,5 +25,8 @@ internal interface ContactUseCaseModule {
 
     @Binds
     fun bindGetContactsUseCase(useCase: GetContactsUseCaseImpl): GetContactsUseCase
+
+    @Binds
+    fun bindUpdateAvatarUseCase(useCase: UpdateAvatarUseCaseImpl): UpdateAvatarUseCase
 
 }

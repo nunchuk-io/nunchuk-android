@@ -55,6 +55,7 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun getRoomWallet() {
         getRoomWalletUseCase.execute(roomId = room.roomId)
+            .flowOn(IO)
             .catch { Timber.e("get room failed:$it") }
             .onEach { onGetRoomWallet(it) }
             .launchIn(viewModelScope)
@@ -151,6 +152,7 @@ class RoomDetailViewModel @Inject constructor(
     fun finalizeWallet() {
         viewModelScope.launch {
             createSharedWalletUseCase.execute(room.roomId)
+                .flowOn(IO)
                 .catch { Timber.e("finalize wallet error", it) }
                 .collect {
                     getRoomWallet()

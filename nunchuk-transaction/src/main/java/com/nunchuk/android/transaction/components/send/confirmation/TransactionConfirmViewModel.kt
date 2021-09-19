@@ -2,6 +2,8 @@ package com.nunchuk.android.transaction.components.send.confirmation
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Result.Error
@@ -11,13 +13,19 @@ import com.nunchuk.android.transaction.components.send.confirmation.TransactionC
 import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DeleteTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
+import com.nunchuk.android.usecase.room.transaction.InitRoomTransactionUseCase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class TransactionConfirmViewModel @Inject constructor(
     private val draftTransactionUseCase: DraftTransactionUseCase,
     private val createTransactionUseCase: CreateTransactionUseCase,
-    private val deleteTransactionUseCase: DeleteTransactionUseCase
+    private val deleteTransactionUseCase: DeleteTransactionUseCase,
+    private val initRoomTransactionUseCase: InitRoomTransactionUseCase
 ) : NunchukViewModel<Unit, TransactionConfirmEvent>() {
 
     private var manualFeeRate: Int = -1
@@ -48,10 +56,28 @@ internal class TransactionConfirmViewModel @Inject constructor(
         this.subtractFeeFromAmount = subtractFeeFromAmount
         this.privateNote = privateNote
         this.manualFeeRate = manualFeeRate
-        draftTransaction()
+        if (!SessionHolder.hasActiveRoom()) {
+            draftTransaction()
+        }
+    }
+
+    private fun initRoomTransaction() {
+        viewModelScope.launch {
+            val roomId = SessionHolder.getActiveRoomId()
+            initRoomTransactionUseCase.execute(
+                roomId = roomId,
+                outputs = mapOf(address to sendAmount.toAmount()),
+                subtractFeeFromAmount = subtractFeeFromAmount,
+                feeRate = manualFeeRate.toManualFeeRate()
+            )
+                .flowOn(Dispatchers.IO)
+                .catch { event(InitRoomTransactionError(it.message.orUnknownError())) }
+                .collect { event(InitRoomTransactionSuccess(roomId)) }
+        }
     }
 
     private fun draftTransaction() {
+        event(LoadingEvent)
         viewModelScope.launch {
             when (val result = draftTransactionUseCase.execute(
                 walletId = walletId,
@@ -75,7 +101,11 @@ internal class TransactionConfirmViewModel @Inject constructor(
     }
 
     fun handleConfirmEvent() {
-        deleteDraftTransaction()
+        if (!SessionHolder.hasActiveRoom()) {
+            deleteDraftTransaction()
+        } else {
+            initRoomTransaction()
+        }
     }
 
     private fun deleteDraftTransaction() {

@@ -11,7 +11,7 @@ internal fun ContactEntity.toModel() = Contact(
     gender = gender,
     avatar = avatar,
     status = status,
-    chatId = chatId
+    chatId = chatId,
 )
 
 internal fun List<ContactEntity>.toModels() = map(ContactEntity::toModel)

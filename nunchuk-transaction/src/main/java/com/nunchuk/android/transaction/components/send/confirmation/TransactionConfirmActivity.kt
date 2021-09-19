@@ -32,7 +32,6 @@ class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBindin
         setLightStatusBar()
         setupViews()
         observeEvent()
-        showLoading()
         viewModel.init(
             walletId = args.walletId,
             address = args.address,
@@ -82,7 +81,15 @@ class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBindin
             is CreateTxSuccessEvent -> openTransactionDetailScreen(event.txId)
             is UpdateChangeAddress -> bindChangAddress(event.address, event.amount)
             LoadingEvent -> showLoading()
+            is InitRoomTransactionError -> showCreateTransactionError(event.message)
+            is InitRoomTransactionSuccess -> returnActiveRoom(event.roomId)
         }
+    }
+
+    private fun returnActiveRoom(roomId: String) {
+        hideLoading()
+        ActivityManager.instance.popUntilRoot()
+        navigator.openRoomDetailActivity(this, roomId)
     }
 
     private fun bindChangAddress(changeAddress: String, amount: Amount) {
