@@ -16,11 +16,11 @@ data class RoomWalletData(
     val description: String,
     @SerializedName("is_escrow")
     val isEscrow: Boolean,
-    @SerializedName("n")
+    @SerializedName("m")
     val requireSigners: Int,
     @SerializedName("members")
     val members: List<String>? = emptyList(),
-    @SerializedName("m")
+    @SerializedName("n")
     val totalSigners: Int,
     @SerializedName("name")
     val name: String

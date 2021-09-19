@@ -6,6 +6,8 @@ import org.matrix.android.sdk.api.session.room.Room
 object SessionHolder {
     var activeSession: Session? = null
 
+    var currentRoom: Room? = null
+
     fun storeActiveSession(session: Session) {
         session.apply {
             activeSession = this
@@ -16,5 +18,7 @@ object SessionHolder {
 
     fun hasActiveSession() = activeSession != null
 
-    var currentRoom: Room? = null
+    fun hasActiveRoom() = currentRoom != null
+
+    fun getActiveRoomId() = currentRoom?.roomId!!
 }

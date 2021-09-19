@@ -22,3 +22,8 @@ data class AutoCompleteSearchContactPayload(
     @SerializedName("q")
     val keyword: String
 ) : Serializable
+
+data class UpdateContactPayload(
+    @SerializedName("avatar_url")
+    val avatar: String
+) : Serializable

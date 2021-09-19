@@ -18,7 +18,7 @@ internal class GetCurrentUserUseCaseImpl @Inject constructor(
     override fun execute() = authRepository.me()
         .map {
             it.chatId.apply {
-                accountManager.storeAccount(accountManager.getAccount().copy(chatId = this, name = it.name))
+                accountManager.storeAccount(accountManager.getAccount().copy(chatId = this, name = it.name, avatarUrl = it.avatar))
             }
         }
 }

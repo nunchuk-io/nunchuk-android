@@ -29,6 +29,9 @@ internal interface ContactApi {
     suspend fun searchContact(@Query("email") email: String): Data<UserResponseWrapper>
 
     @POST("user/auto-complete-search")
-    suspend fun autoCompleteSearch(payload: AutoCompleteSearchContactPayload): Data<ContactResponseWrapper>
+    suspend fun autoCompleteSearch(@Body payload: AutoCompleteSearchContactPayload): Data<ContactResponseWrapper>
+
+    @PUT("user/me")
+    suspend fun updateContact(@Body payload: UpdateContactPayload): Data<UserResponseWrapper>
 
 }
