@@ -35,13 +35,15 @@ internal class MessagesAdapter(
         MessageType.TYPE_DATE.index -> MessageDateHolder(
             ItemDateBinding.inflate(LayoutInflater.from(context), parent, false)
         )
-        MessageType.TYPE_NUNCHUK_CARD.index -> NunchukCardHolder(
+        // FIXME UI builder for transaction
+        MessageType.TYPE_NUNCHUK_WALLET_CARD.index, MessageType.TYPE_NUNCHUK_TRANSACTION_CARD.index -> NunchukCardHolder(
             ItemWalletInfoBinding.inflate(LayoutInflater.from(context), parent, false),
             denyWallet = denyWallet,
             cancelWallet = cancelWallet,
             viewConfig = viewConfig
         )
-        MessageType.TYPE_NUNCHUK_NOTIFICATION.index -> NunchukNotificationHolder(
+        // FIXME UI builder for transaction
+        MessageType.TYPE_NUNCHUK_WALLET_NOTIFICATION.index, MessageType.TYPE_NUNCHUK_TRANSACTION_NOTIFICATION.index -> NunchukNotificationHolder(
             ItemNunchukNotificationBinding.inflate(LayoutInflater.from(context), parent, false),
             viewConfig = viewConfig,
             finalizeWallet = finalizeWallet
@@ -68,10 +70,10 @@ internal class MessagesAdapter(
             MessageType.TYPE_DATE.index -> {
                 (holder as MessageDateHolder).bind(messageData as DateModel)
             }
-            MessageType.TYPE_NUNCHUK_CARD.index -> {
+            MessageType.TYPE_NUNCHUK_WALLET_CARD.index -> {
                 (holder as NunchukCardHolder).bind((messageData as MessageModel).message as NunchukWalletMessage)
             }
-            MessageType.TYPE_NUNCHUK_NOTIFICATION.index -> {
+            MessageType.TYPE_NUNCHUK_WALLET_NOTIFICATION.index -> {
                 (holder as NunchukNotificationHolder).bind((messageData as MessageModel).message as NunchukWalletMessage)
             }
         }
