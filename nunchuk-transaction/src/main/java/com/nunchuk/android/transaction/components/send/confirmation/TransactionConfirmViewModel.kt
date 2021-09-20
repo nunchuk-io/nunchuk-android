@@ -56,12 +56,11 @@ internal class TransactionConfirmViewModel @Inject constructor(
         this.subtractFeeFromAmount = subtractFeeFromAmount
         this.privateNote = privateNote
         this.manualFeeRate = manualFeeRate
-        if (!SessionHolder.hasActiveRoom()) {
-            draftTransaction()
-        }
+        draftTransaction()
     }
 
     private fun initRoomTransaction() {
+        event(LoadingEvent)
         viewModelScope.launch {
             val roomId = SessionHolder.getActiveRoomId()
             initRoomTransactionUseCase.execute(
@@ -101,19 +100,23 @@ internal class TransactionConfirmViewModel @Inject constructor(
     }
 
     fun handleConfirmEvent() {
-        if (!SessionHolder.hasActiveRoom()) {
-            deleteDraftTransaction()
-        } else {
-            initRoomTransaction()
-        }
+        deleteDraftTransaction()
     }
 
     private fun deleteDraftTransaction() {
         viewModelScope.launch {
             when (val result = deleteTransactionUseCase.execute(walletId, tempTxId)) {
-                is Success -> createNewTransaction()
-                is Error -> event(CreateTxErrorEvent(result.exception.message.orEmpty()))
+                is Success -> onDeleteCompleted()
+                is Error -> onDeleteFailed(result)
             }
+        }
+    }
+
+    private fun onDeleteCompleted() {
+        if (SessionHolder.hasActiveRoom()) {
+            initRoomTransaction()
+        } else {
+            createNewTransaction()
         }
     }
 
@@ -130,6 +133,13 @@ internal class TransactionConfirmViewModel @Inject constructor(
                 is Success -> event(CreateTxSuccessEvent(result.data.txId))
                 is Error -> event(CreateTxErrorEvent(result.exception.message.orEmpty()))
             }
+        }
+    }
+
+    private fun onDeleteFailed(result: Error) {
+        event(CreateTxErrorEvent(result.exception.message.orEmpty()))
+        if (SessionHolder.hasActiveRoom()) {
+            initRoomTransaction()
         }
     }
 
