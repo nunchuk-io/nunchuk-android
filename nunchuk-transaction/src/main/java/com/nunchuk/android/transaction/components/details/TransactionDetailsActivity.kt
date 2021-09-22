@@ -6,11 +6,13 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.core.util.toDisplayedText
 import com.nunchuk.android.extensions.canBroadCast
 import com.nunchuk.android.extensions.isCompleted
@@ -86,7 +88,17 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
     }
 
     private fun handleState(state: TransactionDetailsState) {
+        binding.viewMore.setCompoundDrawablesWithIntrinsicBounds(
+            null,
+            null,
+            if (state.viewMore) ContextCompat.getDrawable(this, R.drawable.ic_collapse) else ContextCompat.getDrawable(this, R.drawable.ic_expand),
+            null
+        )
+        binding.viewMore.text =
+            if (state.viewMore) getString(R.string.nc_transaction_less_details) else getString(R.string.nc_transaction_more_details)
+
         binding.transactionDetailsContainer.isVisible = state.viewMore
+
         bindTransaction(state.transaction)
         bindSigners(state.transaction.signers, state.signers)
     }
@@ -118,6 +130,56 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         binding.signersContainer.isVisible = !transaction.isReceive
         binding.btnBroadcast.isVisible = transaction.status.canBroadCast()
         binding.btnViewBlockChain.isVisible = transaction.isReceive || transaction.status.isCompleted()
+
+        bindAddress(transaction)
+        bindChangeAddress(transaction)
+        bindTransactionFee(transaction)
+        bindingTotalAmount(transaction)
+        bindViewSendOrReceive(transaction)
+    }
+
+    private fun bindViewSendOrReceive(transaction: Transaction) {
+        binding.divider.isVisible = !transaction.isReceive
+        binding.estimatedFeeBTC.isVisible = !transaction.isReceive
+        binding.estimatedFeeUSD.isVisible = !transaction.isReceive
+        binding.estimatedFeeLabel.isVisible = !transaction.isReceive
+        binding.totalAmountLabel.isVisible = !transaction.isReceive
+        binding.totalAmountBTC.isVisible = !transaction.isReceive
+        binding.totalAmountUSD.isVisible = !transaction.isReceive
+        binding.changeAddress.isVisible = !transaction.isReceive
+        binding.changeAddressBTC.isVisible = !transaction.isReceive
+        binding.changeAddressUSD.isVisible = !transaction.isReceive
+    }
+
+    private fun bindAddress(transaction: Transaction) {
+        binding.sendAddressLabel.text = transaction.outputs.first().first
+        binding.sendAddressBTC.text = transaction.outputs.first().second.getBTCAmount()
+        binding.sendAddressUSD.text = transaction.outputs.first().second.getUSDAmount()
+
+        binding.sendingToLabel.text = if (transaction.isReceive) getString(R.string.nc_transaction_received_to) else getString(R.string.nc_transaction_sending_to)
+        binding.sendToAddress.text = if (transaction.isReceive) getString(R.string.nc_transaction_receive_address) else getString(R.string.nc_transaction_send_to_address)
+    }
+
+    private fun bindingTotalAmount(transaction: Transaction) {
+        binding.totalAmountBTC.text = transaction.subAmount.getBTCAmount()
+        binding.totalAmountUSD.text = transaction.subAmount.getUSDAmount()
+    }
+
+    private fun bindTransactionFee(transaction: Transaction) {
+        binding.estimatedFeeBTC.text = transaction.fee.getBTCAmount()
+        binding.estimatedFeeUSD.text = transaction.fee.getUSDAmount()
+    }
+
+    private fun bindChangeAddress(transaction: Transaction) {
+        if (transaction.changeIndex > 0) {
+            val txOutput = transaction.outputs[transaction.changeIndex]
+            binding.changeAddressLabel.text = txOutput.first
+            binding.changeAddressBTC.text = txOutput.second.getBTCAmount()
+            binding.changeAddressUSD.text = txOutput.second.getUSDAmount()
+        }
+        binding.changeAddressLabel.isVisible = transaction.changeIndex > 0
+        binding.changeAddressBTC.isVisible = transaction.changeIndex > 0
+        binding.changeAddressUSD.isVisible = transaction.changeIndex > 0
     }
 
     private fun handleEvent(event: TransactionDetailsEvent) {
