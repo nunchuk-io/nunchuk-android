@@ -7,7 +7,7 @@ import com.nunchuk.android.messages.components.detail.NunchukWalletMessage
 import com.nunchuk.android.messages.databinding.ItemWalletInfoBinding
 import com.nunchuk.android.model.toRoomWalletData
 
-internal class NunchukCardHolder(
+internal class NunchukWalletCardHolder(
     val binding: ItemWalletInfoBinding,
     val denyWallet: () -> Unit,
     val cancelWallet: () -> Unit,
