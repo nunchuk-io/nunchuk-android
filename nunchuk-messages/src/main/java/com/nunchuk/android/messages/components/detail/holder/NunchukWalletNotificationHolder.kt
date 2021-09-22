@@ -10,7 +10,7 @@ import com.nunchuk.android.messages.components.detail.NunchukWalletMessage
 import com.nunchuk.android.messages.databinding.ItemNunchukNotificationBinding
 import com.nunchuk.android.messages.util.WalletEventType
 
-internal class NunchukNotificationHolder(
+internal class NunchukWalletNotificationHolder(
     val binding: ItemNunchukNotificationBinding,
     val viewConfig: () -> Unit,
     val finalizeWallet: () -> Unit

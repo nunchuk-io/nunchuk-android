@@ -47,4 +47,16 @@
     <string name="nc_wallet_standard_wallet">Standard wallet</string>
     <string name="nc_wallet_escrow_wallet">Escrow wallet</string>
 
+    <string name="nc_message_transaction_sign"><![CDATA[<b>%1s</b> signed the transaction with key <b>%2s</b>]]></string>
+    <string name="nc_message_transaction_ready">The transaction has enough signatures and is waiting to be broadcast</string>
+    <string name="nc_message_transaction_signed">You’ve signed this transaction with %1s</string>
+
+    <string name="nc_message_transaction_status_pending_signature">Pending signature</string>
+    <string name="nc_message_transaction_status_ready_broadcast">Ready to broadcast</string>
+    <string name="nc_message_transaction_to_sign">Continue to sign</string>
+    <string name="nc_message_transaction_ignore">Ignore</string>
+    <string name="nc_message_transaction_view_details">View details</string>
+    <string name="nc_message_transaction_sending_to"><![CDATA[Sending to <b>%1s</b>]]></string>
+    <string name="nc_message_transaction_pending_signature">Pending %1d signature</string>
+
 </resources>
