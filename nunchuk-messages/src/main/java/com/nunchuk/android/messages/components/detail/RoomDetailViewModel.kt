@@ -106,6 +106,7 @@ class RoomDetailViewModel @Inject constructor(
     private fun consume(events: List<TimelineEvent>) {
         viewModelScope.launch {
             events.map(TimelineEvent::toNunchukMatrixEvent)
+                .filterNot(NunchukMatrixEvent::isLocalEvent)
                 .sortedBy(NunchukMatrixEvent::time)
                 .asFlow()
                 .flowOn(IO)
@@ -114,6 +115,7 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     private fun consume(event: NunchukMatrixEvent) {
+        Timber.d("consume($event)")
         consumeEventUseCase.execute(event)
             .flowOn(IO)
             .catch { Timber.e("\nconsume failed:$it") }
