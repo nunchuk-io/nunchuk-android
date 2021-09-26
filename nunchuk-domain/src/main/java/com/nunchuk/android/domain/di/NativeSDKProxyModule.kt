@@ -7,7 +7,7 @@ import dagger.Module
         NativeCommonModule::class,
         SignerDomainModule::class,
         WalletDomainModule::class,
-        SharedWalletDomainModule::class,
+        RoomWalletDomainModule::class,
         TransactionDomainModule::class,
         RoomTransactionDomainModule::class
     ]

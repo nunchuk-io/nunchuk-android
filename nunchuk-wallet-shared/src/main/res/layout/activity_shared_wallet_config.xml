@@ -39,7 +39,6 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_24"
-        app:drawableEndCompat="@drawable/ic_edit"
         app:fontTextStyle="semi_bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

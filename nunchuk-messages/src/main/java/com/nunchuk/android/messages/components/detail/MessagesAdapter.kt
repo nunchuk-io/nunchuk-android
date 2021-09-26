@@ -7,13 +7,16 @@ import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.nunchuk.android.messages.components.detail.holder.*
 import com.nunchuk.android.messages.databinding.*
+import com.nunchuk.android.model.Transaction
 
 internal class MessagesAdapter(
     val context: Context,
     private val cancelWallet: () -> Unit,
     private val denyWallet: () -> Unit,
     private val viewConfig: () -> Unit,
-    private val finalizeWallet: () -> Unit
+    private val finalizeWallet: () -> Unit,
+    private val viewDetails: (walletId: String, txId: String, initEventId: String) -> Unit,
+    private val getRoomTransaction: (initEventId: String, walletId: String, callback: (Transaction) -> Unit) -> Unit,
 ) : Adapter<ViewHolder>() {
 
     internal var chatModels: List<AbsChatModel> = ArrayList()
@@ -42,7 +45,9 @@ internal class MessagesAdapter(
             viewConfig = viewConfig
         )
         MessageType.TYPE_NUNCHUK_TRANSACTION_CARD.index -> NunchukTransactionCardHolder(
-            ItemTransactionInfoBinding.inflate(LayoutInflater.from(context), parent, false)
+            ItemTransactionInfoBinding.inflate(LayoutInflater.from(context), parent, false),
+            viewDetails = viewDetails,
+            getRoomTransaction = getRoomTransaction
         )
         MessageType.TYPE_NUNCHUK_WALLET_NOTIFICATION.index -> NunchukWalletNotificationHolder(
             ItemNunchukNotificationBinding.inflate(LayoutInflater.from(context), parent, false),

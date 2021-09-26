@@ -95,7 +95,9 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             cancelWallet = viewModel::cancelWallet,
             denyWallet = viewModel::denyWallet,
             viewConfig = viewModel::viewConfig,
-            finalizeWallet = viewModel::finalizeWallet
+            finalizeWallet = viewModel::finalizeWallet,
+            viewDetails = ::openTransactionDetails,
+            getRoomTransaction = viewModel::getRoomTransaction
         )
         binding.recyclerView.adapter = adapter
         val layoutManager = LinearLayoutManager(this)
@@ -120,6 +122,15 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
                 }
             }
         })
+    }
+
+    private fun openTransactionDetails(walletId: String, txId: String, initEventId: String) {
+        navigator.openTransactionDetailsScreen(
+            activityContext = this,
+            walletId = walletId,
+            txId = txId,
+            initEventId = initEventId
+        )
     }
 
     private fun enableButton(isEnabled: Boolean) {

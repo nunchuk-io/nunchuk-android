@@ -2,9 +2,9 @@ package com.nunchuk.android.messages.components.detail
 
 import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.view.isVisible
 import com.nunchuk.android.core.databinding.ItemWalletBinding
-import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getUSDAmount
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.databinding.ViewWalletStickyBinding
 import com.nunchuk.android.model.RoomWallet
@@ -12,11 +12,12 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.toRoomWalletData
 
 fun ViewWalletStickyBinding.bindRoomWallet(wallet: RoomWallet, onClick: () -> Unit) {
+    root.isVisible = wallet.isInitialized() && !wallet.isCanceled() && !wallet.isFinalized()
+
     val roomWalletData = wallet.jsonContent.toRoomWalletData()
     name.text = roomWalletData.name
     configuration.bindRatio(isEscrow = roomWalletData.isEscrow, requireSigners = roomWalletData.requireSigners, totalSigners = roomWalletData.totalSigners)
-    val hasPendingSigners = roomWalletData.requireSigners > wallet.joinEventIds.size
-    bindStatus(status, hasPendingSigners)
+    bindStatus(status, wallet.isPendingKeys())
     root.setOnClickListener { onClick() }
 }
 

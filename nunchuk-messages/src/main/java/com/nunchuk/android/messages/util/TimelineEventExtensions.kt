@@ -1,6 +1,6 @@
 package com.nunchuk.android.messages.util
 
-import com.google.gson.Gson
+import com.google.gson.JsonObject
 import com.nunchuk.android.messages.components.detail.MessageType
 import com.nunchuk.android.model.NunchukMatrixEvent
 import org.matrix.android.sdk.api.session.events.model.toModel
@@ -31,7 +31,7 @@ fun TimelineEvent.nameChange() = root.content.toModel<RoomNameContent>()?.name
 fun TimelineEvent.toNunchukMatrixEvent() = NunchukMatrixEvent(
     eventId = root.eventId!!,
     type = root.type!!,
-    content = Gson().toJson(root.content?.toMap().orEmpty()),
+    content = gson.toJson(root.content?.toMap().orEmpty()),
     roomId = roomId,
     sender = senderInfo.userId,
     time = root.originServerTs ?: 0L
@@ -48,3 +48,9 @@ fun TimelineEvent.chatType(chatId: String) = if (chatId == senderInfo.userId) {
 fun TimelineEvent.senderSafe() = senderInfo.displayNameOrId()
 
 fun SenderInfo?.displayNameOrId(): String = this?.displayName ?: this?.userId ?: "Guest"
+
+// TODO simplify parse logic
+fun TimelineEvent.getBodyElementValueByKey(key: String): String {
+    val map = root.content?.toMap().orEmpty()
+    return gson.fromJson(gson.toJson(map["body"]), JsonObject::class.java).get(key).asString
+}

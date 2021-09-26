@@ -5,7 +5,7 @@ import dagger.Binds
 import dagger.Module
 
 @Module
-internal interface SharedWalletDomainModule {
+internal interface RoomWalletDomainModule {
 
     @Binds
     fun bindInitWalletUseCase(useCase: InitWalletUseCaseImpl): InitWalletUseCase

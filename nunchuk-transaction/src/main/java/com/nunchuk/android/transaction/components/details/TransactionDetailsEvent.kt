@@ -4,8 +4,8 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.Transaction
 
 sealed class TransactionDetailsEvent {
-    object SignTransactionSuccess : TransactionDetailsEvent()
-    object BroadcastTransactionSuccess : TransactionDetailsEvent()
+    data class SignTransactionSuccess(val roomId: String = "") : TransactionDetailsEvent()
+    data class BroadcastTransactionSuccess(val roomId: String = "") : TransactionDetailsEvent()
     object DeleteTransactionSuccess : TransactionDetailsEvent()
     data class PromptInputPassphrase(val func: (String) -> Unit) : TransactionDetailsEvent()
     data class TransactionDetailsError(val message: String) : TransactionDetailsEvent()

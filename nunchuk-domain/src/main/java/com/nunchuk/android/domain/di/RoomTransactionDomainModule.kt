@@ -22,4 +22,10 @@ internal interface RoomTransactionDomainModule {
     @Binds
     fun bindBroadcastRoomTransactionUseCase(useCase: BroadcastRoomTransactionUseCaseImpl): BroadcastRoomTransactionUseCase
 
+    @Binds
+    fun bindGetPendingTransactionsUseCase(useCase: GetPendingTransactionsUseCaseImpl): GetPendingTransactionsUseCase
+
+    @Binds
+    fun bindGetRoomTransactionUseCase(useCase: GetRoomTransactionUseCaseImpl): GetRoomTransactionUseCase
+
 }

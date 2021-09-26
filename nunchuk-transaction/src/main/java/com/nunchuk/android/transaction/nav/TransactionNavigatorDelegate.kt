@@ -109,12 +109,14 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
     override fun openTransactionDetailsScreen(
         activityContext: Activity,
         walletId: String,
-        txId: String
+        txId: String,
+        initEventId: String
     ) {
         TransactionDetailsActivity.start(
             activityContext = activityContext,
             walletId = walletId,
-            txId = txId
+            txId = txId,
+            initEventId = initEventId
         )
     }
 
