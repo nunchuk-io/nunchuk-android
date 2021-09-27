@@ -13,6 +13,7 @@ import com.nunchuk.android.transaction.components.send.confirmation.TransactionC
 import com.nunchuk.android.transaction.databinding.ActivityTransactionConfirmBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
+import timber.log.Timber
 import javax.inject.Inject
 
 class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBinding>() {
@@ -76,6 +77,7 @@ class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBindin
     }
 
     private fun handleEvent(event: TransactionConfirmEvent) {
+        Timber.d("event::$event")
         when (event) {
             is CreateTxErrorEvent -> showCreateTransactionError(event.message)
             is CreateTxSuccessEvent -> openTransactionDetailScreen(event.txId)

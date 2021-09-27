@@ -53,7 +53,8 @@ interface TransactionNavigator {
     fun openTransactionDetailsScreen(
         activityContext: Activity,
         walletId: String,
-        txId: String
+        txId: String,
+        initEventId: String = ""
     )
 
     fun openExportTransactionScreen(

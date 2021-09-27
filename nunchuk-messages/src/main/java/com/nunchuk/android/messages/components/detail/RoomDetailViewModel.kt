@@ -7,10 +7,9 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.model.*
-import com.nunchuk.android.usecase.CancelWalletUseCase
-import com.nunchuk.android.usecase.ConsumeEventUseCase
-import com.nunchuk.android.usecase.CreateSharedWalletUseCase
-import com.nunchuk.android.usecase.GetRoomWalletUseCase
+import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.room.transaction.GetPendingTransactionsUseCase
+import com.nunchuk.android.usecase.room.transaction.GetRoomTransactionUseCase
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -28,7 +27,10 @@ class RoomDetailViewModel @Inject constructor(
     private val cancelWalletUseCase: CancelWalletUseCase,
     private val consumeEventUseCase: ConsumeEventUseCase,
     private val getRoomWalletUseCase: GetRoomWalletUseCase,
-    private val createSharedWalletUseCase: CreateSharedWalletUseCase
+    private val createSharedWalletUseCase: CreateSharedWalletUseCase,
+    private val getPendingTransactionsUseCase: GetPendingTransactionsUseCase,
+    private val getRoomTransactionUseCase: GetRoomTransactionUseCase,
+    private val getTransactionUseCase: GetTransactionUseCase
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
 
     private lateinit var room: Room
@@ -51,18 +53,29 @@ class RoomDetailViewModel @Inject constructor(
         getRoomWallet()
         retrieveTimelineEvents()
         sendEvent()
+        getRoomTransactions()
+    }
+
+    private fun getRoomTransactions() {
+        viewModelScope.launch {
+            getPendingTransactionsUseCase.execute(roomId = room.roomId)
+                .flowOn(IO)
+                .catch {
+                    updateState { copy(transactions = emptyList()) }
+                    Timber.e("get transaction failed:$it")
+                }
+                .collect { updateState { copy(transactions = it) } }
+        }
     }
 
     private fun getRoomWallet() {
         getRoomWalletUseCase.execute(roomId = room.roomId)
             .flowOn(IO)
             .catch { Timber.e("get room failed:$it") }
-            .onEach { onGetRoomWallet(it) }
+            .onEach {
+                updateState { copy(roomWallet = it) }
+            }
             .launchIn(viewModelScope)
-    }
-
-    private fun onGetRoomWallet(roomWallet: RoomWallet) {
-        updateState { copy(roomWallet = roomWallet) }
     }
 
     private fun storeRoom(room: Room) {
@@ -159,6 +172,28 @@ class RoomDetailViewModel @Inject constructor(
                 .collect {
                     getRoomWallet()
                     event(RoomWalletCreatedEvent)
+                }
+        }
+    }
+
+    fun getRoomTransaction(eventId: String, walletId: String, callback: (Transaction) -> Unit) {
+        viewModelScope.launch {
+            getRoomTransactionUseCase.execute(eventId)
+                .flowOn(IO)
+                .catch { Timber.e("getRoomTransaction", it) }
+                .collect {
+                    getTransaction(walletId, it.txId, callback)
+                }
+        }
+    }
+
+    private fun getTransaction(walletId: String, txId: String, callback: (Transaction) -> Unit) {
+        viewModelScope.launch {
+            getTransactionUseCase.execute(walletId, txId)
+                .flowOn(IO)
+                .catch { Timber.e("getTransaction", it) }
+                .collect {
+                    callback(it)
                 }
         }
     }

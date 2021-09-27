@@ -1,32 +1,45 @@
 package com.nunchuk.android.messages.components.detail.holder
 
 import androidx.recyclerview.widget.RecyclerView
-import com.google.gson.Gson
+import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getHtmlString
+import com.nunchuk.android.core.util.toDisplayedText
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.NunchukTransactionMessage
 import com.nunchuk.android.messages.databinding.ItemTransactionInfoBinding
+import com.nunchuk.android.messages.util.getBodyElementValueByKey
+import com.nunchuk.android.model.Transaction
 import timber.log.Timber
 
 internal class NunchukTransactionCardHolder(
     val binding: ItemTransactionInfoBinding,
     val signTransaction: () -> Unit = {},
-    val viewDetails: () -> Unit = {}
+    val viewDetails: (walletId: String, txId: String, initEventId: String) -> Unit,
+    private val getRoomTransaction: (initEventId: String, walletId: String, callback: (Transaction) -> Unit) -> Unit
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    private val gson = Gson()
-
     fun bind(model: NunchukTransactionMessage) {
-        // TODO
-        val map = model.timelineEvent.root.content?.toMap().orEmpty()
-        val body = gson.toJson(map["body"])
-        Timber.d("[NunchukTransactionMessage]::$body")
+        Timber.d("[NunchukTransactionCardHolder]::$model.timelineEvent")
+        val walletId = model.timelineEvent.getBodyElementValueByKey("wallet_id")
+        val initEventId = model.timelineEvent.eventId
+        getRoomTransaction(initEventId, walletId) {
+            bindTransaction(walletId, initEventId, it)
+        }
+    }
+
+    private fun bindTransaction(walletId: String, initEventId: String, transaction: Transaction) {
         val context = itemView.context
-        binding.amount.text = "2.0000001 BTC"
-        binding.address.text = getHtmlString(R.string.nc_message_transaction_sending_to, "FJDFSa...GKgo")
-        binding.pendingSignatures.text = context.getString(R.string.nc_message_transaction_pending_signature, 1)
+        binding.amount.text = transaction.subAmount.getBTCAmount()
+        binding.status.text = transaction.status.toDisplayedText(context)
+        binding.address.text = getHtmlString(R.string.nc_message_transaction_sending_to, transaction.outputs.first().first)
+        val pendingSigners = transaction.signers.count { !it.value }
+        if (pendingSigners > 0) {
+            binding.signatureStatus.text = context.getString(R.string.nc_message_transaction_pending_signature, pendingSigners)
+        } else {
+            binding.signatureStatus.text = context.getString(R.string.nc_message_transaction_enough_signature)
+        }
         binding.sign.setOnClickListener { signTransaction() }
-        binding.viewDetails.setOnClickListener { viewDetails() }
+        binding.viewDetails.setOnClickListener { viewDetails(walletId, transaction.txId, initEventId) }
     }
 
 }

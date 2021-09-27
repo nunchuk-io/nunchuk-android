@@ -10,7 +10,7 @@ enum class WalletEventType(val type: String) {
     READY("io.nunchuk.wallet.ready");
 
     companion object {
-        fun of(type: String): WalletEventType = values().firstOrNull { it.type == type } ?: throw IllegalArgumentException("Invalid event type $type")
+        fun of(type: String): WalletEventType = values().firstOrNull { it.type == type } ?: throw IllegalArgumentException("Invalid wallet type $type")
     }
 
 }
@@ -20,9 +20,10 @@ enum class TransactionEventType(val type: String) {
     SIGN("io.nunchuk.transaction.sign"),
     REJECT("io.nunchuk.transaction.reject"),
     CANCEL("io.nunchuk.transaction.cancel"),
-    READY("io.nunchuk.transaction.ready");
+    READY("io.nunchuk.transaction.ready"),
+    BROADCAST("io.nunchuk.transaction.broadcast");
 
     companion object {
-        fun of(type: String) = values().firstOrNull { it.type == type } ?: throw IllegalArgumentException("Invalid event type $type")
+        fun of(type: String) = values().firstOrNull { it.type == type } ?: throw IllegalArgumentException("Invalid transaction type $type")
     }
 }

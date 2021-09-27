@@ -1,16 +1,18 @@
 package com.nunchuk.android.messages.components.detail
 
+import com.nunchuk.android.model.RoomTransaction
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.RoomWalletData
 
 data class RoomDetailState(
     val roomInfo: RoomInfo,
     val roomWallet: RoomWallet?,
+    val transactions: List<RoomTransaction>,
     val messages: List<Message>
 ) {
 
     companion object {
-        fun empty() = RoomDetailState(RoomInfo.empty(), null, emptyList())
+        fun empty() = RoomDetailState(RoomInfo.empty(), null, emptyList(), emptyList())
     }
 
 }

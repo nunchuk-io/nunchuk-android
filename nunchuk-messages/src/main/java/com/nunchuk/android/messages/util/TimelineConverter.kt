@@ -1,6 +1,6 @@
 package com.nunchuk.android.messages.util
 
-import com.google.gson.Gson
+
 import com.nunchuk.android.messages.components.detail.*
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
@@ -17,14 +17,14 @@ fun TimelineEvent.toMessageSafe(chatId: String): Message? = try {
 }
 
 fun TimelineEvent.toMessage(chatId: String): Message {
-    Timber.d(TAG, "$this")
+    Timber.d("$TAG::$this")
     return when {
         isNunchukWalletEvent() -> {
             val content = root.content?.toMap().orEmpty()
             val msgType = WalletEventType.of(content[KEY] as String)
             NunchukWalletMessage(
                 sender = senderSafe(),
-                content = Gson().toJson(root.getClearContent()),
+                content = gson.toJson(root.getClearContent()),
                 time = time(),
                 timelineEvent = this,
                 eventType = root.type!!,
@@ -35,13 +35,15 @@ fun TimelineEvent.toMessage(chatId: String): Message {
         }
         isNunchukTransactionEvent() -> {
             val content = root.content?.toMap().orEmpty()
+            val msgType = TransactionEventType.of(content[KEY] as String)
             NunchukTransactionMessage(
                 sender = senderSafe(),
-                content = Gson().toJson(root.getClearContent()),
+                content = gson.toJson(root.getClearContent()),
                 time = time(),
                 timelineEvent = this,
                 eventType = root.type!!,
-                msgType = TransactionEventType.of(content[KEY] as String)
+                msgType = TransactionEventType.of(content[KEY] as String),
+                type = if (msgType == TransactionEventType.INIT) MessageType.TYPE_NUNCHUK_TRANSACTION_CARD.index else MessageType.TYPE_NUNCHUK_TRANSACTION_NOTIFICATION.index,
             )
         }
         isMessageEvent() -> {
@@ -56,7 +58,7 @@ fun TimelineEvent.toMessage(chatId: String): Message {
         else -> {
             NotificationMessage(
                 sender = senderSafe(),
-                content = Gson().toJson(root.getClearContent()),
+                content = gson.toJson(root.getClearContent()),
                 time = time(),
                 timelineEvent = this
             )

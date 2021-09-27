@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
@@ -46,7 +47,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         setLightStatusBar()
         setupViews()
         observeEvent()
-        viewModel.init(walletId = args.walletId, txId = args.txId)
+        viewModel.init(walletId = args.walletId, txId = args.txId, initEventId = args.initEventId)
     }
 
     override fun onResume() {
@@ -94,8 +95,11 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
             if (state.viewMore) ContextCompat.getDrawable(this, R.drawable.ic_collapse) else ContextCompat.getDrawable(this, R.drawable.ic_expand),
             null
         )
-        binding.viewMore.text =
-            if (state.viewMore) getString(R.string.nc_transaction_less_details) else getString(R.string.nc_transaction_more_details)
+        binding.viewMore.text = if (state.viewMore) {
+            getString(R.string.nc_transaction_less_details)
+        } else {
+            getString(R.string.nc_transaction_more_details)
+        }
 
         binding.transactionDetailsContainer.isVisible = state.viewMore
 
@@ -184,8 +188,8 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
 
     private fun handleEvent(event: TransactionDetailsEvent) {
         when (event) {
-            SignTransactionSuccess -> showSignTransactionSuccess()
-            BroadcastTransactionSuccess -> showBroadcastTransactionSuccess()
+            is SignTransactionSuccess -> showSignTransactionSuccess(event.roomId)
+            is BroadcastTransactionSuccess -> showBroadcastTransactionSuccess(event.roomId)
             DeleteTransactionSuccess -> showTransactionDeleteSuccess()
             is ViewBlockchainExplorer -> openExternalLink(event.url)
             is TransactionDetailsError -> showError(event.message)
@@ -234,15 +238,22 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         )
     }
 
-    private fun showSignTransactionSuccess() {
+    private fun showSignTransactionSuccess(roomId: String) {
         hideLoading()
         NCToastMessage(this).show("Transaction signed successful")
+        if (roomId.isNotEmpty()) {
+            returnActiveRoom(roomId)
+        }
     }
 
-    private fun showBroadcastTransactionSuccess() {
+    private fun showBroadcastTransactionSuccess(roomId: String) {
         hideLoading()
         NCToastMessage(this).show("Transaction broadcast successful")
-        navigator.openMainScreen(this)
+        if (roomId.isEmpty()) {
+            navigator.openMainScreen(this)
+        } else {
+            returnActiveRoom(roomId)
+        }
     }
 
     private fun openExternalLink(url: String) {
@@ -264,17 +275,24 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         NCToastMessage(this).showError(message)
     }
 
+    private fun returnActiveRoom(roomId: String) {
+        ActivityManager.instance.popUntilRoot()
+        navigator.openRoomDetailActivity(this, roomId)
+    }
+
     companion object {
 
         fun start(
             activityContext: Activity,
             walletId: String,
-            txId: String
+            txId: String,
+            initEventId: String = ""
         ) {
             activityContext.startActivity(
                 TransactionDetailsArgs(
                     walletId = walletId,
-                    txId = txId
+                    txId = txId,
+                    initEventId = initEventId
                 ).buildIntent(activityContext)
             )
         }
