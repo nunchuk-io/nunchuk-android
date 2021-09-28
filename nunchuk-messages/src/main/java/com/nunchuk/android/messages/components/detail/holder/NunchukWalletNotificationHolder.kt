@@ -2,6 +2,7 @@ package com.nunchuk.android.messages.components.detail.holder
 
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.signer.toSigner
+import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.core.util.getHtmlString
 import com.nunchuk.android.core.util.getString
 import com.nunchuk.android.messages.R
@@ -9,6 +10,7 @@ import com.nunchuk.android.messages.components.detail.NunchukWalletMessage
 import com.nunchuk.android.messages.databinding.ItemNunchukNotificationBinding
 import com.nunchuk.android.messages.util.WalletEventType
 import com.nunchuk.android.messages.util.bindNotificationBackground
+import com.nunchuk.android.messages.util.getBodyElementValueByKey
 
 internal class NunchukWalletNotificationHolder(
     val binding: ItemNunchukNotificationBinding,
@@ -20,9 +22,12 @@ internal class NunchukWalletNotificationHolder(
         val sender = model.sender
         when (model.msgType) {
             WalletEventType.JOIN -> {
-                val map = model.timelineEvent.root.content?.toMap().orEmpty()
-                val body = (map["body"] as Map<String, String>?).orEmpty()
-                val fingerPrint = body["key"]?.toSigner()?.fingerPrint.orEmpty()
+                val fingerPrint = try {
+                    model.timelineEvent.getBodyElementValueByKey("key").toSigner().fingerPrint
+                } catch (t: Throwable) {
+                    CrashlyticsReporter.recordException(t)
+                    ""
+                }
                 binding.notification.text = getHtmlString(R.string.nc_message_wallet_join, sender, fingerPrint)
                 binding.root.setOnClickListener { viewConfig() }
             }

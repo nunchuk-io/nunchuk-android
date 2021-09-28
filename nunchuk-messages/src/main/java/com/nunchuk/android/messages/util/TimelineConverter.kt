@@ -2,6 +2,7 @@ package com.nunchuk.android.messages.util
 
 
 import com.nunchuk.android.messages.components.detail.*
+import com.nunchuk.android.utils.CrashlyticsReporter
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -12,7 +13,7 @@ fun List<TimelineEvent>.toMessages(chatId: String) = sortedBy { it.root.ageLocal
 fun TimelineEvent.toMessageSafe(chatId: String): Message? = try {
     toMessage(chatId)
 } catch (e: Exception) {
-    Timber.e(e)
+    CrashlyticsReporter.recordException(e)
     null
 }
 

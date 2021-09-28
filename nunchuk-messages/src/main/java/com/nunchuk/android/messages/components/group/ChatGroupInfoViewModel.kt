@@ -11,6 +11,7 @@ import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.usecase.GetRoomWalletUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
@@ -18,7 +19,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.session.room.Room
-import timber.log.Timber
 import javax.inject.Inject
 
 // TODO eliminate duplicated
@@ -47,7 +47,7 @@ class ChatGroupInfoViewModel @Inject constructor(
     private fun getRoomWallet() {
         viewModelScope.launch {
             getRoomWalletUseCase.execute(roomId = room.roomId)
-                .catch { Timber.e("get room failed:$it") }
+                .catch { CrashlyticsReporter.recordException(it) }
                 .flowOn(Dispatchers.Main)
                 .collect { onGetRoomWallet(it) }
         }
@@ -58,7 +58,7 @@ class ChatGroupInfoViewModel @Inject constructor(
         updateState { copy(roomWallet = roomWallet) }
         viewModelScope.launch {
             getWalletUseCase.execute(walletId = roomWallet.walletId)
-                .catch { Timber.e("get wallet failed:$it") }
+                .catch { CrashlyticsReporter.recordException(it) }
                 .flowOn(Dispatchers.Main)
                 .collect { onGetWallet(it) }
         }
@@ -74,6 +74,7 @@ class ChatGroupInfoViewModel @Inject constructor(
                 room.updateName(name)
                 event(UpdateRoomNameSuccess(name))
             } catch (e: Throwable) {
+                CrashlyticsReporter.recordException(e)
                 event(UpdateRoomNameError(e.toMatrixError()))
             }
         }
@@ -85,6 +86,7 @@ class ChatGroupInfoViewModel @Inject constructor(
                 room.leave()
                 event(LeaveRoomSuccess)
             } catch (e: Throwable) {
+                CrashlyticsReporter.recordException(e)
                 event(LeaveRoomError(e.toMatrixError()))
             }
         }

@@ -10,6 +10,7 @@ import com.nunchuk.android.messages.components.group.action.AddMembersEvent.AddM
 import com.nunchuk.android.messages.components.group.toMatrixError
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.share.GetContactsUseCase
+import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import java.util.*
@@ -77,6 +78,7 @@ class AddMembersViewModel @Inject constructor(
                 }
                 event(AddMembersSuccessEvent)
             } catch (t: Throwable) {
+                CrashlyticsReporter.recordException(t)
                 event(AddMembersError(t.toMatrixError()))
             }
         }

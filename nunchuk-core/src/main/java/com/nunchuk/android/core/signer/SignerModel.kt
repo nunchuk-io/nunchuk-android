@@ -32,7 +32,7 @@ data class SignerInput(
     val xpub: String
 )
 
-class InvalidSignerFormatException : Exception()
+class InvalidSignerFormatException(override val message: String) : Exception()
 
 fun String.toSigner(): SignerInput {
     val pattern = Pattern.compile("^\\[([0-9a-f]{8})/(.*)]([^/]+).*\$")
@@ -43,5 +43,5 @@ fun String.toSigner(): SignerInput {
         val xpub = requireNotNull(matcher.group(3))
         return SignerInput(fingerPrint = fingerPrint, derivationPath = derivationPath, xpub = xpub)
     }
-    throw InvalidSignerFormatException()
+    throw InvalidSignerFormatException(this)
 }

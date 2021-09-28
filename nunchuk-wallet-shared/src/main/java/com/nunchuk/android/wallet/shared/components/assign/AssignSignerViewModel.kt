@@ -9,10 +9,10 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.JoinWalletUseCase
+import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 internal class AssignSignerViewModel @Inject constructor(
@@ -68,16 +68,12 @@ internal class AssignSignerViewModel @Inject constructor(
             SessionHolder.currentRoom?.let { room ->
                 joinWalletUseCase.execute(room.roomId, remoteSigners + unusedSignerSigners)
                     .flowOn(Dispatchers.IO)
-                    .catch { Timber.e(TAG, "join wallet error,", it) }
+                    .catch { CrashlyticsReporter.recordException(it) }
                     .onEach { event(AssignSignerEvent.AssignSignerCompletedEvent(room.roomId)) }
                     .flowOn(Dispatchers.Main)
                     .launchIn(viewModelScope)
             }
         }
-    }
-
-    companion object {
-        private const val TAG = "AssignSignerViewModel"
     }
 
 }

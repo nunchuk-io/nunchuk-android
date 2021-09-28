@@ -6,13 +6,17 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.util.*
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.NunchukMatrixEvent
+import com.nunchuk.android.model.SendEventExecutor
+import com.nunchuk.android.model.SendEventHelper
+import com.nunchuk.android.model.toRoomWalletData
 import com.nunchuk.android.usecase.*
-import com.nunchuk.android.usecase.room.transaction.GetPendingTransactionsUseCase
-import com.nunchuk.android.usecase.room.transaction.GetRoomTransactionUseCase
+import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
@@ -28,9 +32,7 @@ class RoomDetailViewModel @Inject constructor(
     private val consumeEventUseCase: ConsumeEventUseCase,
     private val getRoomWalletUseCase: GetRoomWalletUseCase,
     private val createSharedWalletUseCase: CreateSharedWalletUseCase,
-    private val getPendingTransactionsUseCase: GetPendingTransactionsUseCase,
-    private val getRoomTransactionUseCase: GetRoomTransactionUseCase,
-    private val getTransactionUseCase: GetTransactionUseCase
+    private val getTransactionsUseCase: GetTransactionsUseCase
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
 
     private lateinit var room: Room
@@ -50,32 +52,17 @@ class RoomDetailViewModel @Inject constructor(
     private fun onRetrievedRoom(room: Room) {
         storeRoom(room)
         joinRoom()
-        getRoomWallet()
+        initSendEventExecutor()
         retrieveTimelineEvents()
-        sendEvent()
-        getRoomTransactions()
-    }
-
-    private fun getRoomTransactions() {
-        viewModelScope.launch {
-            getPendingTransactionsUseCase.execute(roomId = room.roomId)
-                .flowOn(IO)
-                .catch {
-                    updateState { copy(transactions = emptyList()) }
-                    Timber.e("get transaction failed:$it")
-                }
-                .collect { updateState { copy(transactions = it) } }
-        }
     }
 
     private fun getRoomWallet() {
-        getRoomWalletUseCase.execute(roomId = room.roomId)
-            .flowOn(IO)
-            .catch { Timber.e("get room failed:$it") }
-            .onEach {
-                updateState { copy(roomWallet = it) }
-            }
-            .launchIn(viewModelScope)
+        viewModelScope.launch {
+            getRoomWalletUseCase.execute(roomId = room.roomId)
+                .flowOn(IO)
+                .catch { CrashlyticsReporter.recordException(it) }
+                .collect { updateState { copy(roomWallet = it) } }
+        }
     }
 
     private fun storeRoom(room: Room) {
@@ -83,7 +70,7 @@ class RoomDetailViewModel @Inject constructor(
         SessionHolder.currentRoom = room
     }
 
-    private fun sendEvent() {
+    private fun initSendEventExecutor() {
         SendEventHelper.executor = object : SendEventExecutor {
             override fun execute(roomId: String, type: String, content: String): String {
                 viewModelScope.launch {
@@ -99,7 +86,7 @@ class RoomDetailViewModel @Inject constructor(
             try {
                 room.join()
             } catch (e: Throwable) {
-                Timber.e(e)
+                CrashlyticsReporter.recordException(e)
             }
         }
     }
@@ -108,34 +95,36 @@ class RoomDetailViewModel @Inject constructor(
         updateState { copy(roomInfo = room.getRoomInfo(currentName)) }
         timeline = room.createTimeline(null, TimelineSettings(initialSize = PAGINATION, true))
         timeline.removeAllListeners()
-        timeline.addListener(TimelineListenerAdapter {
-            val messages = it.filter(TimelineEvent::isDisplayable)
-            updateState { copy(messages = messages.toMessages(currentId)) }
-            consume(messages.filter(TimelineEvent::isNunchukEvent))
-        })
+        timeline.addListener(TimelineListenerAdapter(::handleTimelineEvents))
         timeline.start()
     }
 
-    private fun consume(events: List<TimelineEvent>) {
+    private fun handleTimelineEvents(events: List<TimelineEvent>) {
+        Timber.d("handleTimelineEvents")
+        val displayableEvents = events.filter(TimelineEvent::isDisplayable)
+        val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent)
         viewModelScope.launch {
-            events.map(TimelineEvent::toNunchukMatrixEvent)
+            val sortedEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
                 .sortedBy(NunchukMatrixEvent::time)
-                .asFlow()
-                .flowOn(IO)
-                .collect { consume(it) }
+            consumeEventUseCase.execute(sortedEvents)
+                .onCompletion {
+                    getRoomWallet()
+                    updateState { copy(messages = displayableEvents.toMessages(currentId)) }
+                    getTransactions(nunchukEvents.filter(TimelineEvent::isNunchukTransactionEvent))
+                }
+                .catch { CrashlyticsReporter.recordException(it) }
+                .collect { Timber.d("Consume event completed") }
         }
     }
 
-    private fun consume(event: NunchukMatrixEvent) {
-        Timber.d("consume($event)")
-        consumeEventUseCase.execute(event)
-            .flowOn(IO)
-            .catch { Timber.e("\nconsume failed:$it") }
-            .onEach {
-                delay(500)
-            }
-            .launchIn(viewModelScope)
+    private fun getTransactions(events: List<TimelineEvent>) {
+        viewModelScope.launch {
+            val eventIds = events.filter(TimelineEvent::isInitTransactionEvent).map(TimelineEvent::eventId)
+            getTransactionsUseCase.execute(eventIds)
+                .catch { CrashlyticsReporter.recordException(it) }
+                .collect { updateState { copy(transactions = it) } }
+        }
     }
 
     fun handleSendMessage(content: String) {
@@ -159,7 +148,7 @@ class RoomDetailViewModel @Inject constructor(
     fun cancelWallet() {
         viewModelScope.launch {
             cancelWalletUseCase.execute(room.roomId)
-                .catch { Timber.e("cancel wallet error", it) }
+                .catch { CrashlyticsReporter.recordException(it) }
                 .collect { getRoomWallet() }
         }
     }
@@ -168,32 +157,10 @@ class RoomDetailViewModel @Inject constructor(
         viewModelScope.launch {
             createSharedWalletUseCase.execute(room.roomId)
                 .flowOn(IO)
-                .catch { Timber.e("finalize wallet error", it) }
+                .catch { CrashlyticsReporter.recordException(it) }
                 .collect {
                     getRoomWallet()
                     event(RoomWalletCreatedEvent)
-                }
-        }
-    }
-
-    fun getRoomTransaction(eventId: String, walletId: String, callback: (Transaction) -> Unit) {
-        viewModelScope.launch {
-            getRoomTransactionUseCase.execute(eventId)
-                .flowOn(IO)
-                .catch { Timber.e("getRoomTransaction", it) }
-                .collect {
-                    getTransaction(walletId, it.txId, callback)
-                }
-        }
-    }
-
-    private fun getTransaction(walletId: String, txId: String, callback: (Transaction) -> Unit) {
-        viewModelScope.launch {
-            getTransactionUseCase.execute(walletId, txId)
-                .flowOn(IO)
-                .catch { Timber.e("getTransaction", it) }
-                .collect {
-                    callback(it)
                 }
         }
     }
@@ -211,6 +178,7 @@ class RoomDetailViewModel @Inject constructor(
 
     fun cleanUp() {
         timeline.removeAllListeners()
+        SessionHolder.currentRoom = null
     }
 
     companion object {
