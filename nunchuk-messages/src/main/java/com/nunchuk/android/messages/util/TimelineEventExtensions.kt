@@ -54,3 +54,9 @@ fun TimelineEvent.getBodyElementValueByKey(key: String): String {
     val map = root.content?.toMap().orEmpty()
     return gson.fromJson(gson.toJson(map["body"]), JsonObject::class.java).get(key).asString
 }
+
+fun TimelineEvent.isInitTransactionEvent(): Boolean {
+    val content = root.content?.toMap().orEmpty()
+    val msgType = TransactionEventType.of(content[KEY] as String)
+    return msgType == TransactionEventType.INIT
+}

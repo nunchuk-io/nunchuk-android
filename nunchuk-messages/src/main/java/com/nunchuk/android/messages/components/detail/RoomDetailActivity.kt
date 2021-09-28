@@ -17,6 +17,7 @@ import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnEnterListener
 import com.nunchuk.android.widget.util.smoothScrollToLastItem
+import timber.log.Timber
 import javax.inject.Inject
 
 class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
@@ -53,12 +54,13 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 
     private fun handleState(state: RoomDetailState) {
+        Timber.d("transactions:: ${state.transactions.map { "(${it.initEventId},${it.transaction.txId},${it.transaction.status})" }})")
         binding.toolbarTitle.text = state.roomInfo.roomName
         val membersCount = "${state.roomInfo.memberCount} members"
         binding.memberCount.text = membersCount
-        adapter.chatModels = ArrayList(state.messages.groupByDate())
+        adapter.update(state.messages.groupByDate(), state.transactions)
         if (state.messages.isNotEmpty()) {
-            binding.recyclerView.scrollToPosition(adapter.chatModels.size - 1)
+            binding.recyclerView.scrollToPosition(adapter.itemCount - 1)
         }
         stickyBinding.root.isVisible = state.roomWallet != null
         state.roomWallet?.let { stickyBinding.bindRoomWallet(it, viewModel::viewConfig) }
@@ -96,8 +98,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             denyWallet = viewModel::denyWallet,
             viewConfig = viewModel::viewConfig,
             finalizeWallet = viewModel::finalizeWallet,
-            viewDetails = ::openTransactionDetails,
-            getRoomTransaction = viewModel::getRoomTransaction
+            viewDetails = ::openTransactionDetails
         )
         binding.recyclerView.adapter = adapter
         val layoutManager = LinearLayoutManager(this)

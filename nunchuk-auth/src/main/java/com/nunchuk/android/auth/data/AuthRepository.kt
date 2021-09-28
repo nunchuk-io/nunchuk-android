@@ -2,6 +2,7 @@ package com.nunchuk.android.auth.data
 
 import com.nunchuk.android.auth.api.*
 import com.nunchuk.android.core.network.ApiSuccessException
+import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -43,7 +44,7 @@ internal class AuthRepositoryImpl @Inject constructor(
             try {
                 authApi.changePassword(payload).data
             } catch (e: ApiSuccessException) {
-                e.printStackTrace()
+                CrashlyticsReporter.recordException(e)
             }
         )
     }.flowOn(Dispatchers.IO)
@@ -53,7 +54,7 @@ internal class AuthRepositoryImpl @Inject constructor(
         try {
             authApi.recoverPassword(payload)
         } catch (e: ApiSuccessException) {
-            e.printStackTrace()
+            CrashlyticsReporter.recordException(e)
         }
     }
 
@@ -61,7 +62,7 @@ internal class AuthRepositoryImpl @Inject constructor(
         try {
             authApi.forgotPassword(ForgotPasswordPayload(email))
         } catch (e: ApiSuccessException) {
-            e.printStackTrace()
+            CrashlyticsReporter.recordException(e)
         }
     }
 

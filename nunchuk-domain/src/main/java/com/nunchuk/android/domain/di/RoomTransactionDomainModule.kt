@@ -1,5 +1,7 @@
 package com.nunchuk.android.domain.di
 
+import com.nunchuk.android.usecase.GetTransactionsUseCase
+import com.nunchuk.android.usecase.GetTransactionsUseCaseImpl
 import com.nunchuk.android.usecase.room.transaction.*
 import dagger.Binds
 import dagger.Module
@@ -27,5 +29,8 @@ internal interface RoomTransactionDomainModule {
 
     @Binds
     fun bindGetRoomTransactionUseCase(useCase: GetRoomTransactionUseCaseImpl): GetRoomTransactionUseCase
+
+    @Binds
+    fun bindGetTransactionsUseCase(useCase: GetTransactionsUseCaseImpl): GetTransactionsUseCase
 
 }

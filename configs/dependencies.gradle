@@ -33,16 +33,16 @@ ext {
     kotlinStdlibVersion = '1.5.0'
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.0.14'
+    nativeSdkVersion = '1.0.15'
 
     // Matrix
     matrixSdkVersion = '1.1.9'
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 1
-    PATCH_VERSION = 8
+    PATCH_VERSION = 9
 
-    VERSION_CODE = 23
+    VERSION_CODE = 24
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
@@ -105,8 +105,6 @@ ext {
     ]
 
     playServices = [
-            location           : "com.google.android.gms:play-services-location:${playServiceVersion}",
-            maps               : "com.google.android.gms:play-services-maps:${playServiceVersion}",
             firebaseBom        : "com.google.firebase:firebase-bom:28.3.0",
             firebaseAnalytics  : "com.google.firebase:firebase-analytics-ktx",
             firebaseCrashlytics: "com.google.firebase:firebase-crashlytics-ktx",

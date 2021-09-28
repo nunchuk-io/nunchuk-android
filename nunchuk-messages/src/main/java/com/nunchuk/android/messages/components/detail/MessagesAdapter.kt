@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.nunchuk.android.messages.components.detail.holder.*
 import com.nunchuk.android.messages.databinding.*
-import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.TransactionExt
 
 internal class MessagesAdapter(
     val context: Context,
@@ -15,15 +15,18 @@ internal class MessagesAdapter(
     private val denyWallet: () -> Unit,
     private val viewConfig: () -> Unit,
     private val finalizeWallet: () -> Unit,
-    private val viewDetails: (walletId: String, txId: String, initEventId: String) -> Unit,
-    private val getRoomTransaction: (initEventId: String, walletId: String, callback: (Transaction) -> Unit) -> Unit,
+    private val viewDetails: (walletId: String, txId: String, initEventId: String) -> Unit
 ) : Adapter<ViewHolder>() {
 
-    internal var chatModels: List<AbsChatModel> = ArrayList()
-        set(value) {
-            field = value
-            notifyDataSetChanged()
-        }
+    private var chatModels: List<AbsChatModel> = ArrayList()
+
+    private var transactions: List<TransactionExt> = ArrayList()
+
+    internal fun update(chatModels: List<AbsChatModel>, transactions: List<TransactionExt>) {
+        this.chatModels = chatModels
+        this.transactions = transactions
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = when (viewType) {
         MessageType.TYPE_CHAT_MINE.index -> MessageMineViewHolder(
@@ -46,8 +49,8 @@ internal class MessagesAdapter(
         )
         MessageType.TYPE_NUNCHUK_TRANSACTION_CARD.index -> NunchukTransactionCardHolder(
             ItemTransactionInfoBinding.inflate(LayoutInflater.from(context), parent, false),
+            transactions = transactions,
             viewDetails = viewDetails,
-            getRoomTransaction = getRoomTransaction
         )
         MessageType.TYPE_NUNCHUK_WALLET_NOTIFICATION.index -> NunchukWalletNotificationHolder(
             ItemNunchukNotificationBinding.inflate(LayoutInflater.from(context), parent, false),

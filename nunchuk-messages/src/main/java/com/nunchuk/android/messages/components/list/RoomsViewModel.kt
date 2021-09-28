@@ -11,6 +11,7 @@ import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.messages.util.sortByLastMessage
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
+import com.nunchuk.android.utils.CrashlyticsReporter
 import io.reactivex.Completable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
@@ -36,15 +37,16 @@ class RoomsViewModel @Inject constructor(
             getRoomSummaryListUseCase.execute()
                 .zip(getAllRoomWalletsUseCase.execute()) { rooms, wallets -> rooms to wallets }
                 .flowOn(Dispatchers.IO)
-                .catch { onRetrieveMessageError() }
+                .catch { onRetrieveMessageError(it) }
                 .flowOn(Dispatchers.Main)
                 .collect { onRetrieveMessageSuccess(it) }
         }
     }
 
-    private fun onRetrieveMessageError() {
+    private fun onRetrieveMessageError(t: Throwable) {
         event(LoadingEvent(false))
         updateState { copy(rooms = emptyList()) }
+        CrashlyticsReporter.recordException(t)
     }
 
     private fun onRetrieveMessageSuccess(p: Pair<List<RoomSummary>, List<RoomWallet>>) {

@@ -15,11 +15,11 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.usecase.GetRoomWalletUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.matrix.android.sdk.api.session.room.Room
-import timber.log.Timber
 import javax.inject.Inject
 
 class ChatInfoViewModel @Inject constructor(
@@ -51,7 +51,7 @@ class ChatInfoViewModel @Inject constructor(
 
     private fun getRoomWallet() {
         getRoomWalletUseCase.execute(roomId = room.roomId)
-            .catch { Timber.e("get room failed:$it") }
+            .catch { CrashlyticsReporter.recordException(it) }
             .onEach { onGetRoomWallet(it) }
             .launchIn(viewModelScope)
     }
@@ -59,7 +59,7 @@ class ChatInfoViewModel @Inject constructor(
     private fun onGetRoomWallet(roomWallet: RoomWallet) {
         updateState { copy(roomWallet = roomWallet) }
         getWalletUseCase.execute(walletId = roomWallet.walletId)
-            .catch { Timber.e("get room failed:$it") }
+            .catch { CrashlyticsReporter.recordException(it) }
             .onEach { onGetWallet(it) }
             .launchIn(viewModelScope)
     }

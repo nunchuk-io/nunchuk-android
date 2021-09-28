@@ -6,6 +6,7 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.usecase.InitNunchukUseCase
+import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
@@ -25,7 +26,10 @@ internal class SplashViewModel @Inject constructor(
         viewModelScope.launch {
             initNunchukUseCase.execute(account.email, account.chatId)
                 .flowOn(Dispatchers.IO)
-                .catch { event(InitErrorEvent(it.message.orUnknownError())) }
+                .catch {
+                    event(InitErrorEvent(it.message.orUnknownError()))
+                    CrashlyticsReporter.recordException(it)
+                }
                 .flowOn(Dispatchers.Main)
                 .collect { event(NavHomeScreenEvent) }
         }

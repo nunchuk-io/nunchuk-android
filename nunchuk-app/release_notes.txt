@@ -1,4 +1,5 @@
 What's news:
+- [LibNunchuk] Transaction ready to broadcast fix.
 - [LibNunchuk] Ready event fix.
 - [Room Transaction] Init transaction event.
 - [Room Wallet] Show wallet in group / direct chat detail.

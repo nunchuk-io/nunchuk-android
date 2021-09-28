@@ -119,10 +119,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private fun broadcastSharedTransaction() {
         viewModelScope.launch {
+            event(LoadingEvent)
             broadcastRoomTransactionUseCase.execute(initEventId)
                 .flowOn(IO)
-                .catch { TransactionDetailsError(it.message.orEmpty()) }
-                .collect { BroadcastTransactionSuccess(SessionHolder.getActiveRoomId()) }
+                .catch { event(TransactionDetailsError(it.message.orEmpty())) }
+                .collect { event(BroadcastTransactionSuccess(SessionHolder.getActiveRoomId())) }
         }
     }
 

@@ -11,6 +11,7 @@ import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.signer.components.add.AddSignerEvent.*
 import com.nunchuk.android.usecase.CreateCoboSignerUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
+import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
@@ -52,6 +53,7 @@ internal class AddSignerViewModel @Inject constructor(
             try {
                 doAfterValidate(signerSpec.toSigner())
             } catch (e: InvalidSignerFormatException) {
+                CrashlyticsReporter.recordException(e)
                 event(InvalidSignerSpecEvent)
             }
         }

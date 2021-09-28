@@ -3,6 +3,7 @@ apply from: '../configs/submodule-config.gradle'
 apply plugin: 'kotlin-parcelize'
 
 dependencies {
+    implementation project(':nunchuk-utils')
     implementation nunchukDeps.nativeSdk
 
     // Dagger

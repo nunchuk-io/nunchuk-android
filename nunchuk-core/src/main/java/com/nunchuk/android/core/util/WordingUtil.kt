@@ -5,12 +5,10 @@ import java.util.*
 private const val DELIMITERS = " "
 
 fun String.shorten(): String {
+    if (isEmpty()) return this
     if (this.contains(DELIMITERS)) {
         val words = split(DELIMITERS)
-        val initials = StringBuilder("")
-        for (s in words) {
-            initials.append(s[0])
-        }
+        val initials = words.filter(String::isNotEmpty).map { it[0] }
         return "${initials.first()}${initials.last()}".upperCase()
     }
     return "${first()}".upperCase()

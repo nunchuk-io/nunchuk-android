@@ -9,21 +9,22 @@ import com.nunchuk.android.messages.components.detail.NunchukTransactionMessage
 import com.nunchuk.android.messages.databinding.ItemTransactionInfoBinding
 import com.nunchuk.android.messages.util.getBodyElementValueByKey
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.TransactionExt
 import timber.log.Timber
 
 internal class NunchukTransactionCardHolder(
     val binding: ItemTransactionInfoBinding,
+    val transactions: List<TransactionExt>,
     val signTransaction: () -> Unit = {},
     val viewDetails: (walletId: String, txId: String, initEventId: String) -> Unit,
-    private val getRoomTransaction: (initEventId: String, walletId: String, callback: (Transaction) -> Unit) -> Unit
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(model: NunchukTransactionMessage) {
-        Timber.d("[NunchukTransactionCardHolder]::$model.timelineEvent")
+        Timber.d("[NunchukTransactionCardHolder]::${model.timelineEvent.eventId}")
         val walletId = model.timelineEvent.getBodyElementValueByKey("wallet_id")
         val initEventId = model.timelineEvent.eventId
-        getRoomTransaction(initEventId, walletId) {
-            bindTransaction(walletId, initEventId, it)
+        transactions.firstOrNull { it.initEventId == initEventId }?.let {
+            bindTransaction(walletId = walletId, initEventId = initEventId, transaction = it.transaction)
         }
     }
 
