@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.components.detail.holder
 
+import android.view.Gravity
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
 import com.nunchuk.android.messages.R
@@ -25,7 +26,7 @@ internal class NunchukWalletCardHolder(
         binding.cancelWallet.text = context.getString(
             if (model.isOwner) R.string.nc_message_cancel_wallet else R.string.nc_message_deny_wallet
         )
-
+        binding.root.gravity = if (model.isOwner) Gravity.END else Gravity.START
         binding.name.text = initData.name
         binding.configuration.text = context.getString(R.string.nc_message_creating_wallet, ratio)
         binding.pendingSignatures.text = context.getString(R.string.nc_message_pending_signers_to_assign, initData.requireSigners)

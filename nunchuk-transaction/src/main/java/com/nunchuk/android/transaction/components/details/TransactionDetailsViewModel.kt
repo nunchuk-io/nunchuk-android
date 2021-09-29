@@ -24,8 +24,7 @@ import javax.inject.Inject
 
 internal class TransactionDetailsViewModel @Inject constructor(
     private val getBlockchainExplorerUrlUseCase: GetBlockchainExplorerUrlUseCase,
-    private val getMasterSignersUseCase: GetMasterSignersUseCase,
-    private val getRemoteSignersUseCase: GetRemoteSignersUseCase,
+    private val getAllSignersUseCase: GetCompoundSignersUseCase,
     private val getTransactionUseCase: GetTransactionUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val signTransactionUseCase: SignTransactionUseCase,
@@ -63,14 +62,16 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun getTransactionInfo() {
         viewModelScope.launch {
-            getMasterSignersUseCase.execute()
-                .catch { masterSigners = emptyList() }
-                .collect { masterSigners = it }
-
-            getRemoteSignersUseCase.execute()
-                .catch { remoteSigners = emptyList() }
-                .collect { remoteSigners = it }
-
+            getAllSignersUseCase.execute()
+                .flowOn(IO)
+                .catch {
+                    masterSigners = emptyList()
+                    remoteSigners = emptyList()
+                }
+                .collect {
+                    masterSigners = it.first
+                    remoteSigners = it.second
+                }
             getTransactionUseCase.execute(walletId, txId)
                 .catch { event(TransactionDetailsError(it.message.orEmpty())) }
                 .collect { onRetrieveTransactionSuccess(it) }

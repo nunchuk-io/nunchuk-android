@@ -9,7 +9,7 @@ fun List<RoomSummary>.sortByLastMessage(): List<RoomSummary> {
 fun RoomSummary.getRoomName(currentName: String): String {
     val split = displayName.split(",")
     return if (split.size == DIRECT_CHAT_MEMBERS_COUNT) {
-        split.firstOrNull { it != currentName }.orEmpty()
+        split.firstOrNull { it != currentName } ?: currentName
     } else {
         displayName
     }
