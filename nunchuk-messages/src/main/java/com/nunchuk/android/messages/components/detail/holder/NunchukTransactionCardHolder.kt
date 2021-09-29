@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.components.detail.holder
 
+import android.view.Gravity
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getHtmlString
@@ -10,7 +11,6 @@ import com.nunchuk.android.messages.databinding.ItemTransactionInfoBinding
 import com.nunchuk.android.messages.util.getBodyElementValueByKey
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TransactionExt
-import timber.log.Timber
 
 internal class NunchukTransactionCardHolder(
     val binding: ItemTransactionInfoBinding,
@@ -20,12 +20,12 @@ internal class NunchukTransactionCardHolder(
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(model: NunchukTransactionMessage) {
-        Timber.d("[NunchukTransactionCardHolder]::${model.timelineEvent.eventId}")
         val walletId = model.timelineEvent.getBodyElementValueByKey("wallet_id")
         val initEventId = model.timelineEvent.eventId
         transactions.firstOrNull { it.initEventId == initEventId }?.let {
             bindTransaction(walletId = walletId, initEventId = initEventId, transaction = it.transaction)
         }
+        binding.root.gravity = if (model.isOwner) Gravity.END else Gravity.START
     }
 
     private fun bindTransaction(walletId: String, initEventId: String, transaction: Transaction) {
