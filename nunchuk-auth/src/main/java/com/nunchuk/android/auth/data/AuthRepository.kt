@@ -5,6 +5,7 @@ import com.nunchuk.android.core.network.ApiSuccessException
 import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
@@ -41,13 +42,11 @@ internal class AuthRepositoryImpl @Inject constructor(
     override fun changePassword(oldPassword: String, newPassword: String) = flow {
         val payload = ChangePasswordPayload(oldPassword = oldPassword, newPassword = newPassword)
         emit(
-            try {
-                authApi.changePassword(payload).data
-            } catch (e: ApiSuccessException) {
-                CrashlyticsReporter.recordException(e)
-            }
+            authApi.changePassword(payload).data
         )
-    }.flowOn(Dispatchers.IO)
+    }
+        .catch { CrashlyticsReporter.recordException(it) }
+        .flowOn(Dispatchers.IO)
 
     override suspend fun recoverPassword(email: String, oldPassword: String, newPassword: String) {
         val payload = RecoverPasswordPayload(email = email, forgotPasswordToken = oldPassword, newPassword = newPassword)
