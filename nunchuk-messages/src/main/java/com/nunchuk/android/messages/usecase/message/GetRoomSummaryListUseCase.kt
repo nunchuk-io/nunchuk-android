@@ -2,7 +2,6 @@ package com.nunchuk.android.messages.usecase.message
 
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.messages.util.getMembersCount
-import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -27,21 +26,15 @@ internal class GetRoomSummaryListUseCaseImpl @Inject constructor(
                 if (it.getMembersCount() > 1) {
                     filterRooms.add(it)
                 } else {
-                    try {
-                        leaveRoom(it)
-                    } catch (e: Exception) {
-                        CrashlyticsReporter.recordException(e)
-                    }
+                    leaveRoom(it)
                 }
                 filterRooms
             }
         )
     }
 
-    private suspend fun leaveRoom(summary: RoomSummary) {
-        SessionHolder.activeSession?.getRoom(summary.roomId)?.let {
-            leaveRoomUseCase.execute(it)
-        }
+    private fun leaveRoom(summary: RoomSummary) {
+        SessionHolder.activeSession?.getRoom(summary.roomId)?.let(leaveRoomUseCase::execute)
     }
 
 }

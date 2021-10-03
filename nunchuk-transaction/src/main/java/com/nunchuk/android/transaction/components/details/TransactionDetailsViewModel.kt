@@ -108,13 +108,12 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private fun broadcastPersonalTransaction() {
         viewModelScope.launch {
             event(LoadingEvent)
-            when (val result = broadcastTransactionUseCase.execute(walletId, txId)) {
-                is Success -> {
-                    updateTransaction(result.data)
+            broadcastTransactionUseCase.execute(walletId, txId)
+                .catch { event(TransactionDetailsError(it.message.orEmpty())) }
+                .collect {
+                    updateTransaction(it)
                     event(BroadcastTransactionSuccess())
                 }
-                is Error -> event(TransactionDetailsError(result.exception.message.orEmpty()))
-            }
         }
     }
 
@@ -160,10 +159,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 if (device.needPassPhraseSent) {
                     event(PromptInputPassphrase {
                         viewModelScope.launch {
-                            when (val result = sendSignerPassphrase.execute(signer.id, it)) {
-                                is Success -> signTransaction(device)
-                                is Error -> event(TransactionDetailsError(result.exception.message.orEmpty()))
-                            }
+                            sendSignerPassphrase.execute(signer.id, it)
+                                .catch { event(TransactionDetailsError(it.message.orEmpty())) }
+                                .collect { signTransaction(device) }
                         }
                     })
                 } else {

@@ -4,7 +4,6 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.util.process
 import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
 import com.nunchuk.android.messages.usecase.message.GetRoomSummaryListUseCase
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
@@ -14,6 +13,7 @@ import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import io.reactivex.Completable
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
@@ -36,7 +36,7 @@ class RoomsViewModel @Inject constructor(
         viewModelScope.launch {
             getRoomSummaryListUseCase.execute()
                 .zip(getAllRoomWalletsUseCase.execute()) { rooms, wallets -> rooms to wallets }
-                .flowOn(Dispatchers.IO)
+                .flowOn(IO)
                 .catch { onRetrieveMessageError(it) }
                 .flowOn(Dispatchers.Main)
                 .collect { onRetrieveMessageSuccess(it) }
@@ -67,12 +67,12 @@ class RoomsViewModel @Inject constructor(
     }
 
     private fun handleRemoveRoom(room: Room) {
-        process({ leaveRoomUseCase.execute(room) }, {
-            awaitAndRetrieveMessages()
-        }, {
-            event(LoadingEvent(false))
-        })
-
+        viewModelScope.launch {
+            leaveRoomUseCase.execute(room)
+                .flowOn(IO)
+                .catch { LoadingEvent(false) }
+                .collect { awaitAndRetrieveMessages() }
+        }
     }
 
     private fun awaitAndRetrieveMessages() {

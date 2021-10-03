@@ -8,8 +8,8 @@ import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.forgot.ForgotPasswordEvent.*
 import com.nunchuk.android.auth.databinding.ActivityForgotPasswordBinding
-import com.nunchuk.android.auth.util.orUnknownError
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
