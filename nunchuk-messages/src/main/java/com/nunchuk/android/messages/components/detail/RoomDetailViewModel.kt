@@ -54,13 +54,17 @@ class RoomDetailViewModel @Inject constructor(
         joinRoom()
         initSendEventExecutor()
         retrieveTimelineEvents()
+        getRoomWallet()
     }
 
     private fun getRoomWallet() {
         viewModelScope.launch {
             getRoomWalletUseCase.execute(roomId = room.roomId)
                 .flowOn(IO)
-                .catch { CrashlyticsReporter.recordException(it) }
+                .catch {
+                    updateState { copy(roomWallet = null) }
+                    Timber.e("Get room wallet error ", it)
+                }
                 .collect { updateState { copy(roomWallet = it) } }
         }
     }
@@ -109,7 +113,6 @@ class RoomDetailViewModel @Inject constructor(
                 .sortedBy(NunchukMatrixEvent::time)
             consumeEventUseCase.execute(sortedEvents)
                 .onCompletion {
-                    getRoomWallet()
                     updateState { copy(messages = displayableEvents.toMessages(currentId)) }
                     getTransactions(nunchukEvents.filter(TimelineEvent::isNunchukTransactionEvent))
                 }

@@ -148,8 +148,6 @@ dependencies {
     // FIXME ci disable
     // debugImplementation leakDetectionDeps.leakCanary
 
-    debugImplementation debugDatabaseDeps.values()
-
     // FIXME
     // Kotlin
     implementation "androidx.navigation:navigation-fragment-ktx:2.3.5"

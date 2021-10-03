@@ -41,23 +41,34 @@ private fun TextView.bindRatio(isEscrow: Boolean, requireSigners: Int, totalSign
 }
 
 fun TextView.bindWalletStatus(roomWallet: RoomWallet) {
-    background = AppCompatResources.getDrawable(context, R.drawable.nc_rounded_tag_fill_background)
     when {
-        roomWallet.isPendingKeys() -> {
-            context.getString(R.string.nc_message_pending_signers)
-            backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_red_tint_color)
-        }
-        roomWallet.isReadyFinalize() -> {
-            context.getString(R.string.nc_message_pending_finalization)
-            backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_beeswax_tint)
-        }
-        roomWallet.isCanceled() -> {
-            context.getString(R.string.nc_message_pending_finalization)
-            background = AppCompatResources.getDrawable(context, R.drawable.nc_rounded_tag_stroke_background)
-        }
-        else -> {
-            context.getString(R.string.nc_text_created)
-            backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_green_color)
-        }
+        roomWallet.isPendingKeys() -> bindPendingKeysStatus()
+        roomWallet.isReadyFinalize() -> bindReadyFinalizeStatus()
+        roomWallet.isCanceled() -> bindCanceledStatus()
+        else -> bindCreatedStatus()
     }
+}
+
+private fun TextView.bindCreatedStatus() {
+    text = context.getString(R.string.nc_text_created)
+    background = AppCompatResources.getDrawable(context, R.drawable.nc_rounded_tag_fill_background)
+    backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_green_color)
+}
+
+private fun TextView.bindReadyFinalizeStatus() {
+    text = context.getString(R.string.nc_message_pending_finalization)
+    background = AppCompatResources.getDrawable(context, R.drawable.nc_rounded_tag_fill_background)
+    backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_beeswax_tint)
+}
+
+private fun TextView.bindPendingKeysStatus() {
+    text = context.getString(R.string.nc_message_pending_signers)
+    background = AppCompatResources.getDrawable(context, R.drawable.nc_rounded_tag_fill_background)
+    backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_red_tint_color)
+}
+
+fun TextView.bindCanceledStatus() {
+    text = context.getString(R.string.nc_text_canceled)
+    background = AppCompatResources.getDrawable(context, R.drawable.nc_rounded_tag_fill_background)
+    background = AppCompatResources.getDrawable(context, R.drawable.nc_rounded_tag_stroke_background)
 }

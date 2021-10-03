@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.nunchuk.android.messages.components.detail.holder.*
 import com.nunchuk.android.messages.databinding.*
+import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.TransactionExt
 
 internal class MessagesAdapter(
@@ -19,12 +20,13 @@ internal class MessagesAdapter(
 ) : Adapter<ViewHolder>() {
 
     private var chatModels: List<AbsChatModel> = ArrayList()
-
     private var transactions: List<TransactionExt> = ArrayList()
+    private var roomWallet: RoomWallet? = null
 
-    internal fun update(chatModels: List<AbsChatModel>, transactions: List<TransactionExt>) {
+    internal fun update(chatModels: List<AbsChatModel>, transactions: List<TransactionExt>, roomWallet: RoomWallet?) {
         this.chatModels = chatModels
         this.transactions = transactions
+        this.roomWallet = roomWallet
         notifyDataSetChanged()
     }
 
@@ -43,6 +45,7 @@ internal class MessagesAdapter(
         )
         MessageType.TYPE_NUNCHUK_WALLET_CARD.index -> NunchukWalletCardHolder(
             ItemWalletInfoBinding.inflate(LayoutInflater.from(context), parent, false),
+            roomWallet = roomWallet,
             denyWallet = denyWallet,
             cancelWallet = cancelWallet,
             viewConfig = viewConfig

@@ -33,16 +33,16 @@ ext {
     kotlinStdlibVersion = '1.5.0'
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.0.16'
+    nativeSdkVersion = '1.0.17'
 
     // Matrix
     matrixSdkVersion = '1.1.9'
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 1
-    PATCH_VERSION = 13
+    PATCH_VERSION = 14
 
-    VERSION_CODE = 29
+    VERSION_CODE = 30
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
@@ -153,10 +153,6 @@ ext {
 
     googleDeps = [
             gson: "com.google.code.gson:gson:${gsonVersion}",
-    ]
-
-    debugDatabaseDeps = [
-            androidDebugDatabase: "com.amitshekhar.android:debug-db:${androidDebugDatabaseVersion}"
     ]
 
     roomArch = [

@@ -67,7 +67,7 @@ class SharedWalletConfigActivity : BaseActivity<ActivitySharedWalletConfigBindin
     private fun setupViews() {
         binding.walletName.setOnClickListener { onEditClicked() }
         binding.btnDone.setOnClickListener {
-            navigator.openMainScreen(this)
+            finish()
         }
         binding.toolbar.setNavigationOnClickListener { finish() }
 
@@ -83,10 +83,6 @@ class SharedWalletConfigActivity : BaseActivity<ActivitySharedWalletConfigBindin
 
         binding.walletType.text = (if (roomWalletData.isEscrow) WalletType.ESCROW else WalletType.MULTI_SIG).toReadableString(this)
         binding.addressType.text = AddressType.values().firstOrNull { it.name == roomWalletData.addressType }?.toReadableString(this)
-
-        binding.toolbar.setNavigationOnClickListener {
-            finish()
-        }
     }
 
     private fun onEditClicked() {
