@@ -12,30 +12,32 @@ before_script:
 
 stages:
   - build
+  - lint
   - test
+  - deploy
   - publish
-
-lintDevelopment:
-  stage: build
-  script:
-    - ./gradlew lintDevelopmentDebug -PbuildDir=lint
 
 buildDevelopment:
   stage: build
   script:
     - ./gradlew assembleDevelopmentDebug
 
+lintDevelopment:
+  stage: lint
+  script:
+    - ./gradlew lintDevelopmentDebug
+
 testDevelopment:
   stage: test
   script:
     - ./gradlew testDevelopmentDebug
 
-publishDevelop:
+deployDevelop:
   only:
-    - release
-  stage: publish
+    - develop
+  stage: deploy
   script:
-    - ./gradlew appDistributionUploadDevelopmentDebug
+    - ./gradlew assembleDevelopmentDebug appDistributionUploadDevelopmentDebug
   artifacts:
     paths:
       - nunchuk-app/build/outputs/
