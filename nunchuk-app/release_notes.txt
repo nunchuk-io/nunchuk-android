@@ -1,4 +1,5 @@
 What's news:
+- [ApiException] Show error message from BE.
 - [Transaction] Update UI.
 - [LibNunchuk] Transaction ready to broadcast fix.
 - [LibNunchuk] Ready event fix.
