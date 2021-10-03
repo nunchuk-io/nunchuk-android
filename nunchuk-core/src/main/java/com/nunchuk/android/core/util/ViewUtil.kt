@@ -6,6 +6,7 @@ import android.content.Context
 import android.graphics.Paint
 import android.widget.Button
 import android.widget.TextView
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import com.nunchuk.android.core.R
 import com.nunchuk.android.type.TransactionStatus
@@ -32,6 +33,36 @@ fun TransactionStatus.toDisplayedText(context: Context) = when (this) {
     PENDING_CONFIRMATION -> context.getString(R.string.nc_transaction_pending_confirmation)
     REPLACED -> context.getString(R.string.nc_transaction_replaced)
     CONFIRMED -> context.getString(R.string.nc_transaction_confirmed)
+}
+
+fun TextView.bindTransactionStatus(status: TransactionStatus) {
+    background = AppCompatResources.getDrawable(context, R.drawable.nc_rounded_tag_fill_background)
+    when (status) {
+        PENDING_SIGNATURES -> {
+            context.getString(R.string.nc_transaction_pending_signatures)
+            backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_red_tint_color)
+        }
+        READY_TO_BROADCAST -> {
+            context.getString(R.string.nc_transaction_ready_to_broadcast)
+            backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_beeswax_tint)
+        }
+        PENDING_CONFIRMATION -> {
+            context.getString(R.string.nc_transaction_pending_confirmation)
+            backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_lavender_tint_color)
+        }
+        CONFIRMED -> {
+            context.getString(R.string.nc_transaction_confirmed)
+            backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_denim_tint_color)
+        }
+        NETWORK_REJECTED -> {
+            context.getString(R.string.nc_transaction_network_rejected)
+            backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_orange_dark_color)
+        }
+        REPLACED -> {
+            background = AppCompatResources.getDrawable(context, R.drawable.nc_rounded_tag_stroke_background)
+            context.getString(R.string.nc_transaction_replaced)
+        }
+    }
 }
 
 fun Button.bindEnableState(enable: Boolean) {
