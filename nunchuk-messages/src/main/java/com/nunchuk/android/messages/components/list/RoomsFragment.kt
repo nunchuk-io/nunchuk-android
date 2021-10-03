@@ -10,6 +10,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
 import com.nunchuk.android.messages.databinding.FragmentMessagesBinding
@@ -37,7 +39,6 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
         setupViews()
 
         observeEvent()
-        viewModel.retrieveMessages()
     }
 
     override fun onResume() {
@@ -67,6 +68,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
         adapter.roomWallets = state.roomWallets.map(RoomWallet::roomId)
         adapter.roomSummaries = state.rooms
         binding.skeletonContainer.root.isVisible = state.rooms.isEmpty()
+        hideLoading()
     }
 
     private fun handleEvent(event: RoomsEvent) {

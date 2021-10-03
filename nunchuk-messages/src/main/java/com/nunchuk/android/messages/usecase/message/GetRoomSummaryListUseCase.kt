@@ -1,9 +1,16 @@
 package com.nunchuk.android.messages.usecase.message
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.messages.util.getMembersCount
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
@@ -17,20 +24,20 @@ internal class GetRoomSummaryListUseCaseImpl @Inject constructor(
     private val leaveRoomUseCase: LeaveRoomUseCase
 ) : BaseMessageUseCase(), GetRoomSummaryListUseCase {
 
-    override fun execute() = flow {
-        emit(
-            session.getRoomSummaries(roomSummaryQueryParams {
-                memberships = Membership.activeMemberships()
-            }).flatMap {
-                val filterRooms = ArrayList<RoomSummary>()
-                if (it.getMembersCount() > 1) {
-                    filterRooms.add(it)
-                } else {
-                    leaveRoom(it)
-                }
-                filterRooms
+    override fun execute() = session.getRoomSummariesLive(roomSummaryQueryParams {
+        memberships = Membership.activeMemberships()
+    }).asFlow().map { filterRooms(it) }
+
+    private fun filterRooms(rooms: List<RoomSummary>): ArrayList<RoomSummary> {
+        val filterRooms = ArrayList<RoomSummary>()
+        rooms.forEach {
+            if (it.getMembersCount() > 1) {
+                filterRooms.add(it)
+            } else {
+                leaveRoom(it)
             }
-        )
+        }
+        return filterRooms
     }
 
     private fun leaveRoom(summary: RoomSummary) {
@@ -38,3 +45,12 @@ internal class GetRoomSummaryListUseCaseImpl @Inject constructor(
     }
 
 }
+
+@ExperimentalCoroutinesApi
+fun <T> LiveData<T>.asFlow(): Flow<T> = callbackFlow {
+    val observer = Observer<T> { value -> trySend(value).isSuccess }
+    observeForever(observer)
+    awaitClose {
+        removeObserver(observer)
+    }
+}.flowOn(Dispatchers.Main.immediate)

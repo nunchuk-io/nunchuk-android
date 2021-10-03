@@ -12,9 +12,9 @@ import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.bindTransactionStatus
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
-import com.nunchuk.android.core.util.toDisplayedText
 import com.nunchuk.android.extensions.canBroadCast
 import com.nunchuk.android.extensions.isCompleted
 import com.nunchuk.android.model.Transaction
@@ -128,7 +128,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
             val confirmText = "${transaction.height} ${getString(R.string.nc_transaction_confirmations)}"
             binding.status.text = confirmText
         } else {
-            binding.status.text = transaction.status.toDisplayedText(this)
+            binding.status.bindTransactionStatus(transaction.status)
         }
         binding.sendingBTC.text = transaction.subAmount.getBTCAmount()
         binding.signersContainer.isVisible = !transaction.isReceive

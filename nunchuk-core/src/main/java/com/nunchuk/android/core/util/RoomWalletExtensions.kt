@@ -9,6 +9,6 @@ fun RoomWallet.isPendingKeys() = joinEventIds.size < jsonContent.toRoomWalletDat
 
 fun RoomWallet.isReadyFinalize() = readyEventId.isNotEmpty()
 
-fun RoomWallet.isFinalized() = finalizeEventId.isNotEmpty()
+fun RoomWallet.isCreated() = finalizeEventId.isNotEmpty()
 
 fun RoomWallet.isCanceled() = cancelEventId.isNotEmpty()

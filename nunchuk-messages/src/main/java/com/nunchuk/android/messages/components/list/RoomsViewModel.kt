@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import java.util.concurrent.TimeUnit
@@ -31,6 +32,33 @@ class RoomsViewModel @Inject constructor(
 ) : NunchukViewModel<RoomsState, RoomsEvent>() {
 
     override val initialState = RoomsState.empty()
+
+    init {
+        SessionHolder.activeSession?.let(::subscribeEvent)
+    }
+
+    private fun subscribeEvent(session: Session) {
+        session.addListener(object : Session.Listener {
+            override fun onNewInvitedRoom(session: Session, roomId: String) {
+                session.getRoom(roomId)?.let(::joinRoom)
+                viewModelScope.launch {
+                    getRoomSummaryListUseCase.execute()
+                        .catch { }
+                        .collect { updateState { copy(rooms = it) } }
+                }
+            }
+        })
+    }
+
+    private fun joinRoom(room: Room) {
+        viewModelScope.launch {
+            try {
+                room.join()
+            } catch (e: Throwable) {
+                CrashlyticsReporter.recordException(e)
+            }
+        }
+    }
 
     fun retrieveMessages() {
         viewModelScope.launch {
@@ -79,9 +107,8 @@ class RoomsViewModel @Inject constructor(
         Completable.fromCallable {}
             .delay(DELAY_IN_SECONDS, TimeUnit.SECONDS)
             .defaultSchedulers()
-            .subscribe(::retrieveMessages) {
-                event(LoadingEvent(false))
-            }
+            .doAfterTerminate { event(LoadingEvent(false)) }
+            .subscribe(::retrieveMessages, CrashlyticsReporter::recordException)
             .addToDisposables()
     }
 
