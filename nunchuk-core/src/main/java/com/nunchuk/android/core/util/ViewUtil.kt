@@ -39,28 +39,28 @@ fun TextView.bindTransactionStatus(status: TransactionStatus) {
     background = AppCompatResources.getDrawable(context, R.drawable.nc_rounded_tag_fill_background)
     when (status) {
         PENDING_SIGNATURES -> {
-            context.getString(R.string.nc_transaction_pending_signatures)
+            text = context.getString(R.string.nc_transaction_pending_signatures)
             backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_red_tint_color)
         }
         READY_TO_BROADCAST -> {
-            context.getString(R.string.nc_transaction_ready_to_broadcast)
+            text = context.getString(R.string.nc_transaction_ready_to_broadcast)
             backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_beeswax_tint)
         }
         PENDING_CONFIRMATION -> {
-            context.getString(R.string.nc_transaction_pending_confirmation)
+            text = context.getString(R.string.nc_transaction_pending_confirmation)
             backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_lavender_tint_color)
         }
         CONFIRMED -> {
-            context.getString(R.string.nc_transaction_confirmed)
+            text = context.getString(R.string.nc_transaction_confirmed)
             backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_denim_tint_color)
         }
         NETWORK_REJECTED -> {
-            context.getString(R.string.nc_transaction_network_rejected)
+            text = context.getString(R.string.nc_transaction_network_rejected)
             backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_orange_dark_color)
         }
         REPLACED -> {
             background = AppCompatResources.getDrawable(context, R.drawable.nc_rounded_tag_stroke_background)
-            context.getString(R.string.nc_transaction_replaced)
+            text = context.getString(R.string.nc_transaction_replaced)
         }
     }
 }
