@@ -42,10 +42,9 @@
         style="@style/NCText.Body"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="@+id/amountBTC"
         app:layout_constraintEnd_toStartOf="@+id/amountBTC"
+        app:layout_constraintTop_toBottomOf="@+id/topBarrier"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/amountBTC"
         tools:text="Hugo Nguyen" />
 
     <com.nunchuk.android.widget.NCFontTextView
@@ -56,7 +55,9 @@
         android:paddingVertical="@dimen/nc_padding_8"
         app:fontTextStyle="semi_bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/topBarrier"
+        app:layout_constraintBottom_toBottomOf="@+id/receiverName"
+        app:layout_constraintTop_toTopOf="@+id/receiverName"
+
         tools:text="- 0.120000982 BTC" />
 
     <androidx.constraintlayout.widget.Barrier
