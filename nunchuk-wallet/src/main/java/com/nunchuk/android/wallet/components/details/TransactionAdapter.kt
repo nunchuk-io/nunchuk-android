@@ -47,12 +47,12 @@ internal class TransactionViewHolder(
             binding.sendTo.text = context.getString(R.string.nc_transaction_receive_from)
             binding.amountBTC.text = data.subAmount.getBTCAmount()
             binding.amountUSD.text = data.subAmount.getUSDAmount()
-            binding.receiverName.text = data.receiveOutput.first().first
+            binding.receiverName.text = data.receiveOutput.firstOrNull()?.first.orEmpty()
         } else {
             binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
             binding.amountBTC.text = "- ${data.subAmount.getBTCAmount()}"
             binding.amountUSD.text = "- ${data.subAmount.getUSDAmount()}"
-            binding.receiverName.text = data.outputs.first().first
+            binding.receiverName.text = data.outputs.firstOrNull()?.first.orEmpty()
         }
         binding.status.bindTransactionStatus(data.status)
         binding.date.text = data.getFormatDate()

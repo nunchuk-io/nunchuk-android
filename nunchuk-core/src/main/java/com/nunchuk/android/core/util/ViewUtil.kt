@@ -26,15 +26,6 @@ fun TextView.setUnderline() {
     paintFlags = paintFlags or Paint.UNDERLINE_TEXT_FLAG
 }
 
-fun TransactionStatus.toDisplayedText(context: Context) = when (this) {
-    PENDING_SIGNATURES -> context.getString(R.string.nc_transaction_pending_signatures)
-    READY_TO_BROADCAST -> context.getString(R.string.nc_transaction_ready_to_broadcast)
-    NETWORK_REJECTED -> context.getString(R.string.nc_transaction_network_rejected)
-    PENDING_CONFIRMATION -> context.getString(R.string.nc_transaction_pending_confirmation)
-    REPLACED -> context.getString(R.string.nc_transaction_replaced)
-    CONFIRMED -> context.getString(R.string.nc_transaction_confirmed)
-}
-
 fun TextView.bindTransactionStatus(status: TransactionStatus) {
     background = AppCompatResources.getDrawable(context, R.drawable.nc_rounded_tag_fill_background)
     when (status) {
@@ -59,8 +50,8 @@ fun TextView.bindTransactionStatus(status: TransactionStatus) {
             backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_orange_dark_color)
         }
         REPLACED -> {
-            background = AppCompatResources.getDrawable(context, R.drawable.nc_rounded_tag_stroke_background)
             text = context.getString(R.string.nc_transaction_replaced)
+            background = AppCompatResources.getDrawable(context, R.drawable.nc_rounded_tag_stroke_background)
         }
     }
 }

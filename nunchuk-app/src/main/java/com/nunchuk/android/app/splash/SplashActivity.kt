@@ -1,14 +1,10 @@
 package com.nunchuk.android.app.splash
 
-import android.Manifest.permission.READ_EXTERNAL_STORAGE
-import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.core.app.ActivityCompat
 import com.nunchuk.android.app.splash.SplashEvent.*
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.util.isPermissionGranted
 import com.nunchuk.android.databinding.ActivitySplashBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
@@ -33,7 +29,7 @@ internal class SplashActivity : BaseActivity<ActivitySplashBinding>() {
 
     override fun onResume() {
         super.onResume()
-        requestPermissions()
+        viewModel.handleNavigation()
     }
 
     private fun subscribeEvents() {
@@ -50,27 +46,5 @@ internal class SplashActivity : BaseActivity<ActivitySplashBinding>() {
         finish()
     }
 
-    private fun requestPermissions() {
-        when {
-            !isPermissionGranted(READ_EXTERNAL_STORAGE) -> {
-                ActivityCompat.requestPermissions(this, arrayOf(READ_EXTERNAL_STORAGE), REQUEST_PERMISSION_CODE)
-            }
-            !isPermissionGranted(WRITE_EXTERNAL_STORAGE) -> {
-                ActivityCompat.requestPermissions(this, arrayOf(WRITE_EXTERNAL_STORAGE), REQUEST_PERMISSION_CODE)
-            }
-            else -> viewModel.handleNavigation()
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_PERMISSION_CODE) {
-            requestPermissions()
-        }
-    }
-
-    companion object {
-        private const val REQUEST_PERMISSION_CODE = 1248
-    }
 }
 
