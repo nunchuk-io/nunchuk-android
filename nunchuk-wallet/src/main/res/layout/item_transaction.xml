@@ -42,6 +42,8 @@
         style="@style/NCText.Body"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:ellipsize="middle"
+        android:maxLines="2"
         app:layout_constraintBottom_toBottomOf="@+id/amountBTC"
         app:layout_constraintEnd_toStartOf="@+id/amountBTC"
         app:layout_constraintStart_toStartOf="parent"
