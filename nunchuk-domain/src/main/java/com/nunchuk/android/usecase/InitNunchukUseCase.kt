@@ -19,7 +19,7 @@ interface InitNunchukUseCase {
 internal class InitNunchukUseCaseImpl @Inject constructor(
     private val getAppSettingUseCase: GetAppSettingsUseCase,
     private val nativeSdk: NunchukNativeSdk
-) : BaseUseCase(), InitNunchukUseCase {
+) : InitNunchukUseCase {
 
     override fun execute(
         passphrase: String,
@@ -35,7 +35,10 @@ internal class InitNunchukUseCaseImpl @Inject constructor(
         appSettings: AppSettings,
         accountId: String
     ) = flow {
-        emit(nativeSdk.initNunchuk(appSettings, "", accountId))
+        emit(nativeSdk.run {
+            initNunchuk(appSettings, "", accountId)
+            enableGenerateReceiveEvent()
+        })
     }.flowOn(Dispatchers.IO)
 
 }

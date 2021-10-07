@@ -33,16 +33,16 @@ ext {
     kotlinStdlibVersion = '1.5.0'
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.0.17'
+    nativeSdkVersion = '1.0.19'
 
     // Matrix
     matrixSdkVersion = '1.1.9'
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 1
-    PATCH_VERSION = 15
+    PATCH_VERSION = 16
 
-    VERSION_CODE = 31
+    VERSION_CODE = 32
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
@@ -58,9 +58,6 @@ ext {
             gradleAndroid       : "com.android.tools.build:gradle:${gradleVersion}",
             googleServices      : "com.google.gms:google-services:${googleServiceVersion}",
             playServicesAds     : "com.google.android.gms:play-services-ads:${playServiceVersion}",
-            gradleCpd           : "de.aaschmid:gradle-cpd-plugin:${gradleCpdVersion}",
-            jacocoReport        : "org.jacoco:org.jacoco.core:${jacocoReportVersion}",
-            detektGradlePlugin  : "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:${detektGradleVersion}",
             crashlytics         : "com.google.firebase:firebase-crashlytics-gradle:2.5.1",
             kotlinAndroidRuntime: "org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.30",
             appdistribution     : "com.google.firebase:firebase-appdistribution-gradle:2.1.3"
@@ -82,12 +79,10 @@ ext {
             recyclerView         : "androidx.recyclerview:recyclerview:${androidxVersion}",
             cardView             : "androidx.cardview:cardview:${androidxVersion}",
             appCompat            : "androidx.appcompat:appcompat:${androidxVersion}",
-            palette              : "androidx.palette:palette:${androidxVersion}",
             supportAnnotation    : "androidx.annotation:annotation:${androidxVersion}",
             coreUtils            : "androidx.legacy:legacy-support-core-utils:${androidxVersion}",
             constraintLayout     : "androidx.constraintlayout:constraintlayout:${constraintLayoutVersion}",
             multidex             : "androidx.multidex:multidex:${mutlidexVersion}",
-            localbroadcastManager: "androidx.localbroadcastmanager:localbroadcastmanager:${androidxVersion}",
     ]
 
     navigationDeps = [
@@ -116,7 +111,6 @@ ext {
             processor    : "com.google.dagger:dagger-android-processor:${daggerVersion}",
             support      : "com.google.dagger:dagger-android-support:${daggerVersion}",
             dagger       : "com.google.dagger:dagger:${daggerVersion}",
-            javax        : "javax.annotation:jsr250-api:1.0",
             jbAnnotations: "org.jetbrains:annotations:15.0",
     ]
 
