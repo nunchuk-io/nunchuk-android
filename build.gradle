@@ -14,7 +14,6 @@ buildscript {
     }
     dependencies {
         classpath pluginsDeps.gradleAndroid
-        classpath pluginsDeps.gradleCpd
         classpath kotlinDeps.plugin
         classpath pluginsDeps.googleServices
         classpath pluginsDeps.crashlytics
