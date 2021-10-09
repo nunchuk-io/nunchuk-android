@@ -15,7 +15,7 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 internal class MessageNotificationHolder(val binding: ItemMessageNotificationBinding) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(message: NotificationMessage) {
-        val sender = message.sender
+        val sender = message.sender.displayNameOrId()
         val event = message.timelineEvent
         when {
             event.isRoomMemberEvent() -> bindMembershipEvent(event, sender)

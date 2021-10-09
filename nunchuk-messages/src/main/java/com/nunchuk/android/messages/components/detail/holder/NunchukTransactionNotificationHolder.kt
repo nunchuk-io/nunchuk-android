@@ -6,16 +6,15 @@ import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.NunchukTransactionMessage
 import com.nunchuk.android.messages.databinding.ItemNunchukNotificationBinding
 import com.nunchuk.android.messages.util.TransactionEventType.*
+import com.nunchuk.android.messages.util.displayNameOrId
 import com.nunchuk.android.messages.util.getBodyElementValueByKey
-import timber.log.Timber
 
 internal class NunchukTransactionNotificationHolder(
     val binding: ItemNunchukNotificationBinding
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(model: NunchukTransactionMessage) {
-        Timber.d("[NunchukTransactionNotificationHolder]::$model.timelineEvent")
-        val sender = model.sender
+        val sender = model.sender.displayNameOrId()
         val context = itemView.context
         when (model.msgType) {
             SIGN -> {

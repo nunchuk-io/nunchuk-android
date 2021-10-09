@@ -3,11 +3,12 @@ package com.nunchuk.android.messages.components.detail
 import com.nunchuk.android.messages.util.TransactionEventType
 import com.nunchuk.android.messages.util.WalletEventType
 import org.matrix.android.sdk.api.session.room.send.SendState
+import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import java.io.Serializable
 
 open class Message(
-    open val sender: String,
+    open val sender: SenderInfo,
     open val content: String = "",
     open val state: SendState = SendState.UNKNOWN,
     open val time: Long,
@@ -15,7 +16,7 @@ open class Message(
 ) : Serializable
 
 data class NotificationMessage(
-    override val sender: String,
+    override val sender: SenderInfo,
     override val content: String,
     override val time: Long,
     val timelineEvent: TimelineEvent
@@ -28,7 +29,7 @@ data class NotificationMessage(
 )
 
 data class NunchukWalletMessage(
-    override val sender: String,
+    override val sender: SenderInfo,
     override val content: String,
     override val time: Long,
     val timelineEvent: TimelineEvent,
@@ -45,7 +46,7 @@ data class NunchukWalletMessage(
 )
 
 data class NunchukTransactionMessage(
-    override val sender: String,
+    override val sender: SenderInfo,
     override val content: String,
     override val time: Long,
     val timelineEvent: TimelineEvent,

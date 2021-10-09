@@ -16,7 +16,6 @@
         android:textColor="@color/nc_black_color"
         android:textSize="@dimen/nc_text_size_20"
         app:fontTextStyle="semi_bold"
-        app:layout_constraintBottom_toBottomOf="@+id/email"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Z" />

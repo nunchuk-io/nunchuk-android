@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import com.nunchuk.android.core.loader.ImageLoader
 import com.nunchuk.android.messages.components.detail.holder.*
 import com.nunchuk.android.messages.databinding.*
 import com.nunchuk.android.model.RoomWallet
@@ -12,6 +13,7 @@ import com.nunchuk.android.model.TransactionExt
 
 internal class MessagesAdapter(
     val context: Context,
+    private val imageLoader: ImageLoader,
     private val cancelWallet: () -> Unit,
     private val denyWallet: () -> Unit,
     private val viewConfig: () -> Unit,
@@ -35,6 +37,7 @@ internal class MessagesAdapter(
             ItemMessageMeBinding.inflate(LayoutInflater.from(context), parent, false)
         )
         MessageType.TYPE_CHAT_PARTNER.index -> MessagePartnerHolder(
+            imageLoader,
             ItemMessagePartnerBinding.inflate(LayoutInflater.from(context), parent, false)
         )
         MessageType.TYPE_NOTIFICATION.index -> MessageNotificationHolder(

@@ -12,4 +12,8 @@ interface ContactDao : BaseDao<ContactEntity> {
 
     @Query("SELECT * FROM $TABLE_CONTACT WHERE account_id = :accountId")
     fun getContacts(accountId: String): Flowable<List<ContactEntity>>
+
+    @Query("DELETE FROM $TABLE_CONTACT WHERE id IN (:contactIds) AND account_id = :accountId")
+    fun deleteItems(accountId: String, contactIds: List<String>)
+
 }

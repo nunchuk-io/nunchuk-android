@@ -7,6 +7,7 @@ import com.nunchuk.android.model.ReceiveContact
 import com.nunchuk.android.model.SentContact
 import com.nunchuk.android.persistence.dao.ContactDao
 import com.nunchuk.android.persistence.entity.ContactEntity
+import com.nunchuk.android.persistence.updateOrInsert
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Single
@@ -48,8 +49,29 @@ internal class ContactsRepositoryImpl @Inject constructor(
 
     override fun getRemoteContacts(accountId: String) = Completable.fromCallable {
         val response = api.getContacts().blockingGet()
-        val items = response.data.users.toEntities(accountId)
-        contactDao.insert(items)
+        saveDatabase(accountId, response.data.users)
+    }
+
+    private fun saveDatabase(accountId: String, remoteContacts: List<UserResponse>) {
+        val remoteContactIds = remoteContacts.map(UserResponse::id)
+        val localContacts = contactDao.getContacts(accountId).blockingFirst()
+        val localContactIds = localContacts.map(ContactEntity::id)
+        val oldContactIds = localContacts.filterNot { remoteContactIds.contains(it.id) }.map(ContactEntity::id)
+        val newContacts = remoteContacts.filterNot { localContactIds.contains(it.id) }
+        storeContacts(accountId, newContacts)
+        deleteOutdated(accountId, oldContactIds)
+    }
+
+    private fun storeContacts(accountId: String, contacts: List<UserResponse>) {
+        if (contacts.isNotEmpty()) {
+            contactDao.updateOrInsert(contacts.toEntities(accountId))
+        }
+    }
+
+    private fun deleteOutdated(accountId: String, contactIds: List<String>) {
+        if (contactIds.isNotEmpty()) {
+            contactDao.deleteItems(accountId, contactIds)
+        }
     }
 
     override fun addContacts(emails: List<String>): Flow<List<String>> = flow {

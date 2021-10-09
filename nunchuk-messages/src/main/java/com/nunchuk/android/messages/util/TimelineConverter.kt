@@ -24,7 +24,7 @@ fun TimelineEvent.toMessage(chatId: String): Message {
             val content = root.content?.toMap().orEmpty()
             val msgType = WalletEventType.of(content[KEY] as String)
             NunchukWalletMessage(
-                sender = senderSafe(),
+                sender = senderInfo,
                 content = gson.toJson(root.getClearContent()),
                 time = time(),
                 timelineEvent = this,
@@ -38,7 +38,7 @@ fun TimelineEvent.toMessage(chatId: String): Message {
             val content = root.content?.toMap().orEmpty()
             val msgType = TransactionEventType.of(content[KEY] as String)
             NunchukTransactionMessage(
-                sender = senderSafe(),
+                sender = senderInfo,
                 content = gson.toJson(root.getClearContent()),
                 time = time(),
                 timelineEvent = this,
@@ -50,7 +50,7 @@ fun TimelineEvent.toMessage(chatId: String): Message {
         }
         isMessageEvent() -> {
             Message(
-                sender = senderSafe(),
+                sender = senderInfo,
                 content = root.getClearContent().toModel<MessageContent>()?.body.orEmpty(),
                 root.sendState,
                 time = time(),
@@ -59,7 +59,7 @@ fun TimelineEvent.toMessage(chatId: String): Message {
         }
         else -> {
             NotificationMessage(
-                sender = senderSafe(),
+                sender = senderInfo,
                 content = gson.toJson(root.getClearContent()),
                 time = time(),
                 timelineEvent = this
