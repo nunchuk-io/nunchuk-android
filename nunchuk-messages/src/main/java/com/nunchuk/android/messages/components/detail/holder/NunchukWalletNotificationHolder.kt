@@ -10,6 +10,7 @@ import com.nunchuk.android.messages.components.detail.NunchukWalletMessage
 import com.nunchuk.android.messages.databinding.ItemNunchukNotificationBinding
 import com.nunchuk.android.messages.util.WalletEventType
 import com.nunchuk.android.messages.util.bindNotificationBackground
+import com.nunchuk.android.messages.util.displayNameOrId
 import com.nunchuk.android.messages.util.getBodyElementValueByKey
 
 internal class NunchukWalletNotificationHolder(
@@ -19,7 +20,7 @@ internal class NunchukWalletNotificationHolder(
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(model: NunchukWalletMessage) {
-        val sender = model.sender
+        val sender = model.sender.displayNameOrId()
         when (model.msgType) {
             WalletEventType.JOIN -> {
                 val fingerPrint = try {

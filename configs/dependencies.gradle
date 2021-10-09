@@ -74,15 +74,15 @@ ext {
     ]
 
     androidxDeps = [
-            design               : "com.google.android.material:material:1.3.0",
-            supportV4            : "androidx.legacy:legacy-support-v4:${androidxVersion}",
-            recyclerView         : "androidx.recyclerview:recyclerview:${androidxVersion}",
-            cardView             : "androidx.cardview:cardview:${androidxVersion}",
-            appCompat            : "androidx.appcompat:appcompat:${androidxVersion}",
-            supportAnnotation    : "androidx.annotation:annotation:${androidxVersion}",
-            coreUtils            : "androidx.legacy:legacy-support-core-utils:${androidxVersion}",
-            constraintLayout     : "androidx.constraintlayout:constraintlayout:${constraintLayoutVersion}",
-            multidex             : "androidx.multidex:multidex:${mutlidexVersion}",
+            design           : "com.google.android.material:material:1.3.0",
+            supportV4        : "androidx.legacy:legacy-support-v4:${androidxVersion}",
+            recyclerView     : "androidx.recyclerview:recyclerview:${androidxVersion}",
+            cardView         : "androidx.cardview:cardview:${androidxVersion}",
+            appCompat        : "androidx.appcompat:appcompat:${androidxVersion}",
+            supportAnnotation: "androidx.annotation:annotation:${androidxVersion}",
+            coreUtils        : "androidx.legacy:legacy-support-core-utils:${androidxVersion}",
+            constraintLayout : "androidx.constraintlayout:constraintlayout:${constraintLayoutVersion}",
+            multidex         : "androidx.multidex:multidex:${mutlidexVersion}",
     ]
 
     navigationDeps = [
@@ -112,6 +112,11 @@ ext {
             support      : "com.google.dagger:dagger-android-support:${daggerVersion}",
             dagger       : "com.google.dagger:dagger:${daggerVersion}",
             jbAnnotations: "org.jetbrains:annotations:15.0",
+    ]
+
+    imageLoaderDeps = [
+            glide    : "com.github.bumptech.glide:glide:4.12.0",
+            processor: "com.github.bumptech.glide:compiler:4.12.0"
     ]
 
     powerMockDeps = [

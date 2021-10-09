@@ -114,7 +114,6 @@ internal class WalletDetailsViewModel @Inject constructor(
                 is Error -> showError(event)
             }
         }
-        getState().wallet.description
     }
 
     private fun backupWallet(walletId: String, filePath: String) {

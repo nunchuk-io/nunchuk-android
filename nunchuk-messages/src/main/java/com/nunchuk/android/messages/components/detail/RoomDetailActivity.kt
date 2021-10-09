@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.loader.ImageLoader
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.databinding.ActivityRoomDetailBinding
@@ -24,6 +25,9 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
     @Inject
     lateinit var factory: ViewModelFactory
+
+    @Inject
+    lateinit var imageLoader: ImageLoader
 
     private val viewModel: RoomDetailViewModel by viewModels { factory }
 
@@ -94,6 +98,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
         adapter = MessagesAdapter(
             context = this,
+            imageLoader = imageLoader,
             cancelWallet = viewModel::cancelWallet,
             denyWallet = viewModel::denyWallet,
             viewConfig = viewModel::viewConfig,
@@ -117,8 +122,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         binding.recyclerView.smoothScrollToLastItem()
         binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                super.onScrollStateChanged(recyclerView, newState)
-                if (!recyclerView.canScrollVertically(1)) {
+                if (!recyclerView.isLastItemVisible()) {
                     viewModel.handleLoadMore()
                 }
             }
@@ -164,4 +168,14 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             activityContext.startActivity(RoomDetailArgs(roomId = roomId).buildIntent(activityContext))
         }
     }
+}
+
+private fun RecyclerView.isLastItemVisible(): Boolean {
+    val adapter = adapter ?: return false
+    if (adapter.itemCount != 0) {
+        val linearLayoutManager = layoutManager as LinearLayoutManager
+        val lastVisibleItemPosition = linearLayoutManager.findLastCompletelyVisibleItemPosition()
+        if (lastVisibleItemPosition != RecyclerView.NO_POSITION && lastVisibleItemPosition == adapter.itemCount - 1) return true
+    }
+    return false
 }
