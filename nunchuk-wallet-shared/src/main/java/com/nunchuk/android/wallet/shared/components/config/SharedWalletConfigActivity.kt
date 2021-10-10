@@ -3,18 +3,18 @@ package com.nunchuk.android.wallet.shared.components.config
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.isPendingKeys
+import com.nunchuk.android.core.util.isReadyFinalize
+import com.nunchuk.android.messages.components.detail.bindWalletStatus
+import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.RoomWalletData
-import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
-import com.nunchuk.android.wallet.components.config.WalletUpdateBottomSheet
 import com.nunchuk.android.wallet.shared.R
-import com.nunchuk.android.wallet.shared.components.config.SharedWalletConfigEvent.UpdateNameErrorEvent
-import com.nunchuk.android.wallet.shared.components.config.SharedWalletConfigEvent.UpdateNameSuccessEvent
+import com.nunchuk.android.wallet.shared.components.config.SharedWalletConfigEvent.CreateSharedWalletSuccess
 import com.nunchuk.android.wallet.shared.databinding.ActivitySharedWalletConfigBinding
 import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.wallet.util.toReadableString
@@ -48,29 +48,49 @@ class SharedWalletConfigActivity : BaseActivity<ActivitySharedWalletConfigBindin
 
     private fun handleEvent(event: SharedWalletConfigEvent) {
         when (event) {
-            UpdateNameSuccessEvent -> showEditWalletSuccess()
-            is UpdateNameErrorEvent -> NCToastMessage(this).showWarning(event.message)
+            CreateSharedWalletSuccess -> NCToastMessage(this).showMessage(getString(R.string.nc_message_wallet_created))
         }
     }
 
-    private fun handleState(wallet: Wallet) {
-        binding.walletName.text = wallet.name
+    private fun handleState(state: SharedWalletConfigState) {
+        SignersViewBinder(binding.signersContainer, state.signerModels).bindItems()
+        state.roomWallet?.let(::bindRoomWallet)
+    }
 
-        binding.configuration.bindWalletConfiguration(wallet)
+    private fun bindRoomWallet(roomWallet: RoomWallet) {
+        binding.status.bindWalletStatus(roomWallet)
+        when {
+            roomWallet.isPendingKeys() -> {
+                binding.btnDone.text = getString(R.string.nc_wallet_continue_assign_key)
+                binding.btnDone.isVisible = true
+                binding.btnDone.setOnClickListener { openAssignSignerSharedWalletScreen() }
+            }
+            roomWallet.isReadyFinalize() -> {
+                binding.btnDone.text = getString(R.string.nc_wallet_finalize_wallet)
+                binding.btnDone.isVisible = true
+                binding.btnDone.setOnClickListener { viewModel.finalizeWallet() }
+            }
+            else -> {
+                binding.btnDone.isVisible = false
+            }
+        }
+    }
 
-        binding.walletType.text = (if (wallet.escrow) WalletType.ESCROW else WalletType.MULTI_SIG).toReadableString(this)
-        binding.addressType.text = wallet.addressType.toReadableString(this)
-
-        SignersViewBinder(binding.signersContainer, wallet.signers.map(SingleSigner::toModel)).bindItems()
+    private fun openAssignSignerSharedWalletScreen() {
+        args.roomWalletData?.let {
+            navigator.openAssignSignerSharedWalletScreen(
+                this,
+                walletName = it.name,
+                walletType = if (it.isEscrow) WalletType.MULTI_SIG else WalletType.ESCROW,
+                addressType = AddressType.valueOf(it.addressType),
+                totalSigns = it.totalSigners,
+                requireSigns = it.requireSigners
+            )
+        }
     }
 
     private fun setupViews() {
-        binding.walletName.setOnClickListener { onEditClicked() }
-        binding.btnDone.setOnClickListener {
-            finish()
-        }
         binding.toolbar.setNavigationOnClickListener { finish() }
-
         args.roomWalletData?.let(::bindWalletData)
     }
 
@@ -85,21 +105,7 @@ class SharedWalletConfigActivity : BaseActivity<ActivitySharedWalletConfigBindin
         binding.addressType.text = AddressType.values().firstOrNull { it.name == roomWalletData.addressType }?.toReadableString(this)
     }
 
-    private fun onEditClicked() {
-        val bottomSheet = WalletUpdateBottomSheet.show(
-            fragmentManager = supportFragmentManager,
-            walletName = binding.walletName.text.toString()
-        )
-
-        bottomSheet.setListener(viewModel::handleEditCompleteEvent)
-    }
-
-    private fun showEditWalletSuccess() {
-        binding.root.post { NCToastMessage(this).show(R.string.nc_text_change_wallet_success) }
-    }
-
     companion object {
-
         fun start(activityContext: Context, roomWalletData: RoomWalletData) {
             activityContext.startActivity(SharedWalletConfigArgs(roomWalletData = roomWalletData).buildIntent(activityContext))
         }

@@ -6,6 +6,7 @@ enum class WalletEventType(val type: String) {
     INIT("io.nunchuk.wallet.init"),
     JOIN("io.nunchuk.wallet.join"),
     CREATE("io.nunchuk.wallet.create"),
+    LEAVE("io.nunchuk.wallet.leave"),
     CANCEL("io.nunchuk.wallet.cancel"),
     READY("io.nunchuk.wallet.ready");
 

@@ -30,6 +30,10 @@ internal class SignersViewBinder(
         val xfpValue = "XFP: ${model.fingerPrint}"
         binding.xpf.text = xfpValue
         binding.checkbox.isVisible = false
+
+        val isEmptyXFP = model.fingerPrint.isEmpty()
+        binding.xpf.isVisible = !isEmptyXFP
+        binding.signerType.isVisible = !isEmptyXFP
     }
 
 }

@@ -60,6 +60,7 @@ internal class MessagesAdapter(
         )
         MessageType.TYPE_NUNCHUK_WALLET_NOTIFICATION.index -> NunchukWalletNotificationHolder(
             ItemNunchukNotificationBinding.inflate(LayoutInflater.from(context), parent, false),
+            roomWallet = roomWallet,
             viewConfig = viewConfig,
             finalizeWallet = finalizeWallet
         )

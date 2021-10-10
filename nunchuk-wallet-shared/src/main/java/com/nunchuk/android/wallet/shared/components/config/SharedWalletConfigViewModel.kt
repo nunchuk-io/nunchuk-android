@@ -2,54 +2,66 @@ package com.nunchuk.android.wallet.shared.components.config
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.usecase.GetWalletUseCase
-import com.nunchuk.android.usecase.UpdateWalletUseCase
-import com.nunchuk.android.wallet.shared.components.config.SharedWalletConfigEvent.UpdateNameErrorEvent
-import com.nunchuk.android.wallet.shared.components.config.SharedWalletConfigEvent.UpdateNameSuccessEvent
+import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.usecase.CreateSharedWalletUseCase
+import com.nunchuk.android.usecase.GetRoomWalletUseCase
+import com.nunchuk.android.utils.CrashlyticsReporter
+import com.nunchuk.android.wallet.shared.components.config.SharedWalletConfigEvent.CreateSharedWalletSuccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.session.room.members.RoomMemberQueryParams
+import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import javax.inject.Inject
 
 internal class SharedWalletConfigViewModel @Inject constructor(
-    private val getWalletUseCase: GetWalletUseCase,
-    private val updateWalletUseCase: UpdateWalletUseCase
-) : NunchukViewModel<Wallet, SharedWalletConfigEvent>() {
+    private val createSharedWalletUseCase: CreateSharedWalletUseCase,
+    private val getRoomWalletUseCase: GetRoomWalletUseCase
+) : NunchukViewModel<SharedWalletConfigState, SharedWalletConfigEvent>() {
 
-    override val initialState = Wallet()
+    override val initialState = SharedWalletConfigState()
 
-    lateinit var walletId: String
-
-    fun init(walletId: String) {
-        this.walletId = walletId
-        getWalletDetails()
-    }
-
-    private fun getWalletDetails() {
-        viewModelScope.launch {
-            getWalletUseCase.execute(walletId)
-                .flowOn(Dispatchers.IO)
-                .catch { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
-                .flowOn(Dispatchers.Main)
-                .collect { updateState { it } }
+    init {
+        if (SessionHolder.hasActiveRoom()) {
+            val currentRoom = SessionHolder.currentRoom!!
+            val roomMembers = currentRoom.getRoomMembers(RoomMemberQueryParams.Builder().build())
+            updateState { copy(signerModels = roomMembers.toSignerModels()) }
+            getRoomWallet(currentRoom.roomId)
         }
     }
 
-    fun handleEditCompleteEvent(walletName: String) {
+    private fun getRoomWallet(roomId: String) {
         viewModelScope.launch {
-            updateWalletUseCase.execute(getState().copy(name = walletName))
+            getRoomWalletUseCase.execute(roomId)
                 .flowOn(Dispatchers.IO)
-                .catch { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
+                .catch { CrashlyticsReporter.recordException(it) }
                 .flowOn(Dispatchers.Main)
+                .collect { updateState { copy(roomWallet = it) } }
+        }
+    }
+
+    fun finalizeWallet() {
+        viewModelScope.launch {
+            val roomId = SessionHolder.currentRoom!!.roomId
+            createSharedWalletUseCase.execute(roomId)
+                .flowOn(Dispatchers.IO)
+                .catch { CrashlyticsReporter.recordException(it) }
                 .collect {
-                    updateState { copy(name = walletName) }
-                    event(UpdateNameSuccessEvent)
+                    getRoomWallet(roomId)
+                    event(CreateSharedWalletSuccess)
                 }
         }
     }
 
 }
+
+private fun List<RoomMemberSummary>.toSignerModels() = map(RoomMemberSummary::toSignerModel)
+
+private fun RoomMemberSummary.toSignerModel() = SignerModel(
+    id = userId,
+    name = displayName ?: userId,
+    fingerPrint = "",
+)

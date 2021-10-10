@@ -33,18 +33,25 @@ internal class NunchukWalletCardHolder(
         )
         if (roomWallet == null || roomWallet.initEventId != model.timelineEvent.eventId) {
             binding.cancelWallet.isVisible = false
+            binding.pendingKeys.isVisible = false
             binding.status.bindCanceledStatus()
             // FIXME
             binding.viewConfig.setOnClickListener(null)
         } else {
             binding.cancelWallet.isVisible = true
+            binding.pendingKeys.isVisible = true
             binding.status.bindWalletStatus(roomWallet)
+            val remainingKeys = initData.requireSigners - roomWallet.joinEventIds.size
+            if (remainingKeys > 0) {
+                binding.pendingKeys.text = context.getString(R.string.nc_message_pending_signers_to_assign, remainingKeys)
+            } else {
+                binding.pendingKeys.text = context.getString(R.string.nc_message_all_keys_assigned)
+            }
             binding.viewConfig.setOnClickListener { viewConfig() }
         }
         binding.root.gravity = if (model.isOwner) Gravity.END else Gravity.START
         binding.name.text = initData.name
         binding.configuration.text = context.getString(R.string.nc_message_creating_wallet, ratio)
-        binding.pendingSignatures.text = context.getString(R.string.nc_message_pending_signers_to_assign, initData.requireSigners)
         binding.cancelWallet.setOnClickListener { if (model.isOwner) cancelWallet() else denyWallet() }
     }
 
