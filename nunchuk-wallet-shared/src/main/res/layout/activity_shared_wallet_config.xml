@@ -33,16 +33,32 @@
         app:layout_constraintGuide_percent="0.5" />
 
     <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/status"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:layout_marginHorizontal="@dimen/nc_padding_12"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/nc_rounded_tag_fill_background"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:paddingHorizontal="@dimen/nc_padding_8"
+        android:textColor="@color/nc_primary_color"
+        android:textSize="@dimen/nc_text_size_10"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        tools:text="Pending keys" />
+
+    <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/walletName"
         style="@style/NCText.Heading"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_24"
+        android:layout_marginTop="@dimen/nc_padding_12"
         app:fontTextStyle="semi_bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        app:layout_constraintTop_toBottomOf="@+id/status"
         tools:text="Nunchuk Fun Fund" />
 
     <com.nunchuk.android.widget.NCFontTextView
@@ -52,7 +68,7 @@
         android:paddingVertical="@dimen/nc_padding_2"
         android:paddingHorizontal="@dimen/nc_padding_12"
         android:layout_marginStart="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_text_size_16"
+        android:layout_marginTop="@dimen/nc_padding_16"
         android:background="@drawable/nc_rounded_whisper_background"
         android:textColor="@color/nc_primary_color"
         android:textSize="@dimen/nc_text_size_12"
@@ -85,7 +101,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_28"
+        android:layout_marginTop="@dimen/nc_padding_16"
         android:text="@string/nc_wallet_wallet_type"
         app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"

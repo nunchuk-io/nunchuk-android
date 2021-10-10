@@ -114,6 +114,7 @@ class RoomDetailViewModel @Inject constructor(
             consumeEventUseCase.execute(sortedEvents)
                 .onCompletion {
                     updateState { copy(messages = displayableEvents.toMessages(currentId)) }
+                    getRoomWallet()
                     getTransactions(nunchukEvents.filter(TimelineEvent::isNunchukTransactionEvent))
                 }
                 .catch { CrashlyticsReporter.recordException(it) }

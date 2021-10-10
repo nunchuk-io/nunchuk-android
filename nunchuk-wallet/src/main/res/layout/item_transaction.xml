@@ -41,10 +41,14 @@
         android:id="@+id/receiverName"
         style="@style/NCText.Body"
         android:layout_width="0dp"
+        android:layout_marginTop="@dimen/nc_padding_4"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/nc_padding_8"
+        android:ellipsize="middle"
+        android:singleLine="true"
         app:layout_constraintEnd_toStartOf="@+id/amountBTC"
-        app:layout_constraintTop_toBottomOf="@+id/topBarrier"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/topBarrier"
         tools:text="Hugo Nguyen" />
 
     <com.nunchuk.android.widget.NCFontTextView
@@ -52,7 +56,6 @@
         style="@style/NCText.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingVertical="@dimen/nc_padding_8"
         app:fontTextStyle="semi_bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="@+id/receiverName"
@@ -69,6 +72,7 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/date"
+        android:layout_marginTop="@dimen/nc_padding_4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@color/nc_primary_dark_color"

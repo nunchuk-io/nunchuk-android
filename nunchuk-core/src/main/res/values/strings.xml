@@ -15,4 +15,8 @@
     <string name="nc_currency_btc">BTC</string>
     <string name="nc_currency_usd">USD</string>
 
+    <string name="nc_message_pending_finalization">Pending finalization</string>
+    <string name="nc_message_pending_signers">Pending keys</string>
+    <string name="nc_message_wallet_created">Shared wallet has been created</string>
+
 </resources>

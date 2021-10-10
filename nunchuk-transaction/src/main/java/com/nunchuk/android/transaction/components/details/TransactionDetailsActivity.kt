@@ -130,7 +130,11 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         } else {
             binding.status.bindTransactionStatus(transaction.status)
         }
-        binding.sendingBTC.text = transaction.subAmount.getBTCAmount()
+        if (transaction.isReceive) {
+            binding.sendingBTC.text = transaction.subAmount.getBTCAmount()
+        } else {
+            binding.sendingBTC.text = transaction.outputs.first().second.getBTCAmount()
+        }
         binding.signersContainer.isVisible = !transaction.isReceive
         binding.btnBroadcast.isVisible = transaction.status.canBroadCast()
         binding.btnViewBlockChain.isVisible = transaction.isReceive || transaction.status.isCompleted()

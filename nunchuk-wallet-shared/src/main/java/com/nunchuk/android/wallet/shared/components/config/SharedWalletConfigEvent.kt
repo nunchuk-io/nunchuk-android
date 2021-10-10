@@ -1,8 +1,13 @@
 package com.nunchuk.android.wallet.shared.components.config
 
+import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.model.RoomWallet
+
+data class SharedWalletConfigState(
+    val signerModels: List<SignerModel> = emptyList(),
+    val roomWallet: RoomWallet? = null
+)
+
 sealed class SharedWalletConfigEvent {
-
-    object UpdateNameSuccessEvent : SharedWalletConfigEvent()
-
-    data class UpdateNameErrorEvent(val message: String) : SharedWalletConfigEvent()
+    object CreateSharedWalletSuccess : SharedWalletConfigEvent()
 }

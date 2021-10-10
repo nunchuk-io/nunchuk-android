@@ -11,4 +11,6 @@
     <string name="nc_wallet_slots_left_in_the_wallet">%d slots left in the wallet</string>
     <string name="nc_wallet_total_number_keys">Total number of keys</string>
     <string name="nc_wallet_total_number_keys_in_wallet">Total number of keys \nin the wallet</string>
+    <string name="nc_wallet_continue_assign_key">Continue to assign keys</string>
+    <string name="nc_wallet_finalize_wallet">Finalize wallet</string>
 </resources>
