@@ -4,6 +4,7 @@ import android.view.Gravity
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
+import com.nunchuk.android.core.util.isCreated
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.NunchukWalletMessage
 import com.nunchuk.android.messages.components.detail.bindCanceledStatus
@@ -38,7 +39,7 @@ internal class NunchukWalletCardHolder(
             // FIXME
             binding.viewConfig.setOnClickListener(null)
         } else {
-            binding.cancelWallet.isVisible = true
+            binding.cancelWallet.isVisible = !roomWallet.isCreated()
             binding.pendingKeys.isVisible = true
             binding.status.bindWalletStatus(roomWallet)
             val remainingKeys = initData.requireSigners - roomWallet.joinEventIds.size

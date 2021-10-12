@@ -6,6 +6,8 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.util.isCanceled
+import com.nunchuk.android.core.util.isCreated
 import com.nunchuk.android.core.util.isPendingKeys
 import com.nunchuk.android.core.util.isReadyFinalize
 import com.nunchuk.android.messages.components.detail.bindWalletStatus
@@ -60,6 +62,12 @@ class SharedWalletConfigActivity : BaseActivity<ActivitySharedWalletConfigBindin
     private fun bindRoomWallet(roomWallet: RoomWallet) {
         binding.status.bindWalletStatus(roomWallet)
         when {
+            roomWallet.isCreated() -> {
+                binding.btnDone.isVisible = false
+            }
+            roomWallet.isCanceled() -> {
+                binding.btnDone.isVisible = false
+            }
             roomWallet.isPendingKeys() -> {
                 binding.btnDone.text = getString(R.string.nc_wallet_continue_assign_key)
                 binding.btnDone.isVisible = true
