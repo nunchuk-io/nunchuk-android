@@ -21,7 +21,7 @@ fun TextView.bindWalletStatus(roomWallet: RoomWallet) {
 }
 
 private fun TextView.bindCreatedStatus() {
-    text = context.getString(R.string.nc_text_created)
+    text = context.getString(R.string.nc_text_completed)
     background = AppCompatResources.getDrawable(context, R.drawable.nc_rounded_tag_fill_background)
     backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_green_color)
 }
