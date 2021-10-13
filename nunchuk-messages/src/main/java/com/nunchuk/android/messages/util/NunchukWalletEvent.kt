@@ -20,6 +20,7 @@ enum class TransactionEventType(val type: String) {
     INIT("io.nunchuk.transaction.init"),
     SIGN("io.nunchuk.transaction.sign"),
     REJECT("io.nunchuk.transaction.reject"),
+    RECEIVE("io.nunchuk.transaction.receive"),
     CANCEL("io.nunchuk.transaction.cancel"),
     READY("io.nunchuk.transaction.ready"),
     BROADCAST("io.nunchuk.transaction.broadcast");

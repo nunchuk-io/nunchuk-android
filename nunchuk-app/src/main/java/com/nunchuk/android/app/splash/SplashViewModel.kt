@@ -5,7 +5,7 @@ import com.nunchuk.android.app.splash.SplashEvent.*
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.usecase.InitNunchukUseCase
+import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch

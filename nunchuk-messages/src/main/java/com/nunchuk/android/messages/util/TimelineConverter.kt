@@ -1,6 +1,6 @@
 package com.nunchuk.android.messages.util
 
-
+import com.nunchuk.android.core.util.gson
 import com.nunchuk.android.messages.components.detail.*
 import com.nunchuk.android.utils.CrashlyticsReporter
 import org.matrix.android.sdk.api.session.events.model.toModel

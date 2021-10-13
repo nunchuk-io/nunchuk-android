@@ -51,6 +51,7 @@
     <string name="nc_message_transaction_ready">The transaction has enough signatures and is waiting to be broadcast</string>
     <string name="nc_message_transaction_canceled">The transaction has been canceled</string>
     <string name="nc_message_transaction_rejected">The transaction has been rejected</string>
+    <string name="nc_message_transaction_received">You’ve received a transaction</string>
     <string name="nc_message_transaction_signed">You’ve signed this transaction with %1s</string>
     <string name="nc_message_transaction_broadcast">The transaction has been broadcast. Waiting for it to be confirmed on the blockchain</string>
     <string name="nc_message_transaction_confirmed">The transaction has been confirmed on the blockchain</string>
