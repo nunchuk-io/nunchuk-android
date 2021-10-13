@@ -1,4 +1,4 @@
-package com.nunchuk.android.messages.util
+package com.nunchuk.android.core.util
 
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer

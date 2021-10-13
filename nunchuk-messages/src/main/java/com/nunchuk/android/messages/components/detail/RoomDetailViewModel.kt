@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.util.toMatrixContent
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.model.NunchukMatrixEvent

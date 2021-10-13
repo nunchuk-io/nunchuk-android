@@ -1,6 +1,7 @@
 package com.nunchuk.android.messages.util
 
 import com.google.gson.JsonObject
+import com.nunchuk.android.core.util.gson
 import com.nunchuk.android.messages.components.detail.MessageType
 import com.nunchuk.android.model.NunchukMatrixEvent
 import org.matrix.android.sdk.api.session.events.model.toModel
@@ -19,7 +20,6 @@ fun TimelineEvent.lastMessage(): CharSequence {
     val lastMessage = getTextEditableContent() ?: getLastMessageContent()?.body
     return "$senderName: $lastMessage"
 }
-
 
 fun TimelineEvent.membership(): Membership {
     val content = root.content.toModel<RoomMemberContent>()
@@ -44,8 +44,6 @@ fun TimelineEvent.chatType(chatId: String) = if (chatId == senderInfo.userId) {
 } else {
     MessageType.TYPE_CHAT_PARTNER.index
 }
-
-fun TimelineEvent.senderSafe() = senderInfo.displayNameOrId()
 
 fun SenderInfo?.displayNameOrId(): String = this?.displayName ?: this?.userId ?: "Guest"
 

@@ -24,6 +24,9 @@ internal class NunchukTransactionNotificationHolder(
             REJECT -> {
                 binding.notification.text = context.getString(R.string.nc_message_transaction_rejected)
             }
+            RECEIVE -> {
+                binding.notification.text = context.getString(R.string.nc_message_transaction_received)
+            }
             CANCEL -> {
                 binding.notification.text = context.getString(R.string.nc_message_transaction_canceled)
             }

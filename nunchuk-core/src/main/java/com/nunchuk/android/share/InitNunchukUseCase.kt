@@ -1,7 +1,12 @@
-package com.nunchuk.android.usecase
+package com.nunchuk.android.share
 
+import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.util.toMatrixContent
 import com.nunchuk.android.model.AppSettings
+import com.nunchuk.android.model.SendEventExecutor
+import com.nunchuk.android.model.SendEventHelper
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.GetAppSettingsUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapConcat
@@ -35,10 +40,23 @@ internal class InitNunchukUseCaseImpl @Inject constructor(
         appSettings: AppSettings,
         accountId: String
     ) = flow {
+        initReceiver()
         emit(nativeSdk.run {
             initNunchuk(appSettings, "", accountId)
             enableGenerateReceiveEvent()
         })
     }.flowOn(Dispatchers.IO)
 
+    private fun initReceiver() {
+        SendEventHelper.executor = object : SendEventExecutor {
+            override fun execute(roomId: String, type: String, content: String): String {
+                if (SessionHolder.hasActiveSession()) {
+                    SessionHolder.activeSession?.getRoom(roomId)?.run {
+                        sendEvent(type, content.toMatrixContent())
+                    }
+                }
+                return ""
+            }
+        }
+    }
 }

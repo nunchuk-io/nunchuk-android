@@ -9,7 +9,7 @@ import com.nunchuk.android.auth.domain.SignInUseCase
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.usecase.InitNunchukUseCase
+import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.utils.EmailValidator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
