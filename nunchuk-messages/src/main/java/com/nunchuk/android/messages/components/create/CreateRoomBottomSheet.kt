@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.vm.NunchukFactory
@@ -31,7 +31,7 @@ class CreateRoomBottomSheet : BaseBottomSheet<BottomSheetCreateRoomBinding>() {
     @Inject
     lateinit var navigator: NunchukNavigator
 
-    private val viewModel: CreateRoomViewModel by activityViewModels { factory }
+    private val viewModel: CreateRoomViewModel by viewModels { factory }
 
     private lateinit var adapter: ContactsAdapter
 

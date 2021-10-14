@@ -30,7 +30,7 @@ ext {
     jacocoReportVersion = '0.8.1'
     detektGradleVersion = '1.1.1'
     kotlinGradlePluginVersion = '1.4.30'
-    kotlinStdlibVersion = '1.5.0'
+    kotlinStdlibVersion = '1.5.31'
 
     // Nunchuk dep versions
     nativeSdkVersion = '1.0.20'
@@ -40,9 +40,9 @@ ext {
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 1
-    PATCH_VERSION = 18
+    PATCH_VERSION = 19
 
-    VERSION_CODE = 34
+    VERSION_CODE = 35
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
