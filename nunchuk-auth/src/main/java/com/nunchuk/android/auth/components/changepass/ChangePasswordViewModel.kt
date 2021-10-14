@@ -6,17 +6,18 @@ import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.*
 import com.nunchuk.android.auth.domain.ChangePasswordUseCase
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.core.account.AccountManager
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class ChangePasswordViewModel @Inject constructor(
     private val changePasswordUseCase: ChangePasswordUseCase,
-    accountManager: AccountManager
+    private val accountManager: AccountManager
 ) : NunchukViewModel<Unit, ChangePasswordEvent>() {
 
     private val account = accountManager.getAccount()
@@ -36,14 +37,19 @@ internal class ChangePasswordViewModel @Inject constructor(
             val isConfirmPasswordValid = validateConfirmPassword(confirmPassword)
             val isConfirmPasswordMatched = validateConfirmPasswordMatched(newPassword, confirmPassword)
             if (isOldPasswordValid && isNewPasswordValid && isConfirmPasswordValid && isConfirmPasswordMatched) {
-                event(LoadingEvent)
                 changePasswordUseCase.execute(oldPassword, newPassword)
-                    .flowOn(Dispatchers.Main)
+                    .flowOn(IO)
+                    .onStart { event(LoadingEvent) }
                     .catch { event(ChangePasswordSuccessError(it.message)) }
-                    .onEach { event(ChangePasswordSuccessEvent) }
-                    .launchIn(viewModelScope)
+                    .flowOn(Main)
+                    .collect { onChangePasswordSuccess() }
             }
         }
+    }
+
+    private fun onChangePasswordSuccess() {
+        accountManager.signOut()
+        event(ChangePasswordSuccessEvent)
     }
 
     private fun validateConfirmPasswordMatched(newPassword: String, confirmPassword: String): Boolean {

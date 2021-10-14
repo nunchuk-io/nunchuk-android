@@ -103,19 +103,21 @@ class AddReceiptActivity : BaseActivity<ActivityTransactionAddReceiptBinding>() 
             outputAmount = args.outputAmount,
             availableAmount = args.availableAmount,
             address = address,
-            privateNote = privateNote
+            privateNote = privateNote,
+            subtractFeeFromAmount = args.subtractFeeFromAmount
         )
     }
 
     companion object {
         private const val MAX_NOTE_LENGTH = 80
 
-        fun start(activityContext: Context, walletId: String, outputAmount: Double, availableAmount: Double) {
+        fun start(activityContext: Context, walletId: String, outputAmount: Double, availableAmount: Double, subtractFeeFromAmount: Boolean = false) {
             activityContext.startActivity(
                 AddReceiptArgs(
                     walletId = walletId,
                     outputAmount = outputAmount,
-                    availableAmount = availableAmount
+                    availableAmount = availableAmount,
+                    subtractFeeFromAmount = subtractFeeFromAmount
                 ).buildIntent(activityContext)
             )
         }

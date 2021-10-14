@@ -91,7 +91,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
     companion object {
         fun start(activityContext: Context) {
             val intent = Intent(activityContext, SignInActivity::class.java)
-                .apply {  }
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             activityContext.startActivity(intent)
         }
     }

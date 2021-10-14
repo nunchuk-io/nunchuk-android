@@ -20,7 +20,7 @@ data class Data<out T>(
                 if (code != 0) {
                     throw NunchukApiException(code, message ?: UNKNOWN_ERROR)
                 }
-                throw ApiSuccessException()
+                throw ApiInterceptedException()
             }
             throw NunchukApiException()
         }
@@ -33,7 +33,7 @@ data class ErrorResponse(
     val message: String?
 ) : Serializable
 
-class ApiSuccessException : Exception()
+class ApiInterceptedException : Exception()
 
 class NunchukApiException(val code: Int = 0, override val message: String = UNKNOWN_ERROR) : Exception(message)
 

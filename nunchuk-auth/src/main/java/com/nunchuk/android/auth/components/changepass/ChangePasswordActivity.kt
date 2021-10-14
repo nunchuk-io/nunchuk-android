@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.method.PasswordTransformationMethod
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.*
@@ -53,6 +54,7 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
     }
 
     private fun showEmailConfirmation(email: String) {
+        binding.emailSentDescription.isVisible = true
         binding.emailSentDescription.text = getString(R.string.nc_text_email_sent, email)
     }
 

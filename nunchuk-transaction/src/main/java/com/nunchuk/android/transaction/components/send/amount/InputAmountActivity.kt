@@ -51,7 +51,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         binding.mainCurrency.setText("")
         binding.mainCurrency.addTextChangedCallback(viewModel::handleAmountChanged)
         binding.mainCurrency.requestFocus()
-        binding.btnSendAll.setOnClickListener { openAddReceiptScreen(args.availableAmount) }
+        binding.btnSendAll.setOnClickListener { openAddReceiptScreen(args.availableAmount, true) }
         binding.btnSwitch.setOnClickListener { viewModel.switchCurrency() }
         binding.btnContinue.setOnClickListener {
             viewModel.handleContinueEvent()
@@ -60,12 +60,13 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         binding.amountUSD.text = "(${args.availableAmount.getUSDAmount()})"
     }
 
-    private fun openAddReceiptScreen(outputAmount: Double) {
+    private fun openAddReceiptScreen(outputAmount: Double, subtractFeeFromAmount: Boolean = false) {
         navigator.openAddReceiptScreen(
             this,
             walletId = args.walletId,
             outputAmount = outputAmount,
-            availableAmount = args.availableAmount
+            availableAmount = args.availableAmount,
+            subtractFeeFromAmount = subtractFeeFromAmount
         )
     }
 

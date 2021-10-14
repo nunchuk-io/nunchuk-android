@@ -35,6 +35,9 @@ class ForgotPasswordActivity : BaseActivity<ActivityForgotPasswordBinding>() {
 
     private fun setupViews() {
         binding.forgotPassword.setOnClickListener { onForgotPasswordClicked() }
+        binding.toolbar.setNavigationOnClickListener {
+            finish()
+        }
     }
 
     private fun onForgotPasswordClicked() {
