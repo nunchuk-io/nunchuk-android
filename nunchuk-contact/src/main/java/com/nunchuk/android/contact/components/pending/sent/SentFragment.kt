@@ -4,7 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.activityViewModels
+import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.contact.databinding.FragmentSentBinding
@@ -12,11 +13,10 @@ import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.model.SentContact
-import androidx.core.view.isVisible
 
 internal class SentFragment : BaseFragment<FragmentSentBinding>() {
 
-    private val viewModel: SentViewModel by activityViewModels { factory }
+    private val viewModel: SentViewModel by viewModels { factory }
 
     private lateinit var adapter: SentAdapter
 

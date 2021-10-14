@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -19,7 +19,7 @@ import com.nunchuk.android.model.Wallet
 
 internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
-    private val viewModel: WalletsViewModel by activityViewModels { factory }
+    private val viewModel: WalletsViewModel by viewModels { factory }
 
     override fun initializeBinding(
         inflater: LayoutInflater,

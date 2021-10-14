@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.contact.databinding.FragmentContactsBinding
@@ -14,7 +14,7 @@ import com.nunchuk.android.model.Contact
 
 class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
 
-    private val viewModel: ContactsViewModel by activityViewModels { factory }
+    private val viewModel: ContactsViewModel by viewModels { factory }
 
     private lateinit var adapter: ContactsAdapter
 

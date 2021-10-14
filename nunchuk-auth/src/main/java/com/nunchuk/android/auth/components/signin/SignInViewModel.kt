@@ -47,16 +47,16 @@ internal class SignInViewModel @Inject constructor(
                 .flowOn(Dispatchers.IO)
                 .onStart { event(ProcessingEvent) }
                 .catch { event(SignInErrorEvent(it.message)) }
-                .flatMapConcat { getCurrentUser(it) }
+                .flatMapConcat { getCurrentUser(token = it.first, encryptedDeviceId = it.second) }
                 .onEach { event(SignInSuccessEvent) }
                 .flowOn(Dispatchers.Main)
                 .launchIn(viewModelScope)
         }
     }
 
-    private fun getCurrentUser(token: String): Flow<Unit> {
+    private fun getCurrentUser(token: String, encryptedDeviceId: String): Flow<Unit> {
         return getCurrentUserUseCase.execute()
-            .flatMapConcat { loginWithMatrix(it, token) }
+            .flatMapConcat { loginWithMatrix(userName = it, password = token, encryptedDeviceId = encryptedDeviceId) }
             .flatMapConcat { initNunchuk() }
     }
 
@@ -66,8 +66,8 @@ internal class SignInViewModel @Inject constructor(
             .catch { event(SignInErrorEvent(it.message)) }
     }
 
-    private fun loginWithMatrix(userName: String, password: String): Flow<Session> {
-        return loginWithMatrixUseCase.execute(userName, password)
+    private fun loginWithMatrix(userName: String, password: String, encryptedDeviceId: String): Flow<Session> {
+        return loginWithMatrixUseCase.execute(userName = userName, password = password, encryptedDeviceId = encryptedDeviceId)
             .catch { event(SignInErrorEvent(it.message)) }
             .onEach {
                 SessionHolder.storeActiveSession(it)
