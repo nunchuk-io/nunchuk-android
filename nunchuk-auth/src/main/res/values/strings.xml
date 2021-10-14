@@ -4,8 +4,8 @@
     <string name="nc_text_change_password">Change password</string>
     <string name="nc_text_recover_password">Recover password</string>
     <string name="nc_text_sign_in">Sign-in</string>
-    <string name="nc_text_send_temporary_password">Send a new temporary password</string>
-    <string name="nc_text_forgot_password_guide_line">Enter the email address you used to register with Nunchuk and we\'ll send you a new temporary password for you to sign-in.</string>
+    <string name="nc_text_send_temporary_password">Send a temporary password</string>
+    <string name="nc_text_forgot_password_guide_line">Enter the email address you used to register with Nunchuk and we\'ll send you a temporary password for you to sign in.</string>
 
     <string name="nc_text_your_name">Your name</string>
     <string name="nc_text_email_address">Email address</string>
@@ -21,4 +21,5 @@
     <string name="nc_text_email_invalid">Email is invalid</string>
     <string name="nc_text_password_does_not_match">Confirm password does not match</string>
     <string name="nc_text_email_sent">We’ve sent a temporary password to %1s. Please change your password</string>
+    <string name="nc_text_reset_password">Reset password</string>
 </resources>

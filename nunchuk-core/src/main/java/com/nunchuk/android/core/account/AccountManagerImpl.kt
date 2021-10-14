@@ -59,6 +59,7 @@ internal class AccountManagerImpl @Inject constructor(
             signOut(true)
         }
         SessionHolder.activeSession = null
+        SessionHolder.currentRoom = null
     }
 
 }

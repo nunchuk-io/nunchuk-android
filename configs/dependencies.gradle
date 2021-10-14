@@ -10,7 +10,6 @@ ext {
     robolectricVersion = '4.0.2'
     espressoVersion = '3.1.0'
     dexMakerVersion = '1.4'
-    androidDebugDatabaseVersion = '1.0.6'
     gsonVersion = '2.8.2'
     androidTestVersion = '1.1.0'
 
@@ -26,8 +25,6 @@ ext {
     // Plugins versions
     gradleVersion = '4.0.2'
     googleServiceVersion = '4.3.4'
-    gradleCpdVersion = '1.2'
-    jacocoReportVersion = '0.8.1'
     detektGradleVersion = '1.1.1'
     kotlinGradlePluginVersion = '1.4.30'
     kotlinStdlibVersion = '1.5.31'
@@ -40,9 +37,9 @@ ext {
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 1
-    PATCH_VERSION = 20
+    PATCH_VERSION = 21
 
-    VERSION_CODE = 36
+    VERSION_CODE = 37
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",

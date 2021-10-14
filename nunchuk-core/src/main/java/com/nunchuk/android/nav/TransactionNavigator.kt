@@ -26,7 +26,8 @@ interface TransactionNavigator {
         activityContext: Activity,
         walletId: String,
         outputAmount: Double,
-        availableAmount: Double
+        availableAmount: Double,
+        subtractFeeFromAmount: Boolean = false,
     )
 
     fun openEstimatedFeeScreen(
@@ -35,7 +36,8 @@ interface TransactionNavigator {
         outputAmount: Double,
         availableAmount: Double,
         address: String,
-        privateNote: String
+        privateNote: String,
+        subtractFeeFromAmount: Boolean = false,
     )
 
     fun openTransactionConfirmScreen(

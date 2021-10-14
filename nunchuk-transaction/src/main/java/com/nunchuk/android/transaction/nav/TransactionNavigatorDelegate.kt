@@ -54,13 +54,15 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         activityContext: Activity,
         walletId: String,
         outputAmount: Double,
-        availableAmount: Double
+        availableAmount: Double,
+        subtractFeeFromAmount: Boolean,
     ) {
         AddReceiptActivity.start(
             activityContext = activityContext,
             walletId = walletId,
             outputAmount = outputAmount,
-            availableAmount = availableAmount
+            availableAmount = availableAmount,
+            subtractFeeFromAmount = subtractFeeFromAmount,
         )
     }
 
@@ -70,7 +72,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         outputAmount: Double,
         availableAmount: Double,
         address: String,
-        privateNote: String
+        privateNote: String,
+        subtractFeeFromAmount: Boolean
     ) {
         EstimatedFeeActivity.start(
             activityContext = activityContext,
@@ -78,7 +81,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             outputAmount = outputAmount,
             availableAmount = availableAmount,
             address = address,
-            privateNote = privateNote
+            privateNote = privateNote,
+            subtractFeeFromAmount = subtractFeeFromAmount
         )
     }
 

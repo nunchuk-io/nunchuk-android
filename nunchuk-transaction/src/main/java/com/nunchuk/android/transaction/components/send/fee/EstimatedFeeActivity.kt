@@ -41,6 +41,11 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     }
 
     private fun setupViews() {
+        val subtractFeeFromAmount = args.subtractFeeFromAmount
+        binding.subtractFeeCheckBox.isChecked = subtractFeeFromAmount
+        binding.subtractFeeCheckBox.isEnabled = !subtractFeeFromAmount
+        viewModel.handleSubtractFeeSwitch(true)
+
         binding.customizeFeeSwitch.setOnCheckedChangeListener { _, isChecked -> handleCustomizeFeeSwitch(isChecked) }
         binding.subtractFeeCheckBox.setOnCheckedChangeListener { _, isChecked -> viewModel.handleSubtractFeeSwitch(isChecked) }
         binding.manualFeeCheckBox.setOnCheckedChangeListener { _, isChecked -> viewModel.handleManualFeeSwitch(isChecked) }
@@ -111,7 +116,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             outputAmount: Double,
             availableAmount: Double,
             address: String,
-            privateNote: String
+            privateNote: String,
+            subtractFeeFromAmount: Boolean = false
         ) {
             activityContext.startActivity(
                 EstimatedFeeArgs(
@@ -119,7 +125,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                     outputAmount = outputAmount,
                     availableAmount = availableAmount,
                     address = address,
-                    privateNote = privateNote
+                    privateNote = privateNote,
+                    subtractFeeFromAmount = subtractFeeFromAmount
                 ).buildIntent(activityContext)
             )
         }
