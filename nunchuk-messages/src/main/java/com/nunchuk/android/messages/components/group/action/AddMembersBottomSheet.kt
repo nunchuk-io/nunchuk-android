@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.args.FragmentArgs
@@ -34,7 +34,7 @@ class AddMembersBottomSheet : BaseBottomSheet<BottomSheetAddMembersBinding>() {
     @Inject
     lateinit var navigator: NunchukNavigator
 
-    private val viewModel: AddMembersViewModel by activityViewModels { factory }
+    private val viewModel: AddMembersViewModel by viewModels { factory }
 
     private val args: AddMembersBottomSheetArgs by lazy { AddMembersBottomSheetArgs.deserializeFrom(arguments) }
 

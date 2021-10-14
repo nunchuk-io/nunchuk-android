@@ -16,7 +16,7 @@ import com.nunchuk.android.core.util.bindTransactionStatus
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.extensions.canBroadCast
-import com.nunchuk.android.extensions.isCompleted
+import com.nunchuk.android.extensions.hadBroadcast
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
@@ -137,7 +137,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         }
         binding.signersContainer.isVisible = !transaction.isReceive
         binding.btnBroadcast.isVisible = transaction.status.canBroadCast()
-        binding.btnViewBlockChain.isVisible = transaction.isReceive || transaction.status.isCompleted()
+        binding.btnViewBlockChain.isVisible = transaction.isReceive || transaction.status.hadBroadcast()
 
         bindAddress(transaction)
         bindChangeAddress(transaction)

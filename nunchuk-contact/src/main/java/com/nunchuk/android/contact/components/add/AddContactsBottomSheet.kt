@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.contact.components.add.AddContactsEvent.*
 import com.nunchuk.android.contact.databinding.BottomSheetAddContactsBinding
@@ -25,7 +25,7 @@ class AddContactsBottomSheet : BaseBottomSheet<BottomSheetAddContactsBinding>() 
 
     var listener: () -> Unit = {}
 
-    private val viewModel: AddContactsViewModel by activityViewModels { factory }
+    private val viewModel: AddContactsViewModel by viewModels { factory }
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): BottomSheetAddContactsBinding {
         return BottomSheetAddContactsBinding.inflate(inflater, container, false)
@@ -106,6 +106,7 @@ class AddContactsBottomSheet : BaseBottomSheet<BottomSheetAddContactsBinding>() 
         binding.input.setText("")
         binding.emails.removeAllViews()
         listener()
+        dialog?.dismiss()
         dismiss()
     }
 
