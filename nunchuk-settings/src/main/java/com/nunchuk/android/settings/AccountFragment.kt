@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.showToast
@@ -13,7 +13,7 @@ import com.nunchuk.android.settings.databinding.FragmentAccountBinding
 
 internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
 
-    private val viewModel: AccountViewModel by activityViewModels { factory }
+    private val viewModel: AccountViewModel by viewModels { factory }
 
     override fun initializeBinding(
         inflater: LayoutInflater,

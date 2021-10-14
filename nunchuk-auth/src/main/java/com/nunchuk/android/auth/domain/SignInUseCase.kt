@@ -12,7 +12,7 @@ interface SignInUseCase {
         email: String,
         password: String,
         staySignedIn: Boolean = true
-    ): Flow<String>
+    ): Flow<Pair<String, String>>
 }
 
 internal class SignInUseCaseImpl @Inject constructor(
@@ -27,7 +27,7 @@ internal class SignInUseCaseImpl @Inject constructor(
         storeAccount(email, it, staySignedIn)
     }
 
-    private fun storeAccount(email: String, response: UserTokenResponse, staySignedIn: Boolean): String {
+    private fun storeAccount(email: String, response: UserTokenResponse, staySignedIn: Boolean): Pair<String, String> {
         val account = accountManager.getAccount()
         accountManager.storeAccount(
             account.copy(
@@ -37,7 +37,7 @@ internal class SignInUseCaseImpl @Inject constructor(
                 staySignedIn = staySignedIn
             )
         )
-        return response.tokenId
+        return response.tokenId to response.deviceId
     }
 
 }

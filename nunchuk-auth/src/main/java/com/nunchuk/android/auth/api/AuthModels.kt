@@ -6,6 +6,8 @@ import java.io.Serializable
 data class UserTokenResponse(
     @SerializedName("tokenId")
     val tokenId: String,
+    @SerializedName("deviceId")
+    val deviceId: String,
     @SerializedName("expireInSeconds")
     val expireInSeconds: Long = 0
 ) : Serializable

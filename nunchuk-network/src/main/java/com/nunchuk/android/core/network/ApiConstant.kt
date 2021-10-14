@@ -7,8 +7,8 @@ internal object ApiConstant {
     internal const val HTTP_READ_TIMEOUT = 60L
 
     internal const val HEADER_TOKEN_TYPE = "Authorization"
-    internal const val HEADER_DEVICE_ID = "x-device-id"
-    internal const val HEADER_APP_VERSION = "x-app-version"
-    internal const val HEADER_OS_VERSION = "x-os-version"
+    internal const val HEADER_DEVICE_ID = "x-nc-device-id"
+    internal const val HEADER_APP_VERSION = "x-nc-app-version"
+    internal const val HEADER_OS_VERSION = "x-nc-os-version"
     internal const val HEADER_CONTENT_TYPE = "Content-Type"
 }

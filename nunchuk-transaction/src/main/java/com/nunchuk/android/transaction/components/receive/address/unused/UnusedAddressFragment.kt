@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.viewpager.widget.ViewPager
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.share.IntentSharingController
@@ -27,7 +27,7 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
 
     private val args: AddressFragmentArgs by lazy { AddressFragmentArgs.deserializeFrom(arguments) }
 
-    private val viewModel: UnusedAddressViewModel by activityViewModels { factory }
+    private val viewModel: UnusedAddressViewModel by viewModels { factory }
 
     override fun initializeBinding(
         inflater: LayoutInflater,
