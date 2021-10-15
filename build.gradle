@@ -2,12 +2,10 @@ apply from: 'configs/dependencies.gradle'
 
 buildscript {
     apply from: 'configs/dependencies.gradle'
-    ext {
-        kotlin_version = '1.5.0'
-    }
     repositories {
         google()
         jcenter()
+        mavenCentral()
         maven { url "https://maven.google.com" }
         maven { url 'https://jitpack.io' }
         mavenLocal()
@@ -26,6 +24,7 @@ allprojects {
     repositories {
         google()
         jcenter()
+        mavenCentral()
         maven { url "https://maven.google.com" }
         maven { url 'https://jitpack.io' }
         mavenLocal()

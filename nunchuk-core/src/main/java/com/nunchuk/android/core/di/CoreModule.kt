@@ -6,16 +6,11 @@ import com.nunchuk.android.core.loader.ImageLoader
 import com.nunchuk.android.core.loader.ImageLoaderImpl
 import com.nunchuk.android.core.matrix.MatrixInterceptor
 import com.nunchuk.android.core.matrix.MatrixInterceptorImpl
-import com.nunchuk.android.core.network.HeaderProvider
-import com.nunchuk.android.core.network.HeaderProviderImpl
 import dagger.Binds
 import dagger.Module
 
 @Module
 internal interface CoreModule {
-
-    @Binds
-    fun bindHeaderProvider(provider: HeaderProviderImpl): HeaderProvider
 
     @Binds
     fun bindAccountManager(manager: AccountManagerImpl): AccountManager

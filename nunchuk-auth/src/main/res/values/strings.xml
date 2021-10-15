@@ -20,6 +20,6 @@
     <string name="nc_text_name_invalid">Name is invalid</string>
     <string name="nc_text_email_invalid">Email is invalid</string>
     <string name="nc_text_password_does_not_match">Confirm password does not match</string>
-    <string name="nc_text_email_sent">We’ve sent a temporary password to %1s. Please change your password</string>
+    <string name="nc_text_email_sent">We’ve sent a temporary password to %1$s. Please change your password</string>
     <string name="nc_text_reset_password">Reset password</string>
 </resources>

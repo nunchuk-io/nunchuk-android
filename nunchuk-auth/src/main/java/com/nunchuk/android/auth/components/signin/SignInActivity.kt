@@ -72,12 +72,10 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
     }
 
     private fun onSignUpClick() {
-        finish()
         navigator.openSignUpScreen(this)
     }
 
     private fun onForgotPasswordClick() {
-        finish()
         navigator.openForgotPasswordScreen(this)
     }
 
