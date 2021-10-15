@@ -1,11 +1,14 @@
-package com.nunchuk.android.core.network
+package com.nunchuk.android.app.network
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Build
 import android.os.Build.VERSION
-import android.provider.Settings.Secure
+import android.os.Build.VERSION_CODES
+import android.provider.Settings.Secure.ANDROID_ID
+import android.provider.Settings.Secure.getString
+import com.nunchuk.android.BuildConfig
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.network.HeaderProvider
 import javax.inject.Inject
 
 class HeaderProviderImpl @Inject constructor(
@@ -14,9 +17,9 @@ class HeaderProviderImpl @Inject constructor(
 ) : HeaderProvider {
 
     @SuppressLint("HardwareIds")
-    private val deviceId: String = Secure.getString(context.applicationContext.contentResolver, Secure.ANDROID_ID)
+    private val deviceId: String = getString(context.applicationContext.contentResolver, ANDROID_ID)
 
-    override fun getOsVersion(): String = if (VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+    override fun getOsVersion(): String = if (VERSION.SDK_INT >= VERSION_CODES.M) {
         VERSION.BASE_OS
     } else {
         VERSION.RELEASE

@@ -1,7 +1,7 @@
 package com.nunchuk.android.app.di
 
 import com.nunchuk.android.nav.NunchukNavigator
-import com.nunchuk.android.nav.NunchukNavigatorImpl
+import com.nunchuk.android.app.nav.NunchukNavigatorImpl
 import dagger.Binds
 import dagger.Module
 
