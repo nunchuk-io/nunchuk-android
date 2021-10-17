@@ -22,4 +22,7 @@
     <string name="nc_text_password_does_not_match">Confirm password does not match</string>
     <string name="nc_text_email_sent">We’ve sent a temporary password to %1$s. Please change your password</string>
     <string name="nc_text_reset_password">Reset password</string>
+    <string name="nc_text_term_and_policy">By creating an account, you agree to our Terms and Conditions and Privacy Policy.</string>
+    <string name="nc_hyperlink_text_term">Terms and Conditions</string>
+    <string name="nc_hyperlink_text_policy">Privacy Policy</string>
 </resources>
