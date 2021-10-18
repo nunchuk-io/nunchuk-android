@@ -202,6 +202,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun Transaction.getConfirmations(): Int = if (height > 0) (chainTip - height + 1) else height
+    private fun Transaction.getConfirmations() = if (chainTip > 0 && height > 0 && chainTip >= height) (chainTip - height + 1) else 0
 
 }
