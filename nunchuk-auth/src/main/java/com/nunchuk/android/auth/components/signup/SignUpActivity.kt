@@ -8,6 +8,7 @@ import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.signup.SignUpEvent.*
 import com.nunchuk.android.auth.databinding.ActivitySignupBinding
+import com.nunchuk.android.auth.util.linkify
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showToast
@@ -34,6 +35,9 @@ class SignUpActivity : BaseActivity<ActivitySignupBinding>() {
     private fun setupViews() {
         binding.signUp.setOnClickListener { onRegisterClicked() }
         binding.signIn.setOnClickListener { openLoginScreen() }
+
+        binding.tvTermAndPolicy.linkify(getString(R.string.nc_hyperlink_text_term), TERM_URL)
+        binding.tvTermAndPolicy.linkify(getString(R.string.nc_hyperlink_text_policy), PRIVACY_URL)
     }
 
     private fun onRegisterClicked() {
@@ -99,6 +103,8 @@ class SignUpActivity : BaseActivity<ActivitySignupBinding>() {
     }
 
     companion object {
+        private const val PRIVACY_URL = "https://www.nunchuk.io/privacy.html"
+        private const val TERM_URL = "https://www.nunchuk.io/terms.html"
         fun start(activityContext: Context) {
             activityContext.startActivity(Intent(activityContext, SignUpActivity::class.java))
         }
