@@ -58,7 +58,7 @@ class RoomDetailViewModel @Inject constructor(
         getRoomWallet()
     }
 
-    private fun getRoomWallet() {
+    private fun getRoomWallet(onCompleted: () -> Unit = {}) {
         viewModelScope.launch {
             getRoomWalletUseCase.execute(roomId = room.roomId)
                 .flowOn(IO)
@@ -66,7 +66,10 @@ class RoomDetailViewModel @Inject constructor(
                     updateState { copy(roomWallet = null) }
                     Timber.e("Get room wallet error ", it)
                 }
-                .collect { updateState { copy(roomWallet = it) } }
+                .collect {
+                    onCompleted()
+                    updateState { copy(roomWallet = it) }
+                }
         }
     }
 
@@ -112,24 +115,47 @@ class RoomDetailViewModel @Inject constructor(
             val sortedEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
                 .sortedBy(NunchukMatrixEvent::time)
-            consumeEventUseCase.execute(sortedEvents)
-                .onCompletion {
-                    updateState { copy(messages = displayableEvents.toMessages(currentId)) }
-                    getRoomWallet()
-                    getTransactions(nunchukEvents.filter(TimelineEvent::isNunchukTransactionEvent))
-                }
-                .catch { CrashlyticsReporter.recordException(it) }
-                .collect { Timber.d("Consume event completed") }
+            consumeEvents(sortedEvents, displayableEvents, nunchukEvents)
         }
     }
 
-    private fun getTransactions(events: List<TimelineEvent>) {
+    private suspend fun consumeEvents(
+        sortedEvents: List<NunchukMatrixEvent>,
+        displayableEvents: List<TimelineEvent>,
+        nunchukEvents: List<TimelineEvent>
+    ) {
+        consumeEventUseCase.execute(sortedEvents)
+            .onCompletion {
+                updateState { copy(messages = displayableEvents.toMessages(currentId)) }
+                getRoomWallet(nunchukEvents)
+            }
+            .catch { CrashlyticsReporter.recordException(it) }
+            .collect { Timber.d("Consume event completed") }
+    }
+
+    private fun getRoomWallet(nunchukEvents: List<TimelineEvent>) {
+        getRoomWallet {
+            getState().roomWallet?.walletId?.let {
+                getTransactions(it, nunchukEvents.filter(TimelineEvent::isNunchukTransactionEvent))
+            }
+        }
+    }
+
+    private fun getTransactions(walletId: String, events: List<TimelineEvent>) {
+        getState().roomWallet?.walletId
         viewModelScope.launch {
-            val eventIds = events.filter(TimelineEvent::isInitTransactionEvent).map(TimelineEvent::eventId)
-            getTransactionsUseCase.execute(eventIds)
+            val eventIds = mapTransactionEvents(events)
+            getTransactionsUseCase.execute(walletId, eventIds)
                 .catch { CrashlyticsReporter.recordException(it) }
                 .collect { updateState { copy(transactions = it) } }
         }
+    }
+
+    private fun mapTransactionEvents(events: List<TimelineEvent>): List<Pair<String, Boolean>> {
+        return events.filter { it.isInitTransactionEvent() || it.isReceiveTransactionEvent() }
+            .map {
+                it.eventId to it.isReceiveTransactionEvent()
+            }
     }
 
     fun handleSendMessage(content: String) {

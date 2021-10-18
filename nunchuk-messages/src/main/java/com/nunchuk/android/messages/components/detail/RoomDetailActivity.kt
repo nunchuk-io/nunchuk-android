@@ -58,7 +58,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 
     private fun handleState(state: RoomDetailState) {
-        Timber.d("transactions:: ${state.transactions.map { "(${it.initEventId},${it.transaction.txId},${it.transaction.status})" }})")
+        Timber.d("transactions:: ${state.transactions}")
         binding.toolbarTitle.text = state.roomInfo.roomName
         val membersCount = "${state.roomInfo.memberCount} members"
         binding.memberCount.text = membersCount
