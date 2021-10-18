@@ -117,7 +117,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
     }
 
     private fun bindTransaction(transaction: Transaction) {
-        binding.sendingTo.text = transaction.outputs.first().first
+        binding.sendingTo.text = transaction.outputs.firstOrNull()?.first.orEmpty()
         val pendingSigners = transaction.signers.count { !it.value }
         if (pendingSigners > 0) {
             binding.signatureStatus.text = getString(R.string.nc_transaction_pending_signature, pendingSigners)
@@ -133,7 +133,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         if (transaction.isReceive) {
             binding.sendingBTC.text = transaction.subAmount.getBTCAmount()
         } else {
-            binding.sendingBTC.text = transaction.outputs.first().second.getBTCAmount()
+            binding.sendingBTC.text = transaction.outputs.firstOrNull()?.second?.getBTCAmount().orEmpty()
         }
         binding.signersContainer.isVisible = !transaction.isReceive
         binding.btnBroadcast.isVisible = transaction.status.canBroadCast()
@@ -160,9 +160,10 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
     }
 
     private fun bindAddress(transaction: Transaction) {
-        binding.sendAddressLabel.text = transaction.outputs.first().first
-        binding.sendAddressBTC.text = transaction.outputs.first().second.getBTCAmount()
-        binding.sendAddressUSD.text = transaction.outputs.first().second.getUSDAmount()
+        val output = transaction.outputs.firstOrNull()
+        binding.sendAddressLabel.text = output?.first.orEmpty()
+        binding.sendAddressBTC.text = output?.second?.getBTCAmount().orEmpty()
+        binding.sendAddressUSD.text = output?.second?.getUSDAmount().orEmpty()
 
         binding.sendingToLabel.text = if (transaction.isReceive) getString(R.string.nc_transaction_received_to) else getString(R.string.nc_transaction_sending_to)
         binding.sendToAddress.text = if (transaction.isReceive) getString(R.string.nc_transaction_receive_address) else getString(R.string.nc_transaction_send_to_address)

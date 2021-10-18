@@ -50,11 +50,16 @@ fun SenderInfo?.displayNameOrId(): String = this?.displayName ?: this?.userId ?:
 // TODO simplify parse logic
 fun TimelineEvent.getBodyElementValueByKey(key: String): String {
     val map = root.content?.toMap().orEmpty()
-    return gson.fromJson(gson.toJson(map["body"]), JsonObject::class.java).get(key).asString
+    val element = gson.fromJson(gson.toJson(map["body"]), JsonObject::class.java).get(key)
+    return "$element"
 }
 
-fun TimelineEvent.isInitTransactionEvent(): Boolean {
+fun TimelineEvent.isInitTransactionEvent() = isTransactionEvent(TransactionEventType.INIT)
+
+fun TimelineEvent.isReceiveTransactionEvent() = isTransactionEvent(TransactionEventType.RECEIVE)
+
+private fun TimelineEvent.isTransactionEvent(type: TransactionEventType): Boolean {
     val content = root.content?.toMap().orEmpty()
     val msgType = TransactionEventType.of(content[KEY] as String)
-    return msgType == TransactionEventType.INIT
+    return msgType == type
 }
