@@ -59,11 +59,9 @@ internal class AssignSignerViewModel @Inject constructor(
 
         viewModelScope.launch {
             val unusedSignerSigners = ArrayList<SingleSigner>()
-            masterSigners.forEach {
-                getUnusedSignerUseCase
-                    .execute(it.id, walletType, addressType)
-                    .collect { signer -> unusedSignerSigners.add(signer) }
-            }
+            getUnusedSignerUseCase
+                .execute(masterSigners, walletType, addressType)
+                .collect { unusedSignerSigners.addAll(it) }
 
             SessionHolder.currentRoom?.let { room ->
                 joinWalletUseCase.execute(room.roomId, remoteSigners + unusedSignerSigners)
