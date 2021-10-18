@@ -2,7 +2,6 @@ package com.nunchuk.android.core.account
 
 import com.nunchuk.android.core.matrix.SessionHolder
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
@@ -46,6 +45,7 @@ internal class AccountManagerImpl @Inject constructor(
     }
 
     override fun signOut() {
+        // TODO call Nunchuk SignOut Api
         accountSharedPref.clearAccountInfo()
         GlobalScope.launch {
             signOutMatrix().catch {
@@ -54,12 +54,11 @@ internal class AccountManagerImpl @Inject constructor(
         }
     }
 
-    private fun signOutMatrix(): Flow<Unit> = flow {
-        SessionHolder.activeSession?.apply {
-            signOut(true)
-        }
+    private fun signOutMatrix() = flow {
+        SessionHolder.activeSession?.stopSync()
         SessionHolder.activeSession = null
         SessionHolder.currentRoom = null
+        emit(Unit)
     }
 
 }

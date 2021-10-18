@@ -15,7 +15,6 @@ import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -38,9 +37,9 @@ internal class ReviewWalletViewModel @Inject constructor(
         remoteSigners: List<SingleSigner>
     ) {
         viewModelScope.launch {
-            convertMasterSigners(masterSigners, walletType, addressType)
-                .onStart { event(SetLoadingEvent(true)) }
+            getUnusedSignerUseCase.execute(masterSigners, walletType, addressType)
                 .flowOn(Dispatchers.IO)
+                .onStart { event(SetLoadingEvent(true)) }
                 .map {
                     val signers = it + remoteSigners
                     Timber.d("signers:$signers")
@@ -64,7 +63,6 @@ internal class ReviewWalletViewModel @Inject constructor(
                         isEscrow = walletType == ESCROW
                     )
                 }
-                .flowOn(Dispatchers.IO)
                 .flowOn(Dispatchers.Main)
                 .catch {
                     Timber.d("create wallet error:$it")
@@ -76,17 +74,5 @@ internal class ReviewWalletViewModel @Inject constructor(
                 }
         }
     }
-
-    private fun convertMasterSigners(
-        masterSigners: List<MasterSigner>,
-        walletType: WalletType,
-        addressType: AddressType
-    ) = combine(
-        masterSigners.map {
-            runBlocking {
-                getUnusedSignerUseCase.execute(it.id, walletType, addressType)
-            }
-        }
-    ) { it.toList() }.flowOn(Dispatchers.IO)
 
 }
