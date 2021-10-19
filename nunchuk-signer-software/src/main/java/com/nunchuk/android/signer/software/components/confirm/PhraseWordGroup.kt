@@ -19,13 +19,23 @@ data class PhraseWord(
 internal fun List<String>.random3LastPhraseWords(): List<PhraseWordGroup> {
     Timber.d("random3LastPhraseWords($this)")
     val usedIndexes = ArrayList<Int>()
+    val confirmWordIndexes = mutableSetOf<Int>()
     val result = ArrayList<PhraseWordGroup>(NUMBER_WORD_TO_CONFIRM)
-    (0 until NUMBER_WORD_TO_CONFIRM)
-        .forEach { usedIndexes.add(size + it - NUMBER_WORD_TO_CONFIRM) }
+    // Random two first confirmation words
+    do {
+        confirmWordIndexes.add(Random.nextInt(0, size - 1))
+    } while (confirmWordIndexes.size < 2)
 
-    (0 until NUMBER_WORD_TO_CONFIRM)
-        .map { size + it - NUMBER_WORD_TO_CONFIRM }
-        .mapTo(result) { randomPhraseWordGroup(it, usedIndexes) }
+    // Random #3 confirmation word (should be a word from words #22-24)
+    do {
+        confirmWordIndexes.add(Random.nextInt(size - 3, size))
+    } while (confirmWordIndexes.size < 3)
+
+    usedIndexes.addAll(confirmWordIndexes)
+    confirmWordIndexes.mapTo(result) {
+        randomPhraseWordGroup(it, usedIndexes)
+    }
+
     result.sortBy(PhraseWordGroup::index)
     return result
 }
