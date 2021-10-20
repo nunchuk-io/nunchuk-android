@@ -114,6 +114,7 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
             navigator.openTransactionDetailsScreen(this, args.walletId, it.txId)
         }
         binding.transactionList.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
+        binding.transactionList.isNestedScrollingEnabled = false
         binding.transactionList.adapter = adapter
 
         binding.viewWalletConfig.setUnderline()
