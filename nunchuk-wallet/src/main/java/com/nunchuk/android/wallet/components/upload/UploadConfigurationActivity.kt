@@ -9,6 +9,7 @@ import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.share.IntentSharingEventBus
 import com.nunchuk.android.core.share.IntentSharingListener
 import com.nunchuk.android.core.share.IntentSharingListenerWrapper
+import com.nunchuk.android.core.util.checkReadExternalPermission
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.*
 import com.nunchuk.android.wallet.databinding.ActivityWalletUploadConfigurationBinding
 import com.nunchuk.android.widget.NCToastMessage
@@ -53,10 +54,16 @@ class UploadConfigurationActivity : BaseActivity<ActivityWalletUploadConfigurati
 
     private fun setupViews() {
         binding.btnQRCode.setOnClickListener { viewModel.handleShowQREvent() }
-        binding.btnUpload.setOnClickListener { viewModel.handleUploadEvent() }
+        binding.btnUpload.setOnClickListener { handleUploadWallet() }
         binding.btnSkipUpload.setOnClickListener { navigator.openWalletConfigScreen(this, args.walletId) }
         binding.toolbar.setNavigationOnClickListener {
             finish()
+        }
+    }
+
+    private fun handleUploadWallet() {
+        if (checkReadExternalPermission()) {
+            viewModel.handleUploadEvent()
         }
     }
 

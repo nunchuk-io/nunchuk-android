@@ -1,7 +1,11 @@
 package com.nunchuk.android.core.util
 
+import android.Manifest
 import android.app.Activity
+import android.content.pm.PackageManager
+import android.os.Build
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.nunchuk.android.core.base.BaseActivity
@@ -30,4 +34,26 @@ fun Fragment.hideLoading() {
 
 fun Fragment.showOrHideLoading(loading: Boolean) {
     activity?.showOrHideLoading(loading)
+}
+
+private const val READ_STORAGE_PERMISSION_REQUEST_CODE = 0x2048
+
+fun Activity.checkReadExternalPermission(): Boolean {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+        return false
+    }
+    val result: Int = checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+    val isGranted = result == PackageManager.PERMISSION_GRANTED
+    if (!isGranted) {
+        requestReadExternalPermission()
+    }
+    return isGranted
+}
+
+fun Activity.requestReadExternalPermission() = try {
+    ActivityCompat.requestPermissions(
+        this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), READ_STORAGE_PERMISSION_REQUEST_CODE
+    )
+} catch (e: Exception) {
+    e.printStackTrace()
 }

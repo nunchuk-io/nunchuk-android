@@ -11,10 +11,7 @@ import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.qr.convertToQRCode
 import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getUSDAmount
-import com.nunchuk.android.core.util.pureBTC
-import com.nunchuk.android.core.util.setUnderline
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import com.nunchuk.android.wallet.components.details.WalletDetailsOption.*
@@ -154,11 +151,23 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
         val bottomSheet = WalletUpdateBottomSheet.show(fragmentManager = supportFragmentManager)
         bottomSheet.setListener {
             when (it) {
-                BACKUP -> viewModel.handleBackupWallet()
-                UPLOAD -> viewModel.handleUploadWallet()
+                BACKUP -> handleBackupWallet()
+                UPLOAD -> handleUploadWallet()
                 QR -> viewModel.handleExportWalletQR()
                 DELETE -> viewModel.handleDeleteWallet()
             }
+        }
+    }
+
+    private fun handleUploadWallet() {
+        if (checkReadExternalPermission()) {
+            viewModel.handleUploadWallet()
+        }
+    }
+
+    private fun handleBackupWallet() {
+        if (checkReadExternalPermission()) {
+            viewModel.handleBackupWallet()
         }
     }
 

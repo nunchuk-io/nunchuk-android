@@ -145,7 +145,7 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     private fun uploadWallet(walletId: String, filePath: String) {
         viewModelScope.launch {
-            when (val event = exportWalletUseCase.execute(walletId, filePath)) {
+            when (val event = exportWalletUseCase.execute(walletId, filePath, ExportFormat.BSMS)) {
                 is Success -> event(UploadWalletConfigEvent(filePath))
                 is Error -> showError(event)
             }
