@@ -20,9 +20,12 @@ class IntentSharingController private constructor(val activityContext: Activity)
     }
 
     fun shareFile(filePath: String) {
+        val uri = Uri.fromFile(File(filePath))
         share(Intent(Intent.ACTION_SEND).apply {
-            putExtra(Intent.EXTRA_STREAM, Uri.fromFile(File(filePath)))
+            putExtra(Intent.EXTRA_STREAM, uri)
+            data = uri
             type = "*/*"
+            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
         })
     }
 

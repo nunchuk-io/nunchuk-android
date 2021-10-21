@@ -49,7 +49,7 @@ internal class ReviewWalletViewModel @Inject constructor(
                         signers = signers,
                         addressType = addressType,
                         isEscrow = walletType == ESCROW
-                    )
+                    ).onEach { s -> descriptor = s }
                     Timber.d("descriptor:$descriptor")
                     signers
                 }

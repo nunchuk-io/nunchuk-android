@@ -5,6 +5,7 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
+import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.ExportCoboWalletUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
@@ -56,7 +57,7 @@ internal class UploadConfigurationViewModel @Inject constructor(
 
     private fun exportWallet(walletId: String, filePath: String) {
         viewModelScope.launch {
-            when (val event = exportWalletUseCase.execute(walletId, filePath)) {
+            when (val event = exportWalletUseCase.execute(walletId, filePath, ExportFormat.BSMS)) {
                 is Success -> {
                     event(ExportWalletSuccessEvent(filePath))
                     event(SetLoadingEvent(false))
