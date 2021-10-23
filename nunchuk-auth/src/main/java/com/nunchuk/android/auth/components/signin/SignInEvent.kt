@@ -1,5 +1,7 @@
 package com.nunchuk.android.auth.components.signin
 
+import com.nunchuk.android.core.network.ErrorDetail
+
 internal sealed class SignInEvent {
     object EmailRequiredEvent : SignInEvent()
     object EmailValidEvent : SignInEvent()
@@ -8,5 +10,5 @@ internal sealed class SignInEvent {
     object PasswordValidEvent : SignInEvent()
     object ProcessingEvent : SignInEvent()
     object SignInSuccessEvent : SignInEvent()
-    data class SignInErrorEvent(val message: String?) : SignInEvent()
+    data class SignInErrorEvent(val code: Int? = null, val message: String? = null, val errorDetail: ErrorDetail? = null) : SignInEvent()
 }

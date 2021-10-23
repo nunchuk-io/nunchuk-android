@@ -6,6 +6,7 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
 const val STATE_NUNCHUK_WALLET = "io.nunchuk.wallet"
 const val STATE_NUNCHUK_TRANSACTION = "io.nunchuk.transaction"
+const val STATE_NUNCHUK_SYNC_EVENT = "io.nunchuk.sync"
 
 fun TimelineEvent.isDisplayable() = isMessageEvent() || isNotificationEvent() || isNunchukEvent()
 
@@ -20,6 +21,8 @@ fun TimelineEvent.isRoomNameEvent() = root.getClearType() == EventType.STATE_ROO
 fun TimelineEvent.isMessageEvent() = root.isTextMessage()
 
 fun TimelineEvent.isNunchukEvent() = isNunchukWalletEvent() || isNunchukTransactionEvent()
+
+fun TimelineEvent.isNunchukSyncEvent() = root.type == STATE_NUNCHUK_SYNC_EVENT
 
 fun TimelineEvent.isNunchukWalletEvent() = root.type == STATE_NUNCHUK_WALLET
 

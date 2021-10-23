@@ -25,4 +25,7 @@
     <string name="nc_text_term_and_policy">By creating an account, you agree to our Terms and Conditions and Privacy Policy.</string>
     <string name="nc_hyperlink_text_term">Terms and Conditions</string>
     <string name="nc_hyperlink_text_policy">Privacy Policy</string>
+    <string name="nc_text_verify_instruction">Please confirm your login by entering the confirmation code we sent to %s.</string>
+    <string name="nc_text_confirmation_code">Confirmation Code</string>
+    <string name="nc_text_continue">Continue</string>
 </resources>
