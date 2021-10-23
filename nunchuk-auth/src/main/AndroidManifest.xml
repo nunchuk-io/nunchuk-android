@@ -22,5 +22,9 @@
         <activity
             android:name=".components.recover.RecoverPasswordActivity"
             android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".components.verify.VerifyNewDeviceActivity"
+            android:screenOrientation="portrait" />
     </application>
 </manifest>

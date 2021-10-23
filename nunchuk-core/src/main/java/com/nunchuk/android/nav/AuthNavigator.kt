@@ -14,4 +14,6 @@ interface AuthNavigator {
     fun openRecoverPasswordScreen(activityContext: Context, email: String)
 
     fun openForgotPasswordScreen(activityContext: Context)
+
+    fun openVerifyNewDeviceScreen(activityContext: Context, email: String, loginHalfToken: String, deviceId: String, staySignedIn: Boolean)
 }

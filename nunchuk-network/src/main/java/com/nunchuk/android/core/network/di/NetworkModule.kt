@@ -4,6 +4,7 @@ import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.nunchuk.android.core.network.ApiConstant.BASE_URL
+import com.nunchuk.android.core.network.ApiConstant.BASE_URL_V1_1
 import com.nunchuk.android.core.network.ApiConstant.HTTP_CONNECT_TIMEOUT
 import com.nunchuk.android.core.network.ApiConstant.HTTP_READ_TIMEOUT
 import com.nunchuk.android.core.network.BuildConfig
@@ -19,6 +20,7 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import javax.inject.Named
 
 @Module
 class NetworkModule @Inject constructor() {
@@ -46,6 +48,15 @@ class NetworkModule @Inject constructor() {
         .addConverterFactory(GsonConverterFactory.create(gson))
         .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
         .baseUrl(BASE_URL)
+        .client(client)
+        .build()
+
+    @Provides
+    @Named("RetrofitClientV1_1")
+    fun provideRetrofitV1_1(gson: Gson, client: OkHttpClient): Retrofit = Retrofit.Builder()
+        .addConverterFactory(GsonConverterFactory.create(gson))
+        .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+        .baseUrl(BASE_URL_V1_1)
         .client(client)
         .build()
 

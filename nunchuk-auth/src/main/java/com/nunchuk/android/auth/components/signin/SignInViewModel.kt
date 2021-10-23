@@ -9,6 +9,7 @@ import com.nunchuk.android.auth.domain.SignInUseCase
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.utils.EmailValidator
 import kotlinx.coroutines.Dispatchers
@@ -46,7 +47,16 @@ internal class SignInViewModel @Inject constructor(
             signInUseCase.execute(email = email, password = password, staySignedIn = staySignedIn)
                 .flowOn(Dispatchers.IO)
                 .onStart { event(ProcessingEvent) }
-                .catch { event(SignInErrorEvent(it.message)) }
+                .catch {
+                    val exception = it as NunchukApiException
+                    event(
+                        SignInErrorEvent(
+                            code = exception.code,
+                            message = exception.message,
+                            errorDetail = exception.errorDetail
+                        )
+                    )
+                }
                 .flatMapConcat { getCurrentUser(token = it.first, encryptedDeviceId = it.second) }
                 .onEach { event(SignInSuccessEvent) }
                 .flowOn(Dispatchers.Main)
@@ -63,12 +73,12 @@ internal class SignInViewModel @Inject constructor(
     private fun initNunchuk(): Flow<Unit> {
         val account = accountManager.getAccount()
         return initNunchukUseCase.execute(account.email, account.chatId)
-            .catch { event(SignInErrorEvent(it.message)) }
+            .catch { event(SignInErrorEvent(message = it.message)) }
     }
 
     private fun loginWithMatrix(userName: String, password: String, encryptedDeviceId: String): Flow<Session> {
         return loginWithMatrixUseCase.execute(userName = userName, password = password, encryptedDeviceId = encryptedDeviceId)
-            .catch { event(SignInErrorEvent(it.message)) }
+            .catch { event(SignInErrorEvent(message = it.message)) }
             .onEach {
                 SessionHolder.storeActiveSession(it)
             }

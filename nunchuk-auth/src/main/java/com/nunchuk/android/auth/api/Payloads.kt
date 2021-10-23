@@ -38,3 +38,13 @@ data class ForgotPasswordPayload(
     val oldPassword: String
 ) : Serializable
 
+data class VerifyNewDevicePayload(
+    @SerializedName("email")
+    val email: String,
+    @SerializedName("loginHalfToken")
+    val loginHalfToken: String,
+    @SerializedName("pin")
+    val pin: String,
+    @SerializedName("deviceId")
+    val deviceId: String
+): Serializable

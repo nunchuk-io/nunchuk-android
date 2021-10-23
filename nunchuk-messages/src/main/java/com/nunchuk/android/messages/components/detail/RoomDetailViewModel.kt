@@ -51,6 +51,7 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     private fun onRetrievedRoom(room: Room) {
+
         storeRoom(room)
         joinRoom()
         initSendEventExecutor()

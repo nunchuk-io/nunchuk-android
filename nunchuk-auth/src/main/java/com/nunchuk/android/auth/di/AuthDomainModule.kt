@@ -28,4 +28,7 @@ internal interface AuthDomainModule {
     @Binds
     fun bindLoginWithMatrixUseCase(useCase: LoginWithMatrixUseCaseImpl): LoginWithMatrixUseCase
 
+    @Binds
+    fun bindVerifyNewDeviceUseCase(useCase: VerifyNewDeviceUseCaseImpl): VerifyNewDeviceUseCase
+
 }

@@ -18,7 +18,11 @@ data class Data<out T>(
                     UnauthorizedEventBus.instance().publish()
                 }
                 if (code != 0) {
-                    throw NunchukApiException(code, message ?: UNKNOWN_ERROR)
+                    throw NunchukApiException(
+                        code = code,
+                        message = message ?: UNKNOWN_ERROR,
+                        errorDetail = _error.details
+                    )
                 }
                 throw ApiInterceptedException()
             }
@@ -30,17 +34,28 @@ data class ErrorResponse(
     @SerializedName("code")
     val code: Int = 0,
     @SerializedName("message")
-    val message: String?
+    val message: String?,
+    @SerializedName("details")
+    val details: ErrorDetail? = null
 ) : Serializable
 
 class ApiInterceptedException : Exception()
+data class ErrorDetail(
+    @SerializedName("halfToken")
+    val halfToken: String? = null,
+    @SerializedName("deviceID")
+    val deviceID: String? = null
+)
 
-class NunchukApiException(val code: Int = 0, override val message: String = UNKNOWN_ERROR) : Exception(message)
+class NunchukApiException(val code: Int = 0, override val message: String = UNKNOWN_ERROR, val errorDetail: ErrorDetail? = null) : Exception(message)
 
 fun NunchukApiException.accountExisted() = code == ApiErrorCode.ACCOUNT_EXISTED
 
+fun NunchukApiException.newDevice() = code == ApiErrorCode.NEW_DEVICE
+
 object ApiErrorCode {
     const val ACCOUNT_EXISTED = -100
+    const val NEW_DEVICE = 841
     const val UNAUTHORIZED = 401
 }
 

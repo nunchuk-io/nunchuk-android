@@ -8,8 +8,11 @@ import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.signin.SignInEvent.*
 import com.nunchuk.android.auth.databinding.ActivitySigninBinding
+import com.nunchuk.android.auth.util.getTextTrimmed
 import com.nunchuk.android.auth.util.setUnderlineText
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.network.ApiErrorCode.NEW_DEVICE
+import com.nunchuk.android.core.network.ErrorDetail
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.passwordEnabled
 import com.nunchuk.android.widget.util.setTransparentStatusBar
@@ -42,16 +45,27 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                 is EmailValidEvent -> binding.email.hideError()
                 is PasswordRequiredEvent -> binding.password.setError(getString(R.string.nc_text_required))
                 is PasswordValidEvent -> binding.password.hideError()
-                is SignInErrorEvent -> onSignInError(it.message.orEmpty())
+                is SignInErrorEvent -> onSignInError(it.code, it.message.orEmpty(), it.errorDetail)
                 is SignInSuccessEvent -> openMainScreen()
                 is ProcessingEvent -> showLoading()
             }
         }
     }
 
-    private fun onSignInError(message: String) {
+    private fun onSignInError(code: Int?, message: String, errorDetail: ErrorDetail?) {
         hideLoading()
-        NCToastMessage(this).showError(message)
+        when (code) {
+            NEW_DEVICE -> {
+                navigator.openVerifyNewDeviceScreen(
+                    activityContext = this,
+                    email = binding.email.getTextTrimmed(),
+                    deviceId = errorDetail?.deviceID.orEmpty(),
+                    loginHalfToken = errorDetail?.halfToken.orEmpty(),
+                    staySignedIn = binding.staySignIn.isChecked
+                )
+            }
+            else -> NCToastMessage(this).showError(message)
+        }
     }
 
     private fun openMainScreen() {

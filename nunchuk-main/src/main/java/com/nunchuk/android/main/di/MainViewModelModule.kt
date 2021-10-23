@@ -3,6 +3,7 @@ package com.nunchuk.android.main.di
 import androidx.lifecycle.ViewModel
 import com.nunchuk.android.arch.vm.ViewModelKey
 import com.nunchuk.android.contact.components.contacts.ContactsViewModel
+import com.nunchuk.android.main.MainActivityViewModel
 import com.nunchuk.android.main.components.tabs.wallet.WalletsViewModel
 import com.nunchuk.android.messages.components.list.RoomsViewModel
 import dagger.Binds
@@ -11,6 +12,10 @@ import dagger.multibindings.IntoMap
 
 @Module
 internal interface MainViewModelModule {
+    @Binds
+    @IntoMap
+    @ViewModelKey(MainActivityViewModel::class)
+    fun bindMainActivityViewModel(viewModel: MainActivityViewModel): ViewModel
 
     @Binds
     @IntoMap
