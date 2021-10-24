@@ -55,10 +55,7 @@ internal class AccountManagerImpl @Inject constructor(
     }
 
     private fun signOutMatrix() = flow {
-        SessionHolder.activeSession?.stopSync()
-        SessionHolder.activeSession = null
-        SessionHolder.currentRoom = null
-        emit(Unit)
+        emit(SessionHolder.clearActiveSession())
     }
 
 }

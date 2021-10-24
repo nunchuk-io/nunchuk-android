@@ -6,6 +6,8 @@ interface HeaderProvider {
 
     fun getDeviceId(): String
 
+    fun getDeviceName(): String
+
     fun getAppVersion(): String
 
     fun getAccessToken(): String

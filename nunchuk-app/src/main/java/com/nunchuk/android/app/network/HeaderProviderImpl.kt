@@ -27,6 +27,8 @@ class HeaderProviderImpl @Inject constructor(
 
     override fun getDeviceId() = deviceId
 
+    override fun getDeviceName(): String = android.os.Build.MODEL
+
     override fun getAppVersion() = BuildConfig.VERSION_NAME
 
     override fun getAccessToken() = accountManager.getAccount().token

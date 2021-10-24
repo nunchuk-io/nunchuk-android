@@ -24,11 +24,16 @@ internal class MatrixInterceptorImpl @Inject constructor(
                     homeServerConnectionConfig = matrixProvider.getServerConfig(),
                     matrixId = username,
                     password = password,
-                    initialDeviceName = headerProvider.getDeviceId()
+                    initialDeviceName = headerProvider.getDeviceName()
                 ).apply {
                     authenticationService.reset()
-                    SessionHolder.storeActiveSession(this)
+                    storeSession()
                 })
+    }
+
+    private fun Session.storeSession() {
+        //cryptoService().setDeviceVerification(DeviceTrustLevel(crossSigningVerified = false, locallyVerified = true), deviceId = encryptedDeviceId)
+        SessionHolder.storeActiveSession(this)
     }
 
 }

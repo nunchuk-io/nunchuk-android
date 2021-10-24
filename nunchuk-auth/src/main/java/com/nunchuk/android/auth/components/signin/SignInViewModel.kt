@@ -6,6 +6,7 @@ import com.nunchuk.android.auth.components.signin.SignInEvent.*
 import com.nunchuk.android.auth.domain.GetCurrentUserUseCase
 import com.nunchuk.android.auth.domain.LoginWithMatrixUseCase
 import com.nunchuk.android.auth.domain.SignInUseCase
+import com.nunchuk.android.auth.util.orUnknownError
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
@@ -48,14 +49,17 @@ internal class SignInViewModel @Inject constructor(
                 .flowOn(Dispatchers.IO)
                 .onStart { event(ProcessingEvent) }
                 .catch {
-                    val exception = it as NunchukApiException
-                    event(
-                        SignInErrorEvent(
-                            code = exception.code,
-                            message = exception.message,
-                            errorDetail = exception.errorDetail
+                    if (it is NunchukApiException) {
+                        event(
+                            SignInErrorEvent(
+                                code = it.code,
+                                message = it.message,
+                                errorDetail = it.errorDetail
+                            )
                         )
-                    )
+                    } else {
+                        event(SignInErrorEvent(message = it.message.orUnknownError()))
+                    }
                 }
                 .flatMapConcat { getCurrentUser(token = it.first, encryptedDeviceId = it.second) }
                 .onEach { event(SignInSuccessEvent) }

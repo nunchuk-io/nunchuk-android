@@ -3,7 +3,6 @@ package com.nunchuk.android.auth.components.changepass
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.text.method.PasswordTransformationMethod
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.ViewModelFactory
@@ -13,6 +12,7 @@ import com.nunchuk.android.auth.databinding.ActivityChangePasswordBinding
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.util.passwordEnabled
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
 
@@ -59,10 +59,9 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
     }
 
     private fun setupViews() {
-        val passwordInputType = PasswordTransformationMethod.getInstance()
-        binding.oldPassword.getEditTextView().transformationMethod = passwordInputType
-        binding.newPassword.getEditTextView().transformationMethod = passwordInputType
-        binding.confirmPassword.getEditTextView().transformationMethod = passwordInputType
+        binding.oldPassword.passwordEnabled()
+        binding.oldPassword.passwordEnabled()
+        binding.confirmPassword.passwordEnabled()
         binding.changePassword.setOnClickListener { onChangePasswordClicked() }
         binding.signIn.setOnClickListener { openLoginScreen() }
     }
