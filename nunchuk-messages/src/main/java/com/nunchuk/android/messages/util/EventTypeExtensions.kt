@@ -8,7 +8,7 @@ const val STATE_NUNCHUK_WALLET = "io.nunchuk.wallet"
 const val STATE_NUNCHUK_TRANSACTION = "io.nunchuk.transaction"
 const val STATE_NUNCHUK_SYNC_EVENT = "io.nunchuk.sync"
 
-fun TimelineEvent.isDisplayable() = isMessageEvent() || isNotificationEvent() || isNunchukEvent()
+fun TimelineEvent.isDisplayable() = isMessageEvent() || isNotificationEvent() || isNunchukEvent() || isNunchukSyncEvent()
 
 fun TimelineEvent.isNotificationEvent() = isRoomMemberEvent() || isRoomCreateEvent() || isRoomNameEvent()
 

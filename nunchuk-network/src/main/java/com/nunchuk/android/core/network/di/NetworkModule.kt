@@ -4,6 +4,7 @@ import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.nunchuk.android.core.network.ApiConstant.BASE_URL
+import com.nunchuk.android.core.network.ApiConstant.BASE_URL_MATRIX
 import com.nunchuk.android.core.network.ApiConstant.BASE_URL_V1_1
 import com.nunchuk.android.core.network.ApiConstant.HTTP_CONNECT_TIMEOUT
 import com.nunchuk.android.core.network.ApiConstant.HTTP_READ_TIMEOUT
@@ -58,6 +59,25 @@ class NetworkModule @Inject constructor() {
         .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
         .baseUrl(BASE_URL_V1_1)
         .client(client)
+        .build()
+
+    @Provides
+    @Named("RetrofitClient_Matrix")
+    fun provideRetrofit_Matrix(gson: Gson, @Named("OkHttpClient_Matrix") client: OkHttpClient): Retrofit = Retrofit.Builder()
+        .addConverterFactory(GsonConverterFactory.create(gson))
+        .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+        .baseUrl(BASE_URL_MATRIX)
+        .client(client)
+        .build()
+
+    @Provides
+    @Named("OkHttpClient_Matrix")
+    fun provideOkHttpClient_Matrix(
+        loggingInterceptor: HttpLoggingInterceptor,
+    ): OkHttpClient = OkHttpClient.Builder()
+        .connectTimeout(HTTP_CONNECT_TIMEOUT, TimeUnit.SECONDS)
+        .readTimeout(HTTP_READ_TIMEOUT, TimeUnit.SECONDS)
+        .addInterceptor(loggingInterceptor)
         .build()
 
     @Provides

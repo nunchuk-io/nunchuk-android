@@ -3,6 +3,7 @@ package com.nunchuk.android.messages.usecase.message
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.messages.util.SYNC_EVENT_TAG
 import com.nunchuk.android.messages.util.getMembersCount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,7 +32,7 @@ internal class GetRoomSummaryListUseCaseImpl @Inject constructor(
     private fun filterRooms(rooms: List<RoomSummary>): ArrayList<RoomSummary> {
         val filterRooms = ArrayList<RoomSummary>()
         rooms.forEach {
-            if (it.getMembersCount() > 1) {
+            if (it.getMembersCount() > 1 || it.hasTag(SYNC_EVENT_TAG)) {
                 filterRooms.add(it)
             } else {
                 leaveRoom(it)
