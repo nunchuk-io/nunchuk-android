@@ -2,7 +2,6 @@ package com.nunchuk.android.auth.components.recover
 
 import android.content.Context
 import android.os.Bundle
-import android.text.method.PasswordTransformationMethod
 import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
@@ -11,6 +10,7 @@ import com.nunchuk.android.auth.databinding.ActivityRecoverPasswordBinding
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showToast
+import com.nunchuk.android.widget.util.passwordEnabled
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import javax.inject.Inject
 
@@ -57,10 +57,9 @@ class RecoverPasswordActivity : BaseActivity<ActivityRecoverPasswordBinding>() {
     }
 
     private fun setupViews() {
-        val passwordInputType = PasswordTransformationMethod.getInstance()
-        binding.oldPassword.getEditTextView().transformationMethod = passwordInputType
-        binding.newPassword.getEditTextView().transformationMethod = passwordInputType
-        binding.confirmPassword.getEditTextView().transformationMethod = passwordInputType
+        binding.oldPassword.passwordEnabled()
+        binding.newPassword.passwordEnabled()
+        binding.confirmPassword.passwordEnabled()
         binding.recoverPassword.setOnClickListener { onChangePasswordClicked() }
         binding.signIn.setOnClickListener { openLoginScreen() }
     }
