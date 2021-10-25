@@ -29,9 +29,6 @@ internal interface RoomWalletDomainModule {
     fun bindConsumeEventUseCase(useCase: ConsumeEventUseCaseImpl): ConsumeEventUseCase
 
     @Binds
-    fun bindConsumerSyncEventUseCase(useCase: ConsumerSyncEventUseCaseImpl): ConsumerSyncEventUseCase
-
-    @Binds
     fun bindEnableAutoBackupUseCase(useCase: EnableAutoBackupUseCaseImpl): EnableAutoBackupUseCase
 
     @Binds

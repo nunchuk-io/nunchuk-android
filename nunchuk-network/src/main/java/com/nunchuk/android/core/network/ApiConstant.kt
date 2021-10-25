@@ -4,6 +4,7 @@ internal object ApiConstant {
     // FIXME move api version to endpoint url instead
     internal const val BASE_URL = "https://api.nunchuk.io/v1/"
     internal const val BASE_URL_V1_1 = "https://api.nunchuk.io/v1.1/"
+    internal const val BASE_URL_MATRIX = "https://matrix.nunchuk.io/"
 
     internal const val HTTP_CONNECT_TIMEOUT = 60L
     internal const val HTTP_READ_TIMEOUT = 60L

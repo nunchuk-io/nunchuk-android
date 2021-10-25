@@ -14,6 +14,7 @@ import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
 
 internal const val TAG = "TimelineEvent"
+internal const val SYNC_EVENT_TAG = "io.nunchuk.sync"
 
 fun TimelineEvent.lastMessage(): CharSequence {
     val senderName = senderInfo.disambiguatedDisplayName
@@ -57,6 +58,9 @@ fun TimelineEvent.getBodyElementValueByKey(key: String): String {
 fun TimelineEvent.isInitTransactionEvent() = isTransactionEvent(TransactionEventType.INIT)
 
 fun TimelineEvent.isReceiveTransactionEvent() = isTransactionEvent(TransactionEventType.RECEIVE)
+fun TimelineEvent.isNunchukConsumeSyncEvent() : Boolean {
+    return root.type == SYNC_EVENT_TAG
+}
 
 private fun TimelineEvent.isTransactionEvent(type: TransactionEventType): Boolean {
     val content = root.content?.toMap().orEmpty()

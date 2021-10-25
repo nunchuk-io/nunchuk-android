@@ -12,7 +12,6 @@ internal object AuthNetworkModule {
 
     @Singleton
     @Provides
-
     fun provideAuthApi(retrofit: Retrofit): AuthApi = retrofit.create(AuthApi::class.java)
 
     @Singleton

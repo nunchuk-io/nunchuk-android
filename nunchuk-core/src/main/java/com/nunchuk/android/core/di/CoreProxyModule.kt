@@ -5,7 +5,8 @@ import dagger.Module
 @Module(
     includes = [
         ViewModelModule::class,
-        CoreModule::class
+        CoreModule::class,
+        MatrixProxyModule::class
     ]
 )
 interface CoreProxyModule
