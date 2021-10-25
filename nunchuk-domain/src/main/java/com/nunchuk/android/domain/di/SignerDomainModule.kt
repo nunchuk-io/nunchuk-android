@@ -31,6 +31,9 @@ internal interface SignerDomainModule {
     @Binds
     fun bindCreateCoboSignerUseCase(useCase: CreateCoboSignerUseCaseImpl): CreateCoboSignerUseCase
 
+    @Binds
+    fun bindCreateKeystoneSignerUseCase(useCase: CreateKeystoneSignerUseCaseImpl): CreateKeystoneSignerUseCase
+
     // SOFTWARE SIGNER
     @Binds
     fun bindGenerateMnemonicUseCase(useCase: GenerateMnemonicUseCaseImpl): GenerateMnemonicUseCase
