@@ -7,9 +7,11 @@ dependencies {
     implementation project(':nunchuk-core')
     implementation project(':nunchuk-widget')
     implementation project(':nunchuk-domain')
+    implementation project(':nunchuk-network')
 
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()
+    implementation networkDeps.values()
 
     testImplementation otherTestDeps.junit
 }

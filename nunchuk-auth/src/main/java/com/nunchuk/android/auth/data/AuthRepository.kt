@@ -30,6 +30,7 @@ interface AuthRepository {
     suspend fun forgotPassword(email: String)
 
     fun me(): Flow<UserResponse>
+
 }
 
 internal class AuthRepositoryImpl @Inject constructor(

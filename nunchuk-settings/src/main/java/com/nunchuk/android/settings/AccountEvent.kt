@@ -9,4 +9,6 @@ data class AccountState(
 
 sealed class AccountEvent {
     object SignOutEvent : AccountEvent()
+    data class GetUserProfileSuccessEvent(val name: String? = null, val avatarUrl: String? = null) : AccountEvent()
+    data class UploadPhotoSuccessEvent(val matrixUri: String? = null) : AccountEvent()
 }
