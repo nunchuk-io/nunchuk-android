@@ -4,6 +4,9 @@ import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Build
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.provider.MediaStore
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
@@ -56,4 +59,19 @@ fun Activity.requestReadExternalPermission() = try {
     )
 } catch (e: Exception) {
     e.printStackTrace()
+}
+
+fun Fragment.pickPhotoWithResult(requestCode: Int) {
+    val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+    intent.type = "image/*"
+    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
+    intent.action = Intent.ACTION_GET_CONTENT
+    startActivityForResult(
+        intent, requestCode
+    )
+}
+
+fun Fragment.takePhotoWithResult(requestCode: Int) {
+    val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+    startActivityForResult(takePictureIntent, requestCode)
 }
