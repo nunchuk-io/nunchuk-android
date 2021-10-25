@@ -1,37 +1,42 @@
 package com.nunchuk.android.usecase
 
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.utils.CrashlyticsReporter
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface CreateSignerUseCase {
-    suspend fun execute(
+    fun execute(
         name: String,
         xpub: String,
         publicKey: String,
         derivationPath: String,
         masterFingerprint: String
-    ): Result<SingleSigner>
+    ): Flow<SingleSigner>
 }
 
 internal class CreateSignerUseCaseImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
-) : BaseUseCase(), CreateSignerUseCase {
+) : CreateSignerUseCase {
 
-    override suspend fun execute(
+    override fun execute(
         name: String,
         xpub: String,
         publicKey: String,
         derivationPath: String,
         masterFingerprint: String
-    ) = exe {
-        nativeSdk.createSigner(
-            name = name,
-            xpub = xpub,
-            publicKey = publicKey,
-            derivationPath = derivationPath,
-            masterFingerprint = masterFingerprint
+    ) = flow {
+        emit(
+            nativeSdk.createSigner(
+                name = name,
+                xpub = xpub,
+                publicKey = publicKey,
+                derivationPath = derivationPath,
+                masterFingerprint = masterFingerprint
+            )
         )
-    }
+    }.catch { CrashlyticsReporter.recordException(it) }
 }

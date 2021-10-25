@@ -6,19 +6,23 @@ import com.nunchuk.android.core.signer.InvalidSignerFormatException
 import com.nunchuk.android.core.signer.SignerInput
 import com.nunchuk.android.core.signer.toSigner
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.model.Result.Error
-import com.nunchuk.android.model.Result.Success
+import com.nunchuk.android.model.toSpec
 import com.nunchuk.android.signer.components.add.AddSignerEvent.*
-import com.nunchuk.android.usecase.CreateCoboSignerUseCase
+import com.nunchuk.android.usecase.CreateKeystoneSignerUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import java.util.*
 import javax.inject.Inject
 
 internal class AddSignerViewModel @Inject constructor(
     private val createSignerUseCase: CreateSignerUseCase,
-    private val createCoboSignerUseCase: CreateCoboSignerUseCase
+    private val createKeystoneSignerUseCase: CreateKeystoneSignerUseCase
 ) : NunchukViewModel<Unit, AddSignerEvent>() {
 
     override val initialState = Unit
@@ -31,18 +35,18 @@ internal class AddSignerViewModel @Inject constructor(
 
     private fun doAfterValidate(signerName: String, signerInput: SignerInput) {
         viewModelScope.launch {
-            event(LoadingEvent)
-            val result = createSignerUseCase.execute(
+            createSignerUseCase.execute(
                 name = signerName,
                 xpub = signerInput.xpub,
                 derivationPath = signerInput.derivationPath,
-                masterFingerprint = signerInput.fingerPrint.toLowerCase(Locale.getDefault()),
+                masterFingerprint = signerInput.fingerPrint.lowercase(),
                 publicKey = ""
             )
-            when (result) {
-                is Success -> event(AddSignerSuccessEvent(id = result.data.masterSignerId, name = result.data.name))
-                is Error -> event(AddSignerErrorEvent(result.exception.message.orUnknownError()))
-            }
+                .onStart { event(LoadingEvent) }
+                .flowOn(IO)
+                .catch { event(AddSignerErrorEvent(it.message.orUnknownError())) }
+                .flowOn(Main)
+                .collect { event(AddSignerSuccessEvent(id = it.masterSignerId, name = it.name)) }
         }
     }
 
@@ -59,21 +63,14 @@ internal class AddSignerViewModel @Inject constructor(
         }
     }
 
-    fun handleAddCoboSigner(signerName: String, jsonInfo: String) {
-        if (signerName.isEmpty()) {
-            event(SignerNameRequiredEvent)
-        } else {
-            viewModelScope.launch {
-                event(LoadingEvent)
-                val result = createCoboSignerUseCase.execute(
-                    name = signerName,
-                    jsonInfo = jsonInfo
-                )
-                when (result) {
-                    is Success -> event(AddSignerSuccessEvent(id = result.data.masterSignerId, name = result.data.name))
-                    is Error -> event(AddSignerErrorEvent(result.exception.message.orUnknownError()))
-                }
-            }
+    fun handleAddQrData(qrData: String) {
+        viewModelScope.launch {
+            createKeystoneSignerUseCase.execute(qrData = qrData)
+                .onStart { event(LoadingEvent) }
+                .flowOn(IO)
+                .catch { event(AddSignerErrorEvent(it.message.orUnknownError())) }
+                .flowOn(Main)
+                .collect { event(ParseKeystoneSignerSuccess(it.toSpec())) }
         }
     }
 }

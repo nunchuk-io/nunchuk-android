@@ -43,8 +43,14 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>() {
                 is AddSignerErrorEvent -> onAddAirSignerError(it.message)
                 SignerNameRequiredEvent -> binding.signerName.setError(getString(R.string.nc_text_required))
                 LoadingEvent -> showLoading()
+                is ParseKeystoneSignerSuccess -> onParseCompleted(it.signerSpec)
             }
         }
+    }
+
+    private fun onParseCompleted(signerSpec: String) {
+        hideLoading()
+        binding.signerSpec.getEditTextView().setText(signerSpec)
     }
 
     private fun onAddAirSignerError(message: String) {
@@ -78,8 +84,7 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         QRCodeParser.parse(requestCode, resultCode, data)?.apply {
-            binding.signerSpec.getEditTextView().setText(this)
-            viewModel.handleAddCoboSigner(binding.signerName.getEditText(), this)
+            viewModel.handleAddQrData(this)
         }
     }
 
