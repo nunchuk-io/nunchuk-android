@@ -19,7 +19,7 @@ ext {
     lifecycleVersion = '2.1.0'
 
     retrofitVersion = '2.9.0'
-    okhttpVersion = '3.13.1'
+    okhttpVersion = '4.7.2'
     coroutinesVersion = '1.4.3'
 
     // Plugins versions
@@ -32,13 +32,13 @@ ext {
     nativeSdkVersion = '1.0.25-SNAPSHOT'
 
     // Matrix
-    matrixSdkVersion = '1.1.9'
+    matrixSdkVersion = '1.1.10-nunchuk-SNAPSHOT'
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 1
-    PATCH_VERSION = 27
+    PATCH_VERSION = 28
 
-    VERSION_CODE = 43
+    VERSION_CODE = 44
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",

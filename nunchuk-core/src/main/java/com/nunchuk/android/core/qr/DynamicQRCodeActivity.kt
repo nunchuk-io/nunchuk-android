@@ -63,7 +63,7 @@ class DynamicQRCodeActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val INTERVAL = 200L
+        const val INTERVAL = 400L
 
         private var handler = Handler(Looper.getMainLooper())
 

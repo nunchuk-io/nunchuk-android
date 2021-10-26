@@ -26,7 +26,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val addressesUseCase: GetAddressesUseCase,
     private val newAddressUseCase: NewAddressUseCase,
     private val exportWalletUseCase: ExportWalletUseCase,
-    private val exportCoboWalletUseCase: ExportCoboWalletUseCase,
+    private val exportKeystoneWalletUseCase: ExportKeystoneWalletUseCase,
     private val getTransactionHistoryUseCase: GetTransactionHistoryUseCase,
     private val deleteWalletUseCase: DeleteWalletUseCase
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
@@ -136,10 +136,11 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     fun handleExportWalletQR() {
         viewModelScope.launch {
-            when (val event = exportCoboWalletUseCase.execute(walletId)) {
-                is Success -> event(OpenDynamicQRScreen(event.data))
-                is Error -> showError(event)
-            }
+            exportKeystoneWalletUseCase.execute(walletId)
+                .flowOn(Dispatchers.IO)
+                .catch { showError(it) }
+                .flowOn(Dispatchers.Main)
+                .collect { event(OpenDynamicQRScreen(it)) }
         }
     }
 
@@ -154,6 +155,10 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     private fun showError(event: Error) {
         WalletDetailsError(event.exception.messageOrUnknownError())
+    }
+
+    private fun showError(t: Throwable) {
+        event(WalletDetailsError(t.message.orUnknownError()))
     }
 
     fun handleDeleteWallet() {
