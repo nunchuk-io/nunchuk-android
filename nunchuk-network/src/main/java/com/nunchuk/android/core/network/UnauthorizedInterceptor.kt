@@ -19,5 +19,5 @@ class UnauthorizedInterceptor @Inject constructor() : Interceptor {
 }
 
 internal fun Response.isUnauthorized(): Boolean {
-    return code() == ApiErrorCode.UNAUTHORIZED
+    return code == ApiErrorCode.UNAUTHORIZED
 }

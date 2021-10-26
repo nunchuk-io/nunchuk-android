@@ -23,6 +23,9 @@ internal interface WalletDomainModule {
     fun bindExportCoboWalletUseCase(useCase: ExportCoboWalletUseCaseImpl): ExportCoboWalletUseCase
 
     @Binds
+    fun bindExportKeystoneWalletUseCase(useCase: ExportKeystoneWalletUseCaseImpl): ExportKeystoneWalletUseCase
+
+    @Binds
     fun bindGetWalletUseCase(useCase: GetWalletUseCaseImpl): GetWalletUseCase
 
     @Binds
