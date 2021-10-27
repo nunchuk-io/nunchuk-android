@@ -64,4 +64,5 @@ private fun RoomMemberSummary.toSignerModel() = SignerModel(
     id = userId,
     name = displayName ?: userId,
     fingerPrint = "",
+    derivationPath = ""
 )

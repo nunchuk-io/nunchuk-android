@@ -12,8 +12,8 @@ import com.nunchuk.android.widget.util.AbsViewBinder
 internal class SignersViewBinder(
     container: ViewGroup,
     signers: List<SignerModel>,
-    private val selectedXpfs: List<String> = emptyList(),
-    val onItemSelectedListener: (String, Boolean) -> Unit,
+    private val selectedSigners: List<SignerModel> = emptyList(),
+    val onItemSelectedListener: (SignerModel, Boolean) -> Unit,
 ) : AbsViewBinder<SignerModel, ItemAssignSignerBinding>(container, signers) {
 
     override fun initializeBinding() = ItemAssignSignerBinding.inflate(inflater, container, false)
@@ -31,7 +31,7 @@ internal class SignersViewBinder(
         binding.avatar.text = model.name.shorten()
         binding.signerName.text = model.name
         binding.xpf.text = xfpValue
-        binding.checkbox.isChecked = selectedXpfs.isNotEmpty() && selectedXpfs.contains(model.fingerPrint)
-        binding.checkbox.setOnCheckedChangeListener { _, checked -> onItemSelectedListener(model.fingerPrint, checked) }
+        binding.checkbox.isChecked = selectedSigners.isNotEmpty() && (selectedSigners.firstOrNull { it.isSame(model) } != null)
+        binding.checkbox.setOnCheckedChangeListener { _, checked -> onItemSelectedListener(model, checked) }
     }
 }

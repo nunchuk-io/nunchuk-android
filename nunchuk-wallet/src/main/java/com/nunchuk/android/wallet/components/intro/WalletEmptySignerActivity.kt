@@ -20,6 +20,9 @@ class WalletEmptySignerActivity : BaseActivity<ActivityWalletEmptySignerBinding>
 
     private fun setupViews() {
         binding.btnContinue.setOnClickListener { openAddSignerScreen() }
+        binding.toolbar.setNavigationOnClickListener {
+            finish()
+        }
     }
 
     private fun openAddSignerScreen() {

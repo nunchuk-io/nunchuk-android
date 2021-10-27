@@ -75,16 +75,23 @@ class UploadConfigurationActivity : BaseActivity<ActivityWalletUploadConfigurati
         when (event) {
             is SetLoadingEvent -> if (event.showLoading) showLoading() else hideLoading()
             is ExportWalletSuccessEvent -> shareConfigurationFile(event.filePath)
-            is UploadConfigurationError -> NCToastMessage(this).showWarning(event.message)
+            is UploadConfigurationError -> showError(event)
             is OpenDynamicQRScreen -> openDynamicQRScreen(event)
         }
     }
 
+    private fun showError(event: UploadConfigurationError) {
+        hideLoading()
+        NCToastMessage(this).showWarning(event.message)
+    }
+
     private fun openDynamicQRScreen(event: OpenDynamicQRScreen) {
+        hideLoading()
         navigator.openDynamicQRScreen(this, event.values)
     }
 
     private fun shareConfigurationFile(filePath: String) {
+        hideLoading()
         controller.shareFile(filePath)
     }
 

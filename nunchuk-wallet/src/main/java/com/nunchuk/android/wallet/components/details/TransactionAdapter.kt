@@ -47,7 +47,7 @@ internal class TransactionViewHolder(
 
     override fun bind(data: Transaction) {
         if (data.isReceive) {
-            binding.sendTo.text = context.getString(R.string.nc_transaction_receive_from)
+            binding.sendTo.text = context.getString(R.string.nc_transaction_receive_at)
             binding.amountBTC.text = data.subAmount.getBTCAmount()
             binding.amountUSD.text = data.subAmount.getUSDAmount()
             binding.receiverName.text = data.receiveOutput.firstOrNull()?.first.orEmpty()
