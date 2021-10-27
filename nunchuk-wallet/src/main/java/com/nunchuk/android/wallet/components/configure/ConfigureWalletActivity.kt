@@ -74,8 +74,8 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>() {
 
     private fun handleState(state: ConfigureWalletState) {
         val requireSigns = state.totalRequireSigns
-        val totalSigns = state.selectedPFXs.size
-        bindSigners(state.masterSigners.map(MasterSigner::toModel) + state.remoteSigners.map(SingleSigner::toModel), state.selectedPFXs)
+        val totalSigns = state.selectedSigners.size
+        bindSigners(state.masterSigners.map(MasterSigner::toModel) + state.remoteSigners.map(SingleSigner::toModel), state.selectedSigners)
         bindTotalRequireSigns(requireSigns)
         binding.totalRequireSigns.bindWalletConfiguration(
             totalSigns = totalSigns,
@@ -87,8 +87,8 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>() {
         binding.requiredSingerCounter.text = "$totalRequireSigns"
     }
 
-    private fun bindSigners(signers: List<SignerModel>, selectedPFXs: List<String>) {
-        SignersViewBinder(binding.signersContainer, signers, selectedPFXs, viewModel::updateSelectedXfps).bindItems()
+    private fun bindSigners(signers: List<SignerModel>, selectedPFXs: List<SignerModel>) {
+        SignersViewBinder(binding.signersContainer, signers, selectedPFXs, viewModel::updateSelectedSigner).bindItems()
     }
 
     private fun setupViews() {

@@ -165,8 +165,13 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         binding.sendAddressBTC.text = output?.second?.getBTCAmount().orEmpty()
         binding.sendAddressUSD.text = output?.second?.getUSDAmount().orEmpty()
 
-        binding.sendingToLabel.text = if (transaction.isReceive) getString(R.string.nc_transaction_received_to) else getString(R.string.nc_transaction_sending_to)
-        binding.sendToAddress.text = if (transaction.isReceive) getString(R.string.nc_transaction_receive_address) else getString(R.string.nc_transaction_send_to_address)
+        if (transaction.isReceive) {
+            binding.sendingToLabel.text = getString(R.string.nc_transaction_receive_at)
+            binding.sendToAddress.text = getString(R.string.nc_transaction_receive_address)
+        } else {
+            binding.sendingToLabel.text = getString(R.string.nc_transaction_sending_to)
+            binding.sendToAddress.text = getString(R.string.nc_transaction_send_to_address)
+        }
     }
 
     private fun bindingTotalAmount(transaction: Transaction) {

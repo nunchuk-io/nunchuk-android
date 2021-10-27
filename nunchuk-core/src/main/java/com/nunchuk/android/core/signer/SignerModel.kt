@@ -7,14 +7,18 @@ import java.util.regex.Pattern
 data class SignerModel(
     val id: String,
     val name: String,
+    val derivationPath: String,
     val fingerPrint: String,
     val used: Boolean = false,
     val software: Boolean = false
-)
+) {
+    fun isSame(other: SignerModel) = fingerPrint == other.fingerPrint && derivationPath == other.derivationPath
+}
 
 fun SingleSigner.toModel() = SignerModel(
     id = masterSignerId,
     name = name,
+    derivationPath = derivationPath,
     used = used,
     fingerPrint = masterFingerprint
 )
@@ -22,6 +26,7 @@ fun SingleSigner.toModel() = SignerModel(
 fun MasterSigner.toModel() = SignerModel(
     id = id,
     name = name,
+    derivationPath = device.path,
     fingerPrint = device.masterFingerprint,
     software = true
 )
@@ -45,3 +50,5 @@ fun String.toSigner(): SignerInput {
     }
     throw InvalidSignerFormatException(this)
 }
+
+fun List<SignerModel>.isContain(signer: SignerModel) = firstOrNull { it.isSame(signer) } != null

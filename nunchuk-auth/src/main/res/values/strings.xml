@@ -12,6 +12,7 @@
 
     <string name="nc_text_password">Password</string>
     <string name="nc_text_temporary_password">Temporary password</string>
+    <string name="nc_text_current_password">Current password</string>
     <string name="nc_text_new_password">New password</string>
     <string name="nc_text_confirm_new_password">Confirm new password</string>
     <string name="nc_text_stay_sign_in">Stay signed-in</string>

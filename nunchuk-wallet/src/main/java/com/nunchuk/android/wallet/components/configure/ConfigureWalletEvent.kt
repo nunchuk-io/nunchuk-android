@@ -1,5 +1,6 @@
 package com.nunchuk.android.wallet.components.configure
 
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 
@@ -16,5 +17,5 @@ data class ConfigureWalletState(
     val totalRequireSigns: Int = 0,
     val masterSigners: List<MasterSigner> = emptyList(),
     val remoteSigners: List<SingleSigner> = emptyList(),
-    val selectedPFXs: List<String> = emptyList()
+    val selectedSigners: List<SignerModel> = emptyList()
 )
