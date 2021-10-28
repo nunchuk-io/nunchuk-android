@@ -26,7 +26,7 @@ class ImageLoaderImpl @Inject constructor(context: Context) : ImageLoader {
 
     override fun loadImage(url: String, imageView: ImageView, onFailed: () -> Unit) {
         val resolvedUrl = resolvedUrl(url)
-        glideRequests.load(resolvedUrl).listener(object : RequestListener<Drawable> {
+        glideRequests.load(resolvedUrl).fitCenter().listener(object : RequestListener<Drawable> {
             override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>?, isFirstResource: Boolean): Boolean {
                 onFailed()
                 e?.let(CrashlyticsReporter::recordException)

@@ -16,8 +16,12 @@ import com.nunchuk.android.model.NunchukMatrixEvent
 import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.usecase.EnableAutoBackupUseCase
 import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
+import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
@@ -45,7 +49,6 @@ internal class MainActivityViewModel @Inject constructor(
     private var currentRoomSyncId = ""
     private lateinit var timeline: Timeline
 
-
     init {
         initSyncEventExecutor()
         registerDownloadFileBackup()
@@ -57,8 +60,9 @@ internal class MainActivityViewModel @Inject constructor(
 
     private fun registerDownloadFileBackup() {
         viewModelScope.launch {
-            registerDownloadBackUpFileUseCase.execute().flowOn(Dispatchers.IO)
-                .catch {}
+            registerDownloadBackUpFileUseCase.execute()
+                .flowOn(Dispatchers.IO)
+                .catch { CrashlyticsReporter.recordException(it) }
                 .flowOn(Dispatchers.Main)
                 .collect {
                     Timber.d("[App] registerDownloadFileBackup")
@@ -109,7 +113,7 @@ internal class MainActivityViewModel @Inject constructor(
                 fileType = mineType,
                 fileData = data
             ).flowOn(Dispatchers.IO)
-                .catch {}
+                .catch { CrashlyticsReporter.recordException(it) }
                 .flowOn(Dispatchers.Main)
                 .collect { response ->
                     Timber.d("[App] fileUploadURL: ${response.contentUri}")
@@ -122,11 +126,9 @@ internal class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             backupFileUseCase.execute(currentRoomSyncId, fileJsonInfo, fileUri)
                 .flowOn(Dispatchers.IO)
-                .catch {}
+                .catch { CrashlyticsReporter.recordException(it) }
                 .flowOn(Dispatchers.Main)
-                .collect { response ->
-                    Timber.d("[App] backupFile success")
-                }
+                .collect { Timber.d("[App] backupFile success") }
         }
     }
 
@@ -140,26 +142,22 @@ internal class MainActivityViewModel @Inject constructor(
                 serverName = serverName,
                 mediaId = mediaId,
             ).flowOn(Dispatchers.IO)
-                .catch {}
+                .catch { CrashlyticsReporter.recordException(it) }
                 .flowOn(Dispatchers.Main)
-                .collect { response ->
+                .collect {
                     Timber.d("[App] downloadFile")
-
-                    consumeSyncFile(fileJsonInfo, response.byteStream().readBytes())
+                    consumeSyncFile(fileJsonInfo, it.byteStream().readBytes())
                 }
         }
     }
 
     private fun consumeSyncFile(fileJsonInfo: String, fileData: ByteArray) {
         viewModelScope.launch {
-            consumeSyncFileUseCase.execute(
-                fileJsonInfo, fileData
-            ).flowOn(Dispatchers.IO)
-                .catch {}
+            consumeSyncFileUseCase.execute(fileJsonInfo, fileData)
+                .flowOn(Dispatchers.IO)
+                .catch { CrashlyticsReporter.recordException(it) }
                 .flowOn(Dispatchers.Main)
-                .collect {
-                    Timber.d("[App] consumeSyncFile")
-                }
+                .collect { Timber.d("[App] consumeSyncFile") }
         }
     }
 
@@ -168,7 +166,7 @@ internal class MainActivityViewModel @Inject constructor(
             getRoomSummaryListUseCase.execute()
                 .zip(getAllRoomWalletsUseCase.execute()) { rooms, wallets -> rooms to wallets }
                 .flowOn(Dispatchers.IO)
-                .catch {}
+                .catch { CrashlyticsReporter.recordException(it) }
                 .flowOn(Dispatchers.Main)
                 .collect { wallet ->
                     val syncWalletRoom =
@@ -176,8 +174,7 @@ internal class MainActivityViewModel @Inject constructor(
                     if (syncWalletRoom == null) {
                         createRoomWithTagSync()
                     } else {
-                        SessionHolder.activeSession?.getRoom(syncWalletRoom.roomId)
-                            ?.retrieveTimelineEvents()
+                        SessionHolder.activeSession?.getRoom(syncWalletRoom.roomId)?.retrieveTimelineEvents()
                         currentRoomSyncId = syncWalletRoom.roomId
                         enableAutoBackup(syncWalletRoom.roomId)
                     }
@@ -192,9 +189,7 @@ internal class MainActivityViewModel @Inject constructor(
                 listOf(SessionHolder.activeSession?.sessionParams?.userId.orEmpty())
             )
                 .flowOn(Dispatchers.IO)
-                .catch {
-                    Timber.e("createRoom error ", it)
-                }
+                .catch { CrashlyticsReporter.recordException(it) }
                 .flowOn(Dispatchers.Main)
                 .collect {
                     Timber.v("createRoom success ", it)
@@ -207,9 +202,7 @@ internal class MainActivityViewModel @Inject constructor(
     private fun Room.addTagRoom(tagName: String) {
         viewModelScope.launch {
             addTagRoomUseCase.execute(tagName, roomId).flowOn(Dispatchers.IO)
-                .catch {
-                    Timber.e("addTagRoom error ", it)
-                }
+                .catch { CrashlyticsReporter.recordException(it) }
                 .flowOn(Dispatchers.Main)
                 .collect {
                     Timber.v("addTagRoom success ", it)
@@ -223,15 +216,14 @@ internal class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             enableAutoBackupUseCase.execute(syncRoomId)
                 .flowOn(Dispatchers.IO)
-                .catch { Timber.e("enableAutoBackup error ", it) }
+                .catch { CrashlyticsReporter.recordException(it) }
                 .flowOn(Dispatchers.Main)
                 .collect { Timber.v("enableAutoBackup success ", it) }
         }
     }
 
-    fun Room.retrieveTimelineEvents() {
+    private fun Room.retrieveTimelineEvents() {
         timeline = createTimeline(null, TimelineSettings(initialSize = PAGINATION, true))
-        timeline.removeAllListeners()
         timeline.addListener(TimelineListenerAdapter {
             handleTimelineEvents(roomId, it)
         })
@@ -246,7 +238,7 @@ internal class MainActivityViewModel @Inject constructor(
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
                 .sortedBy(NunchukMatrixEvent::time)
             consumerSyncEventUseCase.execute(sortedEvents).flowOn(Dispatchers.IO)
-                .catch { Timber.e("consumerSyncEventUseCase error ", it) }
+                .catch { CrashlyticsReporter.recordException(it) }
                 .flowOn(Dispatchers.Main)
                 .collect { Timber.v("consumerSyncEventUseCase success ", it) }
         }

@@ -10,18 +10,16 @@ object SessionHolder {
 
     var currentRoom: Room? = null
 
+    // isOpen state is hidden inside matrix sdk, there is no way to know exactly variable value
     fun storeActiveSession(session: Session) {
         session.apply {
-            if (isOpenable) {
-                // isOpen state is hidden inside matrix sdk, there is no way to know exactly variable value
-                try {
-                    open()
-                    if (!hasAlreadySynced()) {
-                        startSync(false)
-                    }
-                } catch (e: Error) {
-                    CrashlyticsReporter.recordException(e)
+            try {
+                open()
+                if (!hasAlreadySynced()) {
+                    startSync(false)
                 }
+            } catch (e: Error) {
+                CrashlyticsReporter.recordException(e)
             }
             activeSession = this
         }

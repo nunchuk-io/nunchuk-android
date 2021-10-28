@@ -69,7 +69,7 @@ class VerifyNewDeviceActivity : BaseActivity<ActivityVerifyNewDeviceBinding>() {
 
     private fun setupViews() {
         binding.tvConfirmInstruction.text = getString(R.string.nc_text_verify_instruction, email)
-        binding.btnContinute.setOnClickListener { onVerifyNewDeviceClick() }
+        binding.btnContinue.setOnClickListener { onVerifyNewDeviceClick() }
         showToolbarBackButton()
     }
 

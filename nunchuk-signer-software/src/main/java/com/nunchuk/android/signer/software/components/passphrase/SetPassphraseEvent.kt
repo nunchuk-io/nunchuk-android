@@ -1,6 +1,7 @@
 package com.nunchuk.android.signer.software.components.passphrase
 
 sealed class SetPassphraseEvent {
+    data class LoadingEvent(val loading: Boolean) : SetPassphraseEvent()
     object PassPhraseRequiredEvent : SetPassphraseEvent()
     object PassPhraseValidEvent : SetPassphraseEvent()
     object ConfirmPassPhraseRequiredEvent : SetPassphraseEvent()
