@@ -3,10 +3,13 @@ package com.nunchuk.android.signer.software.components.passphrase
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.model.Result.Error
-import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.*
 import com.nunchuk.android.usecase.CreateSoftwareSignerUseCase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -54,21 +57,20 @@ internal class SetPassphraseViewModel @Inject constructor(
 
     private fun createSoftwareSigner(skipPassphrase: Boolean) {
         viewModelScope.launch {
-            val state = getState()
-            when (val result = createSoftwareSignerUseCase.execute(
+            createSoftwareSignerUseCase.execute(
                 name = signerName,
                 mnemonic = mnemonic,
-                passphrase = state.passphrase
-            )) {
-                is Success -> event(
-                    CreateSoftwareSignerCompletedEvent(
-                        id = result.data.id,
-                        name = result.data.name,
-                        skipPassphrase = skipPassphrase
+                passphrase = getState().passphrase
+            )
+                .flowOn(Dispatchers.IO)
+                .onStart { event(LoadingEvent(true)) }
+                .catch { event(CreateSoftwareSignerErrorEvent(it.message.orUnknownError())) }
+                .flowOn(Dispatchers.Main)
+                .collect {
+                    event(
+                        CreateSoftwareSignerCompletedEvent(id = it.id, name = it.name, skipPassphrase = skipPassphrase)
                     )
-                )
-                is Error -> event(CreateSoftwareSignerErrorEvent(result.exception.message.orUnknownError()))
-            }
+                }
         }
 
     }

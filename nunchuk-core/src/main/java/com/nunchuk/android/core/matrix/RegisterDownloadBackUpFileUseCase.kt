@@ -6,15 +6,14 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface RegisterDownloadBackUpFileUseCase {
-    fun execute(
-    ): Flow<Unit>
+    fun execute(): Flow<Unit>
 }
 
 internal class RegisterDownloadBackUpFileUseCaseImpl @Inject constructor(
     private val nunchukNativeSdk: NunchukNativeSdk
 ) : RegisterDownloadBackUpFileUseCase {
 
-    override fun execute() = flow<Unit> {
-        nunchukNativeSdk.registerDownloadFileBackup()
+    override fun execute() = flow {
+        emit(nunchukNativeSdk.registerDownloadFileBackup())
     }
 }

@@ -8,6 +8,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.type.WalletType.ESCROW
+import com.nunchuk.android.type.WalletType.SINGLE_SIG
 import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.DraftWalletUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
@@ -36,8 +37,10 @@ internal class ReviewWalletViewModel @Inject constructor(
         masterSigners: List<MasterSigner>,
         remoteSigners: List<SingleSigner>
     ) {
+        val totalSigns = masterSigners.size + remoteSigners.size
+        val normalizeWalletType = if (walletType == ESCROW) ESCROW else if (totalSigns > 1) WalletType.MULTI_SIG else SINGLE_SIG
         viewModelScope.launch {
-            getUnusedSignerUseCase.execute(masterSigners, walletType, addressType)
+            getUnusedSignerUseCase.execute(masterSigners, normalizeWalletType, addressType)
                 .flowOn(Dispatchers.IO)
                 .onStart { event(SetLoadingEvent(true)) }
                 .map {
@@ -48,7 +51,7 @@ internal class ReviewWalletViewModel @Inject constructor(
                         totalRequireSigns = totalRequireSigns,
                         signers = signers,
                         addressType = addressType,
-                        isEscrow = walletType == ESCROW
+                        isEscrow = normalizeWalletType == ESCROW
                     ).onEach { s -> descriptor = s }
                     Timber.d("descriptor:$descriptor")
                     signers
@@ -60,7 +63,7 @@ internal class ReviewWalletViewModel @Inject constructor(
                         totalRequireSigns = totalRequireSigns,
                         signers = it,
                         addressType = addressType,
-                        isEscrow = walletType == ESCROW
+                        isEscrow = normalizeWalletType == ESCROW
                     )
                 }
                 .flowOn(Dispatchers.Main)

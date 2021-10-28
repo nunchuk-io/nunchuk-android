@@ -6,8 +6,8 @@ import android.util.Log
 import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.*
 import com.nunchuk.android.signer.software.R
+import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.*
 import com.nunchuk.android.signer.software.databinding.ActivitySetPassphraseBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
@@ -49,10 +49,16 @@ class SetPassphraseActivity : BaseActivity<ActivitySetPassphraseBinding>() {
             PassPhraseRequiredEvent -> binding.passphrase.setError(getString(R.string.nc_text_required))
             ConfirmPassPhraseRequiredEvent -> binding.confirmPassphrase.setError(getString(R.string.nc_text_required))
             ConfirmPassPhraseNotMatchedEvent -> binding.confirmPassphrase.setError(getString(R.string.nc_text_confirm_passphrase_not_matched))
-            is CreateSoftwareSignerCompletedEvent -> openSignerInfoScreen(event.id, event.name, event.skipPassphrase)
-            is CreateSoftwareSignerErrorEvent -> NCToastMessage(this).showError(event.message)
+            is CreateSoftwareSignerCompletedEvent -> onCreateSignerCompleted(event.id, event.name, event.skipPassphrase)
+            is CreateSoftwareSignerErrorEvent -> onCreateSignerError(event)
             PassPhraseValidEvent -> removeValidationError()
+            is LoadingEvent -> showLoading()
         }
+    }
+
+    private fun onCreateSignerError(event: CreateSoftwareSignerErrorEvent) {
+        hideLoading()
+        NCToastMessage(this).showError(event.message)
     }
 
     private fun removeValidationError() {
@@ -60,7 +66,8 @@ class SetPassphraseActivity : BaseActivity<ActivitySetPassphraseBinding>() {
         binding.confirmPassphrase.hideError()
     }
 
-    private fun openSignerInfoScreen(id: String, name: String, skipPassphrase: Boolean) {
+    private fun onCreateSignerCompleted(id: String, name: String, skipPassphrase: Boolean) {
+        hideLoading()
         navigator.openSignerInfoScreen(
             activityContext = this,
             id = id,
