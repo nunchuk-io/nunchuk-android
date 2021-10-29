@@ -11,7 +11,10 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsState
 import com.nunchuk.android.messages.usecase.message.AddTagRoomUseCase
 import com.nunchuk.android.messages.usecase.message.CreateRoomUseCase
 import com.nunchuk.android.messages.usecase.message.GetRoomSummaryListUseCase
-import com.nunchuk.android.messages.util.*
+import com.nunchuk.android.messages.util.TimelineListenerAdapter
+import com.nunchuk.android.messages.util.isLocalEvent
+import com.nunchuk.android.messages.util.isNunchukConsumeSyncEvent
+import com.nunchuk.android.messages.util.toNunchukMatrixEvent
 import com.nunchuk.android.model.NunchukMatrixEvent
 import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.usecase.EnableAutoBackupUseCase
@@ -51,11 +54,11 @@ internal class MainActivityViewModel @Inject constructor(
 
     init {
         initSyncEventExecutor()
-        registerDownloadFileBackup()
+        //registerDownloadFileBackup()
     }
 
     fun restoreAndBackUp() {
-        checkRoomSyncExisted()
+        //checkRoomSyncExisted()
     }
 
     private fun registerDownloadFileBackup() {
@@ -80,7 +83,7 @@ internal class MainActivityViewModel @Inject constructor(
                 data: ByteArray,
                 dataLength: Int
             ) {
-                uploadFile(fileName, fileJsonInfo, mineType, data)
+                //uploadFile(fileName, fileJsonInfo, mineType, data)
             }
         }
         SyncFileEventHelper.syncFileExecutor = object : SyncFileCallBack {
@@ -96,7 +99,7 @@ internal class MainActivityViewModel @Inject constructor(
                 fileUrl: String
             ) {
                 Timber.d("[App] download: $fileUrl")
-                downloadFile(fileJsonInfo, fileUrl)
+                //downloadFile(fileJsonInfo, fileUrl)
             }
         }
     }
@@ -224,15 +227,12 @@ internal class MainActivityViewModel @Inject constructor(
 
     private fun Room.retrieveTimelineEvents() {
         timeline = createTimeline(null, TimelineSettings(initialSize = PAGINATION, true))
-        timeline.addListener(TimelineListenerAdapter {
-            handleTimelineEvents(roomId, it)
-        })
+        timeline.addListener(TimelineListenerAdapter(::handleTimelineEvents))
         timeline.start()
     }
 
-    private fun handleTimelineEvents(roomId: String, events: List<TimelineEvent>) {
-        val displayableEvents = events.filter(TimelineEvent::isDisplayable)
-        val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukConsumeSyncEvent)
+    private fun handleTimelineEvents(events: List<TimelineEvent>) {
+        val nunchukEvents = events.filter(TimelineEvent::isNunchukConsumeSyncEvent)
         viewModelScope.launch {
             val sortedEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
                 .filterNot(NunchukMatrixEvent::isLocalEvent)

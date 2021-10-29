@@ -2,15 +2,13 @@ package com.nunchuk.android.settings
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.UploadFileUseCase
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.profile.UpdateUseProfileUseCase
 import com.nunchuk.android.core.provider.AppInfoProvider
-import com.nunchuk.android.utils.CrashlyticsReporter
+import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
@@ -41,9 +39,7 @@ internal class AccountViewModel @Inject constructor(
         viewModelScope.launch {
             getUserProfileUseCase.execute()
                 .flowOn(Dispatchers.IO)
-                .catch {
-                    CrashlyticsReporter.recordException(it)
-                }
+                .onException { }
                 .flowOn(Dispatchers.Main)
                 .collect {
                     updateStateUserAccount()
@@ -61,9 +57,7 @@ internal class AccountViewModel @Inject constructor(
         viewModelScope.launch {
             updateUseProfileUseCase.execute(name, avatarUrl)
                 .flowOn(Dispatchers.IO)
-                .catch {
-                    CrashlyticsReporter.recordException(it)
-                }
+                .onException { }
                 .flowOn(Dispatchers.Main)
                 .collect {
                     updateStateUserAccount()
@@ -75,9 +69,7 @@ internal class AccountViewModel @Inject constructor(
         viewModelScope.launch {
             uploadFileUseCase.execute(System.currentTimeMillis().toString(), "image/jpeg", fileData)
                 .flowOn(Dispatchers.IO)
-                .catch {
-                    CrashlyticsReporter.recordException(it)
-                }
+                .onException { }
                 .flowOn(Dispatchers.Main)
                 .collect {
                     event(

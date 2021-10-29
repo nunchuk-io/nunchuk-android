@@ -33,4 +33,6 @@ sealed class RoomDetailEvent {
         val roomId: String,
         val roomWalletData: RoomWalletData
     ) : RoomDetailEvent()
+
+    data class Loading(val loading: Boolean = true) : RoomDetailEvent()
 }

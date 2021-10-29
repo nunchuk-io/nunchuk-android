@@ -7,8 +7,8 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.InitWalletUseCase
+import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
@@ -61,7 +61,7 @@ internal class ReviewSharedWalletViewModel @Inject constructor(
                 isEscrow = walletType == WalletType.ESCROW
             )
                 .flowOn(Dispatchers.IO)
-                .catch { event(ReviewSharedWalletEvent.InitWalletErrorEvent(it.message.orUnknownError())) }
+                .onException { event(ReviewSharedWalletEvent.InitWalletErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
                 .collect { event(ReviewSharedWalletEvent.InitWalletCompletedEvent) }
         }

@@ -2,6 +2,7 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
@@ -17,5 +18,8 @@ internal class GetTransactionHistoryUseCaseImpl @Inject constructor(
 
     override fun execute(walletId: String, count: Int, skip: Int) = flow {
         emit(nativeSdk.getTransactionHistory(walletId = walletId, count = count, skip = skip))
-    }.catch { emit(emptyList()) }
+    }.catch {
+        CrashlyticsReporter.recordException(it)
+        emit(emptyList())
+    }
 }

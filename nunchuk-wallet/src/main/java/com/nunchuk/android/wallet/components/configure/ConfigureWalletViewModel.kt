@@ -6,6 +6,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.isContain
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
+import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.AssignSignerCompletedEvent
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.Loading
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +28,7 @@ internal class ConfigureWalletViewModel @Inject constructor(
         getCompoundSignersUseCase.execute()
             .onStart { event(Loading(true)) }
             .flowOn(Dispatchers.IO)
-            .catch { updateState { copy(masterSigners = emptyList(), remoteSigners = emptyList()) } }
+            .onException { updateState { copy(masterSigners = emptyList(), remoteSigners = emptyList()) } }
             .onEach { updateState { copy(masterSigners = it.first, remoteSigners = it.second) } }
             .flowOn(Dispatchers.Main)
             .onCompletion { event(Loading(false)) }

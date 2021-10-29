@@ -9,9 +9,9 @@ import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.ExportKeystoneWalletUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
+import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
@@ -47,14 +47,12 @@ internal class UploadConfigurationViewModel @Inject constructor(
 
     fun handleShowQREvent() {
         viewModelScope.launch {
-            viewModelScope.launch {
-                exportKeystoneWalletUseCase.execute(walletId)
-                    .onStart { event(SetLoadingEvent(true)) }
-                    .flowOn(Dispatchers.IO)
-                    .catch { event(UploadConfigurationError(it.message.orUnknownError())) }
-                    .flowOn(Dispatchers.Main)
-                    .collect { event(OpenDynamicQRScreen(it)) }
-            }
+            exportKeystoneWalletUseCase.execute(walletId)
+                .onStart { event(SetLoadingEvent(true)) }
+                .flowOn(Dispatchers.IO)
+                .onException { event(UploadConfigurationError(it.message.orUnknownError())) }
+                .flowOn(Dispatchers.Main)
+                .collect { event(OpenDynamicQRScreen(it)) }
         }
     }
 

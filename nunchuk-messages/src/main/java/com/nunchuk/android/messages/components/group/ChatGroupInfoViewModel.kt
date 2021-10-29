@@ -12,8 +12,8 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.usecase.GetRoomWalletUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
+import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
@@ -47,7 +47,7 @@ class ChatGroupInfoViewModel @Inject constructor(
     private fun getRoomWallet() {
         viewModelScope.launch {
             getRoomWalletUseCase.execute(roomId = room.roomId)
-                .catch { CrashlyticsReporter.recordException(it) }
+                .onException { }
                 .flowOn(Dispatchers.Main)
                 .collect { onGetRoomWallet(it) }
         }
@@ -58,7 +58,7 @@ class ChatGroupInfoViewModel @Inject constructor(
         updateState { copy(roomWallet = roomWallet) }
         viewModelScope.launch {
             getWalletUseCase.execute(walletId = roomWallet.walletId)
-                .catch { CrashlyticsReporter.recordException(it) }
+                .onException { }
                 .flowOn(Dispatchers.Main)
                 .collect { onGetWallet(it) }
         }

@@ -6,10 +6,9 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.usecase.CreateSharedWalletUseCase
 import com.nunchuk.android.usecase.GetRoomWalletUseCase
-import com.nunchuk.android.utils.CrashlyticsReporter
+import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.shared.components.config.SharedWalletConfigEvent.CreateSharedWalletSuccess
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
@@ -37,7 +36,7 @@ internal class SharedWalletConfigViewModel @Inject constructor(
         viewModelScope.launch {
             getRoomWalletUseCase.execute(roomId)
                 .flowOn(Dispatchers.IO)
-                .catch { CrashlyticsReporter.recordException(it) }
+                .onException { }
                 .flowOn(Dispatchers.Main)
                 .collect { updateState { copy(roomWallet = it) } }
         }
@@ -48,7 +47,7 @@ internal class SharedWalletConfigViewModel @Inject constructor(
             val roomId = SessionHolder.currentRoom!!.roomId
             createSharedWalletUseCase.execute(roomId)
                 .flowOn(Dispatchers.IO)
-                .catch { CrashlyticsReporter.recordException(it) }
+                .onException { }
                 .collect {
                     getRoomWallet(roomId)
                     event(CreateSharedWalletSuccess)

@@ -11,9 +11,9 @@ import com.nunchuk.android.signer.components.add.AddSignerEvent.*
 import com.nunchuk.android.usecase.CreateKeystoneSignerUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
+import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
@@ -44,7 +44,7 @@ internal class AddSignerViewModel @Inject constructor(
             )
                 .onStart { event(LoadingEvent) }
                 .flowOn(IO)
-                .catch { event(AddSignerErrorEvent(it.message.orUnknownError())) }
+                .onException { event(AddSignerErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Main)
                 .collect { event(AddSignerSuccessEvent(id = it.masterSignerId, name = it.name)) }
         }
@@ -68,7 +68,7 @@ internal class AddSignerViewModel @Inject constructor(
             createKeystoneSignerUseCase.execute(qrData = qrData)
                 .onStart { event(LoadingEvent) }
                 .flowOn(IO)
-                .catch { event(AddSignerErrorEvent(it.message.orUnknownError())) }
+                .onException { event(AddSignerErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Main)
                 .collect { event(ParseKeystoneSignerSuccess(it.toSpec())) }
         }

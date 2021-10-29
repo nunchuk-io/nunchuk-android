@@ -38,7 +38,10 @@ internal class GetTransactionsUseCaseImpl @Inject constructor(
             getTransaction(walletId = walletId, initEventId = initEventId, isReceive = isReceive)
         }
         emit(transactions)
-    }.catch { emit(emptyList()) }
+    }.catch {
+        CrashlyticsReporter.recordException(it)
+        emit(emptyList())
+    }
 
     private fun getTransaction(walletId: String, initEventId: String, isReceive: Boolean): TransactionExt? {
         try {

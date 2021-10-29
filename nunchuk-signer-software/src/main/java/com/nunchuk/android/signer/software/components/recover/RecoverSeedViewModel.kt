@@ -9,8 +9,8 @@ import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.*
 import com.nunchuk.android.usecase.CheckMnemonicUseCase
 import com.nunchuk.android.usecase.GetBip39WordListUseCase
+import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -44,11 +44,15 @@ internal class RecoverSeedViewModel @Inject constructor(
                 filter(word)
             }
         }
-        event(CanGoNextStepEvent(withoutSpace.countWords() == NUM_WORDS))
     }
 
     private fun filter(word: String) {
-        updateState { copy(suggestions = bip39Words.filter { it.startsWith(word) }.take(MAX_WORDS)) }
+        val filteredWords = bip39Words.filter { it.startsWith(word) }
+        if (filteredWords.size == 1) {
+            handleSelectWord(filteredWords.first())
+        } else {
+            updateState { copy(suggestions = filteredWords.take(MAX_WORDS)) }
+        }
     }
 
     fun handleContinueEvent() {
@@ -64,13 +68,18 @@ internal class RecoverSeedViewModel @Inject constructor(
         updateState { copy(suggestions = ArrayList()) }
         val updatedMnemonic = getState().mnemonic.replaceLastWord(word)
         updateState { copy(mnemonic = updatedMnemonic) }
-        event(UpdateMnemonicEvent(updatedMnemonic))
+        val canGoNext = updatedMnemonic.countWords() == NUM_WORDS
+        if (canGoNext) {
+            event(CanGoNextStepEvent(canGoNext))
+        } else {
+            event(UpdateMnemonicEvent(updatedMnemonic))
+        }
     }
 
     private fun checkMnemonic(mnemonic: String) {
         checkMnemonicUseCase.execute(mnemonic)
             .flowOn(Dispatchers.IO)
-            .catch { event(InvalidMnemonicEvent) }
+            .onException { event(InvalidMnemonicEvent) }
             .onEach { event(ValidMnemonicEvent(mnemonic)) }
             .flowOn(Dispatchers.Main)
             .launchIn(viewModelScope)

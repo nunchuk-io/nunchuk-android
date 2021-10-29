@@ -11,10 +11,10 @@ import com.nunchuk.android.messages.util.sortByLastMessage
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
+import com.nunchuk.android.utils.onException
 import io.reactivex.Completable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.zip
@@ -43,7 +43,7 @@ class RoomsViewModel @Inject constructor(
                 session.getRoom(roomId)?.let(::joinRoom)
                 viewModelScope.launch {
                     getRoomSummaryListUseCase.execute()
-                        .catch { }
+                        .onException { }
                         .collect { updateState { copy(rooms = it) } }
                 }
             }
@@ -65,7 +65,7 @@ class RoomsViewModel @Inject constructor(
             getRoomSummaryListUseCase.execute()
                 .zip(getAllRoomWalletsUseCase.execute()) { rooms, wallets -> rooms to wallets }
                 .flowOn(IO)
-                .catch { onRetrieveMessageError(it) }
+                .onException { onRetrieveMessageError(it) }
                 .flowOn(Dispatchers.Main)
                 .collect { onRetrieveMessageSuccess(it) }
         }
@@ -98,7 +98,7 @@ class RoomsViewModel @Inject constructor(
         viewModelScope.launch {
             leaveRoomUseCase.execute(room)
                 .flowOn(IO)
-                .catch { LoadingEvent(false) }
+                .onException { LoadingEvent(false) }
                 .collect { awaitAndRetrieveMessages() }
         }
     }

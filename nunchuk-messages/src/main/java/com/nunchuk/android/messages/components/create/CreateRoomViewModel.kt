@@ -9,11 +9,12 @@ import com.nunchuk.android.messages.components.create.CreateRoomEvent.CreateRoom
 import com.nunchuk.android.messages.usecase.message.CreateRoomUseCase
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.share.GetContactsUseCase
+import com.nunchuk.android.utils.CrashlyticsReporter
+import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
 
@@ -38,9 +39,7 @@ class CreateRoomViewModel @Inject constructor(
             .defaultSchedulers()
             .subscribe({
                 contacts = it
-            }, {
-
-            })
+            }, CrashlyticsReporter::recordException)
             .addToDisposables()
     }
 
@@ -71,14 +70,13 @@ class CreateRoomViewModel @Inject constructor(
         val receipts = getState().receipts
         val roomName = receipts.joinToString(separator = ",", transform = Contact::name) + "," + currentName
         val userIds = receipts.map(Contact::chatId)
-
-        createRoomUseCase.execute(roomName, userIds)
-            .flowOn(Dispatchers.IO)
-            .catch { event(CreateRoomErrorEvent(it.message.orEmpty())) }
-            .onEach { event(CreateRoomSuccessEvent(it.roomId)) }
-            .flowOn(Dispatchers.Main)
-            .launchIn(viewModelScope)
-
+        viewModelScope.launch {
+            createRoomUseCase.execute(roomName, userIds)
+                .flowOn(Dispatchers.IO)
+                .onException { event(CreateRoomErrorEvent(it.message.orEmpty())) }
+                .flowOn(Dispatchers.Main)
+                .collect { event(CreateRoomSuccessEvent(it.roomId)) }
+        }
     }
 
     fun cleanUp() {
@@ -89,5 +87,5 @@ class CreateRoomViewModel @Inject constructor(
 
 fun String.isContains(word: String): Boolean {
     val locale = Locale.getDefault()
-    return toLowerCase(locale).contains(word.toLowerCase(locale))
+    return lowercase(locale).contains(word.lowercase(locale))
 }

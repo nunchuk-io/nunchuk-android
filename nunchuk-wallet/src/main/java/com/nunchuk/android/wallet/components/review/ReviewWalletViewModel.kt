@@ -12,6 +12,7 @@ import com.nunchuk.android.type.WalletType.SINGLE_SIG
 import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.DraftWalletUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
+import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -45,7 +46,6 @@ internal class ReviewWalletViewModel @Inject constructor(
                 .onStart { event(SetLoadingEvent(true)) }
                 .map {
                     val signers = it + remoteSigners
-                    Timber.d("signers:$signers")
                     draftWalletUseCase.execute(
                         name = walletName,
                         totalRequireSigns = totalRequireSigns,
@@ -53,7 +53,6 @@ internal class ReviewWalletViewModel @Inject constructor(
                         addressType = addressType,
                         isEscrow = normalizeWalletType == ESCROW
                     ).onEach { s -> descriptor = s }
-                    Timber.d("descriptor:$descriptor")
                     signers
                 }
                 .flowOn(Dispatchers.IO)
@@ -67,8 +66,7 @@ internal class ReviewWalletViewModel @Inject constructor(
                     )
                 }
                 .flowOn(Dispatchers.Main)
-                .catch {
-                    Timber.d("create wallet error:$it")
+                .onException {
                     event(CreateWalletErrorEvent(it.message.orUnknownError()))
                 }
                 .collect {

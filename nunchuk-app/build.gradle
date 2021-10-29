@@ -32,7 +32,6 @@ android {
         debug {
             minifyEnabled false
             debuggable true
-            testCoverageEnabled true
             applicationIdSuffix ".dev"
         }
         release {
