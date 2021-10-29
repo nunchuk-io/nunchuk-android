@@ -5,7 +5,7 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.transaction.components.receive.address.unused.UnusedAddressEvent.GenerateAddressErrorEvent
 import com.nunchuk.android.usecase.GetAddressesUseCase
 import com.nunchuk.android.usecase.NewAddressUseCase
-import kotlinx.coroutines.flow.catch
+import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,7 +27,7 @@ internal class UnusedAddressViewModel @Inject constructor(
     private fun getUnusedAddresses() {
         viewModelScope.launch {
             addressesUseCase.execute(walletId = walletId)
-                .catch { onError() }
+                .onException { onError() }
                 .collect { onSuccess(it) }
         }
 
@@ -47,7 +47,7 @@ internal class UnusedAddressViewModel @Inject constructor(
     fun generateAddress() {
         viewModelScope.launch {
             newAddressUseCase.execute(walletId = walletId)
-                .catch { event(GenerateAddressErrorEvent(it.message.orEmpty())) }
+                .onException { event(GenerateAddressErrorEvent(it.message.orEmpty())) }
                 .collect { getUnusedAddresses() }
         }
     }

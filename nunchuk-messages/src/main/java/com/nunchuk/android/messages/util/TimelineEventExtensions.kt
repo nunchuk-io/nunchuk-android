@@ -58,9 +58,8 @@ fun TimelineEvent.getBodyElementValueByKey(key: String): String {
 fun TimelineEvent.isInitTransactionEvent() = isTransactionEvent(TransactionEventType.INIT)
 
 fun TimelineEvent.isReceiveTransactionEvent() = isTransactionEvent(TransactionEventType.RECEIVE)
-fun TimelineEvent.isNunchukConsumeSyncEvent() : Boolean {
-    return root.type == SYNC_EVENT_TAG
-}
+
+fun TimelineEvent.isNunchukConsumeSyncEvent() = root.type == SYNC_EVENT_TAG
 
 private fun TimelineEvent.isTransactionEvent(type: TransactionEventType): Boolean {
     val content = root.content?.toMap().orEmpty()

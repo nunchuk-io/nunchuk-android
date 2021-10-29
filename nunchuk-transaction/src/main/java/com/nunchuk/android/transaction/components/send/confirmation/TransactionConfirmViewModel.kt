@@ -14,8 +14,8 @@ import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DeleteTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.InitRoomTransactionUseCase
+import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
@@ -70,7 +70,7 @@ internal class TransactionConfirmViewModel @Inject constructor(
                 feeRate = manualFeeRate.toManualFeeRate()
             )
                 .flowOn(Dispatchers.IO)
-                .catch { event(InitRoomTransactionError(it.message.orUnknownError())) }
+                .onException { event(InitRoomTransactionError(it.message.orUnknownError())) }
                 .collect { event(InitRoomTransactionSuccess(roomId)) }
         }
     }

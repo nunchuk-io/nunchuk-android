@@ -10,6 +10,7 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.InitNunchukUseCase
+import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import org.matrix.android.sdk.api.session.Session
@@ -40,7 +41,7 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
             staySignedIn = staySignedIn
         ).flowOn(Dispatchers.IO)
             .onStart { event(ProcessingEvent) }
-            .catch { event(SignInErrorEvent(message = it.message.orUnknownError())) }
+            .onException { event(SignInErrorEvent(message = it.message.orUnknownError())) }
             .flatMapConcat { getCurrentUser(token = it.first, encryptedDeviceId = it.second) }
             .onEach { event(SignInSuccessEvent) }
             .flowOn(Dispatchers.Main)
@@ -56,12 +57,12 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
     private fun initNunchuk(): Flow<Unit> {
         val account = accountManager.getAccount()
         return initNunchukUseCase.execute(account.email, account.chatId)
-            .catch { event(SignInErrorEvent(message = it.message.orUnknownError())) }
+            .onException { event(SignInErrorEvent(message = it.message.orUnknownError())) }
     }
 
     private fun loginWithMatrix(userName: String, password: String, encryptedDeviceId: String): Flow<Session> {
         return loginWithMatrixUseCase.execute(userName = userName, password = password, encryptedDeviceId = encryptedDeviceId)
-            .catch { event(SignInErrorEvent(message = it.message.orUnknownError())) }
+            .onException { event(SignInErrorEvent(message = it.message.orUnknownError())) }
             .onEach {
                 SessionHolder.storeActiveSession(it)
             }

@@ -25,9 +25,9 @@ object SessionHolder {
         }
     }
 
-    fun clearActiveSession() {
+    suspend fun clearActiveSession() {
         try {
-            activeSession?.close()
+            activeSession?.signOut(true)
         } catch (e: Error) {
             CrashlyticsReporter.recordException(e)
         }

@@ -6,10 +6,10 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.UpdateWalletUseCase
+import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameSuccessEvent
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
@@ -33,7 +33,7 @@ internal class WalletConfigViewModel @Inject constructor(
         viewModelScope.launch {
             getWalletUseCase.execute(walletId)
                 .flowOn(Dispatchers.IO)
-                .catch { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
+                .onException { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
                 .collect { updateState { it } }
         }
@@ -43,7 +43,7 @@ internal class WalletConfigViewModel @Inject constructor(
         viewModelScope.launch {
             updateWalletUseCase.execute(getState().copy(name = walletName))
                 .flowOn(Dispatchers.IO)
-                .catch { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
+                .onException { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
                 .collect {
                     updateState { copy(name = walletName) }

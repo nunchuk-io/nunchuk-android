@@ -18,7 +18,7 @@ internal class NunchukTransactionNotificationHolder(
         val context = itemView.context
         when (model.msgType) {
             SIGN -> {
-                val fingerPrint = model.timelineEvent.getBodyElementValueByKey("master_fingerprint")
+                val fingerPrint = model.timelineEvent.getBodyElementValueByKey("key")
                 binding.notification.text = getHtmlString(R.string.nc_message_transaction_sign, sender, fingerPrint)
             }
             REJECT -> {

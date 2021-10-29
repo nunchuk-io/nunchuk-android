@@ -9,9 +9,12 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.JoinWalletUseCase
-import com.nunchuk.android.utils.CrashlyticsReporter
+import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,7 +34,7 @@ internal class AssignSignerViewModel @Inject constructor(
     private fun getSigners() {
         getCompoundSignersUseCase.execute()
             .flowOn(Dispatchers.IO)
-            .catch { updateState { copy(masterSigners = emptyList(), remoteSigners = emptyList()) } }
+            .onException { updateState { copy(masterSigners = emptyList(), remoteSigners = emptyList()) } }
             .onEach { updateState { copy(masterSigners = it.first, remoteSigners = it.second) } }
             .flowOn(Dispatchers.Main)
             .launchIn(viewModelScope)
@@ -66,7 +69,7 @@ internal class AssignSignerViewModel @Inject constructor(
             SessionHolder.currentRoom?.let { room ->
                 joinWalletUseCase.execute(room.roomId, remoteSigners + unusedSignerSigners)
                     .flowOn(Dispatchers.IO)
-                    .catch { CrashlyticsReporter.recordException(it) }
+                    .onException {}
                     .onEach { event(AssignSignerEvent.AssignSignerCompletedEvent(room.roomId)) }
                     .flowOn(Dispatchers.Main)
                     .launchIn(viewModelScope)

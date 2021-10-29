@@ -19,12 +19,10 @@ internal class NewAddressUseCaseImpl @Inject constructor(
         walletId: String,
         internal: Boolean
     ) = flow {
-        try {
-            emit(nativeSdk.newAddress(walletId = walletId, internal = internal))
-        } catch (t: Throwable) {
-            CrashlyticsReporter.recordException(t)
-            emit("")
-        }
-    }.catch { emit("") }
+        emit(nativeSdk.newAddress(walletId = walletId, internal = internal))
+    }.catch {
+        CrashlyticsReporter.recordException(it)
+        emit("")
+    }
 
 }

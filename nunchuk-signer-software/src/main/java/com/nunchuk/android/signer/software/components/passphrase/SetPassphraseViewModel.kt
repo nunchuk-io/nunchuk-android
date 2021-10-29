@@ -5,8 +5,8 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.*
 import com.nunchuk.android.usecase.CreateSoftwareSignerUseCase
+import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
@@ -64,7 +64,7 @@ internal class SetPassphraseViewModel @Inject constructor(
             )
                 .flowOn(Dispatchers.IO)
                 .onStart { event(LoadingEvent(true)) }
-                .catch { event(CreateSoftwareSignerErrorEvent(it.message.orUnknownError())) }
+                .onException { event(CreateSoftwareSignerErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
                 .collect {
                     event(

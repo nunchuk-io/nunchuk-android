@@ -9,6 +9,7 @@ import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.*
+import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
@@ -16,7 +17,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -61,7 +61,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private fun getTransactionHistory() {
         viewModelScope.launch {
             getTransactionHistoryUseCase.execute(walletId)
-                .catch { event(WalletDetailsError(it.message.orUnknownError())) }
+                .onException { event(WalletDetailsError(it.message.orUnknownError())) }
                 .collect { onRetrievedTransactionHistory(it) }
         }
     }
@@ -76,7 +76,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private fun getUnusedAddresses() {
         viewModelScope.launch {
             addressesUseCase.execute(walletId = walletId)
-                .catch { generateNewAddress() }
+                .onException { generateNewAddress() }
                 .collect { onRetrieveUnusedAddress(it) }
         }
     }
@@ -92,14 +92,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     private fun generateNewAddress() {
         viewModelScope.launch {
             newAddressUseCase.execute(walletId = walletId)
-                .catch {
-                    Timber.e("generate new address error", it)
-                    UpdateUnusedAddress("")
-                }
-                .collect {
-                    Timber.d("generate new address completed $it")
-                    UpdateUnusedAddress(it)
-                }
+                .onException { event(UpdateUnusedAddress("")) }
+                .collect { event(UpdateUnusedAddress(it)) }
         }
     }
 
@@ -138,7 +132,7 @@ internal class WalletDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             exportKeystoneWalletUseCase.execute(walletId)
                 .flowOn(Dispatchers.IO)
-                .catch { showError(it) }
+                .onException { showError(it) }
                 .flowOn(Dispatchers.Main)
                 .collect { event(OpenDynamicQRScreen(it)) }
         }

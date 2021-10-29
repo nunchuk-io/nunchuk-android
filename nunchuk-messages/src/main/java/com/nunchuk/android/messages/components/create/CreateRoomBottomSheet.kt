@@ -91,7 +91,7 @@ class CreateRoomBottomSheet : BaseBottomSheet<BottomSheetCreateRoomBinding>() {
 
     private fun showRoomCreateError(message: String) {
         hideLoading()
-        NCToastMessage(requireActivity()).show(message)
+        NCToastMessage(requireActivity()).showWarning(message)
     }
 
     private fun showNoContactsError() {

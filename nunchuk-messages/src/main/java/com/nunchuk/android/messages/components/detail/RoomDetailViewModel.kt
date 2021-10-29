@@ -13,11 +13,13 @@ import com.nunchuk.android.model.SendEventHelper
 import com.nunchuk.android.model.toRoomWalletData
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.utils.CrashlyticsReporter
+import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
@@ -51,7 +53,6 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     private fun onRetrievedRoom(room: Room) {
-
         storeRoom(room)
         joinRoom()
         initSendEventExecutor()
@@ -63,9 +64,8 @@ class RoomDetailViewModel @Inject constructor(
         viewModelScope.launch {
             getRoomWalletUseCase.execute(roomId = room.roomId)
                 .flowOn(IO)
-                .catch {
+                .onException {
                     updateState { copy(roomWallet = null) }
-                    Timber.e("Get room wallet error ", it)
                 }
                 .collect {
                     onCompleted()
@@ -126,12 +126,18 @@ class RoomDetailViewModel @Inject constructor(
         nunchukEvents: List<TimelineEvent>
     ) {
         consumeEventUseCase.execute(sortedEvents)
+            .onStart { event(Loading(true)) }
+            .flowOn(IO)
+            .onException {}
+            .flowOn(Main)
             .onCompletion {
+                event(Loading(false))
                 updateState { copy(messages = displayableEvents.toMessages(currentId)) }
                 getRoomWallet(nunchukEvents)
             }
-            .catch { CrashlyticsReporter.recordException(it) }
-            .collect { Timber.d("Consume event completed") }
+            .collect {
+                Timber.d("Consume event completed")
+            }
     }
 
     private fun getRoomWallet(nunchukEvents: List<TimelineEvent>) {
@@ -147,7 +153,7 @@ class RoomDetailViewModel @Inject constructor(
         viewModelScope.launch {
             val eventIds = mapTransactionEvents(events)
             getTransactionsUseCase.execute(walletId, eventIds)
-                .catch { CrashlyticsReporter.recordException(it) }
+                .onException { }
                 .collect { updateState { copy(transactions = it) } }
         }
     }
@@ -180,7 +186,7 @@ class RoomDetailViewModel @Inject constructor(
     fun cancelWallet() {
         viewModelScope.launch {
             cancelWalletUseCase.execute(room.roomId)
-                .catch { CrashlyticsReporter.recordException(it) }
+                .onException {}
                 .collect { getRoomWallet() }
         }
     }
@@ -189,7 +195,7 @@ class RoomDetailViewModel @Inject constructor(
         viewModelScope.launch {
             createSharedWalletUseCase.execute(room.roomId)
                 .flowOn(IO)
-                .catch { CrashlyticsReporter.recordException(it) }
+                .onException { }
                 .collect {
                     getRoomWallet()
                     event(RoomWalletCreatedEvent)

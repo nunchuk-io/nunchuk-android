@@ -16,6 +16,7 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.SignRoomTransactionUseCase
+import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
@@ -109,7 +110,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             event(LoadingEvent)
             broadcastTransactionUseCase.execute(walletId, txId)
-                .catch { event(TransactionDetailsError(it.message.orEmpty())) }
+                .onException { event(TransactionDetailsError(it.message.orEmpty())) }
                 .collect {
                     updateTransaction(it)
                     event(BroadcastTransactionSuccess())
@@ -122,7 +123,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             event(LoadingEvent)
             broadcastRoomTransactionUseCase.execute(initEventId)
                 .flowOn(IO)
-                .catch { event(TransactionDetailsError(it.message.orEmpty())) }
+                .onException { event(TransactionDetailsError(it.message.orEmpty())) }
                 .collect { event(BroadcastTransactionSuccess(SessionHolder.getActiveRoomId())) }
         }
     }
@@ -130,7 +131,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     fun handleViewBlockchainEvent() {
         getBlockchainExplorerUrlUseCase.execute(txId)
             .flowOn(IO)
-            .catch { event(TransactionDetailsError(it.message.orEmpty())) }
+            .onException { event(TransactionDetailsError(it.message.orEmpty())) }
             .onEach { event(ViewBlockchainExplorer(it)) }
             .flowOn(Main)
             .launchIn(viewModelScope)
@@ -160,7 +161,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     event(PromptInputPassphrase {
                         viewModelScope.launch {
                             sendSignerPassphrase.execute(signer.id, it)
-                                .catch { event(TransactionDetailsError(it.message.orEmpty())) }
+                                .onException { event(TransactionDetailsError(it.message.orEmpty())) }
                                 .collect { signTransaction(device) }
                         }
                     })
@@ -185,7 +186,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             signRoomTransactionUseCase.execute(initEventId = initEventId, device = device)
                 .flowOn(IO)
-                .catch { event(TransactionDetailsError(it.message.orEmpty())) }
+                .onException { event(TransactionDetailsError(it.message.orEmpty())) }
                 .collect { event(SignTransactionSuccess(SessionHolder.getActiveRoomId())) }
         }
     }

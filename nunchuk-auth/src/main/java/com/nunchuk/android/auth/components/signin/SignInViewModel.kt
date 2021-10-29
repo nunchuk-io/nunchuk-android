@@ -13,6 +13,7 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.utils.EmailValidator
+import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import org.matrix.android.sdk.api.session.Session
@@ -48,7 +49,7 @@ internal class SignInViewModel @Inject constructor(
             signInUseCase.execute(email = email, password = password, staySignedIn = staySignedIn)
                 .flowOn(Dispatchers.IO)
                 .onStart { event(ProcessingEvent) }
-                .catch {
+                .onException {
                     if (it is NunchukApiException) {
                         event(
                             SignInErrorEvent(
@@ -77,12 +78,12 @@ internal class SignInViewModel @Inject constructor(
     private fun initNunchuk(): Flow<Unit> {
         val account = accountManager.getAccount()
         return initNunchukUseCase.execute(account.email, account.chatId)
-            .catch { event(SignInErrorEvent(message = it.message)) }
+            .onException { event(SignInErrorEvent(message = it.message)) }
     }
 
     private fun loginWithMatrix(userName: String, password: String, encryptedDeviceId: String): Flow<Session> {
         return loginWithMatrixUseCase.execute(userName = userName, password = password, encryptedDeviceId = encryptedDeviceId)
-            .catch { event(SignInErrorEvent(message = it.message)) }
+            .onException { event(SignInErrorEvent(message = it.message)) }
             .onEach {
                 SessionHolder.storeActiveSession(it)
             }

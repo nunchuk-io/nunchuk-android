@@ -21,6 +21,7 @@ internal class MessageNotificationHolder(val binding: ItemMessageNotificationBin
             event.isRoomMemberEvent() -> bindMembershipEvent(event, sender)
             event.isRoomNameEvent() -> bindRoomNameEvent(event, sender)
             event.isRoomCreateEvent() -> bindRoomCreateEvent(event, sender)
+            else -> binding.notification.text = "${message.timelineEvent}"
         }
     }
 

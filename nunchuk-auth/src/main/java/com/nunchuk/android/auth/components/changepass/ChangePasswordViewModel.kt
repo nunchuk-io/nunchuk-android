@@ -6,9 +6,9 @@ import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.*
 import com.nunchuk.android.auth.domain.ChangePasswordUseCase
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
@@ -40,7 +40,7 @@ internal class ChangePasswordViewModel @Inject constructor(
                 changePasswordUseCase.execute(oldPassword = oldPassword, newPassword = newPassword)
                     .flowOn(IO)
                     .onStart { event(LoadingEvent) }
-                    .catch { event(ChangePasswordSuccessError(it.message)) }
+                    .onException { event(ChangePasswordSuccessError(it.message)) }
                     .flowOn(Main)
                     .collect { onChangePasswordSuccess() }
             }

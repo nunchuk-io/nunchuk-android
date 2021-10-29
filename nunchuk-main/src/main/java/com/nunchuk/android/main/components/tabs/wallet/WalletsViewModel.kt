@@ -5,6 +5,7 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
+import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -25,7 +26,7 @@ internal class WalletsViewModel @Inject constructor(
                 }
                 .onStart { event(Loading(true)) }
                 .flowOn(Dispatchers.IO)
-                .catch {
+                .onException {
                     updateState { copy(signers = emptyList(), masterSigners = emptyList()) }
                 }
                 .flowOn(Dispatchers.Main)

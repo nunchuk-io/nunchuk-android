@@ -5,9 +5,13 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.contact.components.add.AddContactsEvent.*
 import com.nunchuk.android.contact.usecase.AddContactUseCase
 import com.nunchuk.android.utils.EmailValidator
+import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -48,7 +52,7 @@ class AddContactsViewModel @Inject constructor(
                 addContactUseCase.execute(emails.map(EmailWithState::email))
                     .flowOn(IO)
                     .onStart { event(LoadingEvent(true)) }
-                    .catch { onSendError(it) }
+                    .onException { onSendError(it) }
                     .onCompletion { event(LoadingEvent(false)) }
                     .flowOn(Main)
                     .collect { onSendCompleted(it) }
