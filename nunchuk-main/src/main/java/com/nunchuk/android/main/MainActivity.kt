@@ -29,6 +29,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        viewModel.scheduleGetBTCConvertPrice()
         viewModel.restoreAndBackUp()
         setupNavigationView()
     }

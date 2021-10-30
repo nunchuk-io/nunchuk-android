@@ -7,7 +7,10 @@ import dagger.Module
         ViewModelModule::class,
         CoreModule::class,
         MatrixProxyModule::class,
-        UserProfileProxyModule::class
+        UserProfileProxyModule::class,
+        DataModule::class,
+        DomainModule::class,
+        NetworkModule::class
     ]
 )
 interface CoreProxyModule

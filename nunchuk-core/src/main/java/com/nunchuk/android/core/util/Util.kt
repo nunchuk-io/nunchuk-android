@@ -9,7 +9,7 @@ fun Exception.messageOrUnknownError() = message.orUnknownError()
 
 fun String?.orUnknownError() = this ?: UNKNOWN_ERROR
 
-const val BTC_USD_EXCHANGE_RATE = 45000
+var BTC_USD_EXCHANGE_RATE = 45000.0
 
 const val SATOSHI_BTC_EXCHANGE_RATE = 0.00000001
 

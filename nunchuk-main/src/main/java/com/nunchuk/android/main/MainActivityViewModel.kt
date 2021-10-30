@@ -5,7 +5,10 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.callbacks.DownloadFileCallBack
 import com.nunchuk.android.callbacks.SyncFileCallBack
 import com.nunchuk.android.callbacks.UploadFileCallBack
+import com.nunchuk.android.core.domain.GetPriceConvertBTCUseCase
+import com.nunchuk.android.core.domain.ScheduleGetPriceConvertBTCUseCase
 import com.nunchuk.android.core.matrix.*
+import com.nunchuk.android.core.util.BTC_USD_EXCHANGE_RATE
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsState
 import com.nunchuk.android.messages.usecase.message.AddTagRoomUseCase
@@ -16,6 +19,7 @@ import com.nunchuk.android.model.NunchukMatrixEvent
 import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.usecase.EnableAutoBackupUseCase
 import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
+import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -37,7 +41,9 @@ internal class MainActivityViewModel @Inject constructor(
     private val registerDownloadBackUpFileUseCase: RegisterDownloadBackUpFileUseCase,
     private val consumeSyncFileUseCase: ConsumeSyncFileUseCase,
     private val backupFileUseCase: BackupFileUseCase,
-    private val consumerSyncEventUseCase: ConsumerSyncEventUseCase
+    private val consumerSyncEventUseCase: ConsumerSyncEventUseCase,
+    private val getPriceConvertBTCUseCase: GetPriceConvertBTCUseCase,
+    private val scheduleGetPriceConvertBTCUseCase: ScheduleGetPriceConvertBTCUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
 
     override val initialState = WalletsState()
@@ -252,6 +258,34 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
+    private fun getBTCConvertPrice() {
+        viewModelScope.launch {
+            getPriceConvertBTCUseCase.execute()
+                .flowOn(Dispatchers.IO)
+                .catch {
+                    CrashlyticsReporter.recordException(it)
+                }
+                .flowOn(Dispatchers.Main)
+                .collect { btcResponse ->
+                    btcResponse?.usd?.let {  BTC_USD_EXCHANGE_RATE = it }
+
+                }
+        }
+    }
+
+    fun scheduleGetBTCConvertPrice() {
+        viewModelScope.launch {
+            scheduleGetPriceConvertBTCUseCase.execute()
+                .flowOn(Dispatchers.IO)
+                .catch {
+                    CrashlyticsReporter.recordException(it)
+                }
+                .flowOn(Dispatchers.Main)
+                .collect {
+                    getBTCConvertPrice()
+                }
+        }
+    }
 
     companion object {
         private const val PAGINATION = 50
