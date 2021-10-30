@@ -98,7 +98,9 @@ fun BottomSheetDialogFragment.addStateChangedCallback(
 fun EditText.setOnEnterOrSpaceListener(callback: () -> Unit) {
     setOnKeyListener(object : View.OnKeyListener {
         override fun onKey(v: View, keyCode: Int, event: KeyEvent): Boolean {
-            if (event.action == KeyEvent.ACTION_DOWN && (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_SPACE || keyCode == KeyEvent.KEYCODE_COMMA)) {
+            // only work with hardware keyboard
+            if (event.action == KeyEvent.ACTION_DOWN
+                && (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_SPACE)) {
                 callback()
                 return true
             }
