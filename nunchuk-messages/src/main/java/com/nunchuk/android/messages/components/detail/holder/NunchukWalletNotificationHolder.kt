@@ -55,7 +55,9 @@ internal class NunchukWalletNotificationHolder(
 
     private fun getFingerPrint(model: NunchukWalletMessage): String {
         val fingerPrint = try {
-            model.timelineEvent.getBodyElementValueByKey("key").toSigner().fingerPrint
+            val keyValue = model.timelineEvent.getBodyElementValueByKey("key")
+            val signer = keyValue.replace("\"", "").toSigner()
+            signer.fingerPrint
         } catch (t: Throwable) {
             CrashlyticsReporter.recordException(t)
             ""

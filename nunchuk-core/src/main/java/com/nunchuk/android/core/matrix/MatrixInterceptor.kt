@@ -24,8 +24,7 @@ internal class MatrixInterceptorImpl @Inject constructor(
                     homeServerConnectionConfig = matrixProvider.getServerConfig(),
                     matrixId = username,
                     password = password,
-                    initialDeviceName = headerProvider.getDeviceName(),
-                    deviceId = encryptedDeviceId
+                    initialDeviceName = headerProvider.getDeviceName()
                 ).apply {
                     authenticationService.reset()
                     SessionHolder.storeActiveSession(this)
