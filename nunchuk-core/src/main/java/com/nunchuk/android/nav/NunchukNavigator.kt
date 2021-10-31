@@ -7,4 +7,5 @@ interface NunchukNavigator :
     MessageNavigator,
     SignerNavigator,
     WalletNavigator,
-    TransactionNavigator
+    TransactionNavigator,
+    SettingNavigator

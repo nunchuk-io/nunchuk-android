@@ -71,9 +71,6 @@ internal interface TransactionDomainModule {
     fun bindCheckAddressValidUseCase(useCase: CheckAddressValidUseCaseImpl): CheckAddressValidUseCase
 
     @Binds
-    fun bindGetBlockchainExplorerUrlUseCase(useCase: GetBlockchainExplorerUrlUseCaseImpl): GetBlockchainExplorerUrlUseCase
-
-    @Binds
     fun bindSendSignerPassphrase(useCase: SendSignerPassphraseImpl): SendSignerPassphrase
 
 }

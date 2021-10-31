@@ -1,4 +1,4 @@
-package com.nunchuk.android.usecase
+package com.nunchuk.android.core.domain
 
 import com.nunchuk.android.model.AppSettings
 import com.nunchuk.android.type.Chain
@@ -13,7 +13,7 @@ interface GetBlockchainExplorerUrlUseCase {
 }
 
 internal class GetBlockchainExplorerUrlUseCaseImpl @Inject constructor(
-    private val appSettingsUseCase: GetAppSettingsUseCase
+    private val appSettingsUseCase: GetAppSettingUseCase
 ) : GetBlockchainExplorerUrlUseCase {
 
     override fun execute(txId: String) = appSettingsUseCase.execute().map { formatUrl(it, txId) }

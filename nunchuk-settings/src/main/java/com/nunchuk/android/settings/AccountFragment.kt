@@ -80,7 +80,7 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
     }
 
     private fun changeNetworkSetting() {
-        showComingSoonText()
+        navigator.openNetworkSettingScreen(requireActivity())
     }
 
     private fun changeUnitSetting() {

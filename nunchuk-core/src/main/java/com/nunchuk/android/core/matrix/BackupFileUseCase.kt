@@ -5,9 +5,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
-/*
-* Android Matrix SDK does not have a native upload func, so we have to call rest api
-* */
 interface BackupFileUseCase {
     fun execute(
         syncRoomId: String,

@@ -23,19 +23,20 @@ internal class SplashViewModel @Inject constructor(
     private fun initFlow() {
         val account = accountManager.getAccount()
         viewModelScope.launch {
-            initNunchukUseCase.execute(account.email, account.chatId)
+            initNunchukUseCase.executeWhenExisted(account.email, account.chatId)
                 .flowOn(Dispatchers.IO)
                 .onException { event(InitErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
-                .collect { event(NavHomeScreenEvent) }
+                .collect {
+                    event(NavHomeScreenEvent)
+                }
         }
     }
 
     fun handleNavigation() {
         when {
-            !accountManager.isAccountExisted() -> event(NavSignInEvent)
-            !accountManager.isAccountActivated() -> event(NavActivateAccountEvent)
             !accountManager.isStaySignedIn() || !accountManager.isLinkedWithMatrix() || !accountManager.isAccountExisted() -> event(NavSignInEvent)
+            !accountManager.isAccountActivated() -> event(NavActivateAccountEvent)
             else -> initFlow()
         }
     }

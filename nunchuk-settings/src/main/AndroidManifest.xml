@@ -1,2 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="com.nunchuk.android.settings" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.nunchuk.android.settings">
+
+    <application>
+
+        <activity
+            android:name=".network.NetworkSettingActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+    </application>
+</manifest>

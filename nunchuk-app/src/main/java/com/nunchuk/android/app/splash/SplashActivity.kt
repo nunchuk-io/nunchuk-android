@@ -1,10 +1,12 @@
 package com.nunchuk.android.app.splash
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.app.splash.SplashEvent.*
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.bus.RestartAppEventBus
 import com.nunchuk.android.databinding.ActivitySplashBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
@@ -23,13 +25,17 @@ internal class SplashActivity : BaseActivity<ActivitySplashBinding>() {
         super.onCreate(savedInstanceState)
 
         setTransparentStatusBar()
-
         subscribeEvents()
     }
 
     override fun onResume() {
         super.onResume()
         viewModel.handleNavigation()
+        RestartAppEventBus.instance().subscribe {
+            finish()
+            startActivity(Intent(this, SplashActivity::class.java))
+            overridePendingTransition(0, 0)
+        }
     }
 
     private fun subscribeEvents() {
