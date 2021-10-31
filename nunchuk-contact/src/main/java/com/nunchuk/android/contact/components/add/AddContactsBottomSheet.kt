@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
@@ -91,6 +92,13 @@ class AddContactsBottomSheet : BaseBottomSheet<BottomSheetAddContactsBinding>() 
         binding.input.setOnEnterOrSpaceListener {
             viewModel.handleAddEmail(binding.input.text.toString())
             binding.input.setText("")
+        }
+        binding.input.addTextChangedListener { text ->
+            val currentText = text.toString()
+            if (currentText.isNotEmpty() && (currentText.last() == ',' || currentText.last() == ' ')) {
+                viewModel.handleAddEmail(currentText.dropLast(1))
+                binding.input.setText("")
+            }
         }
         binding.closeBtn.setOnClickListener {
             cleanUp()
