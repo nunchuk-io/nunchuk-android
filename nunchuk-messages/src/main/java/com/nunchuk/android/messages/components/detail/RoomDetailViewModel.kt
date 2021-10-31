@@ -19,7 +19,6 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
@@ -126,12 +125,10 @@ class RoomDetailViewModel @Inject constructor(
         nunchukEvents: List<TimelineEvent>
     ) {
         consumeEventUseCase.execute(sortedEvents)
-            .onStart { event(Loading(true)) }
             .flowOn(IO)
             .onException {}
             .flowOn(Main)
             .onCompletion {
-                event(Loading(false))
                 updateState { copy(messages = displayableEvents.toMessages(currentId)) }
                 getRoomWallet(nunchukEvents)
             }

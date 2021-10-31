@@ -78,7 +78,6 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             OpenChatInfoEvent -> navigator.openChatInfoScreen(this, args.roomId)
             RoomWalletCreatedEvent -> NCToastMessage(this).show(R.string.nc_message_wallet_created)
             is ViewWalletConfigEvent -> navigator.openSharedWalletConfigScreen(this, event.roomWalletData)
-            is Loading -> showOrHideLoading(event.loading)
         }
     }
 
