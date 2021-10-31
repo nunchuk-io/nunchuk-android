@@ -1,9 +1,6 @@
 package com.nunchuk.android.core.di
 
-import com.nunchuk.android.core.domain.GetPriceConvertBTCUseCase
-import com.nunchuk.android.core.domain.GetPriceConvertBTCUseCaseImpl
-import com.nunchuk.android.core.domain.ScheduleGetPriceConvertBTCUseCase
-import com.nunchuk.android.core.domain.ScheduleGetPriceConvertBTCUseCaseImpl
+import com.nunchuk.android.core.domain.*
 import dagger.Binds
 import dagger.Module
 
@@ -14,4 +11,16 @@ internal interface DomainModule {
 
     @Binds
     fun bindScheduleGetPriceConvertBTCUseCase(repository: ScheduleGetPriceConvertBTCUseCaseImpl): ScheduleGetPriceConvertBTCUseCase
+
+    @Binds
+    fun bindUpdateAppSettingUseCase(useCase: UpdateAppSettingUseCaseImpl): UpdateAppSettingUseCase
+
+    @Binds
+    fun bindGetLocalAppSettingUseCase(useCase: GetAppSettingUseCaseUseCaseImpl): GetAppSettingUseCase
+
+    @Binds
+    fun bindInitAppSettingsUseCase(useCase: InitAppSettingsUseCaseImpl): InitAppSettingsUseCase
+
+    @Binds
+    fun bindGetBlockchainExplorerUrlUseCase(useCase: GetBlockchainExplorerUrlUseCaseImpl): GetBlockchainExplorerUrlUseCase
 }

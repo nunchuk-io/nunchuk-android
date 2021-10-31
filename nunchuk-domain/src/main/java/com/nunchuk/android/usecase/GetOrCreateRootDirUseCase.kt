@@ -1,16 +1,21 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.util.FileHelper
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface GetOrCreateRootDirUseCase {
-    suspend fun execute(): String
+    fun execute(): Flow<String>
 }
 
 internal class GetOrCreateRootDirUseCaseImpl @Inject constructor(
     private val filerHelper: FileHelper
 ) : GetOrCreateRootDirUseCase {
 
-    override suspend fun execute() = filerHelper.getOrCreateNunchukRootDir()
-
+    override fun execute() = flow {
+        emit(
+            filerHelper.getOrCreateNunchukRootDir()
+        )
+    }
 }

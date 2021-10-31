@@ -7,6 +7,7 @@ import com.nunchuk.android.contact.nav.ContactNavigatorDelegate
 import com.nunchuk.android.main.MainActivity
 import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.settings.nav.SettingNavigatorDelegate
 import com.nunchuk.android.signer.nav.SignerNavigatorDelegate
 import com.nunchuk.android.transaction.nav.TransactionNavigatorDelegate
 import com.nunchuk.android.wallet.nav.WalletNavigatorDelegate
@@ -19,7 +20,8 @@ internal class NunchukNavigatorImpl @Inject constructor(
     WalletNavigatorDelegate,
     TransactionNavigatorDelegate,
     ContactNavigatorDelegate,
-    MessageNavigatorDelegate {
+    MessageNavigatorDelegate,
+    SettingNavigatorDelegate {
 
     override fun openIntroScreen(activityContext: Context) {
         IntroActivity.start(activityContext)

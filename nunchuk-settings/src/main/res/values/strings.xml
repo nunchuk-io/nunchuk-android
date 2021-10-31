@@ -12,4 +12,14 @@
     <string name="nc_text_choose_existing_photo">Choose existing photo</string>
     <string name="nc_text_take_photo">Take photo</string>
     <string name="nc_text_remove_photo">Remove photo</string>
+    <string name="nc_text_app_restart_required">App restart required</string>
+    <string name="nc_text_app_restart_des">Changes to network settings require the app to restart.</string>
+    <string name="nc_text_restart">Restart</string>
+    <string name="nc_text_discard">Discard</string>
+    <string name="nc_text_save_network_settings">Save network settings</string>
+    <string name="nc_text_reset_to_default_network_settings">Reset to default network settings</string>
+    <string name="nc_text_connect_to_electrum_server">Connect to Electrum server</string>
+    <string name="nc_text_mainet_server">Mainet server</string>
+    <string name="nc_text_reset">Reset</string>
+    <string name="nc_text_testnet_server">Testnet server</string>
 </resources>

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.settings.databinding.BottomSheetEditNameBinding
@@ -27,6 +28,7 @@ internal class EditPhotoUserBottomSheet : BaseBottomSheet<BottomSheetEditUserPho
         binding.btnChooseAlbum.setOnClickListener { onSaveClicked(EditPhotoOption.SelectAlbum) }
         binding.btnTakePhoto.setOnClickListener { onSaveClicked(EditPhotoOption.TakePhoto) }
         binding.btnRemovePhoto.setOnClickListener { onSaveClicked(EditPhotoOption.RemovePhoto) }
+        binding.btnRemovePhoto.isVisible = false // currently, we don't need remove photo feature.
     }
 
     private fun onSaveClicked(option: EditPhotoOption) {

@@ -8,6 +8,7 @@ import dagger.Module
         CoreModule::class,
         MatrixProxyModule::class,
         UserProfileProxyModule::class,
+        AppPreferencesModule::class,
         DataModule::class,
         DomainModule::class,
         NetworkModule::class

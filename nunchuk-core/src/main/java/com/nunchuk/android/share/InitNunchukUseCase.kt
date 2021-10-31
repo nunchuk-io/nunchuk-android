@@ -1,12 +1,13 @@
 package com.nunchuk.android.share
 
+import com.nunchuk.android.core.domain.GetAppSettingUseCase
+import com.nunchuk.android.core.domain.InitAppSettingsUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.toMatrixContent
 import com.nunchuk.android.model.AppSettings
 import com.nunchuk.android.model.SendEventExecutor
 import com.nunchuk.android.model.SendEventHelper
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import com.nunchuk.android.usecase.GetAppSettingsUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapConcat
@@ -19,17 +20,30 @@ interface InitNunchukUseCase {
         passphrase: String,
         accountId: String
     ): Flow<Unit>
+
+    fun executeWhenExisted(
+        passphrase: String,
+        accountId: String
+    ): Flow<Unit>
 }
 
 internal class InitNunchukUseCaseImpl @Inject constructor(
-    private val getAppSettingUseCase: GetAppSettingsUseCase,
+    private val iniAppSettingsUseCase: InitAppSettingsUseCase,
+    private val getAppSettingUseCase: GetAppSettingUseCase,
     private val nativeSdk: NunchukNativeSdk
 ) : InitNunchukUseCase {
 
     override fun execute(
         passphrase: String,
         accountId: String
-    ) = getAppSettingUseCase.execute().flatMapConcat {
+    ) = iniAppSettingsUseCase.execute().flatMapConcat {
+        initNunchuk(
+            appSettings = it,
+            accountId = accountId
+        )
+    }
+
+    override fun executeWhenExisted(passphrase: String, accountId: String) = getAppSettingUseCase.execute().flatMapConcat {
         initNunchuk(
             appSettings = it,
             accountId = accountId
