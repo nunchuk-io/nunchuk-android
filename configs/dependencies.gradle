@@ -32,13 +32,13 @@ ext {
     nativeSdkVersion = '1.0.28'
 
     // Matrix
-    matrixSdkVersion = '1.1.11-nunchuk-SNAPSHOT'
+    matrixSdkVersion = '1.1.9'
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 2
-    PATCH_VERSION = 2
+    PATCH_VERSION = 3
 
-    VERSION_CODE = 47
+    VERSION_CODE = 48
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
