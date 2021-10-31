@@ -65,7 +65,7 @@ internal class RecoverSeedViewModel @Inject constructor(
     }
 
     fun handleSelectWord(word: String) {
-        updateState { copy(suggestions = ArrayList()) }
+        updateState { copy(suggestions = bip39Words.take(MAX_WORDS)) }
         val updatedMnemonic = getState().mnemonic.replaceLastWord(word)
         updateState { copy(mnemonic = updatedMnemonic) }
         val canGoNext = updatedMnemonic.countWords() == NUM_WORDS
@@ -86,7 +86,7 @@ internal class RecoverSeedViewModel @Inject constructor(
     }
 
     companion object {
-        private const val MAX_WORDS = 100
+        private const val MAX_WORDS = 2048
         private const val NUM_WORDS = 24
     }
 
