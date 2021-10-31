@@ -160,7 +160,11 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
     }
 
     private fun bindAddress(transaction: Transaction) {
-        val output = transaction.outputs.firstOrNull()
+        val output = if (transaction.isReceive) {
+            transaction.receiveOutputs.firstOrNull()
+        } else {
+            transaction.outputs.firstOrNull()
+        }
         binding.sendAddressLabel.text = output?.first.orEmpty()
         binding.sendAddressBTC.text = output?.second?.getBTCAmount().orEmpty()
         binding.sendAddressUSD.text = output?.second?.getUSDAmount().orEmpty()
