@@ -96,6 +96,8 @@ internal class TransactionConfirmViewModel @Inject constructor(
         if (data.changeIndex > 0) {
             val txOutput = data.outputs[data.changeIndex]
             event(UpdateChangeAddress(txOutput.first, txOutput.second))
+        } else {
+            event(UpdateChangeAddress("", Amount(0)))
         }
     }
 
