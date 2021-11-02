@@ -2,16 +2,15 @@ package com.nunchuk.android.core.util
 
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Wallet
+import kotlin.math.roundToLong
 
 fun Wallet.getBTCAmount() = balance.getBTCAmount()
 
 fun Wallet.getUSDAmount() = balance.getUSDAmount()
 
-fun Wallet.getConfiguration() = "${totalRequireSigns}/${signers.size}"
-
 fun Amount.getBTCAmount() = "$formattedValue BTC"
 
-fun Amount.getUSDAmount() = "$${fromBTCToUSD().formatDecimal()} USD"
+fun Amount.getUSDAmount() = "$${fromBTCToUSD().formatDecimal(USD_FRACTION_DIGITS)} USD"
 
 fun Double.fromBTCToUSD() = this * BTC_USD_EXCHANGE_RATE
 
@@ -21,10 +20,10 @@ fun Amount.pureBTC() = value * SATOSHI_BTC_EXCHANGE_RATE
 
 fun Double.getBTCAmount() = " ${formatDecimal()} BTC"
 
-fun Double.getUSDAmount() = "$${fromBTCToUSD().formatDecimal()} USD"
+fun Double.getUSDAmount() = "$${fromBTCToUSD().formatDecimal(USD_FRACTION_DIGITS)} USD"
 
 private fun Amount.fromBTCToUSD() = value * SATOSHI_BTC_EXCHANGE_RATE * BTC_USD_EXCHANGE_RATE
 
-fun Double.toAmount() = Amount().copy(value = (this / SATOSHI_BTC_EXCHANGE_RATE).toLong())
+fun Double.toAmount() = Amount().copy(value = (this * BTC_SATOSHI_EXCHANGE_RATE).roundToLong())
 
 fun Int.toAmount() = Amount().copy(value = this.toLong())

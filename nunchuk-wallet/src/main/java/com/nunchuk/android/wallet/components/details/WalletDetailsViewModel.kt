@@ -12,9 +12,9 @@ import com.nunchuk.android.usecase.*
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.io.File
@@ -41,7 +41,6 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     fun syncData() {
         getWalletDetails()
-        getTransactionHistory()
     }
 
     private fun getWalletDetails() {
@@ -49,11 +48,12 @@ internal class WalletDetailsViewModel @Inject constructor(
             getWalletUseCase.execute(walletId)
                 .onStart { event(Loading(true)) }
                 .flowOn(Dispatchers.IO)
-                .catch { event(WalletDetailsError(it.message.orUnknownError())) }
+                .onException { event(WalletDetailsError(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
+                .onCompletion { event(Loading(false)) }
                 .collect {
                     updateState { copy(wallet = it) }
-                    event(Loading(false))
+                    getTransactionHistory()
                 }
         }
     }
@@ -61,7 +61,9 @@ internal class WalletDetailsViewModel @Inject constructor(
     private fun getTransactionHistory() {
         viewModelScope.launch {
             getTransactionHistoryUseCase.execute(walletId)
+                .flowOn(Dispatchers.IO)
                 .onException { event(WalletDetailsError(it.message.orUnknownError())) }
+                .flowOn(Dispatchers.Main)
                 .collect { onRetrievedTransactionHistory(it) }
         }
     }

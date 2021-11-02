@@ -20,9 +20,6 @@ internal interface TransactionDomainModule {
     fun bindDraftTransactionUseCase(useCase: DraftTransactionUseCaseImpl): DraftTransactionUseCase
 
     @Binds
-    fun bindExportCoboTransactionUseCase(useCase: ExportCoboTransactionUseCaseImpl): ExportCoboTransactionUseCase
-
-    @Binds
     fun bindExportTransactionUseCase(useCase: ExportTransactionUseCaseImpl): ExportTransactionUseCase
 
     @Binds
@@ -33,9 +30,6 @@ internal interface TransactionDomainModule {
 
     @Binds
     fun bindImportTransactionUseCase(useCase: ImportTransactionUseCaseImpl): ImportTransactionUseCase
-
-    @Binds
-    fun bindImportCoboTransactionUseCase(useCase: ImportCoboTransactionUseCaseImpl): ImportCoboTransactionUseCase
 
     @Binds
     fun bindReplaceTransactionUseCase(useCase: ReplaceTransactionUseCaseImpl): ReplaceTransactionUseCase
@@ -72,5 +66,11 @@ internal interface TransactionDomainModule {
 
     @Binds
     fun bindSendSignerPassphrase(useCase: SendSignerPassphraseImpl): SendSignerPassphrase
+
+    @Binds
+    fun bindImportKeystoneTransactionUseCase(useCase: ImportKeystoneTransactionUseCaseImpl): ImportKeystoneTransactionUseCase
+
+    @Binds
+    fun bindExportKeystoneTransactionUseCase(useCase: ExportKeystoneTransactionUseCaseImpl): ExportKeystoneTransactionUseCase
 
 }

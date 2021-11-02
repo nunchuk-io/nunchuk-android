@@ -29,16 +29,16 @@ ext {
     kotlinStdlibVersion = '1.5.31'
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.0.29'
+    nativeSdkVersion = '1.1.0'
 
     // Matrix
     matrixSdkVersion = '1.1.9'
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 2
-    PATCH_VERSION = 5
+    PATCH_VERSION = 6
 
-    VERSION_CODE = 50
+    VERSION_CODE = 51
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",

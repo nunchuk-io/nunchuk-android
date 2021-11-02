@@ -26,9 +26,6 @@ internal interface SignerDomainModule {
     fun bindUpdateRemoteSignerUseCase(useCase: UpdateRemoteSignerUseCaseImpl): UpdateRemoteSignerUseCase
 
     @Binds
-    fun bindCreateCoboSignerUseCase(useCase: CreateCoboSignerUseCaseImpl): CreateCoboSignerUseCase
-
-    @Binds
     fun bindCreateKeystoneSignerUseCase(useCase: CreateKeystoneSignerUseCaseImpl): CreateKeystoneSignerUseCase
 
     // SOFTWARE SIGNER
