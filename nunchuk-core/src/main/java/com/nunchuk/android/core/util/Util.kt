@@ -5,6 +5,8 @@ import com.nunchuk.android.model.Transaction
 import java.text.SimpleDateFormat
 import java.util.*
 
+fun Throwable.readableMessage() = message ?: UNKNOWN_ERROR
+
 fun Exception.messageOrUnknownError() = message.orUnknownError()
 
 fun String?.orUnknownError() = this ?: UNKNOWN_ERROR
@@ -12,6 +14,7 @@ fun String?.orUnknownError() = this ?: UNKNOWN_ERROR
 var BTC_USD_EXCHANGE_RATE = 45000.0
 
 const val SATOSHI_BTC_EXCHANGE_RATE = 0.00000001
+const val BTC_SATOSHI_EXCHANGE_RATE = 100000000
 
 fun Long.formatDate(): String = SimpleDateFormat("dd/MM/yyyy 'at' HH:mm aaa", Locale.US).format(Date(this * 1000))
 
@@ -29,4 +32,5 @@ fun String.fromMxcUriToMatrixDownloadUrl(): String {
     val mediaId = if (contentUriInfo.isEmpty()) "" else contentUriInfo[1]
     return BASE_DOWNLOAD_URL_MATRIX.plus(serverName).plus("/").plus(mediaId)
 }
+
 internal const val BASE_DOWNLOAD_URL_MATRIX = "https://matrix.nunchuk.io/_matrix/media/r0/download/"

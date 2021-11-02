@@ -25,6 +25,7 @@ import com.nunchuk.android.transaction.components.details.TransactionOption.IMPO
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
 import com.nunchuk.android.transaction.util.hasChangeIndex
 import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
@@ -261,7 +262,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
 
     private fun showSignTransactionSuccess(roomId: String) {
         hideLoading()
-        NCToastMessage(this).show("Transaction signed successful")
+        NCToastMessage(this).show(getString(R.string.nc_transaction_signed_successful))
         if (roomId.isNotEmpty()) {
             returnActiveRoom(roomId)
         }
@@ -269,7 +270,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
 
     private fun showBroadcastTransactionSuccess(roomId: String) {
         hideLoading()
-        NCToastMessage(this).show("Transaction broadcast successful")
+        NCToastMessage(this).show(getString(R.string.nc_transaction_broadcast_successful))
         if (roomId.isEmpty()) {
             navigator.openMainScreen(this)
         } else {
@@ -282,13 +283,14 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         try {
             startActivity(webIntent)
         } catch (e: ActivityNotFoundException) {
-            NCToastMessage(this).showWarning("There is no apps found to open link")
+            CrashlyticsReporter.recordException(e)
+            NCToastMessage(this).showWarning(getString(R.string.nc_transaction_no_app_to_open_link))
         }
     }
 
     private fun showTransactionDeleteSuccess() {
         finish()
-        NCToastMessage(this).show("Delete transaction success")
+        NCToastMessage(this).show(getString(R.string.nc_transaction_deleted))
     }
 
     private fun showError(message: String) {

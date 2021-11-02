@@ -3,19 +3,25 @@ package com.nunchuk.android.transaction.components.export
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.messageOrUnknownError
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.*
 import com.nunchuk.android.usecase.CreateShareFileUseCase
-import com.nunchuk.android.usecase.ExportCoboTransactionUseCase
+import com.nunchuk.android.usecase.ExportKeystoneTransactionUseCase
 import com.nunchuk.android.usecase.ExportTransactionUseCase
+import com.nunchuk.android.utils.onException
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class ExportTransactionViewModel @Inject constructor(
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val exportTransactionUseCase: ExportTransactionUseCase,
-    private val exportCoboTransactionUseCase: ExportCoboTransactionUseCase
+    private val exportKeystoneTransactionUseCase: ExportKeystoneTransactionUseCase
 ) : NunchukViewModel<ExportTransactionState, ExportTransactionEvent>() {
 
     private lateinit var walletId: String
@@ -50,12 +56,12 @@ internal class ExportTransactionViewModel @Inject constructor(
 
     private fun exportTransactionToQRs() {
         viewModelScope.launch {
-            when (val result = exportCoboTransactionUseCase.execute(walletId, txId)) {
-                is Success -> updateState { copy(qrcode = result.data) }
-                is Error -> event(ExportTransactionError(result.exception.messageOrUnknownError()))
-            }
+            exportKeystoneTransactionUseCase.execute(walletId, txId)
+                .flowOn(IO)
+                .onException { event(ExportTransactionError(it.message.orUnknownError())) }
+                .flowOn(Main)
+                .collect { updateState { copy(qrcode = it) } }
         }
     }
-
 
 }

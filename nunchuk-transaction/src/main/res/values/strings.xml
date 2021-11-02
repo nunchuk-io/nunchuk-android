@@ -65,5 +65,12 @@
     <string name="nc_transaction_import_signature">Import signature</string>
     <string name="nc_transaction_cancel_transaction">Cancel transaction</string>
     <string name="nc_transaction_balance">Balance</string>
+    <string name="nc_transaction_signed_successful">Transaction signed successful</string>
+    <string name="nc_transaction_broadcast_successful">Transaction broadcast successful</string>
+    <string name="nc_transaction_deleted">Delete transaction success</string>
+    <string name="nc_transaction_no_app_to_open_link">There is no apps found to open link</string>
+    <string name="nc_transaction_imported">Transaction Imported</string>
+    <string name="nc_transaction_imported_failed">Import failed :</string>
+    <string name="nc_transaction_select_file">Please select your transaction file</string>
 
 </resources>

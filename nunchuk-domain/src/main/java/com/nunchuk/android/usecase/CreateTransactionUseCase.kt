@@ -29,7 +29,7 @@ internal class CreateTransactionUseCaseImpl @Inject constructor(
         feeRate: Amount,
         subtractFeeFromAmount: Boolean
     ) = exe {
-        nativeSdk.createTransactionUseCase(
+        nativeSdk.createTransaction(
             walletId = walletId,
             outputs = outputs,
             memo = memo,

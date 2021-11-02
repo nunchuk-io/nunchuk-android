@@ -20,9 +20,6 @@ internal interface WalletDomainModule {
     fun bindExportWalletUseCase(useCase: ExportWalletUseCaseImpl): ExportWalletUseCase
 
     @Binds
-    fun bindExportCoboWalletUseCase(useCase: ExportCoboWalletUseCaseImpl): ExportCoboWalletUseCase
-
-    @Binds
     fun bindExportKeystoneWalletUseCase(useCase: ExportKeystoneWalletUseCaseImpl): ExportKeystoneWalletUseCase
 
     @Binds
@@ -33,5 +30,8 @@ internal interface WalletDomainModule {
 
     @Binds
     fun bindDeleteWalletUseCase(useCase: DeleteWalletUseCaseImpl): DeleteWalletUseCase
+
+    @Binds
+    fun bindImportKeystoneWalletUseCase(useCase: ImportKeystoneWalletUseCaseImpl): ImportKeystoneWalletUseCase
 
 }

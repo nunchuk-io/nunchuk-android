@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.core.base.BaseBottomSheet
+import com.nunchuk.android.core.util.checkCameraPermission
 import com.nunchuk.android.transaction.components.details.TransactionOption.EXPORT
 import com.nunchuk.android.transaction.components.details.TransactionOption.IMPORT
 import com.nunchuk.android.transaction.databinding.DialogTransactionSignBottomSheetBinding
@@ -31,8 +32,10 @@ class TransactionSignBottomSheet : BaseBottomSheet<DialogTransactionSignBottomSh
         }
 
         binding.btnImport.setOnClickListener {
-            listener(IMPORT)
-            dismiss()
+            if (requireActivity().checkCameraPermission()) {
+                listener(IMPORT)
+                dismiss()
+            }
         }
     }
 
