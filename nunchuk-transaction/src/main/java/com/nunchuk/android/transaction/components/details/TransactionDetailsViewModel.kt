@@ -14,6 +14,7 @@ import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
+import com.nunchuk.android.transaction.util.getConfirmations
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.SignRoomTransactionUseCase
@@ -85,7 +86,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     private fun updateTransaction(transaction: Transaction) {
-        val updatedTransaction = transaction.copy(height = transaction.getConfirmations())
+        val updatedTransaction = transaction.copy(height = transaction.getConfirmations(chainTip))
         updateState { copy(transaction = updatedTransaction) }
         val signers = updatedTransaction.signers
         if (signers.isNotEmpty()) {
@@ -203,7 +204,5 @@ internal class TransactionDetailsViewModel @Inject constructor(
             }
         }
     }
-
-    private fun Transaction.getConfirmations() = if (chainTip > 0 && height > 0 && chainTip >= height) (chainTip - height + 1) else 0
 
 }

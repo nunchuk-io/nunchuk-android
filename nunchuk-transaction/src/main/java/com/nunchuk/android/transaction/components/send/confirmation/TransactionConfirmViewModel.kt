@@ -10,6 +10,7 @@ import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.*
+import com.nunchuk.android.transaction.util.hasChangeIndex
 import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DeleteTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
@@ -93,7 +94,8 @@ internal class TransactionConfirmViewModel @Inject constructor(
 
     private fun onDraftTransactionSuccess(data: Transaction) {
         tempTxId = data.txId
-        if (data.changeIndex >= 0) {
+        val hasChange: Boolean = data.hasChangeIndex()
+        if (hasChange) {
             val txOutput = data.outputs[data.changeIndex]
             event(UpdateChangeAddress(txOutput.first, txOutput.second))
         } else {
