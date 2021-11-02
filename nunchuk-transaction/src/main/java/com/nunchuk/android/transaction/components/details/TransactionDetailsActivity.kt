@@ -23,6 +23,7 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.transaction.components.details.TransactionOption.EXPORT
 import com.nunchuk.android.transaction.components.details.TransactionOption.IMPORT
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
+import com.nunchuk.android.transaction.util.hasChangeIndex
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
@@ -194,7 +195,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
     }
 
     private fun bindChangeAddress(transaction: Transaction) {
-        val hasChange: Boolean = transaction.changeIndex >= 0
+        val hasChange: Boolean = transaction.hasChangeIndex()
         if (hasChange) {
             val txOutput = transaction.outputs[transaction.changeIndex]
             binding.changeAddressLabel.text = txOutput.first
