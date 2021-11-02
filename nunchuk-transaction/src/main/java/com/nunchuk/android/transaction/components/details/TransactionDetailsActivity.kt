@@ -117,7 +117,12 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
     }
 
     private fun bindTransaction(transaction: Transaction) {
-        binding.sendingTo.text = transaction.outputs.firstOrNull()?.first.orEmpty()
+        val output = if (transaction.isReceive) {
+            transaction.receiveOutputs.firstOrNull()
+        } else {
+            transaction.outputs.firstOrNull()
+        }
+        binding.sendingTo.text = output?.first.orEmpty()
         val pendingSigners = transaction.signers.count { !it.value }
         if (pendingSigners > 0) {
             binding.signatureStatus.text = getString(R.string.nc_transaction_pending_signature, pendingSigners)
