@@ -194,15 +194,16 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
     }
 
     private fun bindChangeAddress(transaction: Transaction) {
-        if (transaction.changeIndex > 0) {
+        val hasChange: Boolean = transaction.changeIndex >= 0
+        if (hasChange) {
             val txOutput = transaction.outputs[transaction.changeIndex]
             binding.changeAddressLabel.text = txOutput.first
             binding.changeAddressBTC.text = txOutput.second.getBTCAmount()
             binding.changeAddressUSD.text = txOutput.second.getUSDAmount()
         }
-        binding.changeAddressLabel.isVisible = transaction.changeIndex > 0
-        binding.changeAddressBTC.isVisible = transaction.changeIndex > 0
-        binding.changeAddressUSD.isVisible = transaction.changeIndex > 0
+        binding.changeAddressLabel.isVisible = hasChange
+        binding.changeAddressBTC.isVisible = hasChange
+        binding.changeAddressUSD.isVisible = hasChange
     }
 
     private fun handleEvent(event: TransactionDetailsEvent) {
