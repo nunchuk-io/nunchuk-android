@@ -15,9 +15,7 @@ object SessionHolder {
         session.apply {
             try {
                 open()
-                if (!hasAlreadySynced()) {
-                    startSync(false)
-                }
+                startSync(false)
             } catch (e: Error) {
                 CrashlyticsReporter.recordException(e)
             }
