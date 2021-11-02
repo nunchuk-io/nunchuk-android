@@ -93,7 +93,7 @@ internal class TransactionConfirmViewModel @Inject constructor(
 
     private fun onDraftTransactionSuccess(data: Transaction) {
         tempTxId = data.txId
-        if (data.changeIndex > 0) {
+        if (data.changeIndex >= 0) {
             val txOutput = data.outputs[data.changeIndex]
             event(UpdateChangeAddress(txOutput.first, txOutput.second))
         } else {
