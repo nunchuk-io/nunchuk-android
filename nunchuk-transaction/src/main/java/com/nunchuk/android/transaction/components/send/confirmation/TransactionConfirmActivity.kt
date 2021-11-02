@@ -2,6 +2,7 @@ package com.nunchuk.android.transaction.components.send.confirmation
 
 import android.app.Activity
 import android.os.Bundle
+import android.view.View
 import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
@@ -96,9 +97,17 @@ class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBindin
 
     private fun bindChangAddress(changeAddress: String, amount: Amount) {
         hideLoading()
-        binding.changeAddressLabel.text = changeAddress
-        binding.changeAddressBTC.text = amount.getBTCAmount()
-        binding.changeAddressUSD.text = amount.getUSDAmount()
+
+        if (!changeAddress.isBlank()) {
+            binding.changeAddressLabel.text = changeAddress
+            binding.changeAddressBTC.text = amount.getBTCAmount()
+            binding.changeAddressUSD.text = amount.getUSDAmount()
+        } else {
+            binding.changeAddress.visibility = View.GONE
+            binding.changeAddressLabel.visibility = View.GONE
+            binding.changeAddressBTC.visibility = View.GONE
+            binding.changeAddressUSD.visibility = View.GONE
+        }
     }
 
     private fun openTransactionDetailScreen(txId: String) {
