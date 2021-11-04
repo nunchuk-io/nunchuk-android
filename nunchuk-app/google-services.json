@@ -40,6 +40,42 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:712097058578:android:6ba4711f048801f813edcb",
+        "android_client_info": {
+          "package_name": "io.nunchuk.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "712097058578-o0ct3fs06sju72q95can7im5nveo2o41.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3gIkP4mO8HVguI-HFCQEms-jBOlr_47k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "712097058578-o0ct3fs06sju72q95can7im5nveo2o41.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "712097058578-lgsds92lqpgm0d6hcq87pubu7dg3tokc.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.nunchuk.ios"
+              }
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"
