@@ -25,4 +25,7 @@ internal interface MatrixDomainModule {
 
     @Binds
     fun bindRegisterConsumerSyncEventUseCase(useCase: ConsumerSyncEventUseCaseImpl): ConsumerSyncEventUseCase
+
+    @Binds
+    fun bindSyncStateMatrixUseCase(useCase: SyncStateMatrixUseCaseImpl): SyncStateMatrixUseCase
 }

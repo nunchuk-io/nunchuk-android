@@ -15,6 +15,9 @@ internal interface ContactUseCaseModule {
     fun bindAddContactUseCase(useCase: AddContactUseCaseImpl): AddContactUseCase
 
     @Binds
+    fun bindInviteFriendUseCase(useCase: InviteFriendUseCaseImpl): InviteFriendUseCase
+
+    @Binds
     fun bindAutoCompleteSearchUseCase(useCase: AutoCompleteSearchUseCaseImpl): AutoCompleteSearchUseCase
 
     @Binds

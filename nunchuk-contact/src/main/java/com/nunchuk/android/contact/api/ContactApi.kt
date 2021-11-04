@@ -34,4 +34,7 @@ internal interface ContactApi {
     @PUT("user/me")
     suspend fun updateContact(@Body payload: UpdateContactPayload): Data<UserResponseWrapper>
 
+    @POST("passport/invite")
+    suspend fun invite(@Body payload: InviteContactPayload): Data<Unit>
+
 }

@@ -2,6 +2,8 @@ package com.nunchuk.android.core.util
 
 import com.nunchuk.android.core.network.UNKNOWN_ERROR
 import com.nunchuk.android.model.Transaction
+import java.io.File
+import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -34,3 +36,9 @@ fun String.fromMxcUriToMatrixDownloadUrl(): String {
 }
 
 internal const val BASE_DOWNLOAD_URL_MATRIX = "https://matrix.nunchuk.io/_matrix/media/r0/download/"
+
+fun InputStream.saveToFile(file: String) = use { input ->
+    File(file).outputStream().use { output ->
+        input.copyTo(output)
+    }
+}

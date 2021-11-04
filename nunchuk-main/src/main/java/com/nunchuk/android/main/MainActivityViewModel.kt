@@ -27,7 +27,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
@@ -35,6 +34,7 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
 import timber.log.Timber
 import javax.inject.Inject
+
 
 internal class MainActivityViewModel @Inject constructor(
     private val getAllRoomWalletsUseCase: GetAllRoomWalletsUseCase,
@@ -49,7 +49,8 @@ internal class MainActivityViewModel @Inject constructor(
     private val backupFileUseCase: BackupFileUseCase,
     private val consumerSyncEventUseCase: ConsumerSyncEventUseCase,
     private val getPriceConvertBTCUseCase: GetPriceConvertBTCUseCase,
-    private val scheduleGetPriceConvertBTCUseCase: ScheduleGetPriceConvertBTCUseCase
+    private val scheduleGetPriceConvertBTCUseCase: ScheduleGetPriceConvertBTCUseCase,
+    private val syncStateMatrixUseCase: SyncStateMatrixUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
 
     override val initialState = WalletsState()
@@ -63,6 +64,7 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     fun restoreAndBackUp() {
+        Timber.d("restoreAndBackUp")
         //checkRoomSyncExisted()
     }
 
@@ -88,7 +90,7 @@ internal class MainActivityViewModel @Inject constructor(
                 data: ByteArray,
                 dataLength: Int
             ) {
-                //uploadFile(fileName, fileJsonInfo, mineType, data)
+                uploadFile(fileName, fileJsonInfo, mineType, data)
             }
         }
         SyncFileEventHelper.syncFileExecutor = object : SyncFileCallBack {
@@ -125,7 +127,7 @@ internal class MainActivityViewModel @Inject constructor(
                 .flowOn(Dispatchers.Main)
                 .collect { response ->
                     Timber.d("[App] fileUploadURL: ${response.contentUri}")
-                    backupFile(fileJsonInfo, response.contentUri.orEmpty())
+                    //backupFile(fileJsonInfo, response.contentUri.orEmpty())
                 }
         }
     }
@@ -153,13 +155,12 @@ internal class MainActivityViewModel @Inject constructor(
                 .catch { CrashlyticsReporter.recordException(it) }
                 .flowOn(Dispatchers.Main)
                 .collect {
-                    Timber.d("[App] downloadFile")
-                    consumeSyncFile(fileJsonInfo, it.byteStream().readBytes())
+                    event(WalletsEvent.Test(fileJsonInfo, it))
                 }
         }
     }
 
-    private fun consumeSyncFile(fileJsonInfo: String, fileData: ByteArray) {
+    fun consumeSyncFile(fileJsonInfo: String, fileData: ByteArray) {
         viewModelScope.launch {
             consumeSyncFileUseCase.execute(fileJsonInfo, fileData)
                 .flowOn(Dispatchers.IO)
@@ -172,19 +173,20 @@ internal class MainActivityViewModel @Inject constructor(
     private fun checkRoomSyncExisted() {
         viewModelScope.launch {
             getRoomSummaryListUseCase.execute()
-                .zip(getAllRoomWalletsUseCase.execute()) { rooms, wallets -> rooms to wallets }
                 .flowOn(Dispatchers.IO)
                 .catch { CrashlyticsReporter.recordException(it) }
                 .flowOn(Dispatchers.Main)
-                .collect { wallet ->
+                .collect { rooms ->
                     val syncWalletRoom =
-                        wallet.first.firstOrNull { room -> room.hasTag(SYNC_TAG_ROOM) }
+                        rooms.firstOrNull { room -> room.hasTag(SYNC_TAG_ROOM) }
                     if (syncWalletRoom == null) {
+                        Timber.d("Don't have sync room")
                         createRoomWithTagSync()
                     } else {
+                        Timber.d("Have sync room: ${syncWalletRoom.roomId}")
+                        enableAutoBackup(syncWalletRoom.roomId)
                         SessionHolder.activeSession?.getRoom(syncWalletRoom.roomId)?.retrieveTimelineEvents()
                         currentRoomSyncId = syncWalletRoom.roomId
-                        enableAutoBackup(syncWalletRoom.roomId)
                     }
                 }
         }
@@ -274,6 +276,20 @@ internal class MainActivityViewModel @Inject constructor(
                 .flowOn(Dispatchers.Main)
                 .collect {
                     getBTCConvertPrice()
+                }
+        }
+    }
+
+    fun syncMatrixState() {
+        viewModelScope.launch {
+            syncStateMatrixUseCase.execute()
+                .flowOn(Dispatchers.IO)
+                .catch {
+                    CrashlyticsReporter.recordException(it)
+                }
+                .flowOn(Dispatchers.Main)
+                .collect {
+
                 }
         }
     }

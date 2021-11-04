@@ -4,6 +4,8 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.contact.components.add.AddContactsEvent.*
 import com.nunchuk.android.contact.usecase.AddContactUseCase
+import com.nunchuk.android.contact.usecase.InviteFriendUseCase
+import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers.IO
@@ -16,7 +18,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class AddContactsViewModel @Inject constructor(
-    private val addContactUseCase: AddContactUseCase
+    private val addContactUseCase: AddContactUseCase,
+    private val inviteFriendUseCase: InviteFriendUseCase
 ) : NunchukViewModel<AddContactsState, AddContactsEvent>() {
 
     override val initialState: AddContactsState = AddContactsState.empty()
@@ -51,11 +54,11 @@ class AddContactsViewModel @Inject constructor(
             viewModelScope.launch {
                 addContactUseCase.execute(emails.map(EmailWithState::email))
                     .flowOn(IO)
-                    .onStart { event(LoadingEvent(true)) }
                     .onException { onSendError(it) }
-                    .onCompletion { event(LoadingEvent(false)) }
                     .flowOn(Main)
-                    .collect { onSendCompleted(it) }
+                    .collect {
+                        onSendCompleted(it)
+                    }
             }
         }
     }
@@ -69,6 +72,7 @@ class AddContactsViewModel @Inject constructor(
             event(AddContactSuccessEvent)
         } else {
             updateEmailsError(it)
+            event(FailedSendEmailsEvent(it))
         }
     }
 
@@ -82,6 +86,21 @@ class AddContactsViewModel @Inject constructor(
             }
         }
         updateState { copy(emails = updatedEmails) }
+    }
+
+    fun inviteFriend(emails: List<String>) {
+        if (emails.isEmpty()) {
+            return
+        }
+        viewModelScope.launch {
+            inviteFriendUseCase.execute(emails)
+                .flowOn(IO)
+                .onException {
+                    event(InviteFriendSuccessEvent)
+                }
+                .flowOn(Main)
+                .collect { event(InviteFriendSuccessEvent) }
+        }
     }
 
     fun cleanUp() {

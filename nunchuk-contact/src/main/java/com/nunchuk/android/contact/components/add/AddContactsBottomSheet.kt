@@ -63,11 +63,13 @@ class AddContactsBottomSheet : BaseBottomSheet<BottomSheetAddContactsBinding>() 
 
     private fun handleEvent(event: AddContactsEvent) {
         when (event) {
+            InviteFriendSuccessEvent -> cleanUp()
             InvalidEmailEvent -> showErrorMessage(true)
             AllEmailValidEvent -> showErrorMessage(false)
             AddContactSuccessEvent -> showAddContactSuccess()
             is AddContactsErrorEvent -> showAddContactError(event.message)
             is LoadingEvent -> showOrHideLoading(event.loading)
+            is FailedSendEmailsEvent -> showDialogConfirmationEmailInvitation(event.emails)
         }
     }
 
@@ -116,6 +118,18 @@ class AddContactsBottomSheet : BaseBottomSheet<BottomSheetAddContactsBinding>() 
         listener()
         dialog?.dismiss()
         dismiss()
+    }
+
+    private fun showDialogConfirmationEmailInvitation(emails: List<String>) {
+        NCInviteFriendDialog(requireActivity()).showDialog(
+            inviteList = emails.joinToString(),
+            onYesClick = {
+                viewModel.inviteFriend(emails)
+            },
+            onNoClick = {
+                cleanUp()
+            }
+        )
     }
 
     companion object {

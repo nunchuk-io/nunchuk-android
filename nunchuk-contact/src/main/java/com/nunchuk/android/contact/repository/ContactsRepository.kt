@@ -38,6 +38,8 @@ interface ContactsRepository {
 
     fun updateContact(imageUrl: String): Flow<UserResponse>
 
+    fun invite(friendEmails: List<String>): Flow<Unit>
+
 }
 
 internal class ContactsRepositoryImpl @Inject constructor(
@@ -110,6 +112,13 @@ internal class ContactsRepositoryImpl @Inject constructor(
         val payload = UpdateContactPayload(imageUrl)
         emit(
             api.updateContact(payload).data.user
+        )
+    }
+
+    override fun invite(friendEmails: List<String>) = flow {
+        val payload = InviteContactPayload(friendEmails)
+        emit(
+            api.invite(payload).data
         )
     }
 

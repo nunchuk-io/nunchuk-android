@@ -27,3 +27,9 @@ data class UpdateContactPayload(
     @SerializedName("avatar_url")
     val avatar: String
 ) : Serializable
+
+
+data class InviteContactPayload(
+    @SerializedName("friendEmails")
+    val friendEmails: List<String>
+) : Serializable
