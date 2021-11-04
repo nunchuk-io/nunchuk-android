@@ -30,13 +30,13 @@
         android:text="@string/nc_text_verify_instruction"
         app:layout_constraintTop_toBottomOf="@+id/toolbarVerifyScreen" />
 
+    <!-- TODO revert - change for testing purpose -->
     <com.nunchuk.android.widget.NCEditTextView
         android:id="@+id/edtConfirmCode"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
-        app:edit_input_type="number"
         app:edit_title="@string/nc_text_confirmation_code"
         app:errorEnabled="true"
         app:layout_constraintStart_toStartOf="parent"

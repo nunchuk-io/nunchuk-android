@@ -35,10 +35,10 @@ ext {
     matrixSdkVersion = '1.1.9'
 
     MAJOR_VERSION = 1
-    MINOR_VERSION = 2
-    PATCH_VERSION = 6
+    MINOR_VERSION = 9
+    PATCH_VERSION = 0
 
-    VERSION_CODE = 51
+    VERSION_CODE = 55
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",

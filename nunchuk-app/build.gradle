@@ -16,12 +16,13 @@ android {
     }
 
     defaultConfig {
-        applicationId androidConfig.applicationId
+        applicationId "io.nunchuk.android"
         minSdkVersion androidConfig.minSdkVersion
         targetSdkVersion androidConfig.targetSdkVersion
         versionCode androidConfig.versionCode
         versionName androidConfig.versionName
         multiDexEnabled true
+        vectorDrawables.useSupportLibrary = true
         ndk {
             //abiFilters 'armeabi-v7a', 'x86', 'arm64-v8a', 'x86_64'
             abiFilters 'arm64-v8a'
@@ -32,7 +33,6 @@ android {
         debug {
             minifyEnabled false
             debuggable true
-            applicationIdSuffix ".dev"
         }
         release {
             minifyEnabled true
@@ -45,6 +45,7 @@ android {
     flavorDimensions "env"
     productFlavors {
         production {
+            applicationId "io.nunchuk.android"
             firebaseAppDistribution {
                 appId = "1:712097058578:android:3a7fe0dc4e6b89b713edcb"
                 releaseNotesFile = "nunchuk-app/release_notes.txt"
@@ -54,6 +55,7 @@ android {
             dimension "env"
         }
         development {
+            applicationId "com.nunchuk.android.dev"
             firebaseAppDistribution {
                 appId = "1:712097058578:android:3a7fe0dc4e6b89b713edcb"
                 releaseNotesFile = "nunchuk-app/release_notes.txt"
@@ -86,6 +88,12 @@ android {
     }
 
     signingConfigs {
+        release {
+            storeFile file("${project.rootDir}/production-keystore.jks")
+            storePassword "nunchuk@2021"
+            keyAlias "nunchuk"
+            keyPassword "nunchuk@2021"
+        }
         debug {
             storeFile file("${project.rootDir}/debug.keystore")
             storePassword "android"
