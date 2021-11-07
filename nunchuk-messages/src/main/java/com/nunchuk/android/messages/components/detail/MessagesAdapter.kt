@@ -16,9 +16,9 @@ internal class MessagesAdapter(
     private val imageLoader: ImageLoader,
     private val cancelWallet: () -> Unit,
     private val denyWallet: () -> Unit,
-    private val viewConfig: () -> Unit,
+    private val viewWalletConfig: () -> Unit,
     private val finalizeWallet: () -> Unit,
-    private val viewDetails: (walletId: String, txId: String, initEventId: String) -> Unit
+    private val viewTransaction: (walletId: String, txId: String, initEventId: String) -> Unit
 ) : Adapter<ViewHolder>() {
 
     private var chatModels: List<AbsChatModel> = ArrayList()
@@ -50,19 +50,20 @@ internal class MessagesAdapter(
             ItemWalletInfoBinding.inflate(LayoutInflater.from(context), parent, false),
             denyWallet = denyWallet,
             cancelWallet = cancelWallet,
-            viewConfig = viewConfig
+            viewConfig = viewWalletConfig
         )
         MessageType.TYPE_NUNCHUK_TRANSACTION_CARD.index -> NunchukTransactionCardHolder(
             ItemTransactionInfoBinding.inflate(LayoutInflater.from(context), parent, false),
-            viewDetails = viewDetails,
+            viewTransaction = viewTransaction,
         )
         MessageType.TYPE_NUNCHUK_WALLET_NOTIFICATION.index -> NunchukWalletNotificationHolder(
             ItemNunchukNotificationBinding.inflate(LayoutInflater.from(context), parent, false),
-            viewConfig = viewConfig,
+            viewConfig = viewWalletConfig,
             finalizeWallet = finalizeWallet
         )
         MessageType.TYPE_NUNCHUK_TRANSACTION_NOTIFICATION.index -> NunchukTransactionNotificationHolder(
-            ItemNunchukNotificationBinding.inflate(LayoutInflater.from(context), parent, false)
+            ItemNunchukNotificationBinding.inflate(LayoutInflater.from(context), parent, false),
+            viewTransaction = viewTransaction
         )
         else -> throw IllegalArgumentException("Invalid type")
     }
@@ -96,7 +97,7 @@ internal class MessagesAdapter(
                 (holder as NunchukWalletNotificationHolder).bind((messageData as MessageModel).message as NunchukWalletMessage)
             }
             MessageType.TYPE_NUNCHUK_TRANSACTION_NOTIFICATION.index -> {
-                (holder as NunchukTransactionNotificationHolder).bind((messageData as MessageModel).message as NunchukTransactionMessage)
+                (holder as NunchukTransactionNotificationHolder).bind(roomWallet, transactions, (messageData as MessageModel).message as NunchukTransactionMessage)
             }
         }
     }

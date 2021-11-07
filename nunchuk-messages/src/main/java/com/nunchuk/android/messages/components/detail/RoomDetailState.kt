@@ -26,6 +26,13 @@ data class RoomInfo(val roomName: String, val memberCount: Int) {
 sealed class RoomDetailEvent {
     object RoomNotFoundEvent : RoomDetailEvent()
     object ContactNotFoundEvent : RoomDetailEvent()
+    object CreateNewSharedWallet : RoomDetailEvent()
+    data class CreateNewTransaction(
+        val roomId: String,
+        val walletId: String,
+        val availableAmount: Double
+    ) : RoomDetailEvent()
+
     object OpenChatInfoEvent : RoomDetailEvent()
     object OpenChatGroupInfoEvent : RoomDetailEvent()
     object RoomWalletCreatedEvent : RoomDetailEvent()

@@ -7,7 +7,6 @@ import dagger.Provides
 import retrofit2.Retrofit
 import javax.inject.Singleton
 
-
 @Module(
     includes = [
         UserProfileDomainModule::class,
@@ -41,7 +40,6 @@ internal object UserProfileNetworkModule {
 
     @Singleton
     @Provides
-    fun provideUserProfileApi(retrofit: Retrofit): UserProfileApi =
-        retrofit.create(UserProfileApi::class.java)
+    fun provideUserProfileApi(retrofit: Retrofit): UserProfileApi = retrofit.create(UserProfileApi::class.java)
 
 }

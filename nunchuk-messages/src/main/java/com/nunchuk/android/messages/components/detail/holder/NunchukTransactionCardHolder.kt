@@ -15,7 +15,7 @@ import com.nunchuk.android.model.TransactionExt
 internal class NunchukTransactionCardHolder(
     val binding: ItemTransactionInfoBinding,
     val signTransaction: () -> Unit = {},
-    val viewDetails: (walletId: String, txId: String, initEventId: String) -> Unit,
+    val viewTransaction: (walletId: String, txId: String, initEventId: String) -> Unit,
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(transactions: List<TransactionExt>, model: NunchukTransactionMessage) {
@@ -39,7 +39,7 @@ internal class NunchukTransactionCardHolder(
             binding.signatureStatus.text = context.getString(R.string.nc_message_transaction_enough_signature)
         }
         binding.sign.setOnClickListener { signTransaction() }
-        binding.viewDetails.setOnClickListener { viewDetails(walletId, transaction.txId, initEventId) }
+        binding.viewDetails.setOnClickListener { viewTransaction(walletId, transaction.txId, initEventId) }
     }
 
 }

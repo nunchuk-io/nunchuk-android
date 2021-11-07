@@ -19,24 +19,12 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Z" />
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/avatar_wrapper"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:elevation="12dp"
-        android:shape="ring"
-        app:cardCornerRadius="40dp"
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/avatar"
+        android:layout_width="@dimen/nc_padding_48"
+        android:layout_height="@dimen/nc_padding_48"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:src="@mipmap/ic_launcher">
-
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/avatar"
-            android:layout_width="@dimen/nc_padding_48"
-            android:layout_height="@dimen/nc_padding_48"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:src="@mipmap/ic_launcher" />
-    </androidx.cardview.widget.CardView>
+        tools:src="@mipmap/ic_launcher" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

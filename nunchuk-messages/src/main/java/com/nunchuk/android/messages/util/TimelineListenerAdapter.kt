@@ -5,6 +5,8 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
 open class TimelineListenerAdapter(val callback: (List<TimelineEvent>) -> Unit = {}) : Timeline.Listener {
 
+    private var lastSnapshot: List<TimelineEvent> = ArrayList()
+
     override fun onNewTimelineEvents(eventIds: List<String>) {
     }
 
@@ -12,7 +14,10 @@ open class TimelineListenerAdapter(val callback: (List<TimelineEvent>) -> Unit =
     }
 
     override fun onTimelineUpdated(snapshot: List<TimelineEvent>) {
-        callback(snapshot)
+        if (lastSnapshot != snapshot) {
+            lastSnapshot = snapshot
+            callback(snapshot)
+        }
     }
 
 }

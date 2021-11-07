@@ -7,14 +7,14 @@ import com.nunchuk.android.widget.NCAvatarView
 fun NCAvatarView.displayAvatar(imageLoader: ImageLoader, avatarUrl: String?, name: String) {
     binding.name.text = name
     if (avatarUrl.isNullOrEmpty()) {
-        binding.avatarWrapper.isVisible = false
+        binding.avatar.isVisible = false
         binding.name.isVisible = true
     } else {
-        binding.avatarWrapper.isVisible = true
+        binding.avatar.isVisible = true
         binding.name.isVisible = false
-        imageLoader.loadImage(avatarUrl, binding.avatar) {
-            binding.avatarWrapper.isVisible = false
+        imageLoader.loadImage(url = avatarUrl, imageView = binding.avatar, {
+            binding.avatar.isVisible = false
             binding.name.isVisible = true
-        }
+        })
     }
 }

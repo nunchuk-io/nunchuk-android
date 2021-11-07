@@ -5,12 +5,13 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.nunchuk.android.core.network.ApiConstant.BASE_URL
 import com.nunchuk.android.core.network.ApiConstant.BASE_URL_MATRIX
-import com.nunchuk.android.core.network.ApiConstant.BASE_URL_V1_1
 import com.nunchuk.android.core.network.ApiConstant.HTTP_CONNECT_TIMEOUT
 import com.nunchuk.android.core.network.ApiConstant.HTTP_READ_TIMEOUT
 import com.nunchuk.android.core.network.BuildConfig
 import com.nunchuk.android.core.network.HeaderInterceptor
 import com.nunchuk.android.core.network.UnauthorizedInterceptor
+import com.nunchuk.android.network.util.MATRIX_HTTP_CLIENT
+import com.nunchuk.android.network.util.MATRIX_RETROFIT
 import dagger.Module
 import dagger.Provides
 import okhttp3.OkHttpClient
@@ -53,17 +54,8 @@ class NetworkModule @Inject constructor() {
         .build()
 
     @Provides
-    @Named("RetrofitClientV1_1")
-    fun provideRetrofitV1_1(gson: Gson, client: OkHttpClient): Retrofit = Retrofit.Builder()
-        .addConverterFactory(GsonConverterFactory.create(gson))
-        .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-        .baseUrl(BASE_URL_V1_1)
-        .client(client)
-        .build()
-
-    @Provides
-    @Named("RetrofitClient_Matrix")
-    fun provideRetrofit_Matrix(gson: Gson, @Named("OkHttpClient_Matrix") client: OkHttpClient): Retrofit = Retrofit.Builder()
+    @Named(MATRIX_RETROFIT)
+    fun provideRetrofitMatrix(gson: Gson, @Named(MATRIX_HTTP_CLIENT) client: OkHttpClient): Retrofit = Retrofit.Builder()
         .addConverterFactory(GsonConverterFactory.create(gson))
         .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
         .baseUrl(BASE_URL_MATRIX)
@@ -71,8 +63,8 @@ class NetworkModule @Inject constructor() {
         .build()
 
     @Provides
-    @Named("OkHttpClient_Matrix")
-    fun provideOkHttpClient_Matrix(
+    @Named(MATRIX_HTTP_CLIENT)
+    fun provideOkHttpClientMatrix(
         loggingInterceptor: HttpLoggingInterceptor,
     ): OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(HTTP_CONNECT_TIMEOUT, TimeUnit.SECONDS)
