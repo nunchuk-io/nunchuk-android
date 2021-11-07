@@ -29,6 +29,21 @@ android {
         }
     }
 
+    signingConfigs {
+        release {
+            storeFile file("${project.rootDir}/production-keystore.jks")
+            storePassword "nunchuk@2021"
+            keyAlias "nunchuk-android"
+            keyPassword "nunchuk@2021"
+        }
+        debug {
+            storeFile file("${project.rootDir}/debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
+    }
+
     buildTypes {
         debug {
             minifyEnabled false
@@ -39,6 +54,7 @@ android {
             debuggable false
             multiDexKeepFile file('multidex-config.txt')
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard.conf'
+            signingConfig signingConfigs.release
         }
     }
 
@@ -47,7 +63,7 @@ android {
         production {
             applicationId "io.nunchuk.android"
             firebaseAppDistribution {
-                appId = "1:712097058578:android:3a7fe0dc4e6b89b713edcb"
+                appId = "1:712097058578:android:6ba4711f048801f813edcb"
                 releaseNotesFile = "nunchuk-app/release_notes.txt"
                 testers = "hung.tran@nunchuk.io"
                 groups = "testers"
@@ -85,21 +101,6 @@ android {
         exclude 'META-INF/notice.txt'
         exclude 'META-INF/ASL2.0'
         exclude 'META-INF/versions/9/module-info.class'
-    }
-
-    signingConfigs {
-        release {
-            storeFile file("${project.rootDir}/production-keystore.jks")
-            storePassword "nunchuk@2021"
-            keyAlias "nunchuk"
-            keyPassword "nunchuk@2021"
-        }
-        debug {
-            storeFile file("${project.rootDir}/debug.keystore")
-            storePassword "android"
-            keyAlias "androiddebugkey"
-            keyPassword "android"
-        }
     }
 }
 
