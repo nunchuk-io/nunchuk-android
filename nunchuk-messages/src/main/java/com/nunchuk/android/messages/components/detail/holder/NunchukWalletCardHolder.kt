@@ -15,7 +15,6 @@ import com.nunchuk.android.model.toRoomWalletData
 
 internal class NunchukWalletCardHolder(
     val binding: ItemWalletInfoBinding,
-    val roomWallet: RoomWallet? = null,
     val denyWallet: () -> Unit,
     val cancelWallet: () -> Unit,
     val viewConfig: () -> Unit
@@ -23,7 +22,7 @@ internal class NunchukWalletCardHolder(
 
     private val gson = Gson()
 
-    fun bind(model: NunchukWalletMessage) {
+    fun bind(roomWallet: RoomWallet? = null, model: NunchukWalletMessage) {
         val map = model.timelineEvent.root.content?.toMap().orEmpty()
         val body = gson.toJson(map["body"])
         val initData = body.toRoomWalletData(gson)

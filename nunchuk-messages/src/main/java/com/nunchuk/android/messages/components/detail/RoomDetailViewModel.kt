@@ -146,7 +146,6 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     private fun getTransactions(walletId: String, events: List<TimelineEvent>) {
-        getState().roomWallet?.walletId
         viewModelScope.launch {
             val eventIds = mapTransactionEvents(events)
             getTransactionsUseCase.execute(walletId, eventIds)

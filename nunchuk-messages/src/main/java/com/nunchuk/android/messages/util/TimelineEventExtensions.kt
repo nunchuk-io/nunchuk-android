@@ -4,6 +4,7 @@ import com.google.gson.JsonObject
 import com.nunchuk.android.core.util.gson
 import com.nunchuk.android.messages.components.detail.MessageType
 import com.nunchuk.android.model.NunchukMatrixEvent
+import com.nunchuk.android.utils.CrashlyticsReporter
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
@@ -48,11 +49,15 @@ fun TimelineEvent.chatType(chatId: String) = if (chatId == senderInfo.userId) {
 
 fun SenderInfo?.displayNameOrId(): String = this?.displayName ?: this?.userId ?: "Guest"
 
-// TODO simplify parse logic
 fun TimelineEvent.getBodyElementValueByKey(key: String): String {
     val map = root.content?.toMap().orEmpty()
     val element = gson.fromJson(gson.toJson(map["body"]), JsonObject::class.java).get(key)
-    return "$element"
+    return try {
+        element?.asString ?: ""
+    } catch (t: Throwable) {
+        CrashlyticsReporter.recordException(t)
+        element?.toString()?.replace("\"", "") ?: ""
+    }
 }
 
 fun TimelineEvent.isInitTransactionEvent() = isTransactionEvent(TransactionEventType.INIT)

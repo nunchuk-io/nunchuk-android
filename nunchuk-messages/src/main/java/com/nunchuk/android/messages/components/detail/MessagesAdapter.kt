@@ -48,19 +48,16 @@ internal class MessagesAdapter(
         )
         MessageType.TYPE_NUNCHUK_WALLET_CARD.index -> NunchukWalletCardHolder(
             ItemWalletInfoBinding.inflate(LayoutInflater.from(context), parent, false),
-            roomWallet = roomWallet,
             denyWallet = denyWallet,
             cancelWallet = cancelWallet,
             viewConfig = viewConfig
         )
         MessageType.TYPE_NUNCHUK_TRANSACTION_CARD.index -> NunchukTransactionCardHolder(
             ItemTransactionInfoBinding.inflate(LayoutInflater.from(context), parent, false),
-            transactions = transactions,
             viewDetails = viewDetails,
         )
         MessageType.TYPE_NUNCHUK_WALLET_NOTIFICATION.index -> NunchukWalletNotificationHolder(
             ItemNunchukNotificationBinding.inflate(LayoutInflater.from(context), parent, false),
-            roomWallet = roomWallet,
             viewConfig = viewConfig,
             finalizeWallet = finalizeWallet
         )
@@ -90,10 +87,10 @@ internal class MessagesAdapter(
                 (holder as MessageDateHolder).bind(messageData as DateModel)
             }
             MessageType.TYPE_NUNCHUK_WALLET_CARD.index -> {
-                (holder as NunchukWalletCardHolder).bind((messageData as MessageModel).message as NunchukWalletMessage)
+                (holder as NunchukWalletCardHolder).bind(roomWallet, (messageData as MessageModel).message as NunchukWalletMessage)
             }
             MessageType.TYPE_NUNCHUK_TRANSACTION_CARD.index -> {
-                (holder as NunchukTransactionCardHolder).bind((messageData as MessageModel).message as NunchukTransactionMessage)
+                (holder as NunchukTransactionCardHolder).bind(transactions, (messageData as MessageModel).message as NunchukTransactionMessage)
             }
             MessageType.TYPE_NUNCHUK_WALLET_NOTIFICATION.index -> {
                 (holder as NunchukWalletNotificationHolder).bind((messageData as MessageModel).message as NunchukWalletMessage)
