@@ -16,7 +16,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 interface ImageLoader {
-    fun loadImage(url: String, imageView: ImageView, onFailed: () -> Unit = {})
+    fun loadImage(url: String, imageView: ImageView, onFailed: () -> Unit = {}, roundedImage: Boolean = true)
 }
 
 @Singleton
@@ -24,9 +24,13 @@ class ImageLoaderImpl @Inject constructor(context: Context) : ImageLoader {
 
     private val glideRequests: RequestManager = Glide.with(context)
 
-    override fun loadImage(url: String, imageView: ImageView, onFailed: () -> Unit) {
+    override fun loadImage(url: String, imageView: ImageView, onFailed: () -> Unit, roundedImage: Boolean) {
         val resolvedUrl = resolvedUrl(url)
-        glideRequests.load(resolvedUrl).fitCenter().listener(object : RequestListener<Drawable> {
+        glideRequests.load(resolvedUrl).apply {
+            if (roundedImage) {
+                circleCrop()
+            }
+        }.listener(object : RequestListener<Drawable> {
             override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>?, isFirstResource: Boolean): Boolean {
                 onFailed()
                 e?.let(CrashlyticsReporter::recordException)
@@ -48,6 +52,6 @@ class ImageLoaderImpl @Inject constructor(context: Context) : ImageLoader {
     )
 
     companion object {
-        private const val THUMBNAIL_SIZE = 250
+        private const val THUMBNAIL_SIZE = 100
     }
 }

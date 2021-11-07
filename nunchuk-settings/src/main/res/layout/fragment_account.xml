@@ -32,7 +32,7 @@
             android:background="@color/nc_white_color"
             android:gravity="center"
             android:shape="ring"
-            app:cardCornerRadius="100dp"
+            app:cardCornerRadius="@dimen/nc_padding_18"
             app:layout_constraintBottom_toBottomOf="@+id/avatarHolder"
             app:layout_constraintEnd_toEndOf="@+id/avatarHolder">
 

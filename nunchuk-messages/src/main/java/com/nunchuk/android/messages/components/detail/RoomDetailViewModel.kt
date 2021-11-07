@@ -4,13 +4,11 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.toMatrixContent
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.util.*
-import com.nunchuk.android.model.NunchukMatrixEvent
-import com.nunchuk.android.model.SendEventExecutor
-import com.nunchuk.android.model.SendEventHelper
-import com.nunchuk.android.model.toRoomWalletData
+import com.nunchuk.android.model.*
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
@@ -34,7 +32,8 @@ class RoomDetailViewModel @Inject constructor(
     private val consumeEventUseCase: ConsumeEventUseCase,
     private val getRoomWalletUseCase: GetRoomWalletUseCase,
     private val createSharedWalletUseCase: CreateSharedWalletUseCase,
-    private val getTransactionsUseCase: GetTransactionsUseCase
+    private val getTransactionsUseCase: GetTransactionsUseCase,
+    private val getWalletUseCase: GetWalletUseCase
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
 
     private lateinit var room: Room
@@ -108,7 +107,6 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
-        Timber.d("handleTimelineEvents")
         val displayableEvents = events.filter(TimelineEvent::isDisplayable)
         val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent)
         viewModelScope.launch {
@@ -213,6 +211,33 @@ class RoomDetailViewModel @Inject constructor(
     fun cleanUp() {
         timeline.removeAllListeners()
         SessionHolder.currentRoom = null
+    }
+
+    fun handleAddEvent() {
+        val roomWallet = getState().roomWallet
+        if (roomWallet == null) {
+            event(CreateNewSharedWallet)
+        } else {
+            viewModelScope.launch {
+                getWalletUseCase.execute(walletId = roomWallet.walletId)
+                    .onException { }
+                    .flowOn(Main)
+                    .collect { onGetWallet(it) }
+            }
+        }
+
+    }
+
+    private fun onGetWallet(wallet: Wallet) {
+        if (wallet.balance.value > 0L) {
+            event(
+                CreateNewTransaction(
+                    roomId = room.roomId,
+                    walletId = wallet.id,
+                    availableAmount = wallet.balance.pureBTC()
+                )
+            )
+        }
     }
 
     companion object {

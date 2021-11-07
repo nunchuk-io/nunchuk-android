@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
-import javax.inject.Named
 
 interface AuthRepository {
 
@@ -34,7 +33,7 @@ interface AuthRepository {
 }
 
 internal class AuthRepositoryImpl @Inject constructor(
-    @Named("AuthClientV1_1") private val authApi: AuthApi
+    private val authApi: AuthApi
 ) : AuthRepository {
 
     override suspend fun register(name: String, email: String): UserTokenResponse {

@@ -18,7 +18,6 @@ import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnEnterListener
 import com.nunchuk.android.widget.util.smoothScrollToLastItem
-import timber.log.Timber
 import javax.inject.Inject
 
 class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
@@ -58,7 +57,6 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 
     private fun handleState(state: RoomDetailState) {
-        Timber.d("transactions:: ${state.transactions}")
         binding.toolbarTitle.text = state.roomInfo.roomName
         val membersCount = "${state.roomInfo.memberCount} members"
         binding.memberCount.text = membersCount
@@ -72,8 +70,15 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
     private fun handleEvent(event: RoomDetailEvent) {
         when (event) {
-            RoomNotFoundEvent -> finishWithMessage("Room not found!")
-            ContactNotFoundEvent -> finishWithMessage("Contact not found!")
+            RoomNotFoundEvent -> finishWithMessage(getString(R.string.nc_message_room_not_found))
+            ContactNotFoundEvent -> finishWithMessage(getString(R.string.nc_message_contact_not_found))
+            CreateNewSharedWallet -> navigator.openCreateSharedWalletScreen(this)
+            is CreateNewTransaction -> navigator.openInputAmountScreen(
+                activityContext = this,
+                roomId = event.roomId,
+                walletId = event.walletId,
+                availableAmount = event.availableAmount
+            )
             OpenChatGroupInfoEvent -> navigator.openChatGroupInfoScreen(this, args.roomId)
             OpenChatInfoEvent -> navigator.openChatInfoScreen(this, args.roomId)
             RoomWalletCreatedEvent -> NCToastMessage(this).show(R.string.nc_message_wallet_created)
@@ -101,9 +106,9 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             imageLoader = imageLoader,
             cancelWallet = viewModel::cancelWallet,
             denyWallet = viewModel::denyWallet,
-            viewConfig = viewModel::viewConfig,
+            viewWalletConfig = viewModel::viewConfig,
             finalizeWallet = viewModel::finalizeWallet,
-            viewDetails = ::openTransactionDetails
+            viewTransaction = ::openTransactionDetails
         )
         binding.recyclerView.adapter = adapter
         val layoutManager = LinearLayoutManager(this)
@@ -116,7 +121,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             viewModel.handleTitleClick()
         }
         binding.add.setOnClickListener {
-            navigator.openCreateSharedWalletScreen(this)
+            viewModel.handleAddEvent()
         }
 
         binding.recyclerView.smoothScrollToLastItem()
