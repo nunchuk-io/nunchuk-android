@@ -89,7 +89,7 @@ class SharedWalletConfigActivity : BaseActivity<ActivitySharedWalletConfigBindin
             navigator.openAssignSignerSharedWalletScreen(
                 this,
                 walletName = it.name,
-                walletType = if (it.isEscrow) WalletType.MULTI_SIG else WalletType.ESCROW,
+                walletType = if (it.isEscrow) WalletType.ESCROW else WalletType.MULTI_SIG,
                 addressType = AddressType.valueOf(it.addressType),
                 totalSigns = it.totalSigners,
                 requireSigns = it.requireSigners
