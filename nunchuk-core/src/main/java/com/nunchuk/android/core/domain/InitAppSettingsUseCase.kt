@@ -20,7 +20,7 @@ internal class InitAppSettingsUseCaseImpl @Inject constructor(
     override fun execute() = getOrCreateRootDirUseCase.execute().flatMapConcat { path ->
         updateAppSettingUseCase.execute(
             AppSettings(
-                chain = Chain.TESTNET,
+                chain = Chain.MAIN,
                 hwiPath = "bin/hwi",
                 testnetServers = listOf("testnet.nunchuk.io:50001"),
                 mainnetServers = listOf("mainnet.nunchuk.io:51001"),
