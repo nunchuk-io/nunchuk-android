@@ -14,12 +14,11 @@ import com.nunchuk.android.model.TransactionExt
 
 internal class NunchukTransactionCardHolder(
     val binding: ItemTransactionInfoBinding,
-    val transactions: List<TransactionExt>,
     val signTransaction: () -> Unit = {},
     val viewDetails: (walletId: String, txId: String, initEventId: String) -> Unit,
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(model: NunchukTransactionMessage) {
+    fun bind(transactions: List<TransactionExt>, model: NunchukTransactionMessage) {
         val walletId = model.timelineEvent.getBodyElementValueByKey("wallet_id")
         val initEventId = model.timelineEvent.eventId
         transactions.firstOrNull { it.initEventId == initEventId }?.let {
