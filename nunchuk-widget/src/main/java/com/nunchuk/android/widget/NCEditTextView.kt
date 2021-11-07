@@ -39,7 +39,7 @@ class NCEditTextView : ConstraintLayout, LifecycleObserver {
     private var inputType: Int = TEXT_TYPE
     private var editTextSize: Float = resources.getDimension(R.dimen.nc_text_size_14)
     private var editTextBackground: Int = R.drawable.nc_edit_text_bg
-    private var editHigh: Float = resources.getDimension(R.dimen.nc_height_44)
+    private var editHigh: Float = resources.getDimension(R.dimen.nc_height_48)
     private var editTheme: Int = NORMAL_THEME
     private var editGravity: Int = GRAVITY_CENTER_VERTICAL
 

@@ -11,12 +11,10 @@ import com.nunchuk.android.messages.util.WalletEventType
 import com.nunchuk.android.messages.util.bindNotificationBackground
 import com.nunchuk.android.messages.util.displayNameOrId
 import com.nunchuk.android.messages.util.getBodyElementValueByKey
-import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.utils.CrashlyticsReporter
 
 internal class NunchukWalletNotificationHolder(
     val binding: ItemNunchukNotificationBinding,
-    val roomWallet: RoomWallet?,
     val viewConfig: () -> Unit,
     val finalizeWallet: () -> Unit
 ) : RecyclerView.ViewHolder(binding.root) {
