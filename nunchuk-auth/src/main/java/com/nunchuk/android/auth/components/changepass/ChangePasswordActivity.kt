@@ -60,7 +60,7 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
 
     private fun setupViews() {
         binding.oldPassword.passwordEnabled()
-        binding.oldPassword.passwordEnabled()
+        binding.newPassword.passwordEnabled()
         binding.confirmPassword.passwordEnabled()
         binding.changePassword.setOnClickListener { onChangePasswordClicked() }
         binding.signIn.setOnClickListener { openLoginScreen() }

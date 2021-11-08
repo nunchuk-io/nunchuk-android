@@ -64,6 +64,7 @@ internal class AssignSignerViewModel @Inject constructor(
             val unusedSignerSigners = ArrayList<SingleSigner>()
             getUnusedSignerUseCase
                 .execute(masterSigners, walletType, addressType)
+                .onException {}
                 .collect { unusedSignerSigners.addAll(it) }
 
             SessionHolder.currentRoom?.let { room ->

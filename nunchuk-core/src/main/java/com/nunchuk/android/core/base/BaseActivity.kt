@@ -38,9 +38,9 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity(), HasAnd
 
     private var dialog: Dialog? = null
 
-    fun showLoading() {
+    fun showLoading(cancelable: Boolean = true) {
         dialog?.cancel()
-        dialog = creator.showDialog()
+        dialog = creator.showDialog(cancelable)
     }
 
     fun hideLoading() {

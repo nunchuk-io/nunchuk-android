@@ -30,14 +30,13 @@ class RoomAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = RoomViewHolder(
         parent.inflate(R.layout.item_room),
-        roomWallets,
         currentName,
         enterRoom,
         removeRoom
     )
 
     override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
-        holder.bind(roomSummaries[position])
+        holder.bind(roomWallets to roomSummaries[position])
     }
 
     override fun getItemCount() = roomSummaries.size
@@ -46,36 +45,37 @@ class RoomAdapter(
 
 class RoomViewHolder(
     itemView: View,
-    private val roomWallets: List<String>,
     private val currentName: String,
     private val enterRoom: (RoomSummary) -> Unit,
     private val removeRoom: (RoomSummary) -> Unit
-) : BaseViewHolder<RoomSummary>(itemView) {
+) : BaseViewHolder<Pair<List<String>, RoomSummary>>(itemView) {
 
     private val binding = ItemRoomBinding.bind(itemView)
 
-    override fun bind(data: RoomSummary) {
-        val roomName = data.getRoomName(currentName)
+    override fun bind(data: Pair<List<String>, RoomSummary>) {
+        val roomWallets = data.first
+        val roomSummary = data.second
+        val roomName = roomSummary.getRoomName(currentName)
         binding.name.text = roomName
-        data.latestPreviewableEvent?.let {
+        roomSummary.latestPreviewableEvent?.let {
             binding.message.text = it.lastMessage()
             binding.time.text = it.root.originServerTs?.let { time -> Date(time).formatMessageDate() } ?: "-"
         }
-        val isGroupChat = !data.isDirectChat()
+        val isGroupChat = !roomSummary.isDirectChat()
         if (isGroupChat) {
             binding.avatarHolder.text = ""
-            binding.badge.text = "${data.getMembersCount()}"
+            binding.badge.text = "${roomSummary.getMembersCount()}"
         } else {
             binding.avatarHolder.text = roomName.shorten()
         }
         binding.badge.isVisible = isGroupChat
         binding.avatar.isVisible = isGroupChat
-        binding.count.isVisible = data.hasUnreadMessages && (data.notificationCount > 0)
-        binding.count.text = "${data.notificationCount}"
-        binding.shareIcon.isVisible = data.roomId in roomWallets
+        binding.count.isVisible = roomSummary.hasUnreadMessages && (roomSummary.notificationCount > 0)
+        binding.count.text = "${roomSummary.notificationCount}"
+        binding.shareIcon.isVisible = roomSummary.roomId in roomWallets
 
-        binding.itemLayout.setOnClickListener { enterRoom(data) }
-        binding.delete.setOnClickListener { removeRoom(data) }
+        binding.itemLayout.setOnClickListener { enterRoom(roomSummary) }
+        binding.delete.setOnClickListener { removeRoom(roomSummary) }
 
         binding.swipeLayout.showMode = SwipeLayout.ShowMode.LayDown
         binding.swipeLayout.addDrag(SwipeLayout.DragEdge.Left, binding.actionLayout)

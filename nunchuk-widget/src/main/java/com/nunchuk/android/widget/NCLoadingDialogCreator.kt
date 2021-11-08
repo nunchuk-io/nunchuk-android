@@ -8,10 +8,10 @@ import javax.inject.Inject
 
 class NCLoadingDialogCreator @Inject constructor(val activity: Activity) {
 
-    fun showDialog() = Dialog(activity).apply {
+    fun showDialog(cancelable: Boolean = true) = Dialog(activity).apply {
         window?.setBackgroundDrawableResource(android.R.color.transparent)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
-        setCancelable(false)
+        setCancelable(cancelable)
         setContentView(R.layout.nc_loading_dialog)
         show()
         window?.setLayout(MATCH_PARENT, MATCH_PARENT)
