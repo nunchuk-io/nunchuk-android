@@ -29,7 +29,7 @@ ext {
     kotlinStdlibVersion = '1.5.31'
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.1.0'
+    nativeSdkVersion = '1.1.1'
 
     // Matrix
     matrixSdkVersion = '1.1.9'
@@ -38,7 +38,7 @@ ext {
     MINOR_VERSION = 9
     PATCH_VERSION = 1
 
-    VERSION_CODE = 59
+    VERSION_CODE = 60
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
@@ -96,10 +96,11 @@ ext {
     ]
 
     playServices = [
-            firebaseBom        : "com.google.firebase:firebase-bom:28.4.1",
-            firebaseAnalytics  : "com.google.firebase:firebase-analytics-ktx",
-            firebaseCrashlytics: "com.google.firebase:firebase-crashlytics-ktx",
-            firebasePerf       : 'com.google.firebase:firebase-perf-ktx'
+            firebaseBom           : "com.google.firebase:firebase-bom:28.4.1",
+            firebaseAnalytics     : "com.google.firebase:firebase-analytics-ktx",
+            firebaseCrashlytics   : "com.google.firebase:firebase-crashlytics-ktx",
+            firebaseNdkCrashlytics: "com.google.firebase:firebase-crashlytics-ndk",
+            firebasePerf          : 'com.google.firebase:firebase-perf-ktx'
     ]
 
     daggerDeps = [
