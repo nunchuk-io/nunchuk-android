@@ -136,6 +136,7 @@ dependencies {
 
     implementation platform(playServices.firebaseBom)
     implementation playServices.firebaseCrashlytics
+    implementation playServices.firebaseNdkCrashlytics
     implementation playServices.firebaseAnalytics
     implementation playServices.firebasePerf
 
