@@ -8,6 +8,7 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.http.Header
+import retrofit2.http.Streaming
 
 interface MatrixAPI {
 
@@ -19,9 +20,15 @@ interface MatrixAPI {
         @Body body: RequestBody
     ): MatrixUploadFileResponse
 
+    @Streaming
     @GET("_matrix/media/r0/download/{serverName}/{mediaId}")
     suspend fun download(
         @Path("serverName") serverName: String,
         @Path("mediaId") mediaId: String,
     ): ResponseBody
+
+    @GET("_matrix/client/r0/sync")
+    suspend fun syncState(
+        @Header("Authorization") token: String
+    ): SyncStateMatrixResponse
 }

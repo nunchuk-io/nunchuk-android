@@ -8,6 +8,9 @@ import dagger.Module
 internal interface MessagesUseCaseModule {
 
     @Binds
+    fun bindGetRoomSummaryLiveListUseCase(useCase: GetRoomSummaryLiveListUseCaseImpl): GetRoomSummaryLiveListUseCase
+
+    @Binds
     fun bindGetRoomSummaryListUseCase(useCase: GetRoomSummaryListUseCaseImpl): GetRoomSummaryListUseCase
 
     @Binds

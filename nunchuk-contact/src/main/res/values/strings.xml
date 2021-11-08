@@ -9,4 +9,6 @@
     <string name="nc_contact_withdraw">Withdraw</string>
     <string name="nc_contact_status_pending">Pending</string>
     <string name="nc_contact_requests">Requests</string>
+    <string name="nc_text_invite_message">These contacts are not on Nunchuk. Would you like to send an invite?</string>
+
 </resources>
