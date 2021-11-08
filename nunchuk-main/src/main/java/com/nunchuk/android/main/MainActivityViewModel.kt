@@ -59,7 +59,7 @@ internal class MainActivityViewModel @Inject constructor(
     private lateinit var timeline: Timeline
 
     init {
-        initSyncEventExecutor()
+        //initSyncEventExecutor()
         //registerDownloadFileBackup()
     }
 
@@ -90,7 +90,7 @@ internal class MainActivityViewModel @Inject constructor(
                 data: ByteArray,
                 dataLength: Int
             ) {
-                uploadFile(fileName, fileJsonInfo, mineType, data)
+                //uploadFile(fileName, fileJsonInfo, mineType, data)
             }
         }
         SyncFileEventHelper.syncFileExecutor = object : SyncFileCallBack {

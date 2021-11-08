@@ -37,7 +37,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         super.onCreate(savedInstanceState)
 
         viewModel.scheduleGetBTCConvertPrice()
-        viewModel.restoreAndBackUp()
+//        viewModel.restoreAndBackUp()
         setupNavigationView()
         //subscribeEvents()
 
