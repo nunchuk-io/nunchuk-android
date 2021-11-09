@@ -33,7 +33,9 @@
     <string name="nc_wallet_take_to_add_a_signer">Take me to add a key</string>
     <string name="nc_wallet_add_a_wallet">Add a wallet</string>
     <string name="nc_wallet_backup_wallet">Backup wallet</string>
+    <string name="nc_wallet_save_wallet_configuration">Save wallet configuration</string>
     <string name="nc_wallet_upload_device_registration">Upload device registration</string>
+    <string name="nc_wallet_export_coldcard">Export wallet to Coldcard</string>
     <string name="nc_wallet_upload_success">Upload wallet success</string>
     <string name="nc_wallet_delete_wallet">Delete wallet</string>
     <string name="nc_wallet_delete_wallet_success">Delete wallet success</string>
