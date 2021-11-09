@@ -23,7 +23,7 @@ internal class InitAppSettingsUseCaseImpl @Inject constructor(
                 chain = Chain.MAIN,
                 hwiPath = "bin/hwi",
                 testnetServers = listOf("testnet.nunchuk.io:50001"),
-                mainnetServers = listOf("mainnet.nunchuk.io:51001"),
+                mainnetServers = listOf("tcp://mainnet.nunchuk.io:51001"),
                 backendType = BackendType.ELECTRUM,
                 storagePath = path
             )
