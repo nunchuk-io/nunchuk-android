@@ -23,7 +23,7 @@ internal class SplashViewModel @Inject constructor(
     private fun initFlow() {
         val account = accountManager.getAccount()
         viewModelScope.launch {
-            initNunchukUseCase.executeWhenExisted(account.email, account.chatId)
+            initNunchukUseCase.execute(account.email, account.chatId)
                 .flowOn(Dispatchers.IO)
                 .onException { event(InitErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
