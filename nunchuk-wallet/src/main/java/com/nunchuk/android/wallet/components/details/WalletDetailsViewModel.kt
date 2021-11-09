@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import java.io.File
 import javax.inject.Inject
 
 internal class WalletDetailsViewModel @Inject constructor(
@@ -103,28 +102,28 @@ internal class WalletDetailsViewModel @Inject constructor(
         event(SendMoneyEvent(getState().wallet.balance))
     }
 
-    fun handleBackupWallet() {
+    fun handleExportBSMS() {
         viewModelScope.launch {
-            when (val event = createShareFileUseCase.execute("${walletId}_descriptor")) {
-                is Success -> backupWallet(walletId, event.data)
+            when (val event = createShareFileUseCase.execute(walletId + "_bsms")) {
+                is Success -> exportWalletToFile(walletId, event.data, ExportFormat.BSMS)
                 is Error -> showError(event)
             }
         }
     }
 
-    private fun backupWallet(walletId: String, filePath: String) {
+    fun handleExportColdcard() {
         viewModelScope.launch {
-            when (val event = exportWalletUseCase.execute(walletId, filePath, ExportFormat.DESCRIPTOR)) {
-                is Success -> event(BackupWalletDescriptorEvent(File(filePath).readText(Charsets.UTF_8)))
+            when (val event = createShareFileUseCase.execute(walletId + "_coldcard")) {
+                is Success -> exportWalletToFile(walletId, event.data, ExportFormat.COLDCARD)
                 is Error -> showError(event)
             }
         }
     }
 
-    fun handleUploadWallet() {
+    private fun exportWalletToFile(walletId: String, filePath: String, format: ExportFormat) {
         viewModelScope.launch {
-            when (val event = createShareFileUseCase.execute(walletId)) {
-                is Success -> uploadWallet(walletId, event.data)
+            when (val event = exportWalletUseCase.execute(walletId, filePath, format)) {
+                is Success -> event(UploadWalletConfigEvent(filePath))
                 is Error -> showError(event)
             }
         }
@@ -137,15 +136,6 @@ internal class WalletDetailsViewModel @Inject constructor(
                 .onException { showError(it) }
                 .flowOn(Dispatchers.Main)
                 .collect { event(OpenDynamicQRScreen(it)) }
-        }
-    }
-
-    private fun uploadWallet(walletId: String, filePath: String) {
-        viewModelScope.launch {
-            when (val event = exportWalletUseCase.execute(walletId, filePath, ExportFormat.BSMS)) {
-                is Success -> event(UploadWalletConfigEvent(filePath))
-                is Error -> showError(event)
-            }
         }
     }
 

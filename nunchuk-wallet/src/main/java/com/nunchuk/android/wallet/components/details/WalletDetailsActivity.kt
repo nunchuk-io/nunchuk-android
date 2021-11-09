@@ -156,23 +156,23 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
         val bottomSheet = WalletUpdateBottomSheet.show(fragmentManager = supportFragmentManager)
         bottomSheet.setListener {
             when (it) {
-                BACKUP -> handleBackupWallet()
-                UPLOAD -> handleUploadWallet()
-                QR -> viewModel.handleExportWalletQR()
+                EXPORT_BSMS -> handleExportBSMS()
+                EXPORT_COLDCARD -> handleExportColdcard()
+                EXPORT_QR -> viewModel.handleExportWalletQR()
                 DELETE -> viewModel.handleDeleteWallet()
             }
         }
     }
 
-    private fun handleUploadWallet() {
+    private fun handleExportColdcard() {
         if (checkReadExternalPermission()) {
-            viewModel.handleUploadWallet()
+            viewModel.handleExportColdcard()
         }
     }
 
-    private fun handleBackupWallet() {
+    private fun handleExportBSMS() {
         if (checkReadExternalPermission()) {
-            viewModel.handleBackupWallet()
+            viewModel.handleExportBSMS()
         }
     }
 

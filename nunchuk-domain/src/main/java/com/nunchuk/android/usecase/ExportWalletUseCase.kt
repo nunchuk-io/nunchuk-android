@@ -9,7 +9,7 @@ interface ExportWalletUseCase {
     suspend fun execute(
         walletId: String,
         filePath: String,
-        format: ExportFormat = ExportFormat.DESCRIPTOR
+        format: ExportFormat
     ): Result<Boolean>
 }
 

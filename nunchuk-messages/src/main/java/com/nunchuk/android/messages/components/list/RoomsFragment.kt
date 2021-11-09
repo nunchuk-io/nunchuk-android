@@ -14,6 +14,7 @@ import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
 import com.nunchuk.android.messages.databinding.FragmentMessagesBinding
+import com.nunchuk.android.messages.util.shouldShow
 import com.nunchuk.android.model.RoomWallet
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import javax.inject.Inject
@@ -65,7 +66,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
     private fun handleState(state: RoomsState) {
         adapter.roomWallets = state.roomWallets.map(RoomWallet::roomId)
-        adapter.roomSummaries = state.rooms
+        adapter.roomSummaries = state.rooms.filter(RoomSummary::shouldShow)
         binding.skeletonContainer.root.isVisible = state.rooms.isEmpty()
         hideLoading()
     }
