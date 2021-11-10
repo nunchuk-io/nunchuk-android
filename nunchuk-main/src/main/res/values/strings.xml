@@ -11,7 +11,6 @@
     <string name="nc_wallet_intro_subtitle">Do you want to add a Bitcoin wallet?</string>
     <string name="nc_text_add_a_signer">Add a key</string>
     <string name="nc_text_add_a_wallet">Add a wallet</string>
-    <string name="nc_text_do_this_later">I’ll do this later</string>
 
     <string name="nc_text_you_have_not_add_wallet">You have no wallets yet.</string>
     <string name="nc_text_you_have_not_add_signer">You have no keys yet.</string>

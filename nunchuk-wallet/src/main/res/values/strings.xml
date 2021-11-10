@@ -5,7 +5,8 @@
     <string name="nc_wallet_create_wallet">Create wallet</string>
     <string name="nc_wallet_signer_has_been_used_warning">This air-gapped key has already been used. Key reuse is not recommended</string>
 
-    <string name="nc_wallet_backup_and_device_registration">Backup and device registration</string>
+    <string name="nc_wallet_backup">Backup</string>
+    <string name="nc_wallet_device_registration">Device registration</string>
     <string name="nc_wallet_backup_your_wallet">Please save your wallet configuration</string>
     <string name="nc_wallet_backup_wallet_description">The wallet configuration does not contain the private keys, but you should still keep it safe for privacy. You can also access the wallet configuration via the wallet home screen.</string>
     <string name="nc_wallet_backup_wallet_description_hint">Tip: you need both the keys and wallet configuration to recover your wallet.</string>
@@ -35,7 +36,6 @@
     <string name="nc_wallet_backup_wallet">Backup wallet</string>
     <string name="nc_wallet_save_wallet_configuration">Save wallet configuration</string>
     <string name="nc_wallet_upload_device_registration">Upload device registration</string>
-    <string name="nc_wallet_export_coldcard">Export wallet to Coldcard</string>
     <string name="nc_wallet_upload_success">Upload wallet success</string>
     <string name="nc_wallet_delete_wallet">Delete wallet</string>
     <string name="nc_wallet_delete_wallet_success">Delete wallet success</string>

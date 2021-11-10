@@ -22,7 +22,7 @@
             style="@style/NCToolbar.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/nc_wallet_backup_and_device_registration" />
+            android:text="@string/nc_wallet_backup" />
     </androidx.appcompat.widget.Toolbar>
 
     <ImageView
@@ -95,7 +95,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_6"
-            android:text="@string/nc_wallet_save_wallet_descriptors"
+            android:text="@string/nc_wallet_save_wallet_configuration"
             android:textColor="@color/nc_white_color" />
 
     </LinearLayout>
@@ -107,7 +107,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
         android:layout_marginStart="@dimen/nc_padding_6"
-        android:text="@string/nc_wallet_skip_backup"
+        android:text="@string/nc_text_do_this_later"
         android:textColor="@color/nc_primary_color"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

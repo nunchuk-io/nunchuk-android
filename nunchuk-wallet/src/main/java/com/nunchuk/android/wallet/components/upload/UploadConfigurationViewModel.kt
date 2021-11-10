@@ -11,10 +11,10 @@ import com.nunchuk.android.usecase.ExportKeystoneWalletUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.*
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -33,13 +33,11 @@ internal class UploadConfigurationViewModel @Inject constructor(
     }
 
     fun handleUploadEvent() {
-        event(SetLoadingEvent(true))
         viewModelScope.launch {
-            when (val event = createShareFileUseCase.execute(walletId)) {
+            when (val event = createShareFileUseCase.execute(walletId + "_coldcard")) {
                 is Success -> exportWallet(walletId, event.data)
                 is Error -> {
-                    event(UploadConfigurationError(event.exception.message.orUnknownError()))
-                    event(SetLoadingEvent(false))
+                    event(ExportColdcardFailure(event.exception.message.orUnknownError()))
                 }
             }
         }
@@ -48,24 +46,21 @@ internal class UploadConfigurationViewModel @Inject constructor(
     fun handleShowQREvent() {
         viewModelScope.launch {
             exportKeystoneWalletUseCase.execute(walletId)
-                .onStart { event(SetLoadingEvent(true)) }
-                .flowOn(Dispatchers.IO)
-                .onException { event(UploadConfigurationError(it.message.orUnknownError())) }
-                .flowOn(Dispatchers.Main)
+                .flowOn(IO)
+                .onException { event(ExportColdcardFailure(it.message.orUnknownError())) }
+                .flowOn(Main)
                 .collect { event(OpenDynamicQRScreen(it)) }
         }
     }
 
     private fun exportWallet(walletId: String, filePath: String) {
         viewModelScope.launch {
-            when (val event = exportWalletUseCase.execute(walletId, filePath, ExportFormat.BSMS)) {
+            when (val event = exportWalletUseCase.execute(walletId, filePath, ExportFormat.COLDCARD)) {
                 is Success -> {
-                    event(ExportWalletSuccessEvent(filePath))
-                    event(SetLoadingEvent(false))
+                    event(ExportColdcardSuccess(filePath))
                 }
                 is Error -> {
-                    event(UploadConfigurationError(event.exception.message.orUnknownError()))
-                    event(SetLoadingEvent(false))
+                    event(ExportColdcardFailure(event.exception.message.orUnknownError()))
                 }
             }
         }

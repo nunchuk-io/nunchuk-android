@@ -6,11 +6,9 @@ import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.core.share.IntentSharingEventBus
-import com.nunchuk.android.core.share.IntentSharingListener
-import com.nunchuk.android.core.share.IntentSharingListenerWrapper
 import com.nunchuk.android.wallet.R
-import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.*
+import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Success
+import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Failure
 import com.nunchuk.android.wallet.databinding.ActivityWalletBackupWalletBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -23,9 +21,7 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
 
     private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 
-    private val listener: IntentSharingListener = IntentSharingListenerWrapper {
-        navigator.openUploadConfigurationScreen(this, args.walletId)
-    }
+    private var isShared: Boolean = false
 
     private val args: BackupWalletArgs by lazy { BackupWalletArgs.deserializeFrom(intent) }
 
@@ -39,23 +35,21 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
         setLightStatusBar()
         setupViews()
         observeEvent()
-        viewModel.init(args.walletId, args.descriptor)
+        viewModel.init(args.walletId)
     }
 
     override fun onResume() {
         super.onResume()
-        IntentSharingEventBus.instance.subscribe(listener)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        IntentSharingEventBus.instance.unsubscribe()
+        if (isShared) {
+            navigator.openUploadConfigurationScreen(this, args.walletId)
+            isShared = false
+        }
     }
 
     private fun setupViews() {
         NCToastMessage(this).show(R.string.nc_wallet_has_been_created)
         binding.btnBackup.setOnClickListener { viewModel.handleBackupDescriptorEvent() }
-        binding.btnSkipBackup.setOnClickListener { viewModel.handleSkipBackupEvent() }
+        binding.btnSkipBackup.setOnClickListener { navigator.openUploadConfigurationScreen(this, args.walletId) }
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
@@ -67,20 +61,20 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
 
     private fun handleEvent(event: BackupWalletEvent) {
         when (event) {
-            is SetLoadingEvent -> if (event.showLoading) showLoading() else hideLoading()
-            is BackupDescriptorEvent -> shareDescriptor(event.descriptor)
-            is SkipBackupWalletEvent -> navigator.openUploadConfigurationScreen(this, event.walletId)
+            is Success -> shareFile(event)
+            is Failure -> NCToastMessage(this).showWarning(event.message)
         }
     }
 
-    private fun shareDescriptor(descriptor: String) {
-        controller.shareText(descriptor)
+    private fun shareFile(event: Success) {
+        isShared = true
+        controller.shareFile(event.filePath)
     }
 
     companion object {
 
-        fun start(activityContext: Context, walletId: String, descriptor: String) {
-            activityContext.startActivity(BackupWalletArgs(walletId, descriptor).buildIntent(activityContext))
+        fun start(activityContext: Context, walletId: String) {
+            activityContext.startActivity(BackupWalletArgs(walletId).buildIntent(activityContext))
         }
     }
 
