@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-const val URL_TEMPLATE = "https://blockstream.info/%1s/tx/%2s"
+const val URL_TEMPLATE = "https://blockstream.info%1s/tx/%2s"
 
 interface GetBlockchainExplorerUrlUseCase {
     fun execute(txId: String): Flow<String>
@@ -21,7 +21,7 @@ internal class GetBlockchainExplorerUrlUseCaseImpl @Inject constructor(
     private fun formatUrl(
         settings: AppSettings,
         txId: String
-    ) = String.format(URL_TEMPLATE, (if (settings.chain == Chain.TESTNET) "testnet" else "main"), txId)
+    ) = String.format(URL_TEMPLATE, (if (settings.chain == Chain.TESTNET) "/testnet" else ""), txId)
 
 }
 
