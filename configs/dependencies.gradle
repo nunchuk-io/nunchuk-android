@@ -29,7 +29,7 @@ ext {
     kotlinStdlibVersion = '1.5.31'
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.1.2'
+    nativeSdkVersion = '1.1.4'
 
     // Matrix
     matrixSdkVersion = '1.1.9'
