@@ -1,6 +1,6 @@
 package com.nunchuk.android.usecase
 
-import android.os.Environment
+import android.content.Context
 import com.nunchuk.android.model.Result
 import javax.inject.Inject
 
@@ -9,11 +9,13 @@ interface CreateShareFileUseCase {
 }
 
 internal class CreateShareFileUseCaseImpl @Inject constructor(
+    private val contextProvider: ContextProvider
 ) : BaseUseCase(), CreateShareFileUseCase {
 
     override suspend fun execute(fileId: String) = exe {
-        @Suppress("DEPRECATION")
-        "${Environment.getExternalStorageDirectory()}/$fileId"
+        "${contextProvider.context.getExternalFilesDir(null)}/$fileId"
     }
 
 }
+
+internal class ContextProvider @Inject constructor(val context: Context)

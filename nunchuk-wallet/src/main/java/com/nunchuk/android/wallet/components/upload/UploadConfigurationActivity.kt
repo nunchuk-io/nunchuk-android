@@ -6,9 +6,6 @@ import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.core.share.IntentSharingEventBus
-import com.nunchuk.android.core.share.IntentSharingListener
-import com.nunchuk.android.core.share.IntentSharingListenerWrapper
 import com.nunchuk.android.core.util.checkReadExternalPermission
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.*
 import com.nunchuk.android.wallet.databinding.ActivityWalletUploadConfigurationBinding
@@ -23,9 +20,7 @@ class UploadConfigurationActivity : BaseActivity<ActivityWalletUploadConfigurati
 
     private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 
-    private val listener: IntentSharingListener = IntentSharingListenerWrapper {
-        navigator.openWalletConfigScreen(this, args.walletId)
-    }
+    private var isShared: Boolean = false
 
     private val args: UploadConfigurationArgs by lazy { UploadConfigurationArgs.deserializeFrom(intent) }
 
@@ -44,12 +39,10 @@ class UploadConfigurationActivity : BaseActivity<ActivityWalletUploadConfigurati
 
     override fun onResume() {
         super.onResume()
-        IntentSharingEventBus.instance.subscribe(listener)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        IntentSharingEventBus.instance.unsubscribe()
+        if (isShared) {
+            navigator.openWalletConfigScreen(this, args.walletId)
+            isShared = false
+        }
     }
 
     private fun setupViews() {
@@ -73,25 +66,22 @@ class UploadConfigurationActivity : BaseActivity<ActivityWalletUploadConfigurati
 
     private fun handleEvent(event: UploadConfigurationEvent) {
         when (event) {
-            is SetLoadingEvent -> if (event.showLoading) showLoading() else hideLoading()
-            is ExportWalletSuccessEvent -> shareConfigurationFile(event.filePath)
-            is UploadConfigurationError -> showError(event)
+            is ExportColdcardSuccess -> shareConfigurationFile(event.filePath)
+            is ExportColdcardFailure -> showError(event)
             is OpenDynamicQRScreen -> openDynamicQRScreen(event)
         }
     }
 
-    private fun showError(event: UploadConfigurationError) {
-        hideLoading()
+    private fun showError(event: ExportColdcardFailure) {
         NCToastMessage(this).showWarning(event.message)
     }
 
     private fun openDynamicQRScreen(event: OpenDynamicQRScreen) {
-        hideLoading()
         navigator.openDynamicQRScreen(this, event.values)
     }
 
     private fun shareConfigurationFile(filePath: String) {
-        hideLoading()
+        isShared = true
         controller.shareFile(filePath)
     }
 

@@ -57,8 +57,8 @@ interface WalletNavigatorDelegate : WalletNavigator {
         )
     }
 
-    override fun openBackupWalletScreen(activityContext: Context, walletId: String, descriptor: String) {
-        BackupWalletActivity.start(activityContext = activityContext, walletId = walletId, descriptor = descriptor)
+    override fun openBackupWalletScreen(activityContext: Context, walletId: String) {
+        BackupWalletActivity.start(activityContext = activityContext, walletId = walletId)
     }
 
     override fun openUploadConfigurationScreen(activityContext: Context, walletId: String) {

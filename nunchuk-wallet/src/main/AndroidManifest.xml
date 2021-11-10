@@ -24,13 +24,13 @@
 
         <activity
             android:name=".components.backup.BackupWalletActivity"
-            android:label="@string/nc_wallet_backup_and_device_registration"
+            android:label="@string/nc_wallet_backup"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
             android:name=".components.upload.UploadConfigurationActivity"
-            android:label="@string/nc_wallet_backup_and_device_registration"
+            android:label="@string/nc_wallet_device_registration"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 

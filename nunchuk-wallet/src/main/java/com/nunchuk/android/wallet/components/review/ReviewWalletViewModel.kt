@@ -28,8 +28,6 @@ internal class ReviewWalletViewModel @Inject constructor(
 
     override val initialState = Unit
 
-    private var descriptor = ""
-
     fun handleContinueEvent(
         walletName: String,
         walletType: WalletType,
@@ -52,7 +50,7 @@ internal class ReviewWalletViewModel @Inject constructor(
                         signers = signers,
                         addressType = addressType,
                         isEscrow = normalizeWalletType == ESCROW
-                    ).onEach { s -> descriptor = s }
+                    )
                     signers
                 }
                 .flowOn(Dispatchers.IO)
@@ -71,7 +69,7 @@ internal class ReviewWalletViewModel @Inject constructor(
                 }
                 .collect {
                     Timber.d("create wallet completed:$it")
-                    event(CreateWalletSuccessEvent(it.id, descriptor))
+                    event(CreateWalletSuccessEvent(it.id))
                 }
         }
     }

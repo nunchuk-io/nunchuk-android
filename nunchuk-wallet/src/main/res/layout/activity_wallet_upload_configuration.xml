@@ -22,14 +22,14 @@
             style="@style/NCToolbar.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/nc_wallet_backup_and_device_registration" />
+            android:text="@string/nc_wallet_device_registration" />
     </androidx.appcompat.widget.Toolbar>
 
     <ImageView
         android:id="@+id/iconInfo"
         android:layout_width="@dimen/nc_icon_large_size"
         android:layout_height="@dimen/nc_icon_large_size"
-        android:layout_marginTop="@dimen/nc_padding_44"
+        android:layout_marginTop="@dimen/nc_padding_32"
         android:background="@drawable/nc_circle_whisper_background"
         android:padding="@dimen/nc_padding_16"
         android:src="@drawable/ic_device_registration"
@@ -110,7 +110,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_6"
-            android:text="@string/nc_wallet_save_configuration" />
+            android:text="@string/nc_wallet_export_coldcard" />
     </LinearLayout>
 
     <com.nunchuk.android.widget.NCFontTextView
@@ -119,7 +119,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
-        android:text="@string/nc_wallet_skip_upload_configuration"
+        android:text="@string/nc_text_do_this_later"
         android:textColor="@color/nc_primary_color"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

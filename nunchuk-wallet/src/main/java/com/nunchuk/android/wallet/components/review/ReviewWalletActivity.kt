@@ -62,7 +62,7 @@ class ReviewWalletActivity : BaseActivity<ActivityReviewWalletBinding>() {
 
     private fun onCreateWalletSuccess(event: CreateWalletSuccessEvent) {
         showOrHideLoading(false)
-        navigator.openBackupWalletScreen(this, event.walletId, event.descriptor)
+        navigator.openBackupWalletScreen(this, event.walletId)
     }
 
     private fun setupViews() {
