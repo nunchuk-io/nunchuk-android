@@ -2,6 +2,7 @@ package com.nunchuk.android.core.util
 
 import com.nunchuk.android.core.network.UNKNOWN_ERROR
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.type.Chain
 import java.io.File
 import java.io.InputStream
 import java.text.SimpleDateFormat
@@ -42,3 +43,5 @@ fun InputStream.saveToFile(file: String) = use { input ->
         input.copyTo(output)
     }
 }
+
+internal fun Chain.isMainNet() = this == Chain.MAIN
