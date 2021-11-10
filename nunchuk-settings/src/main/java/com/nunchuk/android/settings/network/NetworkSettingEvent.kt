@@ -8,4 +8,5 @@ data class NetworkSettingState (
 
 sealed class NetworkSettingEvent {
     data class UpdateSettingSuccessEvent(val appSetting: AppSettings): NetworkSettingEvent()
+    data class ResetTextHostServerEvent(val appSetting: AppSettings): NetworkSettingEvent()
 }

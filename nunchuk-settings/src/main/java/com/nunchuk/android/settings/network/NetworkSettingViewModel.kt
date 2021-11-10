@@ -33,6 +33,12 @@ internal class NetworkSettingViewModel @Inject constructor(
         }
     }
 
+    fun fireResetTextHostServerEvent(appSettings: AppSettings) {
+        event(
+            NetworkSettingEvent.ResetTextHostServerEvent(appSettings)
+        )
+    }
+
     fun getAppSettings() {
         viewModelScope.launch {
             getAppSettingUseCase.execute()
@@ -46,6 +52,9 @@ internal class NetworkSettingViewModel @Inject constructor(
                     updateState {
                         copy( appSetting = it)
                     }
+                    event(
+                        NetworkSettingEvent.ResetTextHostServerEvent(it)
+                    )
                 }
         }
     }

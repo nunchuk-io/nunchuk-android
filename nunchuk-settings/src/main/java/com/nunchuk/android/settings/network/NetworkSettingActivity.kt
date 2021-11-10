@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Bundle
+import android.text.InputType
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -14,7 +15,9 @@ import com.nunchuk.android.settings.R
 import com.nunchuk.android.settings.databinding.ActivityNetworkSettingBinding
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.widget.NCWarningDialog
+import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
+import timber.log.Timber
 import javax.inject.Inject
 
 class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
@@ -50,9 +53,6 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
     }
 
     private fun handleState(state: NetworkSettingState) {
-        binding.tvMainNetHost.text = state.appSetting.mainnetServers[0]
-        binding.tvTestNetHost.text = state.appSetting.testnetServers[0]
-
         binding.rbMainNet.isChecked = state.appSetting.chain == Chain.MAIN
         binding.btnResetMainNet.isVisible = state.appSetting.chain == Chain.MAIN
         binding.rbTestNet.isChecked = state.appSetting.chain == Chain.TESTNET
@@ -79,6 +79,7 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
                     }
                 )
             )
+            inputType = if (state.appSetting.chain == Chain.MAIN) InputType.TYPE_CLASS_TEXT else InputType.TYPE_NULL
         }
         binding.tvTestNetHost.apply {
             background = if (state.appSetting.chain == Chain.TESTNET) {
@@ -101,6 +102,8 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
                     }
                 )
             )
+            inputType = if (state.appSetting.chain == Chain.TESTNET) InputType.TYPE_CLASS_TEXT else InputType.TYPE_NULL
+
         }
 
         val isChangedSetting = viewModel.currentAppSettings != viewModel.initAppSettings
@@ -112,6 +115,14 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
         when (event) {
             is NetworkSettingEvent.UpdateSettingSuccessEvent -> {
                 handleUpdateAppSettingsSuccess()
+            }
+            is NetworkSettingEvent.ResetTextHostServerEvent -> {
+                binding.tvMainNetHost.setText(
+                   event.appSetting.mainnetServers?.get(0).orEmpty()
+                )
+                binding.tvTestNetHost.setText(
+                    event.appSetting.testnetServers?.get(0).orEmpty()
+                )
             }
         }
     }
@@ -130,6 +141,7 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
     }
 
     private fun setupViews() {
+
         // currently we only support connect to electurm server
         binding.electrumServerSwitch.isChecked = true
         binding.electrumServerSwitch.isClickable = false
@@ -137,7 +149,9 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
 
         binding.rbMainNet.setOnCheckedChangeListener { _, checked ->
             viewModel.currentAppSettings?.copy(
-                chain = if (checked) Chain.MAIN else Chain.TESTNET
+                chain = if (checked) Chain.MAIN else Chain.TESTNET,
+                mainnetServers = listOf(binding.tvMainNetHost.text.toString()),
+                testnetServers = listOf(binding.tvTestNetHost.text.toString()),
             )?.let {
                 viewModel.updateCurrentState(it)
             }
@@ -145,7 +159,9 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
 
         binding.rbTestNet.setOnCheckedChangeListener { _, checked ->
             viewModel.currentAppSettings?.copy(
-                chain = if (checked) Chain.TESTNET else Chain.MAIN
+                chain = if (checked) Chain.TESTNET else Chain.MAIN,
+                mainnetServers = listOf(binding.tvMainNetHost.text.toString()),
+                testnetServers = listOf(binding.tvTestNetHost.text.toString())
             )?.let {
                 viewModel.updateCurrentState(it)
             }
@@ -160,6 +176,39 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
         binding.btnReset.setOnClickListener {
             viewModel.resetToDefaultAppSetting()
         }
+        binding.btnResetMainNet.setOnClickListener {
+            viewModel.currentAppSettings?.copy(
+                mainnetServers = listOf(viewModel.initAppSettings?.mainnetServers?.get(0).orEmpty())
+            )?.let {
+                viewModel.updateCurrentState(it)
+                viewModel.fireResetTextHostServerEvent(it)
+            }
+        }
+        binding.btnResetTestNet.setOnClickListener {
+            viewModel.currentAppSettings?.copy(
+                testnetServers = listOf(viewModel.initAppSettings?.testnetServers?.get(0).orEmpty())
+            )?.let {
+                viewModel.updateCurrentState(it)
+                viewModel.fireResetTextHostServerEvent(it)
+            }
+        }
+
+        binding.tvMainNetHost.addTextChangedCallback {
+            viewModel.currentAppSettings?.copy(
+                mainnetServers = listOf(it),
+            )?.let { newAppSetting ->
+                viewModel.updateCurrentState(newAppSetting)
+            }
+        }
+        binding.tvTestNetHost.addTextChangedCallback {
+            viewModel.currentAppSettings?.copy(
+                testnetServers = listOf(it),
+            )?.let { newAppSetting ->
+                viewModel.updateCurrentState(newAppSetting)
+            }
+        }
+
+
     }
 
     private fun setupData() {

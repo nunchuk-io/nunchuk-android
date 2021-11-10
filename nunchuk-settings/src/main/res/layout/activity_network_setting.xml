@@ -68,7 +68,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <com.nunchuk.android.widget.NCFontTextView
+                <com.nunchuk.android.widget.NCFontEditText
                     style="@style/NCText.Body"
                     android:id="@+id/tvMainNetHost"
                     android:layout_width="0dp"
@@ -124,7 +124,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <com.nunchuk.android.widget.NCFontTextView
+                <com.nunchuk.android.widget.NCFontEditText
                     style="@style/NCText.Body"
                     android:id="@+id/tvTestNetHost"
                     android:layout_width="0dp"
