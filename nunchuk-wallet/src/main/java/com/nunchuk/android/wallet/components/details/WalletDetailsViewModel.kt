@@ -104,7 +104,7 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     fun handleExportBSMS() {
         viewModelScope.launch {
-            when (val event = createShareFileUseCase.execute(walletId + "_bsms")) {
+            when (val event = createShareFileUseCase.execute("$walletId.bsms")) {
                 is Success -> exportWalletToFile(walletId, event.data, ExportFormat.BSMS)
                 is Error -> showError(event)
             }
@@ -113,7 +113,7 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     fun handleExportColdcard() {
         viewModelScope.launch {
-            when (val event = createShareFileUseCase.execute(walletId + "_coldcard")) {
+            when (val event = createShareFileUseCase.execute(walletId + "_coldcard_export.txt")) {
                 is Success -> exportWalletToFile(walletId, event.data, ExportFormat.COLDCARD)
                 is Error -> showError(event)
             }

@@ -34,7 +34,7 @@ internal class UploadConfigurationViewModel @Inject constructor(
 
     fun handleUploadEvent() {
         viewModelScope.launch {
-            when (val event = createShareFileUseCase.execute(walletId + "_coldcard")) {
+            when (val event = createShareFileUseCase.execute(walletId + "_coldcard_export.txt")) {
                 is Success -> exportWallet(walletId, event.data)
                 is Error -> {
                     event(ExportColdcardFailure(event.exception.message.orUnknownError()))

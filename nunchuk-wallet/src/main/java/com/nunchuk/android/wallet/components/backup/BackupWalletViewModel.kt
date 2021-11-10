@@ -7,8 +7,8 @@ import com.nunchuk.android.model.Result
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
-import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Success
 import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Failure
+import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Success
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,7 +27,7 @@ internal class BackupWalletViewModel @Inject constructor(
 
     fun handleBackupDescriptorEvent() {
         viewModelScope.launch {
-            when (val event = createShareFileUseCase.execute(walletId + "_bsms")) {
+            when (val event = createShareFileUseCase.execute("$walletId.bsms")) {
                 is Result.Success -> exportWallet(walletId, event.data)
                 is Result.Error -> {
                     event(Failure(event.exception.message.orUnknownError()))
