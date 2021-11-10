@@ -12,13 +12,16 @@ interface GetAppSettingUseCase {
 }
 
 internal class GetAppSettingUseCaseUseCaseImpl @Inject constructor(
+    private val iniAppSettingsUseCase: InitAppSettingsUseCase,
     private val ncSharedPreferences: NCSharePreferences,
     private val gson: Gson
 ) : GetAppSettingUseCase {
 
-    override fun execute() = flow {
-        emit(
-            gson.fromJson(ncSharedPreferences.appSettings, AppSettings::class.java)
-        )
-    }
+    override fun execute() = gson.fromJson(
+        ncSharedPreferences.appSettings,
+        AppSettings::class.java
+    )?.let {
+        flow { emit(it) }
+    } ?: iniAppSettingsUseCase.execute()
+
 }

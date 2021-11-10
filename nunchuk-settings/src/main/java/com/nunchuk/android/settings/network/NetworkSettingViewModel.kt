@@ -68,8 +68,6 @@ internal class NetworkSettingViewModel @Inject constructor(
         }
     }
 
-
-
     fun resetToDefaultAppSetting() {
         viewModelScope.launch {
             initAppSettingsUseCase.execute()

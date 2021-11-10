@@ -20,11 +20,6 @@ interface InitNunchukUseCase {
         passphrase: String,
         accountId: String
     ): Flow<Unit>
-
-    fun executeWhenExisted(
-        passphrase: String,
-        accountId: String
-    ): Flow<Unit>
 }
 
 internal class InitNunchukUseCaseImpl @Inject constructor(
@@ -36,14 +31,7 @@ internal class InitNunchukUseCaseImpl @Inject constructor(
     override fun execute(
         passphrase: String,
         accountId: String
-    ) = iniAppSettingsUseCase.execute().flatMapConcat {
-        initNunchuk(
-            appSettings = it,
-            accountId = accountId
-        )
-    }
-
-    override fun executeWhenExisted(passphrase: String, accountId: String) = getAppSettingUseCase.execute().flatMapConcat {
+    ) = getAppSettingUseCase.execute().flatMapConcat {
         initNunchuk(
             appSettings = it,
             accountId = accountId
