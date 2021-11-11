@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.core.account.AccountManager
@@ -18,11 +17,11 @@ import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
 import com.nunchuk.android.messages.databinding.FragmentMessagesBinding
 import com.nunchuk.android.messages.util.shouldShow
 import com.nunchuk.android.model.RoomWallet
-import org.matrix.android.sdk.api.session.room.model.RoomSummary
-import org.matrix.android.sdk.api.session.initsync.InitialSyncProgressService
 import org.matrix.android.sdk.api.session.initsync.InitSyncStep
-import javax.inject.Inject
+import org.matrix.android.sdk.api.session.initsync.InitialSyncProgressService
+import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import timber.log.Timber
+import javax.inject.Inject
 
 class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
@@ -71,20 +70,18 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     }
 
     private fun observeInitialMatrixSync() {
-        SessionHolder.activeSession?.getInitialSyncProgressStatus()?.observe(viewLifecycleOwner, Observer {
-            Timber.d("Matrix sync status, ${it}")
-            when (val status = it) {
-                is InitialSyncProgressService.Status.Progressing -> {
-                    if (status.initSyncStep == InitSyncStep.ImportingAccount && status.percentProgress == 100) {
-                        viewModel.retrieveMessages()
-                    }
+        SessionHolder.activeSession?.getInitialSyncProgressStatus()?.observe(viewLifecycleOwner) { status ->
+            Timber.d("Matrix sync status, $status")
+            if (status is InitialSyncProgressService.Status.Progressing) {
+                if (status.initSyncStep == InitSyncStep.ImportingAccount && status.percentProgress == 100) {
+                    viewModel.retrieveMessages()
                 }
             }
-        })
+        }
     }
 
     private fun handleState(state: RoomsState) {
-        Timber.d("HUGOLOG handleState, state.rooms.isEmpty() = ${state.rooms.isEmpty()}")
+        Timber.d("handleState, state.rooms.isEmpty() = ${state.rooms.isEmpty()}")
         adapter.roomWallets = state.roomWallets.map(RoomWallet::roomId)
         adapter.roomSummaries = state.rooms.filter(RoomSummary::shouldShow)
         binding.skeletonContainer.root.isVisible = state.rooms.isEmpty()
