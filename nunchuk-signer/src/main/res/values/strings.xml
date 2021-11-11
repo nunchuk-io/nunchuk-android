@@ -16,13 +16,13 @@
     <string name="nc_signer_air_gapped">Air-gapped</string>
 
     <string name="nc_create_signer_before_you_start">Before you start</string>
-    <string name="nc_create_signer_description">You can only add air-gapped and software keys via this mobile app. If you need to add a wired key, please do so via the Nunchuk desktop app.</string>
+    <string name="nc_create_signer_description">You can add air-gapped and software keys via this mobile app. If you need to add a wired key, please do so via the Nunchuk desktop app.</string>
     <string name="nc_add_signer_via_qr_code">Add key spec via QR</string>
     <string name="nc_text_signer_name">Key name</string>
     <string name="nc_text_signer_spec">Key spec</string>
     <string name="nc_text_add_signer">Add key</string>
     <string name="nc_text_nunchuk_as_signer">Add software key</string>
-    <string name="nc_text_ss_desc">The software key is managed by the app.</string>
+    <string name="nc_text_ss_desc">The software key is managed by the app</string>
 
     <string name="nc_signer_bad_ratio_not_recommend">It is not recommended for the software keys to have complete control of the wallet. Software keys are not as safe as hardware keys. Are you sure you want to proceed?</string>
     <string name="nc_signer_bad_ratio_recommend">It is recommended for the hardware keys to have complete control of the wallet. Software keys are not as safe as hardware keys. Are you sure you want to proceed?</string>
