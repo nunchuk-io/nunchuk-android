@@ -1,6 +1,5 @@
 package com.nunchuk.android.messages.usecase.message
 
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -16,7 +15,6 @@ internal class GetRoomSummaryListUseCaseImpl @Inject constructor(
 ) : BaseMessageUseCase(), GetRoomSummaryListUseCase {
 
     override fun execute() = flow {
-        delay(3000)
         emit(
             session.getRoomSummaries(roomSummaryQueryParams {
                 memberships = Membership.activeMemberships()
