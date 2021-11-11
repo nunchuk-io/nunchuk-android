@@ -107,6 +107,12 @@ class AddContactsBottomSheet : BaseBottomSheet<BottomSheetAddContactsBinding>() 
         }
 
         binding.sendBtn.setOnClickListener {
+            val currentText = binding.input.text.toString().trim()
+            if (currentText.isNotEmpty()) {
+                viewModel.handleAddEmail(currentText)
+                binding.input.setText("")
+            }
+
             viewModel.handleSend()
         }
     }
