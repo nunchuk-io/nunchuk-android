@@ -20,7 +20,7 @@ fun RoomSummary.getMembersCount() = otherMemberIds.size + 1
 
 fun RoomSummary.isDirectChat() = isDirect || getMembersCount() <= DIRECT_CHAT_MEMBERS_COUNT
 
-fun RoomSummary.shouldShow() = !BuildConfig.DEBUG || (!isServerNotices() && !isSyncRoom())
+fun RoomSummary.shouldShow() = BuildConfig.DEBUG || (!isServerNotices() && !isSyncRoom())
 
 fun RoomSummary.isServerNotices() = name == SERVER_NOTICES
 
