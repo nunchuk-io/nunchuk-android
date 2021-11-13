@@ -5,15 +5,12 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.contact.components.add.AddContactsEvent.*
 import com.nunchuk.android.contact.usecase.AddContactUseCase
 import com.nunchuk.android.contact.usecase.InviteFriendUseCase
-import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 

@@ -17,7 +17,6 @@ import com.nunchuk.android.type.Chain
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
-import timber.log.Timber
 import javax.inject.Inject
 
 class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
@@ -118,7 +117,7 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
             }
             is NetworkSettingEvent.ResetTextHostServerEvent -> {
                 binding.tvMainNetHost.setText(
-                   event.appSetting.mainnetServers?.get(0).orEmpty()
+                    event.appSetting.mainnetServers?.get(0).orEmpty()
                 )
                 binding.tvTestNetHost.setText(
                     event.appSetting.testnetServers?.get(0).orEmpty()

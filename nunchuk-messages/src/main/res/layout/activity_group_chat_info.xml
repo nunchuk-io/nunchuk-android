@@ -98,6 +98,7 @@
         app:layout_constraintTop_toBottomOf="@+id/membersCountTop">
 
         <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/join_wallet_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
@@ -124,6 +125,38 @@
                 android:layout_marginTop="@dimen/nc_padding_8"
                 android:gravity="center"
                 android:text="@string/nc_message_create_shared_wallet"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/joinWalletContainer" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/create_transaction_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/nc_circle_whisper_background"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="@dimen/nc_padding_24"
+                    android:layout_height="@dimen/nc_padding_24"
+                    android:src="@drawable/ic_spend" />
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <com.nunchuk.android.widget.NCFontTextView
+                style="@style/NCText.Title.Small"
+                android:layout_width="72dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/nc_padding_8"
+                android:gravity="center"
+                android:text="@string/nc_message_spend_from_shared_wallet"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/joinWalletContainer" />

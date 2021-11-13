@@ -2,6 +2,7 @@ package com.nunchuk.android.core.signer
 
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.type.SignerType
 import java.util.regex.Pattern
 
 data class SignerModel(
@@ -10,6 +11,7 @@ data class SignerModel(
     val derivationPath: String,
     val fingerPrint: String,
     val used: Boolean = false,
+    val type: SignerType = SignerType.AIRGAP,
     val software: Boolean = false
 ) {
     fun isSame(other: SignerModel) = fingerPrint == other.fingerPrint && derivationPath == other.derivationPath
@@ -19,7 +21,9 @@ fun SingleSigner.toModel() = SignerModel(
     id = masterSignerId,
     name = name,
     derivationPath = derivationPath,
+    type = type,
     used = used,
+    software = type == SignerType.SOFTWARE,
     fingerPrint = masterFingerprint
 )
 
@@ -28,7 +32,8 @@ fun MasterSigner.toModel() = SignerModel(
     name = name,
     derivationPath = device.path,
     fingerPrint = device.masterFingerprint,
-    software = true
+    type = type,
+    software = software
 )
 
 data class SignerInput(

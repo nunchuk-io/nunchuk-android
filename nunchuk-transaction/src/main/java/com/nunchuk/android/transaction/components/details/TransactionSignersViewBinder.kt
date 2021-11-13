@@ -5,7 +5,7 @@ import androidx.core.view.get
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.shorten
-import com.nunchuk.android.transaction.R
+import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.transaction.databinding.ItemTransactionSignerBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
 
@@ -21,13 +21,13 @@ internal class TransactionSignersViewBinder(
     override fun bindItem(position: Int, model: SignerModel) {
         val binding = ItemTransactionSignerBinding.bind(container[position])
         val xfpValue = "XFP: ${model.fingerPrint}"
-        val signerType = if (model.software) context.getString(R.string.nc_signer_type_software) else context.getString(R.string.nc_signer_type_air_gapped)
         binding.avatar.text = model.name.shorten()
         binding.signerName.text = model.name
         binding.xpf.text = xfpValue
-        binding.signerType.text = signerType
+        binding.signerType.text = model.toReadableSignerType(context)
         binding.btnSign.setOnClickListener { listener(model) }
-        if (signerMap.count { !it.value } > 0) {
+        val hasSigned = signerMap.count { !it.value } > 0
+        if (hasSigned) {
             val isSigned = model.isSigned()
             binding.btnSign.isVisible = !isSigned
             binding.signed.isVisible = isSigned

@@ -11,40 +11,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <com.nunchuk.android.widget.NCFontTextView
-            android:id="@+id/avatarHolder"
-            style="@style/NCText.Heading"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_marginTop="32dp"
-            android:background="@drawable/nc_circle_beeswax_light_background"
-            android:gravity="center"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.498"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="HT" />
-
-        <androidx.cardview.widget.CardView
-            android:id="@+id/take_picture"
-            android:layout_width="@dimen/nc_padding_36"
-            android:layout_height="@dimen/nc_padding_36"
-            android:background="@color/nc_white_color"
-            android:gravity="center"
-            android:shape="ring"
-            app:cardCornerRadius="@dimen/nc_padding_18"
-            app:layout_constraintBottom_toBottomOf="@+id/avatarHolder"
-            app:layout_constraintEnd_toEndOf="@+id/avatarHolder">
-
-            <androidx.appcompat.widget.AppCompatImageView
-                style="@style/NCText.Body.Small"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:src="@drawable/ic_camera" />
-        </androidx.cardview.widget.CardView>
-
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/avatar"
             android:layout_width="80dp"
@@ -66,22 +32,56 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/take_picture">
 
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/edit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/nc_padding_8"
+                android:foreground="?android:selectableItemBackground"
+                android:padding="@dimen/nc_padding_4"
+                android:src="@drawable/ic_edit" />
+
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/name"
                 style="@style/NCText.Heading"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 tools:text="Hung Tran" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/take_picture"
+            android:layout_width="@dimen/nc_padding_36"
+            android:layout_height="@dimen/nc_padding_36"
+            android:background="@color/nc_white_color"
+            android:gravity="center"
+            android:shape="ring"
+            app:cardCornerRadius="@dimen/nc_padding_18"
+            app:layout_constraintBottom_toBottomOf="@+id/avatarHolder"
+            app:layout_constraintEnd_toEndOf="@+id/avatarHolder">
 
             <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/edit"
-                android:layout_marginStart="@dimen/nc_padding_8"
+                style="@style/NCText.Body.Small"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:foreground="?android:selectableItemBackground"
-                android:padding="@dimen/nc_padding_4"
-                android:src="@drawable/ic_edit" />
-        </androidx.appcompat.widget.LinearLayoutCompat>
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:src="@drawable/ic_camera" />
+        </androidx.cardview.widget.CardView>
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/avatarHolder"
+            style="@style/NCText.Heading"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginTop="32dp"
+            android:background="@drawable/nc_circle_beeswax_light_background"
+            android:gravity="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.498"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="HT" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/email"
@@ -186,8 +186,8 @@
             style="@style/NCText.Body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
             android:layout_marginTop="@dimen/nc_padding_24"
+            android:gravity="center"
             android:paddingVertical="@dimen/nc_padding_2"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/btnSignOut"

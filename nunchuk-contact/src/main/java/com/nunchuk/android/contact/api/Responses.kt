@@ -39,7 +39,3 @@ data class AddContactsResponse(
     @SerializedName("failed_emails")
     val failedEmails: List<String>?
 ) : Serializable
-
-data class InviteFriendResponse(
-    val result: String
-) : Serializable

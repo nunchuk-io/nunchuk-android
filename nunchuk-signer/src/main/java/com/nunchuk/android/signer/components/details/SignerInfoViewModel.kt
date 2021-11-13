@@ -23,7 +23,7 @@ internal class SignerInfoViewModel @Inject constructor(
     override val initialState = SignerInfoState()
 
     lateinit var id: String
-    var software: Boolean = false
+    private var software: Boolean = false
 
     fun init(id: String, software: Boolean) {
         this.id = id

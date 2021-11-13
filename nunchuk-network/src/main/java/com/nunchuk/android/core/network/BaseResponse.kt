@@ -51,8 +51,6 @@ class NunchukApiException(val code: Int = 0, override val message: String = UNKN
 
 fun NunchukApiException.accountExisted() = code == ApiErrorCode.ACCOUNT_EXISTED
 
-fun NunchukApiException.newDevice() = code == ApiErrorCode.NEW_DEVICE
-
 object ApiErrorCode {
     const val ACCOUNT_EXISTED = -100
     const val NEW_DEVICE = 841

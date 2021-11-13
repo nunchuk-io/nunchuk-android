@@ -1,7 +1,6 @@
 package com.nunchuk.android.share
 
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
-import com.nunchuk.android.core.domain.InitAppSettingsUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.toMatrixContent
 import com.nunchuk.android.model.AppSettings
@@ -23,7 +22,6 @@ interface InitNunchukUseCase {
 }
 
 internal class InitNunchukUseCaseImpl @Inject constructor(
-    private val iniAppSettingsUseCase: InitAppSettingsUseCase,
     private val getAppSettingUseCase: GetAppSettingUseCase,
     private val nativeSdk: NunchukNativeSdk
 ) : InitNunchukUseCase {

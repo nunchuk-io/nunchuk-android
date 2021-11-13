@@ -5,7 +5,7 @@ import androidx.core.view.get
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.shorten
-import com.nunchuk.android.wallet.R
+import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.wallet.core.databinding.ItemAssignSignerBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
 
@@ -20,13 +20,8 @@ internal class SignersViewBinder(
 
     override fun bindItem(position: Int, model: SignerModel) {
         val binding = ItemAssignSignerBinding.bind(container[position])
-        val signerType = if (model.software) {
-            context.getString(R.string.nc_signer_type_software)
-        } else {
-            context.getString(R.string.nc_signer_type_air_gapped)
-        }
         val xfpValue = "XFP: ${model.fingerPrint}"
-        binding.signerType.text = signerType
+        binding.signerType.text = model.toReadableSignerType(context)
         binding.warning.isVisible = model.used
         binding.avatar.text = model.name.shorten()
         binding.signerName.text = model.name

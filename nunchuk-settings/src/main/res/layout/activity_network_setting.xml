@@ -6,26 +6,128 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="0dp"
-        android:layout_height="?attr/actionBarSize"
-        app:title="Network Setting"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:navigationIcon="@drawable/ic_back" />
-
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        app:layout_constraintBottom_toTopOf="@+id/btnSave">
+        app:layout_constraintBottom_toTopOf="@+id/btnSave"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/mainNetContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/nc_padding_16"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvConnectToElectrum"
+                tools:visibility="visible">
+
+                <RadioButton
+                    android:id="@+id/rbMainNet"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/nc_padding_16"
+                    android:buttonTint="@color/nc_black_color"
+                    app:layout_constraintBottom_toBottomOf="@+id/tvMainNetHost"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/tvMainNetHost"
+                    app:layout_constraintTop_toTopOf="@+id/tvMainNetHost" />
+
+                <com.nunchuk.android.widget.NCFontButton
+                    android:id="@+id/btnResetMainNet"
+                    style="@style/NCPrimaryButton.Light"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/nc_padding_16"
+                    android:text="@string/nc_text_reset"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tvMainNetHost" />
+
+                <com.nunchuk.android.widget.NCFontEditText
+                    android:id="@+id/tvMainNetHost"
+                    style="@style/NCText.Body"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_marginHorizontal="@dimen/nc_padding_16"
+                    android:background="@drawable/nc_edit_text_bg"
+                    android:gravity="start|center_vertical"
+                    android:padding="@dimen/nc_padding_12"
+                    app:layout_constraintEnd_toStartOf="@+id/rbMainNet"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tvMainNetSeverTitle"
+                    tools:text="mainset.5001" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/tvMainNetSeverTitle"
+                    style="@style/NCText.Body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/nc_text_size_16"
+                    android:text="@string/nc_text_mainet_server"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/testNetContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/nc_padding_16"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/mainNetContainer"
+                tools:visibility="visible">
+
+                <RadioButton
+                    android:id="@+id/rbTestNet"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/nc_padding_16"
+                    android:buttonTint="@color/nc_black_color"
+                    app:layout_constraintBottom_toBottomOf="@+id/tvTestNetHost"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/tvTestNetHost"
+                    app:layout_constraintTop_toTopOf="@+id/tvTestNetHost" />
+
+                <com.nunchuk.android.widget.NCFontButton
+                    android:id="@+id/btnResetTestNet"
+                    style="@style/NCPrimaryButton.Light"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/nc_padding_16"
+                    android:text="@string/nc_text_reset"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tvTestNetHost" />
+
+                <com.nunchuk.android.widget.NCFontEditText
+                    android:id="@+id/tvTestNetHost"
+                    style="@style/NCText.Body"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_marginHorizontal="@dimen/nc_padding_16"
+                    android:background="@drawable/nc_edit_text_bg"
+                    android:gravity="start|center_vertical"
+                    android:padding="@dimen/nc_padding_12"
+                    app:layout_constraintEnd_toStartOf="@+id/rbTestNet"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tvTestNetSeverTitle"
+                    tools:text="testnet.5001" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/tvTestNetSeverTitle"
+                    style="@style/NCText.Body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/nc_text_size_16"
+                    android:text="@string/nc_text_testnet_server"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/tvConnectToElectrum"
@@ -48,121 +150,19 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/tvConnectToElectrum"
                 app:sb_checked_color="@color/nc_primary_color" />
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/mainNetContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/nc_padding_16"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tvConnectToElectrum"
-                tools:visibility="visible">
-
-                <com.nunchuk.android.widget.NCFontTextView
-                    android:id="@+id/tvMainNetSeverTitle"
-                    style="@style/NCText.Body"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="@dimen/nc_text_size_16"
-                    android:text="@string/nc_text_mainet_server"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <com.nunchuk.android.widget.NCFontEditText
-                    style="@style/NCText.Body"
-                    android:id="@+id/tvMainNetHost"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:gravity="start|center_vertical"
-                    android:padding="@dimen/nc_padding_12"
-                    android:background="@drawable/nc_edit_text_bg"
-                    android:layout_marginHorizontal="@dimen/nc_padding_16"
-                    tools:text="mainset.5001"
-                    app:layout_constraintEnd_toStartOf="@+id/rbMainNet"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvMainNetSeverTitle" />
-
-                <RadioButton
-                    android:id="@+id/rbMainNet"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/nc_padding_16"
-                    android:buttonTint="@color/nc_black_color"
-                    app:layout_constraintStart_toEndOf="@+id/tvMainNetHost"
-                    app:layout_constraintBottom_toBottomOf="@+id/tvMainNetHost"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/tvMainNetHost" />
-
-                <com.nunchuk.android.widget.NCFontButton
-                    android:id="@+id/btnResetMainNet"
-                    style="@style/NCPrimaryButton.Light"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/nc_padding_16"
-                    android:text="@string/nc_text_reset"
-                    app:layout_constraintTop_toBottomOf="@+id/tvMainNetHost"
-                    app:layout_constraintStart_toStartOf="parent" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/testNetContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/nc_padding_16"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/mainNetContainer"
-                tools:visibility="visible">
-
-                <com.nunchuk.android.widget.NCFontTextView
-                    android:id="@+id/tvTestNetSeverTitle"
-                    style="@style/NCText.Body"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="@dimen/nc_text_size_16"
-                    android:text="@string/nc_text_testnet_server"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <com.nunchuk.android.widget.NCFontEditText
-                    style="@style/NCText.Body"
-                    android:id="@+id/tvTestNetHost"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:gravity="start|center_vertical"
-                    android:padding="@dimen/nc_padding_12"
-                    android:background="@drawable/nc_edit_text_bg"
-                    android:layout_marginHorizontal="@dimen/nc_padding_16"
-                    tools:text="testnet.5001"
-                    app:layout_constraintEnd_toStartOf="@+id/rbTestNet"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvTestNetSeverTitle" />
-
-                <RadioButton
-                    android:id="@+id/rbTestNet"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/nc_padding_16"
-                    android:buttonTint="@color/nc_black_color"
-                    app:layout_constraintStart_toEndOf="@+id/tvTestNetHost"
-                    app:layout_constraintBottom_toBottomOf="@+id/tvTestNetHost"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/tvTestNetHost" />
-
-                <com.nunchuk.android.widget.NCFontButton
-                    android:id="@+id/btnResetTestNet"
-                    style="@style/NCPrimaryButton.Light"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/nc_padding_16"
-                    android:text="@string/nc_text_reset"
-                    app:layout_constraintTop_toBottomOf="@+id/tvTestNetHost"
-                    app:layout_constraintStart_toStartOf="parent" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </ScrollView>
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_back"
+        app:title="Network Setting" />
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnSave"
@@ -170,8 +170,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
-        android:visibility="gone"
         android:text="@string/nc_text_save_network_settings"
+        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@+id/btnReset"
         app:layout_constraintStart_toStartOf="parent" />
 

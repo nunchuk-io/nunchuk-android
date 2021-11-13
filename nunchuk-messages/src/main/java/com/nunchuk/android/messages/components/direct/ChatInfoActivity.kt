@@ -8,6 +8,7 @@ import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.databinding.ItemWalletBinding
 import com.nunchuk.android.core.util.shorten
+import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.bindRoomWallet
 import com.nunchuk.android.messages.components.direct.ChatInfoEvent.*
 import com.nunchuk.android.messages.databinding.ActivityChatInfoBinding
@@ -62,15 +63,26 @@ class ChatInfoActivity : BaseActivity<ActivityChatInfoBinding>() {
             binding.email.text = it.email
             binding.avatarHolder.text = it.name.shorten()
         }
-        state.wallet?.let {
+        state.wallet?.let { wallet ->
             walletBinding.root.isVisible = true
-            walletBinding.bindRoomWallet(it)
+            walletBinding.bindRoomWallet(wallet)
+            binding.joinWalletLabel.text = getString(R.string.nc_message_spend_from_shared_wallet)
+            binding.joinWallet.setImageResource(R.drawable.ic_spend)
+            walletBinding.root.setOnClickListener { openWalletDetailsScreen(wallet.id) }
+        } ?: run {
+            walletBinding.root.isVisible = false
+            binding.joinWalletLabel.text = getString(R.string.nc_message_create_shared_wallet)
+            binding.joinWallet.setImageResource(R.drawable.ic_joint_wallet)
         }
+    }
+
+    private fun openWalletDetailsScreen(id: String) {
+        navigator.openWalletDetailsScreen(this, id)
     }
 
     private fun handleEvent(event: ChatInfoEvent) {
         when (event) {
-            RoomNotFoundEvent -> NCToastMessage(this).showError("Room not found")
+            RoomNotFoundEvent -> NCToastMessage(this).showError(getString(R.string.nc_message_room_not_found))
             CreateSharedWalletEvent -> openCreateSharedWalletScreen()
             is CreateTransactionEvent -> openInputAmountScreen(roomId = event.roomId, walletId = event.walletId, amount = event.availableAmount)
         }

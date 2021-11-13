@@ -3,7 +3,6 @@ package com.nunchuk.android.transaction.components.send.amount
 import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
-import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.getDoubleValue
 import com.nunchuk.android.core.util.getStringValue
 

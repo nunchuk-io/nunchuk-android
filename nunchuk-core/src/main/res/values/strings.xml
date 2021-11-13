@@ -5,6 +5,8 @@
 
     <string name="nc_signer_type_air_gapped">Air-gapped</string>
     <string name="nc_signer_type_software">Software key</string>
+    <string name="nc_signer_type_hardware">Hardware key</string>
+    <string name="nc_signer_type_foreign_software">Foreign software key</string>
 
     <string name="nc_transaction_send_to">Send to</string>
     <string name="nc_transaction_receive_at">Receive at</string>
