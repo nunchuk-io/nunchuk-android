@@ -50,7 +50,7 @@ internal class NetworkSettingViewModel @Inject constructor(
                 .collect {
                     initAppSettings = it
                     updateState {
-                        copy( appSetting = it)
+                        copy(appSetting = it)
                     }
                     event(
                         NetworkSettingEvent.ResetTextHostServerEvent(it)
@@ -70,7 +70,7 @@ internal class NetworkSettingViewModel @Inject constructor(
                 .collect {
                     initAppSettings = it
                     updateState {
-                        copy( appSetting = it)
+                        copy(appSetting = it)
                     }
                     event(NetworkSettingEvent.UpdateSettingSuccessEvent(it))
                 }
@@ -88,7 +88,7 @@ internal class NetworkSettingViewModel @Inject constructor(
                 .collect {
                     initAppSettings = it
                     updateState {
-                        copy( appSetting = it)
+                        copy(appSetting = it)
                     }
                     event(NetworkSettingEvent.UpdateSettingSuccessEvent(it))
                 }

@@ -49,8 +49,9 @@ class SharedWalletConfigActivity : BaseActivity<ActivitySharedWalletConfigBindin
     }
 
     private fun handleEvent(event: SharedWalletConfigEvent) {
-        when (event) {
-            CreateSharedWalletSuccess -> NCToastMessage(this).showMessage(getString(R.string.nc_message_wallet_created))
+        if (event == CreateSharedWalletSuccess) {
+            NCToastMessage(this).showMessage(getString(R.string.nc_message_wallet_created))
+            finish()
         }
     }
 

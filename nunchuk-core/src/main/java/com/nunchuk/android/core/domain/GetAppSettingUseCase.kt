@@ -12,7 +12,7 @@ interface GetAppSettingUseCase {
 }
 
 internal class GetAppSettingUseCaseUseCaseImpl @Inject constructor(
-    private val iniAppSettingsUseCase: InitAppSettingsUseCase,
+    private val initAppSettingsUseCase: InitAppSettingsUseCase,
     private val ncSharedPreferences: NCSharePreferences,
     private val gson: Gson
 ) : GetAppSettingUseCase {
@@ -22,6 +22,6 @@ internal class GetAppSettingUseCaseUseCaseImpl @Inject constructor(
         AppSettings::class.java
     )?.let {
         flow { emit(it) }
-    } ?: iniAppSettingsUseCase.execute()
+    } ?: initAppSettingsUseCase.execute()
 
 }

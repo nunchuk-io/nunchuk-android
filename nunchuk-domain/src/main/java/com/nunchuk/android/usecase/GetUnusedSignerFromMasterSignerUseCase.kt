@@ -11,7 +11,7 @@ import javax.inject.Inject
 
 interface GetUnusedSignerFromMasterSignerUseCase {
     fun execute(
-        masterSignerIds: List<MasterSigner>,
+        masterSigners: List<MasterSigner>,
         walletType: WalletType,
         addressType: AddressType
     ): Flow<List<SingleSigner>>
@@ -22,12 +22,12 @@ internal class GetUnusedSignerFromMasterSignerUseCaseImpl @Inject constructor(
 ) : GetUnusedSignerFromMasterSignerUseCase {
 
     override fun execute(
-        masterSignerIds: List<MasterSigner>,
+        masterSigners: List<MasterSigner>,
         walletType: WalletType,
         addressType: AddressType
     ) = flow {
         emit(
-            masterSignerIds.map {
+            masterSigners.map {
                 nativeSdk.getUnusedSignerFromMasterSigner(
                     it.id,
                     walletType,

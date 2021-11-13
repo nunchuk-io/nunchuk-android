@@ -13,14 +13,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
+import androidx.core.view.isInvisible
 import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.settings.AccountEvent.SignOutEvent
 import com.nunchuk.android.settings.databinding.FragmentAccountBinding
 import java.io.ByteArrayOutputStream
-import androidx.core.content.ContextCompat
-import androidx.core.view.isInvisible
 
 internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
 
@@ -92,7 +92,7 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
             fragmentManager = childFragmentManager
         )
         bottomSheet.listener = {
-            when(it) {
+            when (it) {
                 EditPhotoOption.SelectAlbum -> {
                     if (isPermissionPhotoGranted()) {
                         openAlbum()
@@ -170,7 +170,7 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
             return
         }
 
-        when(requestCode) {
+        when (requestCode) {
             REQUEST_TAKE_PHOTO_CODE -> {
                 val imageBitmap = data?.extras?.get("data") as Bitmap
                 uploadPhotoData(imageBitmap)
@@ -182,13 +182,14 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
                     uploadPhotoData(bitmap)
                 }
             }
-            else -> {}
+            else -> {
+            }
         }
     }
 
     private fun uploadPhotoData(bitmap: Bitmap) {
         val byteArrayOutputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
         val byteArray = byteArrayOutputStream.toByteArray()
         viewModel.uploadPhotoToMaTrix(byteArray)
     }
@@ -198,10 +199,11 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
             return
         }
 
-        when(code) {
+        when (code) {
             REQUEST_PERMISSION_SELECT_PHOTO_CODE -> requestPermissions(arrayOf(WRITE_EXTERNAL_STORAGE), code)
             REQUEST_PERMISSION_TAKE_PHOTO_CODE -> requestPermissions(arrayOf(WRITE_EXTERNAL_STORAGE, CAMERA), code)
-            else -> {}
+            else -> {
+            }
         }
     }
 
@@ -258,7 +260,8 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
 
     private fun isPermissionPhotoGranted() =
         requireActivity().isPermissionGranted(WRITE_EXTERNAL_STORAGE) && requireActivity().isPermissionGranted(
-            CAMERA)
+            CAMERA
+        )
 
     private fun setupViews() {
         binding.btnSignOut.setOnClickListener { viewModel.handleSignOutEvent() }

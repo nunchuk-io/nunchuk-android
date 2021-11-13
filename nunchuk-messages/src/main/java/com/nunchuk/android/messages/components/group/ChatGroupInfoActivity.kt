@@ -7,6 +7,7 @@ import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.databinding.ItemWalletBinding
+import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.bindRoomWallet
 import com.nunchuk.android.messages.components.group.ChatGroupInfoEvent.*
 import com.nunchuk.android.messages.components.group.ChatGroupInfoOption.*
@@ -91,15 +92,26 @@ class ChatGroupInfoActivity : BaseActivity<ActivityGroupChatInfoBinding>() {
             binding.members.text = "Members ($count)"
             binding.badge.text = "$count"
         }
-        state.wallet?.let {
+        state.wallet?.let { wallet ->
             walletBinding.root.isVisible = true
-            walletBinding.bindRoomWallet(it)
+            walletBinding.bindRoomWallet(wallet)
+            walletBinding.root.setOnClickListener { openWalletDetailsScreen(wallet.id) }
+            binding.joinWalletContainer.isVisible = false
+            binding.createTransactionContainer.isVisible = true
+        } ?: run {
+            binding.joinWalletContainer.isVisible = true
+            binding.createTransactionContainer.isVisible = false
+            walletBinding.root.isVisible = false
         }
+    }
+
+    private fun openWalletDetailsScreen(id: String) {
+        navigator.openWalletDetailsScreen(this, id)
     }
 
     private fun handleEvent(event: ChatGroupInfoEvent) {
         when (event) {
-            RoomNotFoundEvent -> NCToastMessage(this).showError("Room not found")
+            RoomNotFoundEvent -> NCToastMessage(this).showError(getString(R.string.nc_message_room_not_found))
             is UpdateRoomNameError -> NCToastMessage(this).showError(event.message)
             is UpdateRoomNameSuccess -> updateRoomName(event)
             is LeaveRoomError -> NCToastMessage(this).showError(event.message)
@@ -111,7 +123,7 @@ class ChatGroupInfoActivity : BaseActivity<ActivityGroupChatInfoBinding>() {
 
     private fun updateRoomName(event: UpdateRoomNameSuccess) {
         binding.name.text = event.name
-        NCToastMessage(this).showMessage("Room name has been updated")
+        NCToastMessage(this).showMessage(getString(R.string.nc_message_room_name_updated))
     }
 
     companion object {

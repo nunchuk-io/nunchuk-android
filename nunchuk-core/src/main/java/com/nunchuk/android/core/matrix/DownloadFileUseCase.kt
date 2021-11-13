@@ -2,7 +2,6 @@ package com.nunchuk.android.core.matrix
 
 import com.nunchuk.android.core.data.MatrixAPIRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import okhttp3.ResponseBody
 import javax.inject.Inject
 

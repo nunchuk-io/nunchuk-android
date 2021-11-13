@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.core.base.BaseBottomSheet
-import com.nunchuk.android.settings.databinding.BottomSheetEditNameBinding
 import com.nunchuk.android.settings.databinding.BottomSheetEditUserPhotoBinding
 
 internal class EditPhotoUserBottomSheet : BaseBottomSheet<BottomSheetEditUserPhotoBinding>() {
@@ -46,9 +45,9 @@ internal class EditPhotoUserBottomSheet : BaseBottomSheet<BottomSheetEditUserPho
 }
 
 sealed class EditPhotoOption {
-    object SelectAlbum: EditPhotoOption()
-    object TakePhoto: EditPhotoOption()
-    object RemovePhoto: EditPhotoOption()
+    object SelectAlbum : EditPhotoOption()
+    object TakePhoto : EditPhotoOption()
+    object RemovePhoto : EditPhotoOption()
 }
 
 

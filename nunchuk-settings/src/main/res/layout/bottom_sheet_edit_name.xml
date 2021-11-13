@@ -37,17 +37,6 @@
 
     </RelativeLayout>
 
-    <com.nunchuk.android.widget.NCFontTextView
-        style="@style/NCText.Title.Large"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_16"
-        android:text="@string/nc_text_name"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_14"
-        app:fontTextStyle="semi_bold" />
-
     <com.nunchuk.android.widget.NCFontEditText
         android:id="@+id/edtName"
         android:layout_width="match_parent"
@@ -59,10 +48,21 @@
         android:gravity="start|top"
         android:hint="@string/nc_text_type_name_here"
         android:inputType="textEmailAddress"
+        android:maxEms="200"
         android:minHeight="400dp"
         android:minEms="5"
-        android:maxEms="200"
         android:textColor="@color/nc_primary_color"
         android:textSize="@dimen/nc_text_size_16" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        style="@style/NCText.Title.Large"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:text="@string/nc_text_name"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_14"
+        app:fontTextStyle="semi_bold" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

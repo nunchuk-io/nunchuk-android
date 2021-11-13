@@ -4,7 +4,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 val SIMPLE_DATE = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
-val FULL_DATE = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.ENGLISH)
 
 fun Date.formatMessageDate(showToday: Boolean = false): String {
     val messageDate: Calendar = Calendar.getInstance()
@@ -33,12 +32,12 @@ private fun sameDay(messageDate: Calendar, currentDate: Calendar): Boolean {
 
 internal fun Date.formatByYear() = simpleDateFormat()
 
-internal fun Date.formatByWeek() = SimpleDateFormat("MMM dd", Locale.ENGLISH).format(this)
+fun Date.formatByWeek(): String = SimpleDateFormat("MMM dd", Locale.ENGLISH).format(this)
 
-internal fun Date.formatByDay() = SimpleDateFormat("EEEE", Locale.ENGLISH).format(this)
+fun Date.formatByDay(): String = SimpleDateFormat("EEEE", Locale.ENGLISH).format(this)
 
-internal fun Date.formatByHour() = SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(this)
+fun Date.formatByHour(): String = SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(this)
 
-internal fun Date.simpleDateFormat() = SIMPLE_DATE.format(this)
+fun Date.simpleDateFormat(): String = SIMPLE_DATE.format(this)
 
 internal fun String.simpleDateFormat(): Date = SIMPLE_DATE.parse(this)

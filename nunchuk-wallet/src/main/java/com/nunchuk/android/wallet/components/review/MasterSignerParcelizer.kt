@@ -3,6 +3,7 @@ package com.nunchuk.android.wallet.components.review
 import android.os.Parcelable
 import com.nunchuk.android.model.Device
 import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.type.SignerType
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -23,7 +24,8 @@ internal data class ParcelizeMasterSigner(
     var name: String = "",
     var device: ParcelizeDevice = ParcelizeDevice(),
     var lastHealthCheck: Long = 0,
-    var software: Boolean = false
+    var software: Boolean = false,
+    var type: SignerType
 ) : Parcelable
 
 internal fun List<MasterSigner>.parcelize() = map(MasterSigner::parcelize) as ArrayList<ParcelizeMasterSigner>
@@ -35,7 +37,8 @@ internal fun MasterSigner.parcelize() = ParcelizeMasterSigner(
     name = name,
     device = device.parcelize(),
     lastHealthCheck = lastHealthCheck,
-    software = software
+    software = software,
+    type = type
 )
 
 internal fun ParcelizeMasterSigner.deparcelize() = MasterSigner(
@@ -43,7 +46,8 @@ internal fun ParcelizeMasterSigner.deparcelize() = MasterSigner(
     name = name,
     device = device.deparcelize(),
     lastHealthCheck = lastHealthCheck,
-    software = software
+    software = software,
+    type = type
 )
 
 internal fun Device.parcelize() = ParcelizeDevice(

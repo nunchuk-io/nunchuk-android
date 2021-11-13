@@ -14,6 +14,7 @@ import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showLoading
+import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.create.CreateRoomEvent.*
 import com.nunchuk.android.messages.databinding.BottomSheetCreateRoomBinding
 import com.nunchuk.android.model.Contact
@@ -95,7 +96,7 @@ class CreateRoomBottomSheet : BaseBottomSheet<BottomSheetCreateRoomBinding>() {
     }
 
     private fun showNoContactsError() {
-        NCToastMessage(requireActivity()).show("You don't have any contacts")
+        NCToastMessage(requireActivity()).show(getString(R.string.nc_message_empty_contacts))
         cleanUp()
     }
 
