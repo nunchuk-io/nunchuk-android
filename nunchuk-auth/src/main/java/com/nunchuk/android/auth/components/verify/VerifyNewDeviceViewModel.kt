@@ -56,7 +56,9 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
 
     private fun initNunchuk(): Flow<Unit> {
         val account = accountManager.getAccount()
-        return initNunchukUseCase.execute(account.email, account.chatId)
+        // TODO: use a real passphrase; make sure to use the same passphrase on ALL InitNunchukUseCase instances
+        // or the user will lose access to their keys/wallets
+        return initNunchukUseCase.execute("", account.email)
             .onException { event(SignInErrorEvent(message = it.message.orUnknownError())) }
     }
 

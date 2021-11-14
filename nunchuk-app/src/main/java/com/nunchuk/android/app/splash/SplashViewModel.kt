@@ -23,13 +23,11 @@ internal class SplashViewModel @Inject constructor(
     private fun initFlow() {
         val account = accountManager.getAccount()
         viewModelScope.launch {
-            initNunchukUseCase.execute(account.email, account.chatId)
+            initNunchukUseCase.execute(accountId = account.email)
                 .flowOn(Dispatchers.IO)
                 .onException { event(InitErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
-                .collect {
-                    event(NavHomeScreenEvent)
-                }
+                .collect { event(NavHomeScreenEvent) }
         }
     }
 

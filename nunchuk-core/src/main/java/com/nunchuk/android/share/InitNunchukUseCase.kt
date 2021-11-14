@@ -15,8 +15,10 @@ import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface InitNunchukUseCase {
+    // TODO: use a real passphrase; make sure to use the same passphrase on ALL InitNunchukUseCase instances
+    // or the user will lose access to their keys/wallets
     fun execute(
-        passphrase: String,
+        passphrase: String = "",
         accountId: String
     ): Flow<Unit>
 }
@@ -32,17 +34,19 @@ internal class InitNunchukUseCaseImpl @Inject constructor(
     ) = getAppSettingUseCase.execute().flatMapConcat {
         initNunchuk(
             appSettings = it,
+            passphrase = passphrase,
             accountId = accountId
         )
     }
 
     private fun initNunchuk(
         appSettings: AppSettings,
+        passphrase: String,
         accountId: String
     ) = flow {
         initReceiver()
         emit(nativeSdk.run {
-            initNunchuk(appSettings, "", accountId)
+            initNunchuk(appSettings, passphrase, accountId)
             enableGenerateReceiveEvent()
         })
     }.flowOn(Dispatchers.IO)
