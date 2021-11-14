@@ -77,7 +77,7 @@ internal class SignInViewModel @Inject constructor(
 
     private fun initNunchuk(): Flow<Unit> {
         val account = accountManager.getAccount()
-        return initNunchukUseCase.execute(account.email, account.chatId)
+        return initNunchukUseCase.execute(accountId = account.email)
             .onException { event(SignInErrorEvent(message = it.message)) }
     }
 
