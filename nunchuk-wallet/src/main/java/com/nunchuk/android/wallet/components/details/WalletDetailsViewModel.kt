@@ -7,6 +7,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.sorted
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.utils.onException
@@ -68,7 +69,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     }
 
     private fun onRetrievedTransactionHistory(result: List<Transaction>) {
-        updateState { copy(transactions = result) }
+        updateState { copy(transactions = result.sorted()) }
         if (result.isEmpty()) {
             getUnusedAddresses()
         }
