@@ -6,15 +6,17 @@ sealed class EstimatedFeeEvent {
     data class EstimatedFeeErrorEvent(val message: String) : EstimatedFeeEvent()
     data class EstimatedFeeCompletedEvent(
         val estimatedFee: Double,
-        val subtractFeeFromSendMoney: Boolean,
+        val subtractFeeFromAmount: Boolean,
         val manualFeeRate: Int
     ) : EstimatedFeeEvent()
+
+    object Loading : EstimatedFeeEvent()
 }
 
 data class EstimatedFeeState(
     val estimatedFee: Amount = Amount.ZER0,
     val customizeFeeDetails: Boolean = false,
-    val subtractFeeFromSendMoney: Boolean = false,
+    val subtractFeeFromAmount: Boolean = false,
     val manualFeeDetails: Boolean = false,
     val manualFeeRate: Int = 0
 )

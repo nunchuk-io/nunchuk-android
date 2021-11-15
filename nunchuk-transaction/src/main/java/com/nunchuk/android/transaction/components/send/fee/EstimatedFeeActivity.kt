@@ -31,6 +31,12 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
+
+        viewModel.init(
+            walletId = args.walletId,
+            address = args.address,
+            sendAmount = args.outputAmount
+        )
         setupViews()
         observeEvent()
     }
@@ -61,9 +67,12 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     }
 
     private fun handleCustomizeFeeSwitch(isChecked: Boolean) {
-        viewModel.handleCustomizeFeeSwitch(isChecked)
+        val isSendingAll = args.subtractFeeFromAmount
+        viewModel.handleCustomizeFeeSwitch(isChecked, isSendingAll)
         if (!isChecked) {
-            binding.subtractFeeCheckBox.isChecked = false
+            if (!isSendingAll) {
+                binding.subtractFeeCheckBox.isChecked = false
+            }
             binding.manualFeeCheckBox.isChecked = false
         }
     }
@@ -74,10 +83,11 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     }
 
     private fun handleState(state: EstimatedFeeState) {
+        hideLoading()
         binding.estimatedFeeBTC.text = state.estimatedFee.getBTCAmount()
         binding.estimatedFeeUSD.text = state.estimatedFee.getUSDAmount()
 
-        if (state.subtractFeeFromSendMoney) {
+        if (state.subtractFeeFromAmount) {
             bindSubtotal(args.outputAmount)
         } else {
             bindSubtotal((args.outputAmount + state.estimatedFee.pureBTC()).coerceAtMost(args.availableAmount))
@@ -89,9 +99,15 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 
     private fun handleEvent(event: EstimatedFeeEvent) {
         when (event) {
-            is EstimatedFeeErrorEvent -> NCToastMessage(this).show(event.message)
-            is EstimatedFeeCompletedEvent -> openTransactionConfirmScreen(event.estimatedFee, event.subtractFeeFromSendMoney, event.manualFeeRate)
+            is EstimatedFeeErrorEvent -> onEstimatedFeeError(event)
+            is EstimatedFeeCompletedEvent -> openTransactionConfirmScreen(event.estimatedFee, event.subtractFeeFromAmount, event.manualFeeRate)
+            EstimatedFeeEvent.Loading -> showLoading()
         }
+    }
+
+    private fun onEstimatedFeeError(event: EstimatedFeeErrorEvent) {
+        hideLoading()
+        NCToastMessage(this).show(event.message)
     }
 
     private fun openTransactionConfirmScreen(estimatedFee: Double, subtractFeeFromAmount: Boolean, manualFeeRate: Int) {

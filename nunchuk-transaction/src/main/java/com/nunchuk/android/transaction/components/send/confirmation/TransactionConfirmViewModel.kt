@@ -147,6 +147,6 @@ internal class TransactionConfirmViewModel @Inject constructor(
         }
     }
 
-    private fun Int.toManualFeeRate() = if (this > 0) this.toAmount() else Amount(-1)
-
 }
+
+internal fun Int.toManualFeeRate() = if (this > 0) this.toAmount() else Amount(-1)
