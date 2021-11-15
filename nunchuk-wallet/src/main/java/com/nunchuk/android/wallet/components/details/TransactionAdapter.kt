@@ -48,13 +48,13 @@ internal class TransactionViewHolder(
     override fun bind(data: Transaction) {
         if (data.isReceive) {
             binding.sendTo.text = context.getString(R.string.nc_transaction_receive_at)
-            binding.amountBTC.text = data.subAmount.getBTCAmount()
-            binding.amountUSD.text = data.subAmount.getUSDAmount()
+            binding.amountBTC.text = data.totalAmount.getBTCAmount()
+            binding.amountUSD.text = data.totalAmount.getUSDAmount()
             binding.receiverName.text = data.receiveOutputs.firstOrNull()?.first.orEmpty()
         } else {
             binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
-            binding.amountBTC.text = "- ${data.subAmount.getBTCAmount()}"
-            binding.amountUSD.text = "- ${data.subAmount.getUSDAmount()}"
+            binding.amountBTC.text = "- ${data.totalAmount.getBTCAmount()}"
+            binding.amountUSD.text = "- ${data.totalAmount.getUSDAmount()}"
             binding.receiverName.text = data.outputs.firstOrNull()?.first.orEmpty()
         }
         binding.status.bindTransactionStatus(data.status)
