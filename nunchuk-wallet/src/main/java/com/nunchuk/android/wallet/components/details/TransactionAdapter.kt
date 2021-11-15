@@ -53,8 +53,8 @@ internal class TransactionViewHolder(
             binding.receiverName.text = data.receiveOutputs.firstOrNull()?.first.orEmpty()
         } else {
             binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
-            binding.amountBTC.text = "- ${data.outputs.first().second.getBTCAmount()}"
-            binding.amountUSD.text = "- ${data.outputs.first().second.getUSDAmount()}"
+            binding.amountBTC.text = "- ${data.subAmount.getBTCAmount()}"
+            binding.amountUSD.text = "- ${data.subAmount.getUSDAmount()}"
             binding.receiverName.text = data.outputs.firstOrNull()?.first.orEmpty()
         }
         binding.status.bindTransactionStatus(data.status)
