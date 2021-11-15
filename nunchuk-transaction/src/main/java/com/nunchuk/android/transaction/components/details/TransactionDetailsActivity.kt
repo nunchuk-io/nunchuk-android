@@ -137,7 +137,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         } else {
             binding.status.bindTransactionStatus(transaction.status)
         }
-        binding.sendingBTC.text = transaction.subAmount.getBTCAmount()
+        binding.sendingBTC.text = transaction.totalAmount.getBTCAmount()
         binding.signersContainer.isVisible = !transaction.isReceive
         binding.btnBroadcast.isVisible = transaction.status.canBroadCast()
         binding.btnViewBlockChain.isVisible = transaction.isReceive || transaction.status.hadBroadcast()
@@ -182,8 +182,8 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
     }
 
     private fun bindingTotalAmount(transaction: Transaction) {
-        binding.totalAmountBTC.text = transaction.subAmount.getBTCAmount()
-        binding.totalAmountUSD.text = transaction.subAmount.getUSDAmount()
+        binding.totalAmountBTC.text = transaction.totalAmount.getBTCAmount()
+        binding.totalAmountUSD.text = transaction.totalAmount.getUSDAmount()
     }
 
     private fun bindTransactionFee(transaction: Transaction) {

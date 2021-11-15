@@ -71,7 +71,7 @@ internal class NunchukTransactionNotificationHolder(
         val roomWalletData = roomWallet?.jsonContent?.toRoomWalletData()
         binding.notification.text = getHtmlString(
             R.string.nc_message_transaction_received,
-            transaction.subAmount.getBTCAmount(),
+            transaction.totalAmount.getBTCAmount(),
             roomWalletData?.name.orEmpty()
         )
         roomWallet?.let { rWallet ->
