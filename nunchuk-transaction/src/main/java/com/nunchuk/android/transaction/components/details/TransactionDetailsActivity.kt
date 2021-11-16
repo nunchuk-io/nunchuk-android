@@ -12,11 +12,7 @@ import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.bindTransactionStatus
-import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getUSDAmount
-import com.nunchuk.android.extensions.canBroadCast
-import com.nunchuk.android.extensions.hadBroadcast
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
@@ -125,7 +121,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
             transaction.outputs.firstOrNull()
         }
         binding.sendingTo.text = output?.first.orEmpty()
-        val pendingSigners = transaction.signers.count { !it.value }
+        val pendingSigners = transaction.getPendingSignatures()
         if (pendingSigners > 0) {
             binding.signatureStatus.text = getString(R.string.nc_transaction_pending_signature, pendingSigners)
         } else {
