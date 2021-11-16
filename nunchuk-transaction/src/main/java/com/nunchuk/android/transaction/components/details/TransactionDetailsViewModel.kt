@@ -6,7 +6,7 @@ import com.nunchuk.android.core.domain.GetBlockchainExplorerUrlUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.extensions.isPending
+import com.nunchuk.android.core.util.isPending
 import com.nunchuk.android.model.Device
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.Result.Error
