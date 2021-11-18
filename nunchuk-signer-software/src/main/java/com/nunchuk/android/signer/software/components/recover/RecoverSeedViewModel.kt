@@ -48,11 +48,7 @@ internal class RecoverSeedViewModel @Inject constructor(
 
     private fun filter(word: String) {
         val filteredWords = bip39Words.filter { it.startsWith(word) }
-        if (filteredWords.size == 1) {
-            handleSelectWord(filteredWords.first())
-        } else {
-            updateState { copy(suggestions = filteredWords.take(MAX_WORDS)) }
-        }
+        updateState { copy(suggestions = filteredWords.take(MAX_WORDS)) }
     }
 
     fun handleContinueEvent() {
