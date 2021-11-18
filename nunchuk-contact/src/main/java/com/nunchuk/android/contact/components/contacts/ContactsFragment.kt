@@ -34,6 +34,7 @@ class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
     override fun onResume() {
         super.onResume()
         viewModel.retrieveContacts()
+        viewModel.registerNewContactRequestEvent()
     }
 
     private fun setupViews() {

@@ -1,7 +1,7 @@
 package com.nunchuk.android.contact.components.pending
 
-import android.app.Dialog
 import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -32,10 +32,9 @@ class PendingContactsBottomSheet : BaseBottomSheet<BottomSheetPendingContactsBin
         setupViews()
     }
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return super.onCreateDialog(savedInstanceState).apply {
-            setOnDismissListener { listener() }
-        }
+    override fun onCancel(dialog: DialogInterface) {
+        super.onCancel(dialog)
+        listener()
     }
 
     private fun setupViews() {
