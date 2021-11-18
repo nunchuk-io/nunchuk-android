@@ -19,6 +19,7 @@ import kotlinx.android.synthetic.main.nc_edit_text_view.view.*
 
 const val DEFAULT_VALUE = 0
 const val NORMAL_THEME: Int = 0
+const val TEXT_NO_SUGGESTION: Int = 4
 const val TEXT_READ_ONLY_TYPE: Int = 3
 const val TEXT_MULTI_LINE_TYPE: Int = 2
 const val NUMBER_TYPE: Int = 1
@@ -126,6 +127,9 @@ class NCEditTextView : ConstraintLayout, LifecycleObserver {
             TEXT_READ_ONLY_TYPE -> {
                 editText.inputType = InputType.TYPE_NULL
                 editText.setTextIsSelectable(false)
+            }
+            TEXT_NO_SUGGESTION -> {
+                editText.inputType = InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
             }
         }
 
