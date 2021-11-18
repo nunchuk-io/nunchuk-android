@@ -31,6 +31,7 @@
             <enum name="number" value="1" />
             <enum name="multi_lines" value="2" />
             <enum name="read_only" value="3" />
+            <enum name="textNoSuggestion" value="4" />
         </attr>
         <attr name="edit_gravity" format="integer">
             <enum name="center_vertical" value="10" />

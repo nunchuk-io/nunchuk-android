@@ -43,6 +43,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
 
     private fun handleState(state: RecoverSeedState) {
         adapter.items = state.suggestions
+        binding.recyclerView.scrollToPosition(0)
     }
 
     private fun handleEvent(event: RecoverSeedEvent) {
