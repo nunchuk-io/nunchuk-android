@@ -73,10 +73,12 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/tvTermAndPolicy"
+        style="@style/NCText.Title.Small"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
         android:gravity="center"
+        android:textColorLink="@color/nc_primary_color"
         android:text="@string/nc_text_term_and_policy"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
