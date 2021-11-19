@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="nc_color_connection_online">#1C652D</color>
+    <color name="nc_color_connection_offline">#CF4018</color>
+    <color name="nc_color_connection_syncing">#A66800</color>
+</resources>

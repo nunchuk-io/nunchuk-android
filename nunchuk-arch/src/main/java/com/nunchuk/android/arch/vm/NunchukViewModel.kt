@@ -27,6 +27,10 @@ abstract class NunchukViewModel<State, Event> : ViewModel() {
         _state.value = updater(_state.value ?: initialState)
     }
 
+    protected fun postState(updater: State.() -> State) {
+        _state.postValue(updater(_state.value ?: initialState))
+    }
+
     protected fun event(event: Event) {
         _event.postValue(event)
     }

@@ -14,4 +14,9 @@
 
     <string name="nc_text_you_have_not_add_wallet">You have no wallets yet</string>
     <string name="nc_text_you_have_not_add_signer">You have no keys yet</string>
+    <string name="nc_text_connection_status_offline">Offline</string>
+    <string name="nc_text_connection_status_syncing">Syncing</string>
+    <string name="nc_text_connection_status_online">Online</string>
+    <string name="nc_text_home_wallet_chain_testnet">(Testnet)</string>
+    <string name="nc_text_home_wallet_connection">%s %s</string>
 </resources>

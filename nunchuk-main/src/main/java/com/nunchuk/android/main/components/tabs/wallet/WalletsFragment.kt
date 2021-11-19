@@ -1,10 +1,13 @@
 package com.nunchuk.android.main.components.tabs.wallet
 
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.signer.SignerModel
@@ -16,6 +19,8 @@ import com.nunchuk.android.main.databinding.FragmentWalletsBinding
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.type.Chain
+import com.nunchuk.android.type.ConnectionStatus
 
 internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
@@ -37,7 +42,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         binding.doLater.setOnClickListener { hideIntroContainerView() }
         binding.btnAdd.setOnClickListener { viewModel.handleAddSignerOrWallet() }
         binding.signerHeader.setOnClickListener { viewModel.handleAddSigner() }
-        binding.walletsHeader.setOnClickListener { viewModel.handleAddWallet() }
+        binding.ivAddWallet.setOnClickListener { viewModel.handleAddWallet() }
     }
 
     private fun openAddWalletScreen() {
@@ -81,6 +86,44 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         showIntro(signers, state.wallets)
         showWallets(state.wallets)
         showSigners(signers)
+        showConnectionBlockchainStatus(state)
+    }
+
+    private fun showConnectionBlockchainStatus(state: WalletsState) {
+        binding.tvConnectionStatus.isVisible = state.connectionStatus != null
+        when(state.connectionStatus) {
+            ConnectionStatus.OFFLINE -> {
+                binding.tvConnectionStatus.text = getString(
+                    R.string.nc_text_home_wallet_connection,
+                    getString(R.string.nc_text_connection_status_offline),
+                    showChainText(state.chain)
+                )
+                TextViewCompat.setCompoundDrawableTintList(binding.tvConnectionStatus, ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.nc_color_connection_offline)))
+            }
+            ConnectionStatus.SYNCING -> {
+                binding.tvConnectionStatus.text = getString(
+                    R.string.nc_text_home_wallet_connection,
+                    getString(R.string.nc_text_connection_status_syncing),
+                    showChainText(state.chain)
+                )
+                TextViewCompat.setCompoundDrawableTintList(binding.tvConnectionStatus, ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.nc_color_connection_syncing)))
+            }
+            ConnectionStatus.ONLINE -> {
+                binding.tvConnectionStatus.text = getString(
+                    R.string.nc_text_home_wallet_connection,
+                    getString(R.string.nc_text_connection_status_online),
+                    showChainText(state.chain)
+                )
+                TextViewCompat.setCompoundDrawableTintList(binding.tvConnectionStatus, ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.nc_color_connection_online)))
+            }
+        }
+    }
+
+    private fun showChainText(chain: Chain): String {
+        return when(chain) {
+            Chain.TESTNET -> getString(R.string.nc_text_home_wallet_chain_testnet);
+            else -> ""
+        }
     }
 
     private fun showIntro(signers: List<SignerModel>, wallets: List<Wallet>) {
@@ -159,6 +202,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     override fun onResume() {
         super.onResume()
         viewModel.retrieveData()
+        viewModel.getAppSettings()
+        viewModel.addBlockChainConnectionListener()
+        viewModel.registerBlockChainConnectionStatusExecutor()
     }
-
 }
