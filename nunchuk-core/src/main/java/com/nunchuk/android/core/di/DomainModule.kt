@@ -23,4 +23,7 @@ internal interface DomainModule {
 
     @Binds
     fun bindGetBlockchainExplorerUrlUseCase(useCase: GetBlockchainExplorerUrlUseCaseImpl): GetBlockchainExplorerUrlUseCase
+
+    @Binds
+    fun bindAddBlockChainConnectionListenerUseCase(useCase: AddBlockChainConnectionListenerUseCaseImpl): AddBlockChainConnectionListenerUseCase
 }

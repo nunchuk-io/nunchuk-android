@@ -92,20 +92,53 @@
                 app:layout_constraintTop_toTopOf="@id/btnAdd" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <com.nunchuk.android.widget.NCFontTextView
-            android:id="@+id/walletsHeader"
-            style="@style/NCText.Title"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/nc_padding_8"
-            android:drawableEnd="@drawable/ic_plus"
-            android:paddingVertical="@dimen/nc_padding_8"
-            android:text="@string/nc_title_wallets"
-            app:fontTextStyle="semi_bold"
-            app:layout_constraintBottom_toBottomOf="@id/btnAdd"
-            app:layout_constraintEnd_toStartOf="@id/btnAdd"
-            app:layout_constraintTop_toBottomOf="@+id/introSubtitle"
-            app:layout_constraintTop_toTopOf="@id/btnAdd" />
+            android:layout_marginTop="@dimen/nc_padding_8">
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/walletsHeader"
+                style="@style/NCText.Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingVertical="@dimen/nc_padding_8"
+                android:text="@string/nc_title_wallets"
+                app:fontTextStyle="semi_bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/tvConnectionStatus"
+                style="@style/NCText.Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/nc_padding_8"
+                android:background="@drawable/nc_bg_connection_status"
+                android:drawableStart="@drawable/nc_bg_connection_status_circle"
+                android:drawablePadding="@dimen/nc_padding_4"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:paddingVertical="@dimen/nc_padding_4"
+                android:paddingStart="@dimen/nc_padding_4"
+                android:paddingEnd="@dimen/nc_padding_8"
+                android:textColor="@color/nc_primary_color"
+                app:layout_constraintBottom_toBottomOf="@+id/walletsHeader"
+                app:layout_constraintStart_toEndOf="@+id/walletsHeader"
+                app:layout_constraintTop_toTopOf="@+id/walletsHeader" />
+
+            <ImageView
+                android:id="@+id/ivAddWallet"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:paddingVertical="@dimen/nc_padding_8"
+                android:src="@drawable/ic_plus"
+                app:layout_constraintBottom_toBottomOf="@+id/walletsHeader"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/walletsHeader" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <ProgressBar
             android:id="@+id/wallet_progress"
