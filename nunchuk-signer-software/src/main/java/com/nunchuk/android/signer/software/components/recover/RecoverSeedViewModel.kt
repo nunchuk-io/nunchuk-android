@@ -30,7 +30,7 @@ internal class RecoverSeedViewModel @Inject constructor(
             val result = getBip39WordListUseCase.execute()
             if (result is Success) {
                 bip39Words = ArrayList(result.data)
-                updateState { copy(suggestions = bip39Words.take(MAX_WORDS)) }
+                updateState { copy(suggestions = bip39Words) }
             }
         }
     }
@@ -48,7 +48,7 @@ internal class RecoverSeedViewModel @Inject constructor(
 
     private fun filter(word: String) {
         val filteredWords = bip39Words.filter { it.startsWith(word) }
-        updateState { copy(suggestions = filteredWords.take(MAX_WORDS)) }
+        updateState { copy(suggestions = filteredWords) }
     }
 
     fun handleContinueEvent() {
@@ -61,10 +61,10 @@ internal class RecoverSeedViewModel @Inject constructor(
     }
 
     fun handleSelectWord(word: String) {
-        updateState { copy(suggestions = bip39Words.take(MAX_WORDS)) }
+        updateState { copy(suggestions = bip39Words) }
         val updatedMnemonic = getState().mnemonic.replaceLastWord(word)
         updateState { copy(mnemonic = updatedMnemonic) }
-        val canGoNext = updatedMnemonic.countWords() == NUM_WORDS
+        val canGoNext = updatedMnemonic.countWords() in MIN_ACCEPTED_NUM_WORDS..MAX_ACCEPTED_NUM_WORDS
         if (canGoNext) {
             event(CanGoNextStepEvent(canGoNext))
         } else {
@@ -82,8 +82,8 @@ internal class RecoverSeedViewModel @Inject constructor(
     }
 
     companion object {
-        private const val MAX_WORDS = 2048
-        private const val NUM_WORDS = 24
+        private const val MAX_ACCEPTED_NUM_WORDS = 24
+        private const val MIN_ACCEPTED_NUM_WORDS = 12
     }
 
 }
