@@ -20,7 +20,6 @@ import javax.inject.Inject
 internal class WalletsViewModel @Inject constructor(
     private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     private val getWalletsUseCase: GetWalletsUseCase,
-    private val addBlockChainConnectionListenerUseCase: AddBlockChainConnectionListenerUseCase,
     private val getAppSettingUseCase: GetAppSettingUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
 
@@ -39,30 +38,6 @@ internal class WalletsViewModel @Inject constructor(
                         copy(chain = it.chain)
                     }
                 }
-        }
-    }
-
-    fun registerBlockChainConnectionStatusExecutor() {
-        ConnectionStatusHelper.executor = object : ConnectionStatusExecutor {
-            override fun execute(connectionStatus: ConnectionStatus, percent: Int) {
-                postState {
-                    copy(
-                        connectionStatus = connectionStatus
-                    )
-                }
-            }
-        }
-    }
-
-    fun addBlockChainConnectionListener() {
-        viewModelScope.launch {
-            addBlockChainConnectionListenerUseCase.execute()
-                .flowOn(Dispatchers.IO)
-                .onException {
-                    CrashlyticsReporter.recordException(it)
-                }
-                .flowOn(Dispatchers.Main)
-                .collect {}
         }
     }
 
