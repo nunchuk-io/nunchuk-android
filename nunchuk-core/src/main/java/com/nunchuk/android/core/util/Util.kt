@@ -3,6 +3,7 @@ package com.nunchuk.android.core.util
 import com.nunchuk.android.core.network.UNKNOWN_ERROR
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.type.Chain
+import com.nunchuk.android.type.ConnectionStatus
 import java.io.File
 import java.io.InputStream
 import java.text.SimpleDateFormat
@@ -15,6 +16,8 @@ fun Exception.messageOrUnknownError() = message.orUnknownError()
 fun String?.orUnknownError() = this ?: UNKNOWN_ERROR
 
 var BTC_USD_EXCHANGE_RATE = 45000.0
+
+var BLOCKCHAIN_STATUS: ConnectionStatus? = null
 
 const val SATOSHI_BTC_EXCHANGE_RATE = 0.00000001
 const val BTC_SATOSHI_EXCHANGE_RATE = 100000000

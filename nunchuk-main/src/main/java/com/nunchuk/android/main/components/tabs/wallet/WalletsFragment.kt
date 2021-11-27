@@ -8,11 +8,14 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.TextViewCompat
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
 import com.nunchuk.android.core.util.showToast
+import com.nunchuk.android.main.MainActivityViewModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.main.databinding.FragmentWalletsBinding
@@ -25,6 +28,7 @@ import com.nunchuk.android.type.ConnectionStatus
 internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private val viewModel: WalletsViewModel by viewModels { factory }
+    private val mainActivityViewModel: MainActivityViewModel by activityViewModels { factory }
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -60,6 +64,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     private fun observeEvent() {
         viewModel.state.observe(viewLifecycleOwner, ::showWalletState)
         viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
+        mainActivityViewModel.event.observe(viewLifecycleOwner, ::handleEvent)
     }
 
     private fun handleEvent(event: WalletsEvent) {
@@ -67,6 +72,9 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             AddWalletEvent -> openAddWalletScreen()
             ShowSignerIntroEvent -> openSignerIntroScreen()
             WalletEmptySignerEvent -> openWalletIntroScreen()
+            is GetConnectionStatusSuccessEvent -> {
+                viewModel.getAppSettings()
+            }
             is ShowErrorEvent -> requireActivity().showToast(event.message)
             is Loading -> handleLoading(event)
         }
@@ -90,8 +98,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun showConnectionBlockchainStatus(state: WalletsState) {
-        binding.tvConnectionStatus.isVisible = state.connectionStatus != null
-        when(state.connectionStatus) {
+        binding.tvConnectionStatus.isVisible = BLOCKCHAIN_STATUS != null
+        when(BLOCKCHAIN_STATUS) {
             ConnectionStatus.OFFLINE -> {
                 binding.tvConnectionStatus.text = getString(
                     R.string.nc_text_home_wallet_connection,
@@ -202,8 +210,5 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     override fun onResume() {
         super.onResume()
         viewModel.retrieveData()
-        viewModel.getAppSettings()
-        viewModel.addBlockChainConnectionListener()
-        viewModel.registerBlockChainConnectionStatusExecutor()
     }
 }
