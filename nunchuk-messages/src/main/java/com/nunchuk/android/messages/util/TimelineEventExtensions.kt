@@ -64,10 +64,33 @@ fun TimelineEvent.isInitTransactionEvent() = isTransactionEvent(TransactionEvent
 
 fun TimelineEvent.isReceiveTransactionEvent() = isTransactionEvent(TransactionEventType.RECEIVE)
 
-fun TimelineEvent.isNunchukConsumeSyncEvent() = root.type == SYNC_EVENT_TAG
+fun TimelineEvent.isTransactionReadyEvent() = isTransactionEvent(TransactionEventType.READY)
 
-private fun TimelineEvent.isTransactionEvent(type: TransactionEventType): Boolean {
+fun TimelineEvent.isWalletReadyEvent() = isWalletEvent(WalletEventType.READY)
+
+private fun TimelineEvent.isTransactionEvent(type: TransactionEventType) = try {
     val content = root.content?.toMap().orEmpty()
     val msgType = TransactionEventType.of(content[KEY] as String)
-    return msgType == type
+    msgType == type
+} catch (t: Throwable) {
+    CrashlyticsReporter.recordException(t)
+    false
+}
+
+private fun TimelineEvent.isWalletEvent(type: WalletEventType) = try {
+    val content = root.content?.toMap().orEmpty()
+    val msgType = WalletEventType.of(content[KEY] as String)
+    msgType == type
+} catch (t: Throwable) {
+    CrashlyticsReporter.recordException(t)
+    false
+}
+
+internal fun TimelineEvent.getNunchukInitEventId(): String? {
+    val map = root.content?.toMap().orEmpty()
+    return gson.fromJson(gson.toJson(map["body"]), JsonObject::class.java)
+        ?.getAsJsonObject("io.nunchuk.relates_to")
+        ?.getAsJsonObject("init_event")
+        ?.get("event_id")
+        ?.asString
 }

@@ -107,7 +107,7 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
-        val displayableEvents = events.filter(TimelineEvent::isDisplayable)
+        val displayableEvents = events.filter(TimelineEvent::isDisplayable).groupEvents()
         val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent)
         viewModelScope.launch {
             val sortedEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
