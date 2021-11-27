@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.loader.ImageLoader
+import com.nunchuk.android.core.util.hideKeyboard
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.databinding.ActivityRoomDetailBinding
@@ -127,6 +128,10 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         binding.recyclerView.smoothScrollToLastItem()
         binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                if (RecyclerView.SCROLL_STATE_DRAGGING == newState) {
+                    binding.recyclerView.hideKeyboard()
+                }
+
                 if (!recyclerView.isLastItemVisible()) {
                     viewModel.handleLoadMore()
                 }
