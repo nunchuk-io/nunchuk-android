@@ -71,4 +71,6 @@
     <string name="nc_message_empty_contacts">You don\'t have any contacts</string>
     <string name="nc_message_new_members_added">New members have been added</string>
 
+    <string name="nc_transaction_not_found">Received transaction not found</string>
+
 </resources>
