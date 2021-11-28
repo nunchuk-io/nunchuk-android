@@ -1,6 +1,6 @@
 package com.nunchuk.android.usecase
 
-import com.nunchuk.android.model.TransactionExt
+import com.nunchuk.android.model.TransactionExtended
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.flow.Flow
@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface GetTransactionsUseCase {
-    fun execute(walletId: String, eventIds: List<Pair<String, Boolean>>): Flow<List<TransactionExt>>
+    fun execute(walletId: String, eventIds: List<Pair<String, Boolean>>): Flow<List<TransactionExtended>>
 }
 
 internal class GetTransactionsUseCaseImpl @Inject constructor(
@@ -28,7 +28,7 @@ internal class GetTransactionsUseCaseImpl @Inject constructor(
         emit(emptyList())
     }
 
-    private fun getTransaction(walletId: String, initEventId: String, isReceive: Boolean): TransactionExt? {
+    private fun getTransaction(walletId: String, initEventId: String, isReceive: Boolean): TransactionExtended? {
         try {
             val txId = if (isReceive) {
                 nativeSdk.getTransactionId(initEventId)
@@ -38,7 +38,7 @@ internal class GetTransactionsUseCaseImpl @Inject constructor(
             if (txId.isEmpty()) return null
 
             val tx = nativeSdk.getTransaction(walletId, txId = txId)
-            return TransactionExt(walletId = walletId, initEventId, tx)
+            return TransactionExtended(walletId = walletId, initEventId, tx)
         } catch (t: Throwable) {
             CrashlyticsReporter.recordException(t)
             return null

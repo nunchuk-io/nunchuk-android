@@ -44,16 +44,39 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
-            <com.nunchuk.android.widget.NCFontTextView
-                android:id="@+id/configuration"
-                style="@style/NCText.Badges"
-                android:layout_width="wrap_content"
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/configuration_container"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/nc_rounded_whisper_background"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="2/3 Multisig" />
+                app:layout_constraintTop_toTopOf="parent">
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/configuration"
+                    style="@style/NCText.Badges"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/nc_rounded_whisper_background"
+                    tools:text="2/3 Multisig" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/share_icon"
+                    style="@style/NCText.Badges"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/nc_padding_4"
+                    android:background="@drawable/nc_rounded_whisper_background"
+                    android:drawableStart="@drawable/ic_wallet_small"
+                    android:drawablePadding="@dimen/nc_padding_4"
+                    android:text="@string/nc_text_shared"
+                    app:layout_constraintBottom_toBottomOf="@+id/btc"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/btc"
+                    tools:text="Shared" />
+            </androidx.appcompat.widget.LinearLayoutCompat>
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/btcAmount"
@@ -66,7 +89,7 @@
                 android:textColor="@color/nc_white_color"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/configuration"
+                app:layout_constraintTop_toBottomOf="@+id/configuration_container"
                 tools:text="1.00000001 BTC" />
 
             <com.nunchuk.android.widget.NCFontTextView

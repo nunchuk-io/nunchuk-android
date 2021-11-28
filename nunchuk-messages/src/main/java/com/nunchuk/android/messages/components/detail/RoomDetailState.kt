@@ -2,13 +2,13 @@ package com.nunchuk.android.messages.components.detail
 
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.RoomWalletData
-import com.nunchuk.android.model.TransactionExt
+import com.nunchuk.android.model.TransactionExtended
 
 data class RoomDetailState(
     val roomInfo: RoomInfo,
     val roomWallet: RoomWallet?,
     val messages: List<Message>,
-    val transactions: List<TransactionExt>
+    val transactions: List<TransactionExtended>
 ) {
 
     companion object {

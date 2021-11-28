@@ -19,9 +19,7 @@ import com.nunchuk.android.main.MainActivityViewModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.main.databinding.FragmentWalletsBinding
-import com.nunchuk.android.model.MasterSigner
-import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.*
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 
@@ -90,16 +88,17 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun showWalletState(state: WalletsState) {
+        val wallets = state.wallets
         val signers = state.masterSigners.map(MasterSigner::toModel) + state.signers.map(SingleSigner::toModel)
-        showIntro(signers, state.wallets)
-        showWallets(state.wallets)
+        showIntro(signers, wallets)
+        showWallets(wallets = wallets)
         showSigners(signers)
         showConnectionBlockchainStatus(state)
     }
 
     private fun showConnectionBlockchainStatus(state: WalletsState) {
         binding.tvConnectionStatus.isVisible = BLOCKCHAIN_STATUS != null
-        when(BLOCKCHAIN_STATUS) {
+        when (BLOCKCHAIN_STATUS) {
             ConnectionStatus.OFFLINE -> {
                 binding.tvConnectionStatus.text = getString(
                     R.string.nc_text_home_wallet_connection,
@@ -128,13 +127,13 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun showChainText(chain: Chain): String {
-        return when(chain) {
-            Chain.TESTNET -> getString(R.string.nc_text_home_wallet_chain_testnet);
+        return when (chain) {
+            Chain.TESTNET -> getString(R.string.nc_text_home_wallet_chain_testnet)
             else -> ""
         }
     }
 
-    private fun showIntro(signers: List<SignerModel>, wallets: List<Wallet>) {
+    private fun showIntro(signers: List<SignerModel>, wallets: List<WalletExtended>) {
         when {
             signers.isEmpty() -> showAddSignerIntro()
             wallets.isEmpty() -> showAddWalletIntro()
@@ -156,7 +155,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         binding.btnAdd.text = getString(R.string.nc_text_add_signer)
     }
 
-    private fun showWallets(wallets: List<Wallet>) {
+    private fun showWallets(wallets: List<WalletExtended>) {
         if (wallets.isEmpty()) {
             showWalletsEmptyView()
         } else {
@@ -169,10 +168,14 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         binding.walletList.isVisible = false
     }
 
-    private fun showWalletsListView(wallets: List<Wallet>) {
+    private fun showWalletsListView(wallets: List<WalletExtended>) {
         binding.walletEmpty.isVisible = false
         binding.walletList.isVisible = true
-        WalletsViewBinder(binding.walletList, wallets, ::openWalletDetailsScreen).bindItems()
+        WalletsViewBinder(
+            container = binding.walletList,
+            wallets = wallets,
+            callback = ::openWalletDetailsScreen
+        ).bindItems()
     }
 
     private fun openWalletDetailsScreen(walletId: String) {

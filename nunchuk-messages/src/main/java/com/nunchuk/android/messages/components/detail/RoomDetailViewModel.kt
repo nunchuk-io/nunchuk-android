@@ -222,7 +222,7 @@ class RoomDetailViewModel @Inject constructor(
                 getWalletUseCase.execute(walletId = roomWallet.walletId)
                     .onException { }
                     .flowOn(Main)
-                    .collect { onGetWallet(it) }
+                    .collect { onGetWallet(it.wallet) }
             }
         }
 

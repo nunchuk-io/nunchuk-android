@@ -11,7 +11,7 @@ import com.nunchuk.android.messages.components.detail.NunchukTransactionMessage
 import com.nunchuk.android.messages.databinding.ItemTransactionInfoBinding
 import com.nunchuk.android.messages.util.getBodyElementValueByKey
 import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.model.TransactionExt
+import com.nunchuk.android.model.TransactionExtended
 
 internal class NunchukTransactionCardHolder(
     val binding: ItemTransactionInfoBinding,
@@ -19,7 +19,7 @@ internal class NunchukTransactionCardHolder(
     val viewTransaction: (walletId: String, txId: String, initEventId: String) -> Unit,
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(transactions: List<TransactionExt>, model: NunchukTransactionMessage) {
+    fun bind(transactions: List<TransactionExtended>, model: NunchukTransactionMessage) {
         val walletId = model.timelineEvent.getBodyElementValueByKey("wallet_id")
         val initEventId = model.timelineEvent.eventId
         transactions.firstOrNull { it.initEventId == initEventId }?.let {

@@ -3,11 +3,12 @@ package com.nunchuk.android.wallet.components.config
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
@@ -51,14 +52,15 @@ class WalletConfigActivity : BaseActivity<ActivityWalletConfigBinding>() {
         }
     }
 
-    private fun handleState(wallet: Wallet) {
+    private fun handleState(walletExtended: WalletExtended) {
+        val wallet = walletExtended.wallet
         binding.walletName.text = wallet.name
 
         binding.configuration.bindWalletConfiguration(wallet)
 
         binding.walletType.text = (if (wallet.escrow) WalletType.ESCROW else WalletType.MULTI_SIG).toReadableString(this)
         binding.addressType.text = wallet.addressType.toReadableString(this)
-
+        binding.shareIcon.isVisible = walletExtended.isShared
         SignersViewBinder(binding.signersContainer, wallet.signers.map(SingleSigner::toModel)).bindItems()
     }
 

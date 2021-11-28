@@ -95,20 +95,21 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
     }
 
     private fun handleState(state: WalletDetailsState) {
-        val wallet = state.wallet
+        val wallet = state.walletExtended.wallet
 
         binding.toolbarTitle.text = wallet.name
         binding.configuration.bindWalletConfiguration(wallet)
 
         binding.btcAmount.text = wallet.getBTCAmount()
         binding.cashAmount.text = wallet.getUSDAmount()
-        binding.btnSend.isClickable = state.wallet.balance.value > 0
+        binding.btnSend.isClickable = wallet.balance.value > 0
 
         adapter.items = state.transactions
         val emptyTransactions = state.transactions.isEmpty()
         binding.emptyTxContainer.isVisible = emptyTransactions
         binding.transactionTitle.isVisible = !emptyTransactions
         binding.transactionList.isVisible = !emptyTransactions
+        binding.shareIcon.isVisible = state.walletExtended.isShared
     }
 
     private fun setupViews() {

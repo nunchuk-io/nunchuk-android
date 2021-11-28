@@ -2,15 +2,10 @@ package com.nunchuk.android.main.components.tabs.wallet
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.core.domain.AddBlockChainConnectionListenerUseCase
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
-import com.nunchuk.android.model.ConnectionStatusExecutor
-import com.nunchuk.android.model.ConnectionStatusHelper
-import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
-import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -29,9 +24,7 @@ internal class WalletsViewModel @Inject constructor(
         viewModelScope.launch {
             getAppSettingUseCase.execute()
                 .flowOn(Dispatchers.IO)
-                .catch {
-                    CrashlyticsReporter.recordException(it)
-                }
+                .onException { }
                 .flowOn(Dispatchers.Main)
                 .collect {
                     updateState {
