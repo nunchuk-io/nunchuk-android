@@ -4,10 +4,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseViewHolder
-import com.nunchuk.android.core.util.bindTransactionStatus
-import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getFormatDate
-import com.nunchuk.android.core.util.getUSDAmount
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.ItemTransactionBinding
@@ -50,12 +47,12 @@ internal class TransactionViewHolder(
             binding.sendTo.text = context.getString(R.string.nc_transaction_receive_at)
             binding.amountBTC.text = data.totalAmount.getBTCAmount()
             binding.amountUSD.text = data.totalAmount.getUSDAmount()
-            binding.receiverName.text = data.receiveOutputs.firstOrNull()?.first.orEmpty()
+            binding.receiverName.text = data.receiveOutputs.firstOrNull()?.first.orEmpty().truncatedAddress()
         } else {
             binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
             binding.amountBTC.text = "- ${data.totalAmount.getBTCAmount()}"
             binding.amountUSD.text = "- ${data.totalAmount.getUSDAmount()}"
-            binding.receiverName.text = data.outputs.firstOrNull()?.first.orEmpty()
+            binding.receiverName.text = data.outputs.firstOrNull()?.first.orEmpty().truncatedAddress()
         }
         binding.status.bindTransactionStatus(data.status)
         binding.date.text = data.getFormatDate()

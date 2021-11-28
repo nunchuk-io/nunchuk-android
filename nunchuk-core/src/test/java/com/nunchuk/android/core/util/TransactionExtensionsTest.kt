@@ -1,10 +1,11 @@
-package com.nunchuk.android.model
+package com.nunchuk.android.core.util
 
+import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.type.TransactionStatus
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-internal class TransactionExtKtTest {
+class TransactionExtensionsTest {
 
     @Test
     fun testTransactionSorted() {
@@ -78,15 +79,15 @@ internal class TransactionExtKtTest {
 
         // 6th
         assertEquals("TX_REPLACED_2", sortedList[5].txId)
-        assertEquals(TransactionStatus.REPLACED,sortedList[5].status)
+        assertEquals(TransactionStatus.REPLACED, sortedList[5].status)
 
         // 7th
         assertEquals("TX_CONFIRMED_3", sortedList[6].txId)
-        assertEquals(TransactionStatus.CONFIRMED,sortedList[6].status)
+        assertEquals(TransactionStatus.CONFIRMED, sortedList[6].status)
 
         // 8th
         assertEquals("TX_CONFIRMED_2", sortedList[7].txId)
-        assertEquals(TransactionStatus.CONFIRMED,sortedList[7].status)
+        assertEquals(TransactionStatus.CONFIRMED, sortedList[7].status)
 
         // 9th
         assertEquals("TX_REPLACED_1", sortedList[8].txId)
@@ -95,6 +96,14 @@ internal class TransactionExtKtTest {
         // 10th
         assertEquals("TX_CONFIRMED_1", sortedList[9].txId)
         assertEquals(TransactionStatus.CONFIRMED, sortedList[9].status)
-
     }
+
+    @Test
+    fun testTruncatedAddress() {
+        assertEquals("", "".truncatedAddress())
+        assertEquals("37NF", "37NF".truncatedAddress())
+        assertEquals("37NFX8K", "37NFX8K".truncatedAddress())
+        assertEquals("37NFX...zbyZ", "37NFX8KWAQbaodUG6pE1hNUH1dXgkpzbyZ".truncatedAddress())
+    }
+
 }

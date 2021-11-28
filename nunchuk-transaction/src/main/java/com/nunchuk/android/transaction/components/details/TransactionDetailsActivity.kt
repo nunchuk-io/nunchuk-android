@@ -120,7 +120,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         } else {
             transaction.outputs.firstOrNull()
         }
-        binding.sendingTo.text = output?.first.orEmpty()
+        binding.sendingTo.text = output?.first.orEmpty().truncatedAddress()
         val pendingSigners = transaction.getPendingSignatures()
         if (pendingSigners > 0) {
             binding.signatureStatus.text = getString(R.string.nc_transaction_pending_signature, pendingSigners)

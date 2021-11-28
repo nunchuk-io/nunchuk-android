@@ -60,7 +60,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="@+id/receiverName"
         app:layout_constraintTop_toTopOf="@+id/receiverName"
-
         tools:text="- 0.120000982 BTC" />
 
     <androidx.constraintlayout.widget.Barrier
