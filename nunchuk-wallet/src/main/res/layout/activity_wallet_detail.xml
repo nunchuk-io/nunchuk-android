@@ -46,13 +46,10 @@
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/configuration"
+                style="@style/NCText.Badges"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/nc_rounded_whisper_background"
-                android:paddingHorizontal="@dimen/nc_padding_12"
-                android:paddingVertical="@dimen/nc_padding_2"
-                android:textColor="@color/nc_black_color"
-                android:textSize="@dimen/nc_text_size_12"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
