@@ -3,6 +3,7 @@ package com.nunchuk.android.messages.components.detail.holder
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getHtmlString
+import com.nunchuk.android.core.util.getString
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.NunchukTransactionMessage
 import com.nunchuk.android.messages.databinding.ItemNunchukNotificationBinding
@@ -64,6 +65,8 @@ internal class NunchukTransactionNotificationHolder(
         val initEventId = model.timelineEvent.eventId
         transactions.firstOrNull { it.initEventId == initEventId }?.let {
             bindReceiveTransactionDetails(roomWallet = roomWallet, transaction = it.transaction)
+        } ?: run {
+            binding.notification.text = getString(R.string.nc_transaction_not_found)
         }
     }
 

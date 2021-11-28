@@ -3,7 +3,7 @@ package com.nunchuk.android.messages.util
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import timber.log.Timber
 
-fun List<TimelineEvent>.groupEvents(turnOn: Boolean = true): List<TimelineEvent> {
+fun List<TimelineEvent>.groupEvents(turnOn: Boolean = false): List<TimelineEvent> {
     if (!turnOn) return this
 
     val allEvents = ArrayList<TimelineEvent>()
@@ -33,5 +33,5 @@ fun List<TimelineEvent>.containTimelineEvent(
     Timber.d("[EventGrouping]initEventId::$initEventId")
     val initEventIds = mapNotNull(TimelineEvent::getNunchukInitEventId)
     Timber.d("[EventGrouping]initEventIds::$initEventIds")
-    return initEventId in initEventIds
+    return initEventId != null && initEventId in initEventIds
 }

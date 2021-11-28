@@ -46,6 +46,7 @@ internal class NunchukWalletNotificationHolder(
                 }
             }
             else -> {
+                binding.notification.text = "${model.msgType}"
             }
         }
         binding.root.bindNotificationBackground(model.msgType == WalletEventType.CREATE)
