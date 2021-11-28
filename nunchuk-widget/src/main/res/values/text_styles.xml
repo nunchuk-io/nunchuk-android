@@ -32,4 +32,13 @@
         <item name="android:textSize">@dimen/nc_text_size_12</item>
     </style>
 
+    <style name="NCText.Badges" parent="NCText">
+        <item name="android:textSize">@dimen/nc_text_size_10</item>
+        <item name="fontTextStyle">bold</item>
+        <item name="android:textColor">@color/nc_black_color</item>
+        <item name="android:paddingStart">@dimen/nc_padding_8</item>
+        <item name="android:paddingEnd">@dimen/nc_padding_8</item>
+        <item name="android:paddingTop">@dimen/nc_padding_2</item>
+        <item name="android:paddingBottom">@dimen/nc_padding_2</item>
+    </style>
 </resources>

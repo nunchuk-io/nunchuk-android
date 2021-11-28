@@ -33,18 +33,15 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/signerType"
+        style="@style/NCText.Badges"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_4"
         android:background="@drawable/nc_rounded_whisper_background"
-        android:paddingHorizontal="@dimen/nc_padding_8"
-        android:paddingVertical="@dimen/nc_padding_4"
-        android:text="Air-gapped signer"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_12"
         app:layout_constraintStart_toEndOf="@+id/avatar"
-        app:layout_constraintTop_toBottomOf="@+id/signerName" />
+        app:layout_constraintTop_toBottomOf="@+id/signerName"
+        tools:text="Air-gapped signer" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/xpf"

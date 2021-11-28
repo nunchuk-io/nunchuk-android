@@ -42,14 +42,13 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/signerType"
-        style="@style/NCText.Body.Small"
+        style="@style/NCText.Badges"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_8"
         android:background="@drawable/nc_rounded_whisper_background"
         android:paddingHorizontal="@dimen/nc_padding_8"
         android:text="@string/nc_signer_air_gapped"
-        app:fontTextStyle="bold"
         app:layout_constraintBottom_toBottomOf="@+id/xpf"
         app:layout_constraintStart_toEndOf="@+id/xpf"
         app:layout_constraintTop_toTopOf="@+id/xpf" />
