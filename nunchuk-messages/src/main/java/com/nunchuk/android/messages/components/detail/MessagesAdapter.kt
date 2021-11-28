@@ -9,7 +9,7 @@ import com.nunchuk.android.core.loader.ImageLoader
 import com.nunchuk.android.messages.components.detail.holder.*
 import com.nunchuk.android.messages.databinding.*
 import com.nunchuk.android.model.RoomWallet
-import com.nunchuk.android.model.TransactionExt
+import com.nunchuk.android.model.TransactionExtended
 
 internal class MessagesAdapter(
     val context: Context,
@@ -22,10 +22,10 @@ internal class MessagesAdapter(
 ) : Adapter<ViewHolder>() {
 
     private var chatModels: List<AbsChatModel> = ArrayList()
-    private var transactions: List<TransactionExt> = ArrayList()
+    private var transactions: List<TransactionExtended> = ArrayList()
     private var roomWallet: RoomWallet? = null
 
-    internal fun update(chatModels: List<AbsChatModel>, transactions: List<TransactionExt>, roomWallet: RoomWallet?) {
+    internal fun update(chatModels: List<AbsChatModel>, transactions: List<TransactionExtended>, roomWallet: RoomWallet?) {
         this.chatModels = chatModels
         this.transactions = transactions
         this.roomWallet = roomWallet

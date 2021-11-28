@@ -59,7 +59,7 @@ class ChatInfoViewModel @Inject constructor(
         updateState { copy(roomWallet = roomWallet) }
         getWalletUseCase.execute(walletId = roomWallet.walletId)
             .onException {}
-            .onEach { onGetWallet(it) }
+            .onEach { onGetWallet(it.wallet) }
             .launchIn(viewModelScope)
     }
 

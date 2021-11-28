@@ -60,7 +60,7 @@ class ChatGroupInfoViewModel @Inject constructor(
             getWalletUseCase.execute(walletId = roomWallet.walletId)
                 .onException { }
                 .flowOn(Dispatchers.Main)
-                .collect { onGetWallet(it) }
+                .collect { onGetWallet(it.wallet) }
         }
     }
 

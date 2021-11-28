@@ -12,7 +12,7 @@ import com.nunchuk.android.messages.util.displayNameOrId
 import com.nunchuk.android.messages.util.getBodyElementValueByKey
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.model.TransactionExt
+import com.nunchuk.android.model.TransactionExtended
 import com.nunchuk.android.model.toRoomWalletData
 
 internal class NunchukTransactionNotificationHolder(
@@ -20,7 +20,7 @@ internal class NunchukTransactionNotificationHolder(
     val viewTransaction: (walletId: String, txId: String, initEventId: String) -> Unit
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(roomWallet: RoomWallet?, transactions: List<TransactionExt>, model: NunchukTransactionMessage) {
+    fun bind(roomWallet: RoomWallet?, transactions: List<TransactionExtended>, model: NunchukTransactionMessage) {
         val context = itemView.context
         when (model.msgType) {
             SIGN -> {
@@ -59,7 +59,7 @@ internal class NunchukTransactionNotificationHolder(
 
     private fun bindReceiveTransaction(
         roomWallet: RoomWallet?,
-        transactions: List<TransactionExt>,
+        transactions: List<TransactionExtended>,
         model: NunchukTransactionMessage
     ) {
         val initEventId = model.timelineEvent.eventId

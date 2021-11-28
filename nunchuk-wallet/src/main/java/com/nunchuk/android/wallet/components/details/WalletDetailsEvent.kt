@@ -2,7 +2,7 @@ package com.nunchuk.android.wallet.components.details
 
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.WalletExtended
 
 sealed class WalletDetailsEvent {
     data class Loading(val loading: Boolean) : WalletDetailsEvent()
@@ -16,6 +16,6 @@ sealed class WalletDetailsEvent {
 }
 
 data class WalletDetailsState(
-    val wallet: Wallet = Wallet(),
+    val walletExtended: WalletExtended = WalletExtended(),
     val transactions: List<Transaction> = emptyList()
 )
