@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <style name="NCText">
         <item name="android:textColor">@color/nc_primary_color</item>
     </style>
 
     <style name="NCText.Heading" parent="NCText">
         <item name="android:textSize">@dimen/nc_text_size_24</item>
-        <item name="fontTextStyle">semi_bold</item>
+        <item name="android:fontFamily">@font/montserrat_medium</item>
     </style>
 
     <style name="NCText.Title" parent="NCText">
