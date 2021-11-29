@@ -6,9 +6,8 @@ import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.InitAppSettingsUseCase
 import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
 import com.nunchuk.android.model.AppSettings
-import com.nunchuk.android.utils.CrashlyticsReporter
+import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
@@ -43,9 +42,7 @@ internal class NetworkSettingViewModel @Inject constructor(
         viewModelScope.launch {
             getAppSettingUseCase.execute()
                 .flowOn(Dispatchers.IO)
-                .catch {
-                    CrashlyticsReporter.recordException(it)
-                }
+                .onException { }
                 .flowOn(Dispatchers.Main)
                 .collect {
                     initAppSettings = it
@@ -63,9 +60,7 @@ internal class NetworkSettingViewModel @Inject constructor(
         viewModelScope.launch {
             updateAppSettingUseCase.execute(appSettings)
                 .flowOn(Dispatchers.IO)
-                .catch {
-                    CrashlyticsReporter.recordException(it)
-                }
+                .onException { }
                 .flowOn(Dispatchers.Main)
                 .collect {
                     initAppSettings = it
@@ -81,9 +76,7 @@ internal class NetworkSettingViewModel @Inject constructor(
         viewModelScope.launch {
             initAppSettingsUseCase.execute()
                 .flowOn(Dispatchers.IO)
-                .catch {
-                    CrashlyticsReporter.recordException(it)
-                }
+                .onException { }
                 .flowOn(Dispatchers.Main)
                 .collect {
                     initAppSettings = it

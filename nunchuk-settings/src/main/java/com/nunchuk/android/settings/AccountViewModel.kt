@@ -2,16 +2,21 @@ package com.nunchuk.android.settings
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.callbacks.SyncFileCallBack
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.UploadFileUseCase
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.profile.UpdateUseProfileUseCase
 import com.nunchuk.android.core.provider.AppInfoProvider
+import com.nunchuk.android.model.SyncFileEventHelper
+import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 internal class AccountViewModel @Inject constructor(
@@ -30,6 +35,16 @@ internal class AccountViewModel @Inject constructor(
                 account = accountManager.getAccount(),
                 appVersion = appInfoProvider.getAppVersion()
             )
+        }
+
+        SyncFileEventHelper.syncFileExecutor = object : SyncFileCallBack {
+            override fun onSync(finished: Boolean, progress: Int) {
+                postState {
+                    copy(
+                        syncProgress = progress
+                    )
+                }
+            }
         }
     }
 

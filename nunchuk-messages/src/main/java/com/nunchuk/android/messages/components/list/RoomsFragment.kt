@@ -85,6 +85,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     }
 
     private fun observeInitialMatrixSync() {
+        //only run once
         SessionHolder.activeSession?.getInitialSyncProgressStatus()?.observe(viewLifecycleOwner) { status ->
             Timber.d("Matrix sync status, $status")
             if (status is InitialSyncProgressService.Status.Progressing) {

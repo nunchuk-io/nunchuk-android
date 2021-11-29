@@ -15,7 +15,6 @@ internal data class WalletsState(
 )
 
 internal sealed class WalletsEvent {
-    data class GetConnectionStatusSuccessEvent(val connectionStatus: ConnectionStatus) : WalletsEvent()
     data class Loading(val loading: Boolean) : WalletsEvent()
     data class ShowErrorEvent(val message: String) : WalletsEvent()
     object AddWalletEvent : WalletsEvent()
