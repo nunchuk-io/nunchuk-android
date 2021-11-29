@@ -35,4 +35,13 @@
         android:layout_height="match_parent"
         android:layout_marginTop="@dimen/nc_padding_8" />
 
+    <ViewStub
+        android:id="@+id/viewStubEmptyState"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout="@layout/layout_empty_state_contacts"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

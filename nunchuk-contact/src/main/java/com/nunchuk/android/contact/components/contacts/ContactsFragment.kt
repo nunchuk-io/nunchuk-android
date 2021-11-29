@@ -8,15 +8,19 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
+import com.nunchuk.android.contact.R
 import com.nunchuk.android.contact.databinding.FragmentContactsBinding
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.model.Contact
+import com.nunchuk.android.widget.NCFontButton
 
 class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
 
     private val viewModel: ContactsViewModel by viewModels { factory }
 
     private lateinit var adapter: ContactsAdapter
+
+    private var emptyStateView : View? = null
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -37,6 +41,11 @@ class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
         viewModel.registerNewContactRequestEvent()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        emptyStateView = null
+    }
+
     private fun setupViews() {
         adapter = ContactsAdapter {}
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)
@@ -46,6 +55,11 @@ class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
         }
         binding.viewAll.setOnClickListener {
             navigator.openPendingContactsScreen(childFragmentManager, viewModel::retrieveContacts)
+        }
+
+        emptyStateView = binding.viewStubEmptyState.inflate()
+        emptyStateView?.findViewById<NCFontButton>(R.id.btnAddContacts)?.setOnClickListener {
+            navigator.openAddContactsScreen(childFragmentManager) {}
         }
     }
 
@@ -60,7 +74,7 @@ class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
 
     private fun updateContacts(state: ContactsState) {
         adapter.items = state.contacts
-        binding.empty.isVisible = state.contacts.isEmpty()
+        emptyStateView?.isVisible = state.contacts.isEmpty()
         adapter.items = state.contacts
     }
 
