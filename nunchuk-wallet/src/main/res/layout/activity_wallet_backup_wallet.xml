@@ -37,7 +37,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
-    <com.nunchuk.android.widget.NCFontTextView
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/title"
         style="@style/NCText.Heading"
         android:layout_width="match_parent"
@@ -47,7 +47,6 @@
         android:gravity="center"
         android:paddingVertical="@dimen/nc_padding_8"
         android:text="@string/nc_wallet_backup_your_wallet"
-        app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/iconInfo" />
 

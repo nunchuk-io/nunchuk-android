@@ -48,7 +48,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
-        <com.nunchuk.android.widget.NCFontTextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/signerName"
             style="@style/NCText.Heading"
             android:layout_width="wrap_content"

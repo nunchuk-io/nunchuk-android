@@ -24,7 +24,7 @@
             android:text="@string/nc_message_chat_info" />
     </androidx.appcompat.widget.Toolbar>
 
-    <com.nunchuk.android.widget.NCFontTextView
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/avatarHolder"
         style="@style/NCText.Heading"
         android:layout_width="80dp"
@@ -47,7 +47,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
-    <com.nunchuk.android.widget.NCFontTextView
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/name"
         style="@style/NCText.Heading"
         android:layout_width="0dp"

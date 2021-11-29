@@ -38,7 +38,6 @@
                 style="@style/NCText.Heading"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="Montserrat-SemiBold"
                 tools:text="Hung Tran" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -75,7 +74,7 @@
             android:id="@+id/layoutSync"
             layout="@layout/layout_syncing_data"/>
 
-        <com.nunchuk.android.widget.NCFontTextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/avatarHolder"
             style="@style/NCText.Heading"
             android:layout_width="80dp"
