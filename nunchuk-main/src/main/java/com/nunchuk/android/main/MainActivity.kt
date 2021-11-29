@@ -10,7 +10,10 @@ import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.util.saveToFile
 import com.nunchuk.android.main.databinding.ActivityMainBinding
+import com.nunchuk.android.main.di.MainAppEvent
+import java.io.*
 import javax.inject.Inject
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
@@ -27,8 +30,36 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+
+        viewModel.syncInitMatrixState()
         viewModel.scheduleGetBTCConvertPrice()
         setupNavigationView()
+        subscribeEvents()
+    }
+
+    private fun subscribeEvents() {
+        viewModel.event.observe(this, ::handleEvent)
+    }
+
+    private fun handleEvent(event: MainAppEvent) {
+        when (event) {
+            is MainAppEvent.DownloadFileSyncSucceed -> {
+                handleDownloadedSyncFile(event)
+            }
+            is MainAppEvent.UploadFileSyncSucceed -> {
+                viewModel.backupFile(event.fileJsonInfo, event.fileUri)
+            }
+            is MainAppEvent.SyncInitMatrixStateSucceed -> {
+                viewModel.syncWalletData(event.response)
+            }
+        }
+    }
+
+    private fun handleDownloadedSyncFile(event: MainAppEvent.DownloadFileSyncSucceed) {
+        event.responseBody.byteStream()
+            .saveToFile(externalCacheDir.toString() + File.separator + "FileBackup")
+        val saveFile = File(externalCacheDir.toString() + File.separator + "FileBackup")
+        viewModel.consumeSyncFile(event.jsonInfo, saveFile.readBytes())
     }
 
     private val listener = NavController.OnDestinationChangedListener { _, destination, _ ->

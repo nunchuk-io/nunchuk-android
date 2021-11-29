@@ -44,7 +44,7 @@ class RoomsViewModel @Inject constructor(
                 viewModelScope.launch {
                     getRoomSummaryListUseCase.execute()
                         .onException { }
-                        .collect { updateState { copy(rooms = it) } }
+                        .collect { updateState { copy(rooms = it.filter { roomSummary -> !roomSummary.hasTag(SYNC_TAG_ROOM) }) } }
                 }
             }
         })
@@ -79,7 +79,12 @@ class RoomsViewModel @Inject constructor(
 
     private fun onRetrieveMessageSuccess(p: Pair<List<RoomSummary>, List<RoomWallet>>) {
         event(LoadingEvent(false))
-        updateState { copy(rooms = p.first.sortByLastMessage(), roomWallets = p.second) }
+        updateState {
+            copy(
+                rooms = p.first.filter { roomSummary -> !roomSummary.hasTag(SYNC_TAG_ROOM) }.sortByLastMessage(),
+                roomWallets = p.second
+            )
+        }
     }
 
     fun removeRoom(roomSummary: RoomSummary) {
@@ -116,6 +121,7 @@ class RoomsViewModel @Inject constructor(
 
     companion object {
         private const val DELAY_IN_SECONDS = 2L
+        private const val SYNC_TAG_ROOM = "io.nunchuk.sync"
     }
 
 }

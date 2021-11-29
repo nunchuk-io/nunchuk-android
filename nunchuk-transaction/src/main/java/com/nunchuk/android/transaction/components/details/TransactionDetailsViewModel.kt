@@ -76,7 +76,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     remoteSigners = it.second
                 }
             getTransactionUseCase.execute(walletId, txId)
-                .catch { event(TransactionDetailsError(it.message.orEmpty())) }
+                .onException { event(TransactionDetailsError(it.message.orEmpty())) }
                 .collect { onRetrieveTransactionSuccess(it) }
         }
     }

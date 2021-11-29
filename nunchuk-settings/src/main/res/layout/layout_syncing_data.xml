@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/nc_bg_syncing_data"
+    android:padding="@dimen/nc_padding_24"
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+
+    <ImageView
+        android:id="@+id/ivSync"
+        android:layout_width="@dimen/nc_padding_32"
+        android:layout_height="@dimen/nc_padding_32"
+        android:src="@drawable/ic_sync"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/nc_primary_color" />
+
+    <TextView
+        android:id="@+id/tvSyncingData"
+        style="@style/NCText.Title.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_10"
+        android:text="@string/nc_txt_syncing_wallets_data"
+        android:textColor="@color/nc_primary_color"
+        android:textSize="@dimen/nc_text_size_14"
+        app:layout_constraintBottom_toTopOf="@+id/progressBarSyncing"
+        app:layout_constraintStart_toEndOf="@+id/ivSync"
+        app:layout_constraintTop_toTopOf="@+id/ivSync" />
+
+    <TextView
+        android:id="@+id/tvSyncingPercent"
+        style="@style/NCText.Title.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/nc_primary_color"
+        android:textSize="@dimen/nc_text_size_14"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="66%" />
+
+
+    <ProgressBar
+        android:id="@+id/progressBarSyncing"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/nc_padding_8"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        android:indeterminate="false"
+        android:progressDrawable="@drawable/nc_bg_progress_sync"
+        app:layout_constraintBottom_toBottomOf="@+id/ivSync"
+        app:layout_constraintEnd_toEndOf="@+id/tvSyncingPercent"
+        app:layout_constraintStart_toStartOf="@+id/tvSyncingData"
+        app:layout_constraintTop_toBottomOf="@+id/tvSyncingData"
+        tools:progress="50" />
+</androidx.constraintlayout.widget.ConstraintLayout>

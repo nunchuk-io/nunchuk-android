@@ -4,8 +4,12 @@ import com.nunchuk.android.core.account.AccountInfo
 
 data class AccountState(
     val appVersion: String = "",
-    val account: AccountInfo = AccountInfo()
-)
+    val account: AccountInfo = AccountInfo(),
+    val syncProgress: Int = 0,
+    val finishedSync: Boolean = false
+) {
+    fun isSyncing() = syncProgress in 1..99
+}
 
 sealed class AccountEvent {
     object SignOutEvent : AccountEvent()

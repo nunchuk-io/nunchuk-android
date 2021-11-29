@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:paddingTop="@dimen/nc_padding_16"
     android:paddingHorizontal="@dimen/nc_text_size_16"
     android:scrollbars="none">
 
@@ -70,18 +71,22 @@
                 android:src="@drawable/ic_camera" />
         </androidx.cardview.widget.CardView>
 
+        <include
+            android:id="@+id/layoutSync"
+            layout="@layout/layout_syncing_data"/>
+
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/avatarHolder"
             style="@style/NCText.Heading"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="@dimen/nc_padding_16"
             android:background="@drawable/nc_circle_beeswax_light_background"
             android:gravity="center"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.498"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/layoutSync"
             tools:text="HT" />
 
         <com.nunchuk.android.widget.NCFontTextView
