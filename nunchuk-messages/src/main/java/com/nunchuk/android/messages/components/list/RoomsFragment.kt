@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewStub
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -12,11 +13,12 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.hideLoading
-import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
 import com.nunchuk.android.messages.databinding.FragmentMessagesBinding
 import com.nunchuk.android.messages.util.shouldShow
 import com.nunchuk.android.model.RoomWallet
+import com.nunchuk.android.widget.NCFontButton
 import org.matrix.android.sdk.api.session.initsync.InitSyncStep
 import org.matrix.android.sdk.api.session.initsync.InitialSyncProgressService
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -29,8 +31,9 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
     @Inject
     lateinit var accountManager: AccountManager
-
     private lateinit var adapter: RoomAdapter
+
+    private var emptyStateView : View? = null
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -51,6 +54,11 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
         viewModel.retrieveMessages()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        emptyStateView = null
+    }
+
     private fun setupViews() {
         adapter = RoomAdapter(accountManager.getAccount().name, ::openRoomDetailScreen, viewModel::removeRoom)
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)
@@ -58,6 +66,13 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
         binding.fab.setOnClickListener {
             navigator.openCreateRoomScreen(requireActivity().supportFragmentManager)
         }
+        emptyStateView = binding.viewStubEmptyState.inflate()
+        emptyStateView?.findViewById<NCFontButton>(R.id.btnAddContacts)?.setOnClickListener {
+            navigator.openAddContactsScreen(childFragmentManager) {
+                viewModel.retrieveMessages()
+            }
+        }
+        emptyStateView?.isVisible = false
     }
 
     private fun openRoomDetailScreen(summary: RoomSummary) {
@@ -84,13 +99,14 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
         Timber.d("handleState, state.rooms.isEmpty() = ${state.rooms.isEmpty()}")
         adapter.roomWallets = state.roomWallets.map(RoomWallet::roomId)
         adapter.roomSummaries = state.rooms.filter(RoomSummary::shouldShow)
-        binding.skeletonContainer.root.isVisible = state.rooms.isEmpty()
+        emptyStateView?.isVisible = state.rooms.isEmpty()
+
         hideLoading()
     }
 
     private fun handleEvent(event: RoomsEvent) {
         when (event) {
-            is LoadingEvent -> showOrHideLoading(event.loading)
+            is LoadingEvent -> binding.skeletonContainer.root.isVisible = event.loading
         }
     }
 

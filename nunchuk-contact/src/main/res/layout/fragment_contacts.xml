@@ -93,21 +93,6 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/empty"
-        style="@style/NCText.Body"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:paddingVertical="@dimen/nc_padding_4"
-        android:text="@string/nc_contact_no_contact"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="visible" />
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
@@ -131,4 +116,14 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <ViewStub
+        android:id="@+id/viewStubEmptyState"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="visible"
+        android:layout="@layout/layout_empty_state_contacts"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
