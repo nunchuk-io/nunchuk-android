@@ -12,7 +12,6 @@ import com.nunchuk.android.contact.R
 import com.nunchuk.android.contact.databinding.FragmentContactsBinding
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.model.Contact
-import com.nunchuk.android.widget.NCFontButton
 
 class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
 
@@ -20,7 +19,7 @@ class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
 
     private lateinit var adapter: ContactsAdapter
 
-    private var emptyStateView : View? = null
+    private var emptyStateView: View? = null
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -58,8 +57,8 @@ class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
         }
 
         emptyStateView = binding.viewStubEmptyState.inflate()
-        emptyStateView?.findViewById<NCFontButton>(R.id.btnAddContacts)?.setOnClickListener {
-            navigator.openAddContactsScreen(childFragmentManager) {}
+        emptyStateView?.findViewById<View>(R.id.btnAddContacts)?.setOnClickListener {
+            navigator.openAddContactsScreen(childFragmentManager)
         }
     }
 

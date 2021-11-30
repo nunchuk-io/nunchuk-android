@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewStub
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,7 +17,6 @@ import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
 import com.nunchuk.android.messages.databinding.FragmentMessagesBinding
 import com.nunchuk.android.messages.util.shouldShow
 import com.nunchuk.android.model.RoomWallet
-import com.nunchuk.android.widget.NCFontButton
 import org.matrix.android.sdk.api.session.initsync.InitSyncStep
 import org.matrix.android.sdk.api.session.initsync.InitialSyncProgressService
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -33,7 +31,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     lateinit var accountManager: AccountManager
     private lateinit var adapter: RoomAdapter
 
-    private var emptyStateView : View? = null
+    private var emptyStateView: View? = null
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -67,10 +65,8 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
             navigator.openCreateRoomScreen(requireActivity().supportFragmentManager)
         }
         emptyStateView = binding.viewStubEmptyState.inflate()
-        emptyStateView?.findViewById<NCFontButton>(R.id.btnAddContacts)?.setOnClickListener {
-            navigator.openAddContactsScreen(childFragmentManager) {
-                viewModel.retrieveMessages()
-            }
+        emptyStateView?.findViewById<View>(R.id.btnAddContacts)?.setOnClickListener {
+            navigator.openAddContactsScreen(childFragmentManager, viewModel::retrieveMessages)
         }
         emptyStateView?.isVisible = false
     }
