@@ -9,14 +9,11 @@ import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.profile.UpdateUseProfileUseCase
 import com.nunchuk.android.core.provider.AppInfoProvider
 import com.nunchuk.android.model.SyncFileEventHelper
-import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 internal class AccountViewModel @Inject constructor(

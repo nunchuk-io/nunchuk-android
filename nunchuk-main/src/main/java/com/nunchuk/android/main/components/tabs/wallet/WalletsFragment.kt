@@ -19,11 +19,8 @@ import com.nunchuk.android.main.MainActivityViewModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.main.databinding.FragmentWalletsBinding
-import com.nunchuk.android.model.*
 import com.nunchuk.android.main.di.MainAppEvent
-import com.nunchuk.android.model.MasterSigner
-import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.*
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 
@@ -47,7 +44,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     private fun setupViews() {
         binding.doLater.setOnClickListener { hideIntroContainerView() }
         binding.btnAdd.setOnClickListener { viewModel.handleAddSignerOrWallet() }
-        binding.signerHeader.setOnClickListener { viewModel.handleAddSigner() }
+        binding.btnAddSigner.setOnClickListener { viewModel.handleAddSigner() }
         binding.ivAddWallet.setOnClickListener { viewModel.handleAddWallet() }
     }
 

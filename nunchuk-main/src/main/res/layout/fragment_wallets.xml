@@ -124,9 +124,12 @@
                 android:paddingStart="@dimen/nc_padding_4"
                 android:paddingEnd="@dimen/nc_padding_8"
                 android:textColor="@color/nc_primary_color"
+                android:textSize="@dimen/nc_text_size_10"
+                app:fontTextStyle="semi_bold"
                 app:layout_constraintBottom_toBottomOf="@+id/walletsHeader"
                 app:layout_constraintStart_toEndOf="@+id/walletsHeader"
-                app:layout_constraintTop_toTopOf="@+id/walletsHeader" />
+                app:layout_constraintTop_toTopOf="@+id/walletsHeader"
+                tools:text="Online" />
 
             <ImageView
                 android:id="@+id/ivAddWallet"
@@ -171,16 +174,36 @@
             android:orientation="vertical"
             android:paddingVertical="@dimen/nc_padding_8" />
 
-        <com.nunchuk.android.widget.NCFontTextView
-            android:id="@+id/signerHeader"
-            style="@style/NCText.Title"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/nc_padding_8"
-            android:drawableEnd="@drawable/ic_plus"
-            android:paddingVertical="@dimen/nc_padding_8"
-            android:text="@string/nc_title_signers"
-            app:fontTextStyle="semi_bold" />
+            android:layout_marginTop="@dimen/nc_padding_8">
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/signerHeader"
+                style="@style/NCText.Title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/nc_padding_8"
+                android:drawableEnd="@drawable/ic_plus"
+                android:paddingVertical="@dimen/nc_padding_8"
+                android:text="@string/nc_title_signers"
+                app:fontTextStyle="semi_bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/btn_add_signer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:paddingVertical="@dimen/nc_padding_8"
+                android:src="@drawable/ic_plus"
+                app:layout_constraintBottom_toBottomOf="@+id/signerHeader"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/signerHeader" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <ProgressBar
             android:id="@+id/signer_progress"
