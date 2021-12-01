@@ -68,6 +68,7 @@
     <string name="nc_message_room_not_found">Room not found!</string>
     <string name="nc_message_contact_not_found">Contact not found!</string>
     <string name="nc_message_room_name_updated">Room name has been updated</string>
+    <string name="nc_message_empty_messages">If you want to create a shared wallet, please add your contacts then start a conversation.</string>
     <string name="nc_message_empty_contacts">You don\'t have any contacts</string>
     <string name="nc_message_new_members_added">New members have been added</string>
 

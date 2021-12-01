@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -56,10 +58,17 @@ class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
             navigator.openPendingContactsScreen(childFragmentManager, viewModel::retrieveContacts)
         }
 
-        emptyStateView = binding.viewStubEmptyState.inflate()
+        setEmptyState()
+
         emptyStateView?.findViewById<View>(R.id.btnAddContacts)?.setOnClickListener {
             navigator.openAddContactsScreen(childFragmentManager)
         }
+    }
+
+    private fun setEmptyState() {
+        emptyStateView = binding.viewStubEmptyState.inflate()
+        emptyStateView?.findViewById<TextView>(R.id.tvEmptyStateDes)?.text = getString(R.string.nc_contact_no_contact)
+        emptyStateView?.findViewById<ImageView>(R.id.ivContactAdd)?.setImageResource(R.drawable.ic_contact_add)
     }
 
     private fun observeEvent() {
@@ -74,7 +83,6 @@ class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
     private fun updateContacts(state: ContactsState) {
         adapter.items = state.contacts
         emptyStateView?.isVisible = state.contacts.isEmpty()
-        adapter.items = state.contacts
     }
 
     private fun bindPendingContact(contact: Contact) {

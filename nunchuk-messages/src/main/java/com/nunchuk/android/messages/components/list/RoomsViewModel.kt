@@ -15,13 +15,13 @@ import com.nunchuk.android.utils.onException
 import io.reactivex.Completable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.zip
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.Room
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
+import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -30,6 +30,11 @@ class RoomsViewModel @Inject constructor(
     private val getRoomSummaryListUseCase: GetRoomSummaryListUseCase,
     private val leaveRoomUseCase: LeaveRoomUseCase
 ) : NunchukViewModel<RoomsState, RoomsEvent>() {
+
+    val roomSummariesLive = SessionHolder.activeSession?.getRoomSummariesLive(roomSummaryQueryParams {
+        memberships = Membership.activeMemberships()
+    })
+    val initialSyncProgressStatus = SessionHolder.activeSession?.getInitialSyncProgressStatus()
 
     override val initialState = RoomsState.empty()
 
@@ -61,14 +66,13 @@ class RoomsViewModel @Inject constructor(
     }
 
     fun retrieveMessages() {
-        viewModelScope.launch {
-            getRoomSummaryListUseCase.execute()
-                .zip(getAllRoomWalletsUseCase.execute()) { rooms, wallets -> rooms to wallets }
-                .flowOn(IO)
-                .onException { onRetrieveMessageError(it) }
-                .flowOn(Dispatchers.Main)
-                .collect { onRetrieveMessageSuccess(it) }
-        }
+        getRoomSummaryListUseCase.execute()
+            .zip(getAllRoomWalletsUseCase.execute()) { rooms, wallets -> rooms to wallets }
+            .flowOn(IO)
+            .onException { onRetrieveMessageError(it) }
+            .flowOn(Dispatchers.Main)
+            .onEach { onRetrieveMessageSuccess(it) }
+            .launchIn(viewModelScope)
     }
 
     private fun onRetrieveMessageError(t: Throwable) {
