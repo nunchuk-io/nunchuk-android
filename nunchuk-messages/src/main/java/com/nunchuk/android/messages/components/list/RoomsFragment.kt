@@ -4,13 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
@@ -20,7 +21,6 @@ import com.nunchuk.android.model.RoomWallet
 import org.matrix.android.sdk.api.session.initsync.InitSyncStep
 import org.matrix.android.sdk.api.session.initsync.InitialSyncProgressService
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
-import timber.log.Timber
 import javax.inject.Inject
 
 class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
@@ -29,6 +29,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
     @Inject
     lateinit var accountManager: AccountManager
+
     private lateinit var adapter: RoomAdapter
 
     private var emptyStateView: View? = null
@@ -42,9 +43,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
         super.onViewCreated(view, savedInstanceState)
 
         setupViews()
-
         observeEvent()
-        observeInitialMatrixSync()
     }
 
     override fun onResume() {
@@ -64,11 +63,17 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
         binding.fab.setOnClickListener {
             navigator.openCreateRoomScreen(requireActivity().supportFragmentManager)
         }
-        emptyStateView = binding.viewStubEmptyState.inflate()
+        setEmptyState()
         emptyStateView?.findViewById<View>(R.id.btnAddContacts)?.setOnClickListener {
             navigator.openAddContactsScreen(childFragmentManager, viewModel::retrieveMessages)
         }
         emptyStateView?.isVisible = false
+    }
+
+    private fun setEmptyState() {
+        emptyStateView = binding.viewStubEmptyState.inflate()
+        emptyStateView?.findViewById<TextView>(R.id.tvEmptyStateDes)?.text = getString(R.string.nc_message_empty_messages)
+        emptyStateView?.findViewById<ImageView>(R.id.ivContactAdd)?.setImageResource(R.drawable.ic_messages_new)
     }
 
     private fun openRoomDetailScreen(summary: RoomSummary) {
@@ -78,12 +83,10 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     private fun observeEvent() {
         viewModel.state.observe(viewLifecycleOwner, ::handleState)
         viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
-    }
-
-    private fun observeInitialMatrixSync() {
-        //only run once
-        SessionHolder.activeSession?.getInitialSyncProgressStatus()?.observe(viewLifecycleOwner) { status ->
-            Timber.d("Matrix sync status, $status")
+        viewModel.roomSummariesLive?.observe(viewLifecycleOwner) {
+            viewModel.retrieveMessages()
+        }
+        viewModel.initialSyncProgressStatus?.observe(viewLifecycleOwner) { status ->
             if (status is InitialSyncProgressService.Status.Progressing) {
                 if (status.initSyncStep == InitSyncStep.ImportingAccount && status.percentProgress == 100) {
                     viewModel.retrieveMessages()
@@ -93,7 +96,6 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     }
 
     private fun handleState(state: RoomsState) {
-        Timber.d("handleState, state.rooms.isEmpty() = ${state.rooms.isEmpty()}")
         adapter.roomWallets = state.roomWallets.map(RoomWallet::roomId)
         adapter.roomSummaries = state.rooms.filter(RoomSummary::shouldShow)
         emptyStateView?.isVisible = state.rooms.isEmpty()
