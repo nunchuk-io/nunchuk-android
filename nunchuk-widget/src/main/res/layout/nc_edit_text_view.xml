@@ -6,17 +6,16 @@
     android:layout_height="wrap_content"
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
-    <com.nunchuk.android.widget.NCFontTextView
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/textView"
+        style="@style/NCText.EditText.Title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:singleLine="true"
-        android:textColor="@color/nc_second_color"
-        android:textSize="@dimen/nc_text_size_14"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="Name" />
+        tools:text="Simple Title" />
 
     <com.nunchuk.android.widget.NCFontEditText
         android:id="@+id/editText"

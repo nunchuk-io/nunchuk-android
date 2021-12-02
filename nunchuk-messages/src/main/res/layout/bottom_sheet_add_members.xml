@@ -85,9 +85,11 @@
         android:minWidth="250dp"
         android:textColor="@color/nc_primary_color"
         android:textSize="@dimen/nc_text_size_16"
+        app:layout_constraintBottom_toBottomOf="@+id/to"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/to"
-        app:layout_constraintTop_toBottomOf="@id/receipts" />
+        app:layout_constraintTop_toBottomOf="@id/receipts"
+        app:layout_constraintTop_toTopOf="@+id/to" />
 
     <View
         android:id="@+id/divider"

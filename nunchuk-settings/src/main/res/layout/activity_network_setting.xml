@@ -61,9 +61,9 @@
                     app:layout_constraintTop_toBottomOf="@+id/tvMainNetSeverTitle"
                     tools:text="mainset.5001" />
 
-                <com.nunchuk.android.widget.NCFontTextView
+                <androidx.appcompat.widget.AppCompatTextView
                     android:id="@+id/tvMainNetSeverTitle"
-                    style="@style/NCText.Body"
+                    style="@style/NCText.EditText.Title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="@dimen/nc_text_size_16"
@@ -117,9 +117,9 @@
                     app:layout_constraintTop_toBottomOf="@+id/tvTestNetSeverTitle"
                     tools:text="testnet.5001" />
 
-                <com.nunchuk.android.widget.NCFontTextView
+                <androidx.appcompat.widget.AppCompatTextView
                     android:id="@+id/tvTestNetSeverTitle"
-                    style="@style/NCText.Body"
+                    style="@style/NCText.EditText.Title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="@dimen/nc_text_size_16"

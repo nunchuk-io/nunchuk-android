@@ -31,22 +31,19 @@
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginStart="16dp"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:paddingVertical="@dimen/nc_padding_8"
         android:text="@string/nc_ssigner_recover_seed_phrase_note"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
-    <com.nunchuk.android.widget.NCFontTextView
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/mnemonicLabel"
-        style="@style/NCText.Body.Small"
+        style="@style/NCText.EditText.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_8"
         android:layout_marginEnd="@dimen/nc_padding_16"
-        android:padding="@dimen/nc_padding_4"
         android:text="@string/nc_ssigner_recover_seed_phrase"
-        app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/desc" />
 

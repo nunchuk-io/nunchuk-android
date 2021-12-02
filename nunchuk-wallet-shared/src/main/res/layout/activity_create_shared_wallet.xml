@@ -24,13 +24,13 @@
             android:text="@string/nc_wallet_create_shared_wallet" />
     </androidx.appcompat.widget.Toolbar>
 
-    <com.nunchuk.android.widget.NCFontTextView
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/walletNameLabel"
-        style="@style/NCText.Body.Small"
-        android:layout_marginTop="@dimen/nc_padding_16"
+        style="@style/NCText.EditText.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_16"
         android:text="@string/nc_wallet_wallet_name"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
@@ -47,11 +47,10 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/walletNameCounter"
-        style="@style/NCText.Body.Small"
+        style="@style/NCText.EditText.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:textColor="@color/nc_grey_dark_color"
         app:layout_constraintBottom_toBottomOf="@+id/walletNameLabel"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/walletNameLabel"

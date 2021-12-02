@@ -35,16 +35,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
-    <com.nunchuk.android.widget.NCFontTextView
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/nameTitle"
-        style="@style/NCText.Title.Small"
+        style="@style/NCText.EditText.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:paddingVertical="@dimen/nc_padding_8"
         android:text="@string/nc_signer_passphrase"
-        app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/note" />
 
@@ -55,10 +53,9 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_2"
         android:gravity="center"
-        android:paddingVertical="@dimen/nc_padding_8"
+        android:paddingBottom="@dimen/nc_padding_4"
         android:text="@string/nc_signer_optional"
         android:textColor="@color/nc_grey_dark_color"
-        app:fontTextStyle="semi_bold"
         app:layout_constraintBottom_toBottomOf="@+id/nameTitle"
         app:layout_constraintStart_toEndOf="@+id/nameTitle"
         app:layout_constraintTop_toTopOf="@+id/nameTitle" />
@@ -74,16 +71,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/nameTitle" />
 
-    <com.nunchuk.android.widget.NCFontTextView
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/confirmPassphraseLabel"
-        style="@style/NCText.Title.Small"
+        style="@style/NCText.EditText.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:paddingVertical="@dimen/nc_padding_8"
         android:text="@string/nc_ssigner_confirm_passphrase"
-        app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/passphrase" />
 

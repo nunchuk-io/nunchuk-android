@@ -1,16 +1,13 @@
 package com.nunchuk.android.widget
 
 import android.content.Context
-import android.graphics.Color
-import android.text.*
-import android.text.style.ForegroundColorSpan
+import android.text.InputType
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
-import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
@@ -31,9 +28,9 @@ class NCEditTextView : ConstraintLayout, LifecycleObserver {
 
     private var titleId: Int = DEFAULT_VALUE
     private var title: String? = null
-    private var titleColor: Int = ContextCompat.getColor(context, R.color.nc_second_color)
+    private var titleColor: Int = ContextCompat.getColor(context, R.color.nc_primary_color)
     private var hintText: String? = null
-    private var titleSize: Float = resources.getDimension(R.dimen.nc_text_size_14)
+    private var titleSize: Float = resources.getDimension(R.dimen.nc_text_size_12)
     private var hintTextColor: Int = ContextCompat.getColor(context, R.color.nc_third_color)
     private var hintTextId: Int = DEFAULT_VALUE
     private var editTextColor: Int = ContextCompat.getColor(context, R.color.nc_black_color)
@@ -65,8 +62,8 @@ class NCEditTextView : ConstraintLayout, LifecycleObserver {
             hintText = attr.getString(R.styleable.NCEditTextView_edit_hint)
         }
 
-        titleColor = attr.getColor(R.styleable.NCEditTextView_edit_title_color, ContextCompat.getColor(context, R.color.nc_second_color))
-        titleSize = attr.getDimension(R.styleable.NCEditTextView_edit_title_text_size, resources.getDimension(R.dimen.nc_text_size_14))
+        titleColor = attr.getColor(R.styleable.NCEditTextView_edit_title_color, ContextCompat.getColor(context, R.color.nc_primary_color))
+        titleSize = attr.getDimension(R.styleable.NCEditTextView_edit_title_text_size, resources.getDimension(R.dimen.nc_text_size_12))
         hintTextColor = attr.getColor(R.styleable.NCEditTextView_edit_hint_color, ContextCompat.getColor(context, R.color.nc_third_color))
         editTextColor = attr.getColor(R.styleable.NCEditTextView_edit_text_color, ContextCompat.getColor(context, R.color.nc_black_color))
         inputType = attr.getInteger(R.styleable.NCEditTextView_edit_input_type, TEXT_TYPE)
@@ -84,18 +81,15 @@ class NCEditTextView : ConstraintLayout, LifecycleObserver {
     }
 
     private fun onBindView() {
-        val padding8 = context.resources.getDimensionPixelOffset(R.dimen.nc_padding_8)
         if (titleId == DEFAULT_VALUE) {
             if (title.isNullOrEmpty()) {
                 textView.visibility = View.GONE
             } else {
                 textView.visibility = View.VISIBLE
-                (editText.layoutParams as LayoutParams).topMargin = padding8
                 textView.text = title
             }
         } else {
             textView.visibility = View.VISIBLE
-            (editText.layoutParams as LayoutParams).topMargin = padding8
             textView.setText(titleId)
         }
 
@@ -148,63 +142,9 @@ class NCEditTextView : ConstraintLayout, LifecycleObserver {
         editText.layoutParams.height = editHigh.toInt()
     }
 
-    fun setTitle(title: String?) {
-        if (title.isNullOrEmpty()) {
-            textView.visibility = View.GONE
-        } else {
-            textView.visibility = View.VISIBLE
-            textView.text = title
-        }
-    }
-
-    fun setMandatory() {
-        val currentTitle = textView.text.toString()
-        val wordToSpan: Spannable = SpannableString("$currentTitle *")
-        wordToSpan.setSpan(ForegroundColorSpan(Color.RED), currentTitle.length, currentTitle.length + 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-        textView.text = wordToSpan
-    }
-
-    fun setEditText(text: String?) {
-        editText.setText(text)
-    }
-
-    fun setHintText(hintText: String) {
-        editText.hint = hintText
-    }
-
-    fun setEditTextBackground(resId: Int) {
-        editText.setBackgroundResource(resId)
-    }
-
     fun getEditText(): String = editText.text.toString()
 
-    fun getTitle(): String = textView.text.toString()
-
     fun getEditTextView(): EditText = editText
-
-    fun setEditTextInputType(type: Int) {
-        editText.inputType = type
-    }
-
-    fun addTextChangedListener(listener: TextWatcher) {
-        editText.addTextChangedListener(listener)
-    }
-
-    fun removeTextChangedListener(listener: TextWatcher) {
-        editText.removeTextChangedListener(listener)
-    }
-
-    fun setFilters(filters: Array<InputFilter>) {
-        editText.filters = filters
-    }
-
-    fun setImeOptions(imeOptions: Int) {
-        editText.imeOptions = imeOptions
-    }
-
-    fun setOnEditorActionListener(listener: TextView.OnEditorActionListener) {
-        editText.setOnEditorActionListener(listener)
-    }
 
     fun hideError() {
         editText.background = ResourcesCompat.getDrawable(resources, R.drawable.nc_edit_text_bg, null)
