@@ -27,7 +27,7 @@ internal class SignInViewModel @Inject constructor(
     private val accountManager: AccountManager
 ) : NunchukViewModel<Unit, SignInEvent>() {
 
-    private var staySignedIn = true
+    private var staySignedIn = false
 
     override val initialState = Unit
 
