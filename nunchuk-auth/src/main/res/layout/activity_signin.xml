@@ -13,12 +13,13 @@
 
     <CheckBox
         android:id="@+id/staySignIn"
+        style="@style/NCText.Body"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_10"
         android:layout_marginTop="@dimen/nc_padding_12"
         android:buttonTint="@color/nc_primary_color"
-        android:checked="true"
+        android:checked="false"
         android:text="@string/nc_text_stay_sign_in"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/password" />
@@ -33,6 +34,7 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
+        style="@style/NCText.Body"
         android:id="@+id/forgotPassword"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

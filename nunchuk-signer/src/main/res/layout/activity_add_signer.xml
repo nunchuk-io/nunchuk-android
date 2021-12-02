@@ -23,17 +23,15 @@
             android:text="@string/nc_create_signer_title" />
     </androidx.appcompat.widget.Toolbar>
 
-    <com.nunchuk.android.widget.NCFontTextView
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/signerNameLabel"
-        style="@style/NCText.Body.Small"
+        style="@style/NCText.EditText.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_24"
         android:layout_marginEnd="@dimen/nc_padding_16"
-        android:padding="@dimen/nc_padding_4"
         android:text="@string/nc_text_signer_name"
-        app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
@@ -43,7 +41,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/nc_padding_16"
-        android:padding="@dimen/nc_padding_4"
         android:textColor="@color/nc_grey_dark_color"
         app:layout_constraintBottom_toBottomOf="@+id/signerNameLabel"
         app:layout_constraintEnd_toEndOf="parent"
@@ -59,15 +56,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/signerNameLabel" />
 
-    <com.nunchuk.android.widget.NCFontTextView
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/signerSpecLabel"
-        style="@style/NCText.Body.Small"
+        style="@style/NCText.EditText.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_24"
         android:layout_marginEnd="@dimen/nc_padding_16"
-        android:padding="@dimen/nc_padding_4"
         android:text="@string/nc_text_signer_spec"
         app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"

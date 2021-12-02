@@ -44,15 +44,13 @@
 
     </RelativeLayout>
 
-    <com.nunchuk.android.widget.NCFontTextView
+    <androidx.appcompat.widget.AppCompatTextView
+        style="@style/NCText.EditText.Title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:text="Enter the emails of your contacts, separated by spaces"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_14"
-        app:fontTextStyle="semi_bold" />
+        android:text="@string/nc_contacts_enter_the_emails" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
@@ -87,7 +85,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:backgroundTint="@color/nc_whisper_color"
-                    android:hint="Type email here"
+                    android:hint="@string/nc_contacts_type_email_here"
                     android:inputType="textEmailAddress"
                     android:textColor="@color/nc_primary_color"
                     android:textSize="@dimen/nc_text_size_16" />
