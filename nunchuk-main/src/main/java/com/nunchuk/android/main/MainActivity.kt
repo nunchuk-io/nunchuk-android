@@ -13,6 +13,8 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.saveToFile
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 import com.nunchuk.android.main.di.MainAppEvent
+import org.matrix.android.sdk.api.session.initsync.InitSyncStep
+import org.matrix.android.sdk.api.session.initsync.InitialSyncProgressService
 import java.io.*
 import javax.inject.Inject
 
@@ -30,11 +32,28 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
-        viewModel.syncInitMatrixState()
-        viewModel.scheduleGetBTCConvertPrice()
+        setupData()
         setupNavigationView()
         subscribeEvents()
+        initObserver()
+    }
+
+    private fun setupData() {
+        viewModel.syncInitMatrixState()
+        viewModel.scheduleGetBTCConvertPrice()
+        viewModel.addBlockChainConnectionListener()
+    }
+
+    private fun initObserver() {
+        viewModel.initialSyncProgressStatus?.observe(this) { status ->
+            if (status is InitialSyncProgressService.Status.Progressing
+                && status.initSyncStep == InitSyncStep.ImportingAccount
+                && status.percentProgress == 100
+            ) {
+                viewModel.syncInitMatrixState()
+                viewModel.addBlockChainConnectionListener()
+            }
+        }
     }
 
     private fun subscribeEvents() {
@@ -48,9 +67,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
             is MainAppEvent.UploadFileSyncSucceed -> {
                 viewModel.backupFile(event.fileJsonInfo, event.fileUri)
-            }
-            is MainAppEvent.SyncInitMatrixStateSucceed -> {
-                viewModel.syncWalletData(event.response)
             }
         }
     }

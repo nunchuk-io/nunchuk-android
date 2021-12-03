@@ -57,6 +57,8 @@ internal class MainActivityViewModel @Inject constructor(
 
     override val initialState = MainAppState()
 
+    val initialSyncProgressStatus = SessionHolder.activeSession?.getInitialSyncProgressStatus()
+
     private var currentRoomSyncId = ""
     private lateinit var timeline: Timeline
 
@@ -64,7 +66,6 @@ internal class MainActivityViewModel @Inject constructor(
         initSyncEventExecutor()
         registerDownloadFileBackupEvent()
         registerBlockChainConnectionStatusExecutor()
-        addBlockChainConnectionListener()
     }
 
     fun scheduleGetBTCConvertPrice() {
@@ -102,7 +103,7 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
-    private fun addBlockChainConnectionListener() {
+    fun addBlockChainConnectionListener() {
         viewModelScope.launch {
             addBlockChainConnectionListenerUseCase.execute()
                 .flowOn(Dispatchers.IO)
@@ -283,7 +284,7 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
-    fun syncWalletData(response: SyncStateMatrixResponse) {
+    private fun syncWalletData(response: SyncStateMatrixResponse) {
         val syncRoomId = response.rooms?.join?.filter {
             it.value.timeline?.events?.any { roomEvent ->
                 roomEvent.type == SYNC_TAG_ROOM
