@@ -125,6 +125,7 @@
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/share_icon"
+                style="@style/NCText.Badges"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/nc_padding_4"
@@ -133,8 +134,6 @@
                 android:drawablePadding="@dimen/nc_padding_4"
                 android:paddingHorizontal="@dimen/nc_padding_8"
                 android:text="@string/nc_text_shared"
-                android:textColor="@color/nc_primary_color"
-                android:textSize="@dimen/nc_text_size_10"
                 app:layout_constraintStart_toStartOf="@+id/name"
                 app:layout_constraintTop_toBottomOf="@+id/name"
                 tools:text="Shared" />
