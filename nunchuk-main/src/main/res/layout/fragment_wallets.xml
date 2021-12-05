@@ -31,7 +31,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/nc_title_wallets"
-                android:src="@drawable/ic_info"
+                tools:src="@drawable/ic_key_info"
                 app:layout_constraintBottom_toBottomOf="@id/introSubtitle"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="@id/introTitle" />
@@ -55,6 +55,7 @@
                 android:layout_marginVertical="@dimen/nc_padding_8"
                 android:layout_marginStart="@dimen/nc_padding_16"
                 android:text="@string/nc_signer_intro_subtitle"
+                app:fontTextStyle="normal"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/iconInfo"
                 app:layout_constraintTop_toBottomOf="@+id/introTitle" />

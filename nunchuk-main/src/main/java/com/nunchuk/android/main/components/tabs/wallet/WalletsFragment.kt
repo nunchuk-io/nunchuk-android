@@ -153,6 +153,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         binding.introTitle.text = getString(R.string.nc_wallet_intro_title)
         binding.introSubtitle.text = getString(R.string.nc_wallet_intro_subtitle)
         binding.btnAdd.text = getString(R.string.nc_text_add_a_wallet)
+        binding.iconInfo.setImageResource(R.drawable.ic_wallet_info)
     }
 
     private fun showAddSignerIntro() {
@@ -160,6 +161,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         binding.introTitle.text = getString(R.string.nc_signer_intro_title)
         binding.introSubtitle.text = getString(R.string.nc_signer_intro_subtitle)
         binding.btnAdd.text = getString(R.string.nc_text_add_signer)
+        binding.iconInfo.setImageResource(R.drawable.ic_key_info)
     }
 
     private fun showWallets(wallets: List<WalletExtended>) {
