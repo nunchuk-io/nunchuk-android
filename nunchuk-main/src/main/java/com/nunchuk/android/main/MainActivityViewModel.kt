@@ -16,6 +16,7 @@ import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppState
 import com.nunchuk.android.messages.usecase.message.AddTagRoomUseCase
 import com.nunchuk.android.messages.usecase.message.CreateRoomUseCase
+import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.messages.util.TimelineListenerAdapter
 import com.nunchuk.android.messages.util.isLocalEvent
 import com.nunchuk.android.messages.util.isNunchukConsumeSyncEvent
@@ -43,6 +44,7 @@ internal class MainActivityViewModel @Inject constructor(
     private val enableAutoBackupUseCase: EnableAutoBackupUseCase,
     private val createRoomUseCase: CreateRoomUseCase,
     private val addTagRoomUseCase: AddTagRoomUseCase,
+    private val leaveRoomUseCase: LeaveRoomUseCase,
     private val uploadFileUseCase: UploadFileUseCase,
     private val downloadFileUseCase: DownloadFileUseCase,
     private val registerDownloadBackUpFileUseCase: RegisterDownloadBackUpFileUseCase,
@@ -233,7 +235,9 @@ internal class MainActivityViewModel @Inject constructor(
     private fun Room.addTagRoom(tagName: String) {
         viewModelScope.launch {
             addTagRoomUseCase.execute(tagName, roomId).flowOn(Dispatchers.IO)
-                .onException { }
+                .onException {
+                    leaveRoom(this@addTagRoom)
+                }
                 .flowOn(Dispatchers.Main)
                 .collect {
                     Timber.v("addTagRoom success ", it)
@@ -301,6 +305,15 @@ internal class MainActivityViewModel @Inject constructor(
             enableAutoBackup(syncRoomId)
             SessionHolder.activeSession?.getRoom(syncRoomId)?.retrieveTimelineEvents()
             currentRoomSyncId = syncRoomId
+        }
+    }
+
+    private fun leaveRoom(room: Room) {
+        viewModelScope.launch {
+            leaveRoomUseCase.execute(room)
+                .flowOn(Dispatchers.IO)
+                .onException { }
+                .collect { }
         }
     }
 
