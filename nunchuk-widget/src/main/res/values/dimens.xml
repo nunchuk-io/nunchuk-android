@@ -23,6 +23,7 @@
     <dimen name="nc_padding_44">44dp</dimen>
     <dimen name="nc_padding_48">48dp</dimen>
     <dimen name="nc_padding_56">56dp</dimen>
+    <dimen name="nc_padding_60">60dp</dimen>
     <dimen name="nc_padding_64">64dp</dimen>
     <dimen name="nc_padding_72">72dp</dimen>
 
@@ -47,6 +48,7 @@
     <dimen name="nc_text_size_32">32sp</dimen>
     <dimen name="nc_text_size_36">36sp</dimen>
 
+    <dimen name="nc_height_36">36dp</dimen>
     <dimen name="nc_height_44">44dp</dimen>
     <dimen name="nc_height_48">48dp</dimen>
     <dimen name="nc_height_60">60dp</dimen>

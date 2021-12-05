@@ -29,7 +29,7 @@
         android:singleLine="false"
         android:textColor="@color/nc_black_color"
         android:textCursorDrawable="@null"
-        android:textSize="@dimen/nc_text_size_14"
+        android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView"

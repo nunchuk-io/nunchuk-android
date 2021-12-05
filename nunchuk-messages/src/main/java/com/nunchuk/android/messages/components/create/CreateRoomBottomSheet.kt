@@ -70,8 +70,10 @@ class CreateRoomBottomSheet : BaseBottomSheet<BottomSheetCreateRoomBinding>() {
         if (receipts.isEmpty()) {
             binding.doneBtn.isVisible = false
             binding.receipts.removeAllViews()
+            binding.receipts.isVisible = false
         } else {
             binding.doneBtn.isVisible = true
+            binding.receipts.isVisible = true
             ReceiptsViewBinder(binding.receipts, receipts, viewModel::handleRemove).bindItems()
         }
     }

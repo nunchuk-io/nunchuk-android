@@ -15,6 +15,13 @@
         android:orientation="vertical"
         android:padding="@dimen/nc_padding_16">
 
+        <include
+            android:id="@+id/wallet_loading"
+            layout="@layout/view_wallet_skeleton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:visibility="gone" />
+
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/introContainer"
             android:layout_width="match_parent"
@@ -62,16 +69,13 @@
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/btnAdd"
-                style="@style/NCText.Title.Small"
-                android:layout_width="0dp"
+                style="@style/NCOutlineButton.Light.Small"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:paddingHorizontal="@dimen/nc_padding_24"
                 android:layout_marginStart="@dimen/nc_padding_16"
                 android:layout_marginTop="@dimen/nc_padding_8"
-                android:background="@drawable/nc_rounded_light_background"
-                android:paddingHorizontal="@dimen/nc_padding_16"
-                android:paddingVertical="@dimen/nc_padding_8"
                 android:text="@string/nc_text_add_a_signer"
-                app:fontTextStyle="semi_bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/introSubtitle" />
@@ -80,12 +84,12 @@
                 android:id="@+id/doLater"
                 style="@style/NCText.Title.Small"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="@dimen/nc_height_36"
                 android:layout_marginStart="@dimen/nc_padding_16"
                 android:layout_marginEnd="@dimen/nc_padding_8"
                 android:foreground="?android:attr/selectableItemBackground"
+                android:gravity="center"
                 android:paddingHorizontal="@dimen/nc_padding_16"
-                android:paddingVertical="@dimen/nc_padding_8"
                 android:text="@string/nc_text_do_this_later"
                 app:fontTextStyle="semi_bold"
                 app:layout_constraintBottom_toBottomOf="@id/btnAdd"
@@ -96,15 +100,15 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/nc_padding_8">
+            android:layout_marginTop="@dimen/nc_padding_16">
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/walletsHeader"
                 style="@style/NCText.Title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingVertical="@dimen/nc_padding_8"
                 android:text="@string/nc_title_wallets"
+                android:textColor="@color/nc_black_color"
                 app:fontTextStyle="semi_bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -112,7 +116,7 @@
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/tvConnectionStatus"
-                style="@style/NCText.Title"
+                style="@style/NCText.Badges"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/nc_padding_8"
@@ -124,50 +128,36 @@
                 android:paddingVertical="@dimen/nc_padding_4"
                 android:paddingStart="@dimen/nc_padding_4"
                 android:paddingEnd="@dimen/nc_padding_8"
-                android:textColor="@color/nc_primary_color"
-                android:textSize="@dimen/nc_text_size_10"
-                app:fontTextStyle="semi_bold"
                 app:layout_constraintBottom_toBottomOf="@+id/walletsHeader"
                 app:layout_constraintStart_toEndOf="@+id/walletsHeader"
                 app:layout_constraintTop_toTopOf="@+id/walletsHeader"
-                tools:text="Online" />
+                tools:text="Online (Testnet)" />
 
             <ImageView
                 android:id="@+id/ivAddWallet"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:paddingVertical="@dimen/nc_padding_8"
                 android:src="@drawable/ic_plus"
                 app:layout_constraintBottom_toBottomOf="@+id/walletsHeader"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/walletsHeader" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <ProgressBar
-            android:id="@+id/wallet_progress"
-            style="?android:attr/progressBarStyleSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:indeterminate="true"
-            android:indeterminateTint="@color/nc_primary_color"
-            android:indeterminateTintMode="src_in" />
-
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/walletEmpty"
             style="@style/NCText.Body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/nc_padding_8"
+            android:layout_marginTop="@dimen/nc_padding_16"
             android:gravity="center"
-            android:paddingVertical="@dimen/nc_padding_8"
             android:text="@string/nc_text_you_have_not_add_wallet"
             android:visibility="gone"
             tools:visibility="visible" />
 
         <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/walletList"
+            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/nc_padding_8"
@@ -185,10 +175,8 @@
                 style="@style/NCText.Title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/nc_padding_8"
-                android:drawableEnd="@drawable/ic_plus"
-                android:paddingVertical="@dimen/nc_padding_8"
                 android:text="@string/nc_title_signers"
+                android:textColor="@color/nc_black_color"
                 app:fontTextStyle="semi_bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -196,34 +184,22 @@
 
             <ImageView
                 android:id="@+id/btn_add_signer"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:paddingVertical="@dimen/nc_padding_8"
                 android:src="@drawable/ic_plus"
                 app:layout_constraintBottom_toBottomOf="@+id/signerHeader"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/signerHeader" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <ProgressBar
-            android:id="@+id/signer_progress"
-            style="?android:attr/progressBarStyleSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:indeterminate="true"
-            android:indeterminateTint="@color/nc_primary_color"
-            android:indeterminateTintMode="src_in" />
-
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/signerEmpty"
             style="@style/NCText.Body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/nc_padding_8"
+            android:layout_marginTop="@dimen/nc_padding_16"
             android:gravity="center"
-            android:paddingVertical="@dimen/nc_padding_8"
             android:text="@string/nc_text_you_have_not_add_signer"
             android:visibility="gone"
             tools:visibility="visible" />
@@ -235,7 +211,8 @@
             android:layout_marginTop="@dimen/nc_padding_8"
             android:animateLayoutChanges="true"
             android:orientation="vertical"
-            android:paddingVertical="@dimen/nc_padding_8" />
+            android:paddingVertical="@dimen/nc_padding_8"
+            android:visibility="gone" />
     </androidx.appcompat.widget.LinearLayoutCompat>
 
 </androidx.core.widget.NestedScrollView>

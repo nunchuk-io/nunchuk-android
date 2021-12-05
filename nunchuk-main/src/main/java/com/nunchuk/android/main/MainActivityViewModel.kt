@@ -9,15 +9,13 @@ import com.nunchuk.android.core.domain.AddBlockChainConnectionListenerUseCase
 import com.nunchuk.android.core.domain.GetPriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.ScheduleGetPriceConvertBTCUseCase
 import com.nunchuk.android.core.matrix.*
-import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
-import com.nunchuk.android.core.util.BTC_USD_EXCHANGE_RATE
-import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppState
 import com.nunchuk.android.messages.usecase.message.AddTagRoomUseCase
 import com.nunchuk.android.messages.usecase.message.CreateRoomUseCase
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
-import com.nunchuk.android.messages.util.TimelineListenerAdapter
+import com.nunchuk.android.messages.util.STATE_NUNCHUK_SYNC
 import com.nunchuk.android.messages.util.isLocalEvent
 import com.nunchuk.android.messages.util.isNunchukConsumeSyncEvent
 import com.nunchuk.android.messages.util.toNunchukMatrixEvent
@@ -218,7 +216,7 @@ internal class MainActivityViewModel @Inject constructor(
     private fun createRoomWithTagSync() {
         viewModelScope.launch {
             createRoomUseCase.execute(
-                SYNC_TAG_ROOM,
+                STATE_NUNCHUK_SYNC,
                 listOf(SessionHolder.activeSession?.sessionParams?.userId.orEmpty())
             )
                 .flowOn(Dispatchers.IO)
@@ -226,7 +224,7 @@ internal class MainActivityViewModel @Inject constructor(
                 .flowOn(Dispatchers.Main)
                 .collect {
                     Timber.v("createRoom success ", it)
-                    it.addTagRoom(SYNC_TAG_ROOM)
+                    it.addTagRoom(STATE_NUNCHUK_SYNC)
                 }
         }
 
@@ -291,7 +289,7 @@ internal class MainActivityViewModel @Inject constructor(
     private fun syncWalletData(response: SyncStateMatrixResponse) {
         val syncRoomId = response.rooms?.join?.filter {
             it.value.timeline?.events?.any { roomEvent ->
-                roomEvent.type == SYNC_TAG_ROOM
+                roomEvent.type == STATE_NUNCHUK_SYNC
             }.orFalse()
         }?.map {
             it.key
@@ -317,8 +315,4 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
-    companion object {
-        private const val SYNC_TAG_ROOM = "io.nunchuk.sync"
-        private const val PAGINATION = 50
-    }
 }

@@ -4,6 +4,8 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.util.PAGINATION
+import com.nunchuk.android.core.util.TimelineListenerAdapter
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.toMatrixContent
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
@@ -238,10 +240,6 @@ class RoomDetailViewModel @Inject constructor(
                 )
             )
         }
-    }
-
-    companion object {
-        private const val PAGINATION = 50
     }
 
 }

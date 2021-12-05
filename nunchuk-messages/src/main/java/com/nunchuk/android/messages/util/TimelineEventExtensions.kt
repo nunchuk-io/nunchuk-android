@@ -15,7 +15,6 @@ import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
 
 internal const val TAG = "TimelineEvent"
-internal const val SYNC_EVENT_TAG = "io.nunchuk.sync"
 
 fun TimelineEvent.lastMessage(): CharSequence {
     val senderName = senderInfo.disambiguatedDisplayName

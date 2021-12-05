@@ -17,8 +17,7 @@ internal class ForgotPasswordViewModel @Inject constructor(
     override val initialState = Unit
 
     fun handleForgotPassword(email: String) {
-        val isEmailValid = validateEmail(email)
-        if (isEmailValid) {
+        if (validateEmail(email)) {
             viewModelScope.launch {
                 event(LoadingEvent)
                 when (val result = forgotPasswordUseCase.execute(email = email)) {

@@ -43,9 +43,7 @@ internal class SignInViewModel @Inject constructor(
     }
 
     fun handleSignIn(email: String, password: String) {
-        val isEmailValid = validateEmail(email)
-        val isPasswordValid = validatePassword(password)
-        if (isEmailValid && isPasswordValid) {
+        if (validateEmail(email) && validatePassword(password)) {
             signInUseCase.execute(email = email, password = password, staySignedIn = staySignedIn)
                 .flowOn(Dispatchers.IO)
                 .onStart { event(ProcessingEvent) }

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="NCPrimaryButton">
+        <item name="android:gravity">center</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">@dimen/nc_text_size_16</item>
+        <item name="fontTextStyle">semi_bold</item>
+        <item name="android:height">@dimen/nc_height_48</item>
+        <item name="android:textColor">@color/nc_primary_color</item>
+    </style>
+
+    <style name="NCPrimaryButton.Small" parent="NCPrimaryButton">
+        <item name="android:textSize">@dimen/nc_text_size_12</item>
+        <item name="android:height">@dimen/nc_height_36</item>
+    </style>
+
+    <style name="NCPrimaryButton.Light" parent="NCPrimaryButton">
+        <item name="android:background">@drawable/nc_rounded_light_background</item>
+    </style>
+
+    <style name="NCPrimaryButton.Light.Small" parent="NCPrimaryButton.Small">
+        <item name="android:background">@drawable/nc_rounded_light_background</item>
+    </style>
+
+    <style name="NCPrimaryButton.Light.Solid" parent="NCPrimaryButton.Light">
+        <item name="android:background">@drawable/nc_rounded_light_no_stroke_background</item>
+    </style>
+
+    <style name="NCPrimaryButton.Light.Solid.Small" parent="NCPrimaryButton.Small">
+        <item name="android:background">@drawable/nc_rounded_light_no_stroke_background</item>
+    </style>
+
+    <style name="NCPrimaryButton.Dark" parent="NCPrimaryButton">
+        <item name="android:background">@drawable/nc_rounded_dark_background</item>
+        <item name="android:textColor">@color/nc_white_color</item>
+    </style>
+
+    <style name="NCPrimaryButton.Dark.Small" parent="NCPrimaryButton.Small">
+        <item name="android:background">@drawable/nc_rounded_dark_background</item>
+        <item name="android:textColor">@color/nc_white_color</item>
+    </style>
+
+    <style name="NCPrimaryButton.Disabled" parent="NCPrimaryButton">
+        <item name="android:background">@drawable/nc_rounded_whisper_disable_background</item>
+        <item name="android:textColor">@color/nc_grey_dark_color</item>
+    </style>
+
+    <style name="NCPrimaryButton.Red" parent="NCPrimaryButton">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:textColor">@color/nc_red_color</item>
+    </style>
+
+    <style name="NCOutlineButton">
+        <item name="android:gravity">center</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">@dimen/nc_text_size_16</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="fontTextStyle">semi_bold</item>
+        <item name="android:height">@dimen/nc_height_48</item>
+        <item name="android:textColor">@color/nc_primary_color</item>
+    </style>
+
+    <style name="NCOutlineButton.Small" parent="NCOutlineButton">
+        <item name="android:textSize">@dimen/nc_text_size_12</item>
+        <item name="fontTextStyle">semi_bold</item>
+        <item name="android:height">@dimen/nc_height_36</item>
+    </style>
+
+    <style name="NCOutlineButton.Dark" parent="NCOutlineButton">
+        <item name="android:background">@drawable/nc_rounded_dark_background</item>
+    </style>
+
+    <style name="NCOutlineButton.Dark.Small" parent="NCOutlineButton.Small">
+        <item name="android:background">@drawable/nc_rounded_dark_background</item>
+    </style>
+
+    <style name="NCOutlineButton.Light" parent="NCOutlineButton">
+        <item name="android:background">@drawable/nc_rounded_light_background</item>
+    </style>
+
+    <style name="NCOutlineButton.Light.Small" parent="NCOutlineButton.Small">
+        <item name="android:background">@drawable/nc_rounded_light_background</item>
+    </style>
+
+    <style name="NCOutlineButton.Text" parent="TextAppearance.AppCompat.Subhead">
+        <item name="fontTextStyle">semi_bold</item>
+    </style>
+</resources>

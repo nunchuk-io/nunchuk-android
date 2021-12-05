@@ -7,6 +7,7 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
 import com.nunchuk.android.messages.usecase.message.GetRoomSummaryListUseCase
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
+import com.nunchuk.android.messages.util.STATE_NUNCHUK_SYNC
 import com.nunchuk.android.messages.util.sortByLastMessage
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
@@ -49,7 +50,7 @@ class RoomsViewModel @Inject constructor(
                 viewModelScope.launch {
                     getRoomSummaryListUseCase.execute()
                         .onException { }
-                        .collect { updateState { copy(rooms = it.filter { roomSummary -> !roomSummary.hasTag(SYNC_TAG_ROOM) }) } }
+                        .collect { updateState { copy(rooms = it.filter { !it.hasTag(STATE_NUNCHUK_SYNC) }) } }
                 }
             }
         })
@@ -85,7 +86,7 @@ class RoomsViewModel @Inject constructor(
         event(LoadingEvent(false))
         updateState {
             copy(
-                rooms = p.first.filter { roomSummary -> !roomSummary.hasTag(SYNC_TAG_ROOM) }.sortByLastMessage(),
+                rooms = p.first.filter { !it.hasTag(STATE_NUNCHUK_SYNC) }.sortByLastMessage(),
                 roomWallets = p.second
             )
         }
@@ -125,7 +126,6 @@ class RoomsViewModel @Inject constructor(
 
     companion object {
         private const val DELAY_IN_SECONDS = 2L
-        private const val SYNC_TAG_ROOM = "io.nunchuk.sync"
     }
 
 }

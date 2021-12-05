@@ -34,11 +34,14 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
-        style="@style/NCText.Body"
         android:id="@+id/forgotPassword"
+        style="@style/NCText.Body"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/nc_padding_16"
+        android:background="?android:selectableItemBackground"
+        android:paddingHorizontal="@dimen/nc_padding_12"
+        android:paddingVertical="@dimen/nc_padding_4"
         android:text="@string/nc_text_forgot_password"
         app:layout_constraintBottom_toBottomOf="@+id/staySignIn"
         app:layout_constraintEnd_toEndOf="parent"

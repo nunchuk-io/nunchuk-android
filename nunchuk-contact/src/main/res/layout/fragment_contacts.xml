@@ -17,26 +17,25 @@
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/pendingContactsLabel"
+            style="@style/NCText.Title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
-            android:paddingVertical="@dimen/nc_padding_4"
             android:text="@string/nc_contact_request"
-            android:textColor="@color/nc_primary_color"
-            android:textSize="@dimen/nc_text_size_14"
+            app:fontTextStyle="semi_bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/viewAll"
+            style="@style/NCText.Title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:paddingVertical="@dimen/nc_padding_4"
             android:text="@string/nc_contact_view_all"
-            android:textColor="@color/nc_primary_color"
-            android:textSize="@dimen/nc_text_size_16"
             android:visibility="gone"
+            app:fontTextStyle="semi_bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:visibility="visible" />
@@ -66,26 +65,24 @@
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/email"
+                style="@style/NCText.Body"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/nc_padding_16"
-                android:textColor="@color/nc_black_color"
-                android:textSize="@dimen/nc_text_size_14"
                 app:layout_constraintStart_toEndOf="@+id/avatar"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="hugonguyen@gmail.com" />
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/status"
+                style="@style/NCText.Badges"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/nc_padding_16"
                 android:layout_marginBottom="@dimen/nc_padding_4"
                 android:background="@drawable/nc_rounded_blue_light_background"
-                android:paddingHorizontal="@dimen/nc_padding_12"
+                android:paddingHorizontal="@dimen/nc_padding_8"
                 android:text="@string/nc_contact_pending"
-                android:textColor="@color/nc_black_color"
-                android:textSize="@dimen/nc_text_size_14"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/avatar" />
 
@@ -120,10 +117,10 @@
         android:id="@+id/viewStubEmptyState"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:visibility="visible"
         android:layout="@layout/layout_empty_state_contacts"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/pendingContacts"
+        tools:visibility="visible" />
 </androidx.constraintlayout.widget.ConstraintLayout>

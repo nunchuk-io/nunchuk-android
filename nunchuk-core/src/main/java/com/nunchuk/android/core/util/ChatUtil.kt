@@ -1,7 +1,9 @@
-package com.nunchuk.android.messages.util
+package com.nunchuk.android.core.util
 
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+
+const val PAGINATION = 50
 
 open class TimelineListenerAdapter(val callback: (List<TimelineEvent>) -> Unit = {}) : Timeline.Listener {
 

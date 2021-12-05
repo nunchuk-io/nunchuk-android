@@ -20,7 +20,9 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.main.databinding.FragmentWalletsBinding
 import com.nunchuk.android.main.di.MainAppEvent
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 
@@ -81,13 +83,13 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             is MainAppEvent.GetConnectionStatusSuccessEvent -> {
                 viewModel.getAppSettings()
             }
-            else -> {}
+            else -> {
+            }
         }
     }
 
     private fun handleLoading(event: Loading) {
-        binding.signerProgress.isVisible = event.loading
-        binding.walletProgress.isVisible = event.loading
+        binding.walletLoading.root.isVisible = event.loading
     }
 
     private fun openWalletIntroScreen() {
@@ -97,10 +99,10 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     private fun showWalletState(state: WalletsState) {
         val wallets = state.wallets
         val signers = state.masterSigners.map(MasterSigner::toModel) + state.signers.map(SingleSigner::toModel)
-        showIntro(signers, wallets)
-        showWallets(wallets = wallets)
+        showWallets(wallets)
         showSigners(signers)
         showConnectionBlockchainStatus(state)
+        showIntro(signers, wallets)
     }
 
     private fun showConnectionBlockchainStatus(state: WalletsState) {
