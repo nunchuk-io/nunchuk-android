@@ -41,7 +41,6 @@ class SignUpActivity : BaseActivity<ActivitySignupBinding>() {
     }
 
     private fun onRegisterClicked() {
-        showLoading()
         viewModel.handleRegister(binding.name.getEditText().trim(), binding.email.getEditText().trim())
     }
 

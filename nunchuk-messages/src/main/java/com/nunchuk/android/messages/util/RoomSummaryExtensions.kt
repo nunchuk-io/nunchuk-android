@@ -24,7 +24,7 @@ fun RoomSummary.shouldShow() = BuildConfig.DEBUG || (!isServerNotices() && !isSy
 
 fun RoomSummary.isServerNotices() = name == SERVER_NOTICES
 
-fun RoomSummary.isSyncRoom() = tags.isNotEmpty() && tags.any { it.name == SYNC_EVENT_TAG }
+fun RoomSummary.isSyncRoom() = tags.isNotEmpty() && tags.any { it.name == STATE_NUNCHUK_SYNC }
 
 const val SERVER_NOTICES = "Server Notices"
 

@@ -103,7 +103,7 @@
                 android:layout_marginTop="@dimen/nc_padding_4"
                 android:ellipsize="end"
                 android:singleLine="true"
-                android:textColor="@color/nc_grey_color"
+                android:textColor="@color/nc_grey_dark_color"
                 app:layout_constraintEnd_toStartOf="@+id/endBarrier"
                 app:layout_constraintStart_toEndOf="@+id/avatarHolder"
                 app:layout_constraintTop_toBottomOf="@+id/share_icon"
@@ -160,7 +160,7 @@
                 android:gravity="center"
                 android:padding="@dimen/nc_padding_2"
                 android:textColor="@color/nc_white_color"
-                android:textSize="@dimen/nc_text_size_14"
+                android:textSize="@dimen/nc_text_size_12"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/time"
                 tools:text="10" />

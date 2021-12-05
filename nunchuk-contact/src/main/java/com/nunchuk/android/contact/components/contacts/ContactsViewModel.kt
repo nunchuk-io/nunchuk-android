@@ -5,6 +5,10 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.contact.usecase.GetReceivedContactsUseCase
 import com.nunchuk.android.contact.usecase.GetSentContactsUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.util.PAGINATION
+import com.nunchuk.android.core.util.TimelineListenerAdapter
+import com.nunchuk.android.messages.util.STATE_ROOM_SERVER_NOTICE
+import com.nunchuk.android.messages.util.isContactRequestEvent
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.ReceiveContact
 import com.nunchuk.android.model.SentContact
@@ -32,10 +36,9 @@ class ContactsViewModel @Inject constructor(
         SessionHolder.activeSession?.getRoomSummaries(roomSummaryQueryParams {
             memberships = Membership.activeMemberships()
         })?.find { roomSummary ->
-            roomSummary.hasTag(ROOM_SERVER_NOTICE)
+            roomSummary.hasTag(STATE_ROOM_SERVER_NOTICE)
         }?.let {
-            SessionHolder.activeSession?.getRoom(it.roomId)
-                ?.let { roomNotice -> retrieveTimelineEvents(roomNotice) }
+            SessionHolder.activeSession?.getRoom(it.roomId)?.let(::retrieveTimelineEvents)
         }
     }
 
@@ -69,32 +72,15 @@ class ContactsViewModel @Inject constructor(
     private fun retrieveTimelineEvents(room: Room) {
         timeline = room.createTimeline(null, TimelineSettings(initialSize = PAGINATION, true))
         timeline.removeAllListeners()
-        timeline.addListener(object : Timeline.Listener{
-            override fun onNewTimelineEvents(eventIds: List<String>) {
-            }
-
-            override fun onTimelineFailure(throwable: Throwable) {
-            }
-
-            override fun onTimelineUpdated(snapshot: List<TimelineEvent>) {
-                handleTimelineEvents(snapshot)
-            }
-        })
+        timeline.addListener(TimelineListenerAdapter(::handleTimelineEvents))
         timeline.start()
     }
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
-        val hasNewContactRequestEvent = events.findLast { timelineEvent -> timelineEvent.isContactRequestEvent() }
-        if (hasNewContactRequestEvent != null ) {
+        val hasNewContactRequestEvent = events.findLast(TimelineEvent::isContactRequestEvent)
+        if (hasNewContactRequestEvent != null) {
             retrieveContacts()
         }
     }
 
-    private fun TimelineEvent.isContactRequestEvent() = root.content?.get("msgtype") == SERVER_NOTICE_CONTACT_REQUEST
-
-    companion object {
-        private const val ROOM_SERVER_NOTICE = "m.server_notice"
-        private const val SERVER_NOTICE_CONTACT_REQUEST = "io.nunchuk.custom.contact_request"
-        private const val PAGINATION = 50
-    }
 }

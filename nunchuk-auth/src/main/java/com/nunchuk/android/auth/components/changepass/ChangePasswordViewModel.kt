@@ -32,11 +32,11 @@ internal class ChangePasswordViewModel @Inject constructor(
 
     fun handleChangePassword(oldPassword: String, newPassword: String, confirmPassword: String) {
         viewModelScope.launch {
-            val isOldPasswordValid = validateOldPassword(oldPassword)
-            val isNewPasswordValid = validateNewPassword(newPassword)
-            val isConfirmPasswordValid = validateConfirmPassword(confirmPassword)
-            val isConfirmPasswordMatched = validateConfirmPasswordMatched(newPassword, confirmPassword)
-            if (isOldPasswordValid && isNewPasswordValid && isConfirmPasswordValid && isConfirmPasswordMatched) {
+            if (validateOldPassword(oldPassword)
+                && validateNewPassword(newPassword)
+                && validateConfirmPassword(confirmPassword)
+                && validateConfirmPasswordMatched(newPassword, confirmPassword)
+            ) {
                 changePasswordUseCase.execute(oldPassword = oldPassword, newPassword = newPassword)
                     .flowOn(IO)
                     .onStart { event(LoadingEvent) }

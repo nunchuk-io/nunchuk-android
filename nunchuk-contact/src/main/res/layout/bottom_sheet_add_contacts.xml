@@ -10,10 +10,11 @@
     app:behavior_peekHeight="90dp">
 
     <RelativeLayout
-        android:padding="@dimen/nc_padding_16"
         android:id="@+id/header"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="@dimen/nc_padding_16"
+        android:paddingVertical="@dimen/nc_padding_24">
 
         <ImageView
             android:id="@+id/closeBtn"
@@ -26,10 +27,11 @@
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/addBtn"
+            style="@style/NCText.Title.Large"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
-            android:text="Add Contacts"
+            android:text="@string/nc_contact_add_contacts"
             android:textColor="@color/nc_black_color"
             android:textSize="@dimen/nc_text_size_18"
             app:fontTextStyle="semi_bold" />
@@ -55,7 +57,7 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginHorizontal="@dimen/nc_padding_12"
         android:layout_marginTop="@dimen/nc_padding_4"
         android:background="@drawable/view_add_contact_background"
         android:minHeight="400dp"
@@ -84,6 +86,7 @@
                     android:id="@+id/input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@null"
                     android:backgroundTint="@color/nc_whisper_color"
                     android:hint="@string/nc_contacts_type_email_here"
                     android:inputType="textEmailAddress"
@@ -103,7 +106,7 @@
         android:layout_marginTop="@dimen/nc_padding_4"
         android:drawableStart="@drawable/ic_error_outline"
         android:gravity="start|center_vertical"
-        android:text="That does not look like a valid email address"
+        android:text="@string/nc_contact_valid_email_address"
         android:textColor="@color/nc_red_color"
         android:textSize="@dimen/nc_text_size_14"
         android:visibility="gone" />

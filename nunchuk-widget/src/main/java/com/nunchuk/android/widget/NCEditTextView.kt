@@ -35,9 +35,9 @@ class NCEditTextView : ConstraintLayout, LifecycleObserver {
     private var hintTextId: Int = DEFAULT_VALUE
     private var editTextColor: Int = ContextCompat.getColor(context, R.color.nc_black_color)
     private var inputType: Int = TEXT_TYPE
-    private var editTextSize: Float = resources.getDimension(R.dimen.nc_text_size_14)
+    private var editTextSize: Float = resources.getDimension(R.dimen.nc_text_size_16)
     private var editTextBackground: Int = R.drawable.nc_edit_text_bg
-    private var editHigh: Float = resources.getDimension(R.dimen.nc_height_48)
+    private var editHigh: Float = resources.getDimension(R.dimen.nc_height_44)
     private var editTheme: Int = NORMAL_THEME
     private var editGravity: Int = GRAVITY_CENTER_VERTICAL
 
@@ -67,7 +67,7 @@ class NCEditTextView : ConstraintLayout, LifecycleObserver {
         hintTextColor = attr.getColor(R.styleable.NCEditTextView_edit_hint_color, ContextCompat.getColor(context, R.color.nc_third_color))
         editTextColor = attr.getColor(R.styleable.NCEditTextView_edit_text_color, ContextCompat.getColor(context, R.color.nc_black_color))
         inputType = attr.getInteger(R.styleable.NCEditTextView_edit_input_type, TEXT_TYPE)
-        editTextSize = attr.getDimension(R.styleable.NCEditTextView_edit_text_size, resources.getDimension(R.dimen.nc_text_size_14))
+        editTextSize = attr.getDimension(R.styleable.NCEditTextView_edit_text_size, resources.getDimension(R.dimen.nc_text_size_16))
         editTextBackground = attr.getResourceId(R.styleable.NCEditTextView_edit_background, R.drawable.nc_edit_text_bg)
         editHigh = attr.getDimension(R.styleable.NCEditTextView_edit_height, resources.getDimension(R.dimen.nc_height_44))
         editTheme = attr.getInteger(R.styleable.NCEditTextView_edit_theme, NORMAL_THEME)

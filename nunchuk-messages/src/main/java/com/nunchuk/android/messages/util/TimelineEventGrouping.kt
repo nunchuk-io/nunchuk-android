@@ -2,7 +2,7 @@ package com.nunchuk.android.messages.util
 
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
-fun List<TimelineEvent>.groupEvents(turnOn: Boolean = true): List<TimelineEvent> {
+fun List<TimelineEvent>.groupEvents(turnOn: Boolean = false): List<TimelineEvent> {
     if (!turnOn) return this
 
     val allEvents = ArrayList<TimelineEvent>()

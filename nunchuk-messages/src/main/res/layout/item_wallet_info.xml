@@ -68,31 +68,30 @@
         android:baselineAligned="false"
         android:gravity="center"
         android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/nc_padding_16"
         android:paddingVertical="@dimen/nc_padding_12">
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/cancel_wallet"
             style="@style/NCText.Body.Small"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:foreground="?attr/selectableItemBackground"
+            android:layout_height="@dimen/nc_height_36"
             android:layout_gravity="center"
-            android:layout_marginHorizontal="@dimen/nc_padding_12"
             android:layout_weight="1"
             android:gravity="center"
-            android:padding="@dimen/nc_padding_12"
             android:text="@string/nc_text_cancel" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/view_config"
-            style="@style/NCText.Body.Small"
+            style="@style/NCOutlineButton.Light.Small"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginHorizontal="@dimen/nc_padding_12"
             android:layout_weight="1"
             android:background="@drawable/nc_rounded_light_background"
             android:gravity="center"
-            android:padding="@dimen/nc_padding_12"
+            android:paddingHorizontal="@dimen/nc_padding_12"
             android:text="@string/nc_message_view_config" />
     </LinearLayout>
 </LinearLayout>

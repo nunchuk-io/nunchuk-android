@@ -112,6 +112,7 @@
                     android:background="@drawable/nc_edit_text_bg"
                     android:gravity="start|center_vertical"
                     android:padding="@dimen/nc_padding_12"
+                    android:textSize="@dimen/nc_text_size_16"
                     app:layout_constraintEnd_toStartOf="@+id/rbTestNet"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tvTestNetSeverTitle"

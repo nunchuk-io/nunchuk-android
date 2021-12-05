@@ -22,9 +22,7 @@ internal class SignUpViewModel @Inject constructor(
     override val initialState = Unit
 
     fun handleRegister(name: String, email: String) {
-        val isNameValid = validateName(name)
-        val isEmailValid = validateEmail(email)
-        if (isNameValid && isEmailValid) {
+        if (validateName(name) && validateEmail(email)) {
             viewModelScope.launch {
                 event(LoadingEvent)
                 when (val result = registerUseCase.execute(name = name, email = email)) {
