@@ -14,6 +14,7 @@ import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppState
 import com.nunchuk.android.messages.usecase.message.AddTagRoomUseCase
 import com.nunchuk.android.messages.usecase.message.CreateRoomUseCase
+import com.nunchuk.android.messages.usecase.message.GetRoomSummaryListUseCase
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.messages.util.STATE_NUNCHUK_SYNC
 import com.nunchuk.android.messages.util.isLocalEvent
@@ -52,7 +53,8 @@ internal class MainActivityViewModel @Inject constructor(
     private val syncStateMatrixUseCase: SyncStateMatrixUseCase,
     private val getPriceConvertBTCUseCase: GetPriceConvertBTCUseCase,
     private val scheduleGetPriceConvertBTCUseCase: ScheduleGetPriceConvertBTCUseCase,
-    private val addBlockChainConnectionListenerUseCase: AddBlockChainConnectionListenerUseCase
+    private val addBlockChainConnectionListenerUseCase: AddBlockChainConnectionListenerUseCase,
+    private val getRoomSummaryListUseCase: GetRoomSummaryListUseCase
 ) : NunchukViewModel<MainAppState, MainAppEvent>() {
 
     override val initialState = MainAppState()
@@ -234,6 +236,7 @@ internal class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             addTagRoomUseCase.execute(tagName, roomId).flowOn(Dispatchers.IO)
                 .onException {
+                    Timber.e("addTag for room failed")
                     leaveRoom(this@addTagRoom)
                 }
                 .flowOn(Dispatchers.Main)
@@ -274,35 +277,26 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
-    fun syncInitMatrixState() {
+    fun checkSyncRoom() {
         viewModelScope.launch {
-            syncStateMatrixUseCase.execute()
+            getRoomSummaryListUseCase.execute()
                 .flowOn(Dispatchers.IO)
-                .onException { }
+                .onException {
+                    Timber.d(it.message.orEmpty())
+                }
                 .flowOn(Dispatchers.Main)
                 .collect { response ->
-                    syncWalletData(response)
+                    val syncRoom = response.find { room -> room.hasTag(STATE_NUNCHUK_SYNC) }
+                    if (syncRoom == null) {
+                        Timber.d("Don't have sync room")
+                        createRoomWithTagSync()
+                    } else {
+                        Timber.d("Have sync room: ${syncRoom.roomId}")
+                        enableAutoBackup(syncRoom.roomId)
+                        SessionHolder.activeSession?.getRoom(syncRoom.roomId)?.retrieveTimelineEvents()
+                        currentRoomSyncId = syncRoom.roomId
+                    }
                 }
-        }
-    }
-
-    private fun syncWalletData(response: SyncStateMatrixResponse) {
-        val syncRoomId = response.rooms?.join?.filter {
-            it.value.timeline?.events?.any { roomEvent ->
-                roomEvent.type == STATE_NUNCHUK_SYNC
-            }.orFalse()
-        }?.map {
-            it.key
-        }?.firstOrNull()
-
-        if (syncRoomId == null) {
-            Timber.d("Don't have sync room")
-            createRoomWithTagSync()
-        } else {
-            Timber.d("Have sync room: $syncRoomId")
-            enableAutoBackup(syncRoomId)
-            SessionHolder.activeSession?.getRoom(syncRoomId)?.retrieveTimelineEvents()
-            currentRoomSyncId = syncRoomId
         }
     }
 
