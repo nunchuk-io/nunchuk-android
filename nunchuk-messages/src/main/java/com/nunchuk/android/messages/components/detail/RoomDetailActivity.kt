@@ -61,12 +61,17 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         binding.toolbarTitle.text = state.roomInfo.roomName
         val membersCount = "${state.roomInfo.memberCount} members"
         binding.memberCount.text = membersCount
+
         adapter.update(state.messages.groupByDate(), state.transactions, state.roomWallet)
         if (state.messages.isNotEmpty()) {
             binding.recyclerView.scrollToPosition(adapter.itemCount - 1)
         }
         stickyBinding.root.isVisible = state.roomWallet != null
-        state.roomWallet?.let { stickyBinding.bindRoomWallet(it, viewModel::viewConfig) }
+        state.roomWallet?.let {
+            stickyBinding.bindRoomWallet(it, viewModel::viewConfig)
+        } ?: run {
+            viewModel.checkShowBannerNewChat()
+        }
     }
 
     private fun handleEvent(event: RoomDetailEvent) {
@@ -83,6 +88,14 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             OpenChatGroupInfoEvent -> navigator.openChatGroupInfoScreen(this, args.roomId)
             OpenChatInfoEvent -> navigator.openChatInfoScreen(this, args.roomId)
             RoomWalletCreatedEvent -> NCToastMessage(this).show(R.string.nc_message_wallet_created)
+            DontShowBannerNewChatEvent -> adapter.removeBannerNewChat()
+            is CheckShowBannerNewChatEvent -> {
+                if (event.dontShow) {
+                    adapter.removeBannerNewChat()
+                } else {
+                    adapter.addBannerNewChat()
+                }
+            }
             is ViewWalletConfigEvent -> navigator.openSharedWalletConfigScreen(this, event.roomWalletData)
         }
     }
@@ -109,7 +122,9 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             denyWallet = viewModel::denyWallet,
             viewWalletConfig = viewModel::viewConfig,
             finalizeWallet = viewModel::finalizeWallet,
-            viewTransaction = ::openTransactionDetails
+            viewTransaction = ::openTransactionDetails,
+            dismissBannerNewChatListener = { viewModel.dontShowBannerNewChat()},
+            createSharedWalletListener = {viewModel.handleAddEvent()}
         )
         binding.recyclerView.adapter = adapter
         val layoutManager = LinearLayoutManager(this)

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/introContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/nc_rounded_8dp_primary_background"
+    android:padding="@dimen/nc_padding_16"
+    android:layout_marginTop="@dimen/nc_padding_8"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    tools:visibility="visible">
+
+    <ImageView
+        android:id="@+id/iconInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/introTitle"
+        android:src="@drawable/ic_joint_wallet" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/introTitle"
+        style="@style/NCText.Title.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:text="@string/nc_text_banner_new_chat_title"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintStart_toEndOf="@+id/iconInfo"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/introSubtitle"
+        style="@style/NCText.Title.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="@dimen/nc_padding_8"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:text="@string/nc_text_banner_new_chat_des"
+        app:fontTextStyle="normal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/iconInfo"
+        app:layout_constraintTop_toBottomOf="@+id/introTitle" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btnCreateSharedWallet"
+        style="@style/NCText.Title.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        android:background="@drawable/nc_rounded_btn_primary_background"
+        android:paddingHorizontal="@dimen/nc_padding_16"
+        android:paddingVertical="@dimen/nc_padding_8"
+        android:text="@string/nc_text_create_a_shared_wallet"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/introSubtitle" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btnNoThanks"
+        style="@style/NCText.Title.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginEnd="@dimen/nc_padding_8"
+        android:background="?android:attr/selectableItemBackground"
+        android:paddingHorizontal="@dimen/nc_padding_16"
+        android:paddingVertical="@dimen/nc_padding_8"
+        android:text="@string/nc_text_no_thanks"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintBottom_toBottomOf="@id/btnCreateSharedWallet"
+        app:layout_constraintEnd_toStartOf="@id/btnCreateSharedWallet"
+        app:layout_constraintTop_toTopOf="@id/btnCreateSharedWallet" />
+</androidx.constraintlayout.widget.ConstraintLayout>

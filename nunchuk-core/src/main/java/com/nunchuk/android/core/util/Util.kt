@@ -1,5 +1,7 @@
 package com.nunchuk.android.core.util
 
+import android.text.util.Linkify
+import android.widget.TextView
 import com.nunchuk.android.core.network.UNKNOWN_ERROR
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.type.Chain
@@ -8,6 +10,7 @@ import java.io.File
 import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.regex.Pattern
 
 fun Throwable.readableMessage() = message ?: UNKNOWN_ERROR
 
@@ -48,3 +51,8 @@ fun InputStream.saveToFile(file: String) = use { input ->
 }
 
 internal fun Chain.isMainNet() = this == Chain.MAIN
+
+fun TextView.linkify(textToLink: String, url: String) {
+    val pattern = Pattern.compile(textToLink)
+    Linkify.addLinks(this, pattern, url, { _, _, _ -> true }, { _, _ -> "" })
+}

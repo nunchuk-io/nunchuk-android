@@ -18,7 +18,9 @@ internal class MessagesAdapter(
     private val denyWallet: () -> Unit,
     private val viewWalletConfig: () -> Unit,
     private val finalizeWallet: () -> Unit,
-    private val viewTransaction: (walletId: String, txId: String, initEventId: String) -> Unit
+    private val viewTransaction: (walletId: String, txId: String, initEventId: String) -> Unit,
+    private val dismissBannerNewChatListener: () -> Unit,
+    private val createSharedWalletListener: () -> Unit
 ) : Adapter<ViewHolder>() {
 
     private var chatModels: List<AbsChatModel> = ArrayList()
@@ -29,6 +31,30 @@ internal class MessagesAdapter(
         this.chatModels = chatModels
         this.transactions = transactions
         this.roomWallet = roomWallet
+        notifyDataSetChanged()
+    }
+
+    internal fun removeBannerNewChat() {
+        if (chatModels.isEmpty() || chatModels.first().getType() != MessageType.TYPE_NUNCHUK_BANNER_NEW_CHAT.index) {
+            return
+        }
+
+        val removedBannerList = chatModels.subList(1, chatModels.size - 1)
+
+        this.chatModels = removedBannerList
+        notifyDataSetChanged()
+    }
+
+    internal fun addBannerNewChat() {
+        if (chatModels.isNotEmpty() && chatModels.first().getType() == MessageType.TYPE_NUNCHUK_BANNER_NEW_CHAT.index) {
+            return
+        }
+
+        val newList = mutableListOf<AbsChatModel>()
+        newList.add(BannerNewChatModel())
+        newList.addAll(chatModels)
+
+        this.chatModels = newList
         notifyDataSetChanged()
     }
 
@@ -65,6 +91,11 @@ internal class MessagesAdapter(
             ItemNunchukNotificationBinding.inflate(LayoutInflater.from(context), parent, false),
             viewTransaction = viewTransaction
         )
+        MessageType.TYPE_NUNCHUK_BANNER_NEW_CHAT.index -> NunchukBannerNewChatHolder(
+            ItemNunchukBannerNewChatBinding.inflate(LayoutInflater.from(context), parent, false),
+            dismissBannerNewChatListener = dismissBannerNewChatListener,
+            createSharedWalletListener = createSharedWalletListener
+        )
         else -> throw IllegalArgumentException("Invalid type")
     }
 
@@ -98,6 +129,9 @@ internal class MessagesAdapter(
             }
             MessageType.TYPE_NUNCHUK_TRANSACTION_NOTIFICATION.index -> {
                 (holder as NunchukTransactionNotificationHolder).bind(roomWallet, transactions, (messageData as MessageModel).message as NunchukTransactionMessage)
+            }
+            MessageType.TYPE_NUNCHUK_BANNER_NEW_CHAT.index -> {
+                (holder as NunchukBannerNewChatHolder).bind()
             }
         }
     }
