@@ -61,7 +61,7 @@ class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
         setEmptyState()
 
         emptyStateView?.findViewById<View>(R.id.btnAddContacts)?.setOnClickListener {
-            navigator.openAddContactsScreen(childFragmentManager)
+            navigator.openAddContactsScreen(childFragmentManager, viewModel::retrieveContacts)
         }
     }
 
