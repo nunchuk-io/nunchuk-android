@@ -39,7 +39,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun setupData() {
-        viewModel.syncInitMatrixState()
+        viewModel.checkSyncRoom()
         viewModel.scheduleGetBTCConvertPrice()
         viewModel.addBlockChainConnectionListener()
     }
@@ -50,7 +50,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 && status.initSyncStep == InitSyncStep.ImportingAccount
                 && status.percentProgress == 100
             ) {
-                viewModel.syncInitMatrixState()
+                viewModel.checkSyncRoom()
                 viewModel.addBlockChainConnectionListener()
             }
         }
