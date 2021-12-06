@@ -50,7 +50,7 @@ class RoomsViewModel @Inject constructor(
                 viewModelScope.launch {
                     getRoomSummaryListUseCase.execute()
                         .onException { }
-                        .collect { updateState { copy(rooms = it.filter { !it.hasTag(STATE_NUNCHUK_SYNC) }) } }
+                        .collect { updateState { copy(rooms = it.filter { roomSummary -> !roomSummary.hasTag(STATE_NUNCHUK_SYNC) }) } }
                 }
             }
         })
@@ -86,7 +86,7 @@ class RoomsViewModel @Inject constructor(
         event(LoadingEvent(false))
         updateState {
             copy(
-                rooms = p.first.filter { !it.hasTag(STATE_NUNCHUK_SYNC) }.sortByLastMessage(),
+                rooms = p.first.filter { roomSummary -> !roomSummary.hasTag(STATE_NUNCHUK_SYNC) }.sortByLastMessage(),
                 roomWallets = p.second
             )
         }
