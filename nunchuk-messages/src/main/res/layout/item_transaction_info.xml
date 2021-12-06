@@ -93,7 +93,7 @@
             android:layout_marginHorizontal="@dimen/nc_padding_4"
             android:layout_weight="1"
             android:text="@string/nc_message_transaction_to_sign"
-            android:visibility="visible" />
+            android:visibility="gone" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/view_details"
@@ -105,6 +105,6 @@
             android:background="@drawable/nc_rounded_light_background"
             android:gravity="center"
             android:text="@string/nc_message_transaction_view_details"
-            android:visibility="gone" />
+            android:visibility="visible" />
     </LinearLayout>
 </LinearLayout>
