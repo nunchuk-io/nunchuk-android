@@ -113,7 +113,7 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
-        val displayableEvents = events.filter(TimelineEvent::isDisplayable).groupEvents()
+        val displayableEvents = events.filter(TimelineEvent::isDisplayable).groupEvents(loadMore = ::handleLoadMore)
         val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent)
         viewModelScope.launch {
             val sortedEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
@@ -257,7 +257,6 @@ class RoomDetailViewModel @Inject constructor(
         }
     }
 
-
     fun checkShowBannerNewChat() {
         viewModelScope.launch {
             checkShowBannerNewChatUseCase.execute()
@@ -267,11 +266,6 @@ class RoomDetailViewModel @Inject constructor(
                     event(CheckShowBannerNewChatEvent(it))
                 }
         }
-    }
-
-
-    companion object {
-        private const val PAGINATION = 50
     }
 
 }
