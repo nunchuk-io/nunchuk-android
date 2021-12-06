@@ -16,11 +16,6 @@ fun TextView.setUnderlineText(text: String) {
     }
 }
 
-fun TextView.linkify(textToLink: String, url: String) {
-    val pattern = Pattern.compile(textToLink)
-    Linkify.addLinks(this, pattern, url, { _, _, _ -> true }, { _, _ -> "" })
-}
-
 fun NCEditTextView.getTextTrimmed(): String {
     return getEditText().trim()
 }

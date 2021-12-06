@@ -11,3 +11,7 @@ class DateModel(val date: String) : AbsChatModel() {
 class MessageModel(val message: Message) : AbsChatModel() {
     override fun getType() = message.type
 }
+
+class BannerNewChatModel() : AbsChatModel() {
+    override fun getType() = MessageType.TYPE_NUNCHUK_BANNER_NEW_CHAT.index
+}

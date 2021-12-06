@@ -3,6 +3,8 @@ package com.nunchuk.android.messages.components.detail
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.CheckShowBannerNewChatUseCase
+import com.nunchuk.android.core.domain.DontShowBannerNewChatUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
@@ -35,7 +37,9 @@ class RoomDetailViewModel @Inject constructor(
     private val getRoomWalletUseCase: GetRoomWalletUseCase,
     private val createSharedWalletUseCase: CreateSharedWalletUseCase,
     private val getTransactionsUseCase: GetTransactionsUseCase,
-    private val getWalletUseCase: GetWalletUseCase
+    private val getWalletUseCase: GetWalletUseCase,
+    private val dontShowBannerNewChatUseCase: DontShowBannerNewChatUseCase,
+    private val checkShowBannerNewChatUseCase: CheckShowBannerNewChatUseCase
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
 
     private lateinit var room: Room
@@ -240,6 +244,34 @@ class RoomDetailViewModel @Inject constructor(
                 )
             )
         }
+    }
+
+    fun dontShowBannerNewChat() {
+        viewModelScope.launch {
+            dontShowBannerNewChatUseCase.execute()
+                .flowOn(IO)
+                .onException { }
+                .collect {
+                    event(DontShowBannerNewChatEvent)
+                }
+        }
+    }
+
+
+    fun checkShowBannerNewChat() {
+        viewModelScope.launch {
+            checkShowBannerNewChatUseCase.execute()
+                .flowOn(IO)
+                .onException { }
+                .collect {
+                    event(CheckShowBannerNewChatEvent(it))
+                }
+        }
+    }
+
+
+    companion object {
+        private const val PAGINATION = 50
     }
 
 }
