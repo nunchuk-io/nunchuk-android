@@ -74,7 +74,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/nc_padding_4"
-            tools:text="$0 USD" />
+            tools:text="$0" />
     </LinearLayout>
 
     <com.nunchuk.android.widget.NCFontTextView
@@ -137,7 +137,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/amountBTC"
-        tools:text="($50.00 USD)" />
+        tools:text="($50.00)" />
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnContinue"
