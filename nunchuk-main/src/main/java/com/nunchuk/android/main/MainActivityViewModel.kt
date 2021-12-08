@@ -226,10 +226,17 @@ internal class MainActivityViewModel @Inject constructor(
                 .flowOn(Dispatchers.Main)
                 .collect {
                     Timber.v("createRoom success ", it)
+                    putNunchukSyncEventType(it)
                     it.addTagRoom(STATE_NUNCHUK_SYNC)
                 }
         }
+    }
 
+    private fun putNunchukSyncEventType(it: Room) {
+        val dummyContent = "{\n" +
+                "  \"msgtype\": \"$EVENT_TYPE_SYNC\"\n" +
+                "}";
+        it.sendEvent(EVENT_TYPE_SYNC, dummyContent.toMatrixContent())
     }
 
     private fun Room.addTagRoom(tagName: String) {
@@ -277,26 +284,35 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
-    fun checkSyncRoom() {
+    fun syncInitMatrixState() {
         viewModelScope.launch {
-            getRoomSummaryListUseCase.execute()
+            syncStateMatrixUseCase.execute()
                 .flowOn(Dispatchers.IO)
-                .onException {
-                    Timber.d(it.message.orEmpty())
-                }
+                .onException { }
                 .flowOn(Dispatchers.Main)
                 .collect { response ->
-                    val syncRoom = response.find { room -> room.hasTag(STATE_NUNCHUK_SYNC) }
-                    if (syncRoom == null) {
-                        Timber.d("Don't have sync room")
-                        createRoomWithTagSync()
-                    } else {
-                        Timber.d("Have sync room: ${syncRoom.roomId}")
-                        enableAutoBackup(syncRoom.roomId)
-                        SessionHolder.activeSession?.getRoom(syncRoom.roomId)?.retrieveTimelineEvents()
-                        currentRoomSyncId = syncRoom.roomId
-                    }
+                    syncWalletData(response)
                 }
+        }
+    }
+
+    private fun syncWalletData(response: SyncStateMatrixResponse) {
+        val syncRoomId = response.rooms?.join?.filter {
+            it.value.timeline?.events?.any { roomEvent ->
+                roomEvent.type == EVENT_TYPE_SYNC
+            }.orFalse()
+        }?.map {
+            it.key
+        }?.firstOrNull()
+
+        if (syncRoomId == null) {
+            Timber.d("Don't have sync room")
+            createRoomWithTagSync()
+        } else {
+            Timber.d("Have sync room: $syncRoomId")
+            enableAutoBackup(syncRoomId)
+            SessionHolder.activeSession?.getRoom(syncRoomId)?.retrieveTimelineEvents()
+            currentRoomSyncId = syncRoomId
         }
     }
 
@@ -309,4 +325,7 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
+    companion object {
+        private const val EVENT_TYPE_SYNC = "m.room.io.nunchuk.sync.android"
+    }
 }
