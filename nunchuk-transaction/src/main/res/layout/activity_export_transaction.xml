@@ -40,7 +40,7 @@
         android:id="@+id/btnExportAsFile"
         style="@style/NCOutlineButton.Dark"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/nc_height_48"
         android:layout_margin="@dimen/nc_padding_16"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent">
