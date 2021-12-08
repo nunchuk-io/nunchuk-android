@@ -102,7 +102,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/btcAmount"
-                tools:text="$45,200 USD" />
+                tools:text="$45,200" />
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/viewWalletConfig"
