@@ -35,25 +35,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         setupData()
         setupNavigationView()
         subscribeEvents()
-        initObserver()
     }
 
     private fun setupData() {
-        viewModel.checkSyncRoom()
+        viewModel.syncInitMatrixState()
         viewModel.scheduleGetBTCConvertPrice()
         viewModel.addBlockChainConnectionListener()
-    }
-
-    private fun initObserver() {
-        viewModel.initialSyncProgressStatus?.observe(this) { status ->
-            if (status is InitialSyncProgressService.Status.Progressing
-                && status.initSyncStep == InitSyncStep.ImportingAccount
-                && status.percentProgress == 100
-            ) {
-                viewModel.checkSyncRoom()
-                viewModel.addBlockChainConnectionListener()
-            }
-        }
     }
 
     private fun subscribeEvents() {
