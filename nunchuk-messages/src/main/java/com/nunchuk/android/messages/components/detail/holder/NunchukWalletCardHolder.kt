@@ -1,6 +1,9 @@
 package com.nunchuk.android.messages.components.detail.holder
 
 import android.view.Gravity
+import android.view.View
+import android.widget.LinearLayout
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
@@ -9,12 +12,12 @@ import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.NunchukWalletMessage
 import com.nunchuk.android.messages.components.detail.bindCanceledStatus
 import com.nunchuk.android.messages.components.detail.bindWalletStatus
-import com.nunchuk.android.messages.databinding.ItemWalletInfoBinding
+import com.nunchuk.android.messages.databinding.ItemWalletCardBinding
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.toRoomWalletData
 
 internal class NunchukWalletCardHolder(
-    val binding: ItemWalletInfoBinding,
+    val binding: ItemWalletCardBinding,
     val denyWallet: () -> Unit,
     val cancelWallet: () -> Unit,
     val viewConfig: () -> Unit
@@ -35,7 +38,6 @@ internal class NunchukWalletCardHolder(
             binding.cancelWallet.isVisible = false
             binding.pendingKeys.isVisible = false
             binding.status.bindCanceledStatus()
-            // FIXME
             binding.viewConfig.setOnClickListener(null)
         } else {
             binding.cancelWallet.isVisible = !roomWallet.isCreated()
@@ -49,10 +51,23 @@ internal class NunchukWalletCardHolder(
             }
             binding.viewConfig.setOnClickListener { viewConfig() }
         }
-        binding.root.gravity = if (model.isOwner) Gravity.END else Gravity.START
+        CardHelper.adjustCardLayout(binding.root, binding.cardTopContainer, model.isOwner)
         binding.name.text = initData.name
         binding.configuration.text = context.getString(R.string.nc_message_creating_wallet, ratio)
         binding.cancelWallet.setOnClickListener { if (model.isOwner) cancelWallet() else denyWallet() }
     }
 
 }
+
+internal object CardHelper {
+    fun adjustCardLayout(card: LinearLayout, top: View, isTopRight: Boolean) {
+        if (isTopRight) {
+            card.gravity = Gravity.END
+            top.background = AppCompatResources.getDrawable(card.context, R.drawable.message_wallet_top_right_background)
+        } else {
+            card.gravity = Gravity.START
+            top.background = AppCompatResources.getDrawable(card.context, R.drawable.message_wallet_top_left_background)
+        }
+    }
+}
+

@@ -10,9 +10,12 @@ fun NCAvatarView.displayAvatar(imageLoader: ImageLoader, avatarUrl: String?, nam
         binding.avatar.isVisible = false
         binding.name.isVisible = true
     } else {
-        binding.avatar.isVisible = true
-        binding.name.isVisible = false
-        imageLoader.loadImage(url = avatarUrl, imageView = binding.avatar, {
+        binding.avatar.isVisible = false
+        binding.name.isVisible = true
+        imageLoader.loadImage(url = avatarUrl, imageView = binding.avatar, onSuccess = {
+            binding.avatar.isVisible = true
+            binding.name.isVisible = false
+        }, onFailed = {
             binding.avatar.isVisible = false
             binding.name.isVisible = true
         })

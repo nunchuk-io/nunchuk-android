@@ -39,7 +39,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_4"
-        android:background="@drawable/nc_rounded_whisper_background"
+        android:background="@drawable/nc_rounded_tag_whisper_background"
         android:backgroundTint="#D0E2FF"
         android:paddingHorizontal="@dimen/nc_padding_8"
         android:text="@string/nc_contact_status_pending"
