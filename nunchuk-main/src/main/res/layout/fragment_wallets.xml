@@ -62,7 +62,6 @@
                 android:layout_marginVertical="@dimen/nc_padding_8"
                 android:layout_marginStart="@dimen/nc_padding_16"
                 android:text="@string/nc_signer_intro_subtitle"
-                app:fontTextStyle="normal"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/iconInfo"
                 app:layout_constraintTop_toBottomOf="@+id/introTitle" />
@@ -72,11 +71,12 @@
                 style="@style/NCOutlineButton.Light.Small"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/nc_rounded_light_transparent_background"
-                android:paddingHorizontal="@dimen/nc_padding_24"
                 android:layout_marginStart="@dimen/nc_padding_16"
                 android:layout_marginTop="@dimen/nc_padding_8"
+                android:background="@drawable/nc_rounded_light_transparent_background"
+                android:paddingHorizontal="@dimen/nc_padding_24"
                 android:text="@string/nc_text_add_a_signer"
+                app:fontTextStyle="semi_bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/introSubtitle" />

@@ -72,6 +72,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_4"
         android:layout_marginEnd="@dimen/nc_padding_16"
+        android:animateLayoutChanges="true"
         android:visibility="gone"
         app:flexWrap="wrap"
         app:layout_constraintEnd_toEndOf="parent"
@@ -110,6 +111,7 @@
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_8"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/divider" />
+        app:layout_constraintTop_toBottomOf="@id/divider"
+        tools:listitem="@layout/item_suggest_contact" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
