@@ -29,7 +29,7 @@ ext {
     kotlinStdlibVersion = '1.5.31'
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.1.9'
+    nativeSdkVersion = '1.1.10'
 
     // Matrix
     matrixSdkVersion = '1.1.9'
@@ -38,7 +38,7 @@ ext {
     MINOR_VERSION = 9
     PATCH_VERSION = 8
 
-    VERSION_CODE = 68
+    VERSION_CODE = 69
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
@@ -124,7 +124,7 @@ ext {
     ]
 
     leakDetectionDeps = [
-            leakCanary: "com.squareup.leakcanary:leakcanary-android:2.3"
+            leakCanary: "com.squareup.leakcanary:leakcanary-android:2.7"
     ]
 
     networkDeps = [
