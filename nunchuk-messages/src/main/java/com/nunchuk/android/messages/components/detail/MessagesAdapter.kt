@@ -41,7 +41,7 @@ internal class MessagesAdapter(
 
         val removedBannerList = chatModels.subList(1, chatModels.size - 1)
 
-        this.chatModels = removedBannerList
+        chatModels = removedBannerList
         notifyDataSetChanged()
     }
 
@@ -54,7 +54,7 @@ internal class MessagesAdapter(
         newList.add(BannerNewChatModel())
         newList.addAll(chatModels)
 
-        this.chatModels = newList
+        chatModels = newList
         notifyDataSetChanged()
     }
 
@@ -73,26 +73,26 @@ internal class MessagesAdapter(
             ItemDateBinding.inflate(LayoutInflater.from(context), parent, false)
         )
         MessageType.TYPE_NUNCHUK_WALLET_CARD.index -> NunchukWalletCardHolder(
-            ItemWalletInfoBinding.inflate(LayoutInflater.from(context), parent, false),
+            binding = ItemWalletCardBinding.inflate(LayoutInflater.from(context), parent, false),
             denyWallet = denyWallet,
             cancelWallet = cancelWallet,
             viewConfig = viewWalletConfig
         )
         MessageType.TYPE_NUNCHUK_TRANSACTION_CARD.index -> NunchukTransactionCardHolder(
-            ItemTransactionInfoBinding.inflate(LayoutInflater.from(context), parent, false),
+            binding = ItemTransactionCardBinding.inflate(LayoutInflater.from(context), parent, false),
             viewTransaction = viewTransaction,
         )
         MessageType.TYPE_NUNCHUK_WALLET_NOTIFICATION.index -> NunchukWalletNotificationHolder(
-            ItemNunchukNotificationBinding.inflate(LayoutInflater.from(context), parent, false),
+            binding = ItemNunchukNotificationBinding.inflate(LayoutInflater.from(context), parent, false),
             viewConfig = viewWalletConfig,
             finalizeWallet = finalizeWallet
         )
         MessageType.TYPE_NUNCHUK_TRANSACTION_NOTIFICATION.index -> NunchukTransactionNotificationHolder(
-            ItemNunchukNotificationBinding.inflate(LayoutInflater.from(context), parent, false),
+            binding = ItemNunchukNotificationBinding.inflate(LayoutInflater.from(context), parent, false),
             viewTransaction = viewTransaction
         )
         MessageType.TYPE_NUNCHUK_BANNER_NEW_CHAT.index -> NunchukBannerNewChatHolder(
-            ItemNunchukBannerNewChatBinding.inflate(LayoutInflater.from(context), parent, false),
+            binding = ItemNunchukBannerNewChatBinding.inflate(LayoutInflater.from(context), parent, false),
             dismissBannerNewChatListener = dismissBannerNewChatListener,
             createSharedWalletListener = createSharedWalletListener
         )

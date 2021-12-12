@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_marginVertical="@dimen/nc_padding_8"
     android:background="@android:color/transparent"
     android:gravity="end"
@@ -11,9 +11,10 @@
     tools:layout_margin="@dimen/nc_padding_16">
 
     <LinearLayout
+        android:id="@+id/card_top_container"
         android:layout_width="250dp"
         android:layout_height="wrap_content"
-        android:background="@drawable/message_wallet_top_background"
+        android:background="@drawable/message_wallet_top_right_background"
         android:orientation="vertical"
         android:padding="@dimen/nc_padding_16">
 
@@ -24,10 +25,12 @@
             android:background="@drawable/nc_rounded_red_background"
             android:ellipsize="end"
             android:maxLines="1"
+            android:paddingVertical="@dimen/nc_padding_2"
             android:paddingHorizontal="@dimen/nc_padding_8"
             android:text="@string/nc_message_pending_signers"
             android:textColor="@color/nc_primary_color"
-            android:textSize="@dimen/nc_text_size_10" />
+            android:textSize="@dimen/nc_text_size_10"
+            app:fontTextStyle="semi_bold" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/address"

@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.app.splash.SplashEvent.*
+import com.nunchuk.android.arch.R
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.bus.RestartAppEventBus
@@ -34,8 +35,13 @@ internal class SplashActivity : BaseActivity<ActivitySplashBinding>() {
         RestartAppEventBus.instance().subscribe {
             finish()
             startActivity(Intent(this, SplashActivity::class.java))
-            overridePendingTransition(0, 0)
+            overridePendingTransition(R.anim.enter, R.anim.exit)
         }
+    }
+
+    override fun onDestroy() {
+        RestartAppEventBus.instance().unsubscribe()
+        super.onDestroy()
     }
 
     private fun subscribeEvents() {

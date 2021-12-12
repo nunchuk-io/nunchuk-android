@@ -75,7 +75,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/divider"
         tools:layout_height="match_parent"
-        tools:listitem="@layout/item_wallet_info" />
+        tools:listitem="@layout/item_wallet_card" />
 
     <com.nunchuk.android.widget.NCFontEditText
         android:id="@+id/editText"

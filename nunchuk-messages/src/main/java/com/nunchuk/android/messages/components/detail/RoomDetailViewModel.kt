@@ -50,6 +50,8 @@ class RoomDetailViewModel @Inject constructor(
 
     private val currentId = accountManager.getAccount().chatId
 
+    private var timelineListenerAdapter = TimelineListenerAdapter(::handleTimelineEvents)
+
     override val initialState = RoomDetailState.empty()
 
     fun initialize(roomId: String) {
@@ -107,8 +109,8 @@ class RoomDetailViewModel @Inject constructor(
     fun retrieveTimelineEvents() {
         updateState { copy(roomInfo = room.getRoomInfo(currentName)) }
         timeline = room.createTimeline(null, TimelineSettings(initialSize = PAGINATION, true))
-        timeline.removeAllListeners()
-        timeline.addListener(TimelineListenerAdapter(::handleTimelineEvents))
+        timeline.removeListener(timelineListenerAdapter)
+        timeline.addListener(timelineListenerAdapter)
         timeline.start()
     }
 
@@ -215,7 +217,8 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     fun cleanUp() {
-        timeline.removeAllListeners()
+        timeline.removeListener(timelineListenerAdapter)
+        timelineListenerAdapter = TimelineListenerAdapter {}
         SessionHolder.currentRoom = null
     }
 

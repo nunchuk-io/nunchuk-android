@@ -1,6 +1,5 @@
 package com.nunchuk.android.messages.components.detail.holder
 
-import android.view.Gravity
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.util.bindTransactionStatus
 import com.nunchuk.android.core.util.getBTCAmount
@@ -8,13 +7,13 @@ import com.nunchuk.android.core.util.getHtmlString
 import com.nunchuk.android.core.util.getPendingSignatures
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.NunchukTransactionMessage
-import com.nunchuk.android.messages.databinding.ItemTransactionInfoBinding
+import com.nunchuk.android.messages.databinding.ItemTransactionCardBinding
 import com.nunchuk.android.messages.util.getBodyElementValueByKey
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TransactionExtended
 
 internal class NunchukTransactionCardHolder(
-    val binding: ItemTransactionInfoBinding,
+    val binding: ItemTransactionCardBinding,
     val signTransaction: () -> Unit = {},
     val viewTransaction: (walletId: String, txId: String, initEventId: String) -> Unit,
 ) : RecyclerView.ViewHolder(binding.root) {
@@ -25,7 +24,7 @@ internal class NunchukTransactionCardHolder(
         transactions.firstOrNull { it.initEventId == initEventId }?.let {
             bindTransaction(walletId = walletId, initEventId = initEventId, transaction = it.transaction)
         }
-        binding.root.gravity = if (model.isOwner) Gravity.END else Gravity.START
+        CardHelper.adjustCardLayout(binding.root, binding.cardTopContainer, model.isOwner)
     }
 
     private fun bindTransaction(walletId: String, initEventId: String, transaction: Transaction) {

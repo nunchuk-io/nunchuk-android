@@ -72,6 +72,7 @@
                 style="@style/NCOutlineButton.Light.Small"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="@drawable/nc_rounded_light_transparent_background"
                 android:paddingHorizontal="@dimen/nc_padding_24"
                 android:layout_marginStart="@dimen/nc_padding_16"
                 android:layout_marginTop="@dimen/nc_padding_8"

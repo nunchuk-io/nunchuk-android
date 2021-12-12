@@ -41,9 +41,10 @@
         android:background="@drawable/nc_rounded_tag_fill_background"
         android:ellipsize="end"
         android:maxLines="1"
-        android:paddingHorizontal="@dimen/nc_padding_8"
+        android:paddingVertical="@dimen/nc_padding_4"
+        android:paddingHorizontal="@dimen/nc_padding_10"
         android:textColor="@color/nc_primary_color"
-        android:textSize="@dimen/nc_text_size_10"
+        android:textSize="@dimen/nc_text_size_12"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
         tools:text="Pending keys" />
