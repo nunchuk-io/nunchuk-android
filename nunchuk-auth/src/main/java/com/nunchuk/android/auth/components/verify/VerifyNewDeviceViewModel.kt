@@ -3,28 +3,25 @@ package com.nunchuk.android.auth.components.verify
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.auth.components.verify.VerifyNewDeviceEvent.*
-import com.nunchuk.android.auth.domain.GetCurrentUserUseCase
-import com.nunchuk.android.auth.domain.LoginWithMatrixUseCase
 import com.nunchuk.android.auth.domain.VerifyNewDeviceUseCase
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
-import org.matrix.android.sdk.api.session.Session
 import javax.inject.Inject
 
 internal class VerifyNewDeviceViewModel @Inject constructor(
     private val verifyNewDeviceUseCase: VerifyNewDeviceUseCase,
-    private val getCurrentUserUseCase: GetCurrentUserUseCase,
-    private val loginWithMatrixUseCase: LoginWithMatrixUseCase,
     private val initNunchukUseCase: InitNunchukUseCase,
     private val accountManager: AccountManager
 ) : NunchukViewModel<Unit, VerifyNewDeviceEvent>() {
 
     override val initialState = Unit
+
+    private var token: String? = null
+    private var encryptedDeviceId: String? = null
 
     fun handleVerifyNewDevice(
         email: String,
@@ -42,16 +39,15 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
         ).flowOn(Dispatchers.IO)
             .onStart { event(ProcessingEvent) }
             .onException { event(SignInErrorEvent(message = it.message.orUnknownError())) }
-            .flatMapConcat { getCurrentUser(token = it.first, encryptedDeviceId = it.second) }
-            .onEach { event(SignInSuccessEvent) }
+            .flatMapConcat {
+                token = it.first
+                encryptedDeviceId = it.second
+                initNunchuk()
+            }
+            .onEach {
+                event(SignInSuccessEvent(token = token.orEmpty(), encryptedDeviceId = encryptedDeviceId.orEmpty())) }
             .flowOn(Dispatchers.Main)
             .launchIn(viewModelScope)
-    }
-
-    private fun getCurrentUser(token: String, encryptedDeviceId: String): Flow<Unit> {
-        return getCurrentUserUseCase.execute()
-            .flatMapConcat { loginWithMatrix(userName = it, password = token, encryptedDeviceId = encryptedDeviceId) }
-            .flatMapConcat { initNunchuk() }
     }
 
     private fun initNunchuk(): Flow<Unit> {
@@ -62,11 +58,4 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
             .onException { event(SignInErrorEvent(message = it.message.orUnknownError())) }
     }
 
-    private fun loginWithMatrix(userName: String, password: String, encryptedDeviceId: String): Flow<Session> {
-        return loginWithMatrixUseCase.execute(userName = userName, password = password, encryptedDeviceId = encryptedDeviceId)
-            .onException { event(SignInErrorEvent(message = it.message.orUnknownError())) }
-            .onEach {
-                SessionHolder.storeActiveSession(it)
-            }
-    }
 }

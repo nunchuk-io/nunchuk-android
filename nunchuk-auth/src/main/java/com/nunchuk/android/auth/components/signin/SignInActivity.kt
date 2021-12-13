@@ -46,7 +46,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                 is PasswordRequiredEvent -> binding.password.setError(getString(R.string.nc_text_required))
                 is PasswordValidEvent -> binding.password.hideError()
                 is SignInErrorEvent -> onSignInError(it.code, it.message.orEmpty(), it.errorDetail)
-                is SignInSuccessEvent -> openMainScreen()
+                is SignInSuccessEvent -> openMainScreen(it.token, it.deviceId)
                 is ProcessingEvent -> showLoading()
             }
         }
@@ -68,10 +68,10 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         }
     }
 
-    private fun openMainScreen() {
+    private fun openMainScreen(token: String, deviceId: String) {
         hideLoading()
         finish()
-        navigator.openMainScreen(this)
+        navigator.openMainScreen(this, token, deviceId)
     }
 
     private fun setupViews() {

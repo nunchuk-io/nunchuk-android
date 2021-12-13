@@ -50,7 +50,7 @@ class VerifyNewDeviceActivity : BaseActivity<ActivityVerifyNewDeviceBinding>() {
         viewModel.event.observe(this) {
             when (it) {
                 is SignInErrorEvent -> onSignInError(it.message)
-                is SignInSuccessEvent -> openMainScreen()
+                is SignInSuccessEvent -> openMainScreen(it.token, it.encryptedDeviceId)
                 is ProcessingEvent -> showLoading()
             }
         }
@@ -61,10 +61,10 @@ class VerifyNewDeviceActivity : BaseActivity<ActivityVerifyNewDeviceBinding>() {
         NCToastMessage(this).showError(message)
     }
 
-    private fun openMainScreen() {
+    private fun openMainScreen(token: String, deviceId: String) {
         hideLoading()
         finish()
-        navigator.openMainScreen(this)
+        navigator.openMainScreen(this, token, deviceId)
     }
 
     private fun setupViews() {
