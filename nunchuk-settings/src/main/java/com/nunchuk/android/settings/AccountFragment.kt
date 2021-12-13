@@ -59,7 +59,7 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
 
         binding.name.text = state.account.name
         binding.email.text = state.account.email
-        binding.edit.setOnClickListener { editName() }
+        binding.name.setOnClickListener { editName() }
         binding.takePicture.setOnClickListener { changeAvatar() }
         binding.unit.setOnClickListener { changeUnitSetting() }
         binding.network.setOnClickListener { changeNetworkSetting() }

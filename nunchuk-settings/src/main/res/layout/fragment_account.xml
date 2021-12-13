@@ -22,33 +22,19 @@
             app:layout_constraintStart_toStartOf="@+id/avatarHolder"
             app:layout_constraintTop_toTopOf="@+id/avatarHolder" />
 
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/nameContainer"
-            android:layout_width="match_parent"
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/name"
+            style="@style/NCText.Heading"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/nc_padding_12"
             android:gravity="center"
-            android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="@dimen/nc_padding_12"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/take_picture">
-
-            <androidx.appcompat.widget.AppCompatTextView
-                android:id="@+id/name"
-                style="@style/NCText.Heading"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                tools:text="Hung Tran" />
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/edit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/nc_padding_8"
-                android:foreground="?android:selectableItemBackground"
-                android:padding="@dimen/nc_padding_2"
-                android:src="@drawable/ic_edit" />
-        </androidx.appcompat.widget.LinearLayoutCompat>
+            app:layout_constraintEnd_toEndOf="parent"
+            android:drawablePadding="@dimen/nc_padding_4"
+            app:drawableRightCompat="@drawable/ic_edit"
+            app:layout_constraintTop_toBottomOf="@+id/take_picture"
+            tools:text="Hung Tran Long text text text " />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/take_picture"
@@ -96,7 +82,7 @@
             android:textColor="@color/nc_grey_dark_color"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/nameContainer"
+            app:layout_constraintTop_toBottomOf="@+id/name"
             tools:text="hung.tran@nunchuk.io" />
 
         <com.nunchuk.android.widget.NCFontTextView
