@@ -62,7 +62,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         val membersCount = "${state.roomInfo.memberCount} members"
         binding.memberCount.text = membersCount
 
-        adapter.update(state.messages.groupByDate(), state.transactions, state.roomWallet)
+        adapter.update(state.messages.groupByDate(), state.transactions, state.roomWallet, state.roomInfo.memberCount)
         if (state.messages.isNotEmpty()) {
             binding.recyclerView.scrollToPosition(adapter.itemCount - 1)
         }

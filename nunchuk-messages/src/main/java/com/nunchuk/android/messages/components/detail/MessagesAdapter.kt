@@ -26,11 +26,13 @@ internal class MessagesAdapter(
     private var chatModels: List<AbsChatModel> = ArrayList()
     private var transactions: List<TransactionExtended> = ArrayList()
     private var roomWallet: RoomWallet? = null
+    private var memberCounts: Int? = null
 
-    internal fun update(chatModels: List<AbsChatModel>, transactions: List<TransactionExtended>, roomWallet: RoomWallet?) {
+    internal fun update(chatModels: List<AbsChatModel>, transactions: List<TransactionExtended>, roomWallet: RoomWallet?, memberCounts: Int) {
         this.chatModels = chatModels
         this.transactions = transactions
         this.roomWallet = roomWallet
+        this.memberCounts = memberCounts
         notifyDataSetChanged()
     }
 
@@ -64,7 +66,8 @@ internal class MessagesAdapter(
         )
         MessageType.TYPE_CHAT_PARTNER.index -> MessagePartnerHolder(
             imageLoader,
-            ItemMessagePartnerBinding.inflate(LayoutInflater.from(context), parent, false)
+            ItemMessagePartnerBinding.inflate(LayoutInflater.from(context), parent, false),
+            (memberCounts ?: 0) > 2
         )
         MessageType.TYPE_NOTIFICATION.index -> MessageNotificationHolder(
             ItemMessageNotificationBinding.inflate(LayoutInflater.from(context), parent, false)
