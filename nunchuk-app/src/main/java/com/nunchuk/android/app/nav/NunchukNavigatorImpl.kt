@@ -27,8 +27,11 @@ internal class NunchukNavigatorImpl @Inject constructor(
         IntroActivity.start(activityContext)
     }
 
-    override fun openMainScreen(activityContext: Context) {
-        MainActivity.start(activityContext)
+    override fun openMainScreen(
+        activityContext: Context,
+        loginHalfToken: String?,
+        deviceId: String?
+    ) {
+        MainActivity.start(activityContext, loginHalfToken, deviceId)
     }
-
 }

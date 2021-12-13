@@ -13,8 +13,6 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.saveToFile
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 import com.nunchuk.android.main.di.MainAppEvent
-import org.matrix.android.sdk.api.session.initsync.InitSyncStep
-import org.matrix.android.sdk.api.session.initsync.InitialSyncProgressService
 import java.io.*
 import javax.inject.Inject
 
@@ -27,6 +25,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private val viewModel: MainActivityViewModel by viewModels { factory }
 
+    private val loginHalfToken
+        get() = intent.getStringExtra(EXTRAS_LOGIN_HALF_TOKEN).orEmpty()
+
+    private val deviceId
+        get() = intent.getStringExtra(EXTRAS_ENCRPYTED_DEVICE_ID).orEmpty()
+
+
     override fun initializeBinding() = ActivityMainBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,7 +43,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun setupData() {
-        viewModel.syncInitMatrixState()
+        if (loginHalfToken.isNotEmpty() && deviceId.isNotEmpty()) {
+            viewModel.setupMatrix(loginHalfToken, deviceId)
+        }
         viewModel.scheduleGetBTCConvertPrice()
         viewModel.addBlockChainConnectionListener()
     }
@@ -86,9 +93,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     companion object {
-        fun start(activityContext: Context) {
+        const val EXTRAS_LOGIN_HALF_TOKEN = "EXTRAS_LOGIN_HALF_TOKEN"
+        const val EXTRAS_ENCRPYTED_DEVICE_ID = "EXTRAS_ENCRPYTED_DEVICE_ID"
+
+        fun start(activityContext: Context, loginHalfToken: String? = null, deviceId: String? = null) {
             activityContext.startActivity(Intent(activityContext, MainActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                putExtra(EXTRAS_LOGIN_HALF_TOKEN, loginHalfToken)
+                putExtra(EXTRAS_ENCRPYTED_DEVICE_ID, deviceId)
             })
         }
     }

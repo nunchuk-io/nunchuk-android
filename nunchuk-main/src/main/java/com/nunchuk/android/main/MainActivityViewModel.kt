@@ -7,8 +7,10 @@ import com.nunchuk.android.callbacks.UploadFileCallBack
 import com.nunchuk.android.core.api.SyncStateMatrixResponse
 import com.nunchuk.android.core.domain.AddBlockChainConnectionListenerUseCase
 import com.nunchuk.android.core.domain.GetPriceConvertBTCUseCase
+import com.nunchuk.android.core.domain.LoginWithMatrixUseCase
 import com.nunchuk.android.core.domain.ScheduleGetPriceConvertBTCUseCase
 import com.nunchuk.android.core.matrix.*
+import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppState
@@ -29,9 +31,9 @@ import com.nunchuk.android.usecase.EnableAutoBackupUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -54,8 +56,9 @@ internal class MainActivityViewModel @Inject constructor(
     private val getPriceConvertBTCUseCase: GetPriceConvertBTCUseCase,
     private val scheduleGetPriceConvertBTCUseCase: ScheduleGetPriceConvertBTCUseCase,
     private val addBlockChainConnectionListenerUseCase: AddBlockChainConnectionListenerUseCase,
-    private val getRoomSummaryListUseCase: GetRoomSummaryListUseCase
-) : NunchukViewModel<MainAppState, MainAppEvent>() {
+    private val getUserProfileUseCase: GetUserProfileUseCase,
+    private val loginWithMatrixUseCase: LoginWithMatrixUseCase
+    ) : NunchukViewModel<MainAppState, MainAppEvent>() {
 
     override val initialState = MainAppState()
 
@@ -323,6 +326,24 @@ internal class MainActivityViewModel @Inject constructor(
                 .onException { }
                 .collect { }
         }
+    }
+
+    private fun loginWithMatrix(userName: String, password: String, encryptedDeviceId: String): Flow<Session> {
+        return loginWithMatrixUseCase.execute(userName = userName, password = password, encryptedDeviceId = encryptedDeviceId)
+            .onException {}
+            .onEach {
+                SessionHolder.storeActiveSession(it)
+            }
+    }
+
+    fun setupMatrix(token: String, encryptedDeviceId: String) {
+        getUserProfileUseCase.execute()
+            .flatMapConcat { loginWithMatrix(userName = it, password = token, encryptedDeviceId = encryptedDeviceId) }
+            .onEach {
+                syncInitMatrixState()
+            }
+            .flowOn(Dispatchers.Main)
+            .launchIn(viewModelScope)
     }
 
     companion object {

@@ -26,9 +26,6 @@ internal interface AuthDomainModule {
     fun bindGetCurrentUserUseCase(useCase: GetCurrentUserUseCaseImpl): GetCurrentUserUseCase
 
     @Binds
-    fun bindLoginWithMatrixUseCase(useCase: LoginWithMatrixUseCaseImpl): LoginWithMatrixUseCase
-
-    @Binds
     fun bindVerifyNewDeviceUseCase(useCase: VerifyNewDeviceUseCaseImpl): VerifyNewDeviceUseCase
 
 }

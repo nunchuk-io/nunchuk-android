@@ -32,4 +32,7 @@ internal interface DomainModule {
 
     @Binds
     fun bindCheckShowBannerNewChatUseCase(useCase: CheckShowBannerNewChatUseCaseImpl): CheckShowBannerNewChatUseCase
+
+    @Binds
+    fun bindLoginWithMatrixUseCase(useCase: LoginWithMatrixUseCaseImpl): LoginWithMatrixUseCase
 }

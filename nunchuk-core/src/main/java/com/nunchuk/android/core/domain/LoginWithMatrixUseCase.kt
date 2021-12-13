@@ -1,4 +1,4 @@
-package com.nunchuk.android.auth.domain
+package com.nunchuk.android.core.domain
 
 import com.nunchuk.android.core.matrix.MatrixInterceptor
 import kotlinx.coroutines.flow.Flow

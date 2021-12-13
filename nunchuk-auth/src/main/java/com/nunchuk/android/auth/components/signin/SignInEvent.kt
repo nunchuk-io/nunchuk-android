@@ -9,6 +9,6 @@ internal sealed class SignInEvent {
     object PasswordRequiredEvent : SignInEvent()
     object PasswordValidEvent : SignInEvent()
     object ProcessingEvent : SignInEvent()
-    object SignInSuccessEvent : SignInEvent()
+    data class SignInSuccessEvent(val token: String, val deviceId: String) : SignInEvent()
     data class SignInErrorEvent(val code: Int? = null, val message: String? = null, val errorDetail: ErrorDetail? = null) : SignInEvent()
 }
