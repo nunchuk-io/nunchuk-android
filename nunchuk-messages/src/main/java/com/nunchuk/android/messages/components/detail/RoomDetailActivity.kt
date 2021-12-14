@@ -45,6 +45,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         setupViews()
         observeEvent()
         viewModel.initialize(args.roomId)
+        viewModel.checkShowBannerNewChat()
     }
 
     override fun onResume() {
@@ -69,8 +70,6 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         stickyBinding.root.isVisible = state.roomWallet != null
         state.roomWallet?.let {
             stickyBinding.bindRoomWallet(it, viewModel::viewConfig)
-        } ?: run {
-            viewModel.checkShowBannerNewChat()
         }
     }
 
@@ -89,13 +88,6 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             OpenChatInfoEvent -> navigator.openChatInfoScreen(this, args.roomId)
             RoomWalletCreatedEvent -> NCToastMessage(this).show(R.string.nc_message_wallet_created)
             DontShowBannerNewChatEvent -> adapter.removeBannerNewChat()
-            is CheckShowBannerNewChatEvent -> {
-                if (event.dontShow) {
-                    adapter.removeBannerNewChat()
-                } else {
-                    adapter.addBannerNewChat()
-                }
-            }
             is ViewWalletConfigEvent -> navigator.openSharedWalletConfigScreen(this, event.roomWalletData)
         }
     }

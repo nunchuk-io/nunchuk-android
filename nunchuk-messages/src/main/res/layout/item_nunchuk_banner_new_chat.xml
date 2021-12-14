@@ -2,7 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/introContainer"
+    android:id="@+id/bannerContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/nc_rounded_8dp_primary_background"
@@ -10,7 +10,7 @@
     android:layout_marginTop="@dimen/nc_padding_8"
     app:layout_constraintStart_toStartOf="parent"
     app:layout_constraintTop_toTopOf="parent"
-    tools:visibility="visible">
+    tools:visibility="gone">
 
     <ImageView
         android:id="@+id/iconInfo"
@@ -39,6 +39,7 @@
         android:layout_marginVertical="@dimen/nc_padding_8"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:text="@string/nc_text_banner_new_chat_des"
+        android:textColorLink="@color/nc_primary_color"
         app:fontTextStyle="normal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/iconInfo"

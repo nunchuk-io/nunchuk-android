@@ -37,7 +37,6 @@ sealed class RoomDetailEvent {
     object OpenChatGroupInfoEvent : RoomDetailEvent()
     object RoomWalletCreatedEvent : RoomDetailEvent()
     object DontShowBannerNewChatEvent : RoomDetailEvent()
-    data class CheckShowBannerNewChatEvent(val dontShow: Boolean) : RoomDetailEvent()
     data class ViewWalletConfigEvent(
         val roomId: String,
         val roomWalletData: RoomWalletData
