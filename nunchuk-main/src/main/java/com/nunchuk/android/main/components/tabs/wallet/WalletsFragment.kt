@@ -11,6 +11,7 @@ import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
@@ -225,5 +226,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         super.onResume()
         viewModel.retrieveData()
         viewModel.getAppSettings()
+        if (SessionHolder.activeSession != null) {
+            mainActivityViewModel.syncInitMatrixState()
+        }
     }
 }
