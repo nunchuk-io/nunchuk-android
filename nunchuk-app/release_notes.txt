@@ -1,15 +1,2 @@
 What's news:
-- [ApiException] Show error message from BE.
-- [Transaction] Update UI.
-- [LibNunchuk] Transaction ready to broadcast fix.
-- [LibNunchuk] Ready event fix.
-- [Room Transaction] Init transaction event.
-- [Room Wallet] Show wallet in group / direct chat detail.
-- [Room Wallet] Share wallet config screen.
-- [Matrix] Crash on logout.
-- [LibNunchuk] Change testnet server / update lib httpcore.
-- [Room Wallet] Send finalize event.
-- [Room Wallet] Send join/cancel events.
-- [Matrix Integration] Adapt matrix authentication.
-- [Contact] Add contacts disposable.
-- [Room] Introduce skeleton view.
+- NUN-770 Android - Use Fee API in Manual Fee setting

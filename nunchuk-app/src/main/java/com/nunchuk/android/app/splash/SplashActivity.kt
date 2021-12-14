@@ -1,5 +1,6 @@
 package com.nunchuk.android.app.splash
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
@@ -7,7 +8,6 @@ import com.nunchuk.android.app.splash.SplashEvent.*
 import com.nunchuk.android.arch.R
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.bus.RestartAppEventBus
 import com.nunchuk.android.databinding.ActivitySplashBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
@@ -32,16 +32,6 @@ internal class SplashActivity : BaseActivity<ActivitySplashBinding>() {
     override fun onResume() {
         super.onResume()
         viewModel.handleNavigation()
-        RestartAppEventBus.instance().subscribe {
-            finish()
-            startActivity(Intent(this, SplashActivity::class.java))
-            overridePendingTransition(R.anim.enter, R.anim.exit)
-        }
-    }
-
-    override fun onDestroy() {
-        RestartAppEventBus.instance().unsubscribe()
-        super.onDestroy()
     }
 
     private fun subscribeEvents() {
@@ -56,6 +46,15 @@ internal class SplashActivity : BaseActivity<ActivitySplashBinding>() {
             is InitErrorEvent -> NCToastMessage(this).showError(event.error)
         }
         finish()
+    }
+
+    companion object {
+
+        fun start(activity: Activity) {
+            activity.startActivity(Intent(activity, SplashActivity::class.java))
+            activity.overridePendingTransition(R.anim.enter, R.anim.exit)
+        }
+
     }
 
 }

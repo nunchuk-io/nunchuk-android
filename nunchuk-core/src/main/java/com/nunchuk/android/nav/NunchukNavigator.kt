@@ -1,6 +1,7 @@
 package com.nunchuk.android.nav
 
 interface NunchukNavigator :
+    AppNavigator,
     AuthNavigator,
     ContactNavigator,
     MainNavigator,

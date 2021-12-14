@@ -10,7 +10,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.bus.RestartAppEventBus
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.settings.databinding.ActivityNetworkSettingBinding
 import com.nunchuk.android.type.Chain
@@ -117,10 +116,10 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
             }
             is NetworkSettingEvent.ResetTextHostServerEvent -> {
                 binding.tvMainNetHost.setText(
-                    event.appSetting.mainnetServers?.get(0).orEmpty()
+                    event.appSetting.mainnetServers[0]
                 )
                 binding.tvTestNetHost.setText(
-                    event.appSetting.testnetServers?.get(0).orEmpty()
+                    event.appSetting.testnetServers[0]
                 )
             }
         }
@@ -134,13 +133,12 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
             btnNo = getString(R.string.nc_text_discard),
             onYesClick = {
                 finish()
-                RestartAppEventBus.instance().publish()
+                navigator.restartApp(this)
             }
         )
     }
 
     private fun setupViews() {
-
         // currently we only support connect to electurm server
         binding.electrumServerSwitch.isChecked = true
         binding.electrumServerSwitch.isClickable = false
@@ -151,9 +149,7 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
                 chain = if (checked) Chain.MAIN else Chain.TESTNET,
                 mainnetServers = listOf(binding.tvMainNetHost.text.toString()),
                 testnetServers = listOf(binding.tvTestNetHost.text.toString()),
-            )?.let {
-                viewModel.updateCurrentState(it)
-            }
+            )?.let(viewModel::updateCurrentState)
         }
 
         binding.rbTestNet.setOnCheckedChangeListener { _, checked ->
@@ -161,15 +157,11 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
                 chain = if (checked) Chain.TESTNET else Chain.MAIN,
                 mainnetServers = listOf(binding.tvMainNetHost.text.toString()),
                 testnetServers = listOf(binding.tvTestNetHost.text.toString())
-            )?.let {
-                viewModel.updateCurrentState(it)
-            }
+            )?.let(viewModel::updateCurrentState)
         }
 
         binding.btnSave.setOnClickListener {
-            viewModel.currentAppSettings?.let {
-                viewModel.updateAppSettings(it)
-            }
+            viewModel.currentAppSettings?.let(viewModel::updateAppSettings)
         }
 
         binding.btnReset.setOnClickListener {
@@ -195,16 +187,12 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
         binding.tvMainNetHost.addTextChangedCallback {
             viewModel.currentAppSettings?.copy(
                 mainnetServers = listOf(it),
-            )?.let { newAppSetting ->
-                viewModel.updateCurrentState(newAppSetting)
-            }
+            )?.let(viewModel::updateCurrentState)
         }
         binding.tvTestNetHost.addTextChangedCallback {
             viewModel.currentAppSettings?.copy(
                 testnetServers = listOf(it),
-            )?.let { newAppSetting ->
-                viewModel.updateCurrentState(newAppSetting)
-            }
+            )?.let(viewModel::updateCurrentState)
         }
 
 
