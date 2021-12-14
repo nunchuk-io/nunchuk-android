@@ -4,17 +4,25 @@ import android.app.Activity
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeCompletedEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeErrorEvent
 import com.nunchuk.android.transaction.databinding.ActivityTransactionEstimateFeeBinding
+import com.nunchuk.android.utils.isNoneEmpty
+import com.nunchuk.android.utils.safeInt
+import com.nunchuk.android.utils.textChanges
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
 class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>() {
@@ -47,6 +55,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         viewModel.state.observe(this, ::handleState)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     private fun setupViews() {
         val subtractFeeFromAmount = args.subtractFeeFromAmount
         binding.subtractFeeCheckBox.isChecked = subtractFeeFromAmount
@@ -55,7 +64,13 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 
         binding.customizeFeeSwitch.setOnCheckedChangeListener { _, isChecked -> handleCustomizeFeeSwitch(isChecked) }
         binding.subtractFeeCheckBox.setOnCheckedChangeListener { _, isChecked -> viewModel.handleSubtractFeeSwitch(isChecked) }
-        binding.manualFeeCheckBox.setOnCheckedChangeListener { _, isChecked -> viewModel.handleManualFeeSwitch(isChecked) }
+        binding.manualFeeCheckBox.setOnCheckedChangeListener { _, isChecked -> handleManualFeeSwitch(isChecked) }
+        binding.feeRateInput.textChanges()
+            .filterNot { it == null }
+            .debounce(300)
+            .distinctUntilChanged()
+            .onEach { viewModel.updateFeeRate(it.safeInt()) }
+            .launchIn(lifecycleScope)
 
         binding.toolbar.setNavigationOnClickListener {
             finish()
@@ -65,6 +80,13 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         }
 
         bindSubtotal(args.outputAmount)
+    }
+
+    private fun handleManualFeeSwitch(isChecked: Boolean) {
+        viewModel.handleManualFeeSwitch(isChecked)
+        if (!isChecked && binding.feeRateInput.text.isNoneEmpty()) {
+            binding.feeRateInput.setText("")
+        }
     }
 
     private fun handleCustomizeFeeSwitch(isChecked: Boolean) {
@@ -100,15 +122,19 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     }
 
     private fun bindEstimateFeeRates(estimateFeeRates: EstimateFeeRates) {
-        binding.priorityRateValue.text = (estimateFeeRates.priorityRate.value / 1000).toString() + "sat/vbyte"
-        binding.standardRateValue.text = (estimateFeeRates.standardRate.value / 1000).toString() + "sat/vbyte"
-        binding.economicalRateValue.text = (estimateFeeRates.economicRate.value / 1000).toString() + "sat/vbyte"
+        binding.priorityRateValue.text = estimateFeeRates.priorityRate.toFeeRate()
+        binding.standardRateValue.text = estimateFeeRates.standardRate.toFeeRate()
+        binding.economicalRateValue.text = estimateFeeRates.economicRate.toFeeRate()
     }
 
     private fun handleEvent(event: EstimatedFeeEvent) {
         when (event) {
             is EstimatedFeeErrorEvent -> onEstimatedFeeError(event)
-            is EstimatedFeeCompletedEvent -> openTransactionConfirmScreen(event.estimatedFee, event.subtractFeeFromAmount, event.manualFeeRate)
+            is EstimatedFeeCompletedEvent -> openTransactionConfirmScreen(
+                estimatedFee = event.estimatedFee,
+                subtractFeeFromAmount = event.subtractFeeFromAmount,
+                manualFeeRate = event.manualFeeRate
+            )
             EstimatedFeeEvent.Loading -> showLoading()
         }
     }
@@ -158,3 +184,5 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     }
 
 }
+
+internal fun Amount.toFeeRate(): String = (value / 1000).toString() + "sat/vbyte"

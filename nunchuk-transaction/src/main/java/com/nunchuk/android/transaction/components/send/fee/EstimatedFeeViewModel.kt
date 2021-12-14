@@ -65,7 +65,14 @@ internal class EstimatedFeeViewModel @Inject constructor(
         if (checked) {
             updateState { copy(customizeFeeDetails = true) }
         } else {
-            updateState { copy(customizeFeeDetails = false, manualFeeDetails = false, manualFeeRate = 0, subtractFeeFromAmount = isSendingAll) }
+            updateState {
+                copy(
+                    customizeFeeDetails = false,
+                    manualFeeDetails = false,
+                    manualFeeRate = 0,
+                    subtractFeeFromAmount = isSendingAll
+                )
+            }
         }
     }
 
@@ -88,6 +95,11 @@ internal class EstimatedFeeViewModel @Inject constructor(
                 )
             )
         }
+    }
+
+    fun updateFeeRate(feeRate: Int) {
+        updateState { copy(manualFeeRate = feeRate) }
+        draftTransaction()
     }
 
 }
