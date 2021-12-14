@@ -3,6 +3,7 @@ package com.nunchuk.android.wallet.shared.components.assign
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
@@ -10,6 +11,7 @@ import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.JoinWalletUseCase
 import com.nunchuk.android.utils.onException
+import com.nunchuk.android.wallet.shared.components.assign.AssignSignerEvent.AssignSignerErrorEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
@@ -58,7 +60,10 @@ internal class AssignSignerViewModel @Inject constructor(
         val masterSigners = state.masterSigners.filter { it.device.masterFingerprint in state.selectedPFXs }
         val remoteSigners = state.remoteSigners.filter { it.masterFingerprint in state.selectedPFXs }
 
-        if (masterSigners.isEmpty() && remoteSigners.isEmpty()) return
+        if (masterSigners.isEmpty() && remoteSigners.isEmpty()) {
+            event(AssignSignerErrorEvent("No keys found"))
+            return
+        }
 
         viewModelScope.launch {
             val unusedSignerSigners = ArrayList<SingleSigner>()
@@ -70,7 +75,7 @@ internal class AssignSignerViewModel @Inject constructor(
             SessionHolder.currentRoom?.let { room ->
                 joinWalletUseCase.execute(room.roomId, remoteSigners + unusedSignerSigners)
                     .flowOn(Dispatchers.IO)
-                    .onException {}
+                    .onException { event(AssignSignerErrorEvent(it.readableMessage())) }
                     .onEach { event(AssignSignerEvent.AssignSignerCompletedEvent(room.roomId)) }
                     .flowOn(Dispatchers.Main)
                     .launchIn(viewModelScope)
