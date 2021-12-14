@@ -185,4 +185,4 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 
 }
 
-internal fun Amount.toFeeRate(): String = (value / 1000).toString() + "sat/vbyte"
+internal fun Amount.toFeeRate(): String = (value / 1000).toString() + " sat/vB"
