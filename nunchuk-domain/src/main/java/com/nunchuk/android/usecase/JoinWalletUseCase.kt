@@ -3,7 +3,6 @@ package com.nunchuk.android.usecase
 import com.nunchuk.android.model.NunchukMatrixEvent
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -18,13 +17,8 @@ internal class JoinWalletUseCaseImpl @Inject constructor(
 
     override fun execute(roomId: String, signers: List<SingleSigner>) = flow {
         emit(
-            signers.mapNotNull {
-                try {
-                    nativeSdk.joinSharedWallet(roomId, it)
-                } catch (t: Throwable) {
-                    CrashlyticsReporter.recordException(t)
-                    null
-                }
+            signers.map {
+                nativeSdk.joinSharedWallet(roomId, it)
             }.last()
         )
     }
