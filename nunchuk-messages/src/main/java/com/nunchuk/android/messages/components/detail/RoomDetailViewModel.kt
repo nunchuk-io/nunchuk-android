@@ -265,8 +265,10 @@ class RoomDetailViewModel @Inject constructor(
             checkShowBannerNewChatUseCase.execute()
                 .flowOn(IO)
                 .onException { }
-                .collect {
-                    event(CheckShowBannerNewChatEvent(it))
+                .collect { showBannerNewChat ->
+                    if (!showBannerNewChat) {
+                        event(DontShowBannerNewChatEvent)
+                    }
                 }
         }
     }

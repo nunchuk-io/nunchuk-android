@@ -15,7 +15,7 @@ internal class CheckShowBannerNewChatUseCaseImpl @Inject constructor(
 
     override fun execute() = flow {
         emit(
-            ncSharedPreferences.dontShowBannerNewChat
+            ncSharedPreferences.showBannerNewChat
         )
     }
 

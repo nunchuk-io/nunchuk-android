@@ -27,37 +27,47 @@ internal class MessagesAdapter(
     private var transactions: List<TransactionExtended> = ArrayList()
     private var roomWallet: RoomWallet? = null
     private var memberCounts: Int? = null
+    private var isShowNewBanner: Boolean = true
+
 
     internal fun update(chatModels: List<AbsChatModel>, transactions: List<TransactionExtended>, roomWallet: RoomWallet?, memberCounts: Int) {
-        this.chatModels = chatModels
+        initListChatMessages(roomWallet, chatModels)
         this.transactions = transactions
         this.roomWallet = roomWallet
         this.memberCounts = memberCounts
         notifyDataSetChanged()
     }
 
-    internal fun removeBannerNewChat() {
-        if (chatModels.isEmpty() || chatModels.first().getType() != MessageType.TYPE_NUNCHUK_BANNER_NEW_CHAT.index) {
-            return
+    private fun initListChatMessages(
+        roomWallet: RoomWallet?,
+        chatModels: List<AbsChatModel>
+    ) {
+        if (roomWallet == null && isShowNewBanner) {
+            this.chatModels = initChatListWithNewBanner(chatModels)
+        } else {
+            this.chatModels = chatModels
         }
+    }
 
-        val removedBannerList = chatModels.subList(1, chatModels.size - 1)
+    internal fun removeBannerNewChat() {
+        isShowNewBanner = false
 
-        chatModels = removedBannerList
+        initListChatMessages(
+            roomWallet = roomWallet,
+            chatModels = if (chatModels.size == 1) {
+                emptyList()
+            } else {
+                chatModels.subList(1, chatModels.size - 1)
+            }
+        )
         notifyDataSetChanged()
     }
 
-    internal fun addBannerNewChat() {
-        if (chatModels.isNotEmpty() && chatModels.first().getType() == MessageType.TYPE_NUNCHUK_BANNER_NEW_CHAT.index) {
-            return
-        }
-
+    private fun initChatListWithNewBanner(chatModels: List<AbsChatModel>): MutableList<AbsChatModel> {
         val newList = mutableListOf<AbsChatModel>()
         newList.add(BannerNewChatModel())
         newList.addAll(chatModels)
-
-        chatModels = newList
-        notifyDataSetChanged()
+        return newList
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = when (viewType) {
@@ -134,7 +144,7 @@ internal class MessagesAdapter(
                 (holder as NunchukTransactionNotificationHolder).bind(roomWallet, transactions, (messageData as MessageModel).message as NunchukTransactionMessage)
             }
             MessageType.TYPE_NUNCHUK_BANNER_NEW_CHAT.index -> {
-                (holder as NunchukBannerNewChatHolder).bind()
+                (holder as NunchukBannerNewChatHolder).bind(isShowNewBanner)
             }
         }
     }
