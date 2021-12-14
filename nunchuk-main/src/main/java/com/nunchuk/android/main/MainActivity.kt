@@ -10,6 +10,7 @@ import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.saveToFile
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 import com.nunchuk.android.main.di.MainAppEvent
@@ -85,6 +86,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onResume() {
         super.onResume()
         navController.addOnDestinationChangedListener(listener)
+        if (SessionHolder.activeSession != null) {
+            viewModel.syncInitMatrixState()
+        }
     }
 
     override fun onPause() {

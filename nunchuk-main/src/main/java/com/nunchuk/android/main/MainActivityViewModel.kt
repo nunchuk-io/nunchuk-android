@@ -173,9 +173,7 @@ internal class MainActivityViewModel @Inject constructor(
                 .flowOn(Dispatchers.Main)
                 .collect { response ->
                     Timber.d("[App] fileUploadURL: ${response.contentUri}")
-                    event(
-                        MainAppEvent.UploadFileSyncSucceed(fileJsonInfo, response.contentUri.orEmpty())
-                    )
+                    backupFile(fileJsonInfo, response.contentUri.orEmpty())
                 }
         }
     }
