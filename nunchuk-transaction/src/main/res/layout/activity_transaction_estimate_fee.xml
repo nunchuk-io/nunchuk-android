@@ -246,7 +246,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/nc_padding_8"
                 android:background="@drawable/nc_edit_text_bg"
-                android:hint="210"
                 android:inputType="numberDecimal"
                 android:maxLength="20"
                 android:padding="@dimen/nc_padding_12"

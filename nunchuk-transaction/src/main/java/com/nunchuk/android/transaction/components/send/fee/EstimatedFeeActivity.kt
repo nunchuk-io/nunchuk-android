@@ -9,6 +9,7 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeCompletedEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeErrorEvent
 import com.nunchuk.android.transaction.databinding.ActivityTransactionEstimateFeeBinding
@@ -95,6 +96,13 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 
         binding.customizeFeeDetails.isVisible = state.customizeFeeDetails
         binding.manualFeeDetails.isVisible = state.manualFeeDetails
+        bindEstimateFeeRates(state.estimateFeeRates)
+    }
+
+    private fun bindEstimateFeeRates(estimateFeeRates: EstimateFeeRates) {
+        binding.priorityRateValue.text = (estimateFeeRates.priorityRate.value / 1000).toString() + "sat/vbyte"
+        binding.standardRateValue.text = (estimateFeeRates.standardRate.value / 1000).toString() + "sat/vbyte"
+        binding.economicalRateValue.text = (estimateFeeRates.economicRate.value / 1000).toString() + "sat/vbyte"
     }
 
     private fun handleEvent(event: EstimatedFeeEvent) {

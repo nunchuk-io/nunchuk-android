@@ -4,15 +4,22 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.toAmount
+import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.*
 import com.nunchuk.android.usecase.DraftTransactionUseCase
+import com.nunchuk.android.usecase.EstimateFeeUseCase
+import com.nunchuk.android.utils.onException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class EstimatedFeeViewModel @Inject constructor(
+    private val estimateFeeUseCase: EstimateFeeUseCase,
     private val draftTransactionUseCase: DraftTransactionUseCase
 ) : NunchukViewModel<EstimatedFeeState, EstimatedFeeEvent>() {
 
@@ -25,6 +32,17 @@ internal class EstimatedFeeViewModel @Inject constructor(
         this.walletId = walletId
         this.address = address
         this.sendAmount = sendAmount
+        getEstimateFeeRates()
+    }
+
+    private fun getEstimateFeeRates() {
+        viewModelScope.launch {
+            estimateFeeUseCase.execute()
+                .flowOn(Dispatchers.IO)
+                .onException { updateState { copy(estimateFeeRates = EstimateFeeRates()) } }
+                .flowOn(Dispatchers.Main)
+                .collect { updateState { copy(estimateFeeRates = it) } }
+        }
     }
 
     private fun draftTransaction() {
