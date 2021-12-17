@@ -3,17 +3,21 @@ package com.nunchuk.android.app
 import android.app.Application
 import android.content.Context
 import androidx.multidex.MultiDex
+import androidx.work.Configuration
 import com.nunchuk.android.BuildConfig
 import com.nunchuk.android.app.di.BootstrapInjectors
 import com.nunchuk.android.core.matrix.MatrixInitializer
+import com.nunchuk.android.core.matrix.RoomDisplayNameFallbackProviderImpl
 import com.nunchuk.android.util.FileHelper
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasAndroidInjector
+import org.matrix.android.sdk.api.MatrixConfiguration
 import timber.log.Timber
+import java.util.concurrent.Executors
 import javax.inject.Inject
 
-internal class NunchukApplication : Application(), HasAndroidInjector {
+internal class NunchukApplication : Application(), HasAndroidInjector, MatrixConfiguration.Provider, Configuration.Provider {
 
     @Inject
     lateinit var androidInjector: DispatchingAndroidInjector<Any>
@@ -41,5 +45,13 @@ internal class NunchukApplication : Application(), HasAndroidInjector {
         MultiDex.install(base)
         super.attachBaseContext(base)
     }
+
+    override fun providesMatrixConfiguration() = MatrixConfiguration(
+        roomDisplayNameFallbackProvider = RoomDisplayNameFallbackProviderImpl()
+    )
+
+    override fun getWorkManagerConfiguration() = Configuration.Builder()
+        .setExecutor(Executors.newCachedThreadPool())
+        .build()
 
 }

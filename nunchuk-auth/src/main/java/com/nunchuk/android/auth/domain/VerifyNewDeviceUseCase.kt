@@ -3,7 +3,6 @@ package com.nunchuk.android.auth.domain
 import com.nunchuk.android.auth.api.UserTokenResponse
 import com.nunchuk.android.auth.data.AuthRepository
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.usecase.BaseUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -21,7 +20,7 @@ interface VerifyNewDeviceUseCase {
 internal class VerifyNewDeviceUseCaseImpl @Inject constructor(
     private val authRepository: AuthRepository,
     private val accountManager: AccountManager
-) : BaseUseCase(), VerifyNewDeviceUseCase {
+) : VerifyNewDeviceUseCase {
 
     override fun execute(
         email: String,

@@ -15,7 +15,7 @@ interface GetAddressesUseCase {
 
 internal class GetAddressesUseCaseImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
-) : BaseUseCase(), GetAddressesUseCase {
+) : GetAddressesUseCase {
 
     override fun execute(
         walletId: String,

@@ -21,6 +21,7 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.main.databinding.FragmentWalletsBinding
 import com.nunchuk.android.main.di.MainAppEvent
+import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
@@ -29,7 +30,7 @@ import com.nunchuk.android.type.ConnectionStatus
 
 internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
-    private val viewModel: WalletsViewModel by viewModels { factory }
+    private val walletsViewModel: WalletsViewModel by viewModels { factory }
     private val mainActivityViewModel: MainActivityViewModel by activityViewModels { factory }
 
     override fun initializeBinding(
@@ -46,9 +47,9 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun setupViews() {
         binding.doLater.setOnClickListener { hideIntroContainerView() }
-        binding.btnAdd.setOnClickListener { viewModel.handleAddSignerOrWallet() }
-        binding.btnAddSigner.setOnClickListener { viewModel.handleAddSigner() }
-        binding.ivAddWallet.setOnClickListener { viewModel.handleAddWallet() }
+        binding.btnAdd.setOnClickListener { walletsViewModel.handleAddSignerOrWallet() }
+        binding.btnAddSigner.setOnClickListener { walletsViewModel.handleAddSigner() }
+        binding.ivAddWallet.setOnClickListener { walletsViewModel.handleAddWallet() }
     }
 
     private fun openAddWalletScreen() {
@@ -64,8 +65,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun observeEvent() {
-        viewModel.state.observe(viewLifecycleOwner, ::showWalletState)
-        viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
+        walletsViewModel.state.observe(viewLifecycleOwner, ::showWalletState)
+        walletsViewModel.event.observe(viewLifecycleOwner, ::handleEvent)
         mainActivityViewModel.event.observe(viewLifecycleOwner, ::handleMainActivityEvent)
     }
 
@@ -80,12 +81,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun handleMainActivityEvent(event: MainAppEvent) {
-        when (event) {
-            is MainAppEvent.GetConnectionStatusSuccessEvent -> {
-                viewModel.getAppSettings()
-            }
-            else -> {
-            }
+        if (event is GetConnectionStatusSuccessEvent) {
+            walletsViewModel.getAppSettings()
         }
     }
 
@@ -224,8 +221,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.retrieveData()
-        viewModel.getAppSettings()
+        walletsViewModel.retrieveData()
+        walletsViewModel.getAppSettings()
         if (SessionHolder.activeSession != null) {
             mainActivityViewModel.syncInitMatrixState()
         }

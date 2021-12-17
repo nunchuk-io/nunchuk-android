@@ -10,6 +10,7 @@ import kotlin.math.ceil
 
 class JsonMapDeserializer : JsonDeserializer<Map<String, Any>?> {
 
+    @Suppress("UNCHECKED_CAST")
     @Throws(JsonParseException::class)
     override fun deserialize(
         jsonElement: JsonElement,
