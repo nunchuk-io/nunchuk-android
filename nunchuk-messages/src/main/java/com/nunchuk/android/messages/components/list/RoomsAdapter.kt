@@ -61,6 +61,9 @@ class RoomViewHolder(
             binding.message.text = it.lastMessage()
             binding.time.text = it.root.originServerTs?.let { time -> Date(time).formatMessageDate() } ?: "-"
         }
+        binding.message.isVisible = roomSummary.latestPreviewableEvent != null
+        binding.time.isVisible = roomSummary.latestPreviewableEvent != null
+
         val isGroupChat = !roomSummary.isDirectChat()
         if (isGroupChat) {
             binding.avatarHolder.text = ""
