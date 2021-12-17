@@ -40,4 +40,4 @@ fun Date.formatByHour(): String = SimpleDateFormat("hh:mm a", Locale.ENGLISH).fo
 
 fun Date.simpleDateFormat(): String = SIMPLE_DATE.format(this)
 
-internal fun String.simpleDateFormat(): Date = SIMPLE_DATE.parse(this)
+internal fun String.simpleDateFormat(): Date = SIMPLE_DATE.parse(this) ?: Date()

@@ -14,7 +14,8 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.saveToFile
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 import com.nunchuk.android.main.di.MainAppEvent
-import java.io.*
+import com.nunchuk.android.main.di.MainAppEvent.*
+import java.io.File
 import javax.inject.Inject
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
@@ -30,7 +31,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         get() = intent.getStringExtra(EXTRAS_LOGIN_HALF_TOKEN).orEmpty()
 
     private val deviceId
-        get() = intent.getStringExtra(EXTRAS_ENCRPYTED_DEVICE_ID).orEmpty()
+        get() = intent.getStringExtra(EXTRAS_ENCRYPTED_DEVICE_ID).orEmpty()
 
 
     override fun initializeBinding() = ActivityMainBinding.inflate(layoutInflater)
@@ -57,16 +58,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private fun handleEvent(event: MainAppEvent) {
         when (event) {
-            is MainAppEvent.DownloadFileSyncSucceed -> {
-                handleDownloadedSyncFile(event)
-            }
-            is MainAppEvent.UploadFileSyncSucceed -> {
-                viewModel.backupFile(event.fileJsonInfo, event.fileUri)
-            }
+            is DownloadFileSyncSucceed -> handleDownloadedSyncFile(event)
+            is UploadFileSyncSucceed -> viewModel.backupFile(event.fileJsonInfo, event.fileUri)
+            is GetConnectionStatusSuccessEvent -> {}
         }
     }
 
-    private fun handleDownloadedSyncFile(event: MainAppEvent.DownloadFileSyncSucceed) {
+    private fun handleDownloadedSyncFile(event: DownloadFileSyncSucceed) {
         event.responseBody.byteStream()
             .saveToFile(externalCacheDir.toString() + File.separator + "FileBackup")
         val saveFile = File(externalCacheDir.toString() + File.separator + "FileBackup")
@@ -98,13 +96,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     companion object {
         const val EXTRAS_LOGIN_HALF_TOKEN = "EXTRAS_LOGIN_HALF_TOKEN"
-        const val EXTRAS_ENCRPYTED_DEVICE_ID = "EXTRAS_ENCRPYTED_DEVICE_ID"
+        const val EXTRAS_ENCRYPTED_DEVICE_ID = "EXTRAS_ENCRYPTED_DEVICE_ID"
 
         fun start(activityContext: Context, loginHalfToken: String? = null, deviceId: String? = null) {
             activityContext.startActivity(Intent(activityContext, MainActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 putExtra(EXTRAS_LOGIN_HALF_TOKEN, loginHalfToken)
-                putExtra(EXTRAS_ENCRPYTED_DEVICE_ID, deviceId)
+                putExtra(EXTRAS_ENCRYPTED_DEVICE_ID, deviceId)
             })
         }
     }

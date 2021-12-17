@@ -18,8 +18,8 @@ import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
 import com.nunchuk.android.messages.databinding.FragmentMessagesBinding
 import com.nunchuk.android.messages.util.shouldShow
 import com.nunchuk.android.model.RoomWallet
-import org.matrix.android.sdk.api.session.initsync.InitSyncStep
-import org.matrix.android.sdk.api.session.initsync.InitialSyncProgressService
+import org.matrix.android.sdk.api.session.initsync.InitSyncStep.ImportingAccount
+import org.matrix.android.sdk.api.session.initsync.SyncStatusService.Status.Progressing
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import javax.inject.Inject
 
@@ -86,11 +86,9 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
         viewModel.roomSummariesLive?.observe(viewLifecycleOwner) {
             viewModel.retrieveMessages()
         }
-        viewModel.initialSyncProgressStatus?.observe(viewLifecycleOwner) { status ->
-            if (status is InitialSyncProgressService.Status.Progressing) {
-                if (status.initSyncStep == InitSyncStep.ImportingAccount && status.percentProgress == 100) {
-                    viewModel.retrieveMessages()
-                }
+        viewModel.syncProgressStatus?.observe(viewLifecycleOwner) {
+            if (it is Progressing && it.initSyncStep == ImportingAccount && it.percentProgress == 100) {
+                viewModel.retrieveMessages()
             }
         }
     }

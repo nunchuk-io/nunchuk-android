@@ -11,7 +11,8 @@ import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
@@ -42,8 +43,8 @@ internal class SignInViewModel @Inject constructor(
     fun handleSignIn(email: String, password: String) {
         if (validateEmail(email) && validatePassword(password)) {
             signInUseCase.execute(email = email, password = password, staySignedIn = staySignedIn)
-                .flowOn(Dispatchers.IO)
                 .onStart { event(ProcessingEvent) }
+                .flowOn(IO)
                 .onException {
                     if (it is NunchukApiException) {
                         event(
@@ -70,16 +71,14 @@ internal class SignInViewModel @Inject constructor(
                         )
                     )
                 }
-                .flowOn(Dispatchers.Main)
+                .flowOn(Main)
                 .launchIn(viewModelScope)
         }
     }
 
-    private fun initNunchuk(): Flow<Unit> {
-        val account = accountManager.getAccount()
-        return initNunchukUseCase.execute(accountId = account.email)
-            .onException { event(SignInErrorEvent(message = it.message)) }
-    }
+    private fun initNunchuk() = initNunchukUseCase.execute(
+        accountId = accountManager.getAccount().email
+    ).onException { event(SignInErrorEvent(message = it.message)) }.flowOn(IO)
 
     fun storeStaySignedIn(staySignedIn: Boolean) {
         this.staySignedIn = staySignedIn

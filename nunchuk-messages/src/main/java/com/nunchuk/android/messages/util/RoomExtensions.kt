@@ -12,9 +12,10 @@ fun Room.isDirectChat(): Boolean {
 }
 
 fun Room.getRoomInfo(currentName: String): RoomInfo {
+    val roomMembers = getRoomMemberList()
     val roomSummary: RoomSummary? = roomSummary()
     return if (roomSummary != null) {
-        RoomInfo(roomSummary.getRoomName(currentName), roomSummary.getMembersCount())
+        RoomInfo(roomSummary.getRoomName(currentName), roomMembers.size)
     } else {
         RoomInfo.empty()
     }

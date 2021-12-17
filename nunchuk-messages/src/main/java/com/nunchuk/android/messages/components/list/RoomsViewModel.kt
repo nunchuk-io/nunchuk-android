@@ -4,10 +4,10 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.network.UnauthorizedEventBus
 import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
 import com.nunchuk.android.messages.usecase.message.GetRoomSummaryListUseCase
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
-import com.nunchuk.android.messages.util.STATE_NUNCHUK_SYNC
 import com.nunchuk.android.messages.util.sortByLastMessage
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
@@ -18,11 +18,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.failure.GlobalError
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
+import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -35,7 +37,7 @@ class RoomsViewModel @Inject constructor(
     val roomSummariesLive = SessionHolder.activeSession?.getRoomSummariesLive(roomSummaryQueryParams {
         memberships = Membership.activeMemberships()
     })
-    val initialSyncProgressStatus = SessionHolder.activeSession?.getInitialSyncProgressStatus()
+    val syncProgressStatus = SessionHolder.activeSession?.getSyncStatusLive()
 
     override val initialState = RoomsState.empty()
 
@@ -52,6 +54,20 @@ class RoomsViewModel @Inject constructor(
                         .onException { }
                         .collect { updateState { copy(rooms = it) } }
                 }
+            }
+
+            override fun onGlobalError(session: Session, globalError: GlobalError) {
+                if (globalError is GlobalError.InvalidToken || globalError === GlobalError.ExpiredAccount) {
+                    UnauthorizedEventBus.instance().publish()
+                }
+            }
+
+            override fun onSessionStarted(session: Session) {
+                Timber.d("onSessionStarted($session)")
+            }
+
+            override fun onSessionStopped(session: Session) {
+                Timber.d("onSessionStopped($session)")
             }
         })
     }
