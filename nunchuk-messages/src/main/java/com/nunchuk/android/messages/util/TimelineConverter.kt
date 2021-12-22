@@ -49,10 +49,10 @@ fun TimelineEvent.toMessage(chatId: String): Message {
             )
         }
         isMessageEvent() -> {
-            Message(
+            MatrixMessage(
                 sender = senderInfo,
                 content = root.getClearContent().toModel<MessageContent>()?.body.orEmpty(),
-                root.sendState,
+                state = root.sendState,
                 time = time(),
                 type = chatType(chatId)
             )

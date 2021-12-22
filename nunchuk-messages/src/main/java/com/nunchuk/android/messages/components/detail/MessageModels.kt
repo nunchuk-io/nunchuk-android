@@ -15,6 +15,21 @@ open class Message(
     open val type: Int
 ) : Serializable
 
+data class MatrixMessage(
+    override val sender: SenderInfo,
+    override val content: String,
+    override val state: SendState,
+    override val time: Long,
+    override val type: Int,
+    val selected: Boolean = false
+) : Message(
+    sender,
+    content,
+    state,
+    time,
+    type
+)
+
 data class NotificationMessage(
     override val sender: SenderInfo,
     override val content: String,

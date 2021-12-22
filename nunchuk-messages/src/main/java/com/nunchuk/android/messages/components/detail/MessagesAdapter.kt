@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.nunchuk.android.core.loader.ImageLoader
+import com.nunchuk.android.core.util.observable
 import com.nunchuk.android.messages.components.detail.holder.*
 import com.nunchuk.android.messages.databinding.*
 import com.nunchuk.android.model.RoomWallet
@@ -20,7 +21,9 @@ internal class MessagesAdapter(
     private val finalizeWallet: () -> Unit,
     private val viewTransaction: (walletId: String, txId: String, initEventId: String) -> Unit,
     private val dismissBannerNewChatListener: () -> Unit,
-    private val createSharedWalletListener: () -> Unit
+    private val createSharedWalletListener: () -> Unit,
+    private val senderLongPressListener: (message: Message, position: Int) -> Unit,
+    private val countCheckedChangeListener: (count: Int) -> Unit
 ) : Adapter<ViewHolder>() {
 
     private var chatModels: List<AbsChatModel> = ArrayList()
@@ -29,14 +32,69 @@ internal class MessagesAdapter(
     private var memberCounts: Int? = null
     private var isShowNewBanner: Boolean = true
 
+    var selectMode: Boolean by observable(false, {
+        notifyDataSetChanged()
+    })
 
-    internal fun update(chatModels: List<AbsChatModel>, transactions: List<TransactionExtended>, roomWallet: RoomWallet?, memberCounts: Int) {
+    internal fun update(
+        chatModels: List<AbsChatModel>,
+        transactions: List<TransactionExtended>,
+        roomWallet: RoomWallet?,
+        memberCounts: Int
+    ) {
         initListChatMessages(roomWallet, chatModels)
         this.transactions = transactions
         this.roomWallet = roomWallet
         this.memberCounts = memberCounts
         notifyDataSetChanged()
     }
+
+
+    internal fun updateSelectedPosition(
+        selectedPosition: Int,
+        checked: Boolean = false,
+        refreshList: Boolean = false
+    ) {
+        val newList = mutableListOf<AbsChatModel>()
+        this.chatModels.forEachIndexed { index, model ->
+            if (model !is MessageModel) {
+                newList.add(model)
+                return@forEachIndexed
+            }
+
+            if (selectedPosition == index) {
+                val updatedMessageData = (model.message as MatrixMessage).copy(
+                    selected = checked
+                )
+                newList.add(MessageModel(
+                    message = updatedMessageData
+                ))
+                return@forEachIndexed
+            }
+
+            newList.add(model)
+
+        }
+
+        this.chatModels = newList
+
+        if (refreshList) {
+            notifyDataSetChanged()
+        }
+    }
+
+    internal fun getSelectedMessage() : List<MatrixMessage>{
+        return this.chatModels.filter {
+            if (it !is MessageModel || it.message !is MatrixMessage) {
+                false
+            } else {
+                it.message.selected
+            }
+        }.map {
+            ((it as MessageModel).message as MatrixMessage)
+        }
+    }
+
 
     private fun initListChatMessages(
         roomWallet: RoomWallet?,
@@ -72,12 +130,26 @@ internal class MessagesAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = when (viewType) {
         MessageType.TYPE_CHAT_MINE.index -> MessageMineViewHolder(
-            ItemMessageMeBinding.inflate(LayoutInflater.from(context), parent, false)
+            ItemMessageMeBinding.inflate(LayoutInflater.from(context), parent, false),
+            longPressListener = senderLongPressListener,
+            checkedChangeListener = { checked, position ->
+                updateSelectedPosition(position, checked, false)
+                countCheckedChangeListener.invoke(
+                    getSelectedMessage().size
+                )
+            },
         )
         MessageType.TYPE_CHAT_PARTNER.index -> MessagePartnerHolder(
             imageLoader,
             ItemMessagePartnerBinding.inflate(LayoutInflater.from(context), parent, false),
-            (memberCounts ?: 0) > 2
+            (memberCounts ?: 0) > 2,
+            longPressListener = senderLongPressListener,
+            checkedChangeListener = { checked, position ->
+                updateSelectedPosition(position, checked, false)
+                countCheckedChangeListener.invoke(
+                    getSelectedMessage().size
+                )
+            }
         )
         MessageType.TYPE_NOTIFICATION.index -> MessageNotificationHolder(
             ItemMessageNotificationBinding.inflate(LayoutInflater.from(context), parent, false)
@@ -120,10 +192,10 @@ internal class MessagesAdapter(
         val messageData = chatModels[position]
         when (getItemViewType(position)) {
             MessageType.TYPE_CHAT_MINE.index -> {
-                (holder as MessageMineViewHolder).bind((messageData as MessageModel).message)
+                (holder as MessageMineViewHolder).bind(((messageData as MessageModel).message as MatrixMessage), position, selectMode)
             }
             MessageType.TYPE_CHAT_PARTNER.index -> {
-                (holder as MessagePartnerHolder).bind((messageData as MessageModel).message)
+                (holder as MessagePartnerHolder).bind(((messageData as MessageModel).message as MatrixMessage), position, selectMode)
             }
             MessageType.TYPE_NOTIFICATION.index -> {
                 (holder as MessageNotificationHolder).bind((messageData as MessageModel).message as NotificationMessage)
