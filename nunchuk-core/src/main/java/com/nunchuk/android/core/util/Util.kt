@@ -1,7 +1,11 @@
 package com.nunchuk.android.core.util
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.text.util.Linkify
 import android.widget.TextView
+import com.nunchuk.android.core.R
 import com.nunchuk.android.core.network.UNKNOWN_ERROR
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.type.Chain
@@ -11,6 +15,9 @@ import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
+import kotlin.properties.ObservableProperty
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 
 fun Throwable.readableMessage() = message ?: UNKNOWN_ERROR
 
@@ -53,4 +60,18 @@ internal fun Chain.isMainNet() = this == Chain.MAIN
 fun TextView.linkify(textToLink: String, url: String) {
     val pattern = Pattern.compile(textToLink)
     Linkify.addLinks(this, pattern, url, { _, _, _ -> true }, { _, _ -> "" })
+}
+
+inline fun <T> observable(
+    initialValue: T,
+    crossinline onChange: (newValue: T) -> Unit
+): ReadWriteProperty<Any?, T> = object : ObservableProperty<T>(initialValue) {
+    override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) = onChange(newValue)
+}
+
+fun Context.copyToClipboard(label: String, text: String) {
+    val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    val clip =
+        ClipData.newPlainText(label,text)
+    clipboard.setPrimaryClip(clip)
 }

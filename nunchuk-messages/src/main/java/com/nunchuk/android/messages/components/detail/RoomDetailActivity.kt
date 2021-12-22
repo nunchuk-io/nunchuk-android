@@ -2,14 +2,19 @@ package com.nunchuk.android.messages.components.detail
 
 import android.content.Context
 import android.os.Bundle
+import android.view.View
+import android.widget.ImageView
 import androidx.activity.viewModels
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.loader.ImageLoader
+import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.hideKeyboard
+import com.nunchuk.android.core.util.observable
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.databinding.ActivityRoomDetailBinding
@@ -33,8 +38,13 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
     private val args: RoomDetailArgs by lazy { RoomDetailArgs.deserializeFrom(intent) }
 
-    private lateinit var adapter: MessagesAdapter
+    private var adapter: MessagesAdapter? = null
     private lateinit var stickyBinding: ViewWalletStickyBinding
+    private var selectMessageActionView: View? = null
+
+    private var selectMode: Boolean by observable(false, {
+        setupViewForSelectMode(it)
+    })
 
     override fun initializeBinding() = ActivityRoomDetailBinding.inflate(layoutInflater)
 
@@ -63,9 +73,9 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         val membersCount = "${state.roomInfo.memberCount} members"
         binding.memberCount.text = membersCount
 
-        adapter.update(state.messages.groupByDate(), state.transactions, state.roomWallet, state.roomInfo.memberCount)
+        adapter?.update(state.messages.groupByDate(), state.transactions, state.roomWallet, state.roomInfo.memberCount)
         if (state.messages.isNotEmpty()) {
-            binding.recyclerView.scrollToPosition(adapter.itemCount - 1)
+            binding.recyclerView.scrollToPosition((adapter?.itemCount ?: 0) - 1)
         }
         stickyBinding.root.isVisible = state.roomWallet != null
         state.roomWallet?.let {
@@ -87,7 +97,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             OpenChatGroupInfoEvent -> navigator.openChatGroupInfoScreen(this, args.roomId)
             OpenChatInfoEvent -> navigator.openChatInfoScreen(this, args.roomId)
             RoomWalletCreatedEvent -> NCToastMessage(this).show(R.string.nc_message_wallet_created)
-            DontShowBannerNewChatEvent -> adapter.removeBannerNewChat()
+            DontShowBannerNewChatEvent -> adapter?.removeBannerNewChat()
             is ViewWalletConfigEvent -> navigator.openSharedWalletConfigScreen(this, event.roomWalletData)
         }
     }
@@ -98,6 +108,12 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 
     private fun setupViews() {
+        selectMessageActionView = binding.viewStubSelectMessageAction.inflate()
+        selectMessageActionView?.findViewById<ImageView>(R.id.btnCopy)?.setOnClickListener {
+            copyMessageText( adapter?.getSelectedMessage()?.joinToString("\n") { it.content }.orEmpty())
+            selectMode = false
+        }
+        selectMode = false
         stickyBinding = ViewWalletStickyBinding.bind(binding.walletStickyContainer.root)
         stickyBinding.root.setOnClickListener { }
 
@@ -116,14 +132,24 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             finalizeWallet = viewModel::finalizeWallet,
             viewTransaction = ::openTransactionDetails,
             dismissBannerNewChatListener = { viewModel.dontShowBannerNewChat()},
-            createSharedWalletListener = {viewModel.handleAddEvent()}
+            createSharedWalletListener = {viewModel.handleAddEvent()},
+            senderLongPressListener = { message, position ->
+                showSelectMessageBottomSheet(message, position)
+            },
+            countCheckedChangeListener = {
+                binding.tvSelectedMessageCount.text = getString(R.string.nc_text_count_selected_message, it)
+            }
         )
         binding.recyclerView.adapter = adapter
         val layoutManager = LinearLayoutManager(this)
         binding.recyclerView.layoutManager = layoutManager
 
         binding.toolbar.setNavigationOnClickListener {
-            finish()
+            if (selectMode) {
+                selectMode = false
+            } else {
+                finish()
+            }
         }
         binding.toolbar.setOnClickListener {
             viewModel.handleTitleClick()
@@ -144,6 +170,54 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
                 }
             }
         })
+    }
+
+    private fun showSelectMessageBottomSheet(message: Message, position: Int) {
+        val bottomSheet = EditPhotoUserBottomSheet.show(
+            fragmentManager = this.supportFragmentManager
+        )
+        bottomSheet.listener = {
+            when (it) {
+                SelectMessageOption.Select -> {
+                    selectMode = true
+                    adapter?.updateSelectedPosition(
+                        selectedPosition = position,
+                        checked = true,
+                        refreshList = false
+                    )
+                }
+
+                SelectMessageOption.Copy -> {
+                    copyMessageText(message.content)
+                    selectMode = false
+                }
+
+            }
+        }
+    }
+
+    private fun copyMessageText(text: String) {
+        this.copyToClipboard(
+            label = "Nunchuk",
+            text = text
+        )
+        NCToastMessage(this).showMessage(getString(R.string.nc_text_copied_to_clipboard))
+    }
+
+    private fun setupViewForSelectMode(selectMode: Boolean) {
+        adapter?.selectMode = selectMode
+        selectMessageActionView?.isVisible = selectMode
+        binding.tvSelectedMessageCount.isVisible = selectMode
+        binding.editText.isVisible = !selectMode
+        binding.add.isVisible = !selectMode
+        binding.send.isVisible = !selectMode
+        binding.memberCount.isVisible = !selectMode
+        binding.toolbarTitle.isVisible = !selectMode
+        binding.toolbar.navigationIcon = if (selectMode) {
+            ContextCompat.getDrawable(this, R.drawable.ic_close)
+        } else {
+            ContextCompat.getDrawable(this, R.drawable.ic_back)
+        }
     }
 
     private fun openTransactionDetails(walletId: String, txId: String, initEventId: String) {

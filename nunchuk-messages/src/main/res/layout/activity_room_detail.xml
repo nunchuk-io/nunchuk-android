@@ -34,6 +34,16 @@
                 tools:text="Hugo Nunchuk" />
 
             <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/tvSelectedMessageCount"
+                style="@style/NCToolbar.Text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:visibility="gone"
+                android:maxLines="2"
+                tools:text="Hugo Nunchuk" />
+
+            <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/memberCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -115,5 +125,15 @@
         app:layout_constraintBottom_toBottomOf="@id/editText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/editText" />
+
+    <ViewStub
+        android:id="@+id/viewStubSelectMessageAction"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout="@layout/layout_select_message_action"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

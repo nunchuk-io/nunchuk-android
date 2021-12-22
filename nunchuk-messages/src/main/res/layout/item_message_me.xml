@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -7,16 +8,30 @@
     android:gravity="end"
     android:orientation="vertical">
 
+    <com.nunchuk.android.widget.NCFontCheckedBox
+        android:id="@+id/cbSelect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:button="@drawable/bg_checkbox_select_message"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/message"
         style="@style/NCText.Body"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:autoLink="all"
         android:background="@drawable/message_me_background"
         android:maxWidth="250dp"
         android:padding="@dimen/nc_padding_12"
         android:paddingHorizontal="@dimen/nc_padding_18"
-        tools:text="Sounds good Khoa, let’s get this bread" />
+        android:textColorLink="@color/nc_primary_color"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Sounds good Khoa, let’s get this bread: https://google.com.vn" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/status"
@@ -25,6 +40,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_4"
         android:textColor="@color/nc_grey_dark_color"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/message"
         tools:text="Delivered" />
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

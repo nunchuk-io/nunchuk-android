@@ -8,12 +8,21 @@
     android:gravity="start"
     android:orientation="vertical">
 
+    <com.nunchuk.android.widget.NCFontCheckedBox
+        android:id="@+id/cbSelect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:button="@drawable/bg_checkbox_select_message"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <com.nunchuk.android.widget.NCAvatarView
         android:id="@+id/avatar"
         android:layout_width="@dimen/nc_padding_48"
         android:layout_height="@dimen/nc_padding_48"
         android:layout_marginBottom="@dimen/nc_padding_8"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/cbSelect"
         app:layout_constraintTop_toBottomOf="@id/sender"
         tools:background="@drawable/nc_circle_beeswax_light_background"
         tools:text="Z" />
@@ -38,11 +47,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_4"
+        android:autoLink="web"
         android:background="@drawable/message_partner_background"
         android:maxWidth="250dp"
         android:padding="@dimen/nc_padding_12"
+        android:textColorLink="@color/nc_primary_color"
         app:layout_constraintStart_toEndOf="@id/avatar"
         app:layout_constraintTop_toBottomOf="@id/sender"
-        tools:text="Hey Tom, let’s create a wallet together shall we?" />
+        tools:text="Hey Tom, let’s create a wallet together shall we https://google.com.vn?" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
