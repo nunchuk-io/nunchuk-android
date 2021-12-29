@@ -22,7 +22,9 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>() {
@@ -66,9 +68,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         binding.subtractFeeCheckBox.setOnCheckedChangeListener { _, isChecked -> viewModel.handleSubtractFeeSwitch(isChecked) }
         binding.manualFeeCheckBox.setOnCheckedChangeListener { _, isChecked -> handleManualFeeSwitch(isChecked) }
         binding.feeRateInput.textChanges()
-            .filterNot { it == null }
-            .debounce(300)
-            .distinctUntilChanged()
+            .debounce(500)
             .onEach { viewModel.updateFeeRate(it.safeInt()) }
             .launchIn(lifecycleScope)
 
