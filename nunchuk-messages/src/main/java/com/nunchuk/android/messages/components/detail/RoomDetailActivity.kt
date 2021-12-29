@@ -97,7 +97,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             OpenChatGroupInfoEvent -> navigator.openChatGroupInfoScreen(this, args.roomId)
             OpenChatInfoEvent -> navigator.openChatInfoScreen(this, args.roomId)
             RoomWalletCreatedEvent -> NCToastMessage(this).show(R.string.nc_message_wallet_created)
-            DontShowBannerNewChatEvent -> adapter?.removeBannerNewChat()
+            HideBannerNewChatEvent -> adapter?.removeBannerNewChat()
             is ViewWalletConfigEvent -> navigator.openSharedWalletConfigScreen(this, event.roomWalletData)
         }
     }
@@ -131,7 +131,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             viewWalletConfig = viewModel::viewConfig,
             finalizeWallet = viewModel::finalizeWallet,
             viewTransaction = ::openTransactionDetails,
-            dismissBannerNewChatListener = { viewModel.dontShowBannerNewChat()},
+            dismissBannerNewChatListener = { viewModel.hideBannerNewChat()},
             createSharedWalletListener = {viewModel.handleAddEvent()},
             senderLongPressListener = { message, position ->
                 showSelectMessageBottomSheet(message, position)

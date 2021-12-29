@@ -56,7 +56,7 @@ internal class MessagesAdapter(
         refreshList: Boolean = false
     ) {
         val newList = mutableListOf<AbsChatModel>()
-        this.chatModels.forEachIndexed { index, model ->
+        chatModels.forEachIndexed { index, model ->
             if (model !is MessageModel) {
                 newList.add(model)
                 return@forEachIndexed
@@ -76,7 +76,7 @@ internal class MessagesAdapter(
 
         }
 
-        this.chatModels = newList
+        chatModels = newList
 
         if (refreshList) {
             notifyDataSetChanged()
@@ -112,7 +112,7 @@ internal class MessagesAdapter(
 
         initListChatMessages(
             roomWallet = roomWallet,
-            chatModels = if (chatModels.size == 1) {
+            chatModels = if (chatModels.isEmpty() || chatModels.size == 1) {
                 emptyList()
             } else {
                 chatModels.subList(1, chatModels.size - 1)

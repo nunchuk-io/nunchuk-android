@@ -28,7 +28,7 @@ internal interface DomainModule {
     fun bindAddBlockChainConnectionListenerUseCase(useCase: AddBlockChainConnectionListenerUseCaseImpl): AddBlockChainConnectionListenerUseCase
 
     @Binds
-    fun bindDontShowBannerNewChatUseCase(useCase: DontShowBannerNewChatUseCaseImpl): DontShowBannerNewChatUseCase
+    fun bindHideBannerNewChatUseCase(useCase: HideBannerNewChatUseCaseImpl): HideBannerNewChatUseCase
 
     @Binds
     fun bindCheckShowBannerNewChatUseCase(useCase: CheckShowBannerNewChatUseCaseImpl): CheckShowBannerNewChatUseCase

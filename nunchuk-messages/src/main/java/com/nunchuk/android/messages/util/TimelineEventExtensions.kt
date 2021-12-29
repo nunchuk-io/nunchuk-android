@@ -18,7 +18,7 @@ internal const val TAG = "TimelineEvent"
 
 fun TimelineEvent.lastMessage(): CharSequence {
     val senderName = senderInfo.disambiguatedDisplayName
-    val lastMessage = getTextEditableContent() ?: getLastMessageContent()?.body
+    val lastMessage = getLastMessageContent()?.body ?: getTextEditableContent()
     return "$senderName: $lastMessage"
 }
 
