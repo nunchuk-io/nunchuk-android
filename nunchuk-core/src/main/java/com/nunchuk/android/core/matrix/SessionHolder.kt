@@ -3,7 +3,6 @@ package com.nunchuk.android.core.matrix
 import com.nunchuk.android.utils.CrashlyticsReporter
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.Room
-import timber.log.Timber
 
 object SessionHolder {
     var activeSession: Session? = null
@@ -33,11 +32,7 @@ object SessionHolder {
         currentRoom = null
     }
 
-    fun hasActiveSession(): Boolean {
-        Timber.d("sessionParams::${activeSession?.sessionParams}")
-        Timber.d("devicesInfo::${activeSession?.cryptoService()?.getMyDevicesInfo()}")
-        return activeSession != null
-    }
+    fun hasActiveSession() = activeSession != null
 
     fun hasActiveRoom() = currentRoom != null
 

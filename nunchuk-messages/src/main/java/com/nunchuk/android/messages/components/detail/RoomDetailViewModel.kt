@@ -4,7 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.CheckShowBannerNewChatUseCase
-import com.nunchuk.android.core.domain.DontShowBannerNewChatUseCase
+import com.nunchuk.android.core.domain.HideBannerNewChatUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
@@ -38,7 +38,7 @@ class RoomDetailViewModel @Inject constructor(
     private val createSharedWalletUseCase: CreateSharedWalletUseCase,
     private val getTransactionsUseCase: GetTransactionsUseCase,
     private val getWalletUseCase: GetWalletUseCase,
-    private val dontShowBannerNewChatUseCase: DontShowBannerNewChatUseCase,
+    private val hideBannerNewChatUseCase: HideBannerNewChatUseCase,
     private val checkShowBannerNewChatUseCase: CheckShowBannerNewChatUseCase
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
 
@@ -123,24 +123,25 @@ class RoomDetailViewModel @Inject constructor(
                 .sortedBy(NunchukMatrixEvent::time)
             consumeEvents(sortedEvents, displayableEvents, nunchukEvents)
         }
+        handleLoadMore()
     }
 
-    private suspend fun consumeEvents(
+    private fun consumeEvents(
         sortedEvents: List<NunchukMatrixEvent>,
         displayableEvents: List<TimelineEvent>,
         nunchukEvents: List<TimelineEvent>
     ) {
-        consumeEventUseCase.execute(sortedEvents)
-            .flowOn(IO)
-            .onException {}
-            .flowOn(Main)
-            .onCompletion {
-                updateState { copy(messages = displayableEvents.toMessages(currentId)) }
-                getRoomWallet(nunchukEvents)
-            }
-            .collect {
-                Timber.d("Consume event completed")
-            }
+        viewModelScope.launch {
+            consumeEventUseCase.execute(sortedEvents)
+                .flowOn(IO)
+                .onException {}
+                .flowOn(Main)
+                .onCompletion {
+                    updateState { copy(messages = displayableEvents.toMessages(currentId)) }
+                    getRoomWallet(nunchukEvents)
+                }
+                .collect { Timber.d("Consume event completed") }
+        }
     }
 
     private fun getRoomWallet(nunchukEvents: List<TimelineEvent>) {
@@ -217,6 +218,7 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     fun cleanUp() {
+        timeline.dispose()
         timeline.removeListener(timelineListenerAdapter)
         timelineListenerAdapter = TimelineListenerAdapter {}
         SessionHolder.currentRoom = null
@@ -249,13 +251,13 @@ class RoomDetailViewModel @Inject constructor(
         }
     }
 
-    fun dontShowBannerNewChat() {
+    fun hideBannerNewChat() {
         viewModelScope.launch {
-            dontShowBannerNewChatUseCase.execute()
+            hideBannerNewChatUseCase.execute()
                 .flowOn(IO)
                 .onException { }
                 .collect {
-                    event(DontShowBannerNewChatEvent)
+                    event(HideBannerNewChatEvent)
                 }
         }
     }
@@ -265,9 +267,9 @@ class RoomDetailViewModel @Inject constructor(
             checkShowBannerNewChatUseCase.execute()
                 .flowOn(IO)
                 .onException { }
-                .collect { showBannerNewChat ->
-                    if (!showBannerNewChat) {
-                        event(DontShowBannerNewChatEvent)
+                .collect {
+                    if (!it) {
+                        event(HideBannerNewChatEvent)
                     }
                 }
         }

@@ -5,13 +5,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
-interface DontShowBannerNewChatUseCase {
+interface HideBannerNewChatUseCase {
     fun execute(): Flow<Boolean>
 }
 
-internal class DontShowBannerNewChatUseCaseImpl @Inject constructor(
+internal class HideBannerNewChatUseCaseImpl @Inject constructor(
     private val ncSharedPreferences: NCSharePreferences
-) : DontShowBannerNewChatUseCase {
+) : HideBannerNewChatUseCase {
 
     override fun execute() = flow {
         ncSharedPreferences.showBannerNewChat = false
