@@ -8,7 +8,8 @@ import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
-import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.*
+import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeCompletedEvent
+import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeErrorEvent
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.utils.onException
@@ -46,7 +47,6 @@ internal class EstimatedFeeViewModel @Inject constructor(
     }
 
     private fun draftTransaction() {
-        event(Loading)
         val state = getState()
         viewModelScope.launch {
             when (val result = draftTransactionUseCase.execute(
