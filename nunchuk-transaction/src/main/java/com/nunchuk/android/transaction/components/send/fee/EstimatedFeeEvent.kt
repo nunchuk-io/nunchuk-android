@@ -10,8 +10,6 @@ sealed class EstimatedFeeEvent {
         val subtractFeeFromAmount: Boolean,
         val manualFeeRate: Int
     ) : EstimatedFeeEvent()
-
-    object Loading : EstimatedFeeEvent()
 }
 
 data class EstimatedFeeState(

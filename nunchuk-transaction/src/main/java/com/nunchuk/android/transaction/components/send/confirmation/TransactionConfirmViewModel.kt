@@ -149,4 +149,4 @@ internal class TransactionConfirmViewModel @Inject constructor(
 
 }
 
-internal fun Int.toManualFeeRate() = if (this > 0) (this * 1000).toAmount() else Amount(-1)
+internal fun Int.toManualFeeRate() = if (this > 0) toAmount() else Amount(-1)

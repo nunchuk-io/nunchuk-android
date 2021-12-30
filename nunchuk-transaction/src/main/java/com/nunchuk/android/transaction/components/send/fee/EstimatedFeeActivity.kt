@@ -16,7 +16,7 @@ import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.Est
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeErrorEvent
 import com.nunchuk.android.transaction.databinding.ActivityTransactionEstimateFeeBinding
 import com.nunchuk.android.utils.isNoneEmpty
-import com.nunchuk.android.utils.safeInt
+import com.nunchuk.android.utils.safeManualFee
 import com.nunchuk.android.utils.textChanges
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -69,7 +69,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         binding.manualFeeCheckBox.setOnCheckedChangeListener { _, isChecked -> handleManualFeeSwitch(isChecked) }
         binding.feeRateInput.textChanges()
             .debounce(500)
-            .onEach { viewModel.updateFeeRate(it.safeInt()) }
+            .onEach { viewModel.updateFeeRate(it.safeManualFee()) }
             .launchIn(lifecycleScope)
 
         binding.toolbar.setNavigationOnClickListener {
@@ -135,12 +135,10 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                 subtractFeeFromAmount = event.subtractFeeFromAmount,
                 manualFeeRate = event.manualFeeRate
             )
-            EstimatedFeeEvent.Loading -> showLoading()
         }
     }
 
     private fun onEstimatedFeeError(event: EstimatedFeeErrorEvent) {
-        hideLoading()
         NCToastMessage(this).show(event.message)
     }
 
