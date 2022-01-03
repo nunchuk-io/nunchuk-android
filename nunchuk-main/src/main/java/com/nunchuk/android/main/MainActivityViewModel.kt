@@ -5,7 +5,6 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.callbacks.DownloadFileCallBack
 import com.nunchuk.android.callbacks.UploadFileCallBack
 import com.nunchuk.android.core.api.SyncStateMatrixResponse
-import com.nunchuk.android.core.domain.AddBlockChainConnectionListenerUseCase
 import com.nunchuk.android.core.domain.GetPriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.LoginWithMatrixUseCase
 import com.nunchuk.android.core.domain.ScheduleGetPriceConvertBTCUseCase
@@ -28,7 +27,6 @@ import com.nunchuk.android.model.NunchukMatrixEvent
 import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.usecase.EnableAutoBackupUseCase
-import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
@@ -55,7 +53,6 @@ internal class MainActivityViewModel @Inject constructor(
     private val syncStateMatrixUseCase: SyncStateMatrixUseCase,
     private val getPriceConvertBTCUseCase: GetPriceConvertBTCUseCase,
     private val scheduleGetPriceConvertBTCUseCase: ScheduleGetPriceConvertBTCUseCase,
-    private val addBlockChainConnectionListenerUseCase: AddBlockChainConnectionListenerUseCase,
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val loginWithMatrixUseCase: LoginWithMatrixUseCase
 ) : NunchukViewModel<Unit, MainAppEvent>() {
@@ -97,16 +94,6 @@ internal class MainActivityViewModel @Inject constructor(
                 BLOCKCHAIN_STATUS = connectionStatus
                 event(GetConnectionStatusSuccessEvent(connectionStatus))
             }
-        }
-    }
-
-    fun addBlockChainConnectionListener() {
-        viewModelScope.launch {
-            addBlockChainConnectionListenerUseCase.execute()
-                .flowOn(IO)
-                .onException { CrashlyticsReporter.recordException(it) }
-                .flowOn(Main)
-                .collect {}
         }
     }
 

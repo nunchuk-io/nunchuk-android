@@ -45,7 +45,8 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
                 initNunchuk()
             }
             .onEach {
-                event(SignInSuccessEvent(token = token.orEmpty(), encryptedDeviceId = encryptedDeviceId.orEmpty())) }
+                event(SignInSuccessEvent(token = token.orEmpty(), encryptedDeviceId = encryptedDeviceId.orEmpty()))
+            }
             .flowOn(Dispatchers.Main)
             .launchIn(viewModelScope)
     }
@@ -54,7 +55,8 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
         val account = accountManager.getAccount()
         // TODO: use a real passphrase; make sure to use the same passphrase on ALL InitNunchukUseCase instances
         // or the user will lose access to their keys/wallets
-        return initNunchukUseCase.execute("", account.email)
+        return initNunchukUseCase.execute(accountId = account.email)
+            .flowOn(Dispatchers.IO)
             .onException { event(SignInErrorEvent(message = it.message.orUnknownError())) }
     }
 

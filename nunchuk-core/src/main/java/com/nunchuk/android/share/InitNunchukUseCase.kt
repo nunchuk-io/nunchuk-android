@@ -2,11 +2,11 @@ package com.nunchuk.android.share
 
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
 import com.nunchuk.android.core.util.toMatrixContent
-import com.nunchuk.android.model.AppSettings
-import com.nunchuk.android.model.SendEventExecutor
-import com.nunchuk.android.model.SendEventHelper
+import com.nunchuk.android.model.*
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.type.ConnectionStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapConcat
@@ -15,8 +15,6 @@ import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface InitNunchukUseCase {
-    // TODO: use a real passphrase; make sure to use the same passphrase on ALL InitNunchukUseCase instances
-    // or the user will lose access to their keys/wallets
     fun execute(
         passphrase: String = "",
         accountId: String
@@ -47,7 +45,6 @@ internal class InitNunchukUseCaseImpl @Inject constructor(
         initReceiver()
         emit(nativeSdk.run {
             initNunchuk(appSettings, passphrase, accountId)
-            enableGenerateReceiveEvent()
         })
     }.flowOn(Dispatchers.IO)
 
@@ -60,6 +57,12 @@ internal class InitNunchukUseCaseImpl @Inject constructor(
                     }
                 }
                 return ""
+            }
+        }
+
+        ConnectionStatusHelper.executor = object : ConnectionStatusExecutor {
+            override fun execute(connectionStatus: ConnectionStatus, percent: Int) {
+                BLOCKCHAIN_STATUS = connectionStatus
             }
         }
     }
