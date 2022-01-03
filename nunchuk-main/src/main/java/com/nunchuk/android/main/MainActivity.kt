@@ -49,7 +49,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             viewModel.setupMatrix(loginHalfToken, deviceId)
         }
         viewModel.scheduleGetBTCConvertPrice()
-        viewModel.addBlockChainConnectionListener()
     }
 
     private fun subscribeEvents() {

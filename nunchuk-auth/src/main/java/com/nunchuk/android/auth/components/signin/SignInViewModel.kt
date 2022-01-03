@@ -78,7 +78,7 @@ internal class SignInViewModel @Inject constructor(
 
     private fun initNunchuk() = initNunchukUseCase.execute(
         accountId = accountManager.getAccount().email
-    ).onException { event(SignInErrorEvent(message = it.message)) }.flowOn(IO)
+    ).flowOn(IO).onException { event(SignInErrorEvent(message = it.message)) }
 
     fun storeStaySignedIn(staySignedIn: Boolean) {
         this.staySignedIn = staySignedIn
