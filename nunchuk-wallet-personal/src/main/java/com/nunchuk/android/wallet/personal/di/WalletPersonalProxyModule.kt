@@ -5,7 +5,9 @@ import dagger.Module
 @Module(
     includes = [
         WalletPersonalActivityModule::class,
-        WalletPersonalViewModelModule::class
+        WalletPersonalViewModelModule::class,
+        WalletIntermediaryViewModelModule::class,
+        AddRecoverWalletViewModelModule::class
     ]
 )
 interface WalletPersonalProxyModule

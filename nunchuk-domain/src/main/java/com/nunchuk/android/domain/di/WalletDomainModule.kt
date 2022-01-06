@@ -34,4 +34,7 @@ internal interface WalletDomainModule {
     @Binds
     fun bindImportKeystoneWalletUseCase(useCase: ImportKeystoneWalletUseCaseImpl): ImportKeystoneWalletUseCase
 
+    @Binds
+    fun bindImportWalletUseCase(useCase: ImportWalletUseCaseImpl): ImportWalletUseCase
+
 }

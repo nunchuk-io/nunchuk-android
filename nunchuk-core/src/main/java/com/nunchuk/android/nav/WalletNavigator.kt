@@ -11,6 +11,12 @@ interface PersonalWalletNavigator {
 
     fun openAddWalletScreen(activityContext: Context)
 
+    fun openWalletIntermediaryScreen(activityContext: Context)
+
+    fun openAddRecoverWalletScreen(activityContext: Context, filePath: String)
+
+    fun openRecoverWalletQRCodeScreen(activityContext: Context)
+
     fun openReviewWalletScreen(
         activityContext: Context,
         walletName: String,

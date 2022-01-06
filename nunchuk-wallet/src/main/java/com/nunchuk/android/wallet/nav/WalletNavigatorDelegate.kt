@@ -16,6 +16,9 @@ import com.nunchuk.android.wallet.components.intro.WalletEmptySignerActivity
 import com.nunchuk.android.wallet.components.review.ReviewWalletActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationActivity
 import com.nunchuk.android.wallet.personal.components.add.AddWalletActivity
+import com.nunchuk.android.wallet.personal.components.recover.AddRecoverWalletActivity
+import com.nunchuk.android.wallet.personal.components.WalletIntermediaryActivity
+import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletQrCodeActivity
 import com.nunchuk.android.wallet.shared.components.assign.AssignSignerSharedWalletActivity
 import com.nunchuk.android.wallet.shared.components.config.SharedWalletConfigActivity
 import com.nunchuk.android.wallet.shared.components.configure.ConfigureSharedWalletActivity
@@ -26,6 +29,18 @@ interface WalletNavigatorDelegate : WalletNavigator {
 
     override fun openAddWalletScreen(activityContext: Context) {
         AddWalletActivity.start(activityContext)
+    }
+
+    override fun openWalletIntermediaryScreen(activityContext: Context) {
+        WalletIntermediaryActivity.start(activityContext)
+    }
+
+    override fun openAddRecoverWalletScreen(activityContext: Context, filePath: String) {
+        AddRecoverWalletActivity.start(activityContext, filePath)
+    }
+
+    override fun openRecoverWalletQRCodeScreen(activityContext: Context) {
+        RecoverWalletQrCodeActivity.start(activityContext)
     }
 
     override fun openConfigureWalletScreen(
