@@ -11,6 +11,27 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
+            android:name=".personal.components.WalletIntermediaryActivity"
+            android:label="@string/nc_wallet_add_wallet_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".personal.components.recover.AddRecoverWalletActivity"
+            android:label="@string/nc_wallet_add_wallet_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".personal.components.recover.RecoverWalletQrCodeActivity"
+            android:label="@string/nc_wallet_qrcode_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
             android:name=".components.configure.ConfigureWalletActivity"
             android:label="@string/nc_wallet_configure_title"
             android:screenOrientation="portrait"
