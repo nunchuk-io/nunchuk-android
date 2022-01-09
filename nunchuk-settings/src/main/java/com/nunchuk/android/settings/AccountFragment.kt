@@ -88,7 +88,7 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
     }
 
     private fun changeUnitSetting() {
-        showComingSoonText()
+        navigator.openDisplayUnitScreen(requireActivity())
     }
 
     private fun changeAvatar() {

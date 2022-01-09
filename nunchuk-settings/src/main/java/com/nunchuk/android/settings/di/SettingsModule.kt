@@ -6,6 +6,8 @@ import com.nunchuk.android.settings.AccountFragment
 import com.nunchuk.android.settings.AccountViewModel
 import com.nunchuk.android.settings.network.NetworkSettingActivity
 import com.nunchuk.android.settings.network.NetworkSettingViewModel
+import com.nunchuk.android.settings.unit.DisplayUnitActivity
+import com.nunchuk.android.settings.unit.DisplayUnitViewModel
 import dagger.Binds
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
@@ -24,6 +26,11 @@ internal interface SettingsViewModelModule {
     @ViewModelKey(NetworkSettingViewModel::class)
     fun bindNetworkSettingViewModel(viewModel: NetworkSettingViewModel): ViewModel
 
+    @Binds
+    @IntoMap
+    @ViewModelKey(DisplayUnitViewModel::class)
+    fun bindDisplayUnitViewModel(viewModel: DisplayUnitViewModel): ViewModel
+
 }
 
 @Module
@@ -34,6 +41,9 @@ internal interface SettingsFragmentModule {
 
     @ContributesAndroidInjector
     fun networkSettingFragment(): NetworkSettingActivity
+
+    @ContributesAndroidInjector
+    fun displayUnitActivity(): DisplayUnitActivity
 
 }
 

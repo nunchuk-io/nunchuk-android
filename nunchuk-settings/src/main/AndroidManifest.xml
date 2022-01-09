@@ -9,5 +9,10 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
+        <activity
+            android:name=".unit.DisplayUnitActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
     </application>
 </manifest>

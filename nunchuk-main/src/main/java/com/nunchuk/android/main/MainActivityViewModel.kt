@@ -5,9 +5,11 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.callbacks.DownloadFileCallBack
 import com.nunchuk.android.callbacks.UploadFileCallBack
 import com.nunchuk.android.core.api.SyncStateMatrixResponse
+import com.nunchuk.android.core.domain.GetDisplayUnitSettingUseCase
 import com.nunchuk.android.core.domain.GetPriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.LoginWithMatrixUseCase
 import com.nunchuk.android.core.domain.ScheduleGetPriceConvertBTCUseCase
+import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.matrix.*
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.util.*
@@ -28,6 +30,7 @@ import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.usecase.EnableAutoBackupUseCase
 import com.nunchuk.android.utils.onException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
@@ -54,7 +57,8 @@ internal class MainActivityViewModel @Inject constructor(
     private val getPriceConvertBTCUseCase: GetPriceConvertBTCUseCase,
     private val scheduleGetPriceConvertBTCUseCase: ScheduleGetPriceConvertBTCUseCase,
     private val getUserProfileUseCase: GetUserProfileUseCase,
-    private val loginWithMatrixUseCase: LoginWithMatrixUseCase
+    private val loginWithMatrixUseCase: LoginWithMatrixUseCase,
+    private val getDisplayUnitSettingUseCase: GetDisplayUnitSettingUseCase
 ) : NunchukViewModel<Unit, MainAppEvent>() {
 
     override val initialState = Unit
@@ -66,6 +70,7 @@ internal class MainActivityViewModel @Inject constructor(
         initSyncEventExecutor()
         registerDownloadFileBackupEvent()
         registerBlockChainConnectionStatusExecutor()
+        getDisplayUnitSetting()
     }
 
     fun scheduleGetBTCConvertPrice() {
@@ -301,6 +306,18 @@ internal class MainActivityViewModel @Inject constructor(
             .onEach { syncInitMatrixState() }
             .flowOn(Main)
             .launchIn(viewModelScope)
+    }
+
+    private fun getDisplayUnitSetting() {
+        viewModelScope.launch {
+            getDisplayUnitSettingUseCase.execute()
+                .flowOn(Dispatchers.IO)
+                .onException { }
+                .flowOn(Dispatchers.Main)
+                .collect {
+                    CURRENT_DISPLAY_UNIT_TYPE = it.getCurrentDisplayUnitType()
+                }
+        }
     }
 
     companion object {

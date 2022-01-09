@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
+import com.nunchuk.android.core.entities.SAT
 import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
@@ -58,6 +60,12 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         }
         binding.amountBTC.text = args.availableAmount.getBTCAmount()
         binding.amountUSD.text = "(${args.availableAmount.getUSDAmount()})"
+        binding.mainCurrencyLabel.text = handleTextCurrency()
+    }
+
+    private fun handleTextCurrency() = when (CURRENT_DISPLAY_UNIT_TYPE) {
+        SAT -> getString(R.string.nc_currency_sat)
+        else -> getString(R.string.nc_currency_btc)
     }
 
     private fun openAddReceiptScreen(outputAmount: Double, subtractFeeFromAmount: Boolean = false) {
@@ -72,7 +80,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
 
     private fun handleState(state: InputAmountState) {
         if (state.useBtc) {
-            binding.mainCurrencyLabel.text = getString(R.string.nc_currency_btc)
+            binding.mainCurrencyLabel.text = handleTextCurrency()
             binding.btnSwitch.text = getString(R.string.nc_transaction_switch_to_usd)
 
             val secondaryCurrency = "$${state.amountUSD.formatDecimal()} ${getString(R.string.nc_currency_usd)}"
