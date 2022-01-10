@@ -1,8 +1,12 @@
 package com.nunchuk.android.transaction.components.send.amount
 
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
+import com.nunchuk.android.core.entities.SAT
+import com.nunchuk.android.core.util.fromBTCToSAT
 import com.nunchuk.android.core.util.fromBTCToUSD
 import com.nunchuk.android.core.util.fromUSDToBTC
+import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.SwapCurrencyEvent
 import javax.inject.Inject
 
@@ -39,7 +43,10 @@ internal class InputAmountViewModel @Inject constructor(
         val currentState = getState()
         if (currentState.useBtc) {
             if (inputValue != currentState.amountBTC) {
-                updateState { copy(amountBTC = inputValue, amountUSD = inputValue.fromBTCToUSD()) }
+                updateState { copy(
+                    amountBTC = if(CURRENT_DISPLAY_UNIT_TYPE == SAT) inputValue.fromBTCToSAT()  else inputValue,
+                    amountUSD = if(CURRENT_DISPLAY_UNIT_TYPE == SAT) inputValue.fromBTCToSAT().fromBTCToUSD()  else inputValue.fromBTCToUSD() )
+                }
             }
         } else {
             if (inputValue != currentState.amountUSD) {
