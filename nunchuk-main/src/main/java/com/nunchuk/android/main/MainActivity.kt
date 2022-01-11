@@ -3,6 +3,7 @@ package com.nunchuk.android.main
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
@@ -15,6 +16,8 @@ import com.nunchuk.android.core.util.saveToFile
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.*
+import com.nunchuk.android.notifications.PushNotificationHelper
+import com.nunchuk.android.utils.NotificationUtils
 import java.io.File
 import javax.inject.Inject
 
@@ -22,6 +25,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     @Inject
     lateinit var factory: ViewModelFactory
+
+    @Inject
+    lateinit var pushNotificationHelper: PushNotificationHelper
 
     private lateinit var navController: NavController
 
@@ -39,9 +45,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        pushNotificationHelper.retrieveFcmToken(
+            NotificationUtils.areNotificationsEnabled(this),
+            onTokenRetrieved = ::onTokenRetrieved,
+            Toast.makeText(this, "No valid Google Play Services found. Cannot use FCM.", Toast.LENGTH_SHORT)::show
+        )
         setupData()
         setupNavigationView()
         subscribeEvents()
+    }
+
+    private fun onTokenRetrieved(token: String) {
+        viewModel.onTokenRetrieved(token)
     }
 
     private fun setupData() {
@@ -91,6 +106,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onPause() {
         navController.removeOnDestinationChangedListener(listener)
         super.onPause()
+        if (!NotificationUtils.areNotificationsEnabled(this)) {
+            NotificationUtils.openNotificationSettings(this)
+        }
     }
 
     companion object {

@@ -6,7 +6,7 @@ import timber.log.Timber
 object CrashlyticsReporter {
 
     fun recordException(t: Throwable) {
-        Timber.e(t.message.orEmpty())
+        Timber.e(t)
         FirebaseCrashlytics.getInstance().recordException(t)
     }
 
