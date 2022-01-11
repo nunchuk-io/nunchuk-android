@@ -1,6 +1,6 @@
 package com.nunchuk.android.messages.util
 
-internal const val KEY = "msgtype"
+const val KEY = "msgtype"
 
 enum class WalletEventType(val type: String) {
     INIT("io.nunchuk.wallet.init"),

@@ -27,6 +27,7 @@ import com.nunchuk.android.model.ConnectionStatusExecutor
 import com.nunchuk.android.model.ConnectionStatusHelper
 import com.nunchuk.android.model.NunchukMatrixEvent
 import com.nunchuk.android.model.SyncFileEventHelper
+import com.nunchuk.android.notifications.PushNotificationManager
 import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.usecase.EnableAutoBackupUseCase
 import com.nunchuk.android.utils.onException
@@ -58,7 +59,8 @@ internal class MainActivityViewModel @Inject constructor(
     private val scheduleGetPriceConvertBTCUseCase: ScheduleGetPriceConvertBTCUseCase,
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val loginWithMatrixUseCase: LoginWithMatrixUseCase,
-    private val getDisplayUnitSettingUseCase: GetDisplayUnitSettingUseCase
+    private val getDisplayUnitSettingUseCase: GetDisplayUnitSettingUseCase,
+    private val notificationManager: PushNotificationManager
 ) : NunchukViewModel<Unit, MainAppEvent>() {
 
     override val initialState = Unit
@@ -318,6 +320,10 @@ internal class MainActivityViewModel @Inject constructor(
                     CURRENT_DISPLAY_UNIT_TYPE = it.getCurrentDisplayUnitType()
                 }
         }
+    }
+
+    fun onTokenRetrieved(token: String) {
+        notificationManager.enqueueRegisterPusherWithFcmKey(token)
     }
 
     companion object {

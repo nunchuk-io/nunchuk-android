@@ -6,7 +6,6 @@ import com.nunchuk.android.utils.CrashlyticsReporter
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
-import timber.log.Timber
 
 fun List<TimelineEvent>.toMessages(chatId: String) = sortedBy { it.root.ageLocalTs }.mapNotNull { it.toMessageSafe(chatId) }
 
@@ -18,7 +17,6 @@ fun TimelineEvent.toMessageSafe(chatId: String): Message? = try {
 }
 
 fun TimelineEvent.toMessage(chatId: String): Message {
-    Timber.d("$TAG::$this")
     return when {
         isNunchukWalletEvent() -> {
             val content = root.content?.toMap().orEmpty()

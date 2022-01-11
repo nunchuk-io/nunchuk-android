@@ -85,7 +85,7 @@ private fun TimelineEvent.isWalletEvent(type: WalletEventType) = try {
     false
 }
 
-internal fun TimelineEvent.getNunchukInitEventId(): String? {
+fun TimelineEvent.getNunchukInitEventId(): String? {
     val map = root.content?.toMap().orEmpty()
     return gson.fromJson(gson.toJson(map["body"]), JsonObject::class.java)
         ?.getAsJsonObject("io.nunchuk.relates_to")

@@ -10,6 +10,7 @@ import com.nunchuk.android.database.di.DatabaseProxyModule
 import com.nunchuk.android.domain.di.NativeSDKProxyModule
 import com.nunchuk.android.main.di.MainProxyModule
 import com.nunchuk.android.messages.di.MessagesProxyModule
+import com.nunchuk.android.notifications.di.NotificationProxyModule
 import com.nunchuk.android.settings.di.SettingsModule
 import com.nunchuk.android.signer.di.SignerProxyModule
 import com.nunchuk.android.transaction.di.TransactionProxyModule
@@ -36,6 +37,7 @@ internal interface BootstrapModule {
         CoreProxyModule::class,
         DatabaseProxyModule::class,
         MainProxyModule::class,
+        NotificationProxyModule::class,
         SignerProxyModule::class,
         WalletProxyModule::class,
         TransactionProxyModule::class,
