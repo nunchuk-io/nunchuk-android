@@ -192,6 +192,10 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
                     selectMode = false
                 }
 
+                SelectMessageOption.Dismiss -> {
+                    selectMode = false
+                }
+
             }
         }
     }

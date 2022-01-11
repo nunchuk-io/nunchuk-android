@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.components.detail.holder
 
+import android.text.method.LinkMovementMethod
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.loader.ImageLoader
@@ -18,6 +19,7 @@ internal class MessagePartnerHolder(
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(messageData: MatrixMessage, position: Int, selectMode: Boolean) {
+        binding.message.movementMethod = LinkMovementMethod.getInstance()
         val userName = messageData.sender.displayNameOrId()
         binding.avatar.displayAvatar(imageLoader, messageData.sender.avatarUrl, userName.shorten())
         binding.sender.text = userName
@@ -34,10 +36,12 @@ internal class MessagePartnerHolder(
             binding.message.setOnLongClickListener(null)
         } else {
             binding.root.setOnLongClickListener {
+                binding.message.movementMethod = null
                 longPressListener.invoke(messageData, position)
                 true
             }
             binding.message.setOnLongClickListener {
+                binding.message.movementMethod = null
                 longPressListener.invoke(messageData, position)
                 true
             }

@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.components.detail
 
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -20,6 +21,11 @@ internal class EditPhotoUserBottomSheet : BaseBottomSheet<BottomSheetSelectMessa
         super.onViewCreated(view, savedInstanceState)
 
         setupViews()
+    }
+
+    override fun onCancel(dialog: DialogInterface) {
+        super.onCancel(dialog)
+        onActionClicked(SelectMessageOption.Dismiss)
     }
 
     private fun setupViews() {
@@ -44,6 +50,7 @@ internal class EditPhotoUserBottomSheet : BaseBottomSheet<BottomSheetSelectMessa
 sealed class SelectMessageOption {
     object Select : SelectMessageOption()
     object Copy : SelectMessageOption()
+    object Dismiss : SelectMessageOption()
 }
 
 
