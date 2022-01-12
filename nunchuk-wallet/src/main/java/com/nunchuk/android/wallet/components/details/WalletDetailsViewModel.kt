@@ -97,7 +97,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     }
 
     fun handleSendMoneyEvent() {
-        event(SendMoneyEvent(getState().walletExtended.wallet.balance))
+        event(SendMoneyEvent(getState().walletExtended.wallet.balance, getState().walletExtended.isShared))
     }
 
     fun handleExportBSMS() {

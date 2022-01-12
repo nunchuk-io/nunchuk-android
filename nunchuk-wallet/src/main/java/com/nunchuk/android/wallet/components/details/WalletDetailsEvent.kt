@@ -7,7 +7,7 @@ import com.nunchuk.android.model.WalletExtended
 sealed class WalletDetailsEvent {
     data class Loading(val loading: Boolean) : WalletDetailsEvent()
     data class UpdateUnusedAddress(val address: String) : WalletDetailsEvent()
-    data class SendMoneyEvent(val amount: Amount) : WalletDetailsEvent()
+    data class SendMoneyEvent(val amount: Amount, val isShared: Boolean) : WalletDetailsEvent()
     data class WalletDetailsError(val message: String) : WalletDetailsEvent()
     data class OpenDynamicQRScreen(val descriptors: List<String> = emptyList()) : WalletDetailsEvent()
     data class UploadWalletConfigEvent(val filePath: String) : WalletDetailsEvent()

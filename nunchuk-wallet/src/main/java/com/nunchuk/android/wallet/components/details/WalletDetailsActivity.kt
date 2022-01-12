@@ -17,6 +17,7 @@ import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import com.nunchuk.android.wallet.components.details.WalletDetailsOption.*
 import com.nunchuk.android.wallet.databinding.ActivityWalletDetailBinding
 import com.nunchuk.android.wallet.util.bindWalletConfiguration
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import javax.inject.Inject
 
@@ -72,6 +73,13 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
     }
 
     private fun openInputAmountScreen(event: SendMoneyEvent) {
+        if (event.isShared) {
+            NCInfoDialog(this).showDialog(
+                message = getString(R.string.nc_txt_send_from_shared_description),
+            )
+            return
+        }
+
         navigator.openInputAmountScreen(
             activityContext = this,
             walletId = args.walletId,
