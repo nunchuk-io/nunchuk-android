@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.components.detail.holder
 
+import android.text.method.LinkMovementMethod
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.util.getString
@@ -14,6 +15,7 @@ internal class MessageMineViewHolder(
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(messageData: MatrixMessage, position: Int, selectMode: Boolean) {
+        binding.message.movementMethod = LinkMovementMethod.getInstance()
         binding.message.text = messageData.content
         val state = messageData.state
         if (state.isSent()) {
@@ -36,10 +38,12 @@ internal class MessageMineViewHolder(
             binding.message.setOnLongClickListener(null)
         } else {
             binding.root.setOnLongClickListener {
+                binding.message.movementMethod = null
                 longPressListener.invoke(messageData, position)
                 true
             }
             binding.message.setOnLongClickListener {
+                binding.message.movementMethod = null
                 longPressListener.invoke(messageData, position)
                 true
             }
