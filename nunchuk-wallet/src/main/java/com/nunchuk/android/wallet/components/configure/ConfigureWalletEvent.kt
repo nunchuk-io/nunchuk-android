@@ -11,6 +11,8 @@ sealed class ConfigureWalletEvent {
         val masterSigners: List<MasterSigner>,
         val remoteSigners: List<SingleSigner>
     ) : ConfigureWalletEvent()
+    data class PromptInputPassphrase(val func: (String) -> Unit) : ConfigureWalletEvent()
+    data class InputPassphraseError(val message: String) : ConfigureWalletEvent()
 }
 
 data class ConfigureWalletState(

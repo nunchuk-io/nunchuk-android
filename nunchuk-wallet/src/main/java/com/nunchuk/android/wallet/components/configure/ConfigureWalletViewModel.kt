@@ -6,15 +6,18 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.isContain
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
+import com.nunchuk.android.usecase.SendSignerPassphrase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.AssignSignerCompletedEvent
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.Loading
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class ConfigureWalletViewModel @Inject constructor(
-    private val getCompoundSignersUseCase: GetCompoundSignersUseCase
+    private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
+    private val sendSignerPassphrase: SendSignerPassphrase
 ) : NunchukViewModel<ConfigureWalletState, ConfigureWalletEvent>() {
 
     override val initialState = ConfigureWalletState()
@@ -28,17 +31,44 @@ internal class ConfigureWalletViewModel @Inject constructor(
         getCompoundSignersUseCase.execute()
             .onStart { event(Loading(true)) }
             .flowOn(Dispatchers.IO)
-            .onException { updateState { copy(masterSigners = emptyList(), remoteSigners = emptyList()) } }
+            .onException {
+                updateState {
+                    copy(
+                        masterSigners = emptyList(),
+                        remoteSigners = emptyList()
+                    )
+                }
+            }
             .onEach { updateState { copy(masterSigners = it.first, remoteSigners = it.second) } }
             .flowOn(Dispatchers.Main)
             .onCompletion { event(Loading(false)) }
             .launchIn(viewModelScope)
     }
 
-    fun updateSelectedSigner(signer: SignerModel, checked: Boolean) {
+    fun updateSelectedSigner(signer: SignerModel, checked: Boolean, needPassPhraseSent: Boolean) {
+        if (needPassPhraseSent) {
+            event(ConfigureWalletEvent.PromptInputPassphrase {
+                viewModelScope.launch {
+                    sendSignerPassphrase.execute(signer.id, it)
+                        .onException { event(ConfigureWalletEvent.InputPassphraseError(it.message.orEmpty())) }
+                        .collect { updateStateSelectedSigner(checked, signer) }
+                }
+            })
+            return
+        }
+
+        updateStateSelectedSigner(checked, signer)
+    }
+
+    private fun updateStateSelectedSigner(
+        checked: Boolean,
+        signer: SignerModel
+    ) {
         updateState {
             copy(
-                selectedSigners = if (checked) selectedSigners + listOf(signer) else selectedSigners - listOf(signer)
+                selectedSigners = if (checked) selectedSigners + listOf(signer) else selectedSigners - listOf(
+                    signer
+                )
             )
         }
         val state = getState()
@@ -51,7 +81,8 @@ internal class ConfigureWalletViewModel @Inject constructor(
     fun handleIncreaseRequiredSigners() {
         val state = getState()
         val currentNum = state.totalRequireSigns
-        val newVal = if (currentNum + 1 <= state.selectedSigners.size) currentNum + 1 else currentNum
+        val newVal =
+            if (currentNum + 1 <= state.selectedSigners.size) currentNum + 1 else currentNum
         updateState { copy(totalRequireSigns = newVal) }
     }
 
