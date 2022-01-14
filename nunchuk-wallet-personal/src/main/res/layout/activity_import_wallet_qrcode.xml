@@ -35,7 +35,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
         app:zxing_preview_scaling_strategy="fitXY"
-        app:zxing_scanner_layout="@layout/view_qrcode_scanner"
+        app:zxing_scanner_layout="@layout/view_scanner"
         app:zxing_use_texture_view="true" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
