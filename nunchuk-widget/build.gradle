@@ -6,6 +6,7 @@ dependencies {
 
     api project(':nunchuk-utils')
 
+    implementation zxingDeps.values()
     implementation androidxDeps.values()
 
 }

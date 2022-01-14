@@ -7,7 +7,7 @@ fun RoomWallet.isInitialized() = initEventId.isNotEmpty()
 
 fun RoomWallet.isPendingKeys() = joinEventIds.size < jsonContent.toRoomWalletData().totalSigners
 
-fun RoomWallet.isReadyFinalize() = joinEventIds.size == jsonContent.toRoomWalletData().requireSigners
+fun RoomWallet.isReadyFinalize() = joinEventIds.size == jsonContent.toRoomWalletData().totalSigners
 
 fun RoomWallet.isCreated() = finalizeEventId.isNotEmpty()
 
