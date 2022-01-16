@@ -73,7 +73,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun handleEvent(event: MainAppEvent) {
         when (event) {
             is DownloadFileSyncSucceed -> handleDownloadedSyncFile(event)
-            is UploadFileSyncSucceed -> viewModel.backupFile(event.fileJsonInfo, event.fileUri)
             is GetConnectionStatusSuccessEvent -> {}
         }
     }
@@ -99,7 +98,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         super.onResume()
         navController.addOnDestinationChangedListener(listener)
         if (SessionHolder.activeSession != null) {
-            viewModel.syncInitMatrixState()
+            viewModel.getAllRooms()
         }
     }
 

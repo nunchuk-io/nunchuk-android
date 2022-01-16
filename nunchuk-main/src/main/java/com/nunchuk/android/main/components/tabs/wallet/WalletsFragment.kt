@@ -224,7 +224,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         walletsViewModel.retrieveData()
         walletsViewModel.getAppSettings()
         if (SessionHolder.activeSession != null) {
-            mainActivityViewModel.syncInitMatrixState()
+            mainActivityViewModel.getAllRooms()
         }
     }
 }

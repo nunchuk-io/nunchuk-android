@@ -17,7 +17,7 @@ import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.DownloadFileSyncSucceed
 import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
 import com.nunchuk.android.messages.usecase.message.AddTagRoomUseCase
-import com.nunchuk.android.messages.usecase.message.CreateRoomUseCase
+import com.nunchuk.android.messages.usecase.message.CreateRoomWithTagUseCase
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.messages.util.STATE_NUNCHUK_SYNC
 import com.nunchuk.android.messages.util.isLocalEvent
@@ -30,6 +30,7 @@ import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.notifications.PushNotificationManager
 import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.usecase.EnableAutoBackupUseCase
+import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
@@ -45,8 +46,7 @@ import javax.inject.Inject
 
 internal class MainActivityViewModel @Inject constructor(
     private val enableAutoBackupUseCase: EnableAutoBackupUseCase,
-    private val createRoomUseCase: CreateRoomUseCase,
-    private val addTagRoomUseCase: AddTagRoomUseCase,
+    private val createRoomWithTagUseCase: CreateRoomWithTagUseCase,
     private val leaveRoomUseCase: LeaveRoomUseCase,
     private val uploadFileUseCase: UploadFileUseCase,
     private val downloadFileUseCase: DownloadFileUseCase,
@@ -65,7 +65,7 @@ internal class MainActivityViewModel @Inject constructor(
 
     override val initialState = Unit
 
-    private var currentRoomSyncId = ""
+    private var syncRoomId: String? = null
     private lateinit var timeline: Timeline
 
     init {
@@ -116,12 +116,23 @@ internal class MainActivityViewModel @Inject constructor(
 
     private fun initSyncEventExecutor() {
         SyncFileEventHelper.executor = object : UploadFileCallBack {
-            override fun onUpload(fileName: String, mineType: String, fileJsonInfo: String, data: ByteArray, dataLength: Int) {
+            override fun onUpload(
+                fileName: String,
+                mineType: String,
+                fileJsonInfo: String,
+                data: ByteArray,
+                dataLength: Int
+            ) {
                 uploadFile(fileName, fileJsonInfo, mineType, data)
             }
         }
         SyncFileEventHelper.downloadFileExecutor = object : DownloadFileCallBack {
-            override fun onDownload(fileName: String, mineType: String, fileJsonInfo: String, fileUrl: String) {
+            override fun onDownload(
+                fileName: String,
+                mineType: String,
+                fileJsonInfo: String,
+                fileUrl: String
+            ) {
                 Timber.d("[App] download: $fileUrl")
                 downloadFile(fileJsonInfo, fileUrl)
             }
@@ -146,14 +157,22 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
-    fun backupFile(fileJsonInfo: String, fileUri: String) {
-        viewModelScope.launch {
-            backupFileUseCase.execute(currentRoomSyncId, fileJsonInfo, fileUri)
-                .flowOn(IO)
-                .onException { }
-                .flowOn(Main)
-                .collect { Timber.d("[App] backupFile success") }
+    private fun backupFile(fileJsonInfo: String, fileUri: String) {
+        if (syncRoomId == null) {
+            CrashlyticsReporter.recordException(Throwable("Sync room null. Can't backup file"))
+            return
         }
+
+        syncRoomId?.let {
+            viewModelScope.launch {
+                backupFileUseCase.execute(it, fileJsonInfo, fileUri)
+                    .flowOn(IO)
+                    .onException { }
+                    .flowOn(Main)
+                    .collect { Timber.d("[App] backupFile success") }
+            }
+        }
+
     }
 
     private fun downloadFile(fileJsonInfo: String, fileUrl: String) {
@@ -182,43 +201,21 @@ internal class MainActivityViewModel @Inject constructor(
 
     private fun createRoomWithTagSync() {
         viewModelScope.launch {
-            createRoomUseCase.execute(
+            createRoomWithTagUseCase.execute(
                 STATE_NUNCHUK_SYNC,
-                listOf(SessionHolder.activeSession?.sessionParams?.userId.orEmpty())
+                listOf(SessionHolder.activeSession?.sessionParams?.userId.orEmpty()),
+                STATE_NUNCHUK_SYNC
             )
                 .flowOn(IO)
                 .onException { }
                 .flowOn(Main)
                 .collect {
-                    Timber.v("createRoom success ", it)
-                    putNunchukSyncEventType(it)
-                    it.addTagRoom(STATE_NUNCHUK_SYNC)
+                    syncRoomId = it.roomId
+                    syncRoomId?.let { roomId ->
+                        syncData(roomId = roomId)
+                    }
                 }
         }
-    }
-
-    private fun putNunchukSyncEventType(room: Room) {
-        val content = "{\n" +
-                "  \"msgtype\": \"$EVENT_TYPE_SYNC\"\n" +
-                "}"
-        room.sendEvent(EVENT_TYPE_SYNC, content.toMatrixContent())
-    }
-
-    private fun Room.addTagRoom(tagName: String) {
-        viewModelScope.launch {
-            addTagRoomUseCase.execute(tagName, roomId)
-                .flowOn(IO)
-                .onException {
-                    Timber.e("addTag for room failed")
-                    leaveRoom(this@addTagRoom)
-                }
-                .flowOn(Main)
-                .collect {
-                    Timber.v("addTagRoom success ", it)
-                    enableAutoBackup(roomId)
-                }
-        }
-
     }
 
     private fun enableAutoBackup(syncRoomId: String) {
@@ -251,34 +248,38 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
-    fun syncInitMatrixState() {
+    fun getAllRooms() {
         viewModelScope.launch {
             syncStateMatrixUseCase.execute()
                 .flowOn(IO)
                 .onException { }
                 .flowOn(Main)
-                .collect { syncWalletData(it) }
+                .collect {
+                    syncRoomId = findSyncRoom(it)
+                    syncRoomId?.let { syncRoomId ->
+                        Timber.d("Have sync room: $syncRoomId")
+                        syncData(roomId = syncRoomId)
+                    } ?: run {
+                        Timber.d("Don't have sync room")
+                        createRoomWithTagSync()
+                    }
+                }
         }
     }
 
-    private fun syncWalletData(response: SyncStateMatrixResponse) {
-        val syncRoomId = response.rooms?.join?.filter {
-            it.value.timeline?.events?.any { roomEvent ->
-                roomEvent.type == EVENT_TYPE_SYNC
+    private fun findSyncRoom(response: SyncStateMatrixResponse): String? {
+        return response.rooms?.join?.filter {
+            it.value.accountData?.events?.any { event ->
+                event.type == EVENT_TYPE_TAG_ROOM && event.content?.tags?.get(EVENT_TYPE_SYNC) != null
             }.orFalse()
         }?.map {
             it.key
         }?.firstOrNull()
+    }
 
-        if (syncRoomId == null) {
-            Timber.d("Don't have sync room")
-            createRoomWithTagSync()
-        } else {
-            Timber.d("Have sync room: $syncRoomId")
-            enableAutoBackup(syncRoomId)
-            SessionHolder.activeSession?.getRoom(syncRoomId)?.retrieveTimelineEvents()
-            currentRoomSyncId = syncRoomId
-        }
+    private fun syncData(roomId: String) {
+        enableAutoBackup(roomId)
+        SessionHolder.activeSession?.getRoom(roomId)?.retrieveTimelineEvents()
     }
 
     private fun leaveRoom(room: Room) {
@@ -304,8 +305,14 @@ internal class MainActivityViewModel @Inject constructor(
 
     fun setupMatrix(token: String, encryptedDeviceId: String) {
         getUserProfileUseCase.execute()
-            .flatMapConcat { loginWithMatrix(userName = it, password = token, encryptedDeviceId = encryptedDeviceId) }
-            .onEach { syncInitMatrixState() }
+            .flatMapConcat {
+                loginWithMatrix(
+                    userName = it,
+                    password = token,
+                    encryptedDeviceId = encryptedDeviceId
+                )
+            }
+            .onEach { getAllRooms() }
             .flowOn(Main)
             .launchIn(viewModelScope)
     }
@@ -327,6 +334,7 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     companion object {
-        private const val EVENT_TYPE_SYNC = "m.room.io.nunchuk.sync.android"
+        private const val EVENT_TYPE_SYNC = "io.nunchuk.sync"
+        private const val EVENT_TYPE_TAG_ROOM = "m.tag"
     }
 }

@@ -14,6 +14,9 @@ internal interface MessagesUseCaseModule {
     fun bindCreateRoomUseCase(useCase: CreateRoomUseCaseImpl): CreateRoomUseCase
 
     @Binds
+    fun bindCreateRoomWithTagUseCase(useCase: CreateRoomWithTagUseCaseImpl): CreateRoomWithTagUseCase
+
+    @Binds
     fun bindCreateDirectRoomUseCase(useCase: CreateDirectRoomUseCaseImpl): CreateDirectRoomUseCase
 
     @Binds
