@@ -37,4 +37,6 @@ object SessionHolder {
     fun hasActiveRoom() = currentRoom != null
 
     fun getActiveRoomId() = currentRoom?.roomId!!
+
+    fun getActiveRoomIdSafe() = currentRoom?.roomId.orEmpty()
 }

@@ -1,21 +1,14 @@
 package com.nunchuk.android.notifications
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.messages.util.isContactRequestEvent
-import com.nunchuk.android.messages.util.isMessageEvent
-import com.nunchuk.android.messages.util.isNunchukTransactionEvent
-import com.nunchuk.android.messages.util.isNunchukWalletEvent
+import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.NotificationUtils
 import dagger.android.AndroidInjection
@@ -38,7 +31,10 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
     lateinit var notificationHelper: PushNotificationHelper
 
     @Inject
-    lateinit var pushNotificationManager: PushNotificationManager
+    lateinit var notificationManager: PushNotificationManager
+
+    @Inject
+    lateinit var intentProvider: PushNotificationIntentProvider
 
     override fun androidInjector(): AndroidInjector<Any> = androidInjector
 
@@ -51,39 +47,17 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
         super.onCreate()
     }
 
-    private fun showNotificationWith(title: String, message: String) {
-        val channelId = "io.nunchuk.android.channelId"
-        val channelName = "Nunchuk Notification Center"
-        val builder = NotificationCompat.Builder(applicationContext, channelId)
-        builder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-        builder.setSmallIcon(R.drawable.ic_notification)
-        builder.setContentTitle(title)
-        builder.setContentText(message)
-
-        val notificationManager = NotificationManagerCompat.from(applicationContext)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            builder.priority = NotificationManager.IMPORTANCE_HIGH
-            notificationManager.createNotificationChannel(NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH))
-            builder.setChannelId(channelId)
-        }
-
-        notificationManager.notify(0, builder.build())
-    }
-
-
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         if (!NotificationUtils.areNotificationsEnabled(this) || remoteMessage.data.isEmpty()) {
             return
         }
 
-        parseMessageData(remoteMessage.data)?.let {
-            val title = it.first
-            val message = it.second
-            showNotificationWith(title, message)
+        mUIHandler.post {
+            parseMessageData(remoteMessage.data)?.let(::showNotification)
         }
 
         mUIHandler.post {
-            if (!ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+            if (!ProcessLifecycleOwner.get().isAtLeastStarted()) {
                 onMessageReceivedInternal(remoteMessage.data)
             }
         }
@@ -93,7 +67,7 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
         try {
             notificationHelper.storeFcmToken(refreshedToken)
             if (NotificationUtils.areNotificationsEnabled(context = this) && SessionHolder.hasActiveSession()) {
-                pushNotificationManager.enqueueRegisterPusherWithFcmKey(refreshedToken)
+                notificationManager.enqueueRegisterPusherWithFcmKey(refreshedToken)
             }
         } catch (t: Throwable) {
             t.printStackTrace()
@@ -116,34 +90,73 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
         }
     }
 
-    private fun parseMessageData(data: Map<String, String>): Pair<String, String>? {
+    private fun parseMessageData(data: Map<String, String>): PushNotificationData? {
         val roomId = data[ROOM_ID]
         val eventId = data[EVENT_ID]
-        if (null == eventId || null == roomId) return emptyNotification()
-        val session = getActiveSession() ?: return emptyNotification()
-        val room = session.getRoom(roomId) ?: return emptyNotification()
-        val timeLineEvent: TimelineEvent = room.getTimeLineEvent(eventId) ?: return emptyNotification()
-        return when {
-            timeLineEvent.isNunchukWalletEvent() -> getString(R.string.notification_wallet_update) to getString(R.string.notification_wallet_update_message)
-            timeLineEvent.isNunchukTransactionEvent() -> getString(R.string.notification_transaction_update) to getString(R.string.notification_transaction_update_message)
-            timeLineEvent.isContactRequestEvent() -> getString(R.string.notification_contact_update) to getString(R.string.notification_contact_update_message)
-            timeLineEvent.isMessageEvent() -> getString(R.string.notification_text_message_update) to (timeLineEvent.getLastMessageContent()?.body ?: timeLineEvent.getTextEditableContent())
-            else -> emptyNotification()
+        if (null == eventId || null == roomId) return defaultNotificationData()
+        if (roomId == SessionHolder.getActiveRoomIdSafe()) return null
+
+        val session = getActiveSession() ?: return defaultNotificationData()
+        val room = session.getRoom(roomId) ?: return defaultNotificationData()
+        val event = room.getTimeLineEvent(eventId)
+        if (event == null) {
+            mUIHandler.postDelayed({
+                room.getTimeLineEvent(eventId)?.toPushNotificationData(roomId)?.let(::showNotification)
+            }, RETRY_DELAY)
         }
+        return event?.toPushNotificationData(roomId)
     }
 
-    private fun getActiveSession() = SessionHolder.activeSession ?: getLastSession()
+    private fun TimelineEvent.toPushNotificationData(roomId: String) = when {
+        isNunchukWalletEvent() -> {
+            PushNotificationData(
+                title = getString(R.string.notification_wallet_update),
+                message = getString(R.string.notification_wallet_update_message),
+                intent = intentProvider.getRoomDetailsIntent(roomId)
+            )
+        }
+        isNunchukTransactionEvent() -> {
+            PushNotificationData(
+                title = getString(R.string.notification_transaction_update),
+                message = getString(R.string.notification_transaction_update_message),
+                intent = intentProvider.getRoomDetailsIntent(roomId)
+            )
+        }
+        isContactRequestEvent() -> {
+            PushNotificationData(
+                title = getString(R.string.notification_contact_update),
+                message = (getLastMessageContent()?.body ?: getTextEditableContent()),
+                intent = intentProvider.getMainIntent()
+            )
+        }
+        isMessageEvent() -> {
+            PushNotificationData(
+                title = getString(R.string.notification_text_message_update),
+                message = "${lastMessage()}",
+                intent = intentProvider.getRoomDetailsIntent(roomId)
+            )
+        }
+        else -> defaultNotificationData()
+    }
+
+    private fun getActiveSession() = if (SessionHolder.hasActiveSession()) {
+        SessionHolder.activeSession
+    } else {
+        getLastSession()
+    }
 
     private fun getLastSession(): Session? {
         val matrix = Matrix.getInstance(applicationContext)
         return matrix.authenticationService().getLastAuthenticatedSession()
     }
 
-    private fun emptyNotification(): Pair<String, String>? {
-        return if (!ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-            getString(R.string.notification_update) to getString(R.string.notification_update_message)
-        } else null
-    }
+    private fun defaultNotificationData() = if (!ProcessLifecycleOwner.get().isAtLeastStarted()) {
+        PushNotificationData(
+            title = getString(R.string.notification_update),
+            message = getString(R.string.notification_update_message),
+            intent = intentProvider.getMainIntent()
+        )
+    } else null
 
     private fun isEventAlreadyKnown(session: Session, eventId: String?, roomId: String?): Boolean {
         if (null != eventId && null != roomId) {
@@ -160,6 +173,9 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
     companion object {
         private const val EVENT_ID = "event_id"
         private const val ROOM_ID = "room_id"
+        private const val RETRY_DELAY = 500L
     }
 
 }
+
+fun LifecycleOwner.isAtLeastStarted() = lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)

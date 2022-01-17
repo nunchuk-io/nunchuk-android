@@ -15,7 +15,8 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.saveToFile
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 import com.nunchuk.android.main.di.MainAppEvent
-import com.nunchuk.android.main.di.MainAppEvent.*
+import com.nunchuk.android.main.di.MainAppEvent.DownloadFileSyncSucceed
+import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
 import com.nunchuk.android.notifications.PushNotificationHelper
 import com.nunchuk.android.utils.NotificationUtils
 import java.io.File
@@ -115,11 +116,22 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         const val EXTRAS_ENCRYPTED_DEVICE_ID = "EXTRAS_ENCRYPTED_DEVICE_ID"
 
         fun start(activityContext: Context, loginHalfToken: String? = null, deviceId: String? = null) {
-            activityContext.startActivity(Intent(activityContext, MainActivity::class.java).apply {
+            activityContext.startActivity(
+                createIntent(
+                    activityContext = activityContext,
+                    loginHalfToken = loginHalfToken,
+                    deviceId = deviceId
+                )
+            )
+        }
+
+        // TODO replace with args
+        fun createIntent(activityContext: Context, loginHalfToken: String? = null, deviceId: String? = null): Intent {
+            return Intent(activityContext, MainActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 putExtra(EXTRAS_LOGIN_HALF_TOKEN, loginHalfToken)
                 putExtra(EXTRAS_ENCRYPTED_DEVICE_ID, deviceId)
-            })
+            }
         }
     }
 
