@@ -4,6 +4,7 @@ import android.view.ViewGroup
 import androidx.core.view.get
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableSignerType
+import com.nunchuk.android.core.util.toReadableSignerTypeDrawable
 import com.nunchuk.android.signer.databinding.ItemSignerBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
 
@@ -22,7 +23,7 @@ internal class SignersViewBinder(
         binding.signerName.text = model.name
         binding.xpf.text = xfpValue
         binding.signerType.text = model.toReadableSignerType(context)
-
+        binding.icPin.setImageDrawable(model.toReadableSignerTypeDrawable(context))
         binding.root.setOnClickListener { callback(model) }
     }
 

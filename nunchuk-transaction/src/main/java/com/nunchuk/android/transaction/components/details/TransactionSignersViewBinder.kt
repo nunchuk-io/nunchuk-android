@@ -6,6 +6,7 @@ import androidx.core.view.isVisible
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.toReadableSignerType
+import com.nunchuk.android.core.util.toReadableSignerTypeDrawable
 import com.nunchuk.android.transaction.databinding.ItemTransactionSignerBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
 
