@@ -23,7 +23,7 @@
     <string name="nc_text_reset">Reset</string>
     <string name="nc_text_testnet_server">Testnet server</string>
     <string name="nc_txt_syncing_wallets_data">Syncing wallets data</string>
-    <string name="nc_txt_sat_description">1 BTC = 100,000,000 Sat</string>
+    <string name="nc_txt_sat_description">1 BTC = 100,000,000 sat</string>
     <string name="nc_txt_sat">Satoshi</string>
     <string name="nc_txt_show_fixed_precision">Show fixed precision</string>
 </resources>
