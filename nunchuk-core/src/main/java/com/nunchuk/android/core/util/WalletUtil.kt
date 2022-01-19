@@ -6,6 +6,8 @@ import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.entities.SAT
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Wallet
+import java.text.NumberFormat
+import java.util.*
 import kotlin.math.roundToLong
 
 fun Wallet.getBTCAmount() = balance.getBTCAmount()
@@ -42,3 +44,7 @@ fun Double.fromBTCToSAT() = (this * SATOSHI_BTC_EXCHANGE_RATE)
 fun Double.toAmount() = Amount().copy(value = (this * BTC_SATOSHI_EXCHANGE_RATE).roundToLong())
 
 fun Int.toAmount() = Amount().copy(value = this.toLong())
+
+fun String.toNumericValue(locale: Locale = Locale.US): Number = try {NumberFormat.getInstance(locale).parse(this) ?: 0.0} catch (t: Exception) {
+    0.0
+}

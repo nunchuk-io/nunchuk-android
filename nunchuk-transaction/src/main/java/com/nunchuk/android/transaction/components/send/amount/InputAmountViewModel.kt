@@ -3,11 +3,9 @@ package com.nunchuk.android.transaction.components.send.amount
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.entities.SAT
-import com.nunchuk.android.core.util.fromBTCToSAT
-import com.nunchuk.android.core.util.fromBTCToUSD
-import com.nunchuk.android.core.util.fromUSDToBTC
-import com.nunchuk.android.core.util.toAmount
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.SwapCurrencyEvent
+import java.text.NumberFormat
 import javax.inject.Inject
 
 internal class InputAmountViewModel @Inject constructor(
@@ -32,14 +30,8 @@ internal class InputAmountViewModel @Inject constructor(
         }
     }
 
-    private fun String.toAmountValue() = try {
-        toDouble()
-    } catch (t: Exception) {
-        0.0
-    }
-
     fun handleAmountChanged(input: String) {
-        val inputValue = input.toAmountValue()
+        val inputValue = input.toNumericValue().toDouble()
         val currentState = getState()
         if (currentState.useBtc) {
             if (inputValue != currentState.amountBTC) {

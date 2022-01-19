@@ -84,4 +84,10 @@
         <attr name="clickToClose" format="boolean" />
     </declare-styleable>
 
+    <declare-styleable name="CurrencyEditText">
+        <attr name="currencySymbol" format="string"/>
+        <attr name="localeTag" format="string"/>
+        <attr name="useCurrencySymbolAsHint" format="boolean"/>
+        <attr name="maxNumberOfDecimalDigits" format="integer"/>
+    </declare-styleable>
 </resources>

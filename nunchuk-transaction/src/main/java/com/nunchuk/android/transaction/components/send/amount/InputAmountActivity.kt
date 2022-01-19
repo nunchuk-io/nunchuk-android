@@ -7,10 +7,8 @@ import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.entities.SAT
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.core.util.formatDecimal
-import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getUSDAmount
-import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.*
 import com.nunchuk.android.transaction.databinding.ActivityTransactionInputAmountBinding
@@ -83,7 +81,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             binding.mainCurrencyLabel.text = handleTextCurrency()
             binding.btnSwitch.text = getString(R.string.nc_transaction_switch_to_usd)
 
-            val secondaryCurrency = "$${state.amountUSD.formatDecimal()} ${getString(R.string.nc_currency_usd)}"
+            val secondaryCurrency = "${state.amountUSD.formatCurrencyDecimal()} ${getString(R.string.nc_currency_usd)}"
             binding.secondaryCurrency.text = secondaryCurrency
         } else {
             binding.mainCurrencyLabel.text = getString(R.string.nc_currency_usd)
@@ -96,7 +94,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
 
     private fun handleEvent(event: InputAmountEvent) {
         when (event) {
-            is SwapCurrencyEvent -> binding.mainCurrency.setText(if (event.amount > 0) event.amount.formatDecimal() else "")
+            is SwapCurrencyEvent -> binding.mainCurrency.setText(if (event.amount > 0) event.amount.formatCurrencyDecimal() else "")
             is AcceptAmountEvent -> openAddReceiptScreen(event.amount)
             InsufficientFundsEvent -> NCToastMessage(this).showError(getString(R.string.nc_transaction_insufficient_funds))
         }

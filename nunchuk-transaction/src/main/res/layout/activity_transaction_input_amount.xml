@@ -43,7 +43,7 @@
             android:focusableInTouchMode="true"
             android:gravity="center">
 
-            <com.nunchuk.android.widget.NCFontEditText
+            <com.nunchuk.android.widget.NCFontCurrencyEditText
                 android:id="@+id/mainCurrency"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
