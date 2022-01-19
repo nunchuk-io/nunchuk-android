@@ -13,7 +13,7 @@ fun Wallet.getBTCAmount() = balance.getBTCAmount()
 fun Wallet.getUSDAmount() = balance.getUSDAmount()
 
 fun Amount.getBTCAmount() = when(CURRENT_DISPLAY_UNIT_TYPE) {
-    SAT -> "${value.beautifySATFormat()} SAT"
+    SAT -> "${value.beautifySATFormat()} sat"
     BTC -> "${formattedValue.toDouble().toLong().numberFormat()} BTC"
     else -> "$formattedValue BTC"
 }
@@ -27,7 +27,7 @@ fun Double.fromUSDToBTC() = this / BTC_USD_EXCHANGE_RATE
 fun Amount.pureBTC() = value * SATOSHI_BTC_EXCHANGE_RATE
 
 fun Double.getBTCAmount() = when(CURRENT_DISPLAY_UNIT_TYPE) {
-    SAT -> "${(this * BTC_SATOSHI_EXCHANGE_RATE).beautifySATFormat()} SAT"
+    SAT -> "${(this * BTC_SATOSHI_EXCHANGE_RATE).beautifySATFormat()} sat"
     BTC -> "${toLong().numberFormat()} BTC"
     else -> " ${formatDecimal()} BTC"
 }
