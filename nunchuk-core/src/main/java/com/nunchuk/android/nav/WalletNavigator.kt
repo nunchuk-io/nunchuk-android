@@ -2,6 +2,7 @@ package com.nunchuk.android.nav
 
 import android.content.Context
 import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RoomWalletData
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
@@ -13,7 +14,7 @@ interface PersonalWalletNavigator {
 
     fun openWalletIntermediaryScreen(activityContext: Context)
 
-    fun openAddRecoverWalletScreen(activityContext: Context, filePath: String)
+    fun openAddRecoverWalletScreen(activityContext: Context, data: RecoverWalletData)
 
     fun openRecoverWalletQRCodeScreen(activityContext: Context)
 

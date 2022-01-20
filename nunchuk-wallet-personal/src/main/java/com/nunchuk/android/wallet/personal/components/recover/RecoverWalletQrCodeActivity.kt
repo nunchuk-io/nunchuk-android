@@ -10,6 +10,8 @@ import com.journeyapps.barcodescanner.BarcodeCallback
 import com.journeyapps.barcodescanner.BarcodeResult
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.model.RecoverWalletData
+import com.nunchuk.android.model.RecoverWalletType
 import com.nunchuk.android.wallet.personal.databinding.ActivityImportWalletQrcodeBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -65,7 +67,12 @@ class RecoverWalletQrCodeActivity : BaseActivity<ActivityImportWalletQrcodeBindi
 
     private fun onImportQRCodeSuccess(event: RecoverWalletQrCodeEvent.ImportQRCodeSuccess) {
         hideLoading()
-        navigator.openWalletConfigScreen(this, event.walletId)
+        navigator.openAddRecoverWalletScreen(
+            this, RecoverWalletData(
+                type = RecoverWalletType.QR_CODE,
+                walletId = event.walletId
+            )
+        )
         finish()
     }
 
