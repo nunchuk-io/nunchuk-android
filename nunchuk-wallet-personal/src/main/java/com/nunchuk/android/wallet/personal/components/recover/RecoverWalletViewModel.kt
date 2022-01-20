@@ -2,17 +2,23 @@ package com.nunchuk.android.wallet.personal.components.recover
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
+import com.nunchuk.android.model.Result
+import com.nunchuk.android.usecase.DeleteWalletUseCase
+import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.ImportWalletUseCase
+import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class RecoverWalletViewModel @Inject constructor(
-    private val importWalletUseCase: ImportWalletUseCase
+    private val importWalletUseCase: ImportWalletUseCase,
+    private val updateWalletUseCase: UpdateWalletUseCase,
+    private val getWalletUseCase: GetWalletUseCase
 ) : NunchukViewModel<RecoverWalletState, RecoverWalletEvent>() {
 
     override val initialState = RecoverWalletState()
@@ -36,6 +42,24 @@ internal class RecoverWalletViewModel @Inject constructor(
 
     fun updateWalletName(walletName: String) {
         updateState { copy(walletName = walletName) }
+    }
+
+
+    fun updateWallet(walletId: String, walletName: String) {
+        getWalletUseCase.execute(walletId)
+            .flowOn(Dispatchers.IO)
+            .onException {
+                event(RecoverWalletEvent.UpdateWalletErrorEvent(it.message.orEmpty()))
+            }
+            .flatMapConcat {
+                updateWalletUseCase.execute(it.wallet.copy(name = walletName))
+                    .flowOn(Dispatchers.IO)
+                    .onException { err ->
+                        event(RecoverWalletEvent.UpdateWalletErrorEvent(err.message.orEmpty()))
+                    }
+            }.onEach {
+                event(RecoverWalletEvent.UpdateWalletSuccessEvent(walletId, walletName))
+            }.flowOn(Dispatchers.Main).launchIn(viewModelScope)
     }
 
     fun handleContinueEvent() {

@@ -3,6 +3,7 @@ package com.nunchuk.android.wallet.nav
 import android.content.Context
 import com.nunchuk.android.core.qr.DynamicQRCodeActivity
 import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RoomWalletData
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.WalletNavigator
@@ -35,8 +36,8 @@ interface WalletNavigatorDelegate : WalletNavigator {
         WalletIntermediaryActivity.start(activityContext)
     }
 
-    override fun openAddRecoverWalletScreen(activityContext: Context, filePath: String) {
-        AddRecoverWalletActivity.start(activityContext, filePath)
+    override fun openAddRecoverWalletScreen(activityContext: Context, data: RecoverWalletData) {
+        AddRecoverWalletActivity.start(activityContext, data)
     }
 
     override fun openRecoverWalletQRCodeScreen(activityContext: Context) {

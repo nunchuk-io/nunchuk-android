@@ -7,6 +7,8 @@ import android.text.InputFilter.LengthFilter
 import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.model.RecoverWalletData
+import com.nunchuk.android.model.RecoverWalletType
 import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.databinding.ActivityAddRecoverWalletBinding
 import com.nunchuk.android.widget.NCToastMessage
@@ -21,8 +23,8 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
 
     private val viewModel: RecoverWalletViewModel by viewModels { factory }
 
-    private val filePath
-        get() = intent.getStringExtra(EXTRAS_FILE_PATH)
+    private val recoverWalletData: RecoverWalletData?
+        get() = intent.getParcelableExtra(EXTRAS_DATA)
 
     override fun initializeBinding() = ActivityAddRecoverWalletBinding.inflate(layoutInflater)
 
@@ -49,25 +51,52 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
     private fun handleEvent(event: RecoverWalletEvent) {
         when (event) {
             is RecoverWalletEvent.ImportWalletErrorEvent -> NCToastMessage(this).show(event.message)
-            is RecoverWalletEvent.ImportWalletSuccessEvent -> {
-                NCToastMessage(this).show(getString(R.string.nc_txt_import_wallet_success, event.walletName))
-                openWalletConfigScreen(event.walletId)
-            }
-            is RecoverWalletEvent.WalletSetupDoneEvent -> importWallet()
+            is RecoverWalletEvent.ImportWalletSuccessEvent -> handleSuccessRecoverEvent(walletName = event.walletName, walletId = event.walletId)
+            is RecoverWalletEvent.UpdateWalletErrorEvent -> NCToastMessage(this).show(event.message)
+            is RecoverWalletEvent.UpdateWalletSuccessEvent -> handleSuccessRecoverEvent(walletName = event.walletName, walletId = event.walletId)
+            is RecoverWalletEvent.WalletSetupDoneEvent -> handleWalletSetupDoneEvent()
             RecoverWalletEvent.WalletNameRequiredEvent -> binding.walletName.setError(getString(R.string.nc_text_required))
         }
     }
 
-    private fun importWallet() {
+    private fun handleWalletSetupDoneEvent() {
         val walletName = viewModel.walletName
-        val filePath = filePath
-        if (walletName != null && filePath != null) {
-            viewModel.importWallet(
-                filePath = filePath,
-                name = walletName,
-                description = ""
-            )
+        if (recoverWalletData?.type == RecoverWalletType.FILE) {
+            val filePath = recoverWalletData?.filePath
+            if (walletName != null && filePath != null) {
+                importWallet(walletName, filePath)
+            }
+        } else {
+            val walletId = recoverWalletData?.walletId
+            if (walletName != null && walletId != null) {
+                updateWallet(walletName, walletId)
+            }
         }
+    }
+
+    private fun handleSuccessRecoverEvent(walletId: String, walletName: String) {
+        NCToastMessage(this).show(
+            getString(
+                R.string.nc_txt_import_wallet_success,
+                walletName
+            )
+        )
+        openWalletConfigScreen(walletId)
+    }
+
+    private fun importWallet(walletName: String, filePath: String) {
+        viewModel.importWallet(
+            filePath = filePath,
+            name = walletName,
+            description = ""
+        )
+    }
+
+    private fun updateWallet(name: String, walletId: String) {
+        viewModel.updateWallet(
+            walletId = walletId,
+            walletName = name
+        )
     }
 
     private fun openWalletConfigScreen(walletId: String) {
@@ -81,7 +110,13 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
         binding.walletName.addTextChangedCallback(viewModel::updateWalletName)
 
         binding.toolbar.setNavigationOnClickListener {
-            finish()
+            if (recoverWalletData?.type == RecoverWalletType.QR_CODE ) {
+                recoverWalletData?.walletId?.let {
+                    openWalletConfigScreen(it)
+                }
+            } else {
+                finish()
+            }
         }
 
         binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }
@@ -92,13 +127,23 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
         binding.walletNameCounter.text = counter
     }
 
+    override fun onBackPressed() {
+        if (recoverWalletData?.type == RecoverWalletType.QR_CODE ) {
+            recoverWalletData?.walletId?.let {
+                openWalletConfigScreen(it)
+            }
+        } else {
+            super.onBackPressed()
+        }
+    }
+
     companion object {
         private const val MAX_LENGTH = 20
-        private const val EXTRAS_FILE_PATH = "EXTRAS_FILE_PATH"
+        private const val EXTRAS_DATA = "EXTRAS_DATA"
 
-        fun start(activityContext: Context, filePath: String) {
+        fun start(activityContext: Context, data: RecoverWalletData) {
             val intent = Intent(activityContext, AddRecoverWalletActivity::class.java).apply {
-                putExtra(EXTRAS_FILE_PATH, filePath)
+                putExtra(EXTRAS_DATA, data)
             }
             activityContext.startActivity(intent)
         }

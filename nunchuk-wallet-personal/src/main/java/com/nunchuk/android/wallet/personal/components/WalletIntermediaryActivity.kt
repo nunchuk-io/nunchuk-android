@@ -13,6 +13,8 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.isPermissionGranted
 import com.nunchuk.android.core.util.showAlertDialog
 import com.nunchuk.android.core.util.startActivityAppSetting
+import com.nunchuk.android.model.RecoverWalletData
+import com.nunchuk.android.model.RecoverWalletType
 import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletActionBottomSheet
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletOption
@@ -63,7 +65,10 @@ class WalletIntermediaryActivity : BaseActivity<ActivityWalletIntermediaryBindin
             }
 
             file?.absolutePath?.let {
-                navigator.openAddRecoverWalletScreen(this, it)
+                navigator.openAddRecoverWalletScreen(this, RecoverWalletData(
+                    type = RecoverWalletType.FILE,
+                    filePath = it
+                ))
             }
         }
     }
