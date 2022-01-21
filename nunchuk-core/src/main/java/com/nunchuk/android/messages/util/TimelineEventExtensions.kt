@@ -16,11 +16,11 @@ import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
 
 internal const val TAG = "TimelineEvent"
 
-fun TimelineEvent.lastMessage(): CharSequence {
-    val senderName = senderInfo.disambiguatedDisplayName
-    val lastMessage = getLastMessageContent()?.body ?: getTextEditableContent()
-    return "$senderName: $lastMessage"
-}
+fun TimelineEvent.lastMessage() = "${lastMessageSender()}: ${lastMessageContent()}"
+
+fun TimelineEvent.lastMessageContent() = getLastMessageContent()?.body ?: getTextEditableContent()
+
+fun TimelineEvent.lastMessageSender() = senderInfo.disambiguatedDisplayName
 
 fun TimelineEvent.membership(): Membership {
     val content = root.content.toModel<RoomMemberContent>()
