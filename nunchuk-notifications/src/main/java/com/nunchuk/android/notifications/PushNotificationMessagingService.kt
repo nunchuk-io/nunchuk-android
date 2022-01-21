@@ -131,8 +131,8 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
         }
         isMessageEvent() -> {
             PushNotificationData(
-                title = getString(R.string.notification_text_message_update),
-                message = "${lastMessage()}",
+                title = lastMessageSender(),
+                message = lastMessageContent(),
                 intent = intentProvider.getRoomDetailsIntent(roomId)
             )
         }
