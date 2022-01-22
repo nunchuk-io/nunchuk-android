@@ -2,8 +2,11 @@ package com.nunchuk.android.core.account
 
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.utils.onException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -46,11 +49,18 @@ internal class AccountManagerImpl @Inject constructor(
 
     override fun signOut() {
         // TODO call Nunchuk SignOut Api
-        accountSharedPref.clearAccountInfo()
         GlobalScope.launch {
-            signOutMatrix().onException {
-                Timber.e("signOut error ", it)
-            }
+            signOutMatrix().flowOn(Dispatchers.IO)
+                .onException {
+                    Timber.e("signOut error ", it)
+                }
+                .flowOn(Dispatchers.Main)
+                .collect {
+                    accountSharedPref.clearAccountInfo()
+                    SessionHolder.activeSession = null
+                    SessionHolder.currentRoom = null
+                    Timber.e("signOut success ")
+                }
         }
     }
 
