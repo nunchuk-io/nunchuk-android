@@ -6,8 +6,7 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import com.google.zxing.ResultPoint
 import com.google.zxing.client.android.Intents
-import com.journeyapps.barcodescanner.BarcodeCallback
-import com.journeyapps.barcodescanner.BarcodeResult
+import com.journeyapps.barcodescanner.*
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.model.RecoverWalletData
@@ -88,7 +87,7 @@ class RecoverWalletQrCodeActivity : BaseActivity<ActivityImportWalletQrcodeBindi
 
     override fun onPause() {
         super.onPause()
-        binding.barcodeView.resume()
+        binding.barcodeView.pause()
     }
 
     companion object {
