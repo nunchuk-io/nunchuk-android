@@ -101,6 +101,7 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
 
     private fun openWalletConfigScreen(walletId: String) {
         navigator.openWalletConfigScreen(this, walletId)
+        finish()
     }
 
 
@@ -114,9 +115,8 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
                 recoverWalletData?.walletId?.let {
                     openWalletConfigScreen(it)
                 }
-            } else {
-                finish()
             }
+            finish()
         }
 
         binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }
@@ -132,9 +132,8 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
             recoverWalletData?.walletId?.let {
                 openWalletConfigScreen(it)
             }
-        } else {
-            super.onBackPressed()
         }
+        super.onBackPressed()
     }
 
     companion object {
