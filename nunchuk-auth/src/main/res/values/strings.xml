@@ -30,4 +30,6 @@
     <string name="nc_text_confirmation_code">Confirmation Code</string>
     <string name="nc_text_continue">Continue</string>
     <string name="nc_text_sign_in_disclaim">We use email as the user ID for shared wallet and interpersonal messaging features. For stand-alone wallet that doesn’t require email sign-up, please use the desktop app.</string>
+    <string name="nc_toolbar_title_change_password">Change your password</string>
+    <string name="nc_toolbar_title_new_device">Confirm it was you</string>
 </resources>
