@@ -82,7 +82,7 @@ class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
 
     private fun updateContacts(state: ContactsState) {
         adapter.items = state.contacts
-        emptyStateView?.isVisible = state.contacts.isEmpty()
+        emptyStateView?.isVisible = state.pendingContacts.isEmpty() && state.contacts.isEmpty()
     }
 
     private fun bindPendingContact(contact: Contact) {

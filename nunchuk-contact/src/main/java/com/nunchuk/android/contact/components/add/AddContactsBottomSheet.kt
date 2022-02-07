@@ -1,6 +1,7 @@
 package com.nunchuk.android.contact.components.add
 
 import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -42,6 +43,11 @@ class AddContactsBottomSheet : BaseBottomSheet<BottomSheetAddContactsBinding>() 
         dialog?.setCanceledOnTouchOutside(false)
         setupViews()
         observeEvent()
+    }
+
+    override fun onCancel(dialog: DialogInterface) {
+        super.onCancel(dialog)
+        cleanUp()
     }
 
     private fun observeEvent() {
