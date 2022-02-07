@@ -133,9 +133,10 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
 
         bottomSheet.listener = {
             if (it is EditNameUserOption.Save) {
+                val avatarUrl = viewModel.getCurrentAccountInfo().avatarUrl
                 viewModel.updateUserProfile(
                     name = it.name,
-                    avatarUrl = viewModel.getCurrentAccountInfo().avatarUrl
+                    avatarUrl = if (avatarUrl?.isNotEmpty().orFalse()) avatarUrl else null
                 )
             }
         }

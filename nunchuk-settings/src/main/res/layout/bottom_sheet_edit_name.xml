@@ -57,7 +57,7 @@
         android:gravity="start|top"
         android:hint="@string/nc_text_type_name_here"
         android:inputType="textEmailAddress"
-        android:maxEms="200"
+        android:maxEms="20"
         android:minHeight="400dp"
         android:minEms="5"
         android:textColor="@color/nc_primary_color"
