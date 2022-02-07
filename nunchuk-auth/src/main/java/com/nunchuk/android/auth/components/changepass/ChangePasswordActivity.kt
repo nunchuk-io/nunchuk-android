@@ -35,6 +35,13 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
         observeEvent()
     }
 
+    private fun showToolbarBackButton() {
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
+        binding.toolbar.setNavigationOnClickListener { finish() }
+    }
+
     private fun observeEvent() {
         viewModel.event.observe(this) {
             when (it) {
@@ -46,7 +53,7 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
                 is ConfirmPasswordValidEvent -> binding.confirmPassword.hideError()
                 is ConfirmPasswordNotMatchedEvent -> binding.confirmPassword.setError(getString(R.string.nc_text_password_does_not_match))
                 is ChangePasswordSuccessError -> showChangePasswordError(it.errorMessage.orUnknownError())
-                is ChangePasswordSuccessEvent -> openLoginScreen()
+                is ChangePasswordSuccessEvent -> handleChangePasswordSuccess()
                 is ShowEmailSentEvent -> showEmailConfirmation(it.email)
                 LoadingEvent -> showLoading()
             }
@@ -59,17 +66,16 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
     }
 
     private fun setupViews() {
+        showToolbarBackButton()
         binding.oldPassword.passwordEnabled()
         binding.newPassword.passwordEnabled()
         binding.confirmPassword.passwordEnabled()
         binding.changePassword.setOnClickListener { onChangePasswordClicked() }
-        binding.signIn.setOnClickListener { openLoginScreen() }
     }
 
-    private fun openLoginScreen() {
+    private fun handleChangePasswordSuccess() {
         hideLoading()
         finish()
-        navigator.openSignInScreen(this)
     }
 
     private fun showChangePasswordError(errorMessage: String) {

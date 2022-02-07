@@ -18,7 +18,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:title="Confirm it was you" />
+        app:title="@string/nc_toolbar_title_new_device" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/tvConfirmInstruction"
