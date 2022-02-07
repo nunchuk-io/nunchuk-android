@@ -43,6 +43,8 @@ internal class RecoverSeedViewModel @Inject constructor(
             if (word.isNotEmpty()) {
                 filter(word)
             }
+            val canGoNext = withoutSpace.countWords() in MIN_ACCEPTED_NUM_WORDS..MAX_ACCEPTED_NUM_WORDS
+            event(CanGoNextStepEvent(canGoNext))
         }
     }
 
@@ -65,11 +67,8 @@ internal class RecoverSeedViewModel @Inject constructor(
         val updatedMnemonic = getState().mnemonic.replaceLastWord(word)
         updateState { copy(mnemonic = updatedMnemonic) }
         val canGoNext = updatedMnemonic.countWords() in MIN_ACCEPTED_NUM_WORDS..MAX_ACCEPTED_NUM_WORDS
-        if (canGoNext) {
-            event(CanGoNextStepEvent(canGoNext))
-        } else {
-            event(UpdateMnemonicEvent(updatedMnemonic))
-        }
+        event(CanGoNextStepEvent(canGoNext))
+        event(UpdateMnemonicEvent(updatedMnemonic))
     }
 
     private fun checkMnemonic(mnemonic: String) {
