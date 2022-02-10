@@ -88,8 +88,10 @@ class RoomDetailViewModel @Inject constructor(
     private fun initSendEventExecutor() {
         SendEventHelper.executor = object : SendEventExecutor {
             override fun execute(roomId: String, type: String, content: String): String {
-                viewModelScope.launch {
-                    room.sendEvent(type, content.toMatrixContent())
+                if (SessionHolder.hasActiveSession()) {
+                    SessionHolder.activeSession?.getRoom(roomId)?.run {
+                        sendEvent(type, content.toMatrixContent())
+                    }
                 }
                 return ""
             }
