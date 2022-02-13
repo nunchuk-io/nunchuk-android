@@ -13,7 +13,10 @@ import com.nunchuk.android.usecase.*
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,6 +27,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val newAddressUseCase: NewAddressUseCase,
     private val exportWalletUseCase: ExportWalletUseCase,
     private val exportKeystoneWalletUseCase: ExportKeystoneWalletUseCase,
+    private val exportPassportWalletUseCase: ExportPassportWalletUseCase,
     private val getTransactionHistoryUseCase: GetTransactionHistoryUseCase,
     private val deleteWalletUseCase: DeleteWalletUseCase
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
@@ -130,6 +134,16 @@ internal class WalletDetailsViewModel @Inject constructor(
     fun handleExportWalletQR() {
         viewModelScope.launch {
             exportKeystoneWalletUseCase.execute(walletId)
+                .flowOn(Dispatchers.IO)
+                .onException { showError(it) }
+                .flowOn(Dispatchers.Main)
+                .collect { event(OpenDynamicQRScreen(it)) }
+        }
+    }
+
+    fun handleExportPassport() {
+        viewModelScope.launch {
+            exportPassportWalletUseCase.execute(walletId)
                 .flowOn(Dispatchers.IO)
                 .onException { showError(it) }
                 .flowOn(Dispatchers.Main)

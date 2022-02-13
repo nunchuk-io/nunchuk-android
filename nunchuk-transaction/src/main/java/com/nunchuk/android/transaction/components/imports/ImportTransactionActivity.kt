@@ -11,6 +11,7 @@ import com.journeyapps.barcodescanner.BarcodeResult
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.transaction.components.details.TransactionOption
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionError
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionSuccess
 import com.nunchuk.android.transaction.databinding.ActivityImportTransactionBinding
@@ -33,7 +34,7 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-        viewModel.init(args.walletId)
+        viewModel.init(walletId = args.walletId, transactionOption = args.transactionOption)
         setupViews()
         observeEvent()
     }
@@ -111,9 +112,12 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
     companion object {
         private const val REQUEST_CODE = 1248
 
-        fun start(activityContext: Activity, walletId: String) {
+        fun start(activityContext: Activity, walletId: String, transactionOption: TransactionOption) {
             activityContext.startActivity(
-                ImportTransactionArgs(walletId = walletId).buildIntent(activityContext)
+                ImportTransactionArgs(
+                    walletId = walletId,
+                    transactionOption = transactionOption
+                ).buildIntent(activityContext)
             )
         }
 

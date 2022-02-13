@@ -60,4 +60,7 @@ internal interface SignerDomainModule {
     @Binds
     fun bindGetCompoundSignersUseCase(useCase: GetCompoundSignersUseCaseImpl): GetCompoundSignersUseCase
 
+    @Binds
+    fun bindCreatePassportSignersUseCase(useCase: CreatePassportSignersUseCaseImpl): CreatePassportSignersUseCase
+
 }

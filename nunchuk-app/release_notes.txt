@@ -1,2 +1,2 @@
 What's news:
-- NUN-770 Android - Use Fee API in Manual Fee setting
+- Passport wallet/transaction

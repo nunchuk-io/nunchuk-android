@@ -56,6 +56,7 @@
     <string name="nc_transaction_view_blockchain">View on Blockchain Explorer</string>
     <string name="nc_transaction_enter_passphrase">Enter your passphrase</string>
     <string name="nc_transaction_export_transaction">Export transaction</string>
+    <string name="nc_transaction_export_passport_transaction">Export Passport transaction</string>
     <string name="nc_transaction_export_transaction_as_file">Export as file</string>
     <string name="nc_transaction_import_signature_via_file">Import via file</string>
     <string name="nc_transaction_import_signature_via_qr_code">Import signature via QR code</string>
@@ -63,6 +64,7 @@
     <string name="nc_transaction_confirmations">confirmations</string>
     <string name="nc_transaction_confirmation">Are you sure you want to cancel this transaction?</string>
     <string name="nc_transaction_import_signature">Import signature</string>
+    <string name="nc_transaction_import_passport_signature">Import Passport signature</string>
     <string name="nc_transaction_cancel_transaction">Cancel transaction</string>
     <string name="nc_transaction_balance">Balance</string>
     <string name="nc_transaction_signed_successful">Transaction signed successful</string>

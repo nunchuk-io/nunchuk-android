@@ -22,7 +22,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="QRCode" />
+            android:text="@string/nc_wallet_qrcode" />
     </androidx.appcompat.widget.Toolbar>
 
     <com.journeyapps.barcodescanner.DecoratedBarcodeView

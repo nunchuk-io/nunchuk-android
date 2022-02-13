@@ -20,6 +20,7 @@
     <string name="nc_text_waiting">Please wait…</string>
 
     <string name="nc_text_qr_code">Export wallet as QR code</string>
+    <string name="nc_text_export_as_passport">Export Passport wallet</string>
     <string name="nc_text_shared">Shared</string>
     <string name="nc_text_created">Created</string>
     <string name="nc_text_canceled">Canceled</string>

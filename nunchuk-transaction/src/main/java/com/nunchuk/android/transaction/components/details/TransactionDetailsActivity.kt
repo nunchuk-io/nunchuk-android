@@ -16,8 +16,9 @@ import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
-import com.nunchuk.android.transaction.components.details.TransactionOption.EXPORT
-import com.nunchuk.android.transaction.components.details.TransactionOption.IMPORT
+import com.nunchuk.android.transaction.components.details.TransactionOption.*
+import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
+import com.nunchuk.android.transaction.components.imports.ImportTransactionActivity
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
 import com.nunchuk.android.transaction.util.hasChangeIndex
 import com.nunchuk.android.type.TransactionStatus
@@ -231,18 +232,29 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         TransactionSignBottomSheet.show(supportFragmentManager)
             .setListener {
                 when (it) {
-                    EXPORT -> openExportTransactionScreen()
-                    IMPORT -> openImportTransactionScreen()
+                    EXPORT -> openExportTransactionScreen(EXPORT)
+                    IMPORT -> openImportTransactionScreen(IMPORT)
+                    EXPORT_PASSPORT -> openExportTransactionScreen(EXPORT_PASSPORT)
+                    IMPORT_PASSPORT -> openImportTransactionScreen(IMPORT_PASSPORT)
                 }
             }
     }
 
-    private fun openExportTransactionScreen() {
-        navigator.openExportTransactionScreen(this, args.walletId, args.txId)
+    private fun openExportTransactionScreen(transactionOption: TransactionOption) {
+        ExportTransactionActivity.start(
+            activityContext = this,
+            walletId = args.walletId,
+            txId = args.txId,
+            transactionOption = transactionOption
+        )
     }
 
-    private fun openImportTransactionScreen() {
-        navigator.openImportTransactionScreen(this, args.walletId)
+    private fun openImportTransactionScreen(transactionOption: TransactionOption) {
+        ImportTransactionActivity.start(
+            activityContext = this,
+            walletId = args.walletId,
+            transactionOption = transactionOption
+        )
     }
 
     private fun requireInputPassphrase(func: (String) -> Unit) {

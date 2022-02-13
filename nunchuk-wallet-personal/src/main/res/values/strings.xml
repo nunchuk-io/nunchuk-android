@@ -11,5 +11,6 @@
     <string name="nc_txt_recover_using_bsms_file">Recover using BSMS file</string>
     <string name="nc_txt_file_bsms_chooser">Please select your BSMS file</string>
     <string name="nc_txt_import_wallet_success">%s has been successfully recovered</string>
+    <string name="nc_wallet_qrcode">QRCode</string>
 
 </resources>

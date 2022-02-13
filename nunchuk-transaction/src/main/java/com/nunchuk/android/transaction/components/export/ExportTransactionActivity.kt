@@ -10,6 +10,7 @@ import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.qr.convertToQRCode
 import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.transaction.components.details.TransactionOption
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.*
 import com.nunchuk.android.transaction.databinding.ActivityExportTransactionBinding
 import com.nunchuk.android.widget.NCToastMessage
@@ -39,7 +40,7 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
         setLightStatusBar()
         setupViews()
         observeEvent()
-        viewModel.init(walletId = args.walletId, txId = args.txId)
+        viewModel.init(walletId = args.walletId, txId = args.txId, transactionOption = args.transactionOption)
     }
 
     private val updateTextTask = object : Runnable {
@@ -111,11 +112,12 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
 
         private var handler = Handler(Looper.getMainLooper())
 
-        fun start(activityContext: Activity, walletId: String, txId: String) {
+        fun start(activityContext: Activity, walletId: String, txId: String, transactionOption: TransactionOption) {
             activityContext.startActivity(
                 ExportTransactionArgs(
                     walletId = walletId,
-                    txId = txId
+                    txId = txId,
+                    transactionOption = transactionOption
                 ).buildIntent(activityContext)
             )
         }
