@@ -6,9 +6,11 @@ import com.nunchuk.android.core.signer.InvalidSignerFormatException
 import com.nunchuk.android.core.signer.SignerInput
 import com.nunchuk.android.core.signer.toSigner
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.toSpec
 import com.nunchuk.android.signer.components.add.AddSignerEvent.*
 import com.nunchuk.android.usecase.CreateKeystoneSignerUseCase
+import com.nunchuk.android.usecase.CreatePassportSignersUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
@@ -16,15 +18,20 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 internal class AddSignerViewModel @Inject constructor(
     private val createSignerUseCase: CreateSignerUseCase,
-    private val createKeystoneSignerUseCase: CreateKeystoneSignerUseCase
+    private val createKeystoneSignerUseCase: CreateKeystoneSignerUseCase,
+    private val createPassportSignersUseCase: CreatePassportSignersUseCase
 ) : NunchukViewModel<Unit, AddSignerEvent>() {
 
+    private val qrDataList = HashSet<String>()
+    private var isProcessing = false
     override val initialState = Unit
 
     fun handleAddSigner(signerName: String, signerSpec: String) {
@@ -72,5 +79,30 @@ internal class AddSignerViewModel @Inject constructor(
                 .flowOn(Main)
                 .collect { event(ParseKeystoneSignerSuccess(it.toSpec())) }
         }
+    }
+
+    fun handAddPassportSigners(qrData: String, onUpdateQr: (Int) -> Unit, onSuccessEvent: (SingleSigner) -> Unit = {}) {
+        qrDataList.add(qrData)
+        if (!isProcessing) {
+            viewModelScope.launch {
+                onUpdateQr(qrDataList.size)
+                Timber.tag(TAG).d("qrDataList::${qrDataList.size}")
+                createPassportSignersUseCase.execute(qrData = qrDataList.toList())
+                    .onStart { isProcessing = true }
+                    .flowOn(IO)
+                    .onException { Timber.tag(TAG).d("add passport signer error::$it") }
+                    .flowOn(Main)
+                    .onCompletion { isProcessing = false }
+                    .collect {
+                        Timber.tag(TAG).d("add passport signer successful::$it")
+                        onSuccessEvent(it.first())
+                        event(ParseKeystoneSignerSuccess(it.first().toSpec()))
+                    }
+            }
+        }
+    }
+
+    companion object {
+        private const val TAG = "AddSignerViewModel"
     }
 }

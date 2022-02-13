@@ -72,6 +72,7 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>() {
         }
 
         binding.addSignerViaQR.setOnClickListener { startQRCodeScan() }
+        binding.addPassportSigner.setOnClickListener { openPassportScanScreen() }
         binding.signerSpec.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_180))
         binding.addSigner.setOnClickListener {
             viewModel.handleAddSigner(binding.signerName.getEditText(), binding.signerSpec.getEditText())
@@ -81,10 +82,23 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>() {
         }
     }
 
+    private fun openPassportScanScreen() {
+        AddPassportSignersActivity.start(this, PASSPORT_REQUEST_CODE)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        QRCodeParser.parse(requestCode, resultCode, data)?.apply {
-            viewModel.handleAddQrData(this)
+        if (requestCode == PASSPORT_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                val keySpec = data?.getStringExtra(PASSPORT_EXTRA_KEY_SPEC).orEmpty()
+                val keyName = data?.getStringExtra(PASSPORT_EXTRA_KEY_NAME).orEmpty()
+                binding.signerSpec.getEditTextView().setText(keySpec)
+                binding.signerName.getEditTextView().setText(keyName)
+            }
+        } else {
+            QRCodeParser.parse(requestCode, resultCode, data)?.apply {
+                viewModel.handleAddQrData(this)
+            }
         }
     }
 
@@ -95,9 +109,14 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>() {
 
     companion object {
         private const val MAX_LENGTH = 20
+
         fun start(activityContext: Context) {
             activityContext.startActivity(Intent(activityContext, AddSignerActivity::class.java))
         }
     }
 
 }
+
+internal const val PASSPORT_REQUEST_CODE = 0x1024
+internal const val PASSPORT_EXTRA_KEY_SPEC = "PASSPORT_EXTRA_KEY_SPEC"
+internal const val PASSPORT_EXTRA_KEY_NAME = "PASSPORT_EXTRA_KEY_NAME"

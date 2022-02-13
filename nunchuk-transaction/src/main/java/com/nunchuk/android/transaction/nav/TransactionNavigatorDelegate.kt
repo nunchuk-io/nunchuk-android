@@ -124,26 +124,4 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         )
     }
 
-    override fun openExportTransactionScreen(
-        activityContext: Activity,
-        walletId: String,
-        txId: String
-    ) {
-        ExportTransactionActivity.start(
-            activityContext = activityContext,
-            walletId = walletId,
-            txId = txId
-        )
-    }
-
-    override fun openImportTransactionScreen(
-        activityContext: Activity,
-        walletId: String
-    ) {
-        ImportTransactionActivity.start(
-            activityContext = activityContext,
-            walletId = walletId
-        )
-    }
-
 }

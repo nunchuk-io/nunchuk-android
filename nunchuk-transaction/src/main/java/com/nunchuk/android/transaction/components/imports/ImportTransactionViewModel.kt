@@ -3,9 +3,11 @@ package com.nunchuk.android.transaction.components.imports
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.readableMessage
+import com.nunchuk.android.transaction.components.details.TransactionOption
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionError
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionSuccess
 import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCase
+import com.nunchuk.android.usecase.ImportPassportTransactionUseCase
 import com.nunchuk.android.usecase.ImportTransactionUseCase
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers.IO
@@ -20,18 +22,21 @@ import javax.inject.Inject
 
 internal class ImportTransactionViewModel @Inject constructor(
     private val importTransactionUseCase: ImportTransactionUseCase,
-    private val importKeystoneTransactionUseCase: ImportKeystoneTransactionUseCase
+    private val importKeystoneTransactionUseCase: ImportKeystoneTransactionUseCase,
+    private val importPassportTransactionUseCase: ImportPassportTransactionUseCase
 ) : NunchukViewModel<Unit, ImportTransactionEvent>() {
 
     private lateinit var walletId: String
+    private lateinit var transactionOption: TransactionOption
     private var isProcessing = false
 
     private val qrDataList = HashSet<String>()
 
     override val initialState = Unit
 
-    fun init(walletId: String) {
+    fun init(walletId: String, transactionOption: TransactionOption) {
         this.walletId = walletId
+        this.transactionOption = transactionOption
     }
 
     fun importTransaction(filePath: String) {
@@ -51,7 +56,11 @@ internal class ImportTransactionViewModel @Inject constructor(
         if (!isProcessing) {
             viewModelScope.launch {
                 Timber.d("[ImportTransaction]execute($walletId, $qrDataList)")
-                importKeystoneTransactionUseCase.execute(walletId = walletId, qrData = qrDataList.toList())
+                if (transactionOption == TransactionOption.IMPORT_PASSPORT) {
+                    importPassportTransactionUseCase.execute(walletId = walletId, qrData = qrDataList.toList())
+                } else {
+                    importKeystoneTransactionUseCase.execute(walletId = walletId, qrData = qrDataList.toList())
+                }
                     .onStart { isProcessing = true }
                     .flowOn(IO)
                     .onException { event(ImportTransactionError(it.readableMessage())) }

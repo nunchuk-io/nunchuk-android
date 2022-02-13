@@ -27,6 +27,7 @@ internal class WalletUpdateBottomSheet : BaseBottomSheet<DialogBackupWalletBotto
         binding.btnExportBsms.setOnClickListener { onSaveClicked(EXPORT_BSMS) }
         binding.btnExportColdcard.setOnClickListener { onSaveClicked(EXPORT_COLDCARD) }
         binding.btnQR.setOnClickListener { onSaveClicked(EXPORT_QR) }
+        binding.btnExportPassport.setOnClickListener { onSaveClicked(EXPORT_PASSPORT) }
         binding.btnDelete.setOnClickListener { onSaveClicked(DELETE) }
     }
 

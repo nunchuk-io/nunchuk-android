@@ -2,6 +2,7 @@ package com.nunchuk.android.signer.di
 
 import com.nunchuk.android.signer.AirSignerIntroActivity
 import com.nunchuk.android.signer.SignerIntroActivity
+import com.nunchuk.android.signer.components.add.AddPassportSignersActivity
 import com.nunchuk.android.signer.components.add.AddSignerActivity
 import com.nunchuk.android.signer.components.add.AddSignerModule
 import com.nunchuk.android.signer.components.details.SignerInfoActivity
@@ -23,5 +24,8 @@ internal interface SignerActivityModule {
 
     @ContributesAndroidInjector(modules = [AddSignerModule::class])
     fun addSignerActivity(): AddSignerActivity
+
+    @ContributesAndroidInjector(modules = [AddSignerModule::class])
+    fun addPassportSignersActivity(): AddPassportSignersActivity
 
 }

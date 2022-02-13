@@ -168,6 +168,7 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
                 EXPORT_BSMS -> handleExportBSMS()
                 EXPORT_COLDCARD -> handleExportColdcard()
                 EXPORT_QR -> viewModel.handleExportWalletQR()
+                EXPORT_PASSPORT -> viewModel.handleExportPassport()
                 DELETE -> viewModel.handleDeleteWallet()
             }
         }

@@ -15,6 +15,7 @@ dependencies {
     implementation pluginsDeps.kotlinAndroidRuntime
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()
+    implementation zxingDeps.values()
 
     testImplementation otherTestDeps.junit
 }
