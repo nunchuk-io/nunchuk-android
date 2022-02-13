@@ -72,7 +72,7 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>() {
         }
 
         binding.addSignerViaQR.setOnClickListener { startQRCodeScan() }
-        binding.addPassportSigner.setOnClickListener { openPassportScanScreen() }
+        binding.addPassportSigner.setOnClickListener { openScanDynamicQRScreen() }
         binding.signerSpec.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_180))
         binding.addSigner.setOnClickListener {
             viewModel.handleAddSigner(binding.signerName.getEditText(), binding.signerSpec.getEditText())
@@ -82,8 +82,8 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>() {
         }
     }
 
-    private fun openPassportScanScreen() {
-        AddPassportSignersActivity.start(this, PASSPORT_REQUEST_CODE)
+    private fun openScanDynamicQRScreen() {
+        ScanDynamicQRActivity.start(this, PASSPORT_REQUEST_CODE)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
