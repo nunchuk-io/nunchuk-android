@@ -17,8 +17,8 @@
 
     <string name="nc_create_signer_before_you_start">Before you start</string>
     <string name="nc_create_signer_description">You can add air-gapped and software keys via this mobile app. If you need to add a wired key, please do so via the Nunchuk desktop app.</string>
-    <string name="nc_add_signer_via_qr_code">Add key spec via QR</string>
-    <string name="nc_add_passport_signer">Add Passport key</string>
+    <string name="nc_scan_static_qr">Scan static QR</string>
+    <string name="nc_scan_dynamic_qr">Scan dynamic QR</string>
     <string name="nc_text_signer_name">Key name</string>
     <string name="nc_text_signer_spec">Key spec</string>
     <string name="nc_text_add_signer">Add key</string>

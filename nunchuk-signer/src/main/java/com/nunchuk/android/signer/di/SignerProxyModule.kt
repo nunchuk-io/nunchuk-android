@@ -6,7 +6,7 @@ import dagger.Module
 @Module(
     includes = [
         SignerActivityModule::class,
-        SoftwareSignerModule::class
+        SoftwareSignerModule::class,
     ]
 )
 interface SignerProxyModule

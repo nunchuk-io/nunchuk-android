@@ -29,7 +29,7 @@
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
-            android:name=".components.add.AddPassportSignersActivity"
+            android:name=".components.add.ScanDynamicQRActivity"
             android:label="Add passport signers"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />

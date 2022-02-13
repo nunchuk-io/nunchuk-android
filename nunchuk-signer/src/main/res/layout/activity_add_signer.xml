@@ -79,45 +79,49 @@
         app:layout_constraintTop_toBottomOf="@+id/signerSpecLabel" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
-        android:id="@+id/addSignerViaQR"
-        style="@style/NCOutlineButton.Light"
+        android:id="@+id/scanContainer"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/nc_height_36"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:layout_margin="@dimen/nc_padding_16"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/signerSpec">
 
-        <com.nunchuk.android.widget.NCFontTextView
-            style="@style/NCOutlineButton.Text"
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/addSignerViaQR"
+            style="@style/NCOutlineButton.Light"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:drawableEnd="@drawable/ic_qr"
-            android:drawablePadding="@dimen/nc_padding_8"
-            android:text="@string/nc_add_signer_via_qr_code"
-            android:textSize="@dimen/nc_text_size_12"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/signerSpec" />
-    </androidx.appcompat.widget.LinearLayoutCompat>
+            android:layout_height="@dimen/nc_height_36"
+            android:layout_marginEnd="@dimen/nc_padding_8"
+            android:layout_weight="1">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:id="@+id/addPassportSigner"
-        style="@style/NCOutlineButton.Light"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/nc_height_36"
-        android:layout_margin="@dimen/nc_padding_16"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/addSignerViaQR">
+            <com.nunchuk.android.widget.NCFontTextView
+                style="@style/NCOutlineButton.Text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableEnd="@drawable/ic_qr"
+                android:drawablePadding="@dimen/nc_padding_8"
+                android:text="@string/nc_scan_static_qr"
+                android:textSize="@dimen/nc_text_size_12" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
 
-        <com.nunchuk.android.widget.NCFontTextView
-            style="@style/NCOutlineButton.Text"
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/addPassportSigner"
+            style="@style/NCOutlineButton.Light"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:drawableEnd="@drawable/ic_qr"
-            android:drawablePadding="@dimen/nc_padding_8"
-            android:text="@string/nc_add_passport_signer"
-            android:textSize="@dimen/nc_text_size_12"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/signerSpec" />
+            android:layout_height="@dimen/nc_height_36"
+            android:layout_marginStart="@dimen/nc_padding_8"
+            android:layout_weight="1">
+
+            <com.nunchuk.android.widget.NCFontTextView
+                style="@style/NCOutlineButton.Text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableEnd="@drawable/ic_qr"
+                android:drawablePadding="@dimen/nc_padding_8"
+                android:text="@string/nc_scan_dynamic_qr"
+                android:textSize="@dimen/nc_text_size_12" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <com.nunchuk.android.widget.NCFontButton
