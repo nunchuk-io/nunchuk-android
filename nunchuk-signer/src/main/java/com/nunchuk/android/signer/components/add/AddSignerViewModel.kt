@@ -81,22 +81,20 @@ internal class AddSignerViewModel @Inject constructor(
         }
     }
 
-    fun handAddPassportSigners(qrData: String, onUpdateQr: (Int) -> Unit, onSuccessEvent: (SingleSigner) -> Unit = {}) {
+    fun handAddPassportSigners(qrData: String, onSuccessEvent: (List<SingleSigner>) -> Unit = {}) {
         qrDataList.add(qrData)
         if (!isProcessing) {
             viewModelScope.launch {
-                onUpdateQr(qrDataList.size)
                 Timber.tag(TAG).d("qrDataList::${qrDataList.size}")
                 createPassportSignersUseCase.execute(qrData = qrDataList.toList())
                     .onStart { isProcessing = true }
                     .flowOn(IO)
-                    .onException { Timber.tag(TAG).d("add passport signer error::$it") }
+                    .onException { }
                     .flowOn(Main)
                     .onCompletion { isProcessing = false }
                     .collect {
                         Timber.tag(TAG).d("add passport signer successful::$it")
-                        onSuccessEvent(it.first())
-                        event(ParseKeystoneSignerSuccess(it.first().toSpec()))
+                        onSuccessEvent(it)
                     }
             }
         }
