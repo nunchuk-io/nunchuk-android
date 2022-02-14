@@ -15,7 +15,9 @@ internal class GetTransactionUseCaseImpl @Inject constructor(
 ) : GetTransactionUseCase {
 
     override fun execute(walletId: String, txId: String) = flow {
-        emit(nativeSdk.getTransaction(walletId = walletId, txId = txId))
+        val chainTip = nativeSdk.getChainTip()
+        val tx = nativeSdk.getTransaction(walletId = walletId, txId = txId)
+        emit(tx.copy(height = tx.getConfirmations(chainTip)))
     }
 
 }

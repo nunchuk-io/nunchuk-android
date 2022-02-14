@@ -20,8 +20,6 @@ import com.nunchuk.android.transaction.components.details.TransactionOption.*
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.imports.ImportTransactionActivity
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
-import com.nunchuk.android.transaction.util.hasChangeIndex
-import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
@@ -128,12 +126,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         } else {
             binding.signatureStatus.text = getString(R.string.nc_transaction_enough_signers)
         }
-        if (transaction.status == TransactionStatus.CONFIRMED) {
-            val confirmText = "${transaction.height} ${getString(R.string.nc_transaction_confirmations)}"
-            binding.status.text = confirmText
-        } else {
-            binding.status.bindTransactionStatus(transaction.status)
-        }
+        binding.status.bindTransactionStatus(transaction)
         binding.sendingBTC.text = transaction.totalAmount.getBTCAmount()
         binding.signersContainer.isVisible = !transaction.isReceive
         binding.btnBroadcast.isVisible = transaction.status.canBroadCast()

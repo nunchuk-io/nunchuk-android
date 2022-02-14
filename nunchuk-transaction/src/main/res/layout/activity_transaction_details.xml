@@ -62,6 +62,7 @@
                     android:text="@string/nc_transaction_pending_confirmation"
                     android:textColor="@color/nc_primary_dark_color"
                     android:textSize="@dimen/nc_text_size_12"
+                    app:fontTextStyle="semi_bold"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 

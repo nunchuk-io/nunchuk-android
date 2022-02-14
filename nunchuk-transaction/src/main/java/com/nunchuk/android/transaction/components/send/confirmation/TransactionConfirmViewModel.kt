@@ -3,6 +3,7 @@ package com.nunchuk.android.transaction.components.send.confirmation
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.Amount
@@ -10,7 +11,6 @@ import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.*
-import com.nunchuk.android.transaction.util.hasChangeIndex
 import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DeleteTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase

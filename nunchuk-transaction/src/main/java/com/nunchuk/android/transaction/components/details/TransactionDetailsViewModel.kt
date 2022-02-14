@@ -14,7 +14,6 @@ import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
-import com.nunchuk.android.transaction.util.getConfirmations
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.SignRoomTransactionUseCase
@@ -35,7 +34,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val broadcastTransactionUseCase: BroadcastTransactionUseCase,
     private val broadcastRoomTransactionUseCase: BroadcastRoomTransactionUseCase,
     private val sendSignerPassphrase: SendSignerPassphrase,
-    private val getChainTipUseCase: GetChainTipUseCase,
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
 
     private lateinit var walletId: String
@@ -43,7 +41,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private lateinit var initEventId: String
     private var remoteSigners: List<SingleSigner> = emptyList()
     private var masterSigners: List<MasterSigner> = emptyList()
-    private var chainTip: Int = -1
 
     override val initialState = TransactionDetailsState()
 
@@ -51,16 +48,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
         this.walletId = walletId
         this.txId = txId
         this.initEventId = initEventId
-        getChainTip()
-    }
-
-    private fun getChainTip() {
-        viewModelScope.launch {
-            chainTip = when (val result = getChainTipUseCase.execute()) {
-                is Error -> -1
-                is Success -> result.data
-            }
-        }
     }
 
     fun getTransactionInfo() {
@@ -86,9 +73,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     private fun updateTransaction(transaction: Transaction) {
-        val updatedTransaction = transaction.copy(height = transaction.getConfirmations(chainTip))
-        updateState { copy(transaction = updatedTransaction) }
-        val signers = updatedTransaction.signers
+        updateState { copy(transaction = transaction) }
+        val signers = transaction.signers
         if (signers.isNotEmpty()) {
             val signedMasterSigners = masterSigners.filter { it.device.masterFingerprint in signers }.map(MasterSigner::toModel)
             val signedRemoteSigners = remoteSigners.filter { it.masterFingerprint in signers }.map(SingleSigner::toModel)
