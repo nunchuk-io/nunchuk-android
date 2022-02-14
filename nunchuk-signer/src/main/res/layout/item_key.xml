@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.AppCompatTextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/key"
+    style="@style/NCText.Body"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:selectableItemBackground"
+    android:paddingHorizontal="@dimen/nc_padding_16"
+    android:paddingVertical="@dimen/nc_padding_14"
+    app:layout_constraintStart_toEndOf="@+id/icPin"
+    app:layout_constraintTop_toTopOf="parent"
+    tools:text="m/84h" />

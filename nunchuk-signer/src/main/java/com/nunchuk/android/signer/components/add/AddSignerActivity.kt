@@ -4,10 +4,13 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
+import com.google.gson.Gson
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.qr.QRCodeParser
 import com.nunchuk.android.core.qr.startQRCodeScan
+import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.toSpec
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.add.AddSignerEvent.*
 import com.nunchuk.android.signer.databinding.ActivityAddSignerBinding
@@ -22,6 +25,9 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
+
+    @Inject
+    lateinit var gson: Gson
 
     private val viewModel: AddSignerViewModel by viewModels { factory }
 
@@ -90,16 +96,34 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == PASSPORT_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
-                val keySpec = data?.getStringExtra(PASSPORT_EXTRA_KEY_SPEC).orEmpty()
-                val keyName = data?.getStringExtra(PASSPORT_EXTRA_KEY_NAME).orEmpty()
-                binding.signerSpec.getEditTextView().setText(keySpec)
-                binding.signerName.getEditTextView().setText(keyName)
+                val keys = data?.getStringExtra(PASSPORT_EXTRA_KEYS).toKeys(gson)
+                handleResult(keys)
             }
         } else {
             QRCodeParser.parse(requestCode, resultCode, data)?.apply {
                 viewModel.handleAddQrData(this)
             }
         }
+    }
+
+    private fun handleResult(keys: List<SingleSigner>) {
+        if (keys.isNotEmpty()) {
+            if (keys.size == 1) {
+                bindKey(keys.first())
+            } else {
+                showSelectKeysDialog(keys, ::bindKey)
+            }
+        }
+    }
+
+    private fun bindKey(key: SingleSigner) {
+        binding.signerSpec.getEditTextView().setText(key.toSpec())
+        binding.signerName.getEditTextView().setText(key.name)
+    }
+
+    private fun showSelectKeysDialog(keys: List<SingleSigner>, onKeySelected: (SingleSigner) -> Unit) {
+        SelectKeyBottomSheet.show(fragmentManager = supportFragmentManager, keys)
+            .setListener(onKeySelected)
     }
 
     private fun updateCounter(length: Int) {
@@ -118,5 +142,4 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>() {
 }
 
 internal const val PASSPORT_REQUEST_CODE = 0x1024
-internal const val PASSPORT_EXTRA_KEY_SPEC = "PASSPORT_EXTRA_KEY_SPEC"
-internal const val PASSPORT_EXTRA_KEY_NAME = "PASSPORT_EXTRA_KEY_NAME"
+internal const val PASSPORT_EXTRA_KEYS = "PASSPORT_EXTRA_KEYS"

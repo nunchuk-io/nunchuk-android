@@ -16,6 +16,7 @@ dependencies {
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()
     implementation zxingDeps.values()
+    implementation googleDeps.gson
 
     testImplementation otherTestDeps.junit
 }

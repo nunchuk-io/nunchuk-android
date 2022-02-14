@@ -4,13 +4,13 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
+import com.google.gson.Gson
 import com.google.zxing.ResultPoint
 import com.google.zxing.client.android.Intents
 import com.journeyapps.barcodescanner.BarcodeCallback
 import com.journeyapps.barcodescanner.BarcodeResult
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.model.toSpec
 import com.nunchuk.android.signer.databinding.ActivityScanDynamicQrBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 import timber.log.Timber
@@ -20,6 +20,9 @@ class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
 
     @Inject
     lateinit var factory: NunchukFactory
+
+    @Inject
+    lateinit var gson: Gson
 
     private val viewModel: AddSignerViewModel by viewModels { factory }
 
@@ -39,19 +42,17 @@ class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
         binding.barcodeView.decodeContinuous(object : BarcodeCallback {
 
             override fun barcodeResult(result: BarcodeResult) {
-                viewModel.handAddPassportSigners(result.text, {
-                    Timber.d("Dynamic QR list size:$it")
-                }, {
+                Timber.tag(TAG).d("barcodeResult($result")
+                viewModel.handAddPassportSigners(result.text) {
                     setResult(Activity.RESULT_OK, Intent().apply {
-                        putExtra(PASSPORT_EXTRA_KEY_SPEC, it.toSpec())
-                        putExtra(PASSPORT_EXTRA_KEY_NAME, it.name)
+                        putExtra(PASSPORT_EXTRA_KEYS, gson.toJson(it))
                     })
                     finish()
-                })
+                }
             }
 
             override fun possibleResultPoints(resultPoints: MutableList<ResultPoint>?) {
-
+                Timber.tag(TAG).d("possibleResultPoints($resultPoints")
             }
         })
 
@@ -72,6 +73,7 @@ class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
     }
 
     companion object {
+        private const val TAG = "ScanDynamicQRActivity"
         fun start(activityContext: Activity, requestCode: Int) {
             activityContext.startActivityForResult(Intent(activityContext, ScanDynamicQRActivity::class.java), requestCode)
         }
