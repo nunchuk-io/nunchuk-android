@@ -16,7 +16,7 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.nunchuk.android.core.R
-import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.type.TransactionStatus.*
 import javax.inject.Inject
 
@@ -33,7 +33,8 @@ fun TextView.setUnderline() {
     paintFlags = paintFlags or Paint.UNDERLINE_TEXT_FLAG
 }
 
-fun TextView.bindTransactionStatus(status: TransactionStatus) {
+fun TextView.bindTransactionStatus(transaction: Transaction) {
+    val status = transaction.status
     background = AppCompatResources.getDrawable(context, R.drawable.nc_rounded_tag_fill_background)
     when (status) {
         PENDING_SIGNATURES -> {
@@ -49,7 +50,8 @@ fun TextView.bindTransactionStatus(status: TransactionStatus) {
             backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_lavender_tint_color)
         }
         CONFIRMED -> {
-            text = context.getString(R.string.nc_transaction_confirmed)
+            val confirmations = "${transaction.height} ${context.getString(R.string.nc_transaction_confirmations)}"
+            text = confirmations
             backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_denim_tint_color)
         }
         NETWORK_REJECTED -> {

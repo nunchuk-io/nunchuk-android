@@ -54,7 +54,7 @@ internal class TransactionViewHolder(
             binding.amountUSD.text = "- ${data.totalAmount.getUSDAmount()}"
             binding.receiverName.text = data.outputs.firstOrNull()?.first.orEmpty().truncatedAddress()
         }
-        binding.status.bindTransactionStatus(data.status)
+        binding.status.bindTransactionStatus(data)
         binding.date.text = data.getFormatDate()
 
         binding.root.setOnClickListener { onItemSelectedListener(data) }

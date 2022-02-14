@@ -32,5 +32,7 @@ fun String.truncatedAddress(): String = if (length < PREFIX_LENGTH + SUFFIX_LENG
     "${take(PREFIX_LENGTH)}...${takeLast(SUFFIX_LENGTH)}"
 }
 
+fun Transaction.hasChangeIndex() = outputs.isNotEmpty() && changeIndex >= 0 && changeIndex < outputs.size
+
 internal const val PREFIX_LENGTH = 5
 internal const val SUFFIX_LENGTH = 4

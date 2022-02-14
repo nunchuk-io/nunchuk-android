@@ -36,9 +36,9 @@ internal class GetTransactionsUseCaseImpl @Inject constructor(
                 nativeSdk.getRoomTransaction(initEventId).txId
             }
             if (txId.isEmpty()) return null
-
+            val chainTip = nativeSdk.getChainTip()
             val tx = nativeSdk.getTransaction(walletId, txId = txId)
-            return TransactionExtended(walletId = walletId, initEventId, tx)
+            return TransactionExtended(walletId = walletId, initEventId, tx.copy(height = tx.getConfirmations(chainTip)))
         } catch (t: Throwable) {
             CrashlyticsReporter.recordException(t)
             return null

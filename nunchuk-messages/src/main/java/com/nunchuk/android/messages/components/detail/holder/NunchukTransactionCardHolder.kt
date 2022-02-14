@@ -30,7 +30,7 @@ internal class NunchukTransactionCardHolder(
     private fun bindTransaction(walletId: String, initEventId: String, transaction: Transaction) {
         val context = itemView.context
         binding.amount.text = transaction.totalAmount.getBTCAmount()
-        binding.status.bindTransactionStatus(transaction.status)
+        binding.status.bindTransactionStatus(transaction)
         binding.address.text = getHtmlString(R.string.nc_message_transaction_sending_to, transaction.outputs.first().first)
         val pendingSigners = transaction.getPendingSignatures()
         if (pendingSigners > 0) {

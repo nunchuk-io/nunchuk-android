@@ -17,9 +17,21 @@ internal class GetTransactionHistoryUseCaseImpl @Inject constructor(
 ) : GetTransactionHistoryUseCase {
 
     override fun execute(walletId: String, count: Int, skip: Int) = flow {
-        emit(nativeSdk.getTransactionHistory(walletId = walletId, count = count, skip = skip))
+        val chainTip = nativeSdk.getChainTip()
+        val transactions = nativeSdk.getTransactionHistory(
+            walletId = walletId,
+            count = count,
+            skip = skip
+        ).map { it.copy(height = it.getConfirmations(chainTip)) }
+        emit(transactions)
     }.catch {
         CrashlyticsReporter.recordException(it)
         emit(emptyList())
     }
+}
+
+fun Transaction.getConfirmations(chainTip: Int) = if (chainTip > 0 && height > 0 && chainTip >= height) {
+    (chainTip - height + 1)
+} else {
+    0
 }

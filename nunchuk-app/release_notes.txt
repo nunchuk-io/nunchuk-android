@@ -1,2 +1,3 @@
 What's news:
 - Passport wallet/transaction
+- 1008 Android - Missing number of confirmations in Tx History
