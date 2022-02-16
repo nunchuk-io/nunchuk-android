@@ -3,11 +3,17 @@ package com.nunchuk.android.signer.components.details
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.HealthCheckMasterSignerUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.signer.components.details.SignerInfoEvent.*
+import com.nunchuk.android.type.HealthStatus
 import com.nunchuk.android.usecase.*
+import com.nunchuk.android.utils.onException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -17,7 +23,8 @@ internal class SignerInfoViewModel @Inject constructor(
     private val deleteMasterSignerUseCase: DeleteMasterSignerUseCase,
     private val deleteRemoteSignerUseCase: DeleteRemoteSignerUseCase,
     private val updateMasterSignerUseCase: UpdateMasterSignerUseCase,
-    private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase
+    private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
+    private val healthCheckMasterSignerUseCase: HealthCheckMasterSignerUseCase
 ) : NunchukViewModel<SignerInfoState, SignerInfoEvent>() {
 
     override val initialState = SignerInfoState()
@@ -88,6 +95,27 @@ internal class SignerInfoViewModel @Inject constructor(
                     }
                 }
             }
+        }
+    }
+
+    fun healthCheck(
+        fingerprint: String,
+        message: String,
+        signature: String,
+        path: String
+    ) {
+        viewModelScope.launch {
+            healthCheckMasterSignerUseCase.execute(fingerprint, message, signature, path)
+                .flowOn(Dispatchers.IO)
+                .onException { }
+                .flowOn(Dispatchers.Main)
+                .collect { healthStatus ->
+                    if (healthStatus == HealthStatus.SUCCESS) {
+                        event(HealthCheckSuccessEvent)
+                    } else {
+                        event(HealthCheckErrorEvent)
+                    }
+                }
         }
     }
 

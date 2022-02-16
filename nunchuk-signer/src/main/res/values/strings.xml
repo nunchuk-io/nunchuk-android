@@ -28,4 +28,7 @@
     <string name="nc_signer_bad_ratio_not_recommend">It is not recommended for the software keys to have complete control of the wallet. Software keys are not as safe as hardware keys. Are you sure you want to proceed?</string>
     <string name="nc_signer_bad_ratio_recommend">It is recommended for the hardware keys to have complete control of the wallet. Software keys are not as safe as hardware keys. Are you sure you want to proceed?</string>
     <string name="nc_signer_select_key_dialog_title">Which key do you want to use?</string>
+    <string name="nc_txt_run_health_check">Run health check</string>
+    <string name="nc_txt_run_health_check_success_event">%s is healthy</string>
+    <string name="nc_txt_run_health_check_error_event">%s is not healthy</string>
 </resources>

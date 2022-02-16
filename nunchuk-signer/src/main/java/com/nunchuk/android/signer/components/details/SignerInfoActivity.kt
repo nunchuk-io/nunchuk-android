@@ -69,6 +69,8 @@ class SignerInfoActivity : BaseActivity<ActivitySignerInfoBinding>() {
             RemoveSignerCompletedEvent -> openMainScreen()
             is RemoveSignerErrorEvent -> showToast(event.message)
             is UpdateNameErrorEvent -> showToast(event.message)
+            HealthCheckErrorEvent -> NCToastMessage(this).show(getString(R.string.nc_txt_run_health_check_error_event, args.name))
+            HealthCheckSuccessEvent -> NCToastMessage(this).show(getString(R.string.nc_txt_run_health_check_success_event, args.name))
         }
     }
 
@@ -96,6 +98,18 @@ class SignerInfoActivity : BaseActivity<ActivitySignerInfoBinding>() {
         binding.btnDone.setOnClickListener { openMainScreen() }
         binding.btnRemove.setOnClickListener { viewModel.handleRemoveSigner() }
         binding.signerName.setOnClickListener { onEditClicked() }
+        binding.btnHealthCheck.setOnClickListener {
+            val masterSigner = viewModel.state.value?.masterSigner
+            if (masterSigner != null && masterSigner.software) {
+                viewModel.healthCheck(
+                    fingerprint = masterSigner.device.masterFingerprint,
+                    message = "",
+                    signature = "",
+                    path = masterSigner.device.path
+
+                )
+            }
+        }
     }
 
     private fun openMainScreen() {
