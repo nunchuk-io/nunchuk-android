@@ -15,7 +15,7 @@ class CurrencyInputWatcher(
     private val editText: EditText,
     private val currencySymbol: String,
     locale: Locale,
-    private val maxNumberOfDecimalPlaces: Int = 2
+    private val maxNumberOfDecimalPlaces: Int = 8
 ) : TextWatcher {
 
     init {

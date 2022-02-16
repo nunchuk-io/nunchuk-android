@@ -43,7 +43,7 @@ class NCFontCurrencyEditText : TextInputEditText {
                 prefix = getString(R.styleable.CurrencyEditText_currencySymbol).orEmpty()
                 localeTag = getString(R.styleable.CurrencyEditText_localeTag)
                 useCurrencySymbolAsHint = getBoolean(R.styleable.CurrencyEditText_useCurrencySymbolAsHint, false)
-                maxDP = getInt(R.styleable.CurrencyEditText_maxNumberOfDecimalDigits, 2)
+                maxDP = getInt(R.styleable.CurrencyEditText_maxNumberOfDecimalDigits, 8)
             } finally {
                 recycle()
             }
