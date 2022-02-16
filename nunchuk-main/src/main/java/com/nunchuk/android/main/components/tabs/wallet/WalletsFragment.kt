@@ -53,7 +53,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun openAddWalletScreen() {
-        navigator.openWalletIntermediaryScreen(requireActivity())
+        navigator.openWalletIntermediaryScreen(requireActivity(), walletsViewModel.hasSigner())
     }
 
     private fun openSignerIntroScreen() {

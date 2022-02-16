@@ -12,7 +12,7 @@ interface PersonalWalletNavigator {
 
     fun openAddWalletScreen(activityContext: Context)
 
-    fun openWalletIntermediaryScreen(activityContext: Context)
+    fun openWalletIntermediaryScreen(activityContext: Context, hasSigner: Boolean)
 
     fun openAddRecoverWalletScreen(activityContext: Context, data: RecoverWalletData)
 

@@ -66,13 +66,9 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     fun handleAddWallet() {
-        if (hasSigner()) {
-            event(AddWalletEvent)
-        } else {
-            event(WalletEmptySignerEvent)
-        }
+        event(AddWalletEvent)
     }
 
-    private fun hasSigner() = getState().signers.isNotEmpty() || getState().masterSigners.isNotEmpty()
+    fun hasSigner() = getState().signers.isNotEmpty() || getState().masterSigners.isNotEmpty()
 
 }
