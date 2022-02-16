@@ -32,8 +32,8 @@ interface WalletNavigatorDelegate : WalletNavigator {
         AddWalletActivity.start(activityContext)
     }
 
-    override fun openWalletIntermediaryScreen(activityContext: Context) {
-        WalletIntermediaryActivity.start(activityContext)
+    override fun openWalletIntermediaryScreen(activityContext: Context, hasSigner: Boolean) {
+        WalletIntermediaryActivity.start(activityContext, hasSigner)
     }
 
     override fun openAddRecoverWalletScreen(activityContext: Context, data: RecoverWalletData) {

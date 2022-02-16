@@ -23,6 +23,8 @@ import com.nunchuk.android.widget.util.setLightStatusBar
 import java.io.File
 
 class WalletIntermediaryActivity : BaseActivity<ActivityWalletIntermediaryBinding>() {
+    private val hasSigner
+        get() = intent.getBooleanExtra(EXTRA_HAS_SIGNER, false)
 
     override fun initializeBinding() = ActivityWalletIntermediaryBinding.inflate(layoutInflater)
 
@@ -84,7 +86,11 @@ class WalletIntermediaryActivity : BaseActivity<ActivityWalletIntermediaryBindin
 
     private fun setupViews() {
         binding.btnCreateNewWallet.setOnClickListener {
-            openCreateNewWalletScreen()
+            if (hasSigner) {
+                openCreateNewWalletScreen()
+            } else {
+                openWalletEmptySignerScreen()
+            }
         }
         binding.btnRecoverWallet.setOnClickListener {
             openRecoverWalletScreen()
@@ -94,6 +100,9 @@ class WalletIntermediaryActivity : BaseActivity<ActivityWalletIntermediaryBindin
         }
     }
 
+    private fun openWalletEmptySignerScreen() {
+        navigator.openWalletEmptySignerScreen(this)
+    }
 
     private fun handleOptionUsingQRCode() {
         if (isPermissionGranted(Manifest.permission.CAMERA)) {
@@ -158,8 +167,12 @@ class WalletIntermediaryActivity : BaseActivity<ActivityWalletIntermediaryBindin
     companion object {
         private const val REQUEST_CODE = 1111
         private const val REQUEST_PERMISSION_CAMERA = 1112
-        fun start(activityContext: Context) {
-            activityContext.startActivity(Intent(activityContext, WalletIntermediaryActivity::class.java))
+        const val EXTRA_HAS_SIGNER = "EXTRA_HAS_SIGNER"
+        fun start(activityContext: Context, hasSigner: Boolean) {
+            val intent = Intent(activityContext, WalletIntermediaryActivity::class.java).apply {
+                putExtra(EXTRA_HAS_SIGNER, hasSigner)
+            }
+            activityContext.startActivity(intent)
         }
     }
 
