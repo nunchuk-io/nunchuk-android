@@ -24,6 +24,9 @@ import javax.inject.Inject
 class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
 
     @Inject
+    lateinit var textUtils: TextUtils
+
+    @Inject
     lateinit var factory: NunchukFactory
 
     private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
@@ -151,6 +154,9 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
                 else -> false
             }
         }
+
+        binding.btnCopy.setOnClickListener { copyAddress(binding.addressText.text.toString()) }
+        binding.btnShare.setOnClickListener { controller.shareText(binding.addressText.text.toString()) }
     }
 
     private fun shareDescriptor(descriptor: String) {
@@ -184,6 +190,11 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
         if (checkReadExternalPermission()) {
             viewModel.handleExportBSMS()
         }
+    }
+
+    private fun copyAddress(address: String) {
+        textUtils.copyText(text = address)
+        NCToastMessage(this).showMessage(getString(R.string.nc_address_copy_to_clipboard))
     }
 
     companion object {
