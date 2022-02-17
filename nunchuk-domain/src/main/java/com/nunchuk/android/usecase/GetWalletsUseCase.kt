@@ -34,14 +34,22 @@ internal class GetWalletUseCaseImpl @Inject constructor(
 
     override fun execute(walletId: String) = flow {
         val wallet = nativeSdk.getWallet(walletId)
-        val rWalletIds = nativeSdk.getAllRoomWalletIds()
-        emit(WalletExtended(wallet, wallet.isShared(rWalletIds)))
+        val rWallets = nativeSdk.getAllRoomWallet()
+        val rWalletIds = rWallets.map(RoomWallet::walletId)
+        val roomWallet = rWallets.first { wallet.id == it.walletId }
+        emit(WalletExtended(wallet, wallet.isShared(rWalletIds), roomWallet))
     }
 
 }
 
 internal fun NunchukNativeSdk.getAllRoomWalletIds() = try {
     getAllRoomWallets().map(RoomWallet::walletId)
+} catch (t: Throwable) {
+    emptyList()
+}
+
+internal fun NunchukNativeSdk.getAllRoomWallet() = try {
+    getAllRoomWallets()
 } catch (t: Throwable) {
     emptyList()
 }

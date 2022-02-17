@@ -42,9 +42,9 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     private lateinit var stickyBinding: ViewWalletStickyBinding
     private var selectMessageActionView: View? = null
 
-    private var selectMode: Boolean by observable(false, {
+    private var selectMode: Boolean by observable(false) {
         setupViewForSelectMode(it)
-    })
+    }
 
     override fun initializeBinding() = ActivityRoomDetailBinding.inflate(layoutInflater)
 
