@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="nc_title_message">Messages</string>
+    <string name="nc_title_contacts">Contacts</string>
+    <string name="nc_title_wallets">Wallets</string>
+    <string name="nc_title_signers">Keys</string>
+    <string name="nc_title_account">Account</string>
+
     <string name="nc_text_do_this_later">I’ll do this later</string>
     <string name="nc_wallet_export_coldcard">Export wallet to Coldcard</string>
 

@@ -96,7 +96,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun showWalletState(state: WalletsState) {
         val wallets = state.wallets
-        val signers = state.masterSigners.map(MasterSigner::toModel) + state.signers.map(SingleSigner::toModel)
+        val signers =
+            state.masterSigners.map(MasterSigner::toModel) + state.signers.map(SingleSigner::toModel)
         showWallets(wallets)
         showSigners(signers)
         showConnectionBlockchainStatus(state)
@@ -112,7 +113,15 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     getString(R.string.nc_text_connection_status_offline),
                     showChainText(state.chain)
                 )
-                TextViewCompat.setCompoundDrawableTintList(binding.tvConnectionStatus, ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.nc_color_connection_offline)))
+                TextViewCompat.setCompoundDrawableTintList(
+                    binding.tvConnectionStatus,
+                    ColorStateList.valueOf(
+                        ContextCompat.getColor(
+                            requireContext(),
+                            R.color.nc_color_connection_offline
+                        )
+                    )
+                )
             }
             ConnectionStatus.SYNCING -> {
                 binding.tvConnectionStatus.text = getString(
@@ -120,7 +129,15 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     getString(R.string.nc_text_connection_status_syncing),
                     showChainText(state.chain)
                 )
-                TextViewCompat.setCompoundDrawableTintList(binding.tvConnectionStatus, ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.nc_color_connection_syncing)))
+                TextViewCompat.setCompoundDrawableTintList(
+                    binding.tvConnectionStatus,
+                    ColorStateList.valueOf(
+                        ContextCompat.getColor(
+                            requireContext(),
+                            R.color.nc_color_connection_syncing
+                        )
+                    )
+                )
             }
             ConnectionStatus.ONLINE -> {
                 binding.tvConnectionStatus.text = getString(
@@ -128,7 +145,15 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     getString(R.string.nc_text_connection_status_online),
                     showChainText(state.chain)
                 )
-                TextViewCompat.setCompoundDrawableTintList(binding.tvConnectionStatus, ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.nc_color_connection_online)))
+                TextViewCompat.setCompoundDrawableTintList(
+                    binding.tvConnectionStatus,
+                    ColorStateList.valueOf(
+                        ContextCompat.getColor(
+                            requireContext(),
+                            R.color.nc_color_connection_online
+                        )
+                    )
+                )
             }
         }
     }

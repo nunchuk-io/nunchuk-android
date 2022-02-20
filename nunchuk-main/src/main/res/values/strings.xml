@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="nc_title_message">Messages</string>
-    <string name="nc_title_contacts">Contacts</string>
-    <string name="nc_title_wallets">Wallets</string>
-    <string name="nc_title_signers">Keys</string>
-    <string name="nc_title_account">Account</string>
     <string name="nc_signer_intro_title">Please add a key before adding a wallet.</string>
     <string name="nc_wallet_intro_title">Looks like you have added a key</string>
     <string name="nc_signer_intro_subtitle">Software and air-gapped keys are supported.</string>
