@@ -42,9 +42,9 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     private lateinit var stickyBinding: ViewWalletStickyBinding
     private var selectMessageActionView: View? = null
 
-    private var selectMode: Boolean by observable(false, {
+    private var selectMode: Boolean by observable(false) {
         setupViewForSelectMode(it)
-    })
+    }
 
     override fun initializeBinding() = ActivityRoomDetailBinding.inflate(layoutInflater)
 
@@ -79,7 +79,18 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         }
         stickyBinding.root.isVisible = state.roomWallet != null
         state.roomWallet?.let {
-            stickyBinding.bindRoomWallet(it, viewModel::viewConfig)
+            stickyBinding.bindRoomWallet(
+                wallet = it,
+                transactions = state.transactions.map {transactionExtended -> transactionExtended.transaction },
+                onClick = viewModel::viewConfig,
+                onClickViewTransactionDetail = { txId ->
+                    openTransactionDetails(
+                        walletId = it.walletId,
+                        txId = txId,
+                        initEventId = ""
+                    )
+                }
+            )
         }
     }
 

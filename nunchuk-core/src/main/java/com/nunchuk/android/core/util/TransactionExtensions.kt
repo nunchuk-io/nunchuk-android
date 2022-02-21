@@ -12,6 +12,8 @@ fun TransactionStatus.isPending() = this == PENDING_SIGNATURES || this == READY_
 
 fun Transaction.getPendingSignatures() = 0.coerceAtLeast(m - signers.count(Map.Entry<String, Boolean>::value))
 
+fun Transaction.isPendingSignatures() = status == PENDING_SIGNATURES
+
 fun List<Transaction>.sorted(): List<Transaction> {
     return sortedWith(comparatorTransaction)
 }
