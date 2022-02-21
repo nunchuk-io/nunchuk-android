@@ -8,7 +8,9 @@ import com.nunchuk.android.arch.R
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.network.UnauthorizedEventBus
+import com.nunchuk.android.core.network.UnauthorizedException
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.DisposableManager
 import com.nunchuk.android.widget.NCLoadingDialogCreator
 import dagger.android.AndroidInjection
@@ -56,6 +58,7 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity(), HasAnd
         UnauthorizedEventBus.instance().subscribe {
             accountManager.signOut()
             navigator.openSignInScreen(this)
+            CrashlyticsReporter.recordException(UnauthorizedException())
         }
     }
 

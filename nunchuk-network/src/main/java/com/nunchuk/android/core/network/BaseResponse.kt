@@ -39,6 +39,8 @@ data class ErrorResponse(
     val details: ErrorDetail? = null
 ) : Serializable
 
+class UnauthorizedException : Exception()
+
 class ApiInterceptedException : Exception()
 data class ErrorDetail(
     @SerializedName("halfToken")
