@@ -34,9 +34,10 @@ internal class NunchukNavigatorImpl @Inject constructor(
     override fun openMainScreen(
         activityContext: Context,
         loginHalfToken: String?,
-        deviceId: String?
+        deviceId: String?,
+        bottomNavViewPosition: Int?
     ) {
-        MainActivity.start(activityContext, loginHalfToken, deviceId)
+        MainActivity.start(activityContext, loginHalfToken, deviceId, bottomNavViewPosition)
     }
 }
 

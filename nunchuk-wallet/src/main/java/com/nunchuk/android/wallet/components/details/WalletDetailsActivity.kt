@@ -157,6 +157,14 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
 
         binding.btnCopy.setOnClickListener { copyAddress(binding.addressText.text.toString()) }
         binding.btnShare.setOnClickListener { controller.shareText(binding.addressText.text.toString()) }
+        binding.navView.selectedItemId = R.id.navigation_wallets
+        binding.navView.setOnNavigationItemSelectedListener {
+            navigator.openMainScreen(
+                activityContext = this,
+                bottomNavViewPosition = it.itemId
+            )
+            true
+        }
     }
 
     private fun shareDescriptor(descriptor: String) {

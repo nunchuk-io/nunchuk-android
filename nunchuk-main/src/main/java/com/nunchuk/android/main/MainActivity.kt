@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.annotation.IdRes
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
@@ -40,6 +41,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val deviceId
         get() = intent.getStringExtra(EXTRAS_ENCRYPTED_DEVICE_ID).orEmpty()
 
+    private val bottomNavViewPosition : Int
+        get() = intent.getIntExtra(EXTRAS_BOTTOM_NAV_VIEW_POSITION, 0)
+
 
     override fun initializeBinding() = ActivityMainBinding.inflate(layoutInflater)
 
@@ -53,6 +57,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         )
         setupData()
         setupNavigationView()
+        setBottomNavViewPosition(bottomNavViewPosition)
         subscribeEvents()
     }
 
@@ -111,26 +116,35 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
+    private fun setBottomNavViewPosition(@IdRes id: Int) {
+        if (id != 0) {
+            binding.navView.selectedItemId = id
+        }
+    }
+
     companion object {
         const val EXTRAS_LOGIN_HALF_TOKEN = "EXTRAS_LOGIN_HALF_TOKEN"
         const val EXTRAS_ENCRYPTED_DEVICE_ID = "EXTRAS_ENCRYPTED_DEVICE_ID"
+        const val EXTRAS_BOTTOM_NAV_VIEW_POSITION = "EXTRAS_BOTTOM_NAV_VIEW_POSITION"
 
-        fun start(activityContext: Context, loginHalfToken: String? = null, deviceId: String? = null) {
+        fun start(activityContext: Context, loginHalfToken: String? = null, deviceId: String? = null, position: Int? = null) {
             activityContext.startActivity(
                 createIntent(
                     activityContext = activityContext,
                     loginHalfToken = loginHalfToken,
-                    deviceId = deviceId
+                    deviceId = deviceId,
+                    bottomNavViewPosition = position
                 )
             )
         }
 
         // TODO replace with args
-        fun createIntent(activityContext: Context, loginHalfToken: String? = null, deviceId: String? = null): Intent {
+        fun createIntent(activityContext: Context, loginHalfToken: String? = null, deviceId: String? = null,  @IdRes bottomNavViewPosition: Int? = null): Intent {
             return Intent(activityContext, MainActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 putExtra(EXTRAS_LOGIN_HALF_TOKEN, loginHalfToken)
                 putExtra(EXTRAS_ENCRYPTED_DEVICE_ID, deviceId)
+                putExtra(EXTRAS_BOTTOM_NAV_VIEW_POSITION, bottomNavViewPosition)
             }
         }
     }
