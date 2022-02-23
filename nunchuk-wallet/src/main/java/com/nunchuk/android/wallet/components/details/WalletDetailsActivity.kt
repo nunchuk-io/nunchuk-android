@@ -76,16 +76,17 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
 
     private fun openInputAmountScreen(event: SendMoneyEvent) {
         if (event.walletExtended.isShared) {
-            navigator.openRoomDetailActivity(this, event.walletExtended.roomWallet.roomId)
+            if (event.walletExtended.roomWallet.roomId.isNotEmpty()) {
+                navigator.openRoomDetailActivity(this, event.walletExtended.roomWallet.roomId)
+            }
             finish()
-            return
+        } else {
+            navigator.openInputAmountScreen(
+                activityContext = this,
+                walletId = args.walletId,
+                availableAmount = event.walletExtended.wallet.balance.pureBTC()
+            )
         }
-
-        navigator.openInputAmountScreen(
-            activityContext = this,
-            walletId = args.walletId,
-            availableAmount = event.walletExtended.wallet.balance.pureBTC()
-        )
     }
 
     private fun walletDeleted() {

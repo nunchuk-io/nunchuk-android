@@ -37,7 +37,7 @@ internal class TransactionConfirmViewModel @Inject constructor(
     private var subtractFeeFromAmount: Boolean = false
     private lateinit var privateNote: String
 
-    private lateinit var tempTxId: String
+    private var tempTxId: String = ""
 
     override val initialState = Unit
 
@@ -104,7 +104,9 @@ internal class TransactionConfirmViewModel @Inject constructor(
     }
 
     fun handleConfirmEvent() {
-        deleteDraftTransaction()
+        if (tempTxId.isNotEmpty()) {
+            deleteDraftTransaction()
+        }
     }
 
     private fun deleteDraftTransaction() {
