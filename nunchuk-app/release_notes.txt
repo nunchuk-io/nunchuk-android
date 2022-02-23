@@ -1,3 +1,5 @@
 What's news:
-- NUN-1061 [Android] Integrate Passport
+- NUN-1061 [Android] - Integrate Passport
 - NUN-1008 [Android] - Missing number of confirmations in Tx History
+- NUN-1158 [Android] - Display wrong wallet screen and App crash when tap Send button
+- NUN-1077 [Android] - Close button (x) in New Chat is little small
