@@ -36,5 +36,7 @@
     <string name="nc_text_title_permission_denied_permanently">Permission Denied Permanently</string>
     <string name="nc_text_des_permission_denied_permanently">The permission denied permanently. Do you want to open the application setting to allow it?</string>
     <string name="nc_text_add_contacts">Add contacts</string>
+    <string name="nc_text_create_an_account">Create an account</string>
+    <string name="nc_text_sign_in">Sign in</string>
 
 </resources>

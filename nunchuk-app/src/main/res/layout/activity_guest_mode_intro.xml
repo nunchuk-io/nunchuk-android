@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="@dimen/nc_padding_16"
+    tools:ignore="ContentDescription">
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btnGotIt"
+        style="@style/NCPrimaryButton.Dark"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:text="@string/nc_txt_guest_mode_got_it"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <View
+        android:id="@+id/viewCircle"
+        android:layout_width="@dimen/nc_height_96"
+        android:layout_height="@dimen/nc_height_96"
+        android:layout_marginBottom="@dimen/nc_padding_16"
+        android:background="@drawable/nc_bg_primary_circle"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toTopOf="@+id/welcome"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_account"
+        app:layout_constraintBottom_toBottomOf="@+id/viewCircle"
+        app:layout_constraintEnd_toEndOf="@+id/viewCircle"
+        app:layout_constraintStart_toStartOf="@+id/viewCircle"
+        app:layout_constraintTop_toTopOf="@+id/viewCircle" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/welcome"
+        style="@style/NCText.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/nc_txt_guest_mode_intro_1"
+        android:textColor="@color/nc_black_color"
+        app:layout_constraintBottom_toTopOf="@+id/guideline"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.3" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tvDes1"
+        style="@style/NCText.Body"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:background="@drawable/nc_bg_black_stroke_circle"
+        android:gravity="center"
+        android:text="@string/nc_txt_guest_mode_header_1"
+        android:textColor="@color/nc_black_color"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/guideline" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tvDes1Detail"
+        style="@style/NCText.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_12"
+        android:gravity="start"
+        android:text="@string/nc_txt_guest_mode_intro_2"
+        android:textColor="@color/nc_black_color"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/tvDes1"
+        app:layout_constraintTop_toTopOf="@+id/tvDes1" />
+
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tvDes2"
+        style="@style/NCText.Body"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:background="@drawable/nc_bg_black_stroke_circle"
+        android:gravity="center"
+        android:text="@string/nc_txt_guest_mode_header_2"
+        android:textColor="@color/nc_black_color"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvDes1Detail" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tvDes2Detail"
+        style="@style/NCText.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_12"
+        android:gravity="start"
+        android:text="@string/nc_txt_guest_mode_intro_3"
+        android:textColor="@color/nc_black_color"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/tvDes2"
+        app:layout_constraintTop_toTopOf="@+id/tvDes2" />
+
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tvSmallDes"
+        style="@style/NCText.Body.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        android:gravity="start"
+        android:text="@string/nc_txt_guest_mode_intro_4"
+        android:textColor="@color/nc_black_color"
+        app:layout_constraintEnd_toEndOf="@+id/tvDes2Detail"
+        app:layout_constraintStart_toStartOf="@+id/tvDes2Detail"
+        app:layout_constraintTop_toBottomOf="@+id/tvDes2Detail" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

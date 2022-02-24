@@ -11,6 +11,8 @@ import com.nunchuk.android.auth.databinding.ActivitySigninBinding
 import com.nunchuk.android.auth.util.getTextTrimmed
 import com.nunchuk.android.auth.util.setUnderlineText
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.network.ApiErrorCode.NEW_DEVICE
 import com.nunchuk.android.core.network.ErrorDetail
 import com.nunchuk.android.widget.NCToastMessage
@@ -46,7 +48,10 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                 is PasswordRequiredEvent -> binding.password.setError(getString(R.string.nc_text_required))
                 is PasswordValidEvent -> binding.password.hideError()
                 is SignInErrorEvent -> onSignInError(it.code, it.message.orEmpty(), it.errorDetail)
-                is SignInSuccessEvent -> openMainScreen(it.token, it.deviceId)
+                is SignInSuccessEvent -> {
+                    SignInModeHolder.currentMode = SignInMode.NORMAL
+                    openMainScreen(it.token, it.deviceId)
+                }
                 is ProcessingEvent -> showLoading()
             }
         }
@@ -83,6 +88,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         binding.signUp.setOnClickListener { onSignUpClick() }
         binding.signIn.setOnClickListener { onSignInClick() }
         binding.forgotPassword.setOnClickListener { onForgotPasswordClick() }
+        binding.guestMode.setOnClickListener { onGuestModeClick() }
     }
 
     private fun onSignUpClick() {
@@ -100,6 +106,9 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         )
     }
 
+    private fun onGuestModeClick() {
+        navigator.openGuestModeIntroScreen(this)
+    }
     companion object {
         fun start(activityContext: Context) {
             val intent = Intent(activityContext, SignInActivity::class.java)
