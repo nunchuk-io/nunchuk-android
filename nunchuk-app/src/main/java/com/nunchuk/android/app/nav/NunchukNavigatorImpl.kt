@@ -2,6 +2,8 @@ package com.nunchuk.android.app.nav
 
 import android.app.Activity
 import android.content.Context
+import com.nunchuk.android.app.intro.GuestModeIntroActivity
+import com.nunchuk.android.app.intro.GuestModeMessageIntroActivity
 import com.nunchuk.android.app.intro.IntroActivity
 import com.nunchuk.android.app.splash.SplashActivity
 import com.nunchuk.android.auth.nav.AuthNavigatorDelegate
@@ -38,6 +40,14 @@ internal class NunchukNavigatorImpl @Inject constructor(
         bottomNavViewPosition: Int?
     ) {
         MainActivity.start(activityContext, loginHalfToken, deviceId, bottomNavViewPosition)
+    }
+
+    override fun openGuestModeIntroScreen(activityContext: Context) {
+        GuestModeIntroActivity.start(activityContext)
+    }
+
+    override fun openGuestModeMessageIntroScreen(activityContext: Context) {
+        GuestModeMessageIntroActivity.start(activityContext)
     }
 }
 

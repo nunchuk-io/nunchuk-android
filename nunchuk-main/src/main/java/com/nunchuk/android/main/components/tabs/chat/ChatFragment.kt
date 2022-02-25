@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.main.databinding.FragmentChatBinding
 
 internal class ChatFragment : BaseFragment<FragmentChatBinding>() {
@@ -18,6 +20,11 @@ internal class ChatFragment : BaseFragment<FragmentChatBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        if (SignInModeHolder.currentMode == SignInMode.GUEST_MODE) {
+            navigator.openGuestModeMessageIntroScreen(requireActivity())
+            return
+        }
+
         setupViews()
     }
 

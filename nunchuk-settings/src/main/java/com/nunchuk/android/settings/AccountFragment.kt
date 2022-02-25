@@ -18,6 +18,8 @@ import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.settings.AccountEvent.SignOutEvent
 import com.nunchuk.android.settings.databinding.FragmentAccountBinding
@@ -50,6 +52,7 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
             imageUrl = state.account.avatarUrl.orEmpty().fromMxcUriToMatrixDownloadUrl(),
             circleCrop = true,
             cornerRadius = null,
+            errorHolder = ContextCompat.getDrawable(requireContext(), R.drawable.ic_account),
             placeHolder = ContextCompat.getDrawable(requireContext(), R.drawable.ic_account)
         )
         binding.avatar.isInvisible = state.account.avatarUrl?.isEmpty().orFalse()
@@ -59,16 +62,14 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
 
         binding.name.text = state.account.name
         binding.email.text = state.account.email
-        binding.name.setOnClickListener { editName() }
-        binding.takePicture.setOnClickListener { changeAvatar() }
-        binding.unit.setOnClickListener { changeUnitSetting() }
-        binding.network.setOnClickListener { changeNetworkSetting() }
-        binding.password.setOnClickListener { openChangePasswordScreen() }
-        binding.devices.setOnClickListener { openLoggedInDevicesScreen() }
-        binding.about.setOnClickListener { openAboutScreen() }
+
         binding.layoutSync.root.isVisible = state.isSyncing()
         binding.layoutSync.tvSyncingPercent.text = "${state.syncProgress}%"
         binding.layoutSync.progressBarSyncing.progress = state.syncProgress
+
+        binding.btnSignOut.isVisible = SignInModeHolder.currentMode == SignInMode.NORMAL
+        binding.signIn.isVisible = SignInModeHolder.currentMode == SignInMode.GUEST_MODE
+        binding.signUp.isVisible = SignInModeHolder.currentMode == SignInMode.GUEST_MODE
     }
 
     private fun openAboutScreen() {
@@ -157,7 +158,21 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
                     avatarUrl = event.matrixUri
                 )
             }
+            is AccountEvent.GetUserProfileGuestEvent -> handleSetupGuestProfile()
         }
+    }
+
+    private fun handleSetupGuestProfile() {
+        binding.avatar.isInvisible = false
+        binding.avatarHolder.isInvisible = true
+        binding.avatar.loadImage(
+            imageUrl = getString(R.string.nc_txt_guest),
+            circleCrop = true,
+            cornerRadius = null,
+            errorHolder = ContextCompat.getDrawable(requireContext(), R.drawable.ic_account),
+            placeHolder = ContextCompat.getDrawable(requireContext(), R.drawable.ic_account)
+        )
+        binding.name.text = getString(R.string.nc_txt_guest)
     }
 
     private fun openAlbum() {
@@ -270,6 +285,29 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
 
     private fun setupViews() {
         binding.btnSignOut.setOnClickListener { viewModel.handleSignOutEvent() }
+        binding.signIn.setOnClickListener {
+            navigator.openSignInScreen(requireActivity())
+        }
+        binding.signUp.setOnClickListener {
+            navigator.openSignUpScreen(requireActivity())
+        }
+
+        binding.unit.setOnClickListener { changeUnitSetting() }
+        binding.network.setOnClickListener { changeNetworkSetting() }
+        binding.devices.setOnClickListener { openLoggedInDevicesScreen() }
+        binding.about.setOnClickListener { openAboutScreen() }
+
+        if (SignInModeHolder.currentMode == SignInMode.GUEST_MODE) {
+            binding.name.setOnClickListener(null)
+            binding.takePicture.setOnClickListener(null)
+            binding.password.setOnClickListener(null)
+            return
+        }
+
+        binding.name.setOnClickListener { editName() }
+        binding.takePicture.setOnClickListener { changeAvatar() }
+        binding.password.setOnClickListener { openChangePasswordScreen() }
+
     }
 
     private fun setupData() {

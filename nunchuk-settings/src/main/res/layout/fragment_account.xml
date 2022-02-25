@@ -25,12 +25,12 @@
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/name"
             style="@style/NCText.Heading"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:layout_marginTop="@dimen/nc_padding_12"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/avatar"
+            app:layout_constraintEnd_toEndOf="@+id/avatar"
             android:drawablePadding="@dimen/nc_padding_4"
             app:drawableRightCompat="@drawable/ic_edit"
             app:layout_constraintTop_toBottomOf="@+id/take_picture"
@@ -172,6 +172,28 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/about" />
 
+        <com.nunchuk.android.widget.NCFontButton
+            android:id="@+id/signUp"
+            style="@style/NCPrimaryButton.Dark"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/nc_padding_16"
+            android:layout_marginTop="@dimen/nc_padding_16"
+            android:text="Create an account"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btnSignOut" />
+
+        <com.nunchuk.android.widget.NCFontButton
+            android:id="@+id/signIn"
+            style="@style/NCPrimaryButton.Light"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/nc_padding_16"
+            android:layout_marginTop="@dimen/nc_padding_16"
+            android:text="Sign in"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/signUp"/>
+
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/appVersion"
             style="@style/NCText.Body"
@@ -181,7 +203,7 @@
             android:gravity="center"
             android:paddingVertical="@dimen/nc_padding_2"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnSignOut"
+            app:layout_constraintTop_toBottomOf="@+id/signIn"
             tools:text="v1.0.0 (1)" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

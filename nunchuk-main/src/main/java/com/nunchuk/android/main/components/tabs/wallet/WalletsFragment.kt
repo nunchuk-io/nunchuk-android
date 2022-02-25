@@ -248,8 +248,5 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         super.onResume()
         walletsViewModel.retrieveData()
         walletsViewModel.getAppSettings()
-        if (SessionHolder.activeSession != null) {
-            mainActivityViewModel.getAllRooms()
-        }
     }
 }

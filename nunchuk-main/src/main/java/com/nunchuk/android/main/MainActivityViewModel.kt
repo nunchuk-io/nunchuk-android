@@ -17,7 +17,6 @@ import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.DownloadFileSyncSucceed
 import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
 import com.nunchuk.android.messages.usecase.message.CreateRoomWithTagUseCase
-import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.messages.util.STATE_NUNCHUK_SYNC
 import com.nunchuk.android.messages.util.isLocalEvent
 import com.nunchuk.android.messages.util.isNunchukConsumeSyncEvent
@@ -197,7 +196,6 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
-    @Synchronized
     private fun createRoomWithTagSync() {
         viewModelScope.launch {
             createRoomWithTagUseCase.execute(
@@ -303,7 +301,9 @@ internal class MainActivityViewModel @Inject constructor(
                     encryptedDeviceId = encryptedDeviceId
                 )
             }
-            .onEach { getAllRooms() }
+            .onEach {
+                getAllRooms()
+            }
             .flowOn(Main)
             .launchIn(viewModelScope)
     }

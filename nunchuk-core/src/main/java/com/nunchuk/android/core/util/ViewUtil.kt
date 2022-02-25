@@ -81,10 +81,12 @@ fun ImageView.loadImage(
     imageUrl: String,
     cornerRadius: Float?,
     placeHolder: Drawable?,
+    errorHolder: Drawable?,
     circleCrop: Boolean?
 ) {
     Glide.with(context).load(imageUrl).apply {
         placeHolder?.let { placeholder(placeHolder) }
+        errorHolder?.let { error(errorHolder) }
         cornerRadius?.let { transform(CenterCrop(), RoundedCorners(it.toInt())) }
         if (circleCrop.orFalse()) {
             apply(RequestOptions.circleCropTransform())

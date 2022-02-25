@@ -69,6 +69,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         if (loginHalfToken.isNotEmpty() && deviceId.isNotEmpty()) {
             viewModel.setupMatrix(loginHalfToken, deviceId)
         }
+        if (SessionHolder.activeSession != null) {
+            viewModel.getAllRooms()
+        }
         viewModel.scheduleGetBTCConvertPrice()
     }
 
@@ -103,9 +106,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onResume() {
         super.onResume()
         navController.addOnDestinationChangedListener(listener)
-        if (SessionHolder.activeSession != null) {
-            viewModel.getAllRooms()
-        }
     }
 
     override fun onPause() {

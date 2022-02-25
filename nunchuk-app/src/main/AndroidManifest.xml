@@ -43,6 +43,14 @@
             android:name=".app.intro.IntroActivity"
             android:screenOrientation="portrait" />
 
+        <activity
+            android:name=".app.intro.GuestModeIntroActivity"
+            android:screenOrientation="fullSensor" />
+
+        <activity
+            android:name=".app.intro.GuestModeMessageIntroActivity"
+            android:screenOrientation="fullSensor" />
+
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
