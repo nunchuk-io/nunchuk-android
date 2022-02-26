@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="nc_wallet_create_shared_wallet">Create shared wallet</string>
-    <string name="nc_wallet_configure_shared_wallet">Configure shared wallet</string>
-    <string name="nc_wallet_review_shared_wallet_title">Review shared wallet</string>
+    <string name="nc_wallet_create_shared_wallet">Create collaborative wallet</string>
+    <string name="nc_wallet_configure_shared_wallet">Configure collaborative wallet</string>
+    <string name="nc_wallet_review_shared_wallet_title">Review collaborative wallet</string>
     <string name="nc_wallet_shared_wallet_config_title">Wallet config</string>
     <string name="nc_wallet_assign_signer_title">Assign key</string>
 

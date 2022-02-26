@@ -37,7 +37,7 @@
     <string name="nc_wallet_upload_success">Upload wallet success</string>
     <string name="nc_wallet_delete_wallet">Delete wallet</string>
     <string name="nc_wallet_delete_wallet_success">Delete wallet success</string>
-    <string name="nc_txt_send_from_shared_description">For shared wallets, please initiate the send transaction from inside the chat room</string>
+    <string name="nc_txt_send_from_shared_description">For collaborative wallets, please initiate the send transaction from inside the chat room</string>
     <string name="nc_transaction_enter_passphrase">Enter your passphrase</string>
     <string name="nc_address_copy_to_clipboard">Address copied to clipboard</string>
 </resources>
