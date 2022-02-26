@@ -36,7 +36,7 @@ ext {
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
-    PATCH_VERSION = 12
+    PATCH_VERSION = 13
 
     VERSION_CODE = 87
 
