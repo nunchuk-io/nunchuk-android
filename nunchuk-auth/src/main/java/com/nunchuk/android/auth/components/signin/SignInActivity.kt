@@ -15,6 +15,7 @@ import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.network.ApiErrorCode.NEW_DEVICE
 import com.nunchuk.android.core.network.ErrorDetail
+import com.nunchuk.android.core.util.linkify
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.passwordEnabled
 import com.nunchuk.android.widget.util.setTransparentStatusBar
@@ -84,11 +85,23 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
 
         binding.password.passwordEnabled()
 
-        binding.staySignIn.setOnCheckedChangeListener { _, checked -> viewModel.storeStaySignedIn(checked) }
+        binding.staySignIn.setOnCheckedChangeListener { _, checked ->
+            viewModel.storeStaySignedIn(
+                checked
+            )
+        }
         binding.signUp.setOnClickListener { onSignUpClick() }
         binding.signIn.setOnClickListener { onSignInClick() }
         binding.forgotPassword.setOnClickListener { onForgotPasswordClick() }
         binding.guestMode.setOnClickListener { onGuestModeClick() }
+        binding.tvTermAndPolicy.linkify(
+            getString(R.string.nc_hyperlink_text_term),
+            TERM_URL
+        )
+        binding.tvTermAndPolicy.linkify(
+            getString(R.string.nc_hyperlink_text_policy),
+            PRIVACY_URL
+        )
     }
 
     private fun onSignUpClick() {
@@ -109,7 +122,10 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
     private fun onGuestModeClick() {
         navigator.openGuestModeIntroScreen(this)
     }
+
     companion object {
+        private const val PRIVACY_URL = "https://www.nunchuk.io/privacy.html"
+        private const val TERM_URL = "https://www.nunchuk.io/terms.html"
         fun start(activityContext: Context) {
             val intent = Intent(activityContext, SignInActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
