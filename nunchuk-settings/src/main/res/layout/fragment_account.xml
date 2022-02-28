@@ -177,9 +177,8 @@
             style="@style/NCPrimaryButton.Dark"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/nc_padding_16"
             android:layout_marginTop="@dimen/nc_padding_16"
-            android:text="Create an account"
+            android:text="@string/nc_text_create_an_account"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/btnSignOut" />
 
@@ -188,9 +187,8 @@
             style="@style/NCPrimaryButton.Light"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/nc_padding_16"
             android:layout_marginTop="@dimen/nc_padding_16"
-            android:text="Sign in"
+            android:text="@string/nc_text_sign_in"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/signUp"/>
 
