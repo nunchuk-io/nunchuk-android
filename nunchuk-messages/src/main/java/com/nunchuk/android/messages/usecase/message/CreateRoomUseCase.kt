@@ -1,6 +1,7 @@
 package com.nunchuk.android.messages.usecase.message
 
 import com.nunchuk.android.messages.model.RoomCreationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.matrix.android.sdk.api.session.room.Room
@@ -27,6 +28,9 @@ internal class CreateRoomUseCaseImpl @Inject constructor(
         emit(
             session.getRoom(session.createRoom(params)) ?: throw RoomCreationException()
         )
+        delay(CREATE_ROOM_DELAY)
     }
 
 }
+
+internal const val CREATE_ROOM_DELAY = 1000L
