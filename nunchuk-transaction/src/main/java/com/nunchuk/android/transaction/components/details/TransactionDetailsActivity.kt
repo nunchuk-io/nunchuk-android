@@ -264,7 +264,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         hideLoading()
         NCToastMessage(this).show(getString(R.string.nc_transaction_broadcast_successful))
         if (roomId.isEmpty()) {
-            navigator.openMainScreen(this)
+           finish()
         } else {
             returnActiveRoom(roomId)
         }

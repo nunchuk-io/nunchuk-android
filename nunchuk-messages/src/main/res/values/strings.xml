@@ -83,4 +83,8 @@
     <string name="nc_text_copy">Copy</string>
     <string name="nc_text_delete">Delete</string>
     <string name="nc_text_copied_to_clipboard">Message is copied to your clipboard</string>
+    <plurals name="nc_message_members">
+        <item quantity="one">%d member</item>
+        <item quantity="other">%d members</item>
+    </plurals>
 </resources>

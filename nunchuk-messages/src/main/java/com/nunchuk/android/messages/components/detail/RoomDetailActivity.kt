@@ -19,6 +19,7 @@ import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.databinding.ActivityRoomDetailBinding
 import com.nunchuk.android.messages.databinding.ViewWalletStickyBinding
+import com.nunchuk.android.model.TransactionExtended
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -70,10 +71,11 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
     private fun handleState(state: RoomDetailState) {
         binding.toolbarTitle.text = state.roomInfo.roomName
-        val membersCount = "${state.roomInfo.memberCount} members"
+        val count = state.roomInfo.memberCount
+        val membersCount = resources.getQuantityString(R.plurals.nc_message_members, count, count)
         binding.memberCount.text = membersCount
 
-        adapter?.update(state.messages.groupByDate(), state.transactions, state.roomWallet, state.roomInfo.memberCount)
+        adapter?.update(state.messages.groupByDate(), state.transactions, state.roomWallet, count)
         if (state.messages.isNotEmpty()) {
             binding.recyclerView.scrollToPosition((adapter?.itemCount ?: 0) - 1)
         }
@@ -81,7 +83,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         state.roomWallet?.let {
             stickyBinding.bindRoomWallet(
                 wallet = it,
-                transactions = state.transactions.map {transactionExtended -> transactionExtended.transaction },
+                transactions = state.transactions.map(TransactionExtended::transaction),
                 onClick = viewModel::viewConfig,
                 onClickViewTransactionDetail = { txId ->
                     openTransactionDetails(
@@ -121,7 +123,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     private fun setupViews() {
         selectMessageActionView = binding.viewStubSelectMessageAction.inflate()
         selectMessageActionView?.findViewById<ImageView>(R.id.btnCopy)?.setOnClickListener {
-            copyMessageText( adapter?.getSelectedMessage()?.joinToString("\n") { it.content }.orEmpty())
+            copyMessageText(adapter?.getSelectedMessage()?.joinToString("\n") { it.content }.orEmpty())
             selectMode = false
         }
         selectMode = false
@@ -142,8 +144,8 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             viewWalletConfig = viewModel::viewConfig,
             finalizeWallet = viewModel::finalizeWallet,
             viewTransaction = ::openTransactionDetails,
-            dismissBannerNewChatListener = { viewModel.hideBannerNewChat()},
-            createSharedWalletListener = {viewModel.handleAddEvent()},
+            dismissBannerNewChatListener = { viewModel.hideBannerNewChat() },
+            createSharedWalletListener = { viewModel.handleAddEvent() },
             senderLongPressListener = { message, position ->
                 showSelectMessageBottomSheet(message, position)
             },
