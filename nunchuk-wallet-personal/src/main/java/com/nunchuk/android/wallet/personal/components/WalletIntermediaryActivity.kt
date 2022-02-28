@@ -1,26 +1,22 @@
 package com.nunchuk.android.wallet.personal.components
 
 import android.Manifest
-import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.annotation.RequiresApi
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.util.isPermissionGranted
-import com.nunchuk.android.core.util.showAlertDialog
-import com.nunchuk.android.core.util.startActivityAppSetting
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
 import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletActionBottomSheet
-import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletOption
+import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletOption.BSMSFile
+import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletOption.QrCode
 import com.nunchuk.android.wallet.personal.databinding.ActivityWalletIntermediaryBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
-import java.io.File
 
 class WalletIntermediaryActivity : BaseActivity<ActivityWalletIntermediaryBinding>() {
     private val hasSigner
@@ -43,20 +39,15 @@ class WalletIntermediaryActivity : BaseActivity<ActivityWalletIntermediaryBindin
     private fun openRecoverWalletScreen() {
         val recoverWalletBottomSheet = RecoverWalletActionBottomSheet.show(supportFragmentManager)
         recoverWalletBottomSheet.listener = {
-            when(it) {
-                RecoverWalletOption.QrCode -> handleOptionUsingQRCode()
-                RecoverWalletOption.BSMSFile -> openSelectFileChooser()
+            when (it) {
+                QrCode -> handleOptionUsingQRCode()
+                BSMSFile -> openSelectFileChooser(REQUEST_CODE)
             }
         }
     }
 
     private fun openScanQRCodeScreen() {
         navigator.openRecoverWalletQRCodeScreen(this)
-    }
-
-    private fun openSelectFileChooser() {
-        val intent = Intent().setType("*/*").setAction(Intent.ACTION_GET_CONTENT)
-        startActivityForResult(Intent.createChooser(intent, getString(R.string.nc_txt_file_bsms_chooser)), REQUEST_CODE)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
@@ -67,21 +58,14 @@ class WalletIntermediaryActivity : BaseActivity<ActivityWalletIntermediaryBindin
             }
 
             file?.absolutePath?.let {
-                navigator.openAddRecoverWalletScreen(this, RecoverWalletData(
-                    type = RecoverWalletType.FILE,
-                    filePath = it
-                ))
+                navigator.openAddRecoverWalletScreen(
+                    this, RecoverWalletData(
+                        type = RecoverWalletType.FILE,
+                        filePath = it
+                    )
+                )
             }
         }
-    }
-
-    private fun getFileFromUri(contentResolver: ContentResolver, uri: Uri, directory: File): File {
-        val file =
-            File.createTempFile("NCsuffix", ".prefixNC", directory)
-        file.outputStream().use {
-            contentResolver.openInputStream(uri)?.copyTo(it)
-        }
-        return file
     }
 
     private fun setupViews() {
@@ -123,7 +107,7 @@ class WalletIntermediaryActivity : BaseActivity<ActivityWalletIntermediaryBindin
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 handlePermissionGranted()
             } else if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
-                showAlertPermissionNotGranted(requestCode)
+                showAlertPermissionNotGranted()
             } else {
                 showAlertPermissionDeniedPermanently()
             }
@@ -134,8 +118,7 @@ class WalletIntermediaryActivity : BaseActivity<ActivityWalletIntermediaryBindin
         openScanQRCodeScreen()
     }
 
-
-    private fun showAlertPermissionNotGranted(permissionCode: Int) {
+    private fun showAlertPermissionNotGranted() {
         showAlertDialog(
             title = getString(R.string.nc_text_title_permission_denied),
             message = getString(R.string.nc_text_des_permission_denied),

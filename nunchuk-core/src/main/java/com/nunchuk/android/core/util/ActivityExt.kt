@@ -1,6 +1,7 @@
 package com.nunchuk.android.core.util
 
 import android.app.Activity
+import android.content.ContentResolver
 import android.content.Intent
 import android.net.Uri
 import android.provider.MediaStore
@@ -13,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseActivity
+import java.io.File
 
 fun Activity.showToast(message: String) = Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 
@@ -52,9 +54,7 @@ fun Fragment.pickPhotoWithResult(requestCode: Int) {
     intent.type = "image/*"
     intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
     intent.action = Intent.ACTION_GET_CONTENT
-    startActivityForResult(
-        intent, requestCode
-    )
+    startActivityForResult(intent, requestCode)
 }
 
 fun Fragment.takePhotoWithResult(requestCode: Int) {
@@ -64,9 +64,17 @@ fun Fragment.takePhotoWithResult(requestCode: Int) {
 
 fun View.hideKeyboard() = ViewCompat.getWindowInsetsController(this)?.hide(WindowInsetsCompat.Type.ime())
 
-fun Activity.openSelectFileChooser() {
+fun Activity.openSelectFileChooser(requestCode: Int = CHOOSE_FILE_REQUEST_CODE) {
     val intent = Intent().setType("*/*").setAction(Intent.ACTION_GET_CONTENT)
-    startActivityForResult(Intent.createChooser(intent, getString(R.string.nc_text_select_file)), CHOOSE_FILE_REQUEST_CODE)
+    startActivityForResult(Intent.createChooser(intent, getString(R.string.nc_text_select_file)), requestCode)
+}
+
+fun getFileFromUri(contentResolver: ContentResolver, uri: Uri, directory: File): File {
+    val file = File.createTempFile("NCsuffix", ".prefixNC", directory)
+    file.outputStream().use {
+        contentResolver.openInputStream(uri)?.copyTo(it)
+    }
+    return file
 }
 
 const val CHOOSE_FILE_REQUEST_CODE = 1248
