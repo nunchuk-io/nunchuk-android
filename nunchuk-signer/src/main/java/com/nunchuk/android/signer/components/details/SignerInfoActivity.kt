@@ -8,6 +8,7 @@ import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.showToast
+import com.nunchuk.android.core.util.toReadableString
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.toSpec
@@ -51,6 +52,7 @@ class SignerInfoActivity : BaseActivity<ActivitySignerInfoBinding>() {
         binding.fingerprint.isVisible = true
         binding.fingerprint.text = signer.device.masterFingerprint
         binding.signerSpec.isVisible = false
+        binding.signerType.text = signer.type.toReadableString(this)
     }
 
     private fun bindRemoteSigner(signer: SingleSigner) {
@@ -58,6 +60,7 @@ class SignerInfoActivity : BaseActivity<ActivitySignerInfoBinding>() {
         binding.signerSpec.isVisible = true
         binding.signerSpec.text = signer.toSpec()
         binding.fingerprint.isVisible = false
+        binding.signerType.text = signer.type.toReadableString(this)
     }
 
     private fun handleEvent(event: SignerInfoEvent) {
@@ -69,8 +72,16 @@ class SignerInfoActivity : BaseActivity<ActivitySignerInfoBinding>() {
             RemoveSignerCompletedEvent -> openMainScreen()
             is RemoveSignerErrorEvent -> showToast(event.message)
             is UpdateNameErrorEvent -> showToast(event.message)
-            HealthCheckErrorEvent -> NCToastMessage(this).show(getString(R.string.nc_txt_run_health_check_error_event, args.name))
+            is HealthCheckErrorEvent -> showHealthCheckError(event)
             HealthCheckSuccessEvent -> NCToastMessage(this).show(getString(R.string.nc_txt_run_health_check_success_event, args.name))
+        }
+    }
+
+    private fun showHealthCheckError(event: HealthCheckErrorEvent) {
+        if (event.message.isNullOrEmpty()) {
+            NCToastMessage(this).show(getString(R.string.nc_txt_run_health_check_error_event, args.name))
+        } else {
+            NCToastMessage(this).showWarning(event.message)
         }
     }
 

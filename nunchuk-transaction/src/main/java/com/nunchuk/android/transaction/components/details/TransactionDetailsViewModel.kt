@@ -126,9 +126,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun handleMenuMoreEvent() {
-        if (getState().transaction.status.isPending()) {
-            event(PromptDeleteTransaction)
-        }
+        event(PromptTransactionOptions(getState().transaction.status.isPending()))
     }
 
     fun handleDeleteTransactionEvent() {
@@ -158,7 +156,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 }
             }
         } else {
-            event(ImportOrExportTransaction)
+            event(PromptTransactionOptions(false))
         }
     }
 

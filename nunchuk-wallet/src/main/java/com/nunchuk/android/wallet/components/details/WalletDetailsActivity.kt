@@ -1,6 +1,7 @@
 package com.nunchuk.android.wallet.components.details
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -66,7 +67,13 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
             is BackupWalletDescriptorEvent -> shareDescriptor(event.descriptor)
             is Loading -> showOrHideLoading(event.loading)
             DeleteWalletSuccess -> walletDeleted()
+            ImportPSBTSuccess -> showPSBTImported()
         }
+    }
+
+    private fun showPSBTImported() {
+        hideLoading()
+        NCToastMessage(this).showMessage(getString(R.string.nc_wallet_psbt_imported))
     }
 
     private fun onGetWalletError(event: WalletDetailsError) {
@@ -178,6 +185,7 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
         val bottomSheet = WalletUpdateBottomSheet.show(fragmentManager = supportFragmentManager)
         bottomSheet.setListener {
             when (it) {
+                IMPORT_PSBT -> handleImportPSBT()
                 EXPORT_BSMS -> handleExportBSMS()
                 EXPORT_COLDCARD -> handleExportColdcard()
                 EXPORT_QR -> viewModel.handleExportWalletQR()
@@ -190,6 +198,22 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
     private fun handleExportColdcard() {
         if (checkReadExternalPermission()) {
             viewModel.handleExportColdcard()
+        }
+    }
+
+    private fun handleImportPSBT() {
+        if (checkReadExternalPermission()) {
+            openSelectFileChooser()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
+        super.onActivityResult(requestCode, resultCode, intent)
+        if (requestCode == CHOOSE_FILE_REQUEST_CODE && resultCode == RESULT_OK) {
+            intent?.data?.path?.let {
+                showLoading()
+                viewModel.handleImportPSBT(it)
+            }
         }
     }
 

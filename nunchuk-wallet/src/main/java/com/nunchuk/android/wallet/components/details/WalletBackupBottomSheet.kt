@@ -24,6 +24,7 @@ internal class WalletUpdateBottomSheet : BaseBottomSheet<DialogBackupWalletBotto
     }
 
     private fun setupViews() {
+        binding.btnImportPsbt.setOnClickListener { onSaveClicked(IMPORT_PSBT) }
         binding.btnExportBsms.setOnClickListener { onSaveClicked(EXPORT_BSMS) }
         binding.btnExportColdcard.setOnClickListener { onSaveClicked(EXPORT_COLDCARD) }
         binding.btnQR.setOnClickListener { onSaveClicked(EXPORT_QR) }
