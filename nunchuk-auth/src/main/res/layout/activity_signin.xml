@@ -101,9 +101,10 @@
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/guestMode"
         style="@style/NCText.Title"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/nc_padding_16"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginVertical="@dimen/nc_padding_24"
         android:gravity="center"
         android:background="?attr/selectableItemBackground"
         android:text="@string/nc_text_signin_guest_mode"
@@ -112,13 +113,14 @@
         app:layout_constraintTop_toBottomOf="@+id/signUp" />
 
     <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/tvDisclaim"
+        android:id="@+id/tvTermAndPolicy"
         style="@style/NCText.Body.Small"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
         android:gravity="center"
-        android:text="@string/nc_text_sign_in_disclaim"
+        android:textColorLink="@color/nc_primary_color"
+        android:text="@string/nc_text_term_and_policy_guest_mode"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/guestMode" />
