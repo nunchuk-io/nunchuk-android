@@ -4,5 +4,5 @@ What's news:
 - NUN-1158 [Android] - Display wrong wallet screen and App crash when tap Send button
 - NUN-1077 [Android] - Close button (x) in New Chat is little small
 - Copy change
-- NUN-1094 Android - Import PSBT flow
+- NUN-1094 Android - Import PSBT flow (with absolute psbt path)
 - NUN-1159  Android - Let user create a chat room with himself

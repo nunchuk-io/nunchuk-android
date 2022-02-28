@@ -11,6 +11,7 @@ import com.journeyapps.barcodescanner.BarcodeResult
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.CHOOSE_FILE_REQUEST_CODE
+import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionOption
@@ -89,10 +90,9 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         super.onActivityResult(requestCode, resultCode, intent)
         if (requestCode == CHOOSE_FILE_REQUEST_CODE && resultCode == RESULT_OK) {
-            intent?.data?.path?.let {
-                showLoading()
-                viewModel.importTransaction(it)
-            }
+            intent?.data?.let {
+                getFileFromUri(contentResolver, it, cacheDir)
+            }?.absolutePath?.let(viewModel::importTransaction)
         }
     }
 

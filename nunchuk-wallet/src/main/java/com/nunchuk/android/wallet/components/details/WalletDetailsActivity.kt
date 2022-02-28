@@ -210,10 +210,9 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         super.onActivityResult(requestCode, resultCode, intent)
         if (requestCode == CHOOSE_FILE_REQUEST_CODE && resultCode == RESULT_OK) {
-            intent?.data?.path?.let {
-                showLoading()
-                viewModel.handleImportPSBT(it)
-            }
+            intent?.data?.let {
+                getFileFromUri(contentResolver, it, cacheDir)
+            }?.absolutePath?.let(viewModel::handleImportPSBT)
         }
     }
 
