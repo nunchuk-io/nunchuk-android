@@ -32,9 +32,9 @@ internal class MessagesAdapter(
     private var memberCounts: Int? = null
     private var isShowNewBanner: Boolean = true
 
-    var selectMode: Boolean by observable(false, {
+    var selectMode: Boolean by observable(false) {
         notifyDataSetChanged()
-    })
+    }
 
     internal fun update(
         chatModels: List<AbsChatModel>,
