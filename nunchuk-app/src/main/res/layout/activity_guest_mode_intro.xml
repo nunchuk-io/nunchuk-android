@@ -13,11 +13,11 @@
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnGotIt"
         style="@style/NCPrimaryButton.Dark"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/nc_padding_16"
         android:text="@string/nc_txt_guest_mode_got_it"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
     <View
@@ -126,6 +126,5 @@
         app:layout_constraintEnd_toEndOf="@+id/tvDes2Detail"
         app:layout_constraintStart_toStartOf="@+id/tvDes2Detail"
         app:layout_constraintTop_toBottomOf="@+id/tvDes2Detail" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
