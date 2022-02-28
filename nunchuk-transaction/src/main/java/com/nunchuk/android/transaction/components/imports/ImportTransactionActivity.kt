@@ -10,6 +10,8 @@ import com.journeyapps.barcodescanner.BarcodeCallback
 import com.journeyapps.barcodescanner.BarcodeResult
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.util.CHOOSE_FILE_REQUEST_CODE
+import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionOption
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionError
@@ -86,7 +88,7 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         super.onActivityResult(requestCode, resultCode, intent)
-        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+        if (requestCode == CHOOSE_FILE_REQUEST_CODE && resultCode == RESULT_OK) {
             intent?.data?.path?.let {
                 showLoading()
                 viewModel.importTransaction(it)
@@ -104,13 +106,7 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
         binding.barcodeView.resume()
     }
 
-    private fun openSelectFileChooser() {
-        val intent = Intent().setType("*/*").setAction(Intent.ACTION_GET_CONTENT)
-        startActivityForResult(Intent.createChooser(intent, getString(R.string.nc_transaction_select_file)), REQUEST_CODE)
-    }
-
     companion object {
-        private const val REQUEST_CODE = 1248
 
         fun start(activityContext: Activity, walletId: String, transactionOption: TransactionOption) {
             activityContext.startActivity(
@@ -124,4 +120,3 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
     }
 
 }
-

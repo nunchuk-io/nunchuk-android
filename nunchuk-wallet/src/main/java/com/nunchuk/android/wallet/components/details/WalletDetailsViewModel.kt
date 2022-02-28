@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.core.util.sorted
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
@@ -29,7 +30,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val exportKeystoneWalletUseCase: ExportKeystoneWalletUseCase,
     private val exportPassportWalletUseCase: ExportPassportWalletUseCase,
     private val getTransactionHistoryUseCase: GetTransactionHistoryUseCase,
-    private val deleteWalletUseCase: DeleteWalletUseCase
+    private val deleteWalletUseCase: DeleteWalletUseCase,
+    private val importTransactionUseCase: ImportTransactionUseCase,
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
 
     lateinit var walletId: String
@@ -168,4 +170,16 @@ internal class WalletDetailsViewModel @Inject constructor(
         }
     }
 
+    fun handleImportPSBT(filePath: String) {
+        viewModelScope.launch {
+            importTransactionUseCase.execute(walletId, filePath)
+                .flowOn(Dispatchers.IO)
+                .onException { event(WalletDetailsError(it.readableMessage())) }
+                .flowOn(Dispatchers.Main)
+                .collect {
+                    event(ImportPSBTSuccess)
+                    getTransactionHistory()
+                }
+        }
+    }
 }

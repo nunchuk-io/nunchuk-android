@@ -32,6 +32,7 @@
     <string name="nc_wallet_take_to_add_a_signer">Take me to add a key</string>
     <string name="nc_wallet_add_a_wallet">Add a wallet</string>
     <string name="nc_wallet_backup_wallet">Backup wallet</string>
+    <string name="nc_wallet_import_psbt">Import PSBT</string>
     <string name="nc_wallet_save_wallet_configuration">Save wallet configuration</string>
     <string name="nc_wallet_upload_device_registration">Upload device registration</string>
     <string name="nc_wallet_upload_success">Upload wallet success</string>
@@ -40,4 +41,7 @@
     <string name="nc_txt_send_from_shared_description">For collaborative wallets, please initiate the send transaction from inside the chat room</string>
     <string name="nc_transaction_enter_passphrase">Enter your passphrase</string>
     <string name="nc_address_copy_to_clipboard">Address copied to clipboard</string>
+
+    <string name="nc_wallet_select_file">Please select your transaction file</string>
+    <string name="nc_wallet_psbt_imported">PSBT imported successfully</string>
 </resources>

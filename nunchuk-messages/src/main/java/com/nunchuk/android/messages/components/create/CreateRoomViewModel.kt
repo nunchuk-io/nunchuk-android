@@ -9,6 +9,7 @@ import com.nunchuk.android.messages.components.create.CreateRoomEvent.CreateRoom
 import com.nunchuk.android.messages.usecase.message.CreateRoomUseCase
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.share.GetContactsUseCase
+import com.nunchuk.android.share.GetCurrentUserAsContactUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +22,7 @@ import javax.inject.Inject
 class CreateRoomViewModel @Inject constructor(
     accountManager: AccountManager,
     private val getContactsUseCase: GetContactsUseCase,
+    private val getCurrentUserAsContactUseCase: GetCurrentUserAsContactUseCase,
     private val createRoomUseCase: CreateRoomUseCase
 ) : NunchukViewModel<CreateRoomState, CreateRoomEvent>() {
 
@@ -37,11 +39,23 @@ class CreateRoomViewModel @Inject constructor(
     private fun getContacts() {
         getContactsUseCase.execute()
             .defaultSchedulers()
-            .subscribe({
-                contacts = it
-            }, CrashlyticsReporter::recordException)
+            .subscribe(::addCurrentUserAsContact, CrashlyticsReporter::recordException)
             .addToDisposables()
     }
+
+    private fun addCurrentUserAsContact(otherContacts: List<Contact>) {
+        viewModelScope.launch {
+            getCurrentUserAsContactUseCase.execute()
+                .flowOn(Dispatchers.IO)
+                .onException { }
+                .flowOn(Dispatchers.Main)
+                .collect { contacts = join(otherContacts, it) }
+        }
+    }
+
+    private fun join(contacts: List<Contact>, contact: Contact?) = contact?.let {
+        (contacts + it).toSet().toList()
+    } ?: contacts
 
     fun handleInput(word: String) {
         val suggestions = contacts.filter { it.name.isContains(word) || it.email.isContains(word) }

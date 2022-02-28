@@ -38,5 +38,6 @@
     <string name="nc_text_add_contacts">Add contacts</string>
     <string name="nc_text_create_an_account">Create an account</string>
     <string name="nc_text_sign_in">Sign in</string>
+    <string name="nc_text_select_file">Please select your transaction file</string>
 
 </resources>

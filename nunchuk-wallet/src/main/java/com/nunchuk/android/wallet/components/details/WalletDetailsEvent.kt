@@ -1,6 +1,5 @@
 package com.nunchuk.android.wallet.components.details
 
-import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.WalletExtended
 
@@ -13,6 +12,7 @@ sealed class WalletDetailsEvent {
     data class UploadWalletConfigEvent(val filePath: String) : WalletDetailsEvent()
     data class BackupWalletDescriptorEvent(val descriptor: String) : WalletDetailsEvent()
     object DeleteWalletSuccess : WalletDetailsEvent()
+    object ImportPSBTSuccess : WalletDetailsEvent()
 }
 
 data class WalletDetailsState(

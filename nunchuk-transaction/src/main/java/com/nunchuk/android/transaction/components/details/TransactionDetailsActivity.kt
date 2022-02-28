@@ -73,7 +73,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         binding.toolbar.setOnMenuItemClickListener { menu ->
             when (menu.itemId) {
                 R.id.menu_more -> {
-                    onMoreClicked()
+                    handleMenuMore()
                     true
                 }
                 else -> false
@@ -81,7 +81,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         }
     }
 
-    private fun onMoreClicked() {
+    private fun handleMenuMore() {
         viewModel.handleMenuMoreEvent()
     }
 
@@ -202,15 +202,9 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
             is ViewBlockchainExplorer -> openExternalLink(event.url)
             is TransactionDetailsError -> showError(event.message)
             is PromptInputPassphrase -> requireInputPassphrase(event.func)
-            ImportOrExportTransaction -> importOrExportTransaction()
-            PromptDeleteTransaction -> promptDeleteTransaction()
+            is PromptTransactionOptions -> promptTransactionOptions(event.shouldShowCancel)
             LoadingEvent -> showLoading()
         }
-    }
-
-    private fun promptDeleteTransaction() {
-        TransactionDetailsBottomSheet.show(supportFragmentManager)
-            .setListener(::promptCancelTransactionConfirmation)
     }
 
     private fun promptCancelTransactionConfirmation() {
@@ -221,10 +215,11 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         )
     }
 
-    private fun importOrExportTransaction() {
-        TransactionSignBottomSheet.show(supportFragmentManager)
+    private fun promptTransactionOptions(shouldShowCancel: Boolean) {
+        TransactionOptionsBottomSheet.show(supportFragmentManager, shouldShowCancel)
             .setListener {
                 when (it) {
+                    CANCEL -> promptCancelTransactionConfirmation()
                     EXPORT -> openExportTransactionScreen(EXPORT)
                     IMPORT -> openImportTransactionScreen(IMPORT)
                     EXPORT_PASSPORT -> openExportTransactionScreen(EXPORT_PASSPORT)

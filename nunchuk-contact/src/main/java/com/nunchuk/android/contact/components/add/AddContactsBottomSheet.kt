@@ -11,6 +11,7 @@ import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
+import com.nunchuk.android.contact.R
 import com.nunchuk.android.contact.components.add.AddContactsEvent.*
 import com.nunchuk.android.contact.databinding.BottomSheetAddContactsBinding
 import com.nunchuk.android.core.base.BaseBottomSheet
@@ -87,7 +88,7 @@ class AddContactsBottomSheet : BaseBottomSheet<BottomSheetAddContactsBinding>() 
 
     private fun showAddContactSuccess() {
         showOrHideLoading(false)
-        NCToastMessage(requireActivity()).showMessage("Add contact success")
+        NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_contact_add_contact_success))
         cleanUp()
     }
 

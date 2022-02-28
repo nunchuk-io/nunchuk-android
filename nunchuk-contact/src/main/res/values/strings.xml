@@ -14,5 +14,6 @@
     <string name="nc_contacts_type_email_here">Type email here</string>
     <string name="nc_contact_add_contacts">Add Contacts</string>
     <string name="nc_contact_valid_email_address">That does not look like a valid email address</string>
+    <string name="nc_contact_add_contact_success">Add contact success</string>
 
 </resources>

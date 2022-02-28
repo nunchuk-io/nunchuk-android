@@ -1,6 +1,8 @@
 package com.nunchuk.android.core.di
 
 import com.nunchuk.android.core.domain.*
+import com.nunchuk.android.share.GetCurrentUserAsContactUseCase
+import com.nunchuk.android.share.GetCurrentUserAsContactUseCaseImpl
 import dagger.Binds
 import dagger.Module
 
@@ -24,7 +26,6 @@ internal interface DomainModule {
     @Binds
     fun bindGetBlockchainExplorerUrlUseCase(useCase: GetBlockchainExplorerUrlUseCaseImpl): GetBlockchainExplorerUrlUseCase
 
-
     @Binds
     fun bindHideBannerNewChatUseCase(useCase: HideBannerNewChatUseCaseImpl): HideBannerNewChatUseCase
 
@@ -42,4 +43,7 @@ internal interface DomainModule {
 
     @Binds
     fun bindHealthCheckMasterSignerUseCase(useCase: HealthCheckMasterSignerUseCaseImpl): HealthCheckMasterSignerUseCase
+
+    @Binds
+    fun bindGetCurrentAccountAsContact(useCase: GetCurrentUserAsContactUseCaseImpl): GetCurrentUserAsContactUseCase
 }

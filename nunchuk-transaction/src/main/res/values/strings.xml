@@ -72,6 +72,5 @@
     <string name="nc_transaction_no_app_to_open_link">There is no apps found to open link</string>
     <string name="nc_transaction_imported">Transaction Imported</string>
     <string name="nc_transaction_imported_failed">Import failed :</string>
-    <string name="nc_transaction_select_file">Please select your transaction file</string>
 
 </resources>

@@ -13,8 +13,9 @@ sealed class SignerInfoEvent {
 
     data class RemoveSignerErrorEvent(val message: String) : SignerInfoEvent()
 
-    object HealthCheckSuccessEvent: SignerInfoEvent()
-    object HealthCheckErrorEvent: SignerInfoEvent()
+    object HealthCheckSuccessEvent : SignerInfoEvent()
+
+    data class HealthCheckErrorEvent(val message: String? = null) : SignerInfoEvent()
 }
 
 data class SignerInfoState(val remoteSigner: SingleSigner? = null, val masterSigner: MasterSigner? = null)

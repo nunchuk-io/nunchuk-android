@@ -107,13 +107,13 @@ internal class SignerInfoViewModel @Inject constructor(
         viewModelScope.launch {
             healthCheckMasterSignerUseCase.execute(fingerprint, message, signature, path)
                 .flowOn(Dispatchers.IO)
-                .onException { }
+                .onException { event(HealthCheckErrorEvent(it.message)) }
                 .flowOn(Dispatchers.Main)
                 .collect { healthStatus ->
                     if (healthStatus == HealthStatus.SUCCESS) {
                         event(HealthCheckSuccessEvent)
                     } else {
-                        event(HealthCheckErrorEvent)
+                        event(HealthCheckErrorEvent())
                     }
                 }
         }
