@@ -2,8 +2,8 @@
     <string name="nc_text_get_started">Get Started</string>
     <string name="nc_text_welcome_to_nunchuk">Welcome to Nunchuk</string>
     <string name="nc_text_intro">Where private messaging meets the safest Bitcoin wallet.</string>
-    <string name="nc_txt_message_function_require_an_account">Message function requires an account</string>
-    <string name="nc_txt_message_function_require_des">We use email as the user ID for collaborative wallet and interpersonal messaging features.</string>
+    <string name="nc_txt_message_function_require_an_account">Please create an account</string>
+    <string name="nc_txt_message_function_require_des">Accounts are required for interpersonal messaging and collaborative wallet features.</string>
     <string name="nc_txt_guest_mode_got_it">Got it</string>
     <string name="nc_txt_guest_mode_intro_1">Guest mode allows you to create keys and wallets without an account. Please consider the following before using—</string>
     <string name="nc_txt_guest_mode_intro_2">Keys and wallets created in guest mode are stored locally. They will not be removed until you manually delete them or uninstall the app.</string>
