@@ -11,7 +11,6 @@ import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
@@ -22,6 +21,7 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.main.databinding.FragmentWalletsBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
+import com.nunchuk.android.main.di.MainAppEvent.SynCompleted
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
@@ -31,6 +31,7 @@ import com.nunchuk.android.type.ConnectionStatus
 internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private val walletsViewModel: WalletsViewModel by viewModels { factory }
+
     private val mainActivityViewModel: MainActivityViewModel by activityViewModels { factory }
 
     override fun initializeBinding(
@@ -83,6 +84,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     private fun handleMainActivityEvent(event: MainAppEvent) {
         if (event is GetConnectionStatusSuccessEvent) {
             walletsViewModel.getAppSettings()
+        } else if (event == SynCompleted) {
+            walletsViewModel.retrieveData()
         }
     }
 
@@ -96,8 +99,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun showWalletState(state: WalletsState) {
         val wallets = state.wallets
-        val signers =
-            state.masterSigners.map(MasterSigner::toModel) + state.signers.map(SingleSigner::toModel)
+        val signers = state.masterSigners.map(MasterSigner::toModel) + state.signers.map(SingleSigner::toModel)
         showWallets(wallets)
         showSigners(signers)
         showConnectionBlockchainStatus(state)
@@ -246,6 +248,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     override fun onResume() {
         super.onResume()
+        binding.walletLoading.root.isVisible = true
         walletsViewModel.retrieveData()
         walletsViewModel.getAppSettings()
     }
