@@ -8,3 +8,4 @@ What's news:
 - NUN-1159  Android - Let user create a chat room with himself
 - Update libnunchuk to remove canceled shared transaction.
 - [NUN-1185] Add delay to create room to avoid empty name.
+- Improve sync flow.

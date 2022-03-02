@@ -40,7 +40,6 @@ internal class WalletsViewModel @Inject constructor(
                 .zip(getWalletsUseCase.execute()) { p, wallets ->
                     Triple(p.first, p.second, wallets)
                 }
-                .onStart { event(Loading(true)) }
                 .flowOn(Dispatchers.IO)
                 .onException {
                     updateState { copy(signers = emptyList(), masterSigners = emptyList()) }

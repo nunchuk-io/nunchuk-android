@@ -54,4 +54,8 @@ internal class NunchukApplication : Application(), HasAndroidInjector, MatrixCon
         .setExecutor(Executors.newCachedThreadPool())
         .build()
 
+    override fun onTerminate() {
+        super.onTerminate()
+        matrix.terminate()
+    }
 }

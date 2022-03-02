@@ -14,8 +14,7 @@ import com.nunchuk.android.core.matrix.*
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.di.MainAppEvent
-import com.nunchuk.android.main.di.MainAppEvent.DownloadFileSyncSucceed
-import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
+import com.nunchuk.android.main.di.MainAppEvent.*
 import com.nunchuk.android.messages.usecase.message.CreateRoomWithTagUseCase
 import com.nunchuk.android.messages.util.STATE_NUNCHUK_SYNC
 import com.nunchuk.android.messages.util.isLocalEvent
@@ -30,7 +29,6 @@ import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.usecase.EnableAutoBackupUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
@@ -253,6 +251,7 @@ internal class MainActivityViewModel @Inject constructor(
                 .onException { }
                 .flowOn(Main)
                 .collect {
+                    event(SynCompleted)
                     syncRoomId = findSyncRoom(it)
                     syncRoomId?.let { syncRoomId ->
                         Timber.d("Have sync room: $syncRoomId")
@@ -290,7 +289,6 @@ internal class MainActivityViewModel @Inject constructor(
         encryptedDeviceId = encryptedDeviceId
     )
         .onException {}
-        .onEach { SessionHolder.storeActiveSession(it) }
 
     fun setupMatrix(token: String, encryptedDeviceId: String) {
         getUserProfileUseCase.execute()
@@ -311,9 +309,9 @@ internal class MainActivityViewModel @Inject constructor(
     private fun getDisplayUnitSetting() {
         viewModelScope.launch {
             getDisplayUnitSettingUseCase.execute()
-                .flowOn(Dispatchers.IO)
+                .flowOn(IO)
                 .onException { }
-                .flowOn(Dispatchers.Main)
+                .flowOn(Main)
                 .collect {
                     CURRENT_DISPLAY_UNIT_TYPE = it.getCurrentDisplayUnitType()
                 }
