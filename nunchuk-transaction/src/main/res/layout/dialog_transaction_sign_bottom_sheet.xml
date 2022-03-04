@@ -10,19 +10,28 @@
     app:behavior_hideable="false"
     app:behavior_peekHeight="90dp">
 
-    <com.nunchuk.android.widget.NCFontTextView
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/btnCancel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/selectableItemBackground"
-        android:drawableStart="@drawable/ic_cancel"
-        android:drawablePadding="@dimen/nc_padding_8"
-        android:paddingHorizontal="@dimen/nc_padding_14"
-        android:paddingVertical="@dimen/nc_padding_16"
+        android:padding="@dimen/nc_padding_16"
         android:text="@string/nc_transaction_cancel_transaction"
         android:textColor="@color/nc_orange_dark_color"
+        android:textSize="@dimen/nc_text_size_16" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btnExportPSBT"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:drawableStart="@drawable/ic_export"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:padding="@dimen/nc_padding_16"
+        android:text="@string/nc_transaction_export_psbt"
+        android:textColor="@color/nc_black_color"
         android:textSize="@dimen/nc_text_size_16"
-        app:drawableTint="@color/nc_orange_dark_color" />
+        app:drawableTint="@color/nc_primary_color" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btnImport"

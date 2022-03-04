@@ -101,7 +101,7 @@ class RoomDetailViewModel @Inject constructor(
     private fun joinRoom() {
         viewModelScope.launch {
             try {
-                room.join()
+                SessionHolder.activeSession?.joinRoom(room.roomId)
             } catch (e: Throwable) {
                 CrashlyticsReporter.recordException(e)
             }

@@ -11,6 +11,7 @@ import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.Transaction
@@ -35,6 +36,8 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
     private val args: TransactionDetailsArgs by lazy { TransactionDetailsArgs.deserializeFrom(intent) }
 
     private val viewModel: TransactionDetailsViewModel by viewModels { factory }
+
+    private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 
     override fun initializeBinding() = ActivityTransactionDetailsBinding.inflate(layoutInflater)
 
@@ -202,9 +205,21 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
             is ViewBlockchainExplorer -> openExternalLink(event.url)
             is TransactionDetailsError -> showError(event.message)
             is PromptInputPassphrase -> requireInputPassphrase(event.func)
-            is PromptTransactionOptions -> promptTransactionOptions(event.shouldShowCancel)
+            is PromptTransactionOptions -> promptTransactionOptions(event.isPendingTransaction)
             LoadingEvent -> showLoading()
+            is ExportToFileSuccess -> showExportToFileSuccess(event)
+            is ExportTransactionError -> showExportToFileError(event)
         }
+    }
+
+    private fun showExportToFileError(event: ExportTransactionError) {
+        hideLoading()
+        NCToastMessage(this).showError(event.message)
+    }
+
+    private fun showExportToFileSuccess(event: ExportToFileSuccess) {
+        hideLoading()
+        controller.shareFile(event.filePath)
     }
 
     private fun promptCancelTransactionConfirmation() {
@@ -215,8 +230,8 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         )
     }
 
-    private fun promptTransactionOptions(shouldShowCancel: Boolean) {
-        TransactionOptionsBottomSheet.show(supportFragmentManager, shouldShowCancel)
+    private fun promptTransactionOptions(isPending: Boolean) {
+        TransactionOptionsBottomSheet.show(supportFragmentManager, isPending)
             .setListener {
                 when (it) {
                     CANCEL -> promptCancelTransactionConfirmation()
@@ -224,6 +239,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
                     IMPORT -> openImportTransactionScreen(IMPORT)
                     EXPORT_PASSPORT -> openExportTransactionScreen(EXPORT_PASSPORT)
                     IMPORT_PASSPORT -> openImportTransactionScreen(IMPORT_PASSPORT)
+                    EXPORT_PSBT -> viewModel.exportTransactionToFile()
                 }
             }
     }
@@ -264,7 +280,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         hideLoading()
         NCToastMessage(this).show(getString(R.string.nc_transaction_broadcast_successful))
         if (roomId.isEmpty()) {
-           finish()
+            finish()
         } else {
             returnActiveRoom(roomId)
         }

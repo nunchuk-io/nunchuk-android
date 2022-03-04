@@ -13,6 +13,7 @@ class MatrixInitializer @Inject constructor(
 ) {
 
     fun initialize() {
+        if (!accountManager.getAccount().staySignedIn) return
         val instance = Matrix.getInstance(context)
         val authenticationService = instance.authenticationService()
         try {
@@ -28,6 +29,9 @@ class MatrixInitializer @Inject constructor(
 
     fun terminate() {
         Timber.tag("MatrixInitializer").d("staySignedIn::${accountManager.getAccount().staySignedIn}")
+        if (!accountManager.getAccount().staySignedIn) {
+            accountManager.signOut()
+        }
     }
 
 }

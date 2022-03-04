@@ -6,7 +6,7 @@ import com.nunchuk.android.core.provider.AppInfoProvider
 import com.nunchuk.android.utils.CrashlyticsReporter
 import javax.inject.Inject
 
-internal class AppInfoProviderImpl @Inject constructor(
+class AppInfoProviderImpl @Inject constructor(
     private val context: Context
 ) : AppInfoProvider {
 

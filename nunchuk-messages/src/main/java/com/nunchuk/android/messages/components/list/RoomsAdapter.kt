@@ -20,9 +20,9 @@ class RoomAdapter(
     private val removeRoom: (RoomSummary) -> Unit
 ) : RecyclerView.Adapter<RoomViewHolder>() {
 
-    internal var roomWallets: List<String> = ArrayList()
+    var roomWallets: List<String> = ArrayList()
 
-    internal var roomSummaries: List<RoomSummary> = ArrayList()
+    var roomSummaries: List<RoomSummary> = ArrayList()
         set(value) {
             field = value
             notifyDataSetChanged()

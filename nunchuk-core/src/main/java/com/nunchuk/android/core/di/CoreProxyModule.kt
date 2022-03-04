@@ -10,7 +10,8 @@ import dagger.Module
         UserProfileProxyModule::class,
         DataModule::class,
         DomainModule::class,
-        NetworkModule::class
+        NetworkModule::class,
+        RetryPolicyModule::class
     ]
 )
 interface CoreProxyModule

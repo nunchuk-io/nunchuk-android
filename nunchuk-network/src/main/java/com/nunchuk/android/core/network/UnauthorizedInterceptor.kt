@@ -9,15 +9,17 @@ class UnauthorizedInterceptor @Inject constructor() : Interceptor {
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
-        val response = chain.proceed(chain.request())
-        if (response.isUnauthorized()) {
-            UnauthorizedEventBus.instance().publish()
+        try {
+            val response = chain.proceed(chain.request())
+            if (response.isUnauthorized()) {
+                UnauthorizedEventBus.instance().publish()
+            }
+            return response
+        } catch (exception: IOException) {
+            throw exception
         }
-        return response
     }
 
 }
 
-internal fun Response.isUnauthorized(): Boolean {
-    return code == ApiErrorCode.UNAUTHORIZED
-}
+internal fun Response.isUnauthorized(): Boolean = code == ApiErrorCode.UNAUTHORIZED
