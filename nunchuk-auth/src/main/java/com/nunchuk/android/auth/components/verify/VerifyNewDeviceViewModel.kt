@@ -10,6 +10,7 @@ import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class VerifyNewDeviceViewModel @Inject constructor(
@@ -30,31 +31,30 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
         deviceId: String,
         staySignedIn: Boolean
     ) {
-        verifyNewDeviceUseCase.execute(
-            email = email,
-            loginHalfToken = loginHalfToken,
-            pin = pin,
-            deviceId = deviceId,
-            staySignedIn = staySignedIn
-        ).flowOn(Dispatchers.IO)
-            .onStart { event(ProcessingEvent) }
-            .onException { event(SignInErrorEvent(message = it.message.orUnknownError())) }
-            .flatMapConcat {
-                token = it.first
-                encryptedDeviceId = it.second
-                initNunchuk()
-            }
-            .onEach {
-                event(SignInSuccessEvent(token = token.orEmpty(), encryptedDeviceId = encryptedDeviceId.orEmpty()))
-            }
-            .flowOn(Dispatchers.Main)
-            .launchIn(viewModelScope)
+        viewModelScope.launch {
+            verifyNewDeviceUseCase.execute(
+                email = email,
+                loginHalfToken = loginHalfToken,
+                pin = pin,
+                deviceId = deviceId,
+                staySignedIn = staySignedIn
+            ).flowOn(Dispatchers.IO)
+                .onStart { event(ProcessingEvent) }
+                .onException { event(SignInErrorEvent(message = it.message.orUnknownError())) }
+                .flatMapConcat {
+                    token = it.first
+                    encryptedDeviceId = it.second
+                    initNunchuk()
+                }
+                .flowOn(Dispatchers.Main)
+                .collect {
+                    event(SignInSuccessEvent(token = token.orEmpty(), encryptedDeviceId = encryptedDeviceId.orEmpty()))
+                }
+        }
     }
 
     private fun initNunchuk(): Flow<Unit> {
         val account = accountManager.getAccount()
-        // TODO: use a real passphrase; make sure to use the same passphrase on ALL InitNunchukUseCase instances
-        // or the user will lose access to their keys/wallets
         return initNunchukUseCase.execute(accountId = account.email)
             .flowOn(Dispatchers.IO)
             .onException { event(SignInErrorEvent(message = it.message.orUnknownError())) }

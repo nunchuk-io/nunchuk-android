@@ -7,6 +7,7 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isPending
+import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.model.Device
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.Result.Error
@@ -34,6 +35,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val broadcastTransactionUseCase: BroadcastTransactionUseCase,
     private val broadcastRoomTransactionUseCase: BroadcastRoomTransactionUseCase,
     private val sendSignerPassphrase: SendSignerPassphrase,
+    private val createShareFileUseCase: CreateShareFileUseCase,
+    private val exportTransactionUseCase: ExportTransactionUseCase,
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
 
     private lateinit var walletId: String
@@ -156,7 +159,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 }
             }
         } else {
-            event(PromptTransactionOptions(false))
+            event(PromptTransactionOptions(true))
         }
     }
 
@@ -165,6 +168,25 @@ internal class TransactionDetailsViewModel @Inject constructor(
             signRoomTransaction(device)
         } else {
             signPersonalTransaction(device)
+        }
+    }
+
+    fun exportTransactionToFile() {
+        viewModelScope.launch {
+            event(LoadingEvent)
+            when (val result = createShareFileUseCase.execute("${walletId}_${txId}")) {
+                is Success -> exportTransaction(result.data)
+                is Error -> event(ExportTransactionError(result.exception.messageOrUnknownError()))
+            }
+        }
+    }
+
+    private fun exportTransaction(filePath: String) {
+        viewModelScope.launch {
+            when (val result = exportTransactionUseCase.execute(walletId, txId, filePath)) {
+                is Success -> event(ExportToFileSuccess(filePath))
+                is Error -> event(ExportTransactionError(result.exception.messageOrUnknownError()))
+            }
         }
     }
 

@@ -41,7 +41,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val deviceId
         get() = intent.getStringExtra(EXTRAS_ENCRYPTED_DEVICE_ID).orEmpty()
 
-    private val bottomNavViewPosition : Int
+    private val bottomNavViewPosition: Int
         get() = intent.getIntExtra(EXTRAS_BOTTOM_NAV_VIEW_POSITION, 0)
 
 
@@ -70,7 +70,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             viewModel.setupMatrix(loginHalfToken, deviceId)
         }
         if (SessionHolder.activeSession != null) {
-            viewModel.getAllRooms()
+            viewModel.setupSyncing()
         }
         viewModel.scheduleGetBTCConvertPrice()
     }
@@ -82,13 +82,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun handleEvent(event: MainAppEvent) {
         when (event) {
             is DownloadFileSyncSucceed -> handleDownloadedSyncFile(event)
-            is GetConnectionStatusSuccessEvent -> {}
+            is GetConnectionStatusSuccessEvent -> {
+            }
         }
     }
 
     private fun handleDownloadedSyncFile(event: DownloadFileSyncSucceed) {
-        event.responseBody.byteStream()
-            .saveToFile(externalCacheDir.toString() + File.separator + "FileBackup")
+        event.responseBody.byteStream().saveToFile(externalCacheDir.toString() + File.separator + "FileBackup")
         val saveFile = File(externalCacheDir.toString() + File.separator + "FileBackup")
         viewModel.consumeSyncFile(event.jsonInfo, saveFile.readBytes())
     }
@@ -139,7 +139,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
 
         // TODO replace with args
-        fun createIntent(activityContext: Context, loginHalfToken: String? = null, deviceId: String? = null,  @IdRes bottomNavViewPosition: Int? = null): Intent {
+        fun createIntent(activityContext: Context, loginHalfToken: String? = null, deviceId: String? = null, @IdRes bottomNavViewPosition: Int? = null): Intent {
             return Intent(activityContext, MainActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 putExtra(EXTRAS_LOGIN_HALF_TOKEN, loginHalfToken)

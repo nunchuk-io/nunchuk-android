@@ -27,6 +27,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
+import timber.log.Timber
 
 internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
@@ -85,7 +86,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         if (event is GetConnectionStatusSuccessEvent) {
             walletsViewModel.getAppSettings()
         } else if (event == SynCompleted) {
-            walletsViewModel.retrieveData()
+            Timber.tag("MainActivityViewModel").d("walletsViewModel.retrieveData()")
+            binding.root.postDelayed(walletsViewModel::retrieveData, 3000)
         }
     }
 

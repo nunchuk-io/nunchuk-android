@@ -31,24 +31,31 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
     }
 
     private fun setupViews() {
-        binding.btnCancel.isVisible = args.shouldShowCancel
-
+        binding.btnCancel.isVisible = args.isPending
         binding.btnCancel.setOnClickListener {
             if (requireActivity().checkReadExternalPermission()) {
                 listener(CANCEL)
                 dismiss()
             }
         }
+        binding.btnExportPSBT.setOnClickListener {
+            listener(EXPORT_PSBT)
+            dismiss()
+        }
+
+        binding.btnExport.isVisible = args.isPending
         binding.btnExport.setOnClickListener {
             listener(EXPORT)
             dismiss()
         }
 
+        binding.btnExportPassport.isVisible = args.isPending
         binding.btnExportPassport.setOnClickListener {
             listener(EXPORT_PASSPORT)
             dismiss()
         }
 
+        binding.btnImport.isVisible = args.isPending
         binding.btnImport.setOnClickListener {
             if (requireActivity().checkCameraPermission()) {
                 listener(IMPORT)
@@ -56,6 +63,7 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             }
         }
 
+        binding.btnImportPassport.isVisible = args.isPending
         binding.btnImportPassport.setOnClickListener {
             if (requireActivity().checkCameraPermission()) {
                 listener(IMPORT_PASSPORT)
@@ -71,29 +79,29 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
     companion object {
         private const val TAG = "TransactionOptionsBottomSheet"
 
-        private fun newInstance(shouldShowCancel: Boolean) = TransactionOptionsBottomSheet().apply {
-            arguments = TransactionOptionsArgs(shouldShowCancel).buildBundle()
+        private fun newInstance(isPending: Boolean) = TransactionOptionsBottomSheet().apply {
+            arguments = TransactionOptionsArgs(isPending).buildBundle()
         }
 
 
-        fun show(fragmentManager: FragmentManager, shouldShowCancel: Boolean): TransactionOptionsBottomSheet {
-            return newInstance(shouldShowCancel).apply { show(fragmentManager, TAG) }
+        fun show(fragmentManager: FragmentManager, isPending: Boolean): TransactionOptionsBottomSheet {
+            return newInstance(isPending).apply { show(fragmentManager, TAG) }
         }
     }
 
 }
 
-data class TransactionOptionsArgs(val shouldShowCancel: Boolean) : FragmentArgs {
+data class TransactionOptionsArgs(val isPending: Boolean) : FragmentArgs {
 
     override fun buildBundle() = Bundle().apply {
-        putBoolean(EXTRA_SHOW_CANCEL, shouldShowCancel)
+        putBoolean(EXTRA_IS_PENDING, isPending)
     }
 
     companion object {
-        private const val EXTRA_SHOW_CANCEL = "EXTRA_SHOW_CANCEL"
+        private const val EXTRA_IS_PENDING = "EXTRA_IS_PENDING"
 
         fun deserializeFrom(data: Bundle?) = TransactionOptionsArgs(
-            data?.getBooleanValue(EXTRA_SHOW_CANCEL).orFalse()
+            data?.getBooleanValue(EXTRA_IS_PENDING).orFalse()
         )
     }
 }

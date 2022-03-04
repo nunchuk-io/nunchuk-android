@@ -2,8 +2,9 @@ package com.nunchuk.android.core.account
 
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.utils.onException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -33,6 +34,8 @@ internal class AccountManagerImpl @Inject constructor(
     private val accountSharedPref: AccountSharedPref
 ) : AccountManager {
 
+    val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
     override fun isAccountExisted() = accountSharedPref.getAccountInfo().token.isNotBlank()
 
     override fun isAccountActivated() = accountSharedPref.getAccountInfo().activated
@@ -49,7 +52,7 @@ internal class AccountManagerImpl @Inject constructor(
 
     override fun signOut() {
         // TODO call Nunchuk SignOut Api
-        GlobalScope.launch {
+        scope.launch {
             signOutMatrix().flowOn(Dispatchers.IO)
                 .onException {
                     Timber.e("signOut error ", it)

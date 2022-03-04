@@ -4,8 +4,8 @@ internal object ApiConstant {
     internal const val BASE_URL = "https://api.nunchuk.io/v1.1/"
     internal const val BASE_URL_MATRIX = "https://matrix.nunchuk.io/"
 
-    internal const val HTTP_CONNECT_TIMEOUT = 60L
-    internal const val HTTP_READ_TIMEOUT = 60L
+    internal const val HTTP_CONNECT_TIMEOUT = 5L
+    internal const val HTTP_READ_TIMEOUT = 5L
 
     internal const val HEADER_TOKEN_TYPE = "Authorization"
     internal const val HEADER_DEVICE_ID = "x-nc-device-id"

@@ -9,3 +9,5 @@ What's news:
 - Update libnunchuk to remove canceled shared transaction.
 - [NUN-1185] Add delay to create room to avoid empty name.
 - Improve sync flow.
+- Reduce network timeout to 30s instead of 60s
+- Upgrade matrix to latest version 1.4.2

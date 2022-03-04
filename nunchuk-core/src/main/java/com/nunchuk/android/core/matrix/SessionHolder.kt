@@ -3,6 +3,7 @@ package com.nunchuk.android.core.matrix
 import com.nunchuk.android.utils.CrashlyticsReporter
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.Room
+import timber.log.Timber
 
 object SessionHolder {
     var activeSession: Session? = null
@@ -11,14 +12,15 @@ object SessionHolder {
 
     // isOpen state is hidden inside matrix sdk, there is no way to know exactly variable value
     fun storeActiveSession(session: Session) {
+        Timber.tag("MainActivityViewModel").d("storeActiveSession of ${session.myUserId}")
         session.apply {
+            activeSession = this
             try {
                 open()
                 startSync(false)
             } catch (e: Error) {
                 CrashlyticsReporter.recordException(e)
             }
-            activeSession = this
         }
     }
 

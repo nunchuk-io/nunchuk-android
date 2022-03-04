@@ -43,6 +43,7 @@
 
         <activity
             android:name=".components.details.TransactionDetailsActivity"
+            android:exported="true"
             android:label="@string/nc_transaction_details"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
@@ -50,6 +51,7 @@
         <activity
             android:name=".components.export.ExportTransactionActivity"
             android:label="@string/nc_transaction_export_transaction"
+            android:exported="true"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 

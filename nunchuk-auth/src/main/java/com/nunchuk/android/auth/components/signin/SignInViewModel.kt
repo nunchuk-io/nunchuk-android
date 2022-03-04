@@ -8,6 +8,9 @@ import com.nunchuk.android.auth.util.orUnknownError
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.network.NunchukApiException
+import com.nunchuk.android.core.retry.DEFAULT_RETRY_POLICY
+import com.nunchuk.android.core.retry.RetryPolicy
+import com.nunchuk.android.core.retry.retryIO
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
@@ -15,11 +18,13 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
+import javax.inject.Named
 
 internal class SignInViewModel @Inject constructor(
     private val signInUseCase: SignInUseCase,
     private val initNunchukUseCase: InitNunchukUseCase,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
+    @Named(DEFAULT_RETRY_POLICY) private val retryPolicy: RetryPolicy
 ) : NunchukViewModel<Unit, SignInEvent>() {
 
     private var staySignedIn = false
@@ -43,6 +48,7 @@ internal class SignInViewModel @Inject constructor(
     fun handleSignIn(email: String, password: String) {
         if (validateEmail(email) && validatePassword(password)) {
             signInUseCase.execute(email = email, password = password, staySignedIn = staySignedIn)
+                .retryIO(retryPolicy)
                 .onStart { event(ProcessingEvent) }
                 .flowOn(IO)
                 .onException {

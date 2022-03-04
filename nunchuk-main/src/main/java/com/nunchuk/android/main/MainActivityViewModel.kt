@@ -12,9 +12,15 @@ import com.nunchuk.android.core.domain.ScheduleGetPriceConvertBTCUseCase
 import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.matrix.*
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
+import com.nunchuk.android.core.retry.DEFAULT_RETRY_POLICY
+import com.nunchuk.android.core.retry.RetryPolicy
+import com.nunchuk.android.core.retry.SYNC_RETRY_POLICY
+import com.nunchuk.android.core.retry.retryDefault
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.*
+import com.nunchuk.android.messages.model.RoomNotFoundException
+import com.nunchuk.android.messages.model.SessionLostException
 import com.nunchuk.android.messages.usecase.message.CreateRoomWithTagUseCase
 import com.nunchuk.android.messages.util.STATE_NUNCHUK_SYNC
 import com.nunchuk.android.messages.util.isLocalEvent
@@ -39,6 +45,7 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Named
 
 internal class MainActivityViewModel @Inject constructor(
     private val enableAutoBackupUseCase: EnableAutoBackupUseCase,
@@ -55,12 +62,15 @@ internal class MainActivityViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val loginWithMatrixUseCase: LoginWithMatrixUseCase,
     private val getDisplayUnitSettingUseCase: GetDisplayUnitSettingUseCase,
-    private val notificationManager: PushNotificationManager
+    private val notificationManager: PushNotificationManager,
+    @Named(DEFAULT_RETRY_POLICY) private val retryPolicy: RetryPolicy,
+    @Named(SYNC_RETRY_POLICY) private val syncRetryPolicy: RetryPolicy
 ) : NunchukViewModel<Unit, MainAppEvent>() {
 
     override val initialState = Unit
 
     private var syncRoomId: String? = null
+
     private lateinit var timeline: Timeline
 
     init {
@@ -105,7 +115,7 @@ internal class MainActivityViewModel @Inject constructor(
                 .flowOn(IO)
                 .onException {}
                 .flowOn(Main)
-                .collect { Timber.d("[App] registerDownloadFileBackup") }
+                .collect { Timber.tag(TAG).d("[App] registerDownloadFileBackup") }
         }
     }
 
@@ -118,6 +128,7 @@ internal class MainActivityViewModel @Inject constructor(
                 data: ByteArray,
                 dataLength: Int
             ) {
+                Timber.tag(TAG).d("[App] upload: $fileName")
                 uploadFile(fileName, fileJsonInfo, mineType, data)
             }
         }
@@ -128,7 +139,7 @@ internal class MainActivityViewModel @Inject constructor(
                 fileJsonInfo: String,
                 fileUrl: String
             ) {
-                Timber.d("[App] download: $fileUrl")
+                Timber.tag(TAG).d("[App] download: $fileUrl")
                 downloadFile(fileJsonInfo, fileUrl)
             }
         }
@@ -142,11 +153,12 @@ internal class MainActivityViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             uploadFileUseCase.execute(fileName = fileName, fileType = mineType, fileData = data)
+                .retryDefault(retryPolicy)
                 .flowOn(IO)
                 .onException {}
                 .flowOn(Main)
                 .collect {
-                    Timber.d("[App] fileUploadURL: ${it.contentUri}")
+                    Timber.tag(TAG).d("[App] fileUploadURL: ${it.contentUri}")
                     backupFile(fileJsonInfo, it.contentUri.orEmpty())
                 }
         }
@@ -161,13 +173,13 @@ internal class MainActivityViewModel @Inject constructor(
         syncRoomId?.let {
             viewModelScope.launch {
                 backupFileUseCase.execute(it, fileJsonInfo, fileUri)
+                    .retryDefault(retryPolicy)
                     .flowOn(IO)
                     .onException { }
                     .flowOn(Main)
-                    .collect { Timber.d("[App] backupFile success") }
+                    .collect { Timber.tag(TAG).d("[App] backupFile success") }
             }
         }
-
     }
 
     private fun downloadFile(fileJsonInfo: String, fileUrl: String) {
@@ -177,20 +189,29 @@ internal class MainActivityViewModel @Inject constructor(
         val mediaId = if (contentUriInfo.isEmpty()) "" else contentUriInfo[1]
         viewModelScope.launch {
             downloadFileUseCase.execute(serverName = serverName, mediaId = mediaId)
+                .retryDefault(retryPolicy)
                 .flowOn(IO)
                 .onException { }
                 .flowOn(Main)
-                .collect { event(DownloadFileSyncSucceed(fileJsonInfo, it)) }
+                .collect {
+                    Timber.tag(TAG).d("[App] DownloadFileSyncSucceed: $fileJsonInfo")
+                    event(DownloadFileSyncSucceed(fileJsonInfo, it))
+                }
         }
     }
 
     fun consumeSyncFile(fileJsonInfo: String, fileData: ByteArray) {
+        Timber.tag(TAG).d("consumeSyncFile($fileJsonInfo, $fileData)")
         viewModelScope.launch {
             consumeSyncFileUseCase.execute(fileJsonInfo, fileData)
+                .retryDefault(retryPolicy)
                 .flowOn(IO)
                 .onException { }
                 .flowOn(Main)
-                .collect { Timber.d("[App] consumeSyncFile") }
+                .collect {
+                    event(SynCompleted)
+                    Timber.tag(TAG).d("[App] consumeSyncFile")
+                }
         }
     }
 
@@ -201,14 +222,13 @@ internal class MainActivityViewModel @Inject constructor(
                 listOf(SessionHolder.activeSession?.sessionParams?.userId.orEmpty()),
                 STATE_NUNCHUK_SYNC
             )
+                .retryDefault(retryPolicy)
                 .flowOn(IO)
                 .onException { }
                 .flowOn(Main)
                 .collect {
                     syncRoomId = it.roomId
-                    syncRoomId?.let { roomId ->
-                        syncData(roomId = roomId)
-                    }
+                    syncRoomId?.let(::syncData)
                 }
         }
     }
@@ -216,37 +236,47 @@ internal class MainActivityViewModel @Inject constructor(
     private fun enableAutoBackup(syncRoomId: String) {
         viewModelScope.launch {
             enableAutoBackupUseCase.execute(syncRoomId)
+                .retryDefault(retryPolicy)
                 .flowOn(IO)
                 .onException { }
                 .flowOn(Main)
-                .collect { Timber.v("enableAutoBackup success ", it) }
+                .collect { Timber.tag(TAG).v("enableAutoBackup success") }
         }
     }
 
     private fun Room.retrieveTimelineEvents() {
+        Timber.tag(TAG).v("retrieveTimelineEvents")
         timeline = createTimeline(null, TimelineSettings(initialSize = PAGINATION, true))
+        timeline.removeAllListeners()
         timeline.addListener(TimelineListenerAdapter(::handleTimelineEvents))
         timeline.start()
     }
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
+        Timber.tag(TAG).v("handleTimelineEvents")
         val nunchukEvents = events.filter(TimelineEvent::isNunchukConsumeSyncEvent)
         viewModelScope.launch {
             val sortedEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
                 .sortedBy(NunchukMatrixEvent::time)
+            Timber.tag(TAG).v("sortedEvents::$sortedEvents")
             consumerSyncEventUseCase.execute(sortedEvents)
+                .retryDefault(retryPolicy)
                 .flowOn(IO)
                 .onException { }
                 .flowOn(Main)
-                .collect { Timber.v("consumerSyncEventUseCase success ", it) }
+                .collect {
+                    Timber.tag(TAG).v("consumerSyncEventUseCase success")
+                }
         }
     }
 
     @Synchronized
-    fun getAllRooms() {
+    fun setupSyncing() {
+        Timber.tag(TAG).d("Bearer ${SessionHolder.activeSession?.sessionParams?.credentials?.accessToken.orEmpty()}")
         viewModelScope.launch {
             syncStateMatrixUseCase.execute()
+                .retryDefault(retryPolicy)
                 .flowOn(IO)
                 .onException { }
                 .flowOn(Main)
@@ -254,10 +284,10 @@ internal class MainActivityViewModel @Inject constructor(
                     event(SynCompleted)
                     syncRoomId = findSyncRoom(it)
                     syncRoomId?.let { syncRoomId ->
-                        Timber.d("Have sync room: $syncRoomId")
+                        Timber.tag(TAG).d("Have sync room: $syncRoomId")
                         syncData(roomId = syncRoomId)
                     } ?: run {
-                        Timber.d("Don't have sync room")
+                        Timber.tag(TAG).d("Don't have sync room")
                         createRoomWithTagSync()
                     }
                 }
@@ -275,8 +305,25 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     private fun syncData(roomId: String) {
+        Timber.tag(TAG).d("syncData::$roomId")
         enableAutoBackup(roomId)
-        SessionHolder.activeSession?.getRoom(roomId)?.retrieveTimelineEvents()
+        retrieveTimelines(roomId)
+    }
+
+    private fun retrieveTimelines(roomId: String) {
+        viewModelScope.launch {
+            flow {
+                val activeSession = SessionHolder.activeSession ?: throw SessionLostException()
+                val room = activeSession.getRoom(roomId) ?: throw RoomNotFoundException(roomId)
+                emit(room)
+            }.retryDefault(syncRetryPolicy)
+                .flowOn(IO)
+                .onException { }
+                .flowOn(Main)
+                .collect {
+                    it.retrieveTimelineEvents()
+                }
+        }
     }
 
     private fun loginWithMatrix(
@@ -287,11 +334,12 @@ internal class MainActivityViewModel @Inject constructor(
         userName = userName,
         password = password,
         encryptedDeviceId = encryptedDeviceId
-    )
+    ).retryDefault(retryPolicy)
         .onException {}
 
     fun setupMatrix(token: String, encryptedDeviceId: String) {
         getUserProfileUseCase.execute()
+            .retryDefault(retryPolicy)
             .flatMapConcat {
                 loginWithMatrix(
                     userName = it,
@@ -300,7 +348,7 @@ internal class MainActivityViewModel @Inject constructor(
                 )
             }
             .onEach {
-                getAllRooms()
+                setupSyncing()
             }
             .flowOn(Main)
             .launchIn(viewModelScope)
@@ -323,6 +371,7 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     companion object {
+        private const val TAG = "MainActivityViewModel"
         private const val EVENT_TYPE_SYNC = "io.nunchuk.sync"
         private const val EVENT_TYPE_TAG_ROOM = "m.tag"
     }
