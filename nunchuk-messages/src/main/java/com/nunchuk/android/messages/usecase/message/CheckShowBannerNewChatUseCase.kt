@@ -1,4 +1,4 @@
-package com.nunchuk.android.core.domain
+package com.nunchuk.android.messages.usecase.message
 
 import com.nunchuk.android.core.persistence.NCSharePreferences
 import kotlinx.coroutines.flow.Flow

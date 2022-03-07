@@ -38,7 +38,7 @@ ext {
     MINOR_VERSION = 9
     PATCH_VERSION = 13
 
-    VERSION_CODE = 96
+    VERSION_CODE = 97
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
@@ -46,7 +46,7 @@ ext {
             targetSdkVersion : 31,
             minSdkVersion    : 21,
             buildToolsVersion: "31.0.0",
-            versionName      : "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}",
+            versionName      : "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}-delete-account",
             versionCode      : VERSION_CODE
     ]
 

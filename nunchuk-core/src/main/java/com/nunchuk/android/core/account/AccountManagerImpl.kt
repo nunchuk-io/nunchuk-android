@@ -8,6 +8,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -26,12 +27,14 @@ interface AccountManager {
 
     fun storeAccount(accountInfo: AccountInfo)
 
-    fun signOut()
+    fun signOut(onSignedOut: () -> Unit = {})
+
+    fun clearUserData()
 }
 
 @Singleton
 internal class AccountManagerImpl @Inject constructor(
-    private val accountSharedPref: AccountSharedPref
+    private val accountSharedPref: AccountSharedPref,
 ) : AccountManager {
 
     val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -50,21 +53,22 @@ internal class AccountManagerImpl @Inject constructor(
         accountSharedPref.storeAccountInfo(accountInfo)
     }
 
-    override fun signOut() {
+    override fun signOut(onSignedOut: () -> Unit) {
         // TODO call Nunchuk SignOut Api
         scope.launch {
-            signOutMatrix().flowOn(Dispatchers.IO)
-                .onException {
-                    Timber.e("signOut error ", it)
-                }
+            signOutMatrix()
+                .flowOn(Dispatchers.IO)
+                .onException { Timber.e("signOut error ", it) }
                 .flowOn(Dispatchers.Main)
-                .collect {
-                    accountSharedPref.clearAccountInfo()
-                    SessionHolder.activeSession = null
-                    SessionHolder.currentRoom = null
-                    Timber.e("signOut success ")
-                }
+                .onCompletion { onSignedOut() }
+                .collect { clearUserData() }
         }
+    }
+
+    override fun clearUserData() {
+        accountSharedPref.clearAccountInfo()
+        SessionHolder.activeSession = null
+        SessionHolder.currentRoom = null
     }
 
     private fun signOutMatrix() = flow {

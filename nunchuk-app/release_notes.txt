@@ -1,13 +1,11 @@
 What's news:
+- NUN-1236 Android - Add ability to delete account/Add account settings tab/ consolidate change password tab into account
+- Copy change
 - NUN-1061 [Android] - Integrate Passport
 - NUN-1008 [Android] - Missing number of confirmations in Tx History
 - NUN-1158 [Android] - Display wrong wallet screen and App crash when tap Send button
 - NUN-1077 [Android] - Close button (x) in New Chat is little small
-- Copy change
 - NUN-1094 Android - Import PSBT flow (with absolute psbt path)
 - NUN-1159  Android - Let user create a chat room with himself
 - Update libnunchuk to remove canceled shared transaction.
 - [NUN-1185] Add delay to create room to avoid empty name.
-- Improve sync flow.
-- Reduce network timeout to 30s instead of 60s
-- Upgrade matrix to latest version 1.4.2

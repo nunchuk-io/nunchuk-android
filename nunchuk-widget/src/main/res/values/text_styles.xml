@@ -27,6 +27,7 @@
 
     <style name="NCText.Body" parent="NCText">
         <item name="android:textSize">@dimen/nc_text_size_16</item>
+        <item name="android:fontFamily">@font/lato_regular</item>
     </style>
 
     <style name="NCText.Body.Small" parent="NCText.Body">

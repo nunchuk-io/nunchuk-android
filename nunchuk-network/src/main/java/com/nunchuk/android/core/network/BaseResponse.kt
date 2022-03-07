@@ -28,6 +28,17 @@ data class Data<out T>(
             }
             throw NunchukApiException()
         }
+
+    fun getError(): NunchukApiException? {
+        if (_error != null && _error.code != 0) {
+            return NunchukApiException(
+                code = _error.code,
+                message = _error.message ?: UNKNOWN_ERROR,
+                errorDetail = _error.details
+            )
+        }
+        return null
+    }
 }
 
 data class ErrorResponse(
