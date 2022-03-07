@@ -39,6 +39,8 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -209,7 +211,7 @@ internal class MainActivityViewModel @Inject constructor(
                 .onException { }
                 .flowOn(Main)
                 .collect {
-                    event(SynCompleted)
+                    event(SyncCompleted)
                     Timber.tag(TAG).d("[App] consumeSyncFile")
                 }
         }
@@ -258,7 +260,7 @@ internal class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             val sortedEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
-                .sortedBy(NunchukMatrixEvent::time)
+                .sortedByDescending(NunchukMatrixEvent::time)
             Timber.tag(TAG).v("sortedEvents::$sortedEvents")
             consumerSyncEventUseCase.execute(sortedEvents)
                 .retryDefault(retryPolicy)
@@ -271,26 +273,27 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
-    @Synchronized
     fun setupSyncing() {
         Timber.tag(TAG).d("Bearer ${SessionHolder.activeSession?.sessionParams?.credentials?.accessToken.orEmpty()}")
         viewModelScope.launch {
-            syncStateMatrixUseCase.execute()
-                .retryDefault(retryPolicy)
-                .flowOn(IO)
-                .onException { }
-                .flowOn(Main)
-                .collect {
-                    event(SynCompleted)
-                    syncRoomId = findSyncRoom(it)
-                    syncRoomId?.let { syncRoomId ->
-                        Timber.tag(TAG).d("Have sync room: $syncRoomId")
-                        syncData(roomId = syncRoomId)
-                    } ?: run {
-                        Timber.tag(TAG).d("Don't have sync room")
-                        createRoomWithTagSync()
-                    }
-                }
+            SyncStateHolder.lockStateCreateSyncRoom.withLock {
+                syncStateMatrixUseCase.execute()
+                    .retryDefault(retryPolicy)
+                    .flowOn(IO)
+                    .onException { }
+                    .flowOn(Main)
+                    .collect {
+                            event(SyncCompleted)
+                            syncRoomId = findSyncRoom(it)
+                            syncRoomId?.let { syncRoomId ->
+                                Timber.tag(TAG).d("Have sync room: $syncRoomId")
+                                syncData(roomId = syncRoomId)
+                            } ?: run {
+                                Timber.tag(TAG).d("Don't have sync room")
+                                createRoomWithTagSync()
+                            }
+                        }
+            }
         }
     }
 

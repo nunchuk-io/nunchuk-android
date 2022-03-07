@@ -14,6 +14,6 @@ internal sealed class MainAppEvent {
         val connectionStatus: ConnectionStatus
     ) : MainAppEvent()
 
-    object SynCompleted : MainAppEvent()
+    object SyncCompleted : MainAppEvent()
 
 }
