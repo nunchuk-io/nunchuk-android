@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:navigationIcon="@drawable/ic_back"
+        app:title="@string/nc_settings_delete_account" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/information"
+        style="@style/NCText.Body.Small"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:background="@drawable/nc_rounded_whisper_background"
+        android:drawablePadding="@dimen/nc_padding_16"
+        android:gravity="center_vertical"
+        android:padding="@dimen/nc_padding_16"
+        app:drawableStartCompat="@drawable/ic_info"
+        android:text="@string/nc_account_delete_account_information" />
+
+    <com.nunchuk.android.widget.NCEditTextView
+        android:id="@+id/confirmation_code"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        app:edit_title="Confirmation code"
+        app:errorEnabled="true" />
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/confirm_button"
+        style="@style/NCPrimaryButton.Dark"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_18"
+        android:text="Confirm account deletion" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>

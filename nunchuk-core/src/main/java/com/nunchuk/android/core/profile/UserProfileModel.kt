@@ -31,3 +31,8 @@ data class UpdateUserProfilePayload(
     @SerializedName("avatar_url")
     val avatarUrl: String? = null
 ) : Serializable
+
+data class DeleteConfirmationPayload(
+    @SerializedName("confirmation_code")
+    val confirmationCode: String
+) : Serializable

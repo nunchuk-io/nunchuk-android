@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_back"
+        app:title="@string/nc_settings_account_settings" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/password"
+        style="@style/NCText.Settings"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:background="?android:selectableItemBackground"
+        android:drawableStart="@drawable/ic_password"
+        android:drawableEnd="@drawable/ic_arrow"
+        android:text="@string/nc_settings_change_password" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/devices"
+        style="@style/NCText.Settings"
+        android:background="?android:selectableItemBackground"
+        android:drawableStart="@drawable/ic_devices"
+        android:drawableEnd="@drawable/ic_arrow"
+        android:text="@string/nc_settings_logged_in_devices" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/delete"
+        style="@style/NCText.Settings"
+        android:background="?android:selectableItemBackground"
+        android:drawableStart="@drawable/ic_delete_account"
+        android:drawableEnd="@drawable/ic_arrow"
+        android:text="@string/nc_settings_delete_account" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>

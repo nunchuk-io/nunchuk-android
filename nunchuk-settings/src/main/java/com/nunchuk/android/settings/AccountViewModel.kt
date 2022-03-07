@@ -4,8 +4,8 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.callbacks.SyncFileCallBack
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
+import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.matrix.UploadFileUseCase
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.profile.UpdateUseProfileUseCase
@@ -50,26 +50,24 @@ internal class AccountViewModel @Inject constructor(
     fun getCurrentAccountInfo() = accountManager.getAccount()
 
     fun getCurrentUser() {
-        if (SignInModeHolder.currentMode == SignInMode.GUEST_MODE) {
-            event(
-                AccountEvent.GetUserProfileGuestEvent
-            )
-            return
-        }
-        viewModelScope.launch {
-            getUserProfileUseCase.execute()
-                .flowOn(Dispatchers.IO)
-                .onException { }
-                .flowOn(Dispatchers.Main)
-                .collect {
-                    updateStateUserAccount()
-                    event(
-                        AccountEvent.GetUserProfileSuccessEvent(
-                            name = accountManager.getAccount().name,
-                            avatarUrl = accountManager.getAccount().avatarUrl
+        if (SignInModeHolder.currentMode.isGuestMode()) {
+            event(AccountEvent.GetUserProfileGuestEvent)
+        } else {
+            viewModelScope.launch {
+                getUserProfileUseCase.execute()
+                    .flowOn(Dispatchers.IO)
+                    .onException { }
+                    .flowOn(Dispatchers.Main)
+                    .collect {
+                        updateStateUserAccount()
+                        event(
+                            AccountEvent.GetUserProfileSuccessEvent(
+                                name = accountManager.getAccount().name,
+                                avatarUrl = accountManager.getAccount().avatarUrl
+                            )
                         )
-                    )
-                }
+                    }
+            }
         }
     }
 
@@ -98,7 +96,6 @@ internal class AccountViewModel @Inject constructor(
                 }
         }
     }
-
 
     private fun updateStateUserAccount() {
         updateState {

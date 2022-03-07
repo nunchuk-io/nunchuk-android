@@ -24,13 +24,7 @@ internal interface DomainModule {
     fun bindInitAppSettingsUseCase(useCase: InitAppSettingsUseCaseImpl): InitAppSettingsUseCase
 
     @Binds
-    fun bindGetBlockchainExplorerUrlUseCase(useCase: GetBlockchainExplorerUrlUseCaseImpl): GetBlockchainExplorerUrlUseCase
-
-    @Binds
     fun bindHideBannerNewChatUseCase(useCase: HideBannerNewChatUseCaseImpl): HideBannerNewChatUseCase
-
-    @Binds
-    fun bindCheckShowBannerNewChatUseCase(useCase: CheckShowBannerNewChatUseCaseImpl): CheckShowBannerNewChatUseCase
 
     @Binds
     fun bindLoginWithMatrixUseCase(useCase: LoginWithMatrixUseCaseImpl): LoginWithMatrixUseCase
@@ -46,4 +40,7 @@ internal interface DomainModule {
 
     @Binds
     fun bindGetCurrentAccountAsContact(useCase: GetCurrentUserAsContactUseCaseImpl): GetCurrentUserAsContactUseCase
+
+    @Binds
+    fun bindCleanUpCryptoAssetsUseCase(useCase: CleanUpCryptoAssetsUseCaseImpl): CleanUpCryptoAssetsUseCase
 }

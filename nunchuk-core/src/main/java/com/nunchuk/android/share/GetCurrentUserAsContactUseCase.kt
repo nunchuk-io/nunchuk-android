@@ -2,9 +2,8 @@ package com.nunchuk.android.share
 
 import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.guestmode.SignInMode.GUEST_MODE
-import com.nunchuk.android.core.guestmode.SignInMode.NORMAL
 import com.nunchuk.android.core.guestmode.SignInModeHolder
+import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.model.Contact
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -22,10 +21,7 @@ internal class GetCurrentUserAsContactUseCaseImpl @Inject constructor(
         emit(getCurrentAsContact())
     }
 
-    private fun getCurrentAsContact() = when (SignInModeHolder.currentMode) {
-        NORMAL -> accountManager.getAccount().toContact()
-        GUEST_MODE -> null
-    }
+    private fun getCurrentAsContact() = if (SignInModeHolder.currentMode.isGuestMode()) null else accountManager.getAccount().toContact()
 
 }
 

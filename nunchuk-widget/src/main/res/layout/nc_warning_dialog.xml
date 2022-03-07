@@ -3,68 +3,77 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/custom_toast_container"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_gravity="center"
-    android:layout_marginHorizontal="@dimen/nc_padding_12"
-    android:background="@drawable/nc_rounded_white_background"
-    android:orientation="vertical"
-    android:padding="@dimen/nc_padding_24">
+    android:layout_height="match_parent"
+    android:background="@color/nc_dialog_background">
 
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/title"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="@string/nc_text_warning"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_18"
+        android:layout_marginHorizontal="@dimen/nc_padding_36"
+        android:background="@drawable/nc_rounded_dialog_white_background"
+        android:padding="@dimen/nc_padding_24"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.40">
 
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/message"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/nc_padding_24"
-        android:gravity="center"
-        android:lineSpacingMultiplier="1.5"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/title"
-        tools:text="It is not recommended for the software signers to have complete control of the wallet. Software signers are not as safe as hardware signers. Are you sure you want to proceed?" />
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/nc_text_warning"
+            android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_18"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.5" />
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_24"
+            android:gravity="center"
+            android:lineSpacingMultiplier="1.5"
+            android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_16"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/title"
+            tools:text="It is not recommended for the software signers to have complete control of the wallet. Software signers are not as safe as hardware signers. Are you sure you want to proceed?" />
 
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/btnNo"
-        style="@style/NCPrimaryButton.Light"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/nc_padding_24"
-        android:layout_marginEnd="@dimen/nc_padding_8"
-        android:text="@string/nc_text_no"
-        app:layout_constraintEnd_toStartOf="@+id/guideline"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/message" />
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.5" />
 
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/btnYes"
-        style="@style/NCPrimaryButton.Dark"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/nc_padding_8"
-        android:layout_marginTop="@dimen/nc_padding_24"
-        android:text="@string/nc_text_yes"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/guideline"
-        app:layout_constraintTop_toBottomOf="@+id/message" />
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/btnNo"
+            style="@style/NCPrimaryButton.Light"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_24"
+            android:layout_marginEnd="@dimen/nc_padding_8"
+            android:text="@string/nc_text_no"
+            app:layout_constraintEnd_toStartOf="@+id/guideline"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/message" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/btnYes"
+            style="@style/NCPrimaryButton.Dark"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/nc_padding_8"
+            android:layout_marginTop="@dimen/nc_padding_24"
+            android:text="@string/nc_text_yes"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/guideline"
+            app:layout_constraintTop_toBottomOf="@+id/message" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

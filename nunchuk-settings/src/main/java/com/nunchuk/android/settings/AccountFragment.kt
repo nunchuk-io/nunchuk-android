@@ -2,6 +2,7 @@ package com.nunchuk.android.settings
 
 import android.Manifest.permission.CAMERA
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -18,8 +19,8 @@ import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
+import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.settings.AccountEvent.SignOutEvent
 import com.nunchuk.android.settings.databinding.FragmentAccountBinding
@@ -67,21 +68,15 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
         binding.layoutSync.tvSyncingPercent.text = "${state.syncProgress}%"
         binding.layoutSync.progressBarSyncing.progress = state.syncProgress
 
-        binding.btnSignOut.isVisible = SignInModeHolder.currentMode == SignInMode.NORMAL
-        binding.signIn.isVisible = SignInModeHolder.currentMode == SignInMode.GUEST_MODE
-        binding.signUp.isVisible = SignInModeHolder.currentMode == SignInMode.GUEST_MODE
+        val isGuestMode = SignInModeHolder.currentMode.isGuestMode()
+        binding.btnSignOut.isVisible = !isGuestMode
+        binding.signIn.isVisible = isGuestMode
+        binding.signUp.isVisible = isGuestMode
+        binding.accountSettings.isVisible = !isGuestMode
     }
 
     private fun openAboutScreen() {
-        showComingSoonText()
-    }
-
-    private fun openLoggedInDevicesScreen() {
-        showComingSoonText()
-    }
-
-    private fun openChangePasswordScreen() {
-        navigator.openChangePasswordScreen(requireActivity())
+        requireActivity().showComingSoonText()
     }
 
     private fun changeNetworkSetting() {
@@ -294,28 +289,21 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
 
         binding.unit.setOnClickListener { changeUnitSetting() }
         binding.network.setOnClickListener { changeNetworkSetting() }
-        binding.devices.setOnClickListener { openLoggedInDevicesScreen() }
         binding.about.setOnClickListener { openAboutScreen() }
 
-        if (SignInModeHolder.currentMode == SignInMode.GUEST_MODE) {
+        if (SignInModeHolder.currentMode.isGuestMode()) {
             binding.name.setOnClickListener(null)
             binding.takePicture.setOnClickListener(null)
-            binding.password.setOnClickListener(null)
-            return
+            binding.accountSettings.setOnClickListener(null)
+        } else {
+            binding.name.setOnClickListener { editName() }
+            binding.takePicture.setOnClickListener { changeAvatar() }
+            binding.accountSettings.setOnClickListener { AccountSettingActivity.start(requireActivity()) }
         }
-
-        binding.name.setOnClickListener { editName() }
-        binding.takePicture.setOnClickListener { changeAvatar() }
-        binding.password.setOnClickListener { openChangePasswordScreen() }
-
     }
 
     private fun setupData() {
         viewModel.getCurrentUser()
-    }
-
-    private fun showComingSoonText() {
-        requireActivity().showToast("Coming soon")
     }
 
     companion object {
@@ -325,4 +313,8 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
         private const val REQUEST_SELECT_PHOTO_CODE = 1250
     }
 
+}
+
+internal fun Activity.showComingSoonText() {
+    showToast("Coming soon")
 }

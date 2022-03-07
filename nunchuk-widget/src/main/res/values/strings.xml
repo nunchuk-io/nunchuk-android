@@ -25,4 +25,6 @@
     <string name="nc_text_created">Created</string>
     <string name="nc_text_canceled">Canceled</string>
     <string name="nc_text_completed">Completed</string>
+    <string name="nc_confirmation">Confirmation</string>
+    <string name="nc_delete_account">Are you sure you want to delete this account? Please type DELETE to confirm.</string>
 </resources>

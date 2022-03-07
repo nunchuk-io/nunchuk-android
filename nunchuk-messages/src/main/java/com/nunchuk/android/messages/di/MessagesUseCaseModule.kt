@@ -1,5 +1,7 @@
 package com.nunchuk.android.messages.di
 
+import com.nunchuk.android.messages.usecase.message.CheckShowBannerNewChatUseCase
+import com.nunchuk.android.messages.usecase.message.CheckShowBannerNewChatUseCaseImpl
 import com.nunchuk.android.messages.usecase.message.*
 import dagger.Binds
 import dagger.Module
@@ -27,5 +29,8 @@ internal interface MessagesUseCaseModule {
 
     @Binds
     fun bindJoinRoomUseCase(useCase: JoinRoomUseCaseImpl): JoinRoomUseCase
+
+    @Binds
+    fun bindCheckShowBannerNewChatUseCase(useCase: CheckShowBannerNewChatUseCaseImpl): CheckShowBannerNewChatUseCase
 
 }

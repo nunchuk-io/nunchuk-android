@@ -10,6 +10,16 @@
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
+            android:name=".AccountSettingActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".DeleteAccountActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
             android:name=".unit.DisplayUnitActivity"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />

@@ -56,7 +56,7 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity(), HasAnd
     override fun onResume() {
         super.onResume()
         UnauthorizedEventBus.instance().subscribe {
-            accountManager.signOut()
+            accountManager.clearUserData()
             navigator.openSignInScreen(this)
             CrashlyticsReporter.recordException(UnauthorizedException())
         }

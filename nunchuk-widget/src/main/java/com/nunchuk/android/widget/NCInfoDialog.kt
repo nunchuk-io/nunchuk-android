@@ -2,9 +2,10 @@ package com.nunchuk.android.widget
 
 import android.app.Activity
 import android.app.Dialog
-import android.view.View
+import android.view.LayoutInflater
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.Window
-import android.widget.TextView
+import com.nunchuk.android.widget.databinding.NcInfoDialogBinding
 import javax.inject.Inject
 
 class NCInfoDialog @Inject constructor(
@@ -20,17 +21,18 @@ class NCInfoDialog @Inject constructor(
         window?.setBackgroundDrawableResource(android.R.color.transparent)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         setCancelable(false)
-        setContentView(R.layout.nc_info_dialog)
+        val binding = NcInfoDialogBinding.inflate(LayoutInflater.from(context))
+        setContentView(binding.root)
 
-        findViewById<TextView>(R.id.title).text = title
-        findViewById<TextView>(R.id.btnYes).text = btnYes
-        findViewById<TextView>(R.id.message).text = message
-        findViewById<View>(R.id.btnYes).setOnClickListener {
+        binding.title.text = title
+        binding.btnYes.text = btnYes
+        binding.message.text = message
+        binding.btnYes.setOnClickListener {
             onYesClick()
             dismiss()
         }
-
         show()
+        window?.setLayout(MATCH_PARENT, MATCH_PARENT)
     }
 
 }

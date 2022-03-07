@@ -5,13 +5,14 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.Window
-import com.nunchuk.android.widget.databinding.NcConfirmDialogBinding
+import com.nunchuk.android.widget.databinding.NcDeleteConfirmDialogBinding
 import javax.inject.Inject
 
-class NCInputDialog @Inject constructor(private val context: Context) {
+class NCDeleteConfirmationDialog @Inject constructor(private val context: Context) {
 
     fun showDialog(
-        title: String,
+        title: String = context.getString(R.string.nc_confirmation),
+        message: String = context.getString(R.string.nc_delete_account),
         onConfirmed: (String) -> Unit = {},
         onCanceled: () -> Unit = {}
     ) {
@@ -19,11 +20,12 @@ class NCInputDialog @Inject constructor(private val context: Context) {
             window?.setBackgroundDrawableResource(android.R.color.transparent)
             requestWindowFeature(Window.FEATURE_NO_TITLE)
             setCancelable(false)
-            val binding = NcConfirmDialogBinding.inflate(LayoutInflater.from(context))
+            val binding = NcDeleteConfirmDialogBinding.inflate(LayoutInflater.from(context))
             setContentView(binding.root)
             binding.title.text = title
+            binding.message.text = message
             binding.btnYes.setOnClickListener {
-                onConfirmed(binding.message.text.toString())
+                onConfirmed(binding.input.text.toString())
                 dismiss()
             }
 

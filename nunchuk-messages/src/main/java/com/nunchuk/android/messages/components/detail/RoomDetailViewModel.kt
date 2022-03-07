@@ -3,7 +3,7 @@ package com.nunchuk.android.messages.components.detail
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.domain.CheckShowBannerNewChatUseCase
+import com.nunchuk.android.messages.usecase.message.CheckShowBannerNewChatUseCase
 import com.nunchuk.android.core.domain.HideBannerNewChatUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.PAGINATION
