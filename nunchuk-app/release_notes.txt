@@ -1,5 +1,6 @@
 What's news:
-- NUN-1236 Android - Add ability to delete account/Add account settings tab/ consolidate change password tab into account
+- NUN-1265 Android - satoshi in Send screen must be whole numbers, no fractions
+- NUN-1236 Android - Delete account - Clear wallets/keys
 - Copy change
 - NUN-1061 [Android] - Integrate Passport
 - NUN-1008 [Android] - Missing number of confirmations in Tx History

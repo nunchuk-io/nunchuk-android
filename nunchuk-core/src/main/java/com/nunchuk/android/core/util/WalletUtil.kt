@@ -1,7 +1,6 @@
 package com.nunchuk.android.core.util
 
 import com.nunchuk.android.core.entities.BTC
-import com.nunchuk.android.core.entities.BTC_AND_FIXED_PRECISION
 import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.entities.SAT
 import com.nunchuk.android.model.Amount
@@ -14,7 +13,7 @@ fun Wallet.getBTCAmount() = balance.getBTCAmount()
 
 fun Wallet.getUSDAmount() = balance.getUSDAmount()
 
-fun Amount.getBTCAmount() = when(CURRENT_DISPLAY_UNIT_TYPE) {
+fun Amount.getBTCAmount() = when (CURRENT_DISPLAY_UNIT_TYPE) {
     SAT -> "${value.beautifySATFormat()} sat"
     BTC -> "${formattedValue.toDouble().toLong().numberFormat()} BTC"
     else -> "$formattedValue BTC"
@@ -28,12 +27,11 @@ fun Double.fromUSDToBTC() = this / BTC_USD_EXCHANGE_RATE
 
 fun Amount.pureBTC() = value * SATOSHI_BTC_EXCHANGE_RATE
 
-fun Double.getBTCAmount() = when(CURRENT_DISPLAY_UNIT_TYPE) {
-    SAT -> "${(this * BTC_SATOSHI_EXCHANGE_RATE).beautifySATFormat()} sat"
+fun Double.getBTCAmount() = when (CURRENT_DISPLAY_UNIT_TYPE) {
+    SAT -> "${((this * BTC_SATOSHI_EXCHANGE_RATE).roundToLong()).beautifySATFormat()} sat"
     BTC -> "${toLong().numberFormat()} BTC"
     else -> " ${formatDecimal()} BTC"
 }
-// = " ${formatDecimal()} BTC"
 
 fun Double.getUSDAmount() = "$${fromBTCToUSD().formatDecimal(USD_FRACTION_DIGITS)}"
 
@@ -45,6 +43,8 @@ fun Double.toAmount() = Amount().copy(value = (this * BTC_SATOSHI_EXCHANGE_RATE)
 
 fun Int.toAmount() = Amount().copy(value = this.toLong())
 
-fun String.toNumericValue(locale: Locale = Locale.US): Number = try {NumberFormat.getInstance(locale).parse(this) ?: 0.0} catch (t: Exception) {
+fun String.toNumericValue(locale: Locale = Locale.US): Number = try {
+    NumberFormat.getInstance(locale).parse(this) ?: 0.0
+} catch (t: Exception) {
     0.0
 }
