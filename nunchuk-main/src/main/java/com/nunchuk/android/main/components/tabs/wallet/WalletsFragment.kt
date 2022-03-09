@@ -21,7 +21,7 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.main.databinding.FragmentWalletsBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
-import com.nunchuk.android.main.di.MainAppEvent.SynCompleted
+import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
@@ -85,7 +85,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     private fun handleMainActivityEvent(event: MainAppEvent) {
         if (event is GetConnectionStatusSuccessEvent) {
             walletsViewModel.getAppSettings()
-        } else if (event == SynCompleted) {
+        } else if (event == SyncCompleted) {
             Timber.tag("MainActivityViewModel").d("walletsViewModel.retrieveData()")
             binding.root.postDelayed(walletsViewModel::retrieveData, 3000)
         }
