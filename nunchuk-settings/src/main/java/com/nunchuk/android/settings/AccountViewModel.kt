@@ -106,7 +106,14 @@ internal class AccountViewModel @Inject constructor(
     }
 
     fun handleSignOutEvent() {
-        accountManager.signOut()
-        event(AccountEvent.SignOutEvent)
+        accountManager.signOut(
+            onStartSignOut = {
+                event(AccountEvent.LoadingEvent(true))
+            },
+            onSignedOut = {
+                event(AccountEvent.LoadingEvent(false))
+                event(AccountEvent.SignOutEvent)
+            }
+        )
     }
 }

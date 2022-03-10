@@ -5,10 +5,7 @@ import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -27,7 +24,7 @@ interface AccountManager {
 
     fun storeAccount(accountInfo: AccountInfo)
 
-    fun signOut(onSignedOut: () -> Unit = {})
+    fun signOut(onStartSignOut: () -> Unit = {}, onSignedOut: () -> Unit = {})
 
     fun clearUserData()
 }
@@ -53,15 +50,20 @@ internal class AccountManagerImpl @Inject constructor(
         accountSharedPref.storeAccountInfo(accountInfo)
     }
 
-    override fun signOut(onSignedOut: () -> Unit) {
+    override fun signOut(onStartSignOut: () -> Unit, onSignedOut: () -> Unit) {
         // TODO call Nunchuk SignOut Api
         scope.launch {
             signOutMatrix()
                 .flowOn(Dispatchers.IO)
+                .onStart { onStartSignOut() }
                 .onException { Timber.e("signOut error ", it) }
                 .flowOn(Dispatchers.Main)
-                .onCompletion { onSignedOut() }
-                .collect { clearUserData() }
+                .onCompletion {
+                    onSignedOut()
+                }
+                .collect {
+                    clearUserData()
+                }
         }
     }
 
