@@ -30,8 +30,6 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
     private val viewModel: RoomsViewModel by viewModels { factory }
 
-    private val mainActivityViewModel: MainActivityViewModel by activityViewModels { factory }
-
     @Inject
     lateinit var accountManager: AccountManager
 
@@ -101,7 +99,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
     private fun handleState(state: RoomsState) {
         adapter.roomWallets = state.roomWallets.map(RoomWallet::roomId)
-        adapter.roomSummaries = state.rooms.filter(RoomSummary::shouldShow)
+        adapter.updateItems(state.rooms.filter(RoomSummary::shouldShow))
         emptyStateView?.isVisible = state.rooms.isEmpty()
 
         hideLoading()

@@ -62,7 +62,7 @@ class AccountSettingActivity : BaseActivity<ActivityAccountSettingBinding>() {
 
     private fun showDeleteAccountConfirmation() {
         NCDeleteConfirmationDialog(this).showDialog(onConfirmed = {
-            if (it == CONFIRMATION_TEXT) {
+            if (it.trim() == CONFIRMATION_TEXT) {
                 viewModel.sendRequestDeleteAccount()
             }
         })

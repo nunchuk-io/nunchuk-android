@@ -1,12 +1,4 @@
 What's news:
-- NUN-1265 Android - satoshi in Send screen must be whole numbers, no fractions
-- NUN-1236 Android - Delete account - Clear wallets/keys
-- Copy change
-- NUN-1061 [Android] - Integrate Passport
-- NUN-1008 [Android] - Missing number of confirmations in Tx History
-- NUN-1158 [Android] - Display wrong wallet screen and App crash when tap Send button
-- NUN-1077 [Android] - Close button (x) in New Chat is little small
-- NUN-1094 Android - Import PSBT flow (with absolute psbt path)
-- NUN-1159  Android - Let user create a chat room with himself
-- Update libnunchuk to remove canceled shared transaction.
-- [NUN-1185] Add delay to create room to avoid empty name.
+- NUN-1036 Android - Make sure user passwords are never leaked in plaintext (on crashes)
+- NUN-1079 Android - Can edit wallet name to all Space character
+- NUN-1266 Android - manual fee rate suggestions could be fractions
