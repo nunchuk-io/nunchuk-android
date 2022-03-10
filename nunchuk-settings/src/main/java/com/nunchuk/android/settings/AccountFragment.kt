@@ -154,6 +154,13 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
                 )
             }
             is AccountEvent.GetUserProfileGuestEvent -> handleSetupGuestProfile()
+            is AccountEvent.LoadingEvent -> {
+                if (event.loading) {
+                    showLoading()
+                } else {
+                    hideLoading()
+                }
+            }
         }
     }
 
