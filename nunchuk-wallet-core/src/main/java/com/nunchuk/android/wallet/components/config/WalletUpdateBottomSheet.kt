@@ -31,7 +31,7 @@ class WalletUpdateBottomSheet : BaseBottomSheet<DialogUpdateWalletBottomSheetBin
         binding.editWalletName.text?.append(args.walletName)
 
         binding.editWalletName.addTextChangedCallback {
-            binding.btnSave.isVisible = it.isNotEmpty()
+            binding.btnSave.isVisible = it.trim().isNotEmpty()
         }
         binding.iconClose.setOnClickListener {
             onCloseClicked()
@@ -42,7 +42,7 @@ class WalletUpdateBottomSheet : BaseBottomSheet<DialogUpdateWalletBottomSheetBin
     }
 
     private fun onSaveClicked() {
-        val newWalletName = binding.editWalletName.text.toString()
+        val newWalletName = binding.editWalletName.text?.trim()?.toString().orEmpty()
         if (newWalletName != args.walletName) {
             listener(newWalletName)
         }

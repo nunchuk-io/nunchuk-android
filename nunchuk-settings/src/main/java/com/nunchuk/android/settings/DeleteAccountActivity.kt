@@ -85,7 +85,7 @@ class DeleteAccountActivity : BaseActivity<ActivityDeleteAccountBinding>() {
     }
 
     companion object {
-        private const val DELAY = 1000L
+        private const val DELAY = 3000L
         fun start(activityContext: Context) {
             activityContext.startActivity(Intent(activityContext, DeleteAccountActivity::class.java))
         }
