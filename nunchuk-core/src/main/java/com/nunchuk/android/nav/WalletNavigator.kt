@@ -80,4 +80,11 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
     fun openWalletDetailsScreen(activityContext: Context, walletId: String)
 
     fun openWalletEmptySignerScreen(activityContext: Context)
+
+    fun openTaprootWarningScreen(
+        activityContext: Context,
+        walletName: String,
+        walletType: WalletType,
+        addressType: AddressType
+    )
 }

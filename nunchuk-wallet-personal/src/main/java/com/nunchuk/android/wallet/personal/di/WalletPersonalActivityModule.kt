@@ -1,8 +1,9 @@
 package com.nunchuk.android.wallet.personal.di
 
+import com.nunchuk.android.wallet.personal.components.TaprootWarningActivity
+import com.nunchuk.android.wallet.personal.components.WalletIntermediaryActivity
 import com.nunchuk.android.wallet.personal.components.add.AddWalletActivity
 import com.nunchuk.android.wallet.personal.components.recover.AddRecoverWalletActivity
-import com.nunchuk.android.wallet.personal.components.WalletIntermediaryActivity
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletQrCodeActivity
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
@@ -21,5 +22,8 @@ interface WalletPersonalActivityModule {
 
     @ContributesAndroidInjector(modules = [RecoverWalletQRCodeViewModelModule::class])
     fun recoverWalletQrCodeActivity(): RecoverWalletQrCodeActivity
+
+    @ContributesAndroidInjector
+    fun taprootWarningActivity(): TaprootWarningActivity
 
 }
