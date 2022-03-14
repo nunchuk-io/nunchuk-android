@@ -3,7 +3,7 @@ package com.nunchuk.android.messages.components.detail
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView.Adapter
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.nunchuk.android.core.loader.ImageLoader
 import com.nunchuk.android.core.util.observable
@@ -24,7 +24,7 @@ internal class MessagesAdapter(
     private val createSharedWalletListener: () -> Unit,
     private val senderLongPressListener: (message: Message, position: Int) -> Unit,
     private val countCheckedChangeListener: (count: Int) -> Unit
-) : Adapter<ViewHolder>() {
+) : ListAdapter<AbsChatModel, ViewHolder>(ChatMessageDiffCallback) {
 
     private var chatModels: List<AbsChatModel> = ArrayList()
     private var transactions: List<TransactionExtended> = ArrayList()
@@ -49,7 +49,6 @@ internal class MessagesAdapter(
         notifyDataSetChanged()
     }
 
-
     internal fun updateSelectedPosition(
         selectedPosition: Int,
         checked: Boolean = false,
@@ -63,12 +62,8 @@ internal class MessagesAdapter(
             }
 
             if (selectedPosition == index) {
-                val updatedMessageData = (model.message as MatrixMessage).copy(
-                    selected = checked
-                )
-                newList.add(MessageModel(
-                    message = updatedMessageData
-                ))
+                val updatedMessageData = (model.message as MatrixMessage).copy(selected = checked)
+                newList.add(MessageModel(message = updatedMessageData))
                 return@forEachIndexed
             }
 
@@ -83,8 +78,8 @@ internal class MessagesAdapter(
         }
     }
 
-    internal fun getSelectedMessage() : List<MatrixMessage>{
-        return this.chatModels.filter {
+    internal fun getSelectedMessage(): List<MatrixMessage> {
+        return chatModels.filter {
             if (it !is MessageModel || it.message !is MatrixMessage) {
                 false
             } else {
@@ -123,7 +118,7 @@ internal class MessagesAdapter(
 
     private fun initChatListWithNewBanner(chatModels: List<AbsChatModel>): MutableList<AbsChatModel> {
         val newList = mutableListOf<AbsChatModel>()
-        newList.add(BannerNewChatModel())
+        newList.add(BannerNewChatModel)
         newList.addAll(chatModels)
         return newList
     }

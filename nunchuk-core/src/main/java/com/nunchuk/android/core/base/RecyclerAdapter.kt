@@ -125,7 +125,7 @@ abstract class RecyclerAdapter<VH : RecyclerAdapter.BaseViewHolder<*, T>, T>(
         unRegisterDataObserver()
     }
 
-    open class BaseViewHolder<out V : ViewBinding, in T>(val binding: V) : RecyclerView.ViewHolder(binding.root) {
+    open class BaseViewHolder<out V : ViewBinding, in T>(open val binding: V) : RecyclerView.ViewHolder(binding.root) {
         open fun bind(data: T) {}
     }
 
