@@ -7,6 +7,7 @@ import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
@@ -41,7 +42,7 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>() {
         setupViews()
         observeEvent()
 
-        viewModel.init()
+        viewModel.init(args.addressType.isTaproot())
     }
 
     private fun observeEvent() {
@@ -121,12 +122,28 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>() {
 
     private fun setupViews() {
         binding.signersContainer.removeAllViews()
+
+        if (args.addressType.isTaproot()) {
+            setupViewVisibility(enabled = false, alpha = 0.5F)
+        } else {
+            setupViewVisibility(enabled = true, alpha = 1F)
+        }
+
         binding.iconPlus.setOnClickListener { viewModel.handleIncreaseRequiredSigners() }
         binding.iconMinus.setOnClickListener { viewModel.handleDecreaseRequiredSigners() }
         binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }
+
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
+    }
+
+    private fun setupViewVisibility(enabled: Boolean, alpha: Float) {
+        binding.iconPlus.isEnabled = enabled
+        binding.iconPlus.alpha = alpha
+        binding.iconMinus.isEnabled = enabled
+        binding.iconMinus.alpha = alpha
+        binding.requiredSingerCounter.isEnabled = enabled
     }
 
     companion object {

@@ -5,6 +5,7 @@ import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.entities.SAT
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.type.AddressType
 import java.text.NumberFormat
 import java.util.*
 import kotlin.math.roundToLong
@@ -48,3 +49,5 @@ fun String.toNumericValue(locale: Locale = Locale.US): Number = try {
 } catch (t: Exception) {
     0.0
 }
+
+fun AddressType.isTaproot() = this == AddressType.TAPROOT

@@ -1,2 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="com.nunchuk.android.wallet.personal" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.nunchuk.android.wallet.personal">
+
+    <application>
+        <activity
+            android:name=".components.TaprootWarningActivity"
+            android:label="@string/nc_text_warning"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
+    </application>
+
+</manifest>

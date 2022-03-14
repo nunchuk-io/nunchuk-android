@@ -41,6 +41,10 @@ internal class AddWalletViewModel @Inject constructor(
         updateState { copy(addressType = LEGACY) }
     }
 
+    fun setTaprootAddressType() {
+        updateState { copy(addressType = TAPROOT) }
+    }
+
     fun setNativeAddressType() {
         updateState { copy(addressType = NATIVE_SEGWIT) }
     }

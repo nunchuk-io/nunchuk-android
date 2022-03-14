@@ -18,6 +18,7 @@ fun AddressType.toReadableString(context: Context) = when (this) {
     NATIVE_SEGWIT -> context.getString(R.string.nc_wallet_native_segwit_wallet)
     NESTED_SEGWIT -> context.getString(R.string.nc_wallet_nested_segwit_wallet)
     LEGACY -> context.getString(R.string.nc_wallet_legacy_wallet)
+    TAPROOT -> context.getString(R.string.nc_wallet_taproot_wallet)
     else -> throw UnsupportedAddressTypeException(name)
 }
 

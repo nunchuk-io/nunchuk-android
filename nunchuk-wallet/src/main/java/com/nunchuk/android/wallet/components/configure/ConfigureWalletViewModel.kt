@@ -20,10 +20,13 @@ internal class ConfigureWalletViewModel @Inject constructor(
     private val sendSignerPassphrase: SendSignerPassphrase
 ) : NunchukViewModel<ConfigureWalletState, ConfigureWalletEvent>() {
 
+    private var taproot: Boolean = false
+
     override val initialState = ConfigureWalletState()
 
-    fun init() {
-        updateState { initialState }
+    fun init(taproot: Boolean) {
+        this.taproot = taproot
+        updateState { initialState.copy(totalRequireSigns = if (taproot) 1 else 0) }
         getSigners()
     }
 
@@ -54,10 +57,9 @@ internal class ConfigureWalletViewModel @Inject constructor(
                         .collect { updateStateSelectedSigner(checked, signer) }
                 }
             })
-            return
+        } else {
+            updateStateSelectedSigner(checked, signer)
         }
-
-        updateStateSelectedSigner(checked, signer)
     }
 
     private fun updateStateSelectedSigner(
@@ -66,9 +68,13 @@ internal class ConfigureWalletViewModel @Inject constructor(
     ) {
         updateState {
             copy(
-                selectedSigners = if (checked) selectedSigners + listOf(signer) else selectedSigners - listOf(
-                    signer
-                )
+                selectedSigners = if (!checked) {
+                    selectedSigners - listOf(signer).toSet()
+                } else if (taproot) {
+                    listOf(signer)
+                } else {
+                    selectedSigners + listOf(signer)
+                }
             )
         }
         val state = getState()
@@ -81,8 +87,7 @@ internal class ConfigureWalletViewModel @Inject constructor(
     fun handleIncreaseRequiredSigners() {
         val state = getState()
         val currentNum = state.totalRequireSigns
-        val newVal =
-            if (currentNum + 1 <= state.selectedSigners.size) currentNum + 1 else currentNum
+        val newVal = if (currentNum + 1 <= state.selectedSigners.size) currentNum + 1 else currentNum
         updateState { copy(totalRequireSigns = newVal) }
     }
 
