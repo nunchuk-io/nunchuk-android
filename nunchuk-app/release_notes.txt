@@ -1,4 +1,6 @@
 What's news:
+- Support Taproot.
+- Optimize load chat message.
 - NUN-1036 Android - Make sure user passwords are never leaked in plaintext (on crashes)
 - NUN-1079 Android - Can edit wallet name to all Space character
 - NUN-1266 Android - manual fee rate suggestions could be fractions

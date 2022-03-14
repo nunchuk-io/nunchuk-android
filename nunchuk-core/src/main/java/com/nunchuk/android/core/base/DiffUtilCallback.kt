@@ -9,8 +9,8 @@ class DiffUtilCallback<in T>(
 ) : DiffUtil.Callback() {
 
     override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-        val oldItem = oldItems[oldItemPosition]
-        val newItem = newItems[newItemPosition]
+        val oldItem = oldItems.getOrNull(oldItemPosition)
+        val newItem = newItems.getOrNull(newItemPosition)
         return oldItem != null && newItem != null && comparator.areItemsTheSame(oldItem, newItem)
     }
 
@@ -19,12 +19,9 @@ class DiffUtilCallback<in T>(
     override fun getNewListSize() = newItems.size
 
     override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-        val oldItem = oldItems[oldItemPosition]
-        val newItem = newItems[newItemPosition]
-        return oldItem != null && newItem != null && comparator.areContentsTheSame(
-            oldItems[oldItemPosition],
-            newItems[newItemPosition]
-        )
+        val oldItem = oldItems.getOrNull(oldItemPosition)
+        val newItem = newItems.getOrNull(newItemPosition)
+        return oldItem != null && newItem != null && comparator.areContentsTheSame(oldItem, newItem)
     }
 }
 

@@ -50,7 +50,7 @@ internal class InitNunchukUseCaseImpl @Inject constructor(
 
     private fun initReceiver() {
         SendEventHelper.executor = object : SendEventExecutor {
-            override fun execute(roomId: String, type: String, content: String): String {
+            override fun execute(roomId: String, type: String, content: String, ignoreError: Boolean): String {
                 if (SessionHolder.hasActiveSession()) {
                     SessionHolder.activeSession?.getRoom(roomId)?.run {
                         sendEvent(type, content.toMatrixContent())
