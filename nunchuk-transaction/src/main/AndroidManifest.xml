@@ -33,7 +33,8 @@
             android:name=".components.send.receipt.AddReceiptActivity"
             android:label="@string/nc_transaction_new"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukNoActionBar.Light" />
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".components.send.confirmation.TransactionConfirmActivity"

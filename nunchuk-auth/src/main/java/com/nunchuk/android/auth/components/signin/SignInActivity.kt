@@ -54,7 +54,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                     SignInModeHolder.currentMode = SignInMode.NORMAL
                     openMainScreen(it.token, it.deviceId)
                 }
-                is ProcessingEvent -> showLoading()
+                is ProcessingEvent -> showLoading(false)
             }
         }
     }
