@@ -80,6 +80,10 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             binding.recyclerView.scrollToPosition((adapter?.itemCount ?: 0) - 1)
         }
         stickyBinding.root.isVisible = state.roomWallet != null
+        binding.add.isVisible = state.roomWallet == null
+        binding.sendBTC.isVisible = state.roomWallet != null
+        binding.receiveBTC.isVisible = state.roomWallet != null
+
         state.roomWallet?.let {
             stickyBinding.bindRoomWallet(
                 wallet = it,
@@ -112,6 +116,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             RoomWalletCreatedEvent -> NCToastMessage(this).show(R.string.nc_message_wallet_created)
             HideBannerNewChatEvent -> adapter?.removeBannerNewChat()
             is ViewWalletConfigEvent -> navigator.openSharedWalletConfigScreen(this, event.roomWalletData)
+            is ReceiveBTCEvent ->  navigator.openReceiveTransactionScreen(this, event.walletId)
         }
     }
 
@@ -133,6 +138,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         binding.send.setOnClickListener { sendMessage() }
         binding.editText.setOnEnterListener(::sendMessage)
         binding.editText.addTextChangedCallback {
+            collapseChatBar()
             enableButton(it.isNotEmpty())
         }
 
@@ -183,6 +189,24 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
                 }
             }
         })
+
+        binding.sendBTC.setOnClickListener { viewModel.handleAddEvent()  }
+        binding.receiveBTC.setOnClickListener { viewModel.handleReceiveEvent() }
+        setupAnimationForChatBar()
+    }
+
+    private fun setupAnimationForChatBar() {
+        binding.editText.setOnFocusChangeListener { view, changed ->
+            collapseChatBar()
+        }
+
+        binding.editText.setOnClickListener {
+            collapseChatBar()
+        }
+    }
+
+    private fun collapseChatBar() {
+        binding.rootLayout.transitionToEnd()
     }
 
     private fun showSelectMessageBottomSheet(message: Message, position: Int) {

@@ -241,6 +241,15 @@ class RoomDetailViewModel @Inject constructor(
 
     }
 
+    fun handleReceiveEvent() {
+        val roomWallet = getState().roomWallet
+        if (roomWallet == null) {
+            event(CreateNewSharedWallet)
+        } else {
+            event(ReceiveBTCEvent(roomWallet.walletId))
+        }
+    }
+
     private fun onGetWallet(wallet: Wallet) {
         if (wallet.balance.value > 0L) {
             event(
