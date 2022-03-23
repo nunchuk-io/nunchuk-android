@@ -15,7 +15,8 @@
     <string name="nc_signer_type_foreign_software">Foreign software</string>
 
     <string name="nc_transaction_send_to">Send to</string>
-    <string name="nc_transaction_receive_at">Receive at</string>
+    <string name="nc_transaction_sent_to">Sent to</string>
+    <string name="nc_transaction_receive_at">Received at</string>
     <string name="nc_transaction_pending_confirmation">Pending confirmations</string>
     <string name="nc_transaction_ready_to_broadcast">Ready to broadcast</string>
     <string name="nc_transaction_network_rejected">Network rejected</string>

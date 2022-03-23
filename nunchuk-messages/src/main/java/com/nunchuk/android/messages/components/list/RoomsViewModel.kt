@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.components.list
 
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
@@ -14,12 +15,14 @@ import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import io.reactivex.Completable
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.failure.GlobalError
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.initsync.InitSyncStep
+import org.matrix.android.sdk.api.session.initsync.SyncStatusService
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -34,18 +37,44 @@ class RoomsViewModel @Inject constructor(
     private val leaveRoomUseCase: LeaveRoomUseCase
 ) : NunchukViewModel<RoomsState, RoomsEvent>() {
 
-    val roomSummariesLive = SessionHolder.activeSession?.getRoomSummariesLive(roomSummaryQueryParams {
-        memberships = Membership.activeMemberships()
-    })
-    val syncProgressStatus = SessionHolder.activeSession?.getSyncStatusLive()
-
     override val initialState = RoomsState.empty()
 
-    init {
+    fun init() {
         SessionHolder.activeSession?.let(::subscribeEvent)
     }
 
     private fun subscribeEvent(session: Session) {
+        addListener(session)
+        listenSyncProgressStatus(session)
+        listenRoomSummaries(session)
+    }
+
+    private fun listenRoomSummaries(session: Session) {
+        session.getRoomSummariesLive(roomSummaryQueryParams {
+            memberships = Membership.activeMemberships()
+        }).asFlow()
+            .flowOn(IO)
+            .distinctUntilChanged()
+            .onStart { event(LoadingEvent(true)) }
+            .onEach { retrieveMessages() }
+            .onCompletion { event(LoadingEvent(false)) }
+            .flowOn(Main)
+            .launchIn(viewModelScope)
+    }
+
+    private fun listenSyncProgressStatus(session: Session) {
+        session.getSyncStatusLive().asFlow()
+            .flowOn(IO)
+            .distinctUntilChanged()
+            .onEach {
+                if (it is SyncStatusService.Status.Progressing && it.initSyncStep == InitSyncStep.ImportingAccount && it.percentProgress == 100) {
+                    retrieveMessages()
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    private fun addListener(session: Session) {
         session.addListener(object : Session.Listener {
             override fun onNewInvitedRoom(session: Session, roomId: String) {
                 session.getRoom(roomId)?.let(::joinRoom)
@@ -87,8 +116,9 @@ class RoomsViewModel @Inject constructor(
             .zip(getAllRoomWalletsUseCase.execute()) { rooms, wallets -> rooms to wallets }
             .flowOn(IO)
             .onException { onRetrieveMessageError(it) }
-            .flowOn(Dispatchers.Main)
+            .flowOn(Main)
             .onEach { onRetrieveMessageSuccess(it) }
+            .distinctUntilChanged()
             .launchIn(viewModelScope)
     }
 

@@ -4,6 +4,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getHtmlString
 import com.nunchuk.android.core.util.getString
+import com.nunchuk.android.core.util.isConfirmed
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.NunchukTransactionMessage
 import com.nunchuk.android.messages.databinding.ItemNunchukNotificationBinding
@@ -72,8 +73,9 @@ internal class NunchukTransactionNotificationHolder(
 
     private fun bindReceiveTransactionDetails(roomWallet: RoomWallet?, transaction: Transaction) {
         val roomWalletData = roomWallet?.jsonContent?.toRoomWalletData()
+        val messageId = if (transaction.status.isConfirmed()) R.string.nc_message_transaction_received else R.string.nc_message_transaction_receiving
         binding.notification.text = getHtmlString(
-            R.string.nc_message_transaction_received,
+            messageId,
             transaction.totalAmount.getBTCAmount(),
             roomWalletData?.name.orEmpty()
         )

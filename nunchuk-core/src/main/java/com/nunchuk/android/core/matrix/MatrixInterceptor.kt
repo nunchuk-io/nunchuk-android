@@ -26,6 +26,7 @@ internal class MatrixInterceptorImpl @Inject constructor(
                     password = password,
                     initialDeviceName = headerProvider.getDeviceName()
                 ).apply {
+                    SessionHolder.activeSession = this
                     authenticationService.reset()
                     SessionHolder.storeActiveSession(this)
                 })

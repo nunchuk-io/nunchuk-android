@@ -1,10 +1,12 @@
 What's news:
 - Support Taproot.
 - Optimize load chat message.
-- NUN-1036 Android - Make sure user passwords are never leaked in plaintext (on crashes)
-- NUN-1079 Android - Can edit wallet name to all Space character
-- NUN-1266 Android - manual fee rate suggestions could be fractions
-- NUN-128 Mobile - Change copy on Transaction Details "view on blockchain explorer"
-- NUN-1145 Android - When login screen is loading, swipe to top or bottom screen, app is not login anymore
+- NUN-1036 [Android] - Make sure user passwords are never leaked in plaintext (on crashes)
+- NUN-1079 [Android] - Can edit wallet name to all Space character
+- NUN-1266 [Android] - manual fee rate suggestions could be fractions
+- NUN-128 [Mobile] - Change copy on Transaction Details "view on blockchain explorer"
+- NUN-1145 [Android] When login screen is loading, swipe to top or bottom screen, app is not login anymore
 - NUN-1205 [Android] "Continue" Button is hidden and Can't close keyboard on the "New Transaction"/"Add air- gapped key" screen
 - NUN-1274 [Android] Don't show an temporary message to let user know account is deleted
+- NUN-1270 [Android] update timeline alert copy from "are receiving" to "received" and "are sending" to "sent" after the transaction has been confirmed
+- NUN-1189 [Android] GUI is showing overlap when add new member to chat group
