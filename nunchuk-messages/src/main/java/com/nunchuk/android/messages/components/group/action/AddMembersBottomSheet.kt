@@ -69,13 +69,14 @@ class AddMembersBottomSheet : BaseBottomSheet<BottomSheetAddMembersBinding>() {
     }
 
     private fun bindReceiptList(receipts: List<Contact>) {
-        if (receipts.isEmpty()) {
-            binding.doneBtn.isVisible = false
+        val isEmpty = receipts.isEmpty()
+        if (isEmpty) {
             binding.receipts.removeAllViews()
         } else {
-            binding.doneBtn.isVisible = true
             ReceiptsViewBinder(binding.receipts, receipts, viewModel::handleRemove).bindItems()
         }
+        binding.doneBtn.isVisible = !isEmpty
+        binding.receipts.isVisible = !isEmpty
     }
 
     private fun handleEvent(event: AddMembersEvent) {

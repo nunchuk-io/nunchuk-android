@@ -342,6 +342,7 @@ internal class MainActivityViewModel @Inject constructor(
 
     fun setupMatrix(token: String, encryptedDeviceId: String) {
         getUserProfileUseCase.execute()
+            .flowOn(IO)
             .retryDefault(retryPolicy)
             .flatMapConcat {
                 loginWithMatrix(
