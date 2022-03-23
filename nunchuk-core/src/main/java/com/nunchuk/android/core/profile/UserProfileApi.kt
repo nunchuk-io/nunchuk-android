@@ -20,4 +20,16 @@ interface UserProfileApi {
     @PUT("user/me")
     suspend fun updateUserProfile(@Body updatePayload: UpdateUserProfilePayload): Data<UserResponseWrapper>
 
+    @GET("user/devices")
+    suspend fun getUserDevices(): Data<UserDeviceWrapper>
+
+    @HTTP(method = "DELETE", path = "user/devices", hasBody = true)
+    suspend fun deleteUserDevices(
+        @Body payload: DeleteDevicesPayload
+    ): Data<Any>
+
+    @POST("user/devices/mark-compromised")
+    suspend fun compromiseUserDevices(
+        @Body payload: CompromiseDevicesPayload
+    ): Data<Any>
 }

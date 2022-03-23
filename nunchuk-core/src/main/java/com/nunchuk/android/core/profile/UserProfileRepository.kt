@@ -19,6 +19,12 @@ interface UserProfileRepository {
     fun updateUserProfile(name: String?, avatarUrl: String?): Flow<UserProfileResponse>
 
     fun signOut(): Flow<Unit>
+
+    fun getUserDevices(): Flow<List<UserDeviceResponse>>
+
+    fun deleteDevices(devices: List<String>): Flow<Unit>
+
+    fun compromiseDevices(devices: List<String>): Flow<Unit>
 }
 
 internal class UserProfileRepositoryImpl @Inject constructor(
@@ -52,6 +58,22 @@ internal class UserProfileRepositoryImpl @Inject constructor(
 
     override fun signOut() = flow {
         userProfileApi.signOut()
+        emit(Unit)
+    }
+
+    override fun getUserDevices() = flow {
+        emit(
+            userProfileApi.getUserDevices().data.devices
+        )
+    }
+
+    override fun deleteDevices(devices: List<String>) = flow {
+        userProfileApi.deleteUserDevices(DeleteDevicesPayload(devices = devices))
+        emit(Unit)
+    }
+
+    override fun compromiseDevices(devices: List<String>) = flow {
+        userProfileApi.compromiseUserDevices(CompromiseDevicesPayload(devices = devices))
         emit(Unit)
     }
 
