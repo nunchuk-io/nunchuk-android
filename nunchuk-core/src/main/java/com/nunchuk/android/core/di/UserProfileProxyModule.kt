@@ -18,6 +18,14 @@ interface UserProfileProxyModule
 
 @Module
 internal interface UserProfileDomainModule {
+    @Binds
+    fun bindCompromiseUserDevicesUseCase(userCase: CompromiseUserDevicesUseCaseImpl): CompromiseUserDevicesUseCase
+
+    @Binds
+    fun bindDeleteUserDevicesUseCase(userCase: DeleteUserDevicesUseCaseImpl): DeleteUserDevicesUseCase
+
+    @Binds
+    fun bindGetUserDevicesUseCase(userCase: GetUserDevicesUseCaseImpl): GetUserDevicesUseCase
 
     @Binds
     fun bindGetUserProfileUseCase(userCase: GetUserProfileUseCaseImpl): GetUserProfileUseCase
@@ -40,6 +48,7 @@ internal object UserProfileNetworkModule {
 
     @Singleton
     @Provides
-    fun provideUserProfileApi(retrofit: Retrofit): UserProfileApi = retrofit.create(UserProfileApi::class.java)
+    fun provideUserProfileApi(retrofit: Retrofit): UserProfileApi =
+        retrofit.create(UserProfileApi::class.java)
 
 }

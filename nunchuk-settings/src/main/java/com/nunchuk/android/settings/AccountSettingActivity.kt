@@ -8,6 +8,7 @@ import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.settings.AccountSettingEvent.*
 import com.nunchuk.android.settings.databinding.ActivityAccountSettingBinding
+import com.nunchuk.android.settings.devices.UserDevicesActivity
 import com.nunchuk.android.widget.NCDeleteConfirmationDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -55,7 +56,7 @@ class AccountSettingActivity : BaseActivity<ActivityAccountSettingBinding>() {
 
     private fun setupViews() {
         binding.toolbar.setNavigationOnClickListener { finish() }
-        binding.devices.setOnClickListener { showComingSoonText() }
+        binding.devices.setOnClickListener { UserDevicesActivity.start(this) }
         binding.password.setOnClickListener { navigator.openChangePasswordScreen(this) }
         binding.delete.setOnClickListener { showDeleteAccountConfirmation() }
     }
