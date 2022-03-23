@@ -27,7 +27,7 @@
 
     <string name="nc_transaction">Recent transactions</string>
     <string name="nc_transaction_empty_title">You don’t have any transactions yet. Here is an address where you can deposit your funds.</string>
-    <string name="nc_wallet_empty_signer_title">You don’t have any key yet.</string>
+    <string name="nc_wallet_empty_signer_title">You don’t have any keys yet.</string>
     <string name="nc_wallet_empty_signer_desc">Please add a key before adding a wallet.</string>
     <string name="nc_wallet_take_to_add_a_signer">Take me to add a key</string>
     <string name="nc_wallet_add_a_wallet">Add a wallet</string>
