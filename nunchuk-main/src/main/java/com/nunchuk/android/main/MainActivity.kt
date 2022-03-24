@@ -12,12 +12,16 @@ import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.matrix.MatrixEvenBus
+import com.nunchuk.android.core.matrix.MatrixEvent
+import com.nunchuk.android.core.matrix.MatrixEventListener
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.saveToFile
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.DownloadFileSyncSucceed
 import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
+import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.notifications.PushNotificationHelper
 import com.nunchuk.android.utils.NotificationUtils
 import java.io.File
@@ -35,6 +39,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private val viewModel: MainActivityViewModel by viewModels { factory }
 
+    private val roomViewModel: RoomsViewModel by viewModels { factory }
+
     private val loginHalfToken
         get() = intent.getStringExtra(EXTRAS_LOGIN_HALF_TOKEN).orEmpty()
 
@@ -44,6 +50,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val bottomNavViewPosition: Int
         get() = intent.getIntExtra(EXTRAS_BOTTOM_NAV_VIEW_POSITION, 0)
 
+    private val matrixEventListener: MatrixEventListener = {
+        if (it is MatrixEvent.SignedInEvent) {
+            roomViewModel.handleMatrixSignedIn(it.session)
+        }
+    }
 
     override fun initializeBinding() = ActivityMainBinding.inflate(layoutInflater)
 
@@ -59,6 +70,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         setupNavigationView()
         setBottomNavViewPosition(bottomNavViewPosition)
         subscribeEvents()
+        MatrixEvenBus.instance.subscribe(matrixEventListener)
+    }
+
+    override fun onDestroy() {
+        MatrixEvenBus.instance.unsubscribe(matrixEventListener)
+        super.onDestroy()
     }
 
     private fun onTokenRetrieved(token: String) {

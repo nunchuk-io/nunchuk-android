@@ -111,7 +111,6 @@ internal class AccountViewModel @Inject constructor(
                 event(AccountEvent.LoadingEvent(true))
             },
             onSignedOut = {
-                event(AccountEvent.LoadingEvent(false))
                 event(AccountEvent.SignOutEvent)
             }
         )

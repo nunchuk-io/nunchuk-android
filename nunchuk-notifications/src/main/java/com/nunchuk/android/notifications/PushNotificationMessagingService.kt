@@ -2,12 +2,11 @@ package com.nunchuk.android.notifications
 
 import android.os.Handler
 import android.os.Looper
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.util.isAtLeastStarted
 import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.NotificationUtils
@@ -177,5 +176,3 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
     }
 
 }
-
-fun LifecycleOwner.isAtLeastStarted() = lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)

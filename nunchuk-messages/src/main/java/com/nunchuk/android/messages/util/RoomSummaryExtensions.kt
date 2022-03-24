@@ -3,10 +3,6 @@ package com.nunchuk.android.messages.util
 import com.nunchuk.android.messages.BuildConfig
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 
-fun List<RoomSummary>.sortByLastMessage(): List<RoomSummary> {
-    return sortedByDescending { it.latestPreviewableEvent?.root?.originServerTs }
-}
-
 fun RoomSummary.getRoomName(currentName: String): String {
     val split = displayName.split(",")
     return if (split.size == DIRECT_CHAT_MEMBERS_COUNT) {

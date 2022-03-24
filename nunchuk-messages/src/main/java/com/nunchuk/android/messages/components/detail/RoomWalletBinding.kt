@@ -60,7 +60,12 @@ fun ViewWalletStickyBinding.bindPendingSignature(transaction: Transaction) {
     icon.setImageDrawable(ContextCompat.getDrawable(icon.context, R.drawable.ic_pending_signatures))
     status.bindPendingSignatures()
     name.text = transaction.totalAmount.getBTCAmount()
-    configuration.text = Html.fromHtml(name.context.getString(R.string.nc_message_transaction_sending_to, transaction.outputs.first().first.formatToShortBTCAddress()))
+    val resId = if (transaction.status.isConfirmed()) {
+        R.string.nc_message_transaction_sent_to
+    } else {
+        R.string.nc_message_transaction_sending_to
+    }
+    configuration.text = Html.fromHtml(name.context.getString(resId, transaction.outputs.first().first.formatToShortBTCAddress()))
 }
 
 fun String.formatToShortBTCAddress(): String {

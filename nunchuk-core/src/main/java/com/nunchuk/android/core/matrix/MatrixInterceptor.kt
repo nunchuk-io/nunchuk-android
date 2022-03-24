@@ -27,9 +27,9 @@ internal class MatrixInterceptorImpl @Inject constructor(
                     initialDeviceName = headerProvider.getDeviceName(),
                     deviceId = encryptedDeviceId
                 ).apply {
-                    SessionHolder.activeSession = this
                     authenticationService.reset()
                     SessionHolder.storeActiveSession(this)
+                    MatrixEvenBus.instance.publish(MatrixEvent.SignedInEvent(this))
                 })
     }
 

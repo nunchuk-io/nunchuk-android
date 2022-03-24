@@ -5,9 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.matrix.roomSummariesFlow
 import com.nunchuk.android.core.network.UnauthorizedEventBus
-import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
-import com.nunchuk.android.messages.usecase.message.GetRoomSummaryListUseCase
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.messages.util.sortByLastMessage
 import com.nunchuk.android.model.RoomWallet
@@ -15,8 +14,7 @@ import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import io.reactivex.Completable
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.failure.GlobalError
@@ -24,16 +22,13 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.initsync.InitSyncStep
 import org.matrix.android.sdk.api.session.initsync.SyncStatusService
 import org.matrix.android.sdk.api.session.room.Room
-import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
-import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class RoomsViewModel @Inject constructor(
     private val getAllRoomWalletsUseCase: GetAllRoomWalletsUseCase,
-    private val getRoomSummaryListUseCase: GetRoomSummaryListUseCase,
     private val leaveRoomUseCase: LeaveRoomUseCase
 ) : NunchukViewModel<RoomsState, RoomsEvent>() {
 
@@ -43,6 +38,10 @@ class RoomsViewModel @Inject constructor(
         SessionHolder.activeSession?.let(::subscribeEvent)
     }
 
+    fun handleMatrixSignedIn(session: Session) {
+        listenRoomSummaries(session)
+    }
+
     private fun subscribeEvent(session: Session) {
         addListener(session)
         listenSyncProgressStatus(session)
@@ -50,23 +49,25 @@ class RoomsViewModel @Inject constructor(
     }
 
     private fun listenRoomSummaries(session: Session) {
-        session.getRoomSummariesLive(roomSummaryQueryParams {
-            memberships = Membership.activeMemberships()
-        }).asFlow()
-            .flowOn(IO)
+        session.roomSummariesFlow()
+            .flowOn(Dispatchers.IO)
             .distinctUntilChanged()
-            .onStart { event(LoadingEvent(true)) }
-            .onEach { retrieveMessages() }
-            .onCompletion { event(LoadingEvent(false)) }
-            .flowOn(Main)
+            .onStart { event(RoomsEvent.LoadingEvent(true)) }
+            .onEach {
+                Timber.tag(TAG).d("listenRoomSummaries($it)")
+                retrieveMessages()
+            }
+            .onCompletion { event(RoomsEvent.LoadingEvent(false)) }
+            .flowOn(Dispatchers.Main)
             .launchIn(viewModelScope)
     }
 
     private fun listenSyncProgressStatus(session: Session) {
         session.getSyncStatusLive().asFlow()
-            .flowOn(IO)
+            .flowOn(Dispatchers.IO)
             .distinctUntilChanged()
             .onEach {
+                Timber.tag(TAG).d("listenSyncProgressStatus($it)")
                 if (it is SyncStatusService.Status.Progressing && it.initSyncStep == InitSyncStep.ImportingAccount && it.percentProgress == 100) {
                     retrieveMessages()
                 }
@@ -78,11 +79,6 @@ class RoomsViewModel @Inject constructor(
         session.addListener(object : Session.Listener {
             override fun onNewInvitedRoom(session: Session, roomId: String) {
                 session.getRoom(roomId)?.let(::joinRoom)
-                viewModelScope.launch {
-                    getRoomSummaryListUseCase.execute()
-                        .onException { }
-                        .collect { updateState { copy(rooms = it) } }
-                }
             }
 
             override fun onGlobalError(session: Session, globalError: GlobalError) {
@@ -112,24 +108,26 @@ class RoomsViewModel @Inject constructor(
     }
 
     fun retrieveMessages() {
-        getRoomSummaryListUseCase.execute()
-            .zip(getAllRoomWalletsUseCase.execute()) { rooms, wallets -> rooms to wallets }
-            .flowOn(IO)
-            .onException { onRetrieveMessageError(it) }
-            .flowOn(Main)
-            .onEach { onRetrieveMessageSuccess(it) }
-            .distinctUntilChanged()
-            .launchIn(viewModelScope)
+        if (SessionHolder.hasActiveSession()) {
+            SessionHolder.activeSession!!.roomSummariesFlow()
+                .zip(getAllRoomWalletsUseCase.execute()) { rooms, wallets -> rooms to wallets }
+                .flowOn(Dispatchers.IO)
+                .onException { onRetrieveMessageError(it) }
+                .flowOn(Dispatchers.Main)
+                .onEach { onRetrieveMessageSuccess(it) }
+                .distinctUntilChanged()
+                .launchIn(viewModelScope)
+        }
     }
 
     private fun onRetrieveMessageError(t: Throwable) {
-        event(LoadingEvent(false))
+        event(RoomsEvent.LoadingEvent(false))
         updateState { copy(rooms = emptyList()) }
         CrashlyticsReporter.recordException(t)
     }
 
     private fun onRetrieveMessageSuccess(p: Pair<List<RoomSummary>, List<RoomWallet>>) {
-        event(LoadingEvent(false))
+        event(RoomsEvent.LoadingEvent(false))
         updateState {
             copy(
                 rooms = p.first.sortByLastMessage(),
@@ -140,12 +138,12 @@ class RoomsViewModel @Inject constructor(
 
     fun removeRoom(roomSummary: RoomSummary) {
         viewModelScope.launch {
-            event(LoadingEvent(true))
+            event(RoomsEvent.LoadingEvent(true))
             val room = getRoom(roomSummary)
             if (room != null) {
                 handleRemoveRoom(room)
             } else {
-                event(LoadingEvent(false))
+                event(RoomsEvent.LoadingEvent(false))
             }
         }
     }
@@ -153,8 +151,8 @@ class RoomsViewModel @Inject constructor(
     private fun handleRemoveRoom(room: Room) {
         viewModelScope.launch {
             leaveRoomUseCase.execute(room)
-                .flowOn(IO)
-                .onException { LoadingEvent(false) }
+                .flowOn(Dispatchers.IO)
+                .onException { RoomsEvent.LoadingEvent(false) }
                 .collect { awaitAndRetrieveMessages() }
         }
     }
@@ -163,7 +161,7 @@ class RoomsViewModel @Inject constructor(
         Completable.fromCallable {}
             .delay(DELAY_IN_SECONDS, TimeUnit.SECONDS)
             .defaultSchedulers()
-            .doAfterTerminate { event(LoadingEvent(false)) }
+            .doAfterTerminate { event(RoomsEvent.LoadingEvent(false)) }
             .subscribe(::retrieveMessages, CrashlyticsReporter::recordException)
             .addToDisposables()
     }
@@ -171,6 +169,7 @@ class RoomsViewModel @Inject constructor(
     private fun getRoom(roomSummary: RoomSummary) = SessionHolder.activeSession?.getRoom(roomSummary.roomId)
 
     companion object {
+        private const val TAG = "MainActivityViewModel"
         private const val DELAY_IN_SECONDS = 2L
     }
 
