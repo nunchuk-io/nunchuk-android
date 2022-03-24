@@ -9,9 +9,9 @@ import javax.inject.Singleton
 
 @Singleton
 internal class DeviceManagerImpl @Inject constructor(
-    private val ncSharePreferences: NCSharePreferences,
-    private val accountManager: AccountManager
+    private val ncSharePreferences: NCSharePreferences
 ) : DeviceManager {
+    private var deviceId: String = ncSharePreferences.deviceId
 
     private fun generateDeviceId() = UUID.randomUUID().toString()
 
@@ -20,11 +20,10 @@ internal class DeviceManagerImpl @Inject constructor(
     }
 
     override fun getDeviceId(): String {
-        var deviceId = accountManager.getAccount().deviceId
         if (deviceId.isNullOrEmpty()) {
             deviceId = generateDeviceId()
+            storeDeviceId(deviceId)
         }
-        storeDeviceId(deviceId)
 
         return deviceId
     }
