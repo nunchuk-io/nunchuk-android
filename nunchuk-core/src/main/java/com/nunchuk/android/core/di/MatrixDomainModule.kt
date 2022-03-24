@@ -3,6 +3,8 @@ package com.nunchuk.android.core.di
 import com.nunchuk.android.core.matrix.*
 import com.nunchuk.android.core.matrix.DownloadFileUseCaseImpl
 import com.nunchuk.android.core.matrix.UploadFileUseCaseImpl
+import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
+import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCaseImpl
 import dagger.Binds
 import dagger.Module
 
@@ -28,4 +30,7 @@ internal interface MatrixDomainModule {
 
     @Binds
     fun bindSyncStateMatrixUseCase(useCase: SyncStateMatrixUseCaseImpl): SyncStateMatrixUseCase
+
+    @Binds
+    fun bindLeaveRoomUseCase(useCase: LeaveRoomUseCaseImpl): LeaveRoomUseCase
 }

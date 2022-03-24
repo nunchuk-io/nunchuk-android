@@ -39,7 +39,6 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
@@ -87,7 +86,6 @@ internal class MainActivityViewModel @Inject constructor(
             scheduleGetPriceConvertBTCUseCase.execute()
                 .flowOn(IO)
                 .onException {}
-                .flowOn(Main)
                 .collect { getBTCConvertPrice() }
         }
     }
@@ -97,7 +95,6 @@ internal class MainActivityViewModel @Inject constructor(
             getPriceConvertBTCUseCase.execute()
                 .flowOn(IO)
                 .onException {}
-                .flowOn(Main)
                 .collect { btcResponse -> btcResponse?.usd?.let { BTC_USD_EXCHANGE_RATE = it } }
         }
     }

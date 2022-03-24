@@ -21,6 +21,34 @@
             app:layout_constraintStart_toStartOf="@+id/avatarHolder"
             app:layout_constraintTop_toTopOf="@+id/avatarHolder" />
 
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/barrier"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="end"
+            app:constraint_referenced_ids="avatar" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/take_picture"
+            android:layout_width="@dimen/nc_padding_36"
+            android:layout_height="@dimen/nc_padding_36"
+            android:background="@color/nc_white_color"
+            android:gravity="center"
+            android:shape="ring"
+            app:cardCornerRadius="@dimen/nc_padding_18"
+            app:layout_constraintBottom_toBottomOf="@+id/avatarHolder"
+            app:layout_constraintEnd_toEndOf="@+id/barrier"
+            app:layout_constraintStart_toStartOf="@+id/barrier">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                style="@style/NCText.Body.Small"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:src="@drawable/ic_camera" />
+        </androidx.cardview.widget.CardView>
+
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/name"
             style="@style/NCText.Heading"
@@ -35,26 +63,6 @@
             app:layout_constraintStart_toStartOf="@+id/avatar"
             app:layout_constraintTop_toBottomOf="@+id/take_picture"
             tools:text="Hung Tran Long text text text " />
-
-        <androidx.cardview.widget.CardView
-            android:id="@+id/take_picture"
-            android:layout_width="@dimen/nc_padding_36"
-            android:layout_height="@dimen/nc_padding_36"
-            android:background="@color/nc_white_color"
-            android:gravity="center"
-            android:shape="ring"
-            app:cardCornerRadius="@dimen/nc_padding_18"
-            app:layout_constraintBottom_toBottomOf="@+id/avatarHolder"
-            app:layout_constraintEnd_toEndOf="@+id/avatarHolder">
-
-            <androidx.appcompat.widget.AppCompatImageView
-                style="@style/NCText.Body.Small"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:src="@drawable/ic_camera" />
-        </androidx.cardview.widget.CardView>
 
         <include
             android:id="@+id/layoutSync"
@@ -98,7 +106,7 @@
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/account_settings"
             style="@style/NCText.Settings"
-            android:drawableStart="@drawable/ic_devices"
+            android:drawableStart="@drawable/ic_accounts_settings"
             android:drawableEnd="@drawable/ic_arrow"
             android:text="@string/nc_settings_account_settings"
             app:layout_constraintStart_toStartOf="parent"

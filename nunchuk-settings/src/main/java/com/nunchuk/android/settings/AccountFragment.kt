@@ -141,6 +141,7 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
     private fun handleEvent(event: AccountEvent) {
         when (event) {
             SignOutEvent -> {
+                hideLoading()
                 val activity = requireActivity()
                 navigator.openSignInScreen(activity)
                 activity.finish()

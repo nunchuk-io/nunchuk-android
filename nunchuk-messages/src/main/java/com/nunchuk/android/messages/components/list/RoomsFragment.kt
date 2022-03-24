@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.view.isVisible
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.core.account.AccountManager
@@ -23,7 +23,7 @@ import javax.inject.Inject
 
 class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
-    private val viewModel: RoomsViewModel by viewModels { factory }
+    private val viewModel: RoomsViewModel by activityViewModels { factory }
 
     @Inject
     lateinit var accountManager: AccountManager
@@ -39,15 +39,9 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupViews()
         observeEvent()
         viewModel.init()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        viewModel.retrieveMessages()
     }
 
     override fun onDestroyView() {
