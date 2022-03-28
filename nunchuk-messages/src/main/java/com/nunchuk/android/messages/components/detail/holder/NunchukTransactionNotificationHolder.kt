@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.components.detail.holder
 
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getHtmlString
@@ -11,6 +12,7 @@ import com.nunchuk.android.messages.databinding.ItemNunchukNotificationBinding
 import com.nunchuk.android.messages.util.TransactionEventType.*
 import com.nunchuk.android.messages.util.displayNameOrId
 import com.nunchuk.android.messages.util.getBodyElementValueByKey
+import com.nunchuk.android.messages.util.getNunchukInitEventId
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TransactionExtended
@@ -23,6 +25,10 @@ internal class NunchukTransactionNotificationHolder(
 
     fun bind(roomWallet: RoomWallet?, transactions: List<TransactionExtended>, model: NunchukTransactionMessage) {
         val context = itemView.context
+        binding.notification.apply {
+            backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_whisper_color)
+            setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_info, 0, R.drawable.ic_arrow, 0)
+        }
         when (model.msgType) {
             SIGN -> {
                 bindSignTransaction(model)
@@ -40,11 +46,45 @@ internal class NunchukTransactionNotificationHolder(
                 binding.notification.text = context.getString(R.string.nc_message_transaction_ready)
             }
             BROADCAST -> {
-                binding.notification.text = context.getString(R.string.nc_message_transaction_broadcast)
+                bindBroadcastOrConfirmedTransaction(transactions = transactions, model = model)
             }
             else -> {
                 binding.notification.text = "${model.msgType}"
             }
+        }
+    }
+
+    private fun bindBroadcastOrConfirmedTransaction(
+        transactions: List<TransactionExtended>,
+        model: NunchukTransactionMessage
+    ) {
+        val initEventId = model.timelineEvent.getNunchukInitEventId()
+        val tx = transactions.firstOrNull { it.initEventId == initEventId }
+        if (tx != null) {
+            val confirmed = tx.transaction.status.isConfirmed()
+            if (confirmed) {
+                bindConfirmedTransaction()
+            } else {
+                bindBroadcastTransaction()
+            }
+        } else {
+            bindBroadcastTransaction()
+        }
+    }
+
+    private fun bindBroadcastTransaction() {
+        binding.notification.apply {
+            backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_whisper_color)
+            text = getString(R.string.nc_message_transaction_broadcast)
+            setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_info, 0, R.drawable.ic_arrow, 0)
+        }
+    }
+
+    private fun bindConfirmedTransaction() {
+        binding.notification.apply {
+            backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_green_color)
+            text = getString(R.string.nc_message_transaction_confirmed)
+            setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_check_circle_outline, 0, R.drawable.ic_arrow, 0)
         }
     }
 
