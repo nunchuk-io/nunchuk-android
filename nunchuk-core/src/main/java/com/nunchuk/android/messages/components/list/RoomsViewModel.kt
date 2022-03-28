@@ -1,6 +1,5 @@
 package com.nunchuk.android.messages.components.list
 
-import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
@@ -19,8 +18,6 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.failure.GlobalError
 import org.matrix.android.sdk.api.session.Session
-import org.matrix.android.sdk.api.session.initsync.InitSyncStep
-import org.matrix.android.sdk.api.session.initsync.SyncStatusService
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import timber.log.Timber
@@ -44,7 +41,6 @@ class RoomsViewModel @Inject constructor(
 
     private fun subscribeEvent(session: Session) {
         addListener(session)
-        listenSyncProgressStatus(session)
         listenRoomSummaries(session)
     }
 
@@ -59,19 +55,6 @@ class RoomsViewModel @Inject constructor(
             }
             .onCompletion { event(RoomsEvent.LoadingEvent(false)) }
             .flowOn(Dispatchers.Main)
-            .launchIn(viewModelScope)
-    }
-
-    private fun listenSyncProgressStatus(session: Session) {
-        session.getSyncStatusLive().asFlow()
-            .flowOn(Dispatchers.IO)
-            .distinctUntilChanged()
-            .onEach {
-                Timber.tag(TAG).d("listenSyncProgressStatus($it)")
-                if (it is SyncStatusService.Status.Progressing && it.initSyncStep == InitSyncStep.ImportingAccount && it.percentProgress == 100) {
-                    retrieveMessages()
-                }
-            }
             .launchIn(viewModelScope)
     }
 

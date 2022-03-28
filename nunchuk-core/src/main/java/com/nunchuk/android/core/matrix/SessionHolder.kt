@@ -27,16 +27,15 @@ object SessionHolder {
                 } else {
                     startSync(ProcessLifecycleOwner.get().isAtLeastStarted())
                 }
-                refreshPushers()
             } catch (e: Error) {
                 CrashlyticsReporter.recordException(e)
             }
         }
     }
 
-    suspend fun clearActiveSession() {
+    fun clearActiveSession() {
         try {
-            activeSession?.signOut(true)
+            activeSession?.close()
         } catch (e: Error) {
             CrashlyticsReporter.recordException(e)
         }

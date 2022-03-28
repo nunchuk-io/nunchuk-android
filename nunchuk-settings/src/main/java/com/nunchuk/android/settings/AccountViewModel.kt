@@ -9,6 +9,7 @@ import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.matrix.UploadFileUseCase
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.profile.UpdateUseProfileUseCase
+import com.nunchuk.android.core.profile.UserProfileRepository
 import com.nunchuk.android.core.provider.AppInfoProvider
 import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.utils.onException
@@ -23,7 +24,8 @@ internal class AccountViewModel @Inject constructor(
     private val appInfoProvider: AppInfoProvider,
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val updateUseProfileUseCase: UpdateUseProfileUseCase,
-    private val uploadFileUseCase: UploadFileUseCase
+    private val uploadFileUseCase: UploadFileUseCase,
+    private val repository: UserProfileRepository
 ) : NunchukViewModel<AccountState, AccountEvent>() {
 
     override val initialState = AccountState()
@@ -106,6 +108,12 @@ internal class AccountViewModel @Inject constructor(
     }
 
     fun handleSignOutEvent() {
+        viewModelScope.launch {
+            repository.signOut()
+                .flowOn(Dispatchers.IO)
+                .onException { }
+                .collect {}
+        }
         accountManager.signOut(
             onStartSignOut = {
                 event(AccountEvent.LoadingEvent(true))
