@@ -11,3 +11,4 @@ What's news:
 - NUN-1270 [Android] update timeline alert copy from "are receiving" to "received" and "are sending" to "sent" after the transaction has been confirmed
 - NUN-1189 [Android] GUI is showing overlap when add new member to chat group
 - NUN-1091 Android - When login acc, message tab must wait to display list of chat
+- NUN-1057 Android - Create an account small copy change

@@ -41,4 +41,7 @@
     <string name="nc_text_sign_in">Sign in</string>
     <string name="nc_text_select_file">Please select your transaction file</string>
 
+    <string name="nc_address_share">Share address</string>
+    <string name="nc_address_copy">Copy address</string>
+
 </resources>
