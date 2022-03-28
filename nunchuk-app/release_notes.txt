@@ -1,4 +1,5 @@
 What's news:
+- NUN-968 Android - Add timestamp for confirmed transaction in transaction details
 - Support Taproot.
 - Optimize load chat message.
 - NUN-1036 [Android] - Make sure user passwords are never leaked in plaintext (on crashes)

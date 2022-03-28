@@ -129,6 +129,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         } else {
             binding.signatureStatus.text = getString(R.string.nc_transaction_enough_signers)
         }
+        binding.confirmTime.text = transaction.getFormatDate()
         binding.status.bindTransactionStatus(transaction)
         binding.sendingBTC.text = transaction.totalAmount.getBTCAmount()
         binding.signersContainer.isVisible = !transaction.isReceive
