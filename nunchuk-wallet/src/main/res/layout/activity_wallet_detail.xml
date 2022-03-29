@@ -51,7 +51,7 @@
             style="@style/NCText.Badges"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/nc_rounded_whisper_background"
+            android:background="@drawable/nc_rounded_tag_whisper_background"
             tools:text="2/3 Multisig" />
 
         <com.nunchuk.android.widget.NCFontTextView
@@ -60,7 +60,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_4"
-            android:background="@drawable/nc_rounded_whisper_background"
+            android:background="@drawable/nc_rounded_tag_whisper_background"
             android:drawableStart="@drawable/ic_wallet_small"
             android:drawablePadding="@dimen/nc_padding_4"
             android:text="@string/nc_text_shared"

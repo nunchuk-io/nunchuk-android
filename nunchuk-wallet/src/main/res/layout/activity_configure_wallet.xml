@@ -163,7 +163,7 @@
             style="@style/NCText.Title.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/nc_rounded_whisper_background"
+            android:background="@drawable/nc_rounded_tag_whisper_background"
             android:paddingHorizontal="@dimen/nc_text_size_12"
             android:paddingVertical="@dimen/nc_padding_2"
             android:text="@string/nc_wallet_multisig"

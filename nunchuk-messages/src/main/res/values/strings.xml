@@ -5,6 +5,7 @@
     <string name="nc_message_to">To:</string>
     <string name="nc_message_new_chat">New Chat</string>
     <string name="nc_message_group_chat_info">Group chat Info</string>
+    <string name="nc_message_group_members">Members</string>
     <string name="nc_message_chat_info">Chat Info</string>
     <string name="nc_message_mute_conversation">Mute conversation</string>
     <string name="nc_message_more_option">More \nOption</string>

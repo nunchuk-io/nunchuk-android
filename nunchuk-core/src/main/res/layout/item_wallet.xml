@@ -47,7 +47,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/nc_padding_4"
-        android:background="@drawable/nc_rounded_whisper_background"
+        android:background="@drawable/nc_rounded_tag_whisper_background"
         android:drawableStart="@drawable/ic_wallet_small"
         android:drawablePadding="@dimen/nc_padding_4"
         android:text="@string/nc_text_shared"
@@ -61,7 +61,7 @@
         style="@style/NCText.Badges"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/nc_rounded_whisper_background"
+        android:background="@drawable/nc_rounded_tag_whisper_background"
         app:layout_constraintBottom_toBottomOf="@+id/balance"
         app:layout_constraintEnd_toEndOf="parent"
         tools:text="2/3 Multisig" />

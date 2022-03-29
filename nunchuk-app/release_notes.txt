@@ -1,4 +1,5 @@
 What's news:
+- NUN-1190 [Android] Can't view member details in Group chat info screen
 - NUN-968 Android - Add timestamp for confirmed transaction in transaction details
 - Support Taproot.
 - Optimize load chat message.

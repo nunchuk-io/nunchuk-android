@@ -7,6 +7,7 @@ import com.nunchuk.android.messages.components.detail.RoomDetailViewModel
 import com.nunchuk.android.messages.components.direct.ChatInfoViewModel
 import com.nunchuk.android.messages.components.group.ChatGroupInfoViewModel
 import com.nunchuk.android.messages.components.group.action.AddMembersViewModel
+import com.nunchuk.android.messages.components.group.members.GroupMembersViewModel
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoMap
@@ -38,5 +39,10 @@ interface MessagesViewModelModule {
     @IntoMap
     @ViewModelKey(AddMembersViewModel::class)
     fun bindAddMembersViewModel(viewModel: AddMembersViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(GroupMembersViewModel::class)
+    fun bindGroupMembersViewModel(viewModel: GroupMembersViewModel): ViewModel
 
 }
