@@ -13,6 +13,7 @@ import com.nunchuk.android.messages.components.group.ChatGroupInfoEvent.*
 import com.nunchuk.android.messages.components.group.ChatGroupInfoOption.*
 import com.nunchuk.android.messages.components.group.action.AddMembersBottomSheet
 import com.nunchuk.android.messages.components.group.action.EditGroupNameBottomSheet
+import com.nunchuk.android.messages.components.group.members.GroupMembersActivity
 import com.nunchuk.android.messages.databinding.ActivityGroupChatInfoBinding
 import com.nunchuk.android.messages.util.getMembersCount
 import com.nunchuk.android.widget.NCToastMessage
@@ -45,6 +46,7 @@ class ChatGroupInfoActivity : BaseActivity<ActivityGroupChatInfoBinding>() {
         binding.more.setOnClickListener { onMoreSelected() }
         binding.toolbar.setNavigationOnClickListener { finish() }
         binding.joinWallet.setOnClickListener { viewModel.createWalletOrTransaction() }
+        binding.membersContainer.setOnClickListener { GroupMembersActivity.start(this, args.roomId) }
         walletBinding = ItemWalletBinding.bind(binding.walletContainer.root)
     }
 

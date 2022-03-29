@@ -219,49 +219,59 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/wallet_container" />
 
-    <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/membersIcon"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_marginStart="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_32"
-        android:src="@drawable/ic_members"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/topDivider" />
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/members"
-        style="@style/NCText.Body"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/members_container"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/nc_padding_4"
-        android:gravity="center"
-        app:layout_constraintBottom_toBottomOf="@+id/membersIcon"
-        app:layout_constraintStart_toEndOf="@+id/membersIcon"
-        app:layout_constraintTop_toTopOf="@+id/membersIcon"
-        tools:text="members (5)" />
-
-    <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/viewMembersIcon"
-        android:layout_width="@dimen/nc_padding_24"
-        android:layout_height="@dimen/nc_padding_24"
+        android:background="?attr/selectableItemBackground"
         android:layout_marginStart="@dimen/nc_padding_16"
-        android:layout_marginEnd="@dimen/nc_padding_16"
-        android:padding="@dimen/nc_padding_4"
-        android:src="@drawable/ic_arrow"
-        app:layout_constraintBottom_toBottomOf="@+id/membersIcon"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/membersIcon" />
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:paddingVertical="@dimen/nc_padding_16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/topDivider">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/membersIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_members"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/viewMembersIcon"
+            android:layout_width="@dimen/nc_padding_24"
+            android:layout_height="@dimen/nc_padding_24"
+            android:layout_marginStart="@dimen/nc_padding_16"
+            android:layout_marginEnd="@dimen/nc_padding_16"
+            android:padding="@dimen/nc_padding_4"
+            android:src="@drawable/ic_arrow"
+            app:layout_constraintBottom_toBottomOf="@+id/membersIcon"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/membersIcon" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/members"
+            style="@style/NCText.Body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/nc_padding_4"
+            android:gravity="center"
+            app:layout_constraintBottom_toBottomOf="@+id/membersIcon"
+            app:layout_constraintStart_toEndOf="@+id/membersIcon"
+            app:layout_constraintTop_toTopOf="@+id/membersIcon"
+            tools:text="members (5)" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <View
         android:id="@+id/bottomDivider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_32"
+        android:layout_marginTop="@dimen/nc_padding_16"
         android:background="@color/nc_whisper_color"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/membersIcon" />
+        app:layout_constraintTop_toBottomOf="@+id/members_container" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/muteConversation"
