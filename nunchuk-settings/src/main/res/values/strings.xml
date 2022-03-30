@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="nc_settings_sign_out">Sign out</string>
-    <string name="nc_settings_unit">Display unit (BTC)</string>
+    <string name="nc_settings_unit">Display unit (%1$s)</string>
     <string name="nc_settings_network">Network settings</string>
     <string name="nc_settings_change_password">Change password</string>
     <string name="nc_settings_logged_in_devices">Logged-in devices</string>
@@ -25,7 +25,7 @@
     <string name="nc_text_testnet_server">Testnet server</string>
     <string name="nc_txt_syncing_wallets_data">Syncing wallets data</string>
     <string name="nc_txt_sat_description">1 BTC = 100,000,000 sat</string>
-    <string name="nc_txt_sat">Satoshi</string>
+    <string name="nc_txt_sat">satoshi</string>
     <string name="nc_txt_show_fixed_precision">Show fixed precision</string>
     <string name="nc_txt_guest">Guest</string>
     <string name="nc_settings_account_settings">Account settings</string>
