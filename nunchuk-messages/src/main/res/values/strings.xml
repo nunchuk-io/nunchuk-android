@@ -53,8 +53,8 @@
     <string name="nc_message_transaction_ready">The transaction has enough signatures and is waiting to be broadcast</string>
     <string name="nc_message_transaction_canceled">The transaction has been canceled</string>
     <string name="nc_message_transaction_rejected">The transaction has been rejected</string>
-    <string name="nc_message_transaction_receiving"><![CDATA[You are receiving <b>%1$s</b> in <b>%2$s</b>]]></string>
-    <string name="nc_message_transaction_received"><![CDATA[You received <b>%1$s</b> in <b>%2$s</b>]]></string>
+    <string name="nc_message_transaction_receiving"><![CDATA[You are receiving <b>%1$s</b> in <b>%2$s</b>. Waiting for the transaction to be confirmed on the blockchain]]></string>
+    <string name="nc_message_transaction_received"><![CDATA[Transaction confirmed. You just received <b>%1$s</b> in <b>%2$s</b>]]></string>
     <string name="nc_message_transaction_signed">You’ve signed this transaction with %1$s</string>
     <string name="nc_message_transaction_broadcast">The transaction has been broadcast. Waiting for it to be confirmed on the blockchain</string>
     <string name="nc_message_transaction_confirmed">The transaction has been confirmed on the blockchain</string>
