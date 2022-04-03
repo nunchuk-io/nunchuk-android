@@ -1,6 +1,5 @@
 package com.nunchuk.android.core.device
 
-import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.utils.DeviceManager
 import java.util.*
@@ -20,7 +19,7 @@ internal class DeviceManagerImpl @Inject constructor(
     }
 
     override fun getDeviceId(): String {
-        if (deviceId.isNullOrEmpty()) {
+        if (deviceId.isEmpty()) {
             deviceId = generateDeviceId()
             storeDeviceId(deviceId)
         }
