@@ -39,6 +39,7 @@ internal class NunchukApplication : Application(), HasAndroidInjector, MatrixCon
         BootstrapInjectors.inject(this)
         fileHelper.getOrCreateNunchukRootDir()
         matrix.initialize()
+
     }
 
     override fun attachBaseContext(base: Context) {

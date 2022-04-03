@@ -1,7 +1,7 @@
 package com.nunchuk.android.core.domain
 
-import com.nunchuk.android.core.api.PriceBTCResponse
-import com.nunchuk.android.core.data.PriceConverterAPIRepository
+import com.nunchuk.android.core.data.model.PriceBTCResponse
+import com.nunchuk.android.core.repository.PriceConverterAPIRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject

@@ -1,21 +1,25 @@
 package com.nunchuk.android.main
 
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.IdRes
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.base.ForegroundAppBackgroundListener
 import com.nunchuk.android.core.matrix.MatrixEvenBus
 import com.nunchuk.android.core.matrix.MatrixEvent
 import com.nunchuk.android.core.matrix.MatrixEventListener
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.saveToFile
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 import com.nunchuk.android.main.di.MainAppEvent
@@ -24,6 +28,7 @@ import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
 import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.notifications.PushNotificationHelper
 import com.nunchuk.android.utils.NotificationUtils
+import com.nunchuk.android.widget.NCInfoDialog
 import java.io.File
 import javax.inject.Inject
 
@@ -56,7 +61,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
+    private var dialogUpdateRecommend: Dialog? = null
+
     override fun initializeBinding() = ActivityMainBinding.inflate(layoutInflater)
+
+    private var foregroundAppBackgroundListener: ForegroundAppBackgroundListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,17 +73,23 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         pushNotificationHelper.retrieveFcmToken(
             NotificationUtils.areNotificationsEnabled(this),
             onTokenRetrieved = ::onTokenRetrieved,
-            Toast.makeText(this, "No valid Google Play Services found. Cannot use FCM.", Toast.LENGTH_SHORT)::show
+            Toast.makeText(
+                this,
+                "No valid Google Play Services found. Cannot use FCM.",
+                Toast.LENGTH_SHORT
+            )::show
         )
         setupData()
         setupNavigationView()
         setBottomNavViewPosition(bottomNavViewPosition)
         subscribeEvents()
         MatrixEvenBus.instance.subscribe(matrixEventListener)
+        registerAppForegroundListener()
     }
 
     override fun onDestroy() {
         MatrixEvenBus.instance.unsubscribe(matrixEventListener)
+        removeAppForegroundListener()
         super.onDestroy()
     }
 
@@ -90,6 +105,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             viewModel.setupSyncing()
         }
         viewModel.scheduleGetBTCConvertPrice()
+        viewModel.checkAppUpdateRecommend()
     }
 
     private fun subscribeEvents() {
@@ -101,11 +117,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             is DownloadFileSyncSucceed -> handleDownloadedSyncFile(event)
             is GetConnectionStatusSuccessEvent -> {
             }
+            is MainAppEvent.UpdateAppRecommendEvent -> if (event.isUpdateAvailable) {
+                showUpdateRecommendedDialog()
+            }
         }
     }
 
     private fun handleDownloadedSyncFile(event: DownloadFileSyncSucceed) {
-        event.responseBody.byteStream().saveToFile(externalCacheDir.toString() + File.separator + "FileBackup")
+        event.responseBody.byteStream()
+            .saveToFile(externalCacheDir.toString() + File.separator + "FileBackup")
         val saveFile = File(externalCacheDir.toString() + File.separator + "FileBackup")
         viewModel.consumeSyncFile(event.jsonInfo, saveFile.readBytes())
     }
@@ -139,12 +159,60 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
+    private fun showUpdateRecommendedDialog() {
+        if (dialogUpdateRecommend == null) {
+            dialogUpdateRecommend = NCInfoDialog(this).init(
+                title = getString(R.string.nc_text_title_update_recommend),
+                message = getString(R.string.nc_text_message_update_recommend),
+                btnYes = getString(R.string.nc_text_btn_update_recommend),
+                cancelable = true
+            )
+        }
+
+        if (dialogUpdateRecommend?.isShowing.orFalse()) {
+            return
+        }
+
+        dialogUpdateRecommend?.show()
+    }
+
+    private fun registerAppForegroundListener() {
+        foregroundAppBackgroundListener = ForegroundAppBackgroundListener {
+            handleOnAppResumeCallback()
+        }
+        foregroundAppBackgroundListener?.let {
+            ProcessLifecycleOwner.get()
+                .lifecycle
+                .addObserver(it)
+        }
+    }
+
+    private fun removeAppForegroundListener() {
+        foregroundAppBackgroundListener?.let {
+            ProcessLifecycleOwner.get()
+                .lifecycle
+                .removeObserver(it)
+        }
+        foregroundAppBackgroundListener = null
+    }
+
+    private fun handleOnAppResumeCallback() {
+        if (viewModel.isUpdateAppRequired) {
+            showUpdateRecommendedDialog()
+        }
+    }
+
     companion object {
         const val EXTRAS_LOGIN_HALF_TOKEN = "EXTRAS_LOGIN_HALF_TOKEN"
         const val EXTRAS_ENCRYPTED_DEVICE_ID = "EXTRAS_ENCRYPTED_DEVICE_ID"
         const val EXTRAS_BOTTOM_NAV_VIEW_POSITION = "EXTRAS_BOTTOM_NAV_VIEW_POSITION"
 
-        fun start(activityContext: Context, loginHalfToken: String? = null, deviceId: String? = null, position: Int? = null) {
+        fun start(
+            activityContext: Context,
+            loginHalfToken: String? = null,
+            deviceId: String? = null,
+            position: Int? = null
+        ) {
             activityContext.startActivity(
                 createIntent(
                     activityContext = activityContext,
@@ -156,7 +224,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
 
         // TODO replace with args
-        fun createIntent(activityContext: Context, loginHalfToken: String? = null, deviceId: String? = null, @IdRes bottomNavViewPosition: Int? = null): Intent {
+        fun createIntent(
+            activityContext: Context,
+            loginHalfToken: String? = null,
+            deviceId: String? = null,
+            @IdRes bottomNavViewPosition: Int? = null
+        ): Intent {
             return Intent(activityContext, MainActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 putExtra(EXTRAS_LOGIN_HALF_TOKEN, loginHalfToken)

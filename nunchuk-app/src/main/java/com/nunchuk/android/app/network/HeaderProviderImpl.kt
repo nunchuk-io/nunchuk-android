@@ -27,4 +27,12 @@ class HeaderProviderImpl @Inject constructor(
 
     override fun getAccessToken() = accountManager.getAccount().token
 
+    override fun getOSName() = HEADER_OS_NAME_VALUE
+
+    override fun getDeviceClass() = HEADER_DEVICE_CLASS_VALUE
+
+    companion object {
+        internal const val HEADER_DEVICE_CLASS_VALUE = "Mobile"
+        internal const val HEADER_OS_NAME_VALUE = "Android"
+    }
 }

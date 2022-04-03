@@ -12,4 +12,8 @@ interface HeaderProvider {
 
     fun getAccessToken(): String
 
+    fun getOSName(): String
+
+    fun getDeviceClass(): String
+
 }

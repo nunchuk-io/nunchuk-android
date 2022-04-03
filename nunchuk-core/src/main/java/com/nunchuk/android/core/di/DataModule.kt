@@ -1,7 +1,7 @@
 package com.nunchuk.android.core.di
 
-import com.nunchuk.android.core.data.PriceConverterAPIRepository
-import com.nunchuk.android.core.data.PriceConverterAPIRepositoryImpl
+import com.nunchuk.android.core.repository.PriceConverterAPIRepository
+import com.nunchuk.android.core.repository.PriceConverterAPIRepositoryImpl
 import dagger.Binds
 import dagger.Module
 

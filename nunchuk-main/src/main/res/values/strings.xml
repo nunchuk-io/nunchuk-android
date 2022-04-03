@@ -14,4 +14,7 @@
     <string name="nc_text_connection_status_online">Online</string>
     <string name="nc_text_home_wallet_chain_testnet">(Testnet)</string>
     <string name="nc_text_home_wallet_connection">%s %s</string>
+    <string name="nc_text_title_update_recommend">Update recommended</string>
+    <string name="nc_text_message_update_recommend">Please download and install the update from the App Store</string>
+    <string name="nc_text_btn_update_recommend">I’ll do this later</string>
 </resources>

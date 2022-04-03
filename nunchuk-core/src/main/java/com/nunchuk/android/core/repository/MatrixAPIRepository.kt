@@ -1,8 +1,8 @@
-package com.nunchuk.android.core.data
+package com.nunchuk.android.core.repository
 
-import com.nunchuk.android.core.api.MatrixAPI
-import com.nunchuk.android.core.api.MatrixUploadFileResponse
-import com.nunchuk.android.core.api.SyncStateMatrixResponse
+import com.nunchuk.android.core.data.api.MatrixAPI
+import com.nunchuk.android.core.data.model.MatrixUploadFileResponse
+import com.nunchuk.android.core.data.model.SyncStateMatrixResponse
 import com.nunchuk.android.core.matrix.SessionHolder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

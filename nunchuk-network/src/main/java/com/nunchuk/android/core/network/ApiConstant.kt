@@ -12,9 +12,9 @@ internal object ApiConstant {
     internal const val HEADER_DEVICE_ID = "x-nc-device-id"
     internal const val HEADER_APP_VERSION = "x-nc-app-version"
     internal const val HEADER_OS_VERSION = "x-nc-os-version"
-    internal const val HEADER_CONTENT_TYPE = "Content-Type"
-    internal const val HEADER_DEVICE_CLASS = "x-nc-device-class"
     internal const val HEADER_OS_NAME = "x-nc-os-name"
+    internal const val HEADER_DEVICE_CLASS = "x-nc-device-class"
+    internal const val HEADER_CONTENT_TYPE = "Content-Type"
     internal const val HEADER_ACCEPT = "accept"
 
     internal const val HEADER_CONTENT_TYPE_VALUE = "application/json"
