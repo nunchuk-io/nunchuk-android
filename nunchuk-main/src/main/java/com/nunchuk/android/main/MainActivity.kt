@@ -117,8 +117,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             is DownloadFileSyncSucceed -> handleDownloadedSyncFile(event)
             is GetConnectionStatusSuccessEvent -> {
             }
-            is MainAppEvent.UpdateAppRecommendEvent -> if (event.isUpdateAvailable) {
-                showUpdateRecommendedDialog()
+            is MainAppEvent.UpdateAppRecommendEvent -> if (event.data.isUpdateAvailable.orFalse()) {
+                showUpdateRecommendedDialog(
+                    title = event.data.title.orEmpty(),
+                    message = event.data.message.orEmpty(),
+                    btnCTAText = event.data.doItLaterCTALbl.orEmpty()
+                )
             }
         }
     }
@@ -159,12 +163,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
-    private fun showUpdateRecommendedDialog() {
+    private fun showUpdateRecommendedDialog(
+        title: String,
+        message: String,
+        btnCTAText: String
+    ) {
         if (dialogUpdateRecommend == null) {
             dialogUpdateRecommend = NCInfoDialog(this).init(
-                title = getString(R.string.nc_text_title_update_recommend),
-                message = getString(R.string.nc_text_message_update_recommend),
-                btnYes = getString(R.string.nc_text_btn_update_recommend),
+                title = title,
+                message = message,
+                btnYes = btnCTAText,
                 cancelable = true
             )
         }
@@ -197,8 +205,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun handleOnAppResumeCallback() {
-        if (viewModel.isUpdateAppRequired) {
-            showUpdateRecommendedDialog()
+        val cacheAppUpdateData = viewModel.cacheAppUpdateResponse
+        val isForceUpdate =
+            cacheAppUpdateData != null && cacheAppUpdateData.isUpdateRequired.orFalse()
+        if (isForceUpdate) {
+            showUpdateRecommendedDialog(
+                title = cacheAppUpdateData?.title.orEmpty(),
+                message = cacheAppUpdateData?.message.orEmpty(),
+                btnCTAText = cacheAppUpdateData?.doItLaterCTALbl.orEmpty()
+            )
         }
     }
 

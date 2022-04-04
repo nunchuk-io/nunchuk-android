@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.callbacks.DownloadFileCallBack
 import com.nunchuk.android.callbacks.UploadFileCallBack
+import com.nunchuk.android.core.data.model.AppUpdateResponse
 import com.nunchuk.android.core.data.model.SyncStateMatrixResponse
 import com.nunchuk.android.core.domain.*
 import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
@@ -72,7 +73,7 @@ internal class MainActivityViewModel @Inject constructor(
 
     private lateinit var timeline: Timeline
 
-    var isUpdateAppRequired = false
+    var cacheAppUpdateResponse: AppUpdateResponse? = null
 
     init {
         initSyncEventExecutor()
@@ -88,8 +89,12 @@ internal class MainActivityViewModel @Inject constructor(
                 .onException {}
                 .flowOn(Main)
                 .collect {
-                    event(UpdateAppRecommendEvent(it.isUpdateAvailable.orFalse()))
-                    isUpdateAppRequired = it.isUpdateRequired.orFalse()
+                    event(
+                        UpdateAppRecommendEvent(
+                            data = it
+                        )
+                    )
+                    cacheAppUpdateResponse = it
                 }
         }
     }
