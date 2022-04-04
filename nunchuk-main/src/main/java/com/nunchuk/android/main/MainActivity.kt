@@ -121,7 +121,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 showUpdateRecommendedDialog(
                     title = event.data.title.orEmpty(),
                     message = event.data.message.orEmpty(),
-                    btnCTAText = event.data.doItLaterCTALbl.orEmpty()
+                    btnCTAText = event.data.btnCTA.orEmpty()
                 )
             }
         }
@@ -212,7 +212,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             showUpdateRecommendedDialog(
                 title = cacheAppUpdateData?.title.orEmpty(),
                 message = cacheAppUpdateData?.message.orEmpty(),
-                btnCTAText = cacheAppUpdateData?.doItLaterCTALbl.orEmpty()
+                btnCTAText = cacheAppUpdateData?.btnCTA.orEmpty()
             )
         }
     }

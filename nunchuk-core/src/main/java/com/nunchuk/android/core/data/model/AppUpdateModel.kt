@@ -12,6 +12,6 @@ data class AppUpdateResponse(
     val title: String? = null,
     @SerializedName("message")
     val message: String? = null,
-    @SerializedName("doItLaterCTALbl")
-    val doItLaterCTALbl: String? = null
+    @SerializedName("btnCTA")
+    val btnCTA: String? = null
 ) : Serializable
