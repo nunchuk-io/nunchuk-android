@@ -77,10 +77,7 @@ class ContactsViewModel @Inject constructor(
     }
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
-        val hasNewContactRequestEvent = events.findLast(TimelineEvent::isContactRequestEvent)
-        if (hasNewContactRequestEvent != null) {
-            retrieveContacts()
-        }
+        events.findLast(TimelineEvent::isContactRequestEvent)?.let { retrieveContacts() }
     }
 
 }

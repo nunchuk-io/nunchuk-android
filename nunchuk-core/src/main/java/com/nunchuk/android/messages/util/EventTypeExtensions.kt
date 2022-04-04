@@ -9,6 +9,8 @@ const val STATE_NUNCHUK_WALLET = "io.nunchuk.wallet"
 const val STATE_NUNCHUK_TRANSACTION = "io.nunchuk.transaction"
 const val STATE_NUNCHUK_SYNC = "io.nunchuk.sync"
 const val STATE_NUNCHUK_CONTACT_REQUEST = "io.nunchuk.custom.contact_request"
+const val STATE_NUNCHUK_CONTACT_REQUEST_ACCEPTED = "io.nunchuk.custom.contact_request_accepted"
+const val STATE_NUNCHUK_CONTACT_WITHDRAW_INVITATION = "io.nunchuk.custom.withdraw_invitation"
 const val STATE_ROOM_SERVER_NOTICE = "m.server_notice"
 
 fun TimelineEvent.isDisplayable() = isMessageEvent() || isNotificationEvent() || isNunchukEvent()
@@ -31,4 +33,10 @@ fun TimelineEvent.isNunchukTransactionEvent() = root.type == STATE_NUNCHUK_TRANS
 
 fun TimelineEvent.isNunchukConsumeSyncEvent() = root.type == STATE_NUNCHUK_SYNC
 
+fun TimelineEvent.isContactUpdateEvent() = isContactRequestEvent() || isContactWithdrawInvitationEvent() || isContactRequestAcceptedEvent()
+
 fun TimelineEvent.isContactRequestEvent() = root.content?.get("msgtype") == STATE_NUNCHUK_CONTACT_REQUEST
+
+fun TimelineEvent.isContactWithdrawInvitationEvent() = root.content?.get("msgtype") == STATE_NUNCHUK_CONTACT_WITHDRAW_INVITATION
+
+fun TimelineEvent.isContactRequestAcceptedEvent() = root.content?.get("msgtype") == STATE_NUNCHUK_CONTACT_REQUEST_ACCEPTED

@@ -17,8 +17,6 @@ import dagger.android.HasAndroidInjector
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
-import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
-import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
 import javax.inject.Inject
 
 class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidInjector {
@@ -121,10 +119,10 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
                 intent = intentProvider.getRoomDetailsIntent(roomId)
             )
         }
-        isContactRequestEvent() -> {
+        isContactUpdateEvent() -> {
             PushNotificationData(
                 title = getString(R.string.notification_contact_update),
-                message = (getLastMessageContent()?.body ?: getTextEditableContent()),
+                message = lastMessageContent(),
                 intent = intentProvider.getMainIntent()
             )
         }
