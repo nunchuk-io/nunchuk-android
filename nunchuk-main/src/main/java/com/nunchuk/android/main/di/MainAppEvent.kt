@@ -16,4 +16,5 @@ internal sealed class MainAppEvent {
 
     object SyncCompleted : MainAppEvent()
 
+    data class UpdateAppRecommendEvent(val isUpdateAvailable: Boolean): MainAppEvent()
 }

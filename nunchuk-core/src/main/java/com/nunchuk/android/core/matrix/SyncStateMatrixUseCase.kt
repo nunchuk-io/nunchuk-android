@@ -1,7 +1,7 @@
 package com.nunchuk.android.core.matrix
 
-import com.nunchuk.android.core.api.SyncStateMatrixResponse
-import com.nunchuk.android.core.data.MatrixAPIRepository
+import com.nunchuk.android.core.data.model.SyncStateMatrixResponse
+import com.nunchuk.android.core.repository.MatrixAPIRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 

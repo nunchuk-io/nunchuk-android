@@ -1,7 +1,7 @@
-package com.nunchuk.android.core.data
+package com.nunchuk.android.core.repository
 
-import com.nunchuk.android.core.api.PriceConverterAPI
-import com.nunchuk.android.core.api.PriceResponse
+import com.nunchuk.android.core.data.api.PriceConverterAPI
+import com.nunchuk.android.core.data.model.PriceResponse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -11,7 +11,6 @@ interface PriceConverterAPIRepository {
     fun execute(
     ): Flow<PriceResponse>
 }
-
 
 internal class PriceConverterAPIRepositoryImpl @Inject constructor(
     private val priceConverterAPI: PriceConverterAPI

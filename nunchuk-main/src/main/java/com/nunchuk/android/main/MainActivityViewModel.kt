@@ -4,11 +4,8 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.callbacks.DownloadFileCallBack
 import com.nunchuk.android.callbacks.UploadFileCallBack
-import com.nunchuk.android.core.api.SyncStateMatrixResponse
-import com.nunchuk.android.core.domain.GetDisplayUnitSettingUseCase
-import com.nunchuk.android.core.domain.GetPriceConvertBTCUseCase
-import com.nunchuk.android.core.domain.LoginWithMatrixUseCase
-import com.nunchuk.android.core.domain.ScheduleGetPriceConvertBTCUseCase
+import com.nunchuk.android.core.data.model.SyncStateMatrixResponse
+import com.nunchuk.android.core.domain.*
 import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.matrix.*
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
@@ -65,8 +62,9 @@ internal class MainActivityViewModel @Inject constructor(
     private val getDisplayUnitSettingUseCase: GetDisplayUnitSettingUseCase,
     private val notificationManager: PushNotificationManager,
     @Named(DEFAULT_RETRY_POLICY) private val retryPolicy: RetryPolicy,
-    @Named(SYNC_RETRY_POLICY) private val syncRetryPolicy: RetryPolicy
-) : NunchukViewModel<Unit, MainAppEvent>() {
+    @Named(SYNC_RETRY_POLICY) private val syncRetryPolicy: RetryPolicy,
+    private val checkUpdateRecommendUseCase: CheckUpdateRecommendUseCase
+    ) : NunchukViewModel<Unit, MainAppEvent>() {
 
     override val initialState = Unit
 
@@ -74,11 +72,26 @@ internal class MainActivityViewModel @Inject constructor(
 
     private lateinit var timeline: Timeline
 
+    var isUpdateAppRequired = false
+
     init {
         initSyncEventExecutor()
         registerDownloadFileBackupEvent()
         registerBlockChainConnectionStatusExecutor()
         getDisplayUnitSetting()
+    }
+
+    fun checkAppUpdateRecommend() {
+        viewModelScope.launch {
+            checkUpdateRecommendUseCase.execute()
+                .flowOn(IO)
+                .onException {}
+                .flowOn(Main)
+                .collect {
+                    event(UpdateAppRecommendEvent(it.isUpdateAvailable.orFalse()))
+                    isUpdateAppRequired = it.isUpdateRequired.orFalse()
+                }
+        }
     }
 
     fun scheduleGetBTCConvertPrice() {

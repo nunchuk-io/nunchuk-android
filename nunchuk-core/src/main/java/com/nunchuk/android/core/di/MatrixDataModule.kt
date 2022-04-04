@@ -1,7 +1,7 @@
 package com.nunchuk.android.core.di
 
-import com.nunchuk.android.core.data.MatrixAPIRepository
-import com.nunchuk.android.core.data.MatrixAPIRepositoryImpl
+import com.nunchuk.android.core.repository.MatrixAPIRepository
+import com.nunchuk.android.core.repository.MatrixAPIRepositoryImpl
 import dagger.Binds
 import dagger.Module
 
