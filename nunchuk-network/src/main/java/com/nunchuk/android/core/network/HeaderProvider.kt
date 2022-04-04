@@ -1,5 +1,8 @@
 package com.nunchuk.android.core.network
 
+import com.nunchuk.android.core.network.ApiConstant.HEADER_DEVICE_CLASS_VALUE
+import com.nunchuk.android.core.network.ApiConstant.HEADER_OS_NAME_VALUE
+
 interface HeaderProvider {
 
     fun getOsVersion(): String
@@ -12,8 +15,8 @@ interface HeaderProvider {
 
     fun getAccessToken(): String
 
-    fun getOSName(): String
+    fun getOSName() = HEADER_OS_NAME_VALUE
 
-    fun getDeviceClass(): String
+    fun getDeviceClass() = HEADER_DEVICE_CLASS_VALUE
 
 }
