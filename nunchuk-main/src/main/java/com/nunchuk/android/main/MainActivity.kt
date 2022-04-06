@@ -15,12 +15,9 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.base.ForegroundAppBackgroundListener
-import com.nunchuk.android.core.matrix.MatrixEvenBus
-import com.nunchuk.android.core.matrix.MatrixEvent
-import com.nunchuk.android.core.matrix.MatrixEventListener
-import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.util.orFalse
-import com.nunchuk.android.core.util.saveToFile
+import com.nunchuk.android.core.data.model.AppUpdateResponse
+import com.nunchuk.android.core.matrix.*
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.DownloadFileSyncSucceed
@@ -61,11 +58,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
+    private val appEventListener: AppEventListener = {
+        if (it is AppEvent.AppResumedEvent) {
+            viewModel.checkAppUpdateRecommend(true)
+        }
+    }
+    private var foregroundAppBackgroundListener: ForegroundAppBackgroundListener? = null
+
     private var dialogUpdateRecommend: Dialog? = null
 
     override fun initializeBinding() = ActivityMainBinding.inflate(layoutInflater)
-
-    private var foregroundAppBackgroundListener: ForegroundAppBackgroundListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,12 +86,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         setBottomNavViewPosition(bottomNavViewPosition)
         subscribeEvents()
         MatrixEvenBus.instance.subscribe(matrixEventListener)
-        registerAppForegroundListener()
+        AppEvenBus.instance.subscribe(appEventListener)
+        viewModel.checkAppUpdateRecommend(false)
     }
 
     override fun onDestroy() {
         MatrixEvenBus.instance.unsubscribe(matrixEventListener)
-        removeAppForegroundListener()
+        AppEvenBus.instance.unsubscribe(appEventListener)
         super.onDestroy()
     }
 
@@ -105,7 +108,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             viewModel.setupSyncing()
         }
         viewModel.scheduleGetBTCConvertPrice()
-        viewModel.checkAppUpdateRecommend()
     }
 
     private fun subscribeEvents() {
@@ -117,13 +119,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             is DownloadFileSyncSucceed -> handleDownloadedSyncFile(event)
             is GetConnectionStatusSuccessEvent -> {
             }
-            is MainAppEvent.UpdateAppRecommendEvent -> if (event.data.isUpdateAvailable.orFalse()) {
-                showUpdateRecommendedDialog(
-                    title = event.data.title.orEmpty(),
-                    message = event.data.message.orEmpty(),
-                    btnCTAText = event.data.btnCTA.orEmpty()
-                )
-            }
+            is MainAppEvent.UpdateAppRecommendEvent -> handleAppUpdateEvent(event.data)
         }
     }
 
@@ -184,37 +180,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         dialogUpdateRecommend?.show()
     }
 
-    private fun registerAppForegroundListener() {
-        foregroundAppBackgroundListener = ForegroundAppBackgroundListener {
-            handleOnAppResumeCallback()
-        }
-        foregroundAppBackgroundListener?.let {
-            ProcessLifecycleOwner.get()
-                .lifecycle
-                .addObserver(it)
-        }
-    }
-
-    private fun removeAppForegroundListener() {
-        foregroundAppBackgroundListener?.let {
-            ProcessLifecycleOwner.get()
-                .lifecycle
-                .removeObserver(it)
-        }
-        foregroundAppBackgroundListener = null
-    }
-
-    private fun handleOnAppResumeCallback() {
-        val cacheAppUpdateData = viewModel.cacheAppUpdateResponse
-        val isForceUpdate =
-            cacheAppUpdateData != null && cacheAppUpdateData.isUpdateRequired.orFalse()
-        if (isForceUpdate) {
-            showUpdateRecommendedDialog(
-                title = cacheAppUpdateData?.title.orEmpty(),
-                message = cacheAppUpdateData?.message.orEmpty(),
-                btnCTAText = cacheAppUpdateData?.btnCTA.orEmpty()
-            )
-        }
+    private fun handleAppUpdateEvent(data: AppUpdateResponse) {
+        showUpdateRecommendedDialog(
+            title = data.title.orEmpty(),
+            message = data.message.orEmpty(),
+            btnCTAText = data.btnCTA.orEmpty()
+        )
     }
 
     companion object {
