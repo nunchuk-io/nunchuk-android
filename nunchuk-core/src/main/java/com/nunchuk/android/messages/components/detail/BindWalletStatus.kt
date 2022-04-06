@@ -4,9 +4,11 @@ import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import com.nunchuk.android.core.R
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.isCanceled
+import com.nunchuk.android.core.util.isCreated
+import com.nunchuk.android.core.util.isPendingKeys
+import com.nunchuk.android.core.util.isReadyFinalize
 import com.nunchuk.android.model.RoomWallet
-import com.nunchuk.android.model.Transaction
 
 fun TextView.bindWalletStatus(roomWallet: RoomWallet) {
     when {
@@ -44,4 +46,5 @@ fun TextView.bindCanceledStatus() {
 fun TextView.bindPendingSignatures() {
     text = context.getString(R.string.nc_transaction_pending_signatures)
     background = AppCompatResources.getDrawable(context, R.drawable.nc_rounded_tag_stroke_background)
+    backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_red_tint_color)
 }

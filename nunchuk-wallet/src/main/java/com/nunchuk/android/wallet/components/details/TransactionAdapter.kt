@@ -49,7 +49,11 @@ internal class TransactionViewHolder(
             binding.amountUSD.text = data.totalAmount.getUSDAmount()
             binding.receiverName.text = data.receiveOutputs.firstOrNull()?.first.orEmpty().truncatedAddress()
         } else {
-            binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
+            if (data.status.isConfirmed()) {
+                binding.sendTo.text = context.getString(R.string.nc_transaction_sent_to)
+            } else {
+                binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
+            }
             binding.amountBTC.text = "- ${data.totalAmount.getBTCAmount()}"
             binding.amountUSD.text = "- ${data.totalAmount.getUSDAmount()}"
             binding.receiverName.text = data.outputs.firstOrNull()?.first.orEmpty().truncatedAddress()

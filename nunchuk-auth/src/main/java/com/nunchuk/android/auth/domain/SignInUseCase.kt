@@ -34,7 +34,8 @@ internal class SignInUseCaseImpl @Inject constructor(
                 email = email,
                 token = response.tokenId,
                 activated = true,
-                staySignedIn = staySignedIn
+                staySignedIn = staySignedIn,
+                deviceId = response.deviceId
             )
         )
         return response.tokenId to response.deviceId

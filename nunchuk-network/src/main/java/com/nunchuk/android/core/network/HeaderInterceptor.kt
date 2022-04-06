@@ -1,8 +1,12 @@
 package com.nunchuk.android.core.network
 
+import com.nunchuk.android.core.network.ApiConstant.HEADER_ACCEPT
 import com.nunchuk.android.core.network.ApiConstant.HEADER_APP_VERSION
 import com.nunchuk.android.core.network.ApiConstant.HEADER_CONTENT_TYPE
+import com.nunchuk.android.core.network.ApiConstant.HEADER_CONTENT_TYPE_VALUE
+import com.nunchuk.android.core.network.ApiConstant.HEADER_DEVICE_CLASS
 import com.nunchuk.android.core.network.ApiConstant.HEADER_DEVICE_ID
+import com.nunchuk.android.core.network.ApiConstant.HEADER_OS_NAME
 import com.nunchuk.android.core.network.ApiConstant.HEADER_OS_VERSION
 import com.nunchuk.android.core.network.ApiConstant.HEADER_TOKEN_TYPE
 import okhttp3.Interceptor
@@ -19,8 +23,10 @@ class HeaderInterceptor @Inject constructor(
             .validHeader(HEADER_DEVICE_ID, headerProvider.getDeviceId())
             .validHeader(HEADER_APP_VERSION, headerProvider.getAppVersion())
             .validHeader(HEADER_OS_VERSION, headerProvider.getOsVersion())
-            .validHeader(HEADER_CONTENT_TYPE, "application/json")
-            .validHeader("accept", "application/json;charset=UTF-8")
+            .validHeader(HEADER_OS_NAME, headerProvider.getOSName())
+            .validHeader(HEADER_DEVICE_CLASS, headerProvider.getDeviceClass())
+            .validHeader(HEADER_CONTENT_TYPE, HEADER_CONTENT_TYPE_VALUE)
+            .validHeader(HEADER_ACCEPT, "application/json;charset=UTF-8")
             .validHeader(HEADER_TOKEN_TYPE, "Bearer " + headerProvider.getAccessToken())
             .build()
         return chain.proceed(request)

@@ -61,6 +61,7 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
     }
 
     private fun showEmailConfirmation(email: String) {
+        binding.oldPassword.getTextView().text = getString(R.string.nc_text_temporary_password)
         binding.emailSentDescription.isVisible = true
         binding.emailSentDescription.text = getString(R.string.nc_text_email_sent, email)
     }

@@ -19,6 +19,8 @@ import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
+import com.nunchuk.android.core.entities.SAT
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.util.*
@@ -73,6 +75,11 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
         binding.signIn.isVisible = isGuestMode
         binding.signUp.isVisible = isGuestMode
         binding.accountSettings.isVisible = !isGuestMode
+
+        binding.unit.text = when(CURRENT_DISPLAY_UNIT_TYPE) {
+            SAT -> getString(R.string.nc_settings_unit, getString(R.string.nc_currency_sat))
+            else -> getString(R.string.nc_settings_unit, getString(R.string.nc_currency_btc))
+        }
     }
 
     private fun openAboutScreen() {
@@ -141,6 +148,7 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
     private fun handleEvent(event: AccountEvent) {
         when (event) {
             SignOutEvent -> {
+                hideLoading()
                 val activity = requireActivity()
                 navigator.openSignInScreen(activity)
                 activity.finish()
@@ -154,6 +162,13 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
                 )
             }
             is AccountEvent.GetUserProfileGuestEvent -> handleSetupGuestProfile()
+            is AccountEvent.LoadingEvent -> {
+                if (event.loading) {
+                    showLoading()
+                } else {
+                    hideLoading()
+                }
+            }
         }
     }
 

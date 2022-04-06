@@ -27,6 +27,7 @@ sealed class RoomDetailEvent {
     object RoomNotFoundEvent : RoomDetailEvent()
     object ContactNotFoundEvent : RoomDetailEvent()
     object CreateNewSharedWallet : RoomDetailEvent()
+    data class ReceiveBTCEvent(val walletId: String) : RoomDetailEvent()
     data class CreateNewTransaction(
         val roomId: String,
         val walletId: String,

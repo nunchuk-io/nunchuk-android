@@ -1,10 +1,7 @@
 package com.nunchuk.android.messages.components.detail.holder
 
 import androidx.recyclerview.widget.RecyclerView
-import com.nunchuk.android.core.util.bindTransactionStatus
-import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getHtmlString
-import com.nunchuk.android.core.util.getPendingSignatures
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.NunchukTransactionMessage
 import com.nunchuk.android.messages.databinding.ItemTransactionCardBinding
@@ -31,7 +28,12 @@ internal class NunchukTransactionCardHolder(
         val context = itemView.context
         binding.amount.text = transaction.totalAmount.getBTCAmount()
         binding.status.bindTransactionStatus(transaction)
-        binding.address.text = getHtmlString(R.string.nc_message_transaction_sending_to, transaction.outputs.first().first)
+        val resId = if (transaction.status.isConfirmed()) {
+            R.string.nc_message_transaction_sent_to
+        } else {
+            R.string.nc_message_transaction_sending_to
+        }
+        binding.address.text = getHtmlString(resId, transaction.outputs.first().first)
         val pendingSigners = transaction.getPendingSignatures()
         if (pendingSigners > 0) {
             binding.signatureStatus.text = context.getString(R.string.nc_message_transaction_pending_signature, pendingSigners)

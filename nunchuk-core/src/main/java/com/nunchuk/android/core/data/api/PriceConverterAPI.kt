@@ -1,5 +1,6 @@
-package com.nunchuk.android.core.api
+package com.nunchuk.android.core.data.api
 
+import com.nunchuk.android.core.data.model.PriceWrapperResponse
 import com.nunchuk.android.core.network.Data
 import retrofit2.http.GET
 

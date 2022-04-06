@@ -46,9 +46,9 @@ internal class DeleteAccountViewModel @Inject constructor(
                 .flowOn(Dispatchers.Main)
                 .collect {
                     accountManager.clearUserData()
-                    accountManager.signOut {
+                    accountManager.signOut(onSignedOut = {
                         event(ConfirmDeleteSuccess)
-                    }
+                    })
                 }
         }
     }

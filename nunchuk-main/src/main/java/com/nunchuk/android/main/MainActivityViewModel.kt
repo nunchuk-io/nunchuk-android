@@ -4,11 +4,9 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.callbacks.DownloadFileCallBack
 import com.nunchuk.android.callbacks.UploadFileCallBack
-import com.nunchuk.android.core.api.SyncStateMatrixResponse
-import com.nunchuk.android.core.domain.GetDisplayUnitSettingUseCase
-import com.nunchuk.android.core.domain.GetPriceConvertBTCUseCase
-import com.nunchuk.android.core.domain.LoginWithMatrixUseCase
-import com.nunchuk.android.core.domain.ScheduleGetPriceConvertBTCUseCase
+import com.nunchuk.android.core.data.model.AppUpdateResponse
+import com.nunchuk.android.core.data.model.SyncStateMatrixResponse
+import com.nunchuk.android.core.domain.*
 import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.matrix.*
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
@@ -39,6 +37,7 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -64,8 +63,9 @@ internal class MainActivityViewModel @Inject constructor(
     private val getDisplayUnitSettingUseCase: GetDisplayUnitSettingUseCase,
     private val notificationManager: PushNotificationManager,
     @Named(DEFAULT_RETRY_POLICY) private val retryPolicy: RetryPolicy,
-    @Named(SYNC_RETRY_POLICY) private val syncRetryPolicy: RetryPolicy
-) : NunchukViewModel<Unit, MainAppEvent>() {
+    @Named(SYNC_RETRY_POLICY) private val syncRetryPolicy: RetryPolicy,
+    private val checkUpdateRecommendUseCase: CheckUpdateRecommendUseCase
+    ) : NunchukViewModel<Unit, MainAppEvent>() {
 
     override val initialState = Unit
 
@@ -80,12 +80,32 @@ internal class MainActivityViewModel @Inject constructor(
         getDisplayUnitSetting()
     }
 
+    fun checkAppUpdateRecommend(isResume: Boolean) {
+        viewModelScope.launch {
+            checkUpdateRecommendUseCase.execute()
+                .flowOn(IO)
+                .onException {}
+                .flowOn(Main)
+                .collect { data ->
+                    val count = AppUpdateStateHolder.countShowingRecommend.incrementAndGet()
+                    val isUpdateAvailable = data.isUpdateAvailable.orFalse() && count == 1
+                    val isForceUpdate = data.isUpdateAvailable.orFalse() && data.isUpdateRequired.orFalse() && isResume
+                    if (isUpdateAvailable || isForceUpdate) {
+                        event(
+                            UpdateAppRecommendEvent(
+                                data = data
+                            )
+                        )
+                    }
+                }
+        }
+    }
+
     fun scheduleGetBTCConvertPrice() {
         viewModelScope.launch {
             scheduleGetPriceConvertBTCUseCase.execute()
                 .flowOn(IO)
                 .onException {}
-                .flowOn(Main)
                 .collect { getBTCConvertPrice() }
         }
     }
@@ -95,7 +115,6 @@ internal class MainActivityViewModel @Inject constructor(
             getPriceConvertBTCUseCase.execute()
                 .flowOn(IO)
                 .onException {}
-                .flowOn(Main)
                 .collect { btcResponse -> btcResponse?.usd?.let { BTC_USD_EXCHANGE_RATE = it } }
         }
     }
@@ -209,7 +228,7 @@ internal class MainActivityViewModel @Inject constructor(
                 .onException { }
                 .flowOn(Main)
                 .collect {
-                    event(SynCompleted)
+                    event(SyncCompleted)
                     Timber.tag(TAG).d("[App] consumeSyncFile")
                 }
         }
@@ -258,7 +277,7 @@ internal class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             val sortedEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
-                .sortedBy(NunchukMatrixEvent::time)
+                .sortedByDescending(NunchukMatrixEvent::time)
             Timber.tag(TAG).v("sortedEvents::$sortedEvents")
             consumerSyncEventUseCase.execute(sortedEvents)
                 .retryDefault(retryPolicy)
@@ -271,26 +290,27 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
-    @Synchronized
     fun setupSyncing() {
         Timber.tag(TAG).d("Bearer ${SessionHolder.activeSession?.sessionParams?.credentials?.accessToken.orEmpty()}")
         viewModelScope.launch {
-            syncStateMatrixUseCase.execute()
-                .retryDefault(retryPolicy)
-                .flowOn(IO)
-                .onException { }
-                .flowOn(Main)
-                .collect {
-                    event(SynCompleted)
-                    syncRoomId = findSyncRoom(it)
-                    syncRoomId?.let { syncRoomId ->
-                        Timber.tag(TAG).d("Have sync room: $syncRoomId")
-                        syncData(roomId = syncRoomId)
-                    } ?: run {
-                        Timber.tag(TAG).d("Don't have sync room")
-                        createRoomWithTagSync()
-                    }
-                }
+            SyncStateHolder.lockStateCreateSyncRoom.withLock {
+                syncStateMatrixUseCase.execute()
+                    .retryDefault(retryPolicy)
+                    .flowOn(IO)
+                    .onException { }
+                    .flowOn(Main)
+                    .collect {
+                            event(SyncCompleted)
+                            syncRoomId = findSyncRoom(it)
+                            syncRoomId?.let { syncRoomId ->
+                                Timber.tag(TAG).d("Have sync room: $syncRoomId")
+                                syncData(roomId = syncRoomId)
+                            } ?: run {
+                                Timber.tag(TAG).d("Don't have sync room")
+                                createRoomWithTagSync()
+                            }
+                        }
+            }
         }
     }
 
@@ -339,6 +359,7 @@ internal class MainActivityViewModel @Inject constructor(
 
     fun setupMatrix(token: String, encryptedDeviceId: String) {
         getUserProfileUseCase.execute()
+            .flowOn(IO)
             .retryDefault(retryPolicy)
             .flatMapConcat {
                 loginWithMatrix(

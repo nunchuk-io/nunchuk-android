@@ -8,12 +8,13 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.AddressType.*
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.components.add.AddWalletEvent.WalletNameRequiredEvent
 import com.nunchuk.android.wallet.personal.components.add.AddWalletEvent.WalletSetupDoneEvent
-import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.databinding.ActivityWalletAddBinding
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -59,27 +60,37 @@ class AddWalletActivity : BaseActivity<ActivityWalletAddBinding>() {
             NESTED_SEGWIT -> enableNestedAddressType()
             NATIVE_SEGWIT -> enableNativeAddressType()
             LEGACY -> enableLegacyAddressType()
-            else -> {
-            }
+            TAPROOT -> enableTaprootAddressType()
+            else -> {}
         }
-    }
-
-    private fun enableLegacyAddressType() {
-        binding.legacyRadio.isChecked = true
-        binding.nativeSegwitRadio.isChecked = false
-        binding.nestedSegwitRadio.isChecked = false
     }
 
     private fun enableNestedAddressType() {
         binding.legacyRadio.isChecked = false
         binding.nativeSegwitRadio.isChecked = false
         binding.nestedSegwitRadio.isChecked = true
+        binding.taprootRadio.isChecked = false
     }
 
     private fun enableNativeAddressType() {
         binding.legacyRadio.isChecked = false
         binding.nativeSegwitRadio.isChecked = true
         binding.nestedSegwitRadio.isChecked = false
+        binding.taprootRadio.isChecked = false
+    }
+
+    private fun enableLegacyAddressType() {
+        binding.legacyRadio.isChecked = true
+        binding.nativeSegwitRadio.isChecked = false
+        binding.nestedSegwitRadio.isChecked = false
+        binding.taprootRadio.isChecked = false
+    }
+
+    private fun enableTaprootAddressType() {
+        binding.legacyRadio.isChecked = false
+        binding.nativeSegwitRadio.isChecked = false
+        binding.nestedSegwitRadio.isChecked = false
+        binding.taprootRadio.isChecked = true
     }
 
     private fun handleEvent(event: AddWalletEvent) {
@@ -90,7 +101,11 @@ class AddWalletActivity : BaseActivity<ActivityWalletAddBinding>() {
     }
 
     private fun openAssignSignerScreen(walletName: String, walletType: WalletType, addressType: AddressType) {
-        navigator.openConfigureWalletScreen(this, walletName, walletType, addressType)
+        if (addressType.isTaproot()) {
+            navigator.openTaprootWarningScreen(this, walletName, walletType, addressType)
+        } else {
+            navigator.openConfigureWalletScreen(this, walletName, walletType, addressType)
+        }
     }
 
     private fun bindWalletType(walletType: WalletType) {
@@ -115,6 +130,7 @@ class AddWalletActivity : BaseActivity<ActivityWalletAddBinding>() {
         binding.nestedSegwitRadio.setOnCheckedChangeListener { _, checked -> if (checked) viewModel.setNestedAddressType() }
         binding.nativeSegwitRadio.setOnCheckedChangeListener { _, checked -> if (checked) viewModel.setNativeAddressType() }
         binding.legacyRadio.setOnCheckedChangeListener { _, checked -> if (checked) viewModel.setLegacyAddressType() }
+        binding.taprootRadio.setOnCheckedChangeListener { _, checked -> if (checked) viewModel.setTaprootAddressType() }
 
         binding.walletName.addTextChangedCallback(viewModel::updateWalletName)
         binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }

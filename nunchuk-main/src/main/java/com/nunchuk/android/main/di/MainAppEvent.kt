@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.di
 
+import com.nunchuk.android.core.data.model.AppUpdateResponse
 import com.nunchuk.android.type.ConnectionStatus
 import okhttp3.ResponseBody
 
@@ -14,6 +15,9 @@ internal sealed class MainAppEvent {
         val connectionStatus: ConnectionStatus
     ) : MainAppEvent()
 
-    object SynCompleted : MainAppEvent()
+    object SyncCompleted : MainAppEvent()
 
+    data class UpdateAppRecommendEvent(
+        val data: AppUpdateResponse
+    ) : MainAppEvent()
 }

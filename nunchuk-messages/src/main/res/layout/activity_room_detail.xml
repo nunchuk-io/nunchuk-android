@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootLayout"
+    app:layoutDescription="@xml/motion_expand_collapse_chat_bar"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
@@ -17,6 +19,7 @@
         app:navigationIcon="@drawable/ic_back">
 
         <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/llToolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -104,17 +107,66 @@
         android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/send"
-        app:layout_constraintStart_toEndOf="@+id/add" />
+        app:layout_constraintStart_toEndOf="@+id/expand" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/groupWalletAction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@id/editText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/editText">
+
+        <ImageView
+            android:id="@+id/add"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/nc_padding_8"
+            android:background="?attr/selectableItemBackground"
+            android:src="@drawable/ic_joint_wallet"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/sendBTC"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/sendBTC"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/nc_padding_8"
+            android:background="?attr/selectableItemBackground"
+            android:src="@drawable/ic_sending_bitcoin"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/receiveBTC"
+            app:layout_constraintStart_toEndOf="@+id/add"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/receiveBTC"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/nc_padding_8"
+            android:background="?attr/selectableItemBackground"
+            android:src="@drawable/ic_receive_bitcoin"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/sendBTC"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ImageView
-        android:id="@+id/add"
+        android:id="@+id/expand"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_8"
-        android:src="@drawable/ic_add"
+        android:background="?attr/selectableItemBackground"
+        android:src="@drawable/ic_arrow_expand"
         app:layout_constraintBottom_toBottomOf="@id/editText"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/editText" />
+        app:layout_constraintEnd_toStartOf="@+id/editText"
+        app:layout_constraintStart_toEndOf="@+id/groupWalletAction"
+        app:layout_constraintTop_toTopOf="@+id/editText"
+        tools:visibility="visible" />
 
     <ImageView
         android:id="@+id/send"
@@ -136,4 +188,4 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.motion.widget.MotionLayout>

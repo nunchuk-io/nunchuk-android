@@ -3,6 +3,7 @@ package com.nunchuk.android.auth.components.signin
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.EditText
 import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
@@ -53,7 +54,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                     SignInModeHolder.currentMode = SignInMode.NORMAL
                     openMainScreen(it.token, it.deviceId)
                 }
-                is ProcessingEvent -> showLoading()
+                is ProcessingEvent -> showLoading(false)
             }
         }
     }
@@ -102,6 +103,22 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
             getString(R.string.nc_hyperlink_text_policy),
             PRIVACY_URL
         )
+        clearInputFields()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        clearInputFields()
+    }
+
+    private fun clearInputFields() {
+        clearInputField(binding.email.getEditTextView())
+        clearInputField(binding.password.getEditTextView())
+    }
+
+    private fun clearInputField(edittext: EditText) {
+        edittext.clearComposingText()
+        edittext.setText("")
     }
 
     private fun onSignUpClick() {

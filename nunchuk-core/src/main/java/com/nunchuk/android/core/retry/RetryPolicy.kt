@@ -26,9 +26,8 @@ data class SyncRetryPolicy(
     override val delayFactor: Long = 2
 ) : RetryPolicy
 
-
 fun <T> Flow<T>.retryDefault(
-    retryPolicy: RetryPolicy
+    retryPolicy: RetryPolicy = DefaultRetryPolicy()
 ): Flow<T> {
     var currentDelay = retryPolicy.delayMillis
     val delayFactor = retryPolicy.delayFactor

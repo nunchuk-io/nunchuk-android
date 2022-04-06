@@ -8,29 +8,22 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.hideLoading
-import com.nunchuk.android.main.MainActivityViewModel
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
 import com.nunchuk.android.messages.databinding.FragmentMessagesBinding
 import com.nunchuk.android.messages.util.shouldShow
 import com.nunchuk.android.model.RoomWallet
-import org.matrix.android.sdk.api.session.initsync.InitSyncStep.ImportingAccount
-import org.matrix.android.sdk.api.session.initsync.SyncStatusService.Status.Progressing
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
-import timber.log.Timber
 import javax.inject.Inject
 
 class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
-    private val viewModel: RoomsViewModel by viewModels { factory }
-
-    private val mainActivityViewModel: MainActivityViewModel by activityViewModels { factory }
+    private val viewModel: RoomsViewModel by activityViewModels { factory }
 
     @Inject
     lateinit var accountManager: AccountManager
@@ -46,14 +39,9 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupViews()
         observeEvent()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        viewModel.retrieveMessages()
+        viewModel.init()
     }
 
     override fun onDestroyView() {
@@ -88,20 +76,11 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     private fun observeEvent() {
         viewModel.state.observe(viewLifecycleOwner, ::handleState)
         viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
-        viewModel.roomSummariesLive?.observe(viewLifecycleOwner) {
-            viewModel.retrieveMessages()
-        }
-        viewModel.syncProgressStatus?.observe(viewLifecycleOwner) {
-            if (it is Progressing && it.initSyncStep == ImportingAccount && it.percentProgress == 100) {
-                viewModel.retrieveMessages()
-                Timber.tag("MainActivityViewModel").d("Sync rooms completed")
-            }
-        }
     }
 
     private fun handleState(state: RoomsState) {
         adapter.roomWallets = state.roomWallets.map(RoomWallet::roomId)
-        adapter.roomSummaries = state.rooms.filter(RoomSummary::shouldShow)
+        adapter.updateItems(state.rooms.filter(RoomSummary::shouldShow))
         emptyStateView?.isVisible = state.rooms.isEmpty()
 
         hideLoading()

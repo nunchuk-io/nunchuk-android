@@ -8,6 +8,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
+import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
@@ -142,8 +143,9 @@ class NCEditTextView : ConstraintLayout, LifecycleObserver {
         editText.layoutParams.height = editHigh.toInt()
     }
 
-    fun getEditText(): String = editText.text.toString()
+    fun getTextView(): TextView = textView
 
+    fun getEditText(): String = editText.text.toString()
     fun getEditTextView(): EditText = editText
 
     fun hideError() {

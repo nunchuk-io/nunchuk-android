@@ -74,7 +74,12 @@ class NetworkModule @Inject constructor() {
 
     @Provides
     fun provideLoggingInterceptor() = HttpLoggingInterceptor().apply {
-        level = if (BuildConfig.DEBUG) Level.BODY else Level.NONE
+        if (BuildConfig.DEBUG) {
+            setLevel(Level.HEADERS)
+            setLevel(Level.BODY)
+        } else {
+            setLevel(Level.NONE)
+        }
     }
 
 }

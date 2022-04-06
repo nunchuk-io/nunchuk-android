@@ -1,6 +1,6 @@
 package com.nunchuk.android.core.di
 
-import com.nunchuk.android.core.api.PriceConverterAPI
+import com.nunchuk.android.core.data.api.PriceConverterAPI
 import dagger.Module
 import dagger.Provides
 import retrofit2.Retrofit
@@ -11,6 +11,7 @@ internal object NetworkModule {
 
     @Singleton
     @Provides
-    fun providePriceConverterAPI(retrofit: Retrofit): PriceConverterAPI = retrofit.create(PriceConverterAPI::class.java)
+    fun providePriceConverterAPI(retrofit: Retrofit): PriceConverterAPI = retrofit.create(
+        PriceConverterAPI::class.java)
 
 }

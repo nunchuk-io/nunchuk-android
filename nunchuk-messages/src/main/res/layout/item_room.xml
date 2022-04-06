@@ -6,7 +6,6 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="@dimen/nc_padding_4"
     android:background="@color/nc_white_color"
-    android:foreground="?attr/selectableItemBackground"
     android:orientation="vertical">
 
     <com.nunchuk.android.widget.swipe.SwipeLayout
@@ -16,6 +15,7 @@
         android:minHeight="55dp">
 
         <LinearLayout
+            android:foreground="?attr/selectableItemBackground"
             android:id="@+id/actionLayout"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -51,6 +51,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/nc_white_color"
+            android:foreground="?attr/selectableItemBackground"
             android:paddingVertical="@dimen/nc_padding_8">
 
             <com.nunchuk.android.widget.NCFontTextView
@@ -129,7 +130,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/nc_padding_4"
-                android:background="@drawable/nc_rounded_whisper_background"
+                android:background="@drawable/nc_rounded_tag_whisper_background"
                 android:drawableStart="@drawable/ic_wallet_small"
                 android:drawablePadding="@dimen/nc_padding_4"
                 android:paddingHorizontal="@dimen/nc_padding_8"

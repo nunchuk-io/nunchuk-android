@@ -48,8 +48,9 @@ internal class ChangePasswordViewModel @Inject constructor(
     }
 
     private fun onChangePasswordSuccess() {
-        accountManager.signOut()
-        event(ChangePasswordSuccessEvent)
+        accountManager.signOut {
+            event(ChangePasswordSuccessEvent)
+        }
     }
 
     private fun validateConfirmPasswordMatched(newPassword: String, confirmPassword: String): Boolean {

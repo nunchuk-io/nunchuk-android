@@ -1,8 +1,13 @@
 package com.nunchuk.android.core.matrix
 
+import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.asFlow
+import com.nunchuk.android.core.util.isAtLeastStarted
 import com.nunchuk.android.utils.CrashlyticsReporter
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.Room
+import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import timber.log.Timber
 
 object SessionHolder {
@@ -17,16 +22,20 @@ object SessionHolder {
             activeSession = this
             try {
                 open()
-                startSync(false)
+                if (!hasAlreadySynced()) {
+                    startSync(false)
+                } else {
+                    startSync(ProcessLifecycleOwner.get().isAtLeastStarted())
+                }
             } catch (e: Error) {
                 CrashlyticsReporter.recordException(e)
             }
         }
     }
 
-    suspend fun clearActiveSession() {
+    fun clearActiveSession() {
         try {
-            activeSession?.signOut(true)
+            activeSession?.close()
         } catch (e: Error) {
             CrashlyticsReporter.recordException(e)
         }
@@ -42,3 +51,7 @@ object SessionHolder {
 
     fun getActiveRoomIdSafe() = currentRoom?.roomId.orEmpty()
 }
+
+fun Session.roomSummariesFlow() = getRoomSummariesLive(roomSummaryQueryParams {
+    memberships = Membership.activeMemberships()
+}).asFlow()

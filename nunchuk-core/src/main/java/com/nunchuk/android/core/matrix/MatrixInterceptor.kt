@@ -24,10 +24,12 @@ internal class MatrixInterceptorImpl @Inject constructor(
                     homeServerConnectionConfig = matrixProvider.getServerConfig(),
                     matrixId = username,
                     password = password,
-                    initialDeviceName = headerProvider.getDeviceName()
+                    initialDeviceName = headerProvider.getDeviceName(),
+                    deviceId = encryptedDeviceId
                 ).apply {
                     authenticationService.reset()
                     SessionHolder.storeActiveSession(this)
+                    MatrixEvenBus.instance.publish(MatrixEvent.SignedInEvent(this))
                 })
     }
 

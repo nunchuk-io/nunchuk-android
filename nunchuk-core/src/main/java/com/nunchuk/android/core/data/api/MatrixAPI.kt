@@ -1,5 +1,7 @@
-package com.nunchuk.android.core.api
+package com.nunchuk.android.core.data.api
 
+import com.nunchuk.android.core.data.model.MatrixUploadFileResponse
+import com.nunchuk.android.core.data.model.SyncStateMatrixResponse
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.http.Body

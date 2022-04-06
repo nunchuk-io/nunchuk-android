@@ -2,12 +2,11 @@ package com.nunchuk.android.notifications
 
 import android.os.Handler
 import android.os.Looper
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.util.isAtLeastStarted
 import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.NotificationUtils
@@ -18,8 +17,6 @@ import dagger.android.HasAndroidInjector
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
-import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
-import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
 import javax.inject.Inject
 
 class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidInjector {
@@ -122,10 +119,10 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
                 intent = intentProvider.getRoomDetailsIntent(roomId)
             )
         }
-        isContactRequestEvent() -> {
+        isContactUpdateEvent() -> {
             PushNotificationData(
                 title = getString(R.string.notification_contact_update),
-                message = (getLastMessageContent()?.body ?: getTextEditableContent()),
+                message = lastMessageContent(),
                 intent = intentProvider.getMainIntent()
             )
         }
@@ -177,5 +174,3 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
     }
 
 }
-
-fun LifecycleOwner.isAtLeastStarted() = lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)

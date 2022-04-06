@@ -1,12 +1,18 @@
 What's news:
-- NUN-1265 Android - satoshi in Send screen must be whole numbers, no fractions
-- NUN-1236 Android - Delete account - Clear wallets/keys
-- Copy change
-- NUN-1061 [Android] - Integrate Passport
-- NUN-1008 [Android] - Missing number of confirmations in Tx History
-- NUN-1158 [Android] - Display wrong wallet screen and App crash when tap Send button
-- NUN-1077 [Android] - Close button (x) in New Chat is little small
-- NUN-1094 Android - Import PSBT flow (with absolute psbt path)
-- NUN-1159  Android - Let user create a chat room with himself
-- Update libnunchuk to remove canceled shared transaction.
-- [NUN-1185] Add delay to create room to avoid empty name.
+- NUN-1190 [Android] Can't view member details in Group chat info screen
+- NUN-968 Android - Add timestamp for confirmed transaction in transaction details
+- Support Taproot.
+- Optimize load chat message.
+- NUN-1036 [Android] - Make sure user passwords are never leaked in plaintext (on crashes)
+- NUN-1079 [Android] - Can edit wallet name to all Space character
+- NUN-1266 [Android] - manual fee rate suggestions could be fractions
+- NUN-128 [Mobile] - Change copy on Transaction Details "view on blockchain explorer"
+- NUN-1145 [Android] When login screen is loading, swipe to top or bottom screen, app is not login anymore
+- NUN-1205 [Android] "Continue" Button is hidden and Can't close keyboard on the "New Transaction"/"Add air- gapped key" screen
+- NUN-1274 [Android] Don't show an temporary message to let user know account is deleted
+- NUN-1270 [Android] update timeline alert copy from "are receiving" to "received" and "are sending" to "sent" after the transaction has been confirmed
+- NUN-1189 [Android] GUI is showing overlap when add new member to chat group
+- NUN-1091 Android - When login acc, message tab must wait to display list of chat
+- NUN-1057 Android - Create an account small copy change
+- NUN-839 AND-User will receive notification when get a message, contact request or contact's confirmation
+- NUN-845 AND-User will receive notification when someone they invite join Nunchuk for the first time

@@ -3,7 +3,6 @@ package com.nunchuk.android.messages.components.detail
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.messages.usecase.message.CheckShowBannerNewChatUseCase
 import com.nunchuk.android.core.domain.HideBannerNewChatUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.PAGINATION
@@ -11,6 +10,7 @@ import com.nunchuk.android.core.util.TimelineListenerAdapter
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.toMatrixContent
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
+import com.nunchuk.android.messages.usecase.message.CheckShowBannerNewChatUseCase
 import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.model.*
 import com.nunchuk.android.usecase.*
@@ -87,7 +87,7 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun initSendEventExecutor() {
         SendEventHelper.executor = object : SendEventExecutor {
-            override fun execute(roomId: String, type: String, content: String): String {
+            override fun execute(roomId: String, type: String, content: String, ignoreError: Boolean): String {
                 if (SessionHolder.hasActiveSession()) {
                     SessionHolder.activeSession?.getRoom(roomId)?.run {
                         sendEvent(type, content.toMatrixContent())
@@ -239,6 +239,15 @@ class RoomDetailViewModel @Inject constructor(
             }
         }
 
+    }
+
+    fun handleReceiveEvent() {
+        val roomWallet = getState().roomWallet
+        if (roomWallet == null) {
+            event(CreateNewSharedWallet)
+        } else {
+            event(ReceiveBTCEvent(roomWallet.walletId))
+        }
     }
 
     private fun onGetWallet(wallet: Wallet) {

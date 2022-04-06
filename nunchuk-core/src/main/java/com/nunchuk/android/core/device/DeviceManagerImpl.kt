@@ -10,7 +10,6 @@ import javax.inject.Singleton
 internal class DeviceManagerImpl @Inject constructor(
     private val ncSharePreferences: NCSharePreferences
 ) : DeviceManager {
-
     private var deviceId: String = ncSharePreferences.deviceId
 
     private fun generateDeviceId() = UUID.randomUUID().toString()
@@ -24,6 +23,7 @@ internal class DeviceManagerImpl @Inject constructor(
             deviceId = generateDeviceId()
             storeDeviceId(deviceId)
         }
+
         return deviceId
     }
 

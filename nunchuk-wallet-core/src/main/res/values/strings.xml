@@ -5,6 +5,7 @@
     <string name="nc_wallet_customize_wallet_type">Customize wallet type</string>
     <string name="nc_wallet_standard_wallet">Standard wallet</string>
     <string name="nc_wallet_default">Default</string>
+    <string name="nc_wallet_new">New</string>
     <string name="nc_wallet_your_current_config">Current wallet config</string>
     <string name="nc_wallet_multisig">Multisig</string>
     <string name="nc_wallet_assign_signer_desc">Assign at least 1 key to the wallet</string>
@@ -13,13 +14,18 @@
 
     <string name="nc_wallet_escrow_wallet">Escrow wallet</string>
     <string name="nc_wallet_escrow_wallet_desc">A special single-use wallet, designed to hold funds temporarily.</string>
+
     <string name="nc_wallet_native_segwit_wallet">Native segwit</string>
     <string name="nc_wallet_native_segwit_desc">Highest fee saving</string>
+
     <string name="nc_wallet_nested_segwit_wallet">Nested segwit</string>
     <string name="nc_wallet_nested_segwit_desc">Medium fee saving</string>
 
     <string name="nc_wallet_legacy_wallet">Legacy</string>
     <string name="nc_wallet_legacy_desc">No fee saving</string>
+
+    <string name="nc_wallet_taproot_wallet">Taproot</string>
+    <string name="nc_wallet_taproot_desc">Bech32m address. Currently only available as single-sig wallet.</string>
 
     <string name="nc_wallet_address_type">Address type</string>
     <string name="nc_wallet_customize_address_type">Customize address type</string>

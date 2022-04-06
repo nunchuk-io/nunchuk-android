@@ -4,7 +4,7 @@
     <string name="nc_title_contacts">Contacts</string>
     <string name="nc_title_wallets">Wallets</string>
     <string name="nc_title_signers">Keys</string>
-    <string name="nc_title_account">Account</string>
+    <string name="nc_title_account">Profile</string>
 
     <string name="nc_text_do_this_later">I’ll do this later</string>
     <string name="nc_wallet_export_coldcard">Export wallet to Coldcard</string>
@@ -15,7 +15,8 @@
     <string name="nc_signer_type_foreign_software">Foreign software</string>
 
     <string name="nc_transaction_send_to">Send to</string>
-    <string name="nc_transaction_receive_at">Receive at</string>
+    <string name="nc_transaction_sent_to">Sent to</string>
+    <string name="nc_transaction_receive_at">Received at</string>
     <string name="nc_transaction_pending_confirmation">Pending confirmations</string>
     <string name="nc_transaction_ready_to_broadcast">Ready to broadcast</string>
     <string name="nc_transaction_network_rejected">Network rejected</string>
@@ -39,5 +40,8 @@
     <string name="nc_text_create_an_account">Create an account</string>
     <string name="nc_text_sign_in">Sign in</string>
     <string name="nc_text_select_file">Please select your transaction file</string>
+
+    <string name="nc_address_share">Share address</string>
+    <string name="nc_address_copy">Copy address</string>
 
 </resources>

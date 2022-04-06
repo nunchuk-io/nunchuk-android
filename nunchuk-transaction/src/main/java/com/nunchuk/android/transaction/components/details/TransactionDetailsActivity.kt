@@ -129,6 +129,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         } else {
             binding.signatureStatus.text = getString(R.string.nc_transaction_enough_signers)
         }
+        binding.confirmTime.text = transaction.getFormatDate()
         binding.status.bindTransactionStatus(transaction)
         binding.sendingBTC.text = transaction.totalAmount.getBTCAmount()
         binding.signersContainer.isVisible = !transaction.isReceive
@@ -169,7 +170,11 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
             binding.sendingToLabel.text = getString(R.string.nc_transaction_receive_at)
             binding.sendToAddress.text = getString(R.string.nc_transaction_receive_address)
         } else {
-            binding.sendingToLabel.text = getString(R.string.nc_transaction_sending_to)
+            if (transaction.status.isConfirmed()) {
+                binding.sendingToLabel.text = getString(R.string.nc_transaction_sent_to)
+            } else {
+                binding.sendingToLabel.text = getString(R.string.nc_transaction_sending_to)
+            }
             binding.sendToAddress.text = getString(R.string.nc_transaction_send_to_address)
         }
     }

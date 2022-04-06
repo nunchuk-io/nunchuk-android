@@ -73,7 +73,10 @@ class SignerInfoActivity : BaseActivity<ActivitySignerInfoBinding>() {
             is RemoveSignerErrorEvent -> showToast(event.message)
             is UpdateNameErrorEvent -> showToast(event.message)
             is HealthCheckErrorEvent -> showHealthCheckError(event)
-            HealthCheckSuccessEvent -> NCToastMessage(this).show(getString(R.string.nc_txt_run_health_check_success_event, args.name))
+            HealthCheckSuccessEvent -> NCToastMessage(this).showMessage(
+                message = getString(R.string.nc_txt_run_health_check_success_event, args.name),
+                icon = R.drawable.ic_check_circle_outline
+            )
         }
     }
 
@@ -89,7 +92,8 @@ class SignerInfoActivity : BaseActivity<ActivitySignerInfoBinding>() {
         binding.signerName.text = args.name
         if (args.justAdded) {
             NCToastMessage(this).showMessage(
-                message = getString(R.string.nc_text_add_signer_success, args.name)
+                message = getString(R.string.nc_text_add_signer_success, args.name),
+                icon = R.drawable.ic_check_circle_outline
             )
             if (args.setPassphrase) {
                 NCToastMessage(this).showMessage(
@@ -140,7 +144,12 @@ class SignerInfoActivity : BaseActivity<ActivitySignerInfoBinding>() {
     }
 
     private fun showEditSignerNameSuccess() {
-        binding.signerName.post { NCToastMessage(this).show(R.string.nc_text_change_signer_success) }
+        binding.signerName.post {
+            NCToastMessage(this).showMessage(
+                message = getString(R.string.nc_text_change_signer_success),
+                icon = R.drawable.ic_check_circle_outline
+            )
+        }
     }
 
     companion object {

@@ -8,7 +8,7 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
 import com.nunchuk.android.messages.util.STATE_ROOM_SERVER_NOTICE
-import com.nunchuk.android.messages.util.isContactRequestEvent
+import com.nunchuk.android.messages.util.isContactUpdateEvent
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.ReceiveContact
 import com.nunchuk.android.model.SentContact
@@ -77,10 +77,7 @@ class ContactsViewModel @Inject constructor(
     }
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
-        val hasNewContactRequestEvent = events.findLast(TimelineEvent::isContactRequestEvent)
-        if (hasNewContactRequestEvent != null) {
-            retrieveContacts()
-        }
+        events.findLast(TimelineEvent::isContactUpdateEvent)?.let { retrieveContacts() }
     }
 
 }

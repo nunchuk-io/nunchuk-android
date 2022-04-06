@@ -11,7 +11,8 @@ import dagger.Module
         DataModule::class,
         DomainModule::class,
         NetworkModule::class,
-        RetryPolicyModule::class
+        RetryPolicyModule::class,
+        NCAppProxyModule::class
     ]
 )
 interface CoreProxyModule

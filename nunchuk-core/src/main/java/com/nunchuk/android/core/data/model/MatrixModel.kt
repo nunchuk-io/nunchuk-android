@@ -1,4 +1,4 @@
-package com.nunchuk.android.core.api
+package com.nunchuk.android.core.data.model
 
 import com.google.gson.annotations.SerializedName
 

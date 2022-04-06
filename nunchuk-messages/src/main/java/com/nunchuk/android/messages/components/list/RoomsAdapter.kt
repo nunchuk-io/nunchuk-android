@@ -1,16 +1,14 @@
 package com.nunchuk.android.messages.components.list
 
-import android.view.View
+import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isVisible
-import androidx.recyclerview.widget.RecyclerView
-import com.nunchuk.android.core.base.BaseViewHolder
+import com.nunchuk.android.core.base.ItemComparator
+import com.nunchuk.android.core.base.RecyclerAdapter
 import com.nunchuk.android.core.util.shorten
-import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.databinding.ItemRoomBinding
 import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.widget.swipe.SwipeLayout
-import com.nunchuk.android.widget.util.inflate
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import java.util.*
 
@@ -18,70 +16,70 @@ class RoomAdapter(
     private val currentName: String,
     private val enterRoom: (RoomSummary) -> Unit,
     private val removeRoom: (RoomSummary) -> Unit
-) : RecyclerView.Adapter<RoomViewHolder>() {
+) : RecyclerAdapter<RoomViewHolder, RoomSummary>(
+    comparator = RoomSummaryComparator
+) {
 
     var roomWallets: List<String> = ArrayList()
 
-    var roomSummaries: List<RoomSummary> = ArrayList()
-        set(value) {
-            field = value
-            notifyDataSetChanged()
-        }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = RoomViewHolder(
-        parent.inflate(R.layout.item_room),
+    override fun getViewHolder(parent: ViewGroup, viewType: Int) = RoomViewHolder(
+        ItemRoomBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+        roomWallets,
         currentName,
         enterRoom,
         removeRoom
     )
-
-    override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
-        holder.bind(roomWallets to roomSummaries[position])
-    }
-
-    override fun getItemCount() = roomSummaries.size
-
 }
 
 class RoomViewHolder(
-    itemView: View,
+    binding: ItemRoomBinding,
+    private val roomWallets: List<String>,
     private val currentName: String,
     private val enterRoom: (RoomSummary) -> Unit,
     private val removeRoom: (RoomSummary) -> Unit
-) : BaseViewHolder<Pair<List<String>, RoomSummary>>(itemView) {
+) : RecyclerAdapter.BaseViewHolder<ItemRoomBinding, RoomSummary>(binding) {
 
-    private val binding = ItemRoomBinding.bind(itemView)
-
-    override fun bind(data: Pair<List<String>, RoomSummary>) {
-        val roomWallets = data.first
-        val roomSummary = data.second
-        val roomName = roomSummary.getRoomName(currentName)
+    override fun bind(data: RoomSummary) {
+        val roomName = data.getRoomName(currentName)
         binding.name.text = roomName
-        roomSummary.latestPreviewableEvent?.let {
+        data.latestPreviewableEvent?.let {
             binding.message.text = it.lastMessage()
             binding.time.text = it.root.originServerTs?.let { time -> Date(time).formatMessageDate() } ?: "-"
         }
-        binding.message.isVisible = roomSummary.latestPreviewableEvent != null
-        binding.time.isVisible = roomSummary.latestPreviewableEvent != null
+        binding.message.isVisible = data.latestPreviewableEvent != null
+        binding.time.isVisible = data.latestPreviewableEvent != null
 
-        val isGroupChat = !roomSummary.isDirectChat()
+        val isGroupChat = !data.isDirectChat()
         if (isGroupChat) {
             binding.avatarHolder.text = ""
-            binding.badge.text = "${roomSummary.getMembersCount()}"
+            binding.badge.text = "${data.getMembersCount()}"
         } else {
             binding.avatarHolder.text = roomName.shorten()
         }
         binding.badge.isVisible = isGroupChat
         binding.avatar.isVisible = isGroupChat
-        binding.count.isVisible = roomSummary.hasUnreadMessages && (roomSummary.notificationCount > 0)
-        binding.count.text = "${roomSummary.notificationCount}"
-        binding.shareIcon.isVisible = roomSummary.roomId in roomWallets
+        binding.count.isVisible = data.hasUnreadMessages && (data.notificationCount > 0)
+        binding.count.text = "${data.notificationCount}"
+        binding.shareIcon.isVisible = data.roomId in roomWallets
 
-        binding.itemLayout.setOnClickListener { enterRoom(roomSummary) }
-        binding.delete.setOnClickListener { removeRoom(roomSummary) }
+        binding.itemLayout.setOnClickListener { enterRoom(data) }
+        binding.delete.setOnClickListener { removeRoom(data) }
 
         binding.swipeLayout.showMode = SwipeLayout.ShowMode.LayDown
         binding.swipeLayout.addDrag(SwipeLayout.DragEdge.Left, binding.actionLayout)
     }
 
+}
+
+object RoomSummaryComparator : ItemComparator<RoomSummary> {
+
+    override fun areItemsTheSame(
+        item1: RoomSummary,
+        item2: RoomSummary
+    ) = (item1.roomId == item2.roomId)
+
+    override fun areContentsTheSame(
+        item1: RoomSummary,
+        item2: RoomSummary
+    ) = (item1.roomId == item2.roomId && item1.roomType == item2.roomType)
 }
