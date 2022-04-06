@@ -1,6 +1,7 @@
 package com.nunchuk.android.core.account
 
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.util.AppUpdateStateHolder
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -68,6 +69,7 @@ internal class AccountManagerImpl @Inject constructor(
     }
 
     override fun clearUserData() {
+        AppUpdateStateHolder.reset()
         accountSharedPref.clearAccountInfo()
         SessionHolder.activeSession = null
         SessionHolder.currentRoom = null

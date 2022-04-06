@@ -2,12 +2,15 @@ package com.nunchuk.android.app
 
 import android.app.Application
 import android.content.Context
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.multidex.MultiDex
 import androidx.work.Configuration
 import com.nunchuk.android.BuildConfig
 import com.nunchuk.android.app.di.BootstrapInjectors
-import com.nunchuk.android.core.matrix.MatrixInitializer
-import com.nunchuk.android.core.matrix.RoomDisplayNameFallbackProviderImpl
+import com.nunchuk.android.core.base.ForegroundAppBackgroundListener
+import com.nunchuk.android.core.matrix.*
+import com.nunchuk.android.core.util.AppEvenBus
+import com.nunchuk.android.core.util.AppEvent
 import com.nunchuk.android.util.FileHelper
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
@@ -30,6 +33,7 @@ internal class NunchukApplication : Application(), HasAndroidInjector, MatrixCon
 
     @Inject
     override fun androidInjector(): AndroidInjector<Any> = androidInjector
+    private var foregroundAppBackgroundListener: ForegroundAppBackgroundListener? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -39,8 +43,29 @@ internal class NunchukApplication : Application(), HasAndroidInjector, MatrixCon
         BootstrapInjectors.inject(this)
         fileHelper.getOrCreateNunchukRootDir()
         matrix.initialize()
-
+        registerAppForegroundListener()
     }
+
+    private fun registerAppForegroundListener() {
+        foregroundAppBackgroundListener = ForegroundAppBackgroundListener(
+            onResumeAppCallback = { AppEvenBus.instance.publish(AppEvent.AppResumedEvent) }
+        )
+        foregroundAppBackgroundListener?.let {
+            ProcessLifecycleOwner.get()
+                .lifecycle
+                .addObserver(it)
+        }
+    }
+
+    private fun removeAppForegroundListener() {
+        foregroundAppBackgroundListener?.let {
+            ProcessLifecycleOwner.get()
+                .lifecycle
+                .removeObserver(it)
+        }
+        foregroundAppBackgroundListener = null
+    }
+
 
     override fun attachBaseContext(base: Context) {
         MultiDex.install(base)
@@ -58,5 +83,6 @@ internal class NunchukApplication : Application(), HasAndroidInjector, MatrixCon
     override fun onTerminate() {
         super.onTerminate()
         matrix.terminate()
+        removeAppForegroundListener()
     }
 }

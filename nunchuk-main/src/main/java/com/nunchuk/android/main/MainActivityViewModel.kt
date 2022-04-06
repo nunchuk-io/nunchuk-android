@@ -73,8 +73,6 @@ internal class MainActivityViewModel @Inject constructor(
 
     private lateinit var timeline: Timeline
 
-    var cacheAppUpdateResponse: AppUpdateResponse? = null
-
     init {
         initSyncEventExecutor()
         registerDownloadFileBackupEvent()
@@ -82,19 +80,23 @@ internal class MainActivityViewModel @Inject constructor(
         getDisplayUnitSetting()
     }
 
-    fun checkAppUpdateRecommend() {
+    fun checkAppUpdateRecommend(isResume: Boolean) {
         viewModelScope.launch {
             checkUpdateRecommendUseCase.execute()
                 .flowOn(IO)
                 .onException {}
                 .flowOn(Main)
-                .collect {
-                    event(
-                        UpdateAppRecommendEvent(
-                            data = it
+                .collect { data ->
+                    val count = AppUpdateStateHolder.countShowingRecommend.incrementAndGet()
+                    val isUpdateAvailable = data.isUpdateAvailable.orFalse() && count == 1
+                    val isForceUpdate = data.isUpdateAvailable.orFalse() && data.isUpdateRequired.orFalse() && isResume
+                    if (isUpdateAvailable || isForceUpdate) {
+                        event(
+                            UpdateAppRecommendEvent(
+                                data = data
+                            )
                         )
-                    )
-                    cacheAppUpdateResponse = it
+                    }
                 }
         }
     }
