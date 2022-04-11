@@ -13,7 +13,7 @@ ext {
     gsonVersion = '2.8.2'
     androidTestVersion = '1.1.0'
 
-    roomVersion = '2.2.5'
+    roomVersion = '2.4.2'
     archLifecycleVersion = '1.1.1'
     workMangerVersion = '2.0.0'
     lifecycleVersion = '2.4.0'
