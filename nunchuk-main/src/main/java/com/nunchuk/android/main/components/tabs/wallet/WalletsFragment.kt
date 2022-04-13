@@ -165,6 +165,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     private fun showChainText(chain: Chain): String {
         return when (chain) {
             Chain.TESTNET -> getString(R.string.nc_text_home_wallet_chain_testnet)
+            Chain.SIGNET -> getString(R.string.nc_text_home_wallet_chain_signet)
             else -> ""
         }
     }

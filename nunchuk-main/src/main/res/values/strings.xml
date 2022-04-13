@@ -13,5 +13,6 @@
     <string name="nc_text_connection_status_syncing">Syncing</string>
     <string name="nc_text_connection_status_online">Online</string>
     <string name="nc_text_home_wallet_chain_testnet">(Testnet)</string>
+    <string name="nc_text_home_wallet_chain_signet">(Signet)</string>
     <string name="nc_text_home_wallet_connection">%s %s</string>
 </resources>
