@@ -5,11 +5,14 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.text.InputType
+import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.constants.Constants.SIG_NET_HOST
+import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.settings.databinding.ActivityNetworkSettingBinding
 import com.nunchuk.android.type.Chain
@@ -18,6 +21,7 @@ import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
 import javax.inject.Inject
 
+// TODO: refactor network list to recyclerview
 class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
 
     @Inject
@@ -55,58 +59,49 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
         binding.btnResetMainNet.isVisible = state.appSetting.chain == Chain.MAIN
         binding.rbTestNet.isChecked = state.appSetting.chain == Chain.TESTNET
         binding.btnResetTestNet.isVisible = state.appSetting.chain == Chain.TESTNET
+        binding.rbSigNet.isChecked = state.appSetting.chain == Chain.SIGNET
+        binding.btnResetSigNet.isVisible = state.appSetting.chain == Chain.SIGNET
 
-        binding.tvMainNetHost.apply {
-            background = if (state.appSetting.chain == Chain.MAIN) {
-                ContextCompat.getDrawable(this@NetworkSettingActivity, R.drawable.nc_edit_text_bg)
-            } else {
-                ContextCompat.getDrawable(this@NetworkSettingActivity, R.drawable.nc_edit_text_bg_disabled)
-            }
-            setTextColor(
-                ColorStateList.valueOf(
-                    if (state.appSetting.chain == Chain.MAIN) {
-                        ContextCompat.getColor(
-                            this@NetworkSettingActivity,
-                            R.color.nc_primary_color
-                        )
-                    } else {
-                        ContextCompat.getColor(
-                            this@NetworkSettingActivity,
-                            R.color.nc_grey_dark_color
-                        )
-                    }
-                )
-            )
-            inputType = if (state.appSetting.chain == Chain.MAIN) InputType.TYPE_CLASS_TEXT else InputType.TYPE_NULL
-        }
-        binding.tvTestNetHost.apply {
-            background = if (state.appSetting.chain == Chain.TESTNET) {
-                ContextCompat.getDrawable(this@NetworkSettingActivity, R.drawable.nc_edit_text_bg)
-            } else {
-                ContextCompat.getDrawable(this@NetworkSettingActivity, R.drawable.nc_edit_text_bg_disabled)
-            }
-            setTextColor(
-                ColorStateList.valueOf(
-                    if (state.appSetting.chain == Chain.TESTNET) {
-                        ContextCompat.getColor(
-                            this@NetworkSettingActivity,
-                            R.color.nc_primary_color
-                        )
-                    } else {
-                        ContextCompat.getColor(
-                            this@NetworkSettingActivity,
-                            R.color.nc_grey_dark_color
-                        )
-                    }
-                )
-            )
-            inputType = if (state.appSetting.chain == Chain.TESTNET) InputType.TYPE_CLASS_TEXT else InputType.TYPE_NULL
-
-        }
+        binding.tvMainNetHost.setupNetworkViewInfo(
+            currentChain = Chain.MAIN,
+            selectedChain = state.appSetting.chain
+        )
+        binding.tvTestNetHost.setupNetworkViewInfo(
+            currentChain = Chain.TESTNET,
+            selectedChain = state.appSetting.chain
+        )
+        binding.tvSigNetHost.setupNetworkViewInfo(
+            currentChain = Chain.SIGNET,
+            selectedChain = state.appSetting.chain
+        )
 
         val isChangedSetting = viewModel.currentAppSettings != viewModel.initAppSettings
         binding.btnSave.isVisible = isChangedSetting
         binding.btnSaveDisable.isVisible = !isChangedSetting
+    }
+
+    private fun TextView.setupNetworkViewInfo(currentChain: Chain, selectedChain: Chain) {
+        background = if (currentChain == selectedChain) {
+            ContextCompat.getDrawable(this@NetworkSettingActivity, R.drawable.nc_edit_text_bg)
+        } else {
+            ContextCompat.getDrawable(this@NetworkSettingActivity, R.drawable.nc_edit_text_bg_disabled)
+        }
+        setTextColor(
+            ColorStateList.valueOf(
+                if (currentChain == selectedChain) {
+                    ContextCompat.getColor(
+                        this@NetworkSettingActivity,
+                        R.color.nc_primary_color
+                    )
+                } else {
+                    ContextCompat.getColor(
+                        this@NetworkSettingActivity,
+                        R.color.nc_grey_dark_color
+                    )
+                }
+            )
+        )
+        inputType = if (currentChain == selectedChain) { InputType.TYPE_CLASS_TEXT } else InputType.TYPE_NULL
     }
 
     private fun handleEvent(event: NetworkSettingEvent) {
@@ -120,6 +115,13 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
                 )
                 binding.tvTestNetHost.setText(
                     event.appSetting.testnetServers[0]
+                )
+                binding.tvSigNetHost.setText(
+                    if (event.appSetting.signetServers.isEmpty()) {
+                        SIG_NET_HOST
+                    } else {
+                        event.appSetting.signetServers[0]
+                    }
                 )
             }
         }
@@ -144,20 +146,22 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
         binding.electrumServerSwitch.isClickable = false
         binding.electrumServerSwitch.isEnabled = false
 
-        binding.rbMainNet.setOnCheckedChangeListener { _, checked ->
-            viewModel.currentAppSettings?.copy(
-                chain = if (checked) Chain.MAIN else Chain.TESTNET,
-                mainnetServers = listOf(binding.tvMainNetHost.text.toString()),
-                testnetServers = listOf(binding.tvTestNetHost.text.toString()),
-            )?.let(viewModel::updateCurrentState)
+        binding.rbMainNet.setOnCheckedChangeListener { view, checked ->
+            if (checked) {
+                handleCheckboxChangeListener(view.id)
+            }
         }
 
-        binding.rbTestNet.setOnCheckedChangeListener { _, checked ->
-            viewModel.currentAppSettings?.copy(
-                chain = if (checked) Chain.TESTNET else Chain.MAIN,
-                mainnetServers = listOf(binding.tvMainNetHost.text.toString()),
-                testnetServers = listOf(binding.tvTestNetHost.text.toString())
-            )?.let(viewModel::updateCurrentState)
+        binding.rbTestNet.setOnCheckedChangeListener { view, checked ->
+            if (checked) {
+                handleCheckboxChangeListener(view.id)
+            }
+        }
+
+        binding.rbSigNet.setOnCheckedChangeListener { view, checked ->
+            if (checked) {
+                handleCheckboxChangeListener(view.id)
+            }
         }
 
         binding.btnSave.setOnClickListener {
@@ -168,34 +172,80 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
             viewModel.resetToDefaultAppSetting()
         }
         binding.btnResetMainNet.setOnClickListener {
-            viewModel.currentAppSettings?.copy(
-                mainnetServers = listOf(viewModel.initAppSettings?.mainnetServers?.get(0).orEmpty())
-            )?.let {
-                viewModel.updateCurrentState(it)
-                viewModel.fireResetTextHostServerEvent(it)
-            }
+            handleResetNetwork(Chain.MAIN)
         }
         binding.btnResetTestNet.setOnClickListener {
-            viewModel.currentAppSettings?.copy(
-                testnetServers = listOf(viewModel.initAppSettings?.testnetServers?.get(0).orEmpty())
-            )?.let {
-                viewModel.updateCurrentState(it)
-                viewModel.fireResetTextHostServerEvent(it)
-            }
+            handleResetNetwork(Chain.TESTNET)
+        }
+        binding.btnResetSigNet.setOnClickListener {
+            handleResetNetwork(Chain.SIGNET)
         }
 
         binding.tvMainNetHost.addTextChangedCallback {
-            viewModel.currentAppSettings?.copy(
-                mainnetServers = listOf(it),
-            )?.let(viewModel::updateCurrentState)
+            handleNetworkHostTextCallBack(it, Chain.MAIN)
         }
         binding.tvTestNetHost.addTextChangedCallback {
-            viewModel.currentAppSettings?.copy(
-                testnetServers = listOf(it),
-            )?.let(viewModel::updateCurrentState)
+            handleNetworkHostTextCallBack(it, Chain.TESTNET)
+        }
+        binding.tvSigNetHost.addTextChangedCallback {
+            handleNetworkHostTextCallBack(it, Chain.SIGNET)
+        }
+    }
+
+    private fun handleCheckboxChangeListener(chainId: Int) {
+        val chain = when(chainId) {
+            R.id.rbSigNet -> Chain.SIGNET
+            R.id.rbTestNet -> Chain.TESTNET
+            R.id.rbMainNet -> Chain.MAIN
+            else -> Chain.TESTNET
         }
 
+        viewModel.currentAppSettings?.copy(
+            chain = chain,
+            mainnetServers = listOf(binding.tvMainNetHost.text.toString()),
+            testnetServers = listOf(binding.tvTestNetHost.text.toString()),
+            signetServers = listOf(binding.tvSigNetHost.text.toString()),
+        )?.let(viewModel::updateCurrentState)
+    }
 
+    private fun handleNetworkHostTextCallBack(text: String, chain: Chain) {
+        when(chain) {
+            Chain.SIGNET -> viewModel.currentAppSettings?.copy(
+                signetServers = listOf(text)
+            )
+            Chain.TESTNET -> viewModel.currentAppSettings?.copy(
+                testnetServers = listOf(text)
+            )
+            Chain.MAIN -> viewModel.currentAppSettings?.copy(
+                mainnetServers = listOf(text)
+            )
+            else -> viewModel.currentAppSettings
+        }?.let(viewModel::updateCurrentState)
+    }
+
+    private fun handleResetNetwork(chain: Chain) {
+        val servers = when(chain) {
+            Chain.SIGNET -> if (viewModel.initAppSettings?.signetServers?.isEmpty().orFalse()) listOf(SIG_NET_HOST) else listOf(viewModel.initAppSettings?.signetServers?.get(0).orEmpty())
+            Chain.TESTNET -> listOf(viewModel.initAppSettings?.testnetServers?.get(0).orEmpty())
+            Chain.MAIN -> listOf(viewModel.initAppSettings?.mainnetServers?.get(0).orEmpty())
+            else -> emptyList()
+        }
+
+        when(chain) {
+            Chain.SIGNET -> viewModel.currentAppSettings?.copy(
+                signetServers = servers
+            )
+            Chain.TESTNET -> viewModel.currentAppSettings?.copy(
+                testnetServers = servers
+            )
+            Chain.MAIN -> viewModel.currentAppSettings?.copy(
+                mainnetServers = servers
+            )
+            else -> viewModel.currentAppSettings
+        }?.let {
+            viewModel.updateCurrentState(it)
+            viewModel.fireResetTextHostServerEvent(it)
+        }
     }
 
     private fun setupData() {

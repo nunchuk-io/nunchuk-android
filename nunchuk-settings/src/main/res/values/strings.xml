@@ -43,4 +43,5 @@
     <string name="nc_text_toolbar_title_user_devices">Logged in devices</string>
     <string name="nc_text_sign_out_all_devices">Sign out all devices</string>
     <string name="nc_text_device_info">(This device)</string>
+    <string name="nc_text_signet_server">Signet server</string>
 </resources>
