@@ -118,6 +118,7 @@ public class NCSwitchButton extends View implements Checkable {
     private boolean shadowEffect;
     private boolean showIndicator;
     private boolean isTouchingDown;
+    private boolean enableAnimate;
     private final Runnable postPendingDrag = () -> {
         if (!isInAnimating()) {
             pendingDragState();
@@ -289,6 +290,8 @@ public class NCSwitchButton extends View implements Checkable {
         background = optColor(typedArray, R.styleable.SwitchButton_sb_background, Color.WHITE);
 
         enableEffect = optBoolean(typedArray, R.styleable.SwitchButton_sb_enable_effect, true);
+
+        enableAnimate = optBoolean(typedArray, R.styleable.SwitchButton_sb_enable_animate, false);
 
         if (typedArray != null) {
             typedArray.recycle();
@@ -514,7 +517,9 @@ public class NCSwitchButton extends View implements Checkable {
             valueAnimator.cancel();
         }
 
-        if (!enableEffect || !animate) {
+        final var isNeedAnimate = animate && enableAnimate;
+
+        if (!enableEffect || !isNeedAnimate) {
             isChecked = !isChecked;
             if (isChecked) {
                 setCheckedViewState(viewState);
