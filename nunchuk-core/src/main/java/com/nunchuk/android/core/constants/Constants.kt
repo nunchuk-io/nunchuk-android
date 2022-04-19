@@ -7,6 +7,6 @@ object Constants {
 
     const val TESTNET_URL_TEMPLATE = "https://blockstream.info/testnet/tx/"
     const val MAINNET_URL_TEMPLATE = "https://blockstream.info/tx/"
-    const val SIGNET_URL_TEMPLATE = "http://signet-explorer.nunchuk.io/tx/"
+    const val GLOBAL_SIGNET_EXPLORER = "https://explorer.bc-2.jp"
 
 }

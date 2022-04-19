@@ -1,5 +1,6 @@
 package com.nunchuk.android.utils
 
+import android.widget.EditText
 import kotlin.math.roundToInt
 
 fun CharSequence?.safeManualFee() = try {
@@ -10,3 +11,5 @@ fun CharSequence?.safeManualFee() = try {
 }
 
 fun CharSequence?.isNoneEmpty() = this?.toString().orEmpty().isNotEmpty()
+
+fun EditText?.getTrimmedText() = this?.text?.trim().toString()

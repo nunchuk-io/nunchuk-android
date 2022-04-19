@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.constants.Constants.GLOBAL_SIGNET_EXPLORER
 import com.nunchuk.android.core.constants.Constants.SIG_NET_HOST
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.settings.R
@@ -19,6 +20,7 @@ import com.nunchuk.android.type.Chain
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
+import timber.log.Timber
 import javax.inject.Inject
 
 // TODO: refactor network list to recyclerview
@@ -62,6 +64,12 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
         binding.rbSigNet.isChecked = state.appSetting.chain == Chain.SIGNET
         binding.btnResetSigNet.isVisible = state.appSetting.chain == Chain.SIGNET
 
+        binding.groupSigNetExplorer.isVisible =  state.appSetting.chain == Chain.SIGNET
+
+        binding.edtExploreAddressSigNetHost.setText(state.appSetting.signetExplorerHost)
+        binding.edtExploreAddressSigNetHost.isVisible = state.appSetting.signetExplorerHost.isNotEmpty() && state.appSetting.chain == Chain.SIGNET
+        binding.exploreAddressSwitch.isChecked = state.appSetting.signetExplorerHost.isNotEmpty()
+
         binding.tvMainNetHost.setupNetworkViewInfo(
             currentChain = Chain.MAIN,
             selectedChain = state.appSetting.chain
@@ -75,9 +83,13 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
             selectedChain = state.appSetting.chain
         )
 
-        val isChangedSetting = viewModel.currentAppSettings != viewModel.initAppSettings
+        val isChangedSetting = isAppSettingChanged()
         binding.btnSave.isVisible = isChangedSetting
         binding.btnSaveDisable.isVisible = !isChangedSetting
+    }
+
+    private fun isAppSettingChanged() :Boolean {
+        return viewModel.currentAppSettings != viewModel.initAppSettings
     }
 
     private fun TextView.setupNetworkViewInfo(currentChain: Chain, selectedChain: Chain) {
@@ -190,6 +202,33 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
         binding.tvSigNetHost.addTextChangedCallback {
             handleNetworkHostTextCallBack(it, Chain.SIGNET)
         }
+
+        binding.exploreAddressSwitch.setOnCheckedChangeListener { _, isChecked ->
+            binding.edtExploreAddressSigNetHost.isVisible = isChecked
+            if (!isChecked) {
+                handleSignetHostChangeCallback("")
+                return@setOnCheckedChangeListener
+            }
+
+            binding.edtExploreAddressSigNetHost.text?.ifEmpty {
+                binding.edtExploreAddressSigNetHost.setText(GLOBAL_SIGNET_EXPLORER)
+            }
+        }
+
+        binding.edtExploreAddressSigNetHost.addTextChangedCallback { host ->
+            if (host.isEmpty() || host == viewModel.currentAppSettings?.signetExplorerHost.orEmpty()) {
+                return@addTextChangedCallback
+            }
+            handleSignetHostChangeCallback(host)
+        }
+    }
+
+    private fun handleSignetHostChangeCallback(host: String) {
+        viewModel.currentAppSettings?.copy(
+            signetExplorerHost = host
+        )?.let { appSetting ->
+            viewModel.updateCurrentState(appSetting)
+        }
     }
 
     private fun handleCheckboxChangeListener(chainId: Int) {
@@ -204,7 +243,7 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
             chain = chain,
             mainnetServers = listOf(binding.tvMainNetHost.text.toString()),
             testnetServers = listOf(binding.tvTestNetHost.text.toString()),
-            signetServers = listOf(binding.tvSigNetHost.text.toString()),
+            signetServers = listOf(binding.tvSigNetHost.text.toString())
         )?.let(viewModel::updateCurrentState)
     }
 
@@ -233,7 +272,8 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
 
         when(chain) {
             Chain.SIGNET -> viewModel.currentAppSettings?.copy(
-                signetServers = servers
+                signetServers = servers,
+                signetExplorerHost = GLOBAL_SIGNET_EXPLORER
             )
             Chain.TESTNET -> viewModel.currentAppSettings?.copy(
                 testnetServers = servers
