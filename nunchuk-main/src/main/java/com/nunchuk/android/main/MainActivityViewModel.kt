@@ -121,13 +121,13 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     private fun registerDownloadFileBackupEvent() {
-//        viewModelScope.launch {
-//            registerDownloadBackUpFileUseCase.execute()
-//                .flowOn(IO)
-//                .onException {}
-//                .flowOn(Main)
-//                .collect { Timber.tag(TAG).d("[App] registerDownloadFileBackup") }
-//        }
+        viewModelScope.launch {
+            registerDownloadBackUpFileUseCase.execute()
+                .flowOn(IO)
+                .onException {}
+                .flowOn(Main)
+                .collect { Timber.tag(TAG).d("[App] registerDownloadFileBackup") }
+        }
     }
 
     private fun initSyncEventExecutor() {
@@ -176,20 +176,13 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     private fun backupFile(fileJsonInfo: String, fileUri: String) {
-        if (syncRoomId == null) {
-            CrashlyticsReporter.recordException(Throwable("Sync room null. Can't backup file"))
-            return
-        }
-
-        syncRoomId?.let {
-            viewModelScope.launch {
-                backupFileUseCase.execute(it, fileJsonInfo, fileUri)
-                    .retryDefault(retryPolicy)
-                    .flowOn(IO)
-                    .onException { }
-                    .flowOn(Main)
-                    .collect { Timber.tag(TAG).d("[App] backupFile success") }
-            }
+        viewModelScope.launch {
+            backupFileUseCase.execute(fileJsonInfo, fileUri)
+                .retryDefault(retryPolicy)
+                .flowOn(IO)
+                .onException { }
+                .flowOn(Main)
+                .collect { Timber.tag(TAG).d("[App] backupFile success") }
         }
     }
 
@@ -244,12 +237,9 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
-    private fun enableAutoBackup(syncRoomId: String) {
+    private fun enableAutoBackup(syncRoomId: String, accessToken: String) {
         viewModelScope.launch {
-            enableAutoBackupUseCase.execute(
-                syncRoomId = syncRoomId,
-                accessToken = SessionHolder.activeSession?.sessionParams?.credentials?.accessToken.orEmpty()
-            )
+            enableAutoBackupUseCase.execute(syncRoomId, accessToken)
                 .retryDefault(retryPolicy)
                 .flowOn(IO)
                 .onException { }
@@ -274,14 +264,14 @@ internal class MainActivityViewModel @Inject constructor(
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
                 .sortedByDescending(NunchukMatrixEvent::time)
             Timber.tag(TAG).v("sortedEvents::$sortedEvents")
-//            consumerSyncEventUseCase.execute(sortedEvents)
-//                .retryDefault(retryPolicy)
-//                .flowOn(IO)
-//                .onException { }
-//                .flowOn(Main)
-//                .collect {
-//                    Timber.tag(TAG).v("consumerSyncEventUseCase success")
-//                }
+            consumerSyncEventUseCase.execute(sortedEvents)
+                .retryDefault(retryPolicy)
+                .flowOn(IO)
+                .onException { }
+                .flowOn(Main)
+                .collect {
+                    Timber.tag(TAG).v("consumerSyncEventUseCase success")
+                }
         }
     }
 
@@ -321,7 +311,10 @@ internal class MainActivityViewModel @Inject constructor(
 
     private fun syncData(roomId: String) {
         Timber.tag(TAG).d("syncData::$roomId")
-        enableAutoBackup(roomId)
+        enableAutoBackup(
+            syncRoomId = roomId,
+            accessToken = SessionHolder.activeSession?.sessionParams?.credentials?.accessToken.orEmpty()
+        )
         retrieveTimelines(roomId)
     }
 
