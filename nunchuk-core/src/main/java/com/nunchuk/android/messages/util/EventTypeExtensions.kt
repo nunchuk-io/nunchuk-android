@@ -7,6 +7,7 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 // Naming follow Matrix's convention
 const val STATE_NUNCHUK_WALLET = "io.nunchuk.wallet"
 const val STATE_NUNCHUK_TRANSACTION = "io.nunchuk.transaction"
+const val STATE_NUNCHUK_ERROR = "io.nunchuk.error"
 const val STATE_NUNCHUK_SYNC = "io.nunchuk.sync"
 const val STATE_NUNCHUK_CONTACT_REQUEST = "io.nunchuk.custom.contact_request"
 const val STATE_NUNCHUK_CONTACT_INVITATION_ACCEPTED = "io.nunchuk.custom.invitation_accepted"
@@ -26,13 +27,15 @@ fun TimelineEvent.isRoomNameEvent() = root.getClearType() == EventType.STATE_ROO
 
 fun TimelineEvent.isMessageEvent() = root.isTextMessage()
 
-fun TimelineEvent.isNunchukEvent() = isNunchukWalletEvent() || isNunchukTransactionEvent()
+fun TimelineEvent.isNunchukEvent() = isNunchukWalletEvent() || isNunchukTransactionEvent() || isNunchukErrorEvent()
 
 fun TimelineEvent.isNunchukWalletEvent() = root.type == STATE_NUNCHUK_WALLET
 
 fun TimelineEvent.isNunchukTransactionEvent() = root.type == STATE_NUNCHUK_TRANSACTION
 
 fun TimelineEvent.isNunchukConsumeSyncEvent() = root.type == STATE_NUNCHUK_SYNC
+
+fun TimelineEvent.isNunchukErrorEvent() = root.type == STATE_NUNCHUK_ERROR
 
 fun TimelineEvent.isContactUpdateEvent() = isContactRequestEvent() || isContactWithdrawInvitationEvent() || isContactRequestAcceptedEvent() || isContactInvitationAcceptedEvent()
 

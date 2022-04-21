@@ -22,6 +22,6 @@ internal class BackupFileUseCaseImpl @Inject constructor(
         fileJsonInfo: String,
         fileUrl: String
     ) = flow<Unit> {
-        nunchukNativeSdk.backupFile(syncRoomId, fileJsonInfo, fileUrl)
+        //nunchukNativeSdk.backupFile(syncRoomId, fileJsonInfo, fileUrl)
     }
 }

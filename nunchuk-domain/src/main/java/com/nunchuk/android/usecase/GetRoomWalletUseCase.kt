@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface GetRoomWalletUseCase {
-    fun execute(roomId: String): Flow<RoomWallet>
+    fun execute(roomId: String): Flow<RoomWallet?>
 }
 
 internal class GetRoomWalletUseCaseImpl @Inject constructor(
@@ -17,7 +17,7 @@ internal class GetRoomWalletUseCaseImpl @Inject constructor(
 
     override fun execute(roomId: String) = flow {
         emit(
-            nativeSdk.getRoomWallet(roomId = roomId)
+            if (nativeSdk.hasRoomWallet(roomId)) nativeSdk.getRoomWallet(roomId = roomId) else null
         )
     }
 
@@ -31,9 +31,7 @@ internal class GetAllRoomWalletsUseCaseImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
 ) : GetAllRoomWalletsUseCase {
     override fun execute() = flow {
-        emit(
-            nativeSdk.getAllRoomWallets()
-        )
+        emit(nativeSdk.getAllRoomWallets())
     }.catch {
         emit(emptyList())
     }

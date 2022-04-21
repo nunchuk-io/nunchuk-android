@@ -24,6 +24,7 @@
     <string name="nc_message_member_kick_group"><![CDATA[<b>%1$s</b> has been kicked off the group chat]]></string>
     <string name="nc_message_member_ban_group"><![CDATA[<b>%1$s</b> has been ban from the group chat]]></string>
     <string name="nc_message_member_invite_group"><![CDATA[<b>%1$s</b> has invited <b>%2$s</b> to the group chat]]></string>
+    <string name="nc_message_nunchuk_error"><![CDATA[<b>%1$s</b>]]></string>
 
     <string name="nc_message_status_delivered">Delivered</string>
     <string name="nc_message_status_sending">Sending</string>

@@ -4,7 +4,6 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.callbacks.DownloadFileCallBack
 import com.nunchuk.android.callbacks.UploadFileCallBack
-import com.nunchuk.android.core.data.model.AppUpdateResponse
 import com.nunchuk.android.core.data.model.SyncStateMatrixResponse
 import com.nunchuk.android.core.domain.*
 import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
@@ -20,10 +19,7 @@ import com.nunchuk.android.main.di.MainAppEvent.*
 import com.nunchuk.android.messages.model.RoomNotFoundException
 import com.nunchuk.android.messages.model.SessionLostException
 import com.nunchuk.android.messages.usecase.message.CreateRoomWithTagUseCase
-import com.nunchuk.android.messages.util.STATE_NUNCHUK_SYNC
-import com.nunchuk.android.messages.util.isLocalEvent
-import com.nunchuk.android.messages.util.isNunchukConsumeSyncEvent
-import com.nunchuk.android.messages.util.toNunchukMatrixEvent
+import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.model.ConnectionStatusExecutor
 import com.nunchuk.android.model.ConnectionStatusHelper
 import com.nunchuk.android.model.NunchukMatrixEvent
@@ -65,7 +61,7 @@ internal class MainActivityViewModel @Inject constructor(
     @Named(DEFAULT_RETRY_POLICY) private val retryPolicy: RetryPolicy,
     @Named(SYNC_RETRY_POLICY) private val syncRetryPolicy: RetryPolicy,
     private val checkUpdateRecommendUseCase: CheckUpdateRecommendUseCase
-    ) : NunchukViewModel<Unit, MainAppEvent>() {
+) : NunchukViewModel<Unit, MainAppEvent>() {
 
     override val initialState = Unit
 
@@ -91,11 +87,7 @@ internal class MainActivityViewModel @Inject constructor(
                     val isUpdateAvailable = data.isUpdateAvailable.orFalse() && count == 1
                     val isForceUpdate = data.isUpdateAvailable.orFalse() && data.isUpdateRequired.orFalse() && isResume
                     if (isUpdateAvailable || isForceUpdate) {
-                        event(
-                            UpdateAppRecommendEvent(
-                                data = data
-                            )
-                        )
+                        event(UpdateAppRecommendEvent(data = data))
                     }
                 }
         }
@@ -129,13 +121,13 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     private fun registerDownloadFileBackupEvent() {
-        viewModelScope.launch {
-            registerDownloadBackUpFileUseCase.execute()
-                .flowOn(IO)
-                .onException {}
-                .flowOn(Main)
-                .collect { Timber.tag(TAG).d("[App] registerDownloadFileBackup") }
-        }
+//        viewModelScope.launch {
+//            registerDownloadBackUpFileUseCase.execute()
+//                .flowOn(IO)
+//                .onException {}
+//                .flowOn(Main)
+//                .collect { Timber.tag(TAG).d("[App] registerDownloadFileBackup") }
+//        }
     }
 
     private fun initSyncEventExecutor() {
@@ -254,7 +246,10 @@ internal class MainActivityViewModel @Inject constructor(
 
     private fun enableAutoBackup(syncRoomId: String) {
         viewModelScope.launch {
-            enableAutoBackupUseCase.execute(syncRoomId)
+            enableAutoBackupUseCase.execute(
+                syncRoomId = syncRoomId,
+                accessToken = SessionHolder.activeSession?.sessionParams?.credentials?.accessToken.orEmpty()
+            )
                 .retryDefault(retryPolicy)
                 .flowOn(IO)
                 .onException { }
@@ -279,14 +274,14 @@ internal class MainActivityViewModel @Inject constructor(
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
                 .sortedByDescending(NunchukMatrixEvent::time)
             Timber.tag(TAG).v("sortedEvents::$sortedEvents")
-            consumerSyncEventUseCase.execute(sortedEvents)
-                .retryDefault(retryPolicy)
-                .flowOn(IO)
-                .onException { }
-                .flowOn(Main)
-                .collect {
-                    Timber.tag(TAG).v("consumerSyncEventUseCase success")
-                }
+//            consumerSyncEventUseCase.execute(sortedEvents)
+//                .retryDefault(retryPolicy)
+//                .flowOn(IO)
+//                .onException { }
+//                .flowOn(Main)
+//                .collect {
+//                    Timber.tag(TAG).v("consumerSyncEventUseCase success")
+//                }
         }
     }
 
@@ -300,16 +295,16 @@ internal class MainActivityViewModel @Inject constructor(
                     .onException { }
                     .flowOn(Main)
                     .collect {
-                            event(SyncCompleted)
-                            syncRoomId = findSyncRoom(it)
-                            syncRoomId?.let { syncRoomId ->
-                                Timber.tag(TAG).d("Have sync room: $syncRoomId")
-                                syncData(roomId = syncRoomId)
-                            } ?: run {
-                                Timber.tag(TAG).d("Don't have sync room")
-                                createRoomWithTagSync()
-                            }
+                        event(SyncCompleted)
+                        syncRoomId = findSyncRoom(it)
+                        syncRoomId?.let { syncRoomId ->
+                            Timber.tag(TAG).d("Have sync room: $syncRoomId")
+                            syncData(roomId = syncRoomId)
+                        } ?: run {
+                            Timber.tag(TAG).d("Don't have sync room")
+                            createRoomWithTagSync()
                         }
+                    }
             }
         }
     }

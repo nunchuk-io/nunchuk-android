@@ -22,6 +22,6 @@ internal class ConsumeSyncFileUseCaseImpl @Inject constructor(
         fileJsonInfo: String,
         fileData: ByteArray
     ) = flow<Unit> {
-        nunchukNativeSdk.consumeSyncFile(fileJsonInfo, fileData)
+        //nunchukNativeSdk.consumeSyncFile(fileJsonInfo, fileData)
     }
 }

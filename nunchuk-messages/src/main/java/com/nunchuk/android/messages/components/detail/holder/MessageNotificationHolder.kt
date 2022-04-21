@@ -21,8 +21,17 @@ internal class MessageNotificationHolder(val binding: ItemMessageNotificationBin
             event.isRoomMemberEvent() -> bindMembershipEvent(event, sender)
             event.isRoomNameEvent() -> bindRoomNameEvent(event, sender)
             event.isRoomCreateEvent() -> bindRoomCreateEvent(event, sender)
+            event.isNunchukErrorEvent() -> bindNunchukErrorEvent(event, message.sender.displayName ?: "Unknown User")
             else -> binding.notification.text = "${message.timelineEvent}"
         }
+    }
+
+    private fun bindNunchukErrorEvent(event: TimelineEvent, sender: String) {
+        val code = event.getBodyElementValueByKey(KEY_CODE)
+        val platform = event.getBodyElementValueByKey(KEY_PLATFORM)
+        val message = event.getBodyElementValueByKey(KEY_MESSAGE)
+        val notificationTxt = "[$platform][$sender] Exception $code: $message"
+        binding.notification.text = getHtmlString(R.string.nc_message_nunchuk_error, notificationTxt)
     }
 
     private fun bindRoomNameEvent(event: TimelineEvent, sender: String) {
@@ -46,6 +55,12 @@ internal class MessageNotificationHolder(val binding: ItemMessageNotificationBin
             NONE -> {
             }
         }
+    }
+
+    companion object {
+        private const val KEY_CODE = "code"
+        private const val KEY_PLATFORM = "platform"
+        private const val KEY_MESSAGE = "message"
     }
 
 }
