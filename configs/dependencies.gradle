@@ -29,14 +29,14 @@ ext {
     kotlinStdlibVersion = '1.5.31'
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.1.28'
+    nativeSdkVersion = '1.1.29'
 
     // Matrix
     matrixSdkVersion = '1.3.9'
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
-    PATCH_VERSION = 14
+    PATCH_VERSION = 15
 
     VERSION_CODE = 117
 
@@ -174,7 +174,7 @@ ext {
     ]
 
     lifecycleDeps = [
-            lifeCycleProcess     : "androidx.lifecycle:lifecycle-process:${lifecycleVersion}",
+            lifeCycleProcess        : "androidx.lifecycle:lifecycle-process:${lifecycleVersion}",
             lifecycleLivedata       : "androidx.lifecycle:lifecycle-livedata:${lifecycleVersion}",
             lifecycleLivedataKtx    : "androidx.lifecycle:lifecycle-livedata-ktx:${lifecycleVersion}",
             lifecycleReactiveStreams: "androidx.lifecycle:lifecycle-reactivestreams:${lifecycleVersion}",

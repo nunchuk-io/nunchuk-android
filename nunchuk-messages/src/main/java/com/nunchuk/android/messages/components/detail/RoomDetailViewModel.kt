@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.HideBannerNewChatUseCase
+import com.nunchuk.android.core.domain.SendErrorEventUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
@@ -39,7 +40,8 @@ class RoomDetailViewModel @Inject constructor(
     private val getTransactionsUseCase: GetTransactionsUseCase,
     private val getWalletUseCase: GetWalletUseCase,
     private val hideBannerNewChatUseCase: HideBannerNewChatUseCase,
-    private val checkShowBannerNewChatUseCase: CheckShowBannerNewChatUseCase
+    private val checkShowBannerNewChatUseCase: CheckShowBannerNewChatUseCase,
+    private val sendErrorEventUseCase: SendErrorEventUseCase
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
 
     private lateinit var room: Room
@@ -72,6 +74,7 @@ class RoomDetailViewModel @Inject constructor(
                 .flowOn(IO)
                 .onException {
                     updateState { copy(roomWallet = null) }
+                    sendErrorEvent(it)
                 }
                 .collect {
                     onCompleted()
@@ -118,7 +121,7 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
         val displayableEvents = events.filter(TimelineEvent::isDisplayable).groupEvents(loadMore = ::handleLoadMore)
-        val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent)
+        val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent).filterNot(TimelineEvent::isNunchukErrorEvent)
         viewModelScope.launch {
             val sortedEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
@@ -136,7 +139,7 @@ class RoomDetailViewModel @Inject constructor(
         viewModelScope.launch {
             consumeEventUseCase.execute(sortedEvents)
                 .flowOn(IO)
-                .onException {}
+                .onException { sendErrorEvent(it) }
                 .flowOn(Main)
                 .onCompletion {
                     updateState { copy(messages = displayableEvents.toMessages(currentId)) }
@@ -158,7 +161,7 @@ class RoomDetailViewModel @Inject constructor(
         viewModelScope.launch {
             val eventIds = mapTransactionEvents(events)
             getTransactionsUseCase.execute(walletId, eventIds)
-                .onException { }
+                .onException { sendErrorEvent(it) }
                 .collect { updateState { copy(transactions = it) } }
         }
     }
@@ -191,7 +194,7 @@ class RoomDetailViewModel @Inject constructor(
     fun cancelWallet() {
         viewModelScope.launch {
             cancelWalletUseCase.execute(room.roomId)
-                .onException {}
+                .onException { sendErrorEvent(it) }
                 .collect { getRoomWallet() }
         }
     }
@@ -200,7 +203,7 @@ class RoomDetailViewModel @Inject constructor(
         viewModelScope.launch {
             createSharedWalletUseCase.execute(room.roomId)
                 .flowOn(IO)
-                .onException { }
+                .onException { sendErrorEvent(it) }
                 .collect {
                     getRoomWallet()
                     event(RoomWalletCreatedEvent)
@@ -233,7 +236,7 @@ class RoomDetailViewModel @Inject constructor(
         } else {
             viewModelScope.launch {
                 getWalletUseCase.execute(walletId = roomWallet.walletId)
-                    .onException { }
+                    .onException { sendErrorEvent(it) }
                     .flowOn(Main)
                     .collect { onGetWallet(it.wallet) }
             }
@@ -284,6 +287,10 @@ class RoomDetailViewModel @Inject constructor(
                     }
                 }
         }
+    }
+
+    private fun sendErrorEvent(t: Throwable) {
+        sendErrorEvent(room.roomId, t, sendErrorEventUseCase::execute)
     }
 
 }

@@ -2,6 +2,7 @@ package com.nunchuk.android.messages.components.group
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.SendErrorEventUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
@@ -24,7 +25,8 @@ import javax.inject.Inject
 // TODO eliminate duplicated
 class ChatGroupInfoViewModel @Inject constructor(
     private val getRoomWalletUseCase: GetRoomWalletUseCase,
-    private val getWalletUseCase: GetWalletUseCase
+    private val getWalletUseCase: GetWalletUseCase,
+    private val sendErrorEventUseCase: SendErrorEventUseCase
 ) : NunchukViewModel<ChatGroupInfoState, ChatGroupInfoEvent>() {
 
     private lateinit var room: Room
@@ -54,13 +56,15 @@ class ChatGroupInfoViewModel @Inject constructor(
 
     }
 
-    private fun onGetRoomWallet(roomWallet: RoomWallet) {
+    private fun onGetRoomWallet(roomWallet: RoomWallet?) {
         updateState { copy(roomWallet = roomWallet) }
         viewModelScope.launch {
-            getWalletUseCase.execute(walletId = roomWallet.walletId)
-                .onException { }
-                .flowOn(Dispatchers.Main)
-                .collect { onGetWallet(it.wallet) }
+            roomWallet?.let { rWallet ->
+                getWalletUseCase.execute(walletId = rWallet.walletId)
+                    .onException { }
+                    .flowOn(Dispatchers.Main)
+                    .collect { onGetWallet(it.wallet) }
+            }
         }
     }
 
@@ -76,6 +80,7 @@ class ChatGroupInfoViewModel @Inject constructor(
             } catch (e: Throwable) {
                 CrashlyticsReporter.recordException(e)
                 event(UpdateRoomNameError(e.toMatrixError()))
+                sendErrorEvent(roomId = room.roomId, e, sendErrorEventUseCase::execute)
             }
         }
     }
@@ -88,6 +93,7 @@ class ChatGroupInfoViewModel @Inject constructor(
             } catch (e: Throwable) {
                 CrashlyticsReporter.recordException(e)
                 event(LeaveRoomError(e.toMatrixError()))
+                sendErrorEvent(roomId = room.roomId, e, sendErrorEventUseCase::execute)
             }
         }
     }

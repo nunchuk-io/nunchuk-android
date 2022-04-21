@@ -42,8 +42,7 @@ class ChatInfoViewModel @Inject constructor(
         this.room = room
         getContactsUseCase.execute()
             .defaultSchedulers()
-            .subscribe(::onRetrievedContacts) {
-            }
+            .subscribe(::onRetrievedContacts) {}
             .addToDisposables()
         getRoomWallet()
     }
@@ -55,12 +54,14 @@ class ChatInfoViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
-    private fun onGetRoomWallet(roomWallet: RoomWallet) {
+    private fun onGetRoomWallet(roomWallet: RoomWallet?) {
         updateState { copy(roomWallet = roomWallet) }
-        getWalletUseCase.execute(walletId = roomWallet.walletId)
-            .onException {}
-            .onEach { onGetWallet(it.wallet) }
-            .launchIn(viewModelScope)
+        roomWallet?.let { rWallet ->
+            getWalletUseCase.execute(walletId = rWallet.walletId)
+                .onException {}
+                .onEach { onGetWallet(it.wallet) }
+                .launchIn(viewModelScope)
+        }
     }
 
     private fun onGetWallet(wallet: Wallet) {

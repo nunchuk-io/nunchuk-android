@@ -1,5 +1,7 @@
 package com.nunchuk.android.core.di
 
+import com.nunchuk.android.core.domain.SendErrorEventUseCase
+import com.nunchuk.android.core.domain.SendErrorEventUseCaseImpl
 import com.nunchuk.android.core.matrix.*
 import com.nunchuk.android.core.matrix.DownloadFileUseCaseImpl
 import com.nunchuk.android.core.matrix.UploadFileUseCaseImpl
@@ -33,4 +35,7 @@ internal interface MatrixDomainModule {
 
     @Binds
     fun bindLeaveRoomUseCase(useCase: LeaveRoomUseCaseImpl): LeaveRoomUseCase
+
+    @Binds
+    fun bindSendErrorEventUseCase(useCase: SendErrorEventUseCaseImpl): SendErrorEventUseCase
 }
