@@ -7,7 +7,6 @@ import javax.inject.Inject
 
 interface BackupFileUseCase {
     fun execute(
-        syncRoomId: String,
         fileJsonInfo: String,
         fileUrl: String
     ): Flow<Unit>
@@ -18,10 +17,9 @@ internal class BackupFileUseCaseImpl @Inject constructor(
 ) : BackupFileUseCase {
 
     override fun execute(
-        syncRoomId: String,
         fileJsonInfo: String,
         fileUrl: String
     ) = flow<Unit> {
-        //nunchukNativeSdk.backupFile(syncRoomId, fileJsonInfo, fileUrl)
+        nunchukNativeSdk.uploadFileCallback(fileJsonInfo = fileJsonInfo, fileUrl = fileUrl)
     }
 }
