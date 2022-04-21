@@ -18,3 +18,4 @@ What's news:
 - NUN-845 AND-User will receive notification when someone they invite join Nunchuk for the first time
 - NUN-1327 Set up signet
 - NUN-1365 Update signet UI
+- NUN-1327 Fix difficult to edit manual explorer Address
