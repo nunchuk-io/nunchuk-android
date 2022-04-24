@@ -15,7 +15,8 @@ internal class MessagePartnerHolder(
     val binding: ItemMessagePartnerBinding,
     private val isGroupChat: Boolean,
     private val longPressListener: (message: MatrixMessage, position: Int) -> Unit,
-    private val checkedChangeListener: (checked: Boolean, position: Int) -> Unit
+    private val checkedChangeListener: (checked: Boolean, position: Int) -> Unit,
+    private val onMessageRead: (eventId: String) -> Unit
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(messageData: MatrixMessage, position: Int, selectMode: Boolean) {
@@ -47,7 +48,7 @@ internal class MessagePartnerHolder(
             }
         }
         binding.cbSelect.isVisible = selectMode
-
+        onMessageRead(messageData.timelineEvent.eventId)
     }
 
 }

@@ -52,6 +52,7 @@ fun TimelineEvent.toMessage(chatId: String): Message {
                 content = root.getClearContent().toModel<MessageContent>()?.body.orEmpty(),
                 state = root.sendState,
                 time = time(),
+                timelineEvent = this,
                 type = chatType(chatId)
             )
         }
