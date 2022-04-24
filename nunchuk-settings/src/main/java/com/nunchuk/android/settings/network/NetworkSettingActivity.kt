@@ -17,10 +17,10 @@ import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.settings.databinding.ActivityNetworkSettingBinding
 import com.nunchuk.android.type.Chain
+import com.nunchuk.android.utils.getTrimmedText
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
-import timber.log.Timber
 import javax.inject.Inject
 
 // TODO: refactor network list to recyclerview
@@ -83,13 +83,13 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
             selectedChain = state.appSetting.chain
         )
 
-        val isChangedSetting = isAppSettingChanged()
-        binding.btnSave.isVisible = isChangedSetting
-        binding.btnSaveDisable.isVisible = !isChangedSetting
+        setupViewsWhenAppSettingChanged()
     }
 
-    private fun isAppSettingChanged() :Boolean {
-        return viewModel.currentAppSettings != viewModel.initAppSettings
+    private fun isAppSettingChanged() : Boolean {
+        return viewModel.currentAppSettings?.copy(
+            signetExplorerHost = binding.edtExploreAddressSigNetHost.getTrimmedText()
+        ) != viewModel.initAppSettings
     }
 
     private fun TextView.setupNetworkViewInfo(currentChain: Chain, selectedChain: Chain) {
@@ -177,7 +177,13 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
         }
 
         binding.btnSave.setOnClickListener {
-            viewModel.currentAppSettings?.let(viewModel::updateAppSettings)
+            viewModel.currentAppSettings?.let {
+                viewModel.updateAppSettings(
+                    it.copy(
+                        signetExplorerHost = binding.edtExploreAddressSigNetHost.getTrimmedText()
+                    )
+                )
+            }
         }
 
         binding.btnReset.setOnClickListener {
@@ -215,12 +221,19 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
             }
         }
 
-        binding.edtExploreAddressSigNetHost.addTextChangedCallback { host ->
-            if (host.isEmpty() || host == viewModel.currentAppSettings?.signetExplorerHost.orEmpty()) {
-                return@addTextChangedCallback
-            }
-            handleSignetHostChangeCallback(host)
+        binding.edtExploreAddressSigNetHost.addTextChangedCallback {
+            handleExplorerHostTextChange()
         }
+    }
+
+    private fun handleExplorerHostTextChange() {
+        setupViewsWhenAppSettingChanged()
+    }
+
+    private fun setupViewsWhenAppSettingChanged() {
+        val isChangedSetting = isAppSettingChanged()
+        binding.btnSave.isVisible = isChangedSetting
+        binding.btnSaveDisable.isVisible = !isChangedSetting
     }
 
     private fun handleSignetHostChangeCallback(host: String) {
