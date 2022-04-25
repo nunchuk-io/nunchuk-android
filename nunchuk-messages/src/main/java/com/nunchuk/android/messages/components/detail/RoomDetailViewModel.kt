@@ -293,5 +293,11 @@ class RoomDetailViewModel @Inject constructor(
         sendErrorEvent(room.roomId, t, sendErrorEventUseCase::execute)
     }
 
+    fun markMessageRead(eventId: String) {
+        viewModelScope.launch {
+            room.setReadReceipt(eventId = eventId)
+        }
+    }
+
 }
 

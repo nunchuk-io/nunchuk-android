@@ -21,6 +21,7 @@ data class MatrixMessage(
     override val state: SendState,
     override val time: Long,
     override val type: Int,
+    val timelineEvent: TimelineEvent,
     val selected: Boolean = false
 ) : Message(
     sender,

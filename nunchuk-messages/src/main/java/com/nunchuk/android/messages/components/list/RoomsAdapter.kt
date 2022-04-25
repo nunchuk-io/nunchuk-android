@@ -78,8 +78,12 @@ object RoomSummaryComparator : ItemComparator<RoomSummary> {
         item2: RoomSummary
     ) = (item1.roomId == item2.roomId)
 
-    override fun areContentsTheSame(
-        item1: RoomSummary,
-        item2: RoomSummary
-    ) = (item1.roomId == item2.roomId && item1.roomType == item2.roomType)
+    override fun areContentsTheSame(item1: RoomSummary, item2: RoomSummary): Boolean {
+        return item1.roomId == item2.roomId
+                && item1.roomType == item2.roomType
+                && item1.hasUnreadMessages == item2.hasUnreadMessages
+                && item1.hasNewMessages == item2.hasNewMessages
+                && item1.notificationCount == item2.notificationCount
+                && item1.latestPreviewableEvent?.root?.originServerTs == item2.latestPreviewableEvent?.root?.originServerTs
+    }
 }

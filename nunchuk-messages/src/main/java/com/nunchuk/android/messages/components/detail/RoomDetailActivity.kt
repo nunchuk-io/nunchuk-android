@@ -116,7 +116,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             RoomWalletCreatedEvent -> NCToastMessage(this).show(R.string.nc_message_wallet_created)
             HideBannerNewChatEvent -> adapter?.removeBannerNewChat()
             is ViewWalletConfigEvent -> navigator.openSharedWalletConfigScreen(this, event.roomWalletData)
-            is ReceiveBTCEvent ->  navigator.openReceiveTransactionScreen(this, event.walletId)
+            is ReceiveBTCEvent -> navigator.openReceiveTransactionScreen(this, event.walletId)
         }
     }
 
@@ -157,7 +157,8 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             },
             countCheckedChangeListener = {
                 binding.tvSelectedMessageCount.text = getString(R.string.nc_text_count_selected_message, it)
-            }
+            },
+            onMessageRead = { viewModel.markMessageRead(it) }
         )
         binding.recyclerView.adapter = adapter
         val layoutManager = LinearLayoutManager(this)
@@ -190,7 +191,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             }
         })
 
-        binding.sendBTC.setOnClickListener { viewModel.handleAddEvent()  }
+        binding.sendBTC.setOnClickListener { viewModel.handleAddEvent() }
         binding.receiveBTC.setOnClickListener { viewModel.handleReceiveEvent() }
         setupAnimationForChatBar()
     }

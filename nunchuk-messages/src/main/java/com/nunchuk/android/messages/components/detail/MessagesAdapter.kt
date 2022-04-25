@@ -23,7 +23,8 @@ internal class MessagesAdapter(
     private val dismissBannerNewChatListener: () -> Unit,
     private val createSharedWalletListener: () -> Unit,
     private val senderLongPressListener: (message: Message, position: Int) -> Unit,
-    private val countCheckedChangeListener: (count: Int) -> Unit
+    private val countCheckedChangeListener: (count: Int) -> Unit,
+    private val onMessageRead: (eventId: String) -> Unit
 ) : ListAdapter<AbsChatModel, ViewHolder>(ChatMessageDiffCallback) {
 
     private var chatModels: List<AbsChatModel> = ArrayList()
@@ -144,7 +145,8 @@ internal class MessagesAdapter(
                 countCheckedChangeListener.invoke(
                     getSelectedMessage().size
                 )
-            }
+            },
+            onMessageRead = onMessageRead
         )
         MessageType.TYPE_NOTIFICATION.index -> MessageNotificationHolder(
             ItemMessageNotificationBinding.inflate(LayoutInflater.from(context), parent, false)
