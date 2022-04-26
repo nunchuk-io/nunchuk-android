@@ -52,6 +52,8 @@ class RoomDetailViewModel @Inject constructor(
 
     private val currentId = accountManager.getAccount().chatId
 
+    private var latestPreviewableEventTs: Long = -1
+
     private var timelineListenerAdapter = TimelineListenerAdapter(::handleTimelineEvents)
 
     override val initialState = RoomDetailState.empty()
@@ -128,7 +130,6 @@ class RoomDetailViewModel @Inject constructor(
                 .sortedBy(NunchukMatrixEvent::time)
             consumeEvents(sortedEvents, displayableEvents, nunchukEvents)
         }
-        handleLoadMore()
     }
 
     private fun consumeEvents(
@@ -140,12 +141,20 @@ class RoomDetailViewModel @Inject constructor(
             consumeEventUseCase.execute(sortedEvents)
                 .flowOn(IO)
                 .onException { sendErrorEvent(it) }
-                .flowOn(Main)
                 .onCompletion {
-                    updateState { copy(messages = displayableEvents.toMessages(currentId)) }
-                    getRoomWallet(nunchukEvents)
+                    onConsumeEventCompleted(displayableEvents, nunchukEvents)
                 }
                 .collect { Timber.d("Consume event completed") }
+        }
+    }
+
+    private fun onConsumeEventCompleted(displayableEvents: List<TimelineEvent>, nunchukEvents: List<TimelineEvent>) {
+        updateState { copy(messages = displayableEvents.toMessages(currentId)) }
+        getRoomWallet(nunchukEvents)
+        val latestEventTs = room.roomSummary().latestPreviewableEventTs()
+        if (latestEventTs != latestPreviewableEventTs) {
+            latestPreviewableEventTs = latestEventTs
+            event(HasUpdatedEvent)
         }
     }
 
@@ -161,6 +170,7 @@ class RoomDetailViewModel @Inject constructor(
         viewModelScope.launch {
             val eventIds = mapTransactionEvents(events)
             getTransactionsUseCase.execute(walletId, eventIds)
+                .flowOn(IO)
                 .onException { sendErrorEvent(it) }
                 .collect { updateState { copy(transactions = it) } }
         }
