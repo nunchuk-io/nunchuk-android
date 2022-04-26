@@ -18,7 +18,6 @@ import com.nunchuk.android.model.*
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.collect
@@ -47,6 +46,8 @@ class RoomDetailViewModel @Inject constructor(
     private val getDeveloperSettingUseCase: GetDeveloperSettingUseCase
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
 
+    private var debugMode: Boolean = false
+
     private lateinit var room: Room
 
     private lateinit var timeline: Timeline
@@ -62,6 +63,7 @@ class RoomDetailViewModel @Inject constructor(
     override val initialState = RoomDetailState.empty()
 
     fun initialize(roomId: String) {
+        getDeveloperSettings()
         SessionHolder.activeSession?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
     }
 
@@ -71,7 +73,6 @@ class RoomDetailViewModel @Inject constructor(
         initSendEventExecutor()
         retrieveTimelineEvents()
         getRoomWallet()
-        getDeveloperSettings()
     }
 
     private fun getDeveloperSettings() {
@@ -79,12 +80,7 @@ class RoomDetailViewModel @Inject constructor(
             getDeveloperSettingUseCase.execute()
                 .flowOn(IO)
                 .onException { }
-                .flowOn(Main)
-                .collect { developerSetting ->
-                    updateState {
-                        copy(debugMode = developerSetting.debugMode)
-                    }
-                }
+                .collect { debugMode = it.debugMode }
         }
     }
 
@@ -140,10 +136,10 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
-        val displayableEvents = events.filter(TimelineEvent::isDisplayable).groupEvents(loadMore = ::handleLoadMore)
-        val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent)
+        val displayableEvents = events.filter(TimelineEvent::isDisplayable).filterNot { !debugMode && it.isNunchukErrorEvent() }.groupEvents(loadMore = ::handleLoadMore)
+        val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent).filterNot(TimelineEvent::isNunchukErrorEvent)
         viewModelScope.launch {
-            val sortedEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
+            val sortedEvents = displayableEvents.map(TimelineEvent::toNunchukMatrixEvent)
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
                 .sortedBy(NunchukMatrixEvent::time)
             consumeEvents(sortedEvents, displayableEvents, nunchukEvents)

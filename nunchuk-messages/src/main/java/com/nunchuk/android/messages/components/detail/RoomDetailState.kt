@@ -8,12 +8,11 @@ data class RoomDetailState(
     val roomInfo: RoomInfo,
     val roomWallet: RoomWallet?,
     val messages: List<Message>,
-    val transactions: List<TransactionExtended>,
-    val debugMode: Boolean
+    val transactions: List<TransactionExtended>
 ) {
 
     companion object {
-        fun empty() = RoomDetailState(RoomInfo.empty(), null, emptyList(), emptyList(), false)
+        fun empty() = RoomDetailState(RoomInfo.empty(), null, emptyList(), emptyList())
     }
 
 }
