@@ -56,8 +56,8 @@
     <string name="nc_transaction_enter_passphrase">Enter your passphrase</string>
     <string name="nc_transaction_export_transaction">Export to Keystone/SeedSigner</string>
     <string name="nc_transaction_export_passport_transaction">Export to Passport</string>
-    <string name="nc_transaction_export_transaction_as_file">Export as file</string>
-    <string name="nc_transaction_import_signature_via_file">Import via file</string>
+    <string name="nc_transaction_export_transaction_as_file">Export PSBT</string>
+    <string name="nc_transaction_import_signature_via_file">Import PSBT</string>
     <string name="nc_transaction_import_signature_via_qr_code">Import signature via QR code</string>
 
     <string name="nc_transaction_confirmation">Are you sure you want to cancel this transaction?</string>
@@ -66,8 +66,8 @@
     <string name="nc_transaction_cancel_transaction">Cancel transaction</string>
     <string name="nc_transaction_balance">Balance</string>
     <string name="nc_transaction_signed_successful">Transaction signed successful</string>
-    <string name="nc_transaction_broadcast_successful">Transaction broadcast successful</string>
-    <string name="nc_transaction_deleted">Delete transaction success</string>
+    <string name="nc_transaction_broadcast_successful">Transaction has been broadcast</string>
+    <string name="nc_transaction_deleted">Transaction cancelled</string>
     <string name="nc_transaction_no_app_to_open_link">There is no apps found to open link</string>
     <string name="nc_transaction_imported">Transaction Imported</string>
     <string name="nc_transaction_imported_failed">Import failed :</string>
