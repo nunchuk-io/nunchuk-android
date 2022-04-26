@@ -122,13 +122,22 @@
             app:layout_constraintTop_toBottomOf="@+id/account_settings" />
 
         <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/developerMode"
+            style="@style/NCText.Settings"
+            android:drawableStart="@drawable/ic_developer_mode"
+            android:drawableEnd="@drawable/ic_arrow"
+            android:text="@string/nc_settings_developer_mode"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/network" />
+
+        <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/about"
             style="@style/NCText.Settings"
             android:drawableStart="@drawable/ic_about"
             android:drawableEnd="@drawable/ic_arrow"
             android:text="@string/nc_settings_about"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/network" />
+            app:layout_constraintTop_toBottomOf="@+id/developerMode" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/btnSignOut"

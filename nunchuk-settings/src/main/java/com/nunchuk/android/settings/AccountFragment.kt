@@ -305,7 +305,7 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
         binding.unit.setOnClickListener { changeUnitSetting() }
         binding.network.setOnClickListener { changeNetworkSetting() }
         binding.about.setOnClickListener { openAboutScreen() }
-
+        binding.developerMode.setOnClickListener { openDeveloperScreen() }
         if (SignInModeHolder.currentMode.isGuestMode()) {
             binding.name.setOnClickListener(null)
             binding.takePicture.setOnClickListener(null)
@@ -315,6 +315,10 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
             binding.takePicture.setOnClickListener { changeAvatar() }
             binding.accountSettings.setOnClickListener { AccountSettingActivity.start(requireActivity()) }
         }
+    }
+
+    private fun openDeveloperScreen() {
+        navigator.openDeveloperScreen(requireActivity())
     }
 
     private fun setupData() {

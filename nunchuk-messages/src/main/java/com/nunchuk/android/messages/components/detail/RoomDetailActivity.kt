@@ -98,6 +98,8 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
                 }
             )
         }
+
+          adapter?.debugMode = state.debugMode
     }
 
     private fun handleEvent(event: RoomDetailEvent) {
