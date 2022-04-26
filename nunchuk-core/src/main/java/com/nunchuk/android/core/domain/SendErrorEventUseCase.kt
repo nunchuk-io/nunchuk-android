@@ -22,7 +22,16 @@ internal class SendErrorEventUseCaseImpl @Inject constructor(
         val platform = "Android $sdkInt - $appName $appVersionName"
         val reason = throwable.message.orEmpty()
         val (code, message) = getCodeFromMessage(reason)
-        emit(nativeSdk.sendErrorEvent(roomId = roomId, platform = platform, code = code, message = message))
+        emit(
+            if (code !in IGNORED_EXCEPTIONS) {
+                nativeSdk.sendErrorEvent(
+                    roomId = roomId,
+                    platform = platform,
+                    code = code,
+                    message = message
+                )
+            } else Unit
+        )
     }
 
     private fun getCodeFromMessage(message: String) = when {
@@ -36,5 +45,8 @@ internal class SendErrorEventUseCaseImpl @Inject constructor(
 
     companion object {
         const val UNKNOWN_ERROR = (-1).toString()
+        private const val TX_NOT_FOUND_EXCEPTION = (-2003).toString()
+        private const val SHARED_WALLET_NOT_FOUND_EXCEPTION = (-5002).toString()
+        private val IGNORED_EXCEPTIONS = listOf(TX_NOT_FOUND_EXCEPTION, SHARED_WALLET_NOT_FOUND_EXCEPTION)
     }
 }

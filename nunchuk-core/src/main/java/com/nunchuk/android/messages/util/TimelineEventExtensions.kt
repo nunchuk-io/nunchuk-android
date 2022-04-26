@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.util
 
+import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.nunchuk.android.core.util.gson
 import com.nunchuk.android.messages.components.detail.MessageType
@@ -49,10 +50,13 @@ fun TimelineEvent.chatType(chatId: String) = if (chatId == senderInfo.userId) {
 fun SenderInfo?.displayNameOrId(): String = this?.displayName ?: this?.userId ?: "Guest"
 
 fun TimelineEvent.getBodyElementValueByKey(key: String): String {
-    val map = root.content?.toMap().orEmpty()
-    val element = gson.fromJson(gson.toJson(map["body"]), JsonObject::class.java).get(key)
+    var element: JsonElement? = null
     return try {
-        element?.asString ?: ""
+        val map = root.content?.toMap().orEmpty()
+        if (map.containsKey("body")) {
+            element = gson.fromJson(gson.toJson(map["body"]), JsonObject::class.java).get(key)
+            element?.asString ?: ""
+        } else ""
     } catch (t: Throwable) {
         CrashlyticsReporter.recordException(t)
         element?.toString()?.replace("\"", "") ?: ""

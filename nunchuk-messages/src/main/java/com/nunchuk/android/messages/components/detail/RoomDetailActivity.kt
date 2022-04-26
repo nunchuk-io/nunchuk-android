@@ -40,8 +40,12 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     private val args: RoomDetailArgs by lazy { RoomDetailArgs.deserializeFrom(intent) }
 
     private var adapter: MessagesAdapter? = null
+
     private lateinit var stickyBinding: ViewWalletStickyBinding
+
     private var selectMessageActionView: View? = null
+
+    private var lastCompletelyVisibleItemPosition = -1
 
     private var selectMode: Boolean by observable(false) {
         setupViewForSelectMode(it)
@@ -76,9 +80,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         binding.memberCount.text = membersCount
 
         adapter?.update(state.messages.groupByDate(), state.transactions, state.roomWallet, count)
-        if (state.messages.isNotEmpty()) {
-            binding.recyclerView.scrollToPosition((adapter?.itemCount ?: 0) - 1)
-        }
+        restoreLastVerticalScrollOffset()
         stickyBinding.root.isVisible = state.roomWallet != null
         binding.add.isVisible = state.roomWallet == null
         binding.sendBTC.isVisible = state.roomWallet != null
@@ -100,6 +102,10 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         }
     }
 
+    private fun restoreLastVerticalScrollOffset() {
+        (binding.recyclerView.layoutManager as LinearLayoutManager).scrollToPosition(lastCompletelyVisibleItemPosition)
+    }
+
     private fun handleEvent(event: RoomDetailEvent) {
         when (event) {
             RoomNotFoundEvent -> finishWithMessage(getString(R.string.nc_message_room_not_found))
@@ -117,6 +123,14 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             HideBannerNewChatEvent -> adapter?.removeBannerNewChat()
             is ViewWalletConfigEvent -> navigator.openSharedWalletConfigScreen(this, event.roomWalletData)
             is ReceiveBTCEvent -> navigator.openReceiveTransactionScreen(this, event.walletId)
+            HasUpdatedEvent -> scrollToLastItem()
+        }
+    }
+
+    private fun scrollToLastItem() {
+        val itemCount = adapter?.itemCount ?: 0
+        if (itemCount > 0) {
+            binding.recyclerView.scrollToPosition(itemCount - 1)
         }
     }
 
@@ -180,13 +194,15 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
         binding.recyclerView.smoothScrollToLastItem()
         binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 if (RecyclerView.SCROLL_STATE_DRAGGING == newState) {
                     binding.recyclerView.hideKeyboard()
-                }
-
-                if (!recyclerView.isLastItemVisible()) {
-                    viewModel.handleLoadMore()
+                } else if (RecyclerView.SCROLL_STATE_IDLE == newState) {
+                    lastCompletelyVisibleItemPosition = (recyclerView.layoutManager as LinearLayoutManager).findLastCompletelyVisibleItemPosition()
+                    if (!recyclerView.isLastItemVisible()) {
+                        viewModel.handleLoadMore()
+                    }
                 }
             }
         })
@@ -239,10 +255,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 
     private fun copyMessageText(text: String) {
-        this.copyToClipboard(
-            label = "Nunchuk",
-            text = text
-        )
+        this.copyToClipboard(label = "Nunchuk", text = text)
         NCToastMessage(this).showMessage(getString(R.string.nc_text_copied_to_clipboard))
     }
 
