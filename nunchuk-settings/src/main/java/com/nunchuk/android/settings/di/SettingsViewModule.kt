@@ -3,6 +3,7 @@ package com.nunchuk.android.settings.di
 import com.nunchuk.android.settings.AccountFragment
 import com.nunchuk.android.settings.AccountSettingActivity
 import com.nunchuk.android.settings.DeleteAccountActivity
+import com.nunchuk.android.settings.developer.DeveloperSettingActivity
 import com.nunchuk.android.settings.devices.UserDevicesActivity
 import com.nunchuk.android.settings.network.NetworkSettingActivity
 import com.nunchuk.android.settings.unit.DisplayUnitActivity
@@ -30,4 +31,6 @@ internal interface SettingsViewModule {
     @ContributesAndroidInjector
     fun userDevicesActivity(): UserDevicesActivity
 
+    @ContributesAndroidInjector
+    fun developerSettingActivity(): DeveloperSettingActivity
 }

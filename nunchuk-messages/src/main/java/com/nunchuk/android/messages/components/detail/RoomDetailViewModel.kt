@@ -3,6 +3,7 @@ package com.nunchuk.android.messages.components.detail
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.GetDeveloperSettingUseCase
 import com.nunchuk.android.core.domain.HideBannerNewChatUseCase
 import com.nunchuk.android.core.domain.SendErrorEventUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
@@ -17,6 +18,7 @@ import com.nunchuk.android.model.*
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.collect
@@ -41,7 +43,8 @@ class RoomDetailViewModel @Inject constructor(
     private val getWalletUseCase: GetWalletUseCase,
     private val hideBannerNewChatUseCase: HideBannerNewChatUseCase,
     private val checkShowBannerNewChatUseCase: CheckShowBannerNewChatUseCase,
-    private val sendErrorEventUseCase: SendErrorEventUseCase
+    private val sendErrorEventUseCase: SendErrorEventUseCase,
+    private val getDeveloperSettingUseCase: GetDeveloperSettingUseCase
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
 
     private lateinit var room: Room
@@ -68,6 +71,21 @@ class RoomDetailViewModel @Inject constructor(
         initSendEventExecutor()
         retrieveTimelineEvents()
         getRoomWallet()
+        getDeveloperSettings()
+    }
+
+    private fun getDeveloperSettings() {
+        viewModelScope.launch {
+            getDeveloperSettingUseCase.execute()
+                .flowOn(IO)
+                .onException { }
+                .flowOn(Main)
+                .collect { developerSetting ->
+                    updateState {
+                        copy(debugMode = developerSetting.debugMode)
+                    }
+                }
+        }
     }
 
     private fun getRoomWallet(onCompleted: () -> Unit = {}) {
@@ -123,7 +141,7 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
         val displayableEvents = events.filter(TimelineEvent::isDisplayable).groupEvents(loadMore = ::handleLoadMore)
-        val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent).filterNot(TimelineEvent::isNunchukErrorEvent)
+        val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent)
         viewModelScope.launch {
             val sortedEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
                 .filterNot(NunchukMatrixEvent::isLocalEvent)

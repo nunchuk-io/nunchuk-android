@@ -5,6 +5,7 @@ import com.nunchuk.android.arch.vm.ViewModelKey
 import com.nunchuk.android.settings.AccountSettingViewModel
 import com.nunchuk.android.settings.AccountViewModel
 import com.nunchuk.android.settings.DeleteAccountViewModel
+import com.nunchuk.android.settings.developer.DeveloperSettingViewModel
 import com.nunchuk.android.settings.devices.UserDevicesViewModel
 import com.nunchuk.android.settings.network.NetworkSettingViewModel
 import com.nunchuk.android.settings.unit.DisplayUnitViewModel
@@ -44,5 +45,10 @@ internal interface SettingsViewModelModule {
     @IntoMap
     @ViewModelKey(UserDevicesViewModel::class)
     fun bindUserDevicesViewModel(viewModel: UserDevicesViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(DeveloperSettingViewModel::class)
+    fun bindDeveloperSettingViewModel(viewModel: DeveloperSettingViewModel): ViewModel
 
 }

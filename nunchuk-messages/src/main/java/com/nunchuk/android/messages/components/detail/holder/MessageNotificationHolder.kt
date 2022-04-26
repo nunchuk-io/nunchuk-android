@@ -14,14 +14,14 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
 internal class MessageNotificationHolder(val binding: ItemMessageNotificationBinding) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(message: NotificationMessage) {
+    fun bind(message: NotificationMessage, debugMode: Boolean) {
         val sender = message.sender.displayNameOrId()
         val event = message.timelineEvent
         when {
             event.isRoomMemberEvent() -> bindMembershipEvent(event, sender)
             event.isRoomNameEvent() -> bindRoomNameEvent(event, sender)
             event.isRoomCreateEvent() -> bindRoomCreateEvent(event, sender)
-            event.isNunchukErrorEvent() -> bindNunchukErrorEvent(event, message.sender.displayName ?: "Unknown User")
+            event.isNunchukErrorEvent() && debugMode -> bindNunchukErrorEvent(event, message.sender.displayName ?: "Unknown User")
             else -> binding.notification.text = "${message.timelineEvent}"
         }
     }
