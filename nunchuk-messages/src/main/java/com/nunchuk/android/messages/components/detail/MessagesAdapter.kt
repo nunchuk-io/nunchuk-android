@@ -37,10 +37,6 @@ internal class MessagesAdapter(
         notifyDataSetChanged()
     }
 
-    var debugMode : Boolean by observable(false) {
-        notifyDataSetChanged()
-    }
-
     internal fun update(
         chatModels: List<AbsChatModel>,
         transactions: List<TransactionExtended>,
@@ -199,7 +195,7 @@ internal class MessagesAdapter(
                 (holder as MessagePartnerHolder).bind(((messageData as MessageModel).message as MatrixMessage), position, selectMode)
             }
             MessageType.TYPE_NOTIFICATION.index -> {
-                (holder as MessageNotificationHolder).bind((messageData as MessageModel).message as NotificationMessage, debugMode)
+                (holder as MessageNotificationHolder).bind((messageData as MessageModel).message as NotificationMessage)
             }
             MessageType.TYPE_DATE.index -> {
                 (holder as MessageDateHolder).bind(messageData as DateModel)
