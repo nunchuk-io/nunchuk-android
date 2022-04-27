@@ -20,4 +20,6 @@ internal sealed class MainAppEvent {
     data class UpdateAppRecommendEvent(
         val data: AppUpdateResponse
     ) : MainAppEvent()
+
+    object CrossSigningUnverified : MainAppEvent()
 }

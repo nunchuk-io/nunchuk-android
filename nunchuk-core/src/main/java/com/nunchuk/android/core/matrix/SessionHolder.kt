@@ -20,6 +20,7 @@ object SessionHolder {
         Timber.tag("MainActivityViewModel").d("storeActiveSession of ${session.myUserId}")
         session.apply {
             activeSession = this
+            cryptoService().setWarnOnUnknownDevices(false)
             try {
                 open()
                 if (!hasAlreadySynced()) {

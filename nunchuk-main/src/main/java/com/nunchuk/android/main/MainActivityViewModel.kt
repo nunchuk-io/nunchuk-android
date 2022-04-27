@@ -8,6 +8,7 @@ import com.nunchuk.android.core.data.model.SyncStateMatrixResponse
 import com.nunchuk.android.core.domain.*
 import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.matrix.*
+import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.retry.DEFAULT_RETRY_POLICY
 import com.nunchuk.android.core.retry.RetryPolicy
@@ -19,7 +20,10 @@ import com.nunchuk.android.main.di.MainAppEvent.*
 import com.nunchuk.android.messages.model.RoomNotFoundException
 import com.nunchuk.android.messages.model.SessionLostException
 import com.nunchuk.android.messages.usecase.message.CreateRoomWithTagUseCase
-import com.nunchuk.android.messages.util.*
+import com.nunchuk.android.messages.util.STATE_NUNCHUK_SYNC
+import com.nunchuk.android.messages.util.isLocalEvent
+import com.nunchuk.android.messages.util.isNunchukConsumeSyncEvent
+import com.nunchuk.android.messages.util.toNunchukMatrixEvent
 import com.nunchuk.android.model.ConnectionStatusExecutor
 import com.nunchuk.android.model.ConnectionStatusHelper
 import com.nunchuk.android.model.NunchukMatrixEvent
@@ -27,13 +31,16 @@ import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.notifications.PushNotificationManager
 import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.usecase.EnableAutoBackupUseCase
-import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
+import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -60,7 +67,8 @@ internal class MainActivityViewModel @Inject constructor(
     private val notificationManager: PushNotificationManager,
     @Named(DEFAULT_RETRY_POLICY) private val retryPolicy: RetryPolicy,
     @Named(SYNC_RETRY_POLICY) private val syncRetryPolicy: RetryPolicy,
-    private val checkUpdateRecommendUseCase: CheckUpdateRecommendUseCase
+    private val checkUpdateRecommendUseCase: CheckUpdateRecommendUseCase,
+    private val ncSharePreferences: NCSharePreferences
 ) : NunchukViewModel<Unit, MainAppEvent>() {
 
     override val initialState = Unit
@@ -346,21 +354,33 @@ internal class MainActivityViewModel @Inject constructor(
         .onException {}
 
     fun setupMatrix(token: String, encryptedDeviceId: String) {
-        getUserProfileUseCase.execute()
-            .flowOn(IO)
-            .retryDefault(retryPolicy)
-            .flatMapConcat {
-                loginWithMatrix(
-                    userName = it,
-                    password = token,
-                    encryptedDeviceId = encryptedDeviceId
-                )
+        viewModelScope.launch {
+            getUserProfileUseCase.execute()
+                .flowOn(IO)
+                .retryDefault(retryPolicy)
+                .flatMapConcat {
+                    loginWithMatrix(
+                        userName = it,
+                        password = token,
+                        encryptedDeviceId = encryptedDeviceId
+                    )
+                }
+                .flowOn(Main)
+                .collect {
+                    setupSyncing()
+                    checkCrossSigning(it)
+                }
+        }
+    }
+
+    private fun checkCrossSigning(session: Session) {
+        val crossSigningService = session.cryptoService().crossSigningService()
+        if (ncSharePreferences.newDevice) {
+            ncSharePreferences.newDevice = false
+            if (!crossSigningService.isCrossSigningVerified()) {
+                event(CrossSigningUnverified)
             }
-            .onEach {
-                setupSyncing()
-            }
-            .flowOn(Main)
-            .launchIn(viewModelScope)
+        }
     }
 
     private fun getDisplayUnitSetting() {
