@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.IdRes
-import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
@@ -16,12 +15,14 @@ import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.base.ForegroundAppBackgroundListener
 import com.nunchuk.android.core.data.model.AppUpdateResponse
-import com.nunchuk.android.core.matrix.*
+import com.nunchuk.android.core.matrix.MatrixEvenBus
+import com.nunchuk.android.core.matrix.MatrixEvent
+import com.nunchuk.android.core.matrix.MatrixEventListener
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.DownloadFileSyncSucceed
-import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
 import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.notifications.PushNotificationHelper
 import com.nunchuk.android.utils.NotificationUtils
@@ -117,10 +118,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun handleEvent(event: MainAppEvent) {
         when (event) {
             is DownloadFileSyncSucceed -> handleDownloadedSyncFile(event)
-            is GetConnectionStatusSuccessEvent -> {
-            }
             is MainAppEvent.UpdateAppRecommendEvent -> handleAppUpdateEvent(event.data)
+            MainAppEvent.CrossSigningUnverified -> showUnverifiedDeviceWarning()
+            else -> {}
         }
+    }
+
+    private fun showUnverifiedDeviceWarning() {
+        NCInfoDialog(this).showDialog(
+            message = getString(R.string.nc_unverified_device),
+            cancelable = true
+        )
     }
 
     private fun handleDownloadedSyncFile(event: DownloadFileSyncSucceed) {

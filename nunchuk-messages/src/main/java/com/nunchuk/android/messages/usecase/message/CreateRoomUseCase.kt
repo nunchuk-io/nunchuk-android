@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.usecase.message
 
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.messages.model.RoomCreationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -11,13 +12,14 @@ import org.matrix.android.sdk.api.session.room.model.create.CreateRoomPreset
 import javax.inject.Inject
 
 interface CreateRoomUseCase {
-    fun execute(displayName: String, invitedUserIds: List<String>): Flow<Room>
+    fun execute(displayName: String, invitedUserIds: List<String>, enableEncryption: Boolean = true): Flow<Room>
 }
 
 internal class CreateRoomUseCaseImpl @Inject constructor(
+    private val accountManager: AccountManager
 ) : BaseMessageUseCase(), CreateRoomUseCase {
 
-    override fun execute(displayName: String, invitedUserIds: List<String>) = flow {
+    override fun execute(displayName: String, invitedUserIds: List<String>, enableEncryption: Boolean) = flow {
         val params = CreateRoomParams().apply {
             visibility = RoomDirectoryVisibility.PRIVATE
             isDirect = invitedUserIds.size == 1
@@ -25,11 +27,17 @@ internal class CreateRoomUseCaseImpl @Inject constructor(
             preset = CreateRoomPreset.PRESET_PRIVATE_CHAT
             name = displayName
         }
+        if (enableEncryption && !isSelfChat(invitedUserIds)) {
+            params.enableEncryption()
+        }
         emit(
             session.getRoom(session.createRoom(params)) ?: throw RoomCreationException()
         )
         delay(CREATE_ROOM_DELAY)
     }
+
+    private fun isSelfChat(invitedUserIds: List<String>) = invitedUserIds.size == 1
+            && invitedUserIds.first() == accountManager.getAccount().chatId
 
 }
 
