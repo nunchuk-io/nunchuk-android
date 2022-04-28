@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.core.qr.convertToQRCode
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.*
@@ -18,7 +19,6 @@ import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import com.nunchuk.android.wallet.components.details.WalletDetailsOption.*
 import com.nunchuk.android.wallet.databinding.ActivityWalletDetailBinding
 import com.nunchuk.android.wallet.util.bindWalletConfiguration
-import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import javax.inject.Inject
 
@@ -84,8 +84,10 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
 
     private fun openInputAmountScreen(event: SendMoneyEvent) {
         if (event.walletExtended.isShared) {
-            NCInfoDialog(this).showDialog(
-                message = getString(R.string.nc_txt_send_from_shared_description),
+            navigator.openRoomDetailActivity(
+                activityContext = this,
+                roomId = event.walletExtended.roomWallet.roomId,
+                roomAction = RoomAction.SEND
             )
         } else {
             navigator.openInputAmountScreen(

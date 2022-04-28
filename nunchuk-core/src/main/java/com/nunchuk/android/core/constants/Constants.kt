@@ -10,3 +10,7 @@ object Constants {
     const val GLOBAL_SIGNET_EXPLORER = "https://explorer.bc-2.jp"
 
 }
+
+enum class RoomAction {
+    SEND, RECEIVE
+}

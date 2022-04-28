@@ -2,10 +2,11 @@ package com.nunchuk.android.nav
 
 import android.content.Context
 import androidx.fragment.app.FragmentManager
+import com.nunchuk.android.core.constants.RoomAction
 
 interface MessageNavigator {
 
-    fun openRoomDetailActivity(activityContext: Context, roomId: String)
+    fun openRoomDetailActivity(activityContext: Context, roomId: String, roomAction: RoomAction? = null)
 
     fun openCreateRoomScreen(fragmentManager: FragmentManager)
 

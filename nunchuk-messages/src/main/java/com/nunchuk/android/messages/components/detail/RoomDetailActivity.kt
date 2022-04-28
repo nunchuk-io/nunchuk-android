@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.core.loader.ImageLoader
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.hideKeyboard
@@ -124,6 +125,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             is ViewWalletConfigEvent -> navigator.openSharedWalletConfigScreen(this, event.roomWalletData)
             is ReceiveBTCEvent -> navigator.openReceiveTransactionScreen(this, event.walletId)
             HasUpdatedEvent -> scrollToLastItem()
+            GetRoomWalletSuccessEvent -> args.roomAction?.let { handleRoomAction(it) }
         }
     }
 
@@ -165,7 +167,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             finalizeWallet = viewModel::finalizeWallet,
             viewTransaction = ::openTransactionDetails,
             dismissBannerNewChatListener = { viewModel.hideBannerNewChat() },
-            createSharedWalletListener = { viewModel.handleAddEvent() },
+            createSharedWalletListener = { sendBTCAction() },
             senderLongPressListener = { message, position ->
                 showSelectMessageBottomSheet(message, position)
             },
@@ -189,7 +191,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             viewModel.handleTitleClick()
         }
         binding.add.setOnClickListener {
-            viewModel.handleAddEvent()
+            sendBTCAction()
         }
 
         binding.recyclerView.smoothScrollToLastItem()
@@ -207,9 +209,17 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             }
         })
 
-        binding.sendBTC.setOnClickListener { viewModel.handleAddEvent() }
-        binding.receiveBTC.setOnClickListener { viewModel.handleReceiveEvent() }
+        binding.sendBTC.setOnClickListener { sendBTCAction() }
+        binding.receiveBTC.setOnClickListener { receiveBTCAction() }
         setupAnimationForChatBar()
+    }
+
+    private fun receiveBTCAction() {
+        viewModel.handleReceiveEvent()
+    }
+
+    private fun sendBTCAction() {
+        viewModel.handleAddEvent()
     }
 
     private fun setupAnimationForChatBar() {
@@ -304,14 +314,26 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         }
     }
 
+    private fun handleRoomAction(roomAction: RoomAction) {
+        when(roomAction) {
+            RoomAction.SEND -> sendBTCAction()
+            RoomAction.RECEIVE -> receiveBTCAction()
+        }
+    }
+
     override fun onDestroy() {
         viewModel.cleanUp()
         super.onDestroy()
     }
 
     companion object {
-        fun start(activityContext: Context, roomId: String) {
-            activityContext.startActivity(RoomDetailArgs(roomId = roomId).buildIntent(activityContext))
+        fun start(activityContext: Context, roomId: String, roomAction: RoomAction? = null) {
+            activityContext.startActivity(
+                RoomDetailArgs(
+                    roomId = roomId,
+                    roomAction = roomAction
+                ).buildIntent(activityContext)
+            )
         }
     }
 }
