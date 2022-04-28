@@ -44,4 +44,5 @@ sealed class RoomDetailEvent {
     ) : RoomDetailEvent()
 
     object HasUpdatedEvent : RoomDetailEvent()
+    object GetRoomWalletSuccessEvent: RoomDetailEvent()
 }

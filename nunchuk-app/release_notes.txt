@@ -4,3 +4,4 @@ What's news:
 - NUN-1327 Fix difficult to edit manual explorer Address
 - NUN-1414 Room chat: view message already but it still have red bubble
 - NUN-1415 Android - Large psbt: app crash when go to room chat
+- NUN-1409 Jump to the in-chat send flow when send in a shared wallet

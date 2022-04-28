@@ -176,6 +176,7 @@ class RoomDetailViewModel @Inject constructor(
         getRoomWallet {
             getState().roomWallet?.walletId?.let {
                 getTransactions(it, nunchukEvents.filter(TimelineEvent::isNunchukTransactionEvent))
+                event(GetRoomWalletSuccessEvent)
             }
         }
     }
