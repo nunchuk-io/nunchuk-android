@@ -19,21 +19,27 @@ internal const val TAG = "TimelineEvent"
 
 fun TimelineEvent.lastMessage() = "${lastMessageSender()}: ${lastMessageContent()}"
 
-fun TimelineEvent.lastMessageContent() = getLastMessageContent()?.body ?: getTextEditableContent()
+fun TimelineEvent.lastMessageContent() = getLastMessageContentSafe() ?: getTextEditableContent()
+
+fun TimelineEvent.getLastMessageContentSafe() = try {
+    getLastMessageContent()?.body
+} catch (e: Throwable) {
+    null
+}
 
 fun TimelineEvent.lastMessageSender() = senderInfo.disambiguatedDisplayName
 
 fun TimelineEvent.membership(): Membership {
-    val content = root.content.toModel<RoomMemberContent>()
+    val content = root.getClearContent().toModel<RoomMemberContent>()
     return content?.membership ?: Membership.NONE
 }
 
-fun TimelineEvent.nameChange() = root.content.toModel<RoomNameContent>()?.name
+fun TimelineEvent.nameChange() = root.getClearContent().toModel<RoomNameContent>()?.name
 
 fun TimelineEvent.toNunchukMatrixEvent() = NunchukMatrixEvent(
     eventId = root.eventId!!,
-    type = root.type!!,
-    content = gson.toJson(root.content?.toMap().orEmpty()),
+    type = root.getClearType(),
+    content = gson.toJson(root.getClearContent()?.toMap().orEmpty()),
     roomId = roomId,
     sender = senderInfo.userId,
     time = root.originServerTs ?: 0L
@@ -52,7 +58,7 @@ fun SenderInfo?.displayNameOrId(): String = this?.displayName ?: this?.userId ?:
 fun TimelineEvent.getBodyElementValueByKey(key: String): String {
     var element: JsonElement? = null
     return try {
-        val map = root.content?.toMap().orEmpty()
+        val map = root.getClearContent()?.toMap().orEmpty()
         if (map.containsKey("body")) {
             element = gson.fromJson(gson.toJson(map["body"]), JsonObject::class.java).get(key)
             element?.asString ?: ""
@@ -72,7 +78,7 @@ fun TimelineEvent.isTransactionReadyEvent() = isTransactionEvent(TransactionEven
 fun TimelineEvent.isWalletReadyEvent() = isWalletEvent(WalletEventType.READY)
 
 private fun TimelineEvent.isTransactionEvent(type: TransactionEventType) = try {
-    val content = root.content?.toMap().orEmpty()
+    val content = root.getClearContent()?.toMap().orEmpty()
     val msgType = TransactionEventType.of(content[KEY] as String)
     msgType == type
 } catch (t: Throwable) {
@@ -81,7 +87,7 @@ private fun TimelineEvent.isTransactionEvent(type: TransactionEventType) = try {
 }
 
 private fun TimelineEvent.isWalletEvent(type: WalletEventType) = try {
-    val content = root.content?.toMap().orEmpty()
+    val content = root.getClearContent()?.toMap().orEmpty()
     val msgType = WalletEventType.of(content[KEY] as String)
     msgType == type
 } catch (t: Throwable) {
@@ -90,7 +96,7 @@ private fun TimelineEvent.isWalletEvent(type: WalletEventType) = try {
 }
 
 fun TimelineEvent.getNunchukInitEventId(): String? {
-    val map = root.content?.toMap().orEmpty()
+    val map = root.getClearContent()?.toMap().orEmpty()
     return gson.fromJson(gson.toJson(map["body"]), JsonObject::class.java)
         ?.getAsJsonObject("io.nunchuk.relates_to")
         ?.getAsJsonObject("init_event")

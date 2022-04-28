@@ -26,7 +26,7 @@ internal class NunchukWalletCardHolder(
     private val gson = Gson()
 
     fun bind(roomWallet: RoomWallet? = null, model: NunchukWalletMessage) {
-        val map = model.timelineEvent.root.content?.toMap().orEmpty()
+        val map = model.timelineEvent.root.getClearContent()?.toMap().orEmpty()
         val body = gson.toJson(map["body"])
         val initData = body.toRoomWalletData(gson)
         val ratio = "${initData.requireSigners} / ${initData.totalSigners}"
