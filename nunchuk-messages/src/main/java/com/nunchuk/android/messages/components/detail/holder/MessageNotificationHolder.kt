@@ -39,12 +39,12 @@ internal class MessageNotificationHolder(val binding: ItemMessageNotificationBin
     }
 
     private fun bindRoomCreateEvent(event: TimelineEvent, sender: String) {
-        val content: RoomCreateContent? = event.root.content.toModel()
+        val content: RoomCreateContent? = event.root.getClearContent().toModel()
         binding.notification.text = getHtmlString(R.string.nc_message_create_room, content?.creator ?: sender)
     }
 
     private fun bindMembershipEvent(event: TimelineEvent, sender: String) {
-        val content: RoomMemberContent? = event.root.content.toModel()
+        val content: RoomMemberContent? = event.root.getClearContent().toModel()
         val user = content?.displayName ?: sender
         when (event.membership()) {
             INVITE -> binding.notification.text = getHtmlString(R.string.nc_message_member_invite_group, sender, user)

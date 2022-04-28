@@ -29,20 +29,20 @@ fun TimelineEvent.isMessageEvent() = root.isTextMessage()
 
 fun TimelineEvent.isNunchukEvent() = isNunchukWalletEvent() || isNunchukTransactionEvent() || isNunchukErrorEvent()
 
-fun TimelineEvent.isNunchukWalletEvent() = root.type == STATE_NUNCHUK_WALLET
+fun TimelineEvent.isNunchukWalletEvent() = root.getClearType() == STATE_NUNCHUK_WALLET
 
-fun TimelineEvent.isNunchukTransactionEvent() = root.type == STATE_NUNCHUK_TRANSACTION
+fun TimelineEvent.isNunchukTransactionEvent() = root.getClearType() == STATE_NUNCHUK_TRANSACTION
 
-fun TimelineEvent.isNunchukConsumeSyncEvent() = root.type == STATE_NUNCHUK_SYNC
+fun TimelineEvent.isNunchukConsumeSyncEvent() = root.getClearType() == STATE_NUNCHUK_SYNC
 
-fun TimelineEvent.isNunchukErrorEvent() = root.type == STATE_NUNCHUK_ERROR
+fun TimelineEvent.isNunchukErrorEvent() = root.getClearType() == STATE_NUNCHUK_ERROR
 
 fun TimelineEvent.isContactUpdateEvent() = isContactRequestEvent() || isContactWithdrawInvitationEvent() || isContactRequestAcceptedEvent() || isContactInvitationAcceptedEvent()
 
-fun TimelineEvent.isContactRequestEvent() = root.content?.get("msgtype") == STATE_NUNCHUK_CONTACT_REQUEST
+fun TimelineEvent.isContactRequestEvent() = root.getClearContent()?.get("msgtype") == STATE_NUNCHUK_CONTACT_REQUEST
 
-fun TimelineEvent.isContactWithdrawInvitationEvent() = root.content?.get("msgtype") == STATE_NUNCHUK_CONTACT_WITHDRAW_INVITATION
+fun TimelineEvent.isContactWithdrawInvitationEvent() = root.getClearContent()?.get("msgtype") == STATE_NUNCHUK_CONTACT_WITHDRAW_INVITATION
 
-fun TimelineEvent.isContactRequestAcceptedEvent() = root.content?.get("msgtype") == STATE_NUNCHUK_CONTACT_REQUEST_ACCEPTED
+fun TimelineEvent.isContactRequestAcceptedEvent() = root.getClearContent()?.get("msgtype") == STATE_NUNCHUK_CONTACT_REQUEST_ACCEPTED
 
-fun TimelineEvent.isContactInvitationAcceptedEvent() = root.content?.get("msgtype") == STATE_NUNCHUK_CONTACT_INVITATION_ACCEPTED
+fun TimelineEvent.isContactInvitationAcceptedEvent() = root.getClearContent()?.get("msgtype") == STATE_NUNCHUK_CONTACT_INVITATION_ACCEPTED

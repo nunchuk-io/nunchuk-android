@@ -19,7 +19,7 @@ fun TimelineEvent.toMessageSafe(chatId: String): Message? = try {
 fun TimelineEvent.toMessage(chatId: String): Message {
     return when {
         isNunchukWalletEvent() -> {
-            val content = root.content?.toMap().orEmpty()
+            val content = root.getClearContent()?.toMap().orEmpty()
             val msgType = WalletEventType.of(content[KEY] as String)
             NunchukWalletMessage(
                 sender = senderInfo,
@@ -33,7 +33,7 @@ fun TimelineEvent.toMessage(chatId: String): Message {
             )
         }
         isNunchukTransactionEvent() -> {
-            val content = root.content?.toMap().orEmpty()
+            val content = root.getClearContent()?.toMap().orEmpty()
             val msgType = TransactionEventType.of(content[KEY] as String)
             NunchukTransactionMessage(
                 sender = senderInfo,
