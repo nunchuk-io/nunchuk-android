@@ -6,3 +6,5 @@ What's news:
 - NUN-1415 Android - Large psbt: app crash when go to room chat
 - NUN-1409 Jump to the in-chat send flow when send in a shared wallet
 - NUN-1423 Android - Can not create shared wallet (encryption room)
+- NUN-1444 Android - Don't show pop up encryption with new account
+- NUN-1446 Android - New message doesn't auto-scroll to bottom of room chat

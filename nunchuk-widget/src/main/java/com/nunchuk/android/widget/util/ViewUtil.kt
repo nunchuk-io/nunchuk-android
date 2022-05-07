@@ -100,7 +100,8 @@ fun EditText.setOnEnterOrSpaceListener(callback: () -> Unit) {
         override fun onKey(v: View, keyCode: Int, event: KeyEvent): Boolean {
             // only work with hardware keyboard
             if (event.action == KeyEvent.ACTION_DOWN
-                && (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_SPACE)) {
+                && (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_SPACE)
+            ) {
                 callback()
                 return true
             }
@@ -122,17 +123,13 @@ fun EditText.setOnEnterListener(callback: () -> Unit) {
 }
 
 fun RecyclerView.smoothScrollToLastItem(delay: Long = DELAY) {
-    addOnLayoutChangeListener { _, _, _, _, bottom, _, _, _, oldBottom ->
-        if (bottom < oldBottom) {
-            postDelayed({
-                adapter?.itemCount?.let {
-                    if (it > 0) {
-                        smoothScrollToPosition(it - 1)
-                    }
-                }
-            }, delay)
+    postDelayed({
+        adapter?.itemCount?.let {
+            if (it > 0) {
+                scrollToPosition(it - 1)
+            }
         }
-    }
+    }, delay)
 }
 
 const val DELAY = 100L

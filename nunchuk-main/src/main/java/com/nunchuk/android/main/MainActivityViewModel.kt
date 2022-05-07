@@ -41,10 +41,12 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
+import org.matrix.android.sdk.internal.crypto.model.rest.DeviceInfo
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Named
@@ -374,14 +376,17 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     private fun checkCrossSigning(session: Session) {
-        val crossSigningService = session.cryptoService().crossSigningService()
-        if (ncSharePreferences.newDevice) {
-            ncSharePreferences.newDevice = false
+        val cryptoService = session.cryptoService()
+        val crossSigningService = cryptoService.crossSigningService()
+        if (ncSharePreferences.newDevice && hasMultipleDevices(cryptoService)) {
             if (!crossSigningService.isCrossSigningVerified()) {
+                ncSharePreferences.newDevice = false
                 event(CrossSigningUnverified)
             }
         }
     }
+
+    private fun hasMultipleDevices(cryptoService: CryptoService) = cryptoService.getMyDevicesInfo().map(DeviceInfo::deviceId).toSet().size > 1
 
     private fun getDisplayUnitSetting() {
         viewModelScope.launch {

@@ -64,11 +64,6 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         viewModel.checkShowBannerNewChat()
     }
 
-    override fun onResume() {
-        super.onResume()
-        viewModel.retrieveTimelineEvents()
-    }
-
     private fun observeEvent() {
         viewModel.state.observe(this, ::handleState)
         viewModel.event.observe(this, ::handleEvent)
@@ -82,10 +77,11 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
         adapter?.update(state.messages.groupByDate(), state.transactions, state.roomWallet, count)
         restoreLastVerticalScrollOffset()
-        stickyBinding.root.isVisible = state.roomWallet != null
-        binding.add.isVisible = state.roomWallet == null
-        binding.sendBTC.isVisible = state.roomWallet != null
-        binding.receiveBTC.isVisible = state.roomWallet != null
+        val hasRoomWallet = state.roomWallet != null
+        stickyBinding.root.isVisible = hasRoomWallet
+        binding.add.isVisible = !hasRoomWallet
+        binding.sendBTC.isVisible = hasRoomWallet
+        binding.receiveBTC.isVisible = hasRoomWallet
 
         state.roomWallet?.let {
             stickyBinding.bindRoomWallet(
@@ -132,7 +128,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     private fun scrollToLastItem() {
         val itemCount = adapter?.itemCount ?: 0
         if (itemCount > 0) {
-            binding.recyclerView.scrollToPosition(itemCount - 1)
+            binding.recyclerView.smoothScrollToLastItem()
         }
     }
 
@@ -149,7 +145,6 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         }
         selectMode = false
         stickyBinding = ViewWalletStickyBinding.bind(binding.walletStickyContainer.root)
-        stickyBinding.root.setOnClickListener { }
 
         binding.send.setOnClickListener { sendMessage() }
         binding.editText.setOnEnterListener(::sendMessage)
@@ -315,7 +310,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 
     private fun handleRoomAction(roomAction: RoomAction) {
-        when(roomAction) {
+        when (roomAction) {
             RoomAction.SEND -> sendBTCAction()
             RoomAction.RECEIVE -> receiveBTCAction()
         }
@@ -329,10 +324,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     companion object {
         fun start(activityContext: Context, roomId: String, roomAction: RoomAction? = null) {
             activityContext.startActivity(
-                RoomDetailArgs(
-                    roomId = roomId,
-                    roomAction = roomAction
-                ).buildIntent(activityContext)
+                RoomDetailArgs(roomId = roomId, roomAction = roomAction).buildIntent(activityContext)
             )
         }
     }

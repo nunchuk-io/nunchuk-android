@@ -53,7 +53,7 @@ internal class WalletDetailsViewModel @Inject constructor(
                 .flowOn(Dispatchers.IO)
                 .onException { event(WalletDetailsError(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
-                .onCompletion { event(Loading(false)) }
+                .onException { event(Loading(false)) }
                 .collect {
                     updateState { copy(walletExtended = it) }
                     getTransactionHistory()
@@ -67,6 +67,7 @@ internal class WalletDetailsViewModel @Inject constructor(
                 .flowOn(Dispatchers.IO)
                 .onException { event(WalletDetailsError(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
+                .onCompletion { event(Loading(false)) }
                 .collect { onRetrievedTransactionHistory(it) }
         }
     }
