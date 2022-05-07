@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.utils.CrashlyticsReporter
 import java.io.File
 
 fun Activity.showToast(message: String) = Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
@@ -69,12 +70,15 @@ fun Activity.openSelectFileChooser(requestCode: Int = CHOOSE_FILE_REQUEST_CODE) 
     startActivityForResult(Intent.createChooser(intent, getString(R.string.nc_text_select_file)), requestCode)
 }
 
-fun getFileFromUri(contentResolver: ContentResolver, uri: Uri, directory: File): File {
+fun getFileFromUri(contentResolver: ContentResolver, uri: Uri, directory: File) = try {
     val file = File.createTempFile("NCsuffix", ".prefixNC", directory)
     file.outputStream().use {
         contentResolver.openInputStream(uri)?.copyTo(it)
     }
-    return file
+    file
+} catch (t: Throwable) {
+    CrashlyticsReporter.recordException(t)
+    null
 }
 
 const val CHOOSE_FILE_REQUEST_CODE = 1248

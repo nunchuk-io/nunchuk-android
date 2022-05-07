@@ -127,7 +127,7 @@ class RoomDetailViewModel @Inject constructor(
         }
     }
 
-    fun retrieveTimelineEvents() {
+    private fun retrieveTimelineEvents() {
         updateState { copy(roomInfo = room.getRoomInfo(currentName)) }
         timeline = room.createTimeline(null, TimelineSettings(initialSize = PAGINATION, true))
         timeline.removeListener(timelineListenerAdapter)
@@ -139,10 +139,10 @@ class RoomDetailViewModel @Inject constructor(
         val displayableEvents = events.filter(TimelineEvent::isDisplayable).filterNot { !debugMode && it.isNunchukErrorEvent() }.groupEvents(loadMore = ::handleLoadMore)
         val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent).filterNot(TimelineEvent::isNunchukErrorEvent)
         viewModelScope.launch {
-            val sortedEvents = displayableEvents.map(TimelineEvent::toNunchukMatrixEvent)
+            val consumableEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
                 .sortedBy(NunchukMatrixEvent::time)
-            consumeEvents(sortedEvents, displayableEvents, nunchukEvents)
+            consumeEvents(consumableEvents, displayableEvents, nunchukEvents)
         }
     }
 
