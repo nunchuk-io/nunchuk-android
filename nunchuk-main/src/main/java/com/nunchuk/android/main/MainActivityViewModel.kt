@@ -369,24 +369,27 @@ internal class MainActivityViewModel @Inject constructor(
                 }
                 .flowOn(Main)
                 .collect {
-                    setupSyncing()
                     checkCrossSigning(it)
+                    setupSyncing()
                 }
         }
     }
 
     private fun checkCrossSigning(session: Session) {
         val cryptoService = session.cryptoService()
-        val crossSigningService = cryptoService.crossSigningService()
         if (ncSharePreferences.newDevice && hasMultipleDevices(cryptoService)) {
-            if (!crossSigningService.isCrossSigningVerified()) {
-                ncSharePreferences.newDevice = false
-                event(CrossSigningUnverified)
-            }
+            event(CrossSigningUnverified)
+            ncSharePreferences.newDevice = false
         }
     }
 
-    private fun hasMultipleDevices(cryptoService: CryptoService) = cryptoService.getMyDevicesInfo().map(DeviceInfo::deviceId).toSet().size > 1
+    private fun hasMultipleDevices(cryptoService: CryptoService): Boolean {
+        val currentDevice = cryptoService.getMyDevice()
+        val allDevices = cryptoService.getMyDevicesInfo()
+        Timber.tag(TAG).d("currentDevice::$currentDevice")
+        Timber.tag(TAG).d("allDevices::$allDevices")
+        return (allDevices.map(DeviceInfo::deviceId).toSet() - currentDevice.deviceId).isNotEmpty()
+    }
 
     private fun getDisplayUnitSetting() {
         viewModelScope.launch {
