@@ -9,6 +9,7 @@ import com.nunchuk.android.core.domain.*
 import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.matrix.*
 import com.nunchuk.android.core.persistence.NCSharePreferences
+import com.nunchuk.android.core.profile.GetUserDevicesUseCase
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.retry.DEFAULT_RETRY_POLICY
 import com.nunchuk.android.core.retry.RetryPolicy
@@ -40,13 +41,10 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
-import org.matrix.android.sdk.api.session.Session
-import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
-import org.matrix.android.sdk.internal.crypto.model.rest.DeviceInfo
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Named
@@ -70,7 +68,8 @@ internal class MainActivityViewModel @Inject constructor(
     @Named(DEFAULT_RETRY_POLICY) private val retryPolicy: RetryPolicy,
     @Named(SYNC_RETRY_POLICY) private val syncRetryPolicy: RetryPolicy,
     private val checkUpdateRecommendUseCase: CheckUpdateRecommendUseCase,
-    private val ncSharePreferences: NCSharePreferences
+    private val ncSharePreferences: NCSharePreferences,
+    private val getUserDevicesUseCase: GetUserDevicesUseCase
 ) : NunchukViewModel<Unit, MainAppEvent>() {
 
     override val initialState = Unit
@@ -80,6 +79,7 @@ internal class MainActivityViewModel @Inject constructor(
     private lateinit var timeline: Timeline
 
     init {
+        checkCrossSigning()
         initSyncEventExecutor()
         registerDownloadFileBackupEvent()
         registerBlockChainConnectionStatusExecutor()
@@ -369,26 +369,26 @@ internal class MainActivityViewModel @Inject constructor(
                 }
                 .flowOn(Main)
                 .collect {
-                    checkCrossSigning(it)
                     setupSyncing()
                 }
         }
     }
 
-    private fun checkCrossSigning(session: Session) {
-        val cryptoService = session.cryptoService()
-        if (ncSharePreferences.newDevice && hasMultipleDevices(cryptoService)) {
-            event(CrossSigningUnverified)
-            ncSharePreferences.newDevice = false
+    private fun checkCrossSigning() {
+        if (ncSharePreferences.newDevice) {
+            viewModelScope.launch {
+                getUserDevicesUseCase.execute()
+                    .flowOn(IO)
+                    .onException { }
+                    .flowOn(Main)
+                    .collect {
+                        if (it.size > 1) {
+                            ncSharePreferences.newDevice = false
+                            event(CrossSigningUnverified)
+                        }
+                    }
+            }
         }
-    }
-
-    private fun hasMultipleDevices(cryptoService: CryptoService): Boolean {
-        val currentDevice = cryptoService.getMyDevice()
-        val allDevices = cryptoService.getMyDevicesInfo()
-        Timber.tag(TAG).d("currentDevice::$currentDevice")
-        Timber.tag(TAG).d("allDevices::$allDevices")
-        return (allDevices.map(DeviceInfo::deviceId).toSet() - currentDevice.deviceId).isNotEmpty()
     }
 
     private fun getDisplayUnitSetting() {
