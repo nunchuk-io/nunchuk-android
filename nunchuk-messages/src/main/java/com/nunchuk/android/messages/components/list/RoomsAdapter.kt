@@ -58,8 +58,7 @@ class RoomViewHolder(
         }
         binding.badge.isVisible = isGroupChat
         binding.avatar.isVisible = isGroupChat
-        binding.count.isVisible = data.hasUnreadMessages && (data.notificationCount > 0)
-        binding.count.text = "${data.notificationCount}"
+        bindCount(data)
         binding.shareIcon.isVisible = data.roomId in roomWallets
 
         binding.itemLayout.setOnClickListener { enterRoom(data) }
@@ -67,6 +66,16 @@ class RoomViewHolder(
 
         binding.swipeLayout.showMode = SwipeLayout.ShowMode.LayDown
         binding.swipeLayout.addDrag(SwipeLayout.DragEdge.Left, binding.actionLayout)
+    }
+
+    private fun bindCount(data: RoomSummary) {
+        val notificationCount = data.notificationCount
+        binding.count.isVisible = data.hasUnreadMessages && (notificationCount > 0)
+        if (notificationCount <= 99) {
+            binding.count.text = "$notificationCount"
+        } else {
+            binding.count.text = "99+"
+        }
     }
 
 }

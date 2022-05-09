@@ -56,6 +56,16 @@ fun TimelineEvent.toMessage(chatId: String): Message {
                 type = chatType(chatId)
             )
         }
+        isEncryptedEvent() -> {
+            MatrixMessage(
+                sender = senderInfo,
+                content = STATE_ENCRYPTED_MESSAGE,
+                state = root.sendState,
+                time = time(),
+                timelineEvent = this,
+                type = chatType(chatId)
+            )
+        }
         else -> {
             NotificationMessage(
                 sender = senderInfo,

@@ -13,7 +13,6 @@ import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.base.ForegroundAppBackgroundListener
 import com.nunchuk.android.core.data.model.AppUpdateResponse
 import com.nunchuk.android.core.matrix.MatrixEvenBus
 import com.nunchuk.android.core.matrix.MatrixEvent
@@ -64,8 +63,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             viewModel.checkAppUpdateRecommend(true)
         }
     }
-    private var foregroundAppBackgroundListener: ForegroundAppBackgroundListener? = null
-
     private var dialogUpdateRecommend: Dialog? = null
 
     override fun initializeBinding() = ActivityMainBinding.inflate(layoutInflater)

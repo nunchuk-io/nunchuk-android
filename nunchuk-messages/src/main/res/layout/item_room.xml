@@ -152,8 +152,8 @@
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/count"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="@dimen/nc_padding_26"
+                android:layout_height="@dimen/nc_padding_26"
                 android:layout_marginStart="@dimen/nc_padding_16"
                 android:layout_marginTop="@dimen/nc_padding_4"
                 android:background="@drawable/nc_circle_whisper_background"

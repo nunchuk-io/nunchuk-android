@@ -22,7 +22,11 @@ fun TimelineEvent.lastMessage() = "${lastMessageSender()}: ${lastMessageContent(
 fun TimelineEvent.lastMessageContent() = getLastMessageContentSafe() ?: getTextEditableContent()
 
 fun TimelineEvent.getLastMessageContentSafe() = try {
-    getLastMessageContent()?.body
+    if (isEncryptedEvent()) {
+        STATE_ENCRYPTED_MESSAGE
+    } else {
+        getLastMessageContent()?.body
+    }
 } catch (e: Throwable) {
     null
 }

@@ -14,14 +14,17 @@ const val STATE_NUNCHUK_CONTACT_INVITATION_ACCEPTED = "io.nunchuk.custom.invitat
 const val STATE_NUNCHUK_CONTACT_REQUEST_ACCEPTED = "io.nunchuk.custom.contact_request_accepted"
 const val STATE_NUNCHUK_CONTACT_WITHDRAW_INVITATION = "io.nunchuk.custom.withdraw_invitation"
 const val STATE_ROOM_SERVER_NOTICE = "m.server_notice"
+const val STATE_ENCRYPTED_MESSAGE = "*Encrypted*"
 
-fun TimelineEvent.isDisplayable() = isMessageEvent() || isNotificationEvent() || isNunchukEvent()
+fun TimelineEvent.isDisplayable() = isMessageEvent() || isEncryptedEvent() || isNotificationEvent() || isNunchukEvent()
 
 fun TimelineEvent.isNotificationEvent() = isRoomMemberEvent() || isRoomCreateEvent() || isRoomNameEvent()
 
 fun TimelineEvent.isRoomCreateEvent() = root.getClearType() == EventType.STATE_ROOM_CREATE
 
 fun TimelineEvent.isRoomMemberEvent() = root.getClearType() == EventType.STATE_ROOM_MEMBER
+
+fun TimelineEvent.isEncryptedEvent() = root.getClearType() == EventType.ENCRYPTED
 
 fun TimelineEvent.isRoomNameEvent() = root.getClearType() == EventType.STATE_ROOM_NAME
 
@@ -39,10 +42,12 @@ fun TimelineEvent.isNunchukErrorEvent() = root.getClearType() == STATE_NUNCHUK_E
 
 fun TimelineEvent.isContactUpdateEvent() = isContactRequestEvent() || isContactWithdrawInvitationEvent() || isContactRequestAcceptedEvent() || isContactInvitationAcceptedEvent()
 
-fun TimelineEvent.isContactRequestEvent() = root.getClearContent()?.get("msgtype") == STATE_NUNCHUK_CONTACT_REQUEST
+fun TimelineEvent.isContactRequestEvent() = getMsgType() == STATE_NUNCHUK_CONTACT_REQUEST
 
-fun TimelineEvent.isContactWithdrawInvitationEvent() = root.getClearContent()?.get("msgtype") == STATE_NUNCHUK_CONTACT_WITHDRAW_INVITATION
+fun TimelineEvent.isContactWithdrawInvitationEvent() = getMsgType() == STATE_NUNCHUK_CONTACT_WITHDRAW_INVITATION
 
-fun TimelineEvent.isContactRequestAcceptedEvent() = root.getClearContent()?.get("msgtype") == STATE_NUNCHUK_CONTACT_REQUEST_ACCEPTED
+fun TimelineEvent.isContactRequestAcceptedEvent() = getMsgType() == STATE_NUNCHUK_CONTACT_REQUEST_ACCEPTED
 
-fun TimelineEvent.isContactInvitationAcceptedEvent() = root.getClearContent()?.get("msgtype") == STATE_NUNCHUK_CONTACT_INVITATION_ACCEPTED
+fun TimelineEvent.isContactInvitationAcceptedEvent() = getMsgType() == STATE_NUNCHUK_CONTACT_INVITATION_ACCEPTED
+
+private fun TimelineEvent.getMsgType() = root.getClearContent()?.get("msgtype")
