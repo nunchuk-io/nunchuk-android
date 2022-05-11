@@ -16,7 +16,6 @@ import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -67,8 +66,10 @@ internal class WalletDetailsViewModel @Inject constructor(
                 .flowOn(Dispatchers.IO)
                 .onException { event(WalletDetailsError(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
-                .onCompletion { event(Loading(false)) }
-                .collect { onRetrievedTransactionHistory(it) }
+                .collect {
+                    event(Loading(false))
+                    onRetrievedTransactionHistory(it)
+                }
         }
     }
 
