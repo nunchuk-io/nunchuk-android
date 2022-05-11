@@ -14,7 +14,7 @@ import com.nunchuk.android.core.util.CHOOSE_FILE_REQUEST_CODE
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.transaction.R
-import com.nunchuk.android.transaction.components.details.TransactionOption
+import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionError
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionSuccess
 import com.nunchuk.android.transaction.databinding.ActivityImportTransactionBinding

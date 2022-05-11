@@ -10,3 +10,4 @@ What's news:
 - NUN-1446 Android - New message doesn't auto-scroll to bottom of room chat
 - NUN-1394 Android - room encryption logic
 - NUN-1449 Android - More than 99 new message, red bubble is broken layout
+- NUN-1428 Android - add 'Import PSBT via QR' option to wallet menu

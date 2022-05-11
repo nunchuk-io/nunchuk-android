@@ -15,9 +15,10 @@ import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
-import com.nunchuk.android.transaction.components.details.TransactionOption.*
+import com.nunchuk.android.share.model.TransactionOption.*
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.imports.ImportTransactionActivity
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
@@ -241,7 +242,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
                 when (it) {
                     CANCEL -> promptCancelTransactionConfirmation()
                     EXPORT -> openExportTransactionScreen(EXPORT)
-                    IMPORT -> openImportTransactionScreen(IMPORT)
+                    IMPORT_KEYSTONE -> openImportTransactionScreen(IMPORT_KEYSTONE)
                     EXPORT_PASSPORT -> openExportTransactionScreen(EXPORT_PASSPORT)
                     IMPORT_PASSPORT -> openImportTransactionScreen(IMPORT_PASSPORT)
                     EXPORT_PSBT -> viewModel.exportTransactionToFile()

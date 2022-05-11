@@ -1,6 +1,7 @@
 package com.nunchuk.android.nav
 
 import android.app.Activity
+import com.nunchuk.android.share.model.TransactionOption
 
 interface TransactionNavigator {
 
@@ -57,6 +58,12 @@ interface TransactionNavigator {
         walletId: String,
         txId: String,
         initEventId: String = ""
+    )
+
+    fun openImportTransactionScreen(
+        activityContext: Activity,
+        walletId: String,
+        transactionOption: TransactionOption
     )
 
 }

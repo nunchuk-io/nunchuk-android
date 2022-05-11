@@ -3,7 +3,7 @@ package com.nunchuk.android.transaction.nav
 import android.app.Activity
 import com.nunchuk.android.nav.TransactionNavigator
 import com.nunchuk.android.transaction.components.details.TransactionDetailsActivity
-import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
+import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.transaction.components.imports.ImportTransactionActivity
 import com.nunchuk.android.transaction.components.receive.ReceiveTransactionActivity
 import com.nunchuk.android.transaction.components.receive.address.details.AddressDetailsActivity
@@ -121,6 +121,18 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             walletId = walletId,
             txId = txId,
             initEventId = initEventId
+        )
+    }
+
+    override fun openImportTransactionScreen(
+        activityContext: Activity,
+        walletId: String,
+        transactionOption: TransactionOption
+    ) {
+        ImportTransactionActivity.start(
+            activityContext = activityContext,
+            walletId = walletId,
+            transactionOption = transactionOption
         )
     }
 

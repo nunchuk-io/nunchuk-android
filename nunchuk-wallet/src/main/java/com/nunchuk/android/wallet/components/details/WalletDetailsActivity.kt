@@ -14,6 +14,7 @@ import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.core.qr.convertToQRCode
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.*
+import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import com.nunchuk.android.wallet.components.details.WalletDetailsOption.*
@@ -104,6 +105,7 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
     }
 
     private fun bindUnusedAddress(address: String) {
+        hideLoading()
         if (address.isEmpty()) {
             binding.emptyTxContainer.isVisible = false
         } else {
@@ -188,6 +190,8 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
         bottomSheet.setListener {
             when (it) {
                 IMPORT_PSBT -> handleImportPSBT()
+                IMPORT_KEYSTONE -> openImportTransactionScreen(TransactionOption.IMPORT_KEYSTONE)
+                IMPORT_PASSPORT -> openImportTransactionScreen(TransactionOption.IMPORT_PASSPORT)
                 EXPORT_BSMS -> handleExportBSMS()
                 EXPORT_COLDCARD -> handleExportColdcard()
                 EXPORT_QR -> viewModel.handleExportWalletQR()
@@ -195,6 +199,14 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
                 DELETE -> viewModel.handleDeleteWallet()
             }
         }
+    }
+
+    private fun openImportTransactionScreen(transactionOption: TransactionOption) {
+        navigator.openImportTransactionScreen(
+            activityContext = this,
+            walletId = args.walletId,
+            transactionOption = transactionOption
+        )
     }
 
     private fun handleExportColdcard() {
