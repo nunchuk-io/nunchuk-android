@@ -2,7 +2,6 @@ package com.nunchuk.android.transaction.components.details
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -15,6 +14,7 @@ import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
+import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.SignRoomTransactionUseCase
@@ -129,14 +129,17 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun handleMenuMoreEvent() {
-        event(PromptTransactionOptions(getState().transaction.status.isPending()))
+        val pending = getState().transaction.status.isPending()
+        if (pending) {
+            event(PromptTransactionOptions(pending))
+        }
     }
 
     fun handleDeleteTransactionEvent() {
         viewModelScope.launch {
             when (val result = deleteTransactionUseCase.execute(walletId, txId)) {
                 is Success -> event(DeleteTransactionSuccess)
-                is Error -> event(TransactionDetailsError(result.exception.message.orEmpty()))
+                is Error -> event(TransactionDetailsError("${result.exception.message.orEmpty()},walletId::$walletId,txId::$txId"))
             }
         }
     }
@@ -150,7 +153,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     event(PromptInputPassphrase {
                         viewModelScope.launch {
                             sendSignerPassphrase.execute(signer.id, it)
-                                .onException { event(TransactionDetailsError(it.message.orEmpty())) }
+                                .onException { event(TransactionDetailsError("${it.message.orEmpty()},walletId::$walletId,txId::$txId")) }
                                 .collect { signTransaction(device) }
                         }
                     })
@@ -176,7 +179,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             event(LoadingEvent)
             when (val result = createShareFileUseCase.execute("${walletId}_${txId}")) {
                 is Success -> exportTransaction(result.data)
-                is Error -> event(ExportTransactionError(result.exception.messageOrUnknownError()))
+                is Error -> event(ExportTransactionError("${result.exception.messageOrUnknownError()},walletId::$walletId,txId::$txId"))
             }
         }
     }
@@ -185,7 +188,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = exportTransactionUseCase.execute(walletId, txId, filePath)) {
                 is Success -> event(ExportToFileSuccess(filePath))
-                is Error -> event(ExportTransactionError(result.exception.messageOrUnknownError()))
+                is Error -> event(ExportTransactionError("${result.exception.messageOrUnknownError()},walletId::$walletId,txId::$txId"))
             }
         }
     }
@@ -194,7 +197,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             signRoomTransactionUseCase.execute(initEventId = initEventId, device = device)
                 .flowOn(IO)
-                .onException { event(TransactionDetailsError(it.message.orEmpty())) }
+                .onException { event(TransactionDetailsError("${it.message.orEmpty()},walletId::$walletId,txId::$txId")) }
                 .collect { event(SignTransactionSuccess(SessionHolder.getActiveRoomId())) }
         }
     }
@@ -206,7 +209,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     updateTransaction(result.data)
                     event(SignTransactionSuccess())
                 }
-                is Error -> event(TransactionDetailsError(result.exception.message.orEmpty()))
+                is Error -> event(TransactionDetailsError("${result.exception.messageOrUnknownError()},walletId::$walletId,txId::$txId"))
             }
         }
     }

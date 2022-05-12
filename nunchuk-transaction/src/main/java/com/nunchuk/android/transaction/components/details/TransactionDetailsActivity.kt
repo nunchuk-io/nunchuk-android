@@ -16,9 +16,9 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.share.model.TransactionOption
+import com.nunchuk.android.share.model.TransactionOption.*
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
-import com.nunchuk.android.share.model.TransactionOption.*
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.imports.ImportTransactionActivity
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
@@ -48,6 +48,17 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         setLightStatusBar()
         setupViews()
         observeEvent()
+        if (args.walletId.isEmpty()) {
+            CrashlyticsReporter.recordException(Exception("Wallet id is empty"))
+            finish()
+            return
+        }
+
+        if (args.txId.isEmpty()) {
+            CrashlyticsReporter.recordException(Exception("Tx id is empty"))
+            finish()
+            return
+        }
         viewModel.init(walletId = args.walletId, txId = args.txId, initEventId = args.initEventId)
     }
 
@@ -319,18 +330,9 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
 
     companion object {
 
-        fun start(
-            activityContext: Activity,
-            walletId: String,
-            txId: String,
-            initEventId: String = ""
-        ) {
+        fun start(activityContext: Activity, walletId: String, txId: String, initEventId: String = "") {
             activityContext.startActivity(
-                TransactionDetailsArgs(
-                    walletId = walletId,
-                    txId = txId,
-                    initEventId = initEventId
-                ).buildIntent(activityContext)
+                TransactionDetailsArgs(walletId = walletId, txId = txId, initEventId = initEventId).buildIntent(activityContext)
             )
         }
 

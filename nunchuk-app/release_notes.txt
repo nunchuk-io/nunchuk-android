@@ -11,4 +11,7 @@ What's news:
 - NUN-1394 Android - room encryption logic
 - NUN-1449 Android - More than 99 new message, red bubble is broken layout
 - NUN-1428 Android - add 'Import PSBT via QR' option to wallet menu
+- NUN-1471 Android - Export PSBT doesn't work
+- NUN-1473 Android - Create collab wallet: Still not assign enough key but show All keys have been assigned
+- NUN-1474 Android - Sometimes (many times) can not sign tx
 - NUN-1456 Android - Room chat display empty when create collab wallet
