@@ -82,7 +82,8 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         binding.add.isVisible = !hasRoomWallet
         binding.sendBTC.isVisible = hasRoomWallet
         binding.receiveBTC.isVisible = hasRoomWallet
-
+        binding.expand.isVisible = hasRoomWallet
+        expandChatBar()
         state.roomWallet?.let {
             stickyBinding.bindRoomWallet(
                 wallet = it,
@@ -225,10 +226,23 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         binding.editText.setOnClickListener {
             collapseChatBar()
         }
+        binding.expand.setOnClickListener {
+            if (it.isVisible) {
+                expandChatBar()
+            } else {
+                collapseChatBar()
+            }
+        }
     }
 
     private fun collapseChatBar() {
-        binding.rootLayout.transitionToEnd()
+        binding.groupWalletAction.isVisible = false
+        binding.expand.isVisible = true
+    }
+
+    private fun expandChatBar() {
+        binding.groupWalletAction.isVisible = true
+        binding.expand.isVisible = false
     }
 
     private fun showSelectMessageBottomSheet(message: Message, position: Int) {

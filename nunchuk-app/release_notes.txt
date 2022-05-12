@@ -11,3 +11,4 @@ What's news:
 - NUN-1394 Android - room encryption logic
 - NUN-1449 Android - More than 99 new message, red bubble is broken layout
 - NUN-1428 Android - add 'Import PSBT via QR' option to wallet menu
+- NUN-1456 Android - Room chat display empty when create collab wallet
