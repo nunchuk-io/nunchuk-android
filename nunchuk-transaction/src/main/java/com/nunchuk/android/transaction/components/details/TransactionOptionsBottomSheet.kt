@@ -36,6 +36,7 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             listener(CANCEL)
             dismiss()
         }
+        binding.btnExportPSBT.isVisible = args.isPending
         binding.btnExportPSBT.setOnClickListener {
             listener(EXPORT_PSBT)
             dismiss()

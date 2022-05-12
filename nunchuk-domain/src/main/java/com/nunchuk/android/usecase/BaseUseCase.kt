@@ -2,6 +2,7 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
+import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -12,6 +13,7 @@ abstract class BaseUseCase {
         try {
             Success(func())
         } catch (e: Exception) {
+            CrashlyticsReporter.recordException(e)
             Error(e)
         }
     }

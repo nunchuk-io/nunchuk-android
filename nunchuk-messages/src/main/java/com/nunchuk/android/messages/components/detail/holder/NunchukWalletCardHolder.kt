@@ -43,7 +43,7 @@ internal class NunchukWalletCardHolder(
             binding.cancelWallet.isVisible = !roomWallet.isCreated()
             binding.pendingKeys.isVisible = true
             binding.status.bindWalletStatus(roomWallet)
-            val remainingKeys = initData.requireSigners - roomWallet.joinEventIds.size
+            val remainingKeys = initData.totalSigners - roomWallet.joinEventIds.size
             if (remainingKeys > 0) {
                 binding.pendingKeys.text = context.getString(R.string.nc_message_pending_signers_to_assign, remainingKeys)
             } else {
