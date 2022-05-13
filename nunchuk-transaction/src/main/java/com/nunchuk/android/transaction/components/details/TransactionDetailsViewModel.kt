@@ -18,6 +18,7 @@ import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.SignRoomTransactionUseCase
+import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
@@ -179,7 +180,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
             event(LoadingEvent)
             when (val result = createShareFileUseCase.execute("${walletId}_${txId}")) {
                 is Success -> exportTransaction(result.data)
-                is Error -> event(ExportTransactionError("${result.exception.messageOrUnknownError()},walletId::$walletId,txId::$txId"))
+                is Error -> {
+                    val message = "${result.exception.messageOrUnknownError()},walletId::$walletId,txId::$txId"
+                    event(ExportTransactionError(message))
+                    CrashlyticsReporter.recordException(TransactionException(message))
+                }
             }
         }
     }
@@ -188,7 +193,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = exportTransactionUseCase.execute(walletId, txId, filePath)) {
                 is Success -> event(ExportToFileSuccess(filePath))
-                is Error -> event(ExportTransactionError("${result.exception.messageOrUnknownError()},walletId::$walletId,txId::$txId"))
+                is Error -> {
+                    val message = "${result.exception.messageOrUnknownError()},walletId::$walletId,txId::$txId"
+                    event(ExportTransactionError(message))
+                    CrashlyticsReporter.recordException(TransactionException(message))
+                }
             }
         }
     }
@@ -197,7 +206,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             signRoomTransactionUseCase.execute(initEventId = initEventId, device = device)
                 .flowOn(IO)
-                .onException { event(TransactionDetailsError("${it.message.orEmpty()},walletId::$walletId,txId::$txId")) }
+                .onException {
+                    val message = "${it.message.orEmpty()},walletId::$walletId,txId::$txId"
+                    event(TransactionDetailsError(message))
+                    CrashlyticsReporter.recordException(TransactionException(message))
+                }
                 .collect { event(SignTransactionSuccess(SessionHolder.getActiveRoomId())) }
         }
     }
@@ -209,9 +222,15 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     updateTransaction(result.data)
                     event(SignTransactionSuccess())
                 }
-                is Error -> event(TransactionDetailsError("${result.exception.messageOrUnknownError()},walletId::$walletId,txId::$txId"))
+                is Error -> {
+                    val message = "${result.exception.messageOrUnknownError()},walletId::$walletId,txId::$txId"
+                    event(TransactionDetailsError(message))
+                    CrashlyticsReporter.recordException(TransactionException(message))
+                }
             }
         }
     }
 
 }
+
+class TransactionException(message: String) : Exception(message)
