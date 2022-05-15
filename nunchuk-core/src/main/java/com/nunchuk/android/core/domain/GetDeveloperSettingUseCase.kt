@@ -3,8 +3,10 @@ package com.nunchuk.android.core.domain
 import com.google.gson.Gson
 import com.nunchuk.android.core.entities.DeveloperSetting
 import com.nunchuk.android.core.persistence.NCSharePreferences
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface GetDeveloperSettingUseCase {
@@ -20,13 +22,9 @@ internal class GetDeveloperSettingUseCaseImpl @Inject constructor(
         ncSharedPreferences.developerSetting,
         DeveloperSetting::class.java
     )?.let {
-        flow { emit(it) }
+        flow { emit(it) }.flowOn(Dispatchers.IO)
     } ?: flow {
-        emit(
-            DeveloperSetting(
-                debugMode = false
-            )
-        )
-    }
+        emit(DeveloperSetting(debugMode = false))
+    }.flowOn(Dispatchers.IO)
 
 }

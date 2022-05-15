@@ -1,8 +1,10 @@
 package com.nunchuk.android.core.matrix
 
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface ConsumeSyncFileUseCase {
@@ -20,5 +22,5 @@ internal class ConsumeSyncFileUseCaseImpl @Inject constructor(
         fileData: ByteArray
     ) = flow<Unit> {
         nunchukNativeSdk.downloadFileCallback(fileJsonInfo = fileJsonInfo, fileData = fileData)
-    }
+    }.flowOn(Dispatchers.IO)
 }

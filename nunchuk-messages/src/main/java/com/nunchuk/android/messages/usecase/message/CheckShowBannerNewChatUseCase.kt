@@ -1,8 +1,10 @@
 package com.nunchuk.android.messages.usecase.message
 
 import com.nunchuk.android.core.persistence.NCSharePreferences
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface CheckShowBannerNewChatUseCase {
@@ -14,9 +16,7 @@ internal class CheckShowBannerNewChatUseCaseImpl @Inject constructor(
 ) : CheckShowBannerNewChatUseCase {
 
     override fun execute() = flow {
-        emit(
-            ncSharedPreferences.showBannerNewChat
-        )
-    }
+        emit(ncSharedPreferences.showBannerNewChat)
+    }.flowOn(Dispatchers.IO)
 
 }

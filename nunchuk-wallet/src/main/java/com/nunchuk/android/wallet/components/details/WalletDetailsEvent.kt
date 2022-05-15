@@ -12,6 +12,7 @@ sealed class WalletDetailsEvent {
     data class UploadWalletConfigEvent(val filePath: String) : WalletDetailsEvent()
     data class BackupWalletDescriptorEvent(val descriptor: String) : WalletDetailsEvent()
     object DeleteWalletSuccess : WalletDetailsEvent()
+    data class PaginationTransactions(val hasTransactions: Boolean = true) : WalletDetailsEvent()
     object ImportPSBTSuccess : WalletDetailsEvent()
 }
 

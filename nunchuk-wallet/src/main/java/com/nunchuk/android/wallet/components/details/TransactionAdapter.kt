@@ -2,8 +2,10 @@ package com.nunchuk.android.wallet.components.details
 
 import android.view.View
 import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView
+import androidx.paging.PagingDataAdapter
+import androidx.recyclerview.widget.DiffUtil
 import com.nunchuk.android.core.base.BaseViewHolder
+import com.nunchuk.android.core.base.ItemComparator
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.wallet.R
@@ -12,13 +14,7 @@ import com.nunchuk.android.widget.util.inflate
 
 internal class TransactionAdapter(
     private val listener: (Transaction) -> Unit
-) : RecyclerView.Adapter<TransactionViewHolder>() {
-
-    internal var items: List<Transaction> = ArrayList()
-        set(value) {
-            field = value
-            notifyDataSetChanged()
-        }
+) : PagingDataAdapter<Transaction, TransactionViewHolder>(TransactionDiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = TransactionViewHolder(
         parent.inflate(R.layout.item_transaction),
@@ -26,11 +22,7 @@ internal class TransactionAdapter(
     )
 
     override fun onBindViewHolder(holder: TransactionViewHolder, position: Int) {
-        holder.bind(items[position])
-    }
-
-    override fun getItemCount(): Int {
-        return items.size
+        getItem(position)?.let(holder::bind)
     }
 
 }
@@ -63,5 +55,13 @@ internal class TransactionViewHolder(
 
         binding.root.setOnClickListener { onItemSelectedListener(data) }
     }
+
+}
+
+internal object TransactionDiffCallback : ItemComparator<Transaction>, DiffUtil.ItemCallback<Transaction>() {
+
+    override fun areItemsTheSame(item1: Transaction, item2: Transaction) = item1.txId == item2.txId
+
+    override fun areContentsTheSame(item1: Transaction, item2: Transaction) = item1.txId == item2.txId
 
 }

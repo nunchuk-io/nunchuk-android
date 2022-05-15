@@ -27,6 +27,7 @@ ext {
     googleServiceVersion = '4.3.4'
     kotlinGradlePluginVersion = '1.5.31'
     kotlinStdlibVersion = '1.5.31'
+    pagingVersion = "3.1.1"
 
     // Nunchuk dep versions
     nativeSdkVersion = '1.1.33'
@@ -38,7 +39,7 @@ ext {
     MINOR_VERSION = 9
     PATCH_VERSION = 15
 
-    VERSION_CODE = 131
+    VERSION_CODE = 132
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
@@ -205,6 +206,11 @@ ext {
 
     loggingDeps = [
             timber: 'com.jakewharton.timber:timber:5.0.1'
+    ]
+
+    pagingDeps = [
+            runtime   : "androidx.paging:paging-runtime:$pagingVersion",
+            runtimeKtx: "androidx.paging:paging-runtime-ktx:$pagingVersion"
     ]
 
 }

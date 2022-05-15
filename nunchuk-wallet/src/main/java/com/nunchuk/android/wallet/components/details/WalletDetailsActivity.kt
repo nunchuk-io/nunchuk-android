@@ -6,6 +6,10 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
+import androidx.paging.CombinedLoadStates
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.vm.NunchukFactory
@@ -21,6 +25,10 @@ import com.nunchuk.android.wallet.components.details.WalletDetailsOption.*
 import com.nunchuk.android.wallet.databinding.ActivityWalletDetailBinding
 import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.widget.NCToastMessage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
@@ -35,11 +43,17 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
 
     private val viewModel: WalletDetailsViewModel by viewModels { factory }
 
-    private lateinit var adapter: TransactionAdapter
+    private val adapter: TransactionAdapter by lazy {
+        TransactionAdapter {
+            navigator.openTransactionDetailsScreen(this, args.walletId, it.txId)
+        }
+    }
 
     private val args: WalletDetailsArgs by lazy { WalletDetailsArgs.deserializeFrom(intent) }
 
     override fun initializeBinding() = ActivityWalletDetailBinding.inflate(layoutInflater)
+
+    private var job: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +66,33 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
     override fun onResume() {
         super.onResume()
         viewModel.syncData()
+    }
+
+    private fun setupPaginationAdapter() {
+        binding.transactionList.adapter = adapter.withLoadStateFooter(LoadStateAdapter())
+        adapter.addLoadStateListener {
+            when (it.refresh) {
+                is LoadState.Loading -> showLoading()
+                is LoadState.Error -> hideLoading()
+                is LoadState.NotLoading -> hideLoading()
+            }
+        }
+        lifecycleScope.launch {
+            @OptIn(ExperimentalPagingApi::class)
+            adapter.loadStateFlow.distinctUntilChangedBy(CombinedLoadStates::refresh)
+                .filter { it.refresh is LoadState.NotLoading }
+                .collect { binding.transactionList.scrollToPosition(0) }
+        }
+    }
+
+    private fun loadOrder() {
+        job?.cancel()
+        job = lifecycleScope.launch(Dispatchers.IO) {
+            @OptIn(ExperimentalPagingApi::class)
+            viewModel.paginateTransactions()
+                .catch { hideLoading() }
+                .collectLatest(adapter::submitData)
+        }
     }
 
     private fun observeEvent() {
@@ -70,7 +111,16 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
             is Loading -> showOrHideLoading(event.loading)
             DeleteWalletSuccess -> walletDeleted()
             ImportPSBTSuccess -> showPSBTImported()
+            is PaginationTransactions -> startPagination(event.hasTransactions)
         }
+    }
+
+    private fun startPagination(hasTx: Boolean) {
+        hideLoading()
+        binding.emptyTxContainer.isVisible = !hasTx
+        binding.transactionTitle.isVisible = hasTx
+        binding.transactionList.isVisible = hasTx
+        loadOrder()
     }
 
     private fun showPSBTImported() {
@@ -125,20 +175,13 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
         binding.cashAmount.text = wallet.getUSDAmount()
         binding.btnSend.isClickable = wallet.balance.value > 0
 
-        adapter.items = state.transactions
-        val emptyTransactions = state.transactions.isEmpty()
-        binding.emptyTxContainer.isVisible = emptyTransactions
-        binding.transactionTitle.isVisible = !emptyTransactions
-        binding.transactionList.isVisible = !emptyTransactions
         binding.shareIcon.isVisible = state.walletExtended.isShared
     }
 
     private fun setupViews() {
-        adapter = TransactionAdapter {
-            navigator.openTransactionDetailsScreen(this, args.walletId, it.txId)
-        }
         binding.transactionList.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
         binding.transactionList.isNestedScrollingEnabled = false
+        binding.transactionList.setHasFixedSize(false)
         binding.transactionList.adapter = adapter
 
         binding.viewWalletConfig.setUnderline()
@@ -169,12 +212,11 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
         binding.btnShare.setOnClickListener { controller.shareText(binding.addressText.text.toString()) }
         binding.navView.selectedItemId = R.id.navigation_wallets
         binding.navView.setOnNavigationItemSelectedListener {
-            navigator.openMainScreen(
-                activityContext = this,
-                bottomNavViewPosition = it.itemId
-            )
+            navigator.openMainScreen(activityContext = this, bottomNavViewPosition = it.itemId)
             true
         }
+
+        setupPaginationAdapter()
     }
 
     private fun shareDescriptor(descriptor: String) {

@@ -4,17 +4,14 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.google.zxing.ResultPoint
 import com.google.zxing.client.android.Intents
-import com.journeyapps.barcodescanner.BarcodeCallback
-import com.journeyapps.barcodescanner.BarcodeResult
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.CHOOSE_FILE_REQUEST_CODE
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.openSelectFileChooser
-import com.nunchuk.android.transaction.R
 import com.nunchuk.android.share.model.TransactionOption
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionError
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionSuccess
 import com.nunchuk.android.transaction.databinding.ActivityImportTransactionBinding
@@ -50,23 +47,9 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
         val barcodeViewIntent = intent
         barcodeViewIntent.putExtra(Intents.Scan.MODE, Intents.Scan.QR_CODE_MODE)
         binding.barcodeView.initializeFromIntent(barcodeViewIntent)
-        binding.barcodeView.decodeContinuous(object : BarcodeCallback {
-
-            override fun barcodeResult(result: BarcodeResult) {
-                viewModel.updateQRCode(result.text)
-            }
-
-            override fun possibleResultPoints(resultPoints: MutableList<ResultPoint>?) {
-
-            }
-        })
-
-        binding.btnImportViaFile.setOnClickListener {
-            openSelectFileChooser()
-        }
-        binding.toolbar.setNavigationOnClickListener {
-            finish()
-        }
+        binding.barcodeView.decodeContinuous { viewModel.importTransactionViaQR(it.text) }
+        binding.btnImportViaFile.setOnClickListener { openSelectFileChooser() }
+        binding.toolbar.setNavigationOnClickListener { finish() }
     }
 
     private fun handleEvent(event: ImportTransactionEvent) {
@@ -92,7 +75,7 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
         if (requestCode == CHOOSE_FILE_REQUEST_CODE && resultCode == RESULT_OK) {
             intent?.data?.let {
                 getFileFromUri(contentResolver, it, cacheDir)
-            }?.absolutePath?.let(viewModel::importTransaction)
+            }?.absolutePath?.let(viewModel::importTransactionViaFile)
         }
     }
 
@@ -110,10 +93,7 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
 
         fun start(activityContext: Activity, walletId: String, transactionOption: TransactionOption) {
             activityContext.startActivity(
-                ImportTransactionArgs(
-                    walletId = walletId,
-                    transactionOption = transactionOption
-                ).buildIntent(activityContext)
+                ImportTransactionArgs(walletId = walletId, transactionOption = transactionOption).buildIntent(activityContext)
             )
         }
 

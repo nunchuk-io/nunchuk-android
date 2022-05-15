@@ -2,8 +2,10 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.utils.CrashlyticsReporter
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface EnableAutoBackupUseCase {
@@ -28,6 +30,6 @@ internal class EnableAutoBackupUseCaseImpl @Inject constructor(
                 CrashlyticsReporter.recordException(t)
             }
         )
-    }
+    }.flowOn(Dispatchers.IO)
 
 }

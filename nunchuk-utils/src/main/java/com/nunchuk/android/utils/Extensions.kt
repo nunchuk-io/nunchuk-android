@@ -13,3 +13,18 @@ fun CharSequence?.safeManualFee() = try {
 fun CharSequence?.isNoneEmpty() = this?.toString().orEmpty().isNotEmpty()
 
 fun EditText?.getTrimmedText() = this?.text?.trim().toString()
+
+@Suppress("unused")
+fun <T> (() -> T).safe(): T? = try {
+    this()
+} catch (t: Throwable) {
+    CrashlyticsReporter.recordException(t)
+    null
+}
+
+inline fun <T> trySafe(func: () -> T): T? = try {
+    func()
+} catch (t: Throwable) {
+    CrashlyticsReporter.recordException(t)
+    null
+}

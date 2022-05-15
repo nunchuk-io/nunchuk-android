@@ -2,9 +2,11 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface GetRoomWalletUseCase {
@@ -19,7 +21,7 @@ internal class GetRoomWalletUseCaseImpl @Inject constructor(
         emit(
             if (nativeSdk.hasRoomWallet(roomId)) nativeSdk.getRoomWallet(roomId = roomId) else null
         )
-    }
+    }.flowOn(Dispatchers.IO)
 
 }
 
@@ -34,6 +36,6 @@ internal class GetAllRoomWalletsUseCaseImpl @Inject constructor(
         emit(nativeSdk.getAllRoomWallets())
     }.catch {
         emit(emptyList())
-    }
+    }.flowOn(Dispatchers.IO)
 
 }

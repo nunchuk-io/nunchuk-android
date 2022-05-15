@@ -7,24 +7,24 @@ import com.nunchuk.android.core.domain.GetDeveloperSettingUseCase
 import com.nunchuk.android.core.domain.HideBannerNewChatUseCase
 import com.nunchuk.android.core.domain.SendErrorEventUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.util.PAGINATION
-import com.nunchuk.android.core.util.TimelineListenerAdapter
-import com.nunchuk.android.core.util.pureBTC
-import com.nunchuk.android.core.util.toMatrixContent
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.usecase.message.CheckShowBannerNewChatUseCase
 import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.model.*
 import com.nunchuk.android.usecase.*
-import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
+import com.nunchuk.android.utils.trySafe
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.Room
+import org.matrix.android.sdk.api.session.room.read.ReadService
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.Timeline.Direction.BACKWARDS
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -34,6 +34,7 @@ import javax.inject.Inject
 
 class RoomDetailViewModel @Inject constructor(
     accountManager: AccountManager,
+    private val session: Session,
     private val cancelWalletUseCase: CancelWalletUseCase,
     private val consumeEventUseCase: ConsumeEventUseCase,
     private val getRoomWalletUseCase: GetRoomWalletUseCase,
@@ -47,6 +48,8 @@ class RoomDetailViewModel @Inject constructor(
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
 
     private var debugMode: Boolean = false
+
+    private var prepareToEncrypt: Boolean = true
 
     private lateinit var room: Room
 
@@ -63,16 +66,26 @@ class RoomDetailViewModel @Inject constructor(
     override val initialState = RoomDetailState.empty()
 
     fun initialize(roomId: String) {
+        session.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
         getDeveloperSettings()
-        SessionHolder.activeSession?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
     }
 
     private fun onRetrievedRoom(room: Room) {
+        markRoomDisplayed(room)
         storeRoom(room)
         joinRoom()
         initSendEventExecutor()
         retrieveTimelineEvents()
         getRoomWallet()
+    }
+
+    private fun markRoomDisplayed(room: Room) {
+        viewModelScope.launch(IO) {
+            trySafe { session.onRoomDisplayed(room.roomId) }
+        }
+        viewModelScope.launch(IO) {
+            trySafe { room.markAsRead(ReadService.MarkAsReadParams.READ_RECEIPT) }
+        }
     }
 
     private fun getDeveloperSettings() {
@@ -92,6 +105,7 @@ class RoomDetailViewModel @Inject constructor(
                     updateState { copy(roomWallet = null) }
                     sendErrorEvent(it)
                 }
+                .flowOn(Main)
                 .collect {
                     onCompleted()
                     updateState { copy(roomWallet = it) }
@@ -118,12 +132,8 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     private fun joinRoom() {
-        viewModelScope.launch {
-            try {
-                SessionHolder.activeSession?.joinRoom(room.roomId)
-            } catch (e: Throwable) {
-                CrashlyticsReporter.recordException(e)
-            }
+        viewModelScope.launch(IO) {
+            trySafe { session.joinRoom(room.roomId) }
         }
     }
 
@@ -138,7 +148,7 @@ class RoomDetailViewModel @Inject constructor(
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
         val displayableEvents = events.filter(TimelineEvent::isDisplayable).filterNot { !debugMode && it.isNunchukErrorEvent() }.groupEvents(loadMore = ::handleLoadMore)
         val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent).filterNot(TimelineEvent::isNunchukErrorEvent)
-        viewModelScope.launch {
+        viewModelScope.launch(IO) {
             val consumableEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
                 .sortedBy(NunchukMatrixEvent::time)
@@ -155,9 +165,7 @@ class RoomDetailViewModel @Inject constructor(
             consumeEventUseCase.execute(sortedEvents)
                 .flowOn(IO)
                 .onException { sendErrorEvent(it) }
-                .onCompletion {
-                    onConsumeEventCompleted(displayableEvents, nunchukEvents)
-                }
+                .onCompletion { onConsumeEventCompleted(displayableEvents, nunchukEvents) }
                 .collect { Timber.d("Consume event completed") }
         }
     }
@@ -187,16 +195,13 @@ class RoomDetailViewModel @Inject constructor(
             getTransactionsUseCase.execute(walletId, eventIds)
                 .flowOn(IO)
                 .onException { sendErrorEvent(it) }
+                .flowOn(Main)
                 .collect { updateState { copy(transactions = it) } }
         }
     }
 
-    private fun mapTransactionEvents(events: List<TimelineEvent>): List<Pair<String, Boolean>> {
-        return events.filter { it.isInitTransactionEvent() || it.isReceiveTransactionEvent() }
-            .map {
-                it.eventId to it.isReceiveTransactionEvent()
-            }
-    }
+    private fun mapTransactionEvents(events: List<TimelineEvent>) = events.filter { it.isInitTransactionEvent() || it.isReceiveTransactionEvent() }
+        .map { it.eventId to it.isReceiveTransactionEvent() }
 
     fun handleSendMessage(content: String) {
         room.sendTextMessage(content)
@@ -219,7 +224,9 @@ class RoomDetailViewModel @Inject constructor(
     fun cancelWallet() {
         viewModelScope.launch {
             cancelWalletUseCase.execute(room.roomId)
+                .flowOn(IO)
                 .onException { sendErrorEvent(it) }
+                .flowOn(Main)
                 .collect { getRoomWallet() }
         }
     }
@@ -229,6 +236,7 @@ class RoomDetailViewModel @Inject constructor(
             createSharedWalletUseCase.execute(room.roomId)
                 .flowOn(IO)
                 .onException { sendErrorEvent(it) }
+                .flowOn(Main)
                 .collect {
                     getRoomWallet()
                     event(RoomWalletCreatedEvent)
@@ -248,7 +256,6 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     fun cleanUp() {
-        timeline.dispose()
         timeline.removeListener(timelineListenerAdapter)
         timelineListenerAdapter = TimelineListenerAdapter {}
         SessionHolder.currentRoom = null
@@ -261,6 +268,7 @@ class RoomDetailViewModel @Inject constructor(
         } else {
             viewModelScope.launch {
                 getWalletUseCase.execute(walletId = roomWallet.walletId)
+                    .flowOn(IO)
                     .onException { sendErrorEvent(it) }
                     .flowOn(Main)
                     .collect { onGetWallet(it.wallet) }
@@ -280,13 +288,7 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun onGetWallet(wallet: Wallet) {
         if (wallet.balance.value > 0L) {
-            event(
-                CreateNewTransaction(
-                    roomId = room.roomId,
-                    walletId = wallet.id,
-                    availableAmount = wallet.balance.pureBTC()
-                )
-            )
+            event(CreateNewTransaction(roomId = room.roomId, walletId = wallet.id, availableAmount = wallet.balance.pureBTC()))
         }
     }
 
@@ -294,10 +296,8 @@ class RoomDetailViewModel @Inject constructor(
         viewModelScope.launch {
             hideBannerNewChatUseCase.execute()
                 .flowOn(IO)
-                .onException { }
-                .collect {
-                    event(HideBannerNewChatEvent)
-                }
+                .catch { }
+                .collect { event(HideBannerNewChatEvent) }
         }
     }
 
@@ -319,8 +319,25 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     fun markMessageRead(eventId: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(IO) {
             room.setReadReceipt(eventId = eventId)
+        }
+    }
+
+    override fun onCleared() {
+        if (room.isEncrypted()) {
+            prepareForEncryption()
+        }
+        timeline.dispose()
+        timeline.removeAllListeners()
+        super.onCleared()
+    }
+
+    private fun prepareForEncryption() {
+        if (prepareToEncrypt) {
+            viewModelScope.launch(IO) {
+                runCatching { room.prepareToEncrypt() }.fold({ prepareToEncrypt = false }, { prepareToEncrypt = false })
+            }
         }
     }
 

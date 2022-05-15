@@ -1,7 +1,9 @@
 package com.nunchuk.android.core.matrix
 
 import com.nunchuk.android.core.repository.MatrixAPIRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import okhttp3.ResponseBody
 import javax.inject.Inject
 
@@ -22,5 +24,5 @@ internal class DownloadFileUseCaseImpl @Inject constructor(
     override fun execute(
         serverName: String,
         mediaId: String
-    ) = matrixAPIRepository.download(serverName, mediaId)
+    ) = matrixAPIRepository.download(serverName, mediaId).flowOn(Dispatchers.IO)
 }

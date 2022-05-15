@@ -19,7 +19,7 @@ internal const val TAG = "TimelineEvent"
 
 fun TimelineEvent.lastMessage() = "${lastMessageSender()}: ${lastMessageContent()}"
 
-fun TimelineEvent.lastMessageContent() = getLastMessageContentSafe() ?: getTextEditableContent()
+fun TimelineEvent.lastMessageContent() = getLastMessageContentSafe() ?: getTextEditableContentSafe()
 
 fun TimelineEvent.getLastMessageContentSafe() = try {
     if (isEncryptedEvent()) {
@@ -29,6 +29,12 @@ fun TimelineEvent.getLastMessageContentSafe() = try {
     }
 } catch (e: Throwable) {
     null
+}
+
+fun TimelineEvent.getTextEditableContentSafe() = try {
+    getTextEditableContent()
+} catch (e: Throwable) {
+    ""
 }
 
 fun TimelineEvent.lastMessageSender() = senderInfo.disambiguatedDisplayName

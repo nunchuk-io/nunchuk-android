@@ -17,6 +17,7 @@ dependencies {
     implementation lifecycleDeps.values()
 
     implementation zxingDeps.values()
+    implementation pagingDeps.values()
 
     testImplementation otherTestDeps.junit
 }

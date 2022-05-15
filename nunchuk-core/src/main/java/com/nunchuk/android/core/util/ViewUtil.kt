@@ -11,6 +11,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
@@ -122,3 +124,14 @@ fun Context.showAlertDialog(
         .create()
         .show()
 }
+
+fun RecyclerView.isLastItemVisible(): Boolean {
+    val adapter = adapter ?: return false
+    if (adapter.itemCount == 0) return false
+
+    val linearLayoutManager = layoutManager as LinearLayoutManager
+    val lastVisibleItemPosition = linearLayoutManager.findLastCompletelyVisibleItemPosition()
+    return adapter.itemCount <= (lastVisibleItemPosition + visibleThreshold)
+}
+
+private const val visibleThreshold = 5

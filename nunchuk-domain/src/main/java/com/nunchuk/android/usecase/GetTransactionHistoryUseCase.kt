@@ -3,9 +3,11 @@ package com.nunchuk.android.usecase
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.utils.CrashlyticsReporter
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface GetTransactionHistoryUseCase {
@@ -27,7 +29,7 @@ internal class GetTransactionHistoryUseCaseImpl @Inject constructor(
     }.catch {
         CrashlyticsReporter.recordException(it)
         emit(emptyList())
-    }
+    }.flowOn(Dispatchers.IO)
 }
 
 fun Transaction.getConfirmations(chainTip: Int) = if (chainTip > 0 && height > 0 && chainTip >= height) {

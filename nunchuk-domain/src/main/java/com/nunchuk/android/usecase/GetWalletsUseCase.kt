@@ -4,8 +4,10 @@ import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface GetWalletsUseCase {
@@ -20,7 +22,7 @@ internal class GetWalletsUseCaseImpl @Inject constructor(
         val wallets = nativeSdk.getWallets()
         val rWalletIds = nativeSdk.getAllRoomWalletIds()
         emit(wallets.map { WalletExtended(it, it.isShared(rWalletIds)) })
-    }
+    }.flowOn(Dispatchers.IO)
 
 }
 
@@ -38,7 +40,7 @@ internal class GetWalletUseCaseImpl @Inject constructor(
         val rWalletIds = rWallets.map(RoomWallet::walletId)
         val roomWallet = rWallets.firstOrNull { wallet.id == it.walletId } ?: RoomWallet()
         emit(WalletExtended(wallet, wallet.isShared(rWalletIds), roomWallet))
-    }
+    }.flowOn(Dispatchers.IO)
 
 }
 

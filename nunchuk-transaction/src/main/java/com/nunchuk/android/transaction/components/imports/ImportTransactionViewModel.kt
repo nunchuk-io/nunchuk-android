@@ -39,7 +39,7 @@ internal class ImportTransactionViewModel @Inject constructor(
         this.transactionOption = transactionOption
     }
 
-    fun importTransaction(filePath: String) {
+    fun importTransactionViaFile(filePath: String) {
         viewModelScope.launch {
             importTransactionUseCase.execute(walletId, filePath)
                 .flowOn(IO)
@@ -49,7 +49,7 @@ internal class ImportTransactionViewModel @Inject constructor(
         }
     }
 
-    fun updateQRCode(qrData: String) {
+    fun importTransactionViaQR(qrData: String) {
         qrDataList.add(qrData)
         Timber.d("[ImportTransaction]updateQRCode($qrData)")
         Timber.d("[ImportTransaction]isProcessing::$isProcessing")
@@ -63,7 +63,7 @@ internal class ImportTransactionViewModel @Inject constructor(
                 }
                     .onStart { isProcessing = true }
                     .flowOn(IO)
-                    .onException { event(ImportTransactionError(it.readableMessage())) }
+                    .onException { }
                     .flowOn(Main)
                     .onCompletion { isProcessing = false }
                     .collect { event(ImportTransactionSuccess) }

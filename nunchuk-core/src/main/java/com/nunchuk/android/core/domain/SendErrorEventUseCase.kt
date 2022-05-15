@@ -2,8 +2,10 @@ package com.nunchuk.android.core.domain
 
 import com.nunchuk.android.core.provider.AppInfoProvider
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface SendErrorEventUseCase {
@@ -24,15 +26,10 @@ internal class SendErrorEventUseCaseImpl @Inject constructor(
         val (code, message) = getCodeFromMessage(reason)
         emit(
             if (code !in IGNORED_EXCEPTIONS) {
-                nativeSdk.sendErrorEvent(
-                    roomId = roomId,
-                    platform = platform,
-                    code = code,
-                    message = message
-                )
+                nativeSdk.sendErrorEvent(roomId = roomId, platform = platform, code = code, message = message)
             } else Unit
         )
-    }
+    }.flowOn(Dispatchers.IO)
 
     private fun getCodeFromMessage(message: String) = when {
         message.isEmpty() -> UNKNOWN_ERROR to message

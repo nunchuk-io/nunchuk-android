@@ -1,8 +1,10 @@
 package com.nunchuk.android.core.matrix
 
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface BackupFileUseCase {
@@ -21,5 +23,5 @@ internal class BackupFileUseCaseImpl @Inject constructor(
         fileUrl: String
     ) = flow<Unit> {
         nunchukNativeSdk.uploadFileCallback(fileJsonInfo = fileJsonInfo, fileUrl = fileUrl)
-    }
+    }.flowOn(Dispatchers.IO)
 }

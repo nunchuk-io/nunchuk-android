@@ -15,6 +15,7 @@ import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.core.loader.ImageLoader
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.hideKeyboard
+import com.nunchuk.android.core.util.isLastItemVisible
 import com.nunchuk.android.core.util.observable
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
@@ -48,9 +49,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
     private var lastCompletelyVisibleItemPosition = -1
 
-    private var selectMode: Boolean by observable(false) {
-        setupViewForSelectMode(it)
-    }
+    private var selectMode: Boolean by observable(false, ::setupViewForSelectMode)
 
     override fun initializeBinding() = ActivityRoomDetailBinding.inflate(layoutInflater)
 
@@ -90,11 +89,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
                 transactions = state.transactions.map(TransactionExtended::transaction),
                 onClick = viewModel::viewConfig,
                 onClickViewTransactionDetail = { txId ->
-                    openTransactionDetails(
-                        walletId = it.walletId,
-                        txId = txId,
-                        initEventId = ""
-                    )
+                    openTransactionDetails(walletId = it.walletId, txId = txId, initEventId = "")
                 }
             )
         }
@@ -219,7 +214,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 
     private fun setupAnimationForChatBar() {
-        binding.editText.setOnFocusChangeListener { view, changed ->
+        binding.editText.setOnFocusChangeListener { _, _ ->
             collapseChatBar()
         }
 
@@ -268,7 +263,6 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
                 SelectMessageOption.Dismiss -> {
                     selectMode = false
                 }
-
             }
         }
     }
@@ -344,12 +338,3 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 }
 
-private fun RecyclerView.isLastItemVisible(): Boolean {
-    val adapter = adapter ?: return false
-    if (adapter.itemCount != 0) {
-        val linearLayoutManager = layoutManager as LinearLayoutManager
-        val lastVisibleItemPosition = linearLayoutManager.findLastCompletelyVisibleItemPosition()
-        if (lastVisibleItemPosition != RecyclerView.NO_POSITION && lastVisibleItemPosition == adapter.itemCount - 1) return true
-    }
-    return false
-}

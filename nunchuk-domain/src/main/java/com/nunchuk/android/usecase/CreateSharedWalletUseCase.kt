@@ -2,8 +2,10 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.NunchukMatrixEvent
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface CreateSharedWalletUseCase {
@@ -15,9 +17,7 @@ internal class CreateSharedWalletUseCaseImpl @Inject constructor(
 ) : CreateSharedWalletUseCase {
 
     override fun execute(roomId: String) = flow {
-        emit(
-            nativeSdk.createSharedWallet(roomId)
-        )
-    }
+        emit(nativeSdk.createSharedWallet(roomId))
+    }.flowOn(Dispatchers.IO)
 
 }
