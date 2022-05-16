@@ -15,3 +15,4 @@ What's news:
 - NUN-1473 Android - Create collab wallet: Still not assign enough key but show All keys have been assigned
 - NUN-1474 Android - Sometimes (many times) can not sign tx
 - NUN-1456 Android - Room chat display empty when create collab wallet
+- NUN-1486 Android - Run health check with keys have passphrase doesn't work
