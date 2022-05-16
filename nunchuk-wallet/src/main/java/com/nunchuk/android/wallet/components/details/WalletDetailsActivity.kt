@@ -85,7 +85,7 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
         }
     }
 
-    private fun loadOrder() {
+    private fun paginateTransactions() {
         job?.cancel()
         job = lifecycleScope.launch(Dispatchers.IO) {
             @OptIn(ExperimentalPagingApi::class)
@@ -120,7 +120,9 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
         binding.emptyTxContainer.isVisible = !hasTx
         binding.transactionTitle.isVisible = hasTx
         binding.transactionList.isVisible = hasTx
-        loadOrder()
+        if (hasTx) {
+            paginateTransactions()
+        }
     }
 
     private fun showPSBTImported() {

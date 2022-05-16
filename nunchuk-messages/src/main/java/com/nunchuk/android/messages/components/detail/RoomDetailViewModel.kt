@@ -7,12 +7,16 @@ import com.nunchuk.android.core.domain.GetDeveloperSettingUseCase
 import com.nunchuk.android.core.domain.HideBannerNewChatUseCase
 import com.nunchuk.android.core.domain.SendErrorEventUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.PAGINATION
+import com.nunchuk.android.core.util.TimelineListenerAdapter
+import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.core.util.toMatrixContent
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.usecase.message.CheckShowBannerNewChatUseCase
 import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.model.*
 import com.nunchuk.android.usecase.*
+import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.trySafe
 import kotlinx.coroutines.Dispatchers.IO
@@ -22,7 +26,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
-import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.read.ReadService
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
@@ -34,7 +37,6 @@ import javax.inject.Inject
 
 class RoomDetailViewModel @Inject constructor(
     accountManager: AccountManager,
-    private val session: Session,
     private val cancelWalletUseCase: CancelWalletUseCase,
     private val consumeEventUseCase: ConsumeEventUseCase,
     private val getRoomWalletUseCase: GetRoomWalletUseCase,
@@ -59,6 +61,8 @@ class RoomDetailViewModel @Inject constructor(
 
     private val currentId = accountManager.getAccount().chatId
 
+    private val currentEmail = accountManager.getAccount().email
+
     private var latestPreviewableEventTs: Long = -1
 
     private var timelineListenerAdapter = TimelineListenerAdapter(::handleTimelineEvents)
@@ -66,7 +70,7 @@ class RoomDetailViewModel @Inject constructor(
     override val initialState = RoomDetailState.empty()
 
     fun initialize(roomId: String) {
-        session.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
+        SessionHolder.activeSession?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
         getDeveloperSettings()
     }
 
@@ -81,7 +85,7 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun markRoomDisplayed(room: Room) {
         viewModelScope.launch(IO) {
-            trySafe { session.onRoomDisplayed(room.roomId) }
+            trySafe { SessionHolder.activeSession?.onRoomDisplayed(room.roomId) }
         }
         viewModelScope.launch(IO) {
             trySafe { room.markAsRead(ReadService.MarkAsReadParams.READ_RECEIPT) }
@@ -105,7 +109,6 @@ class RoomDetailViewModel @Inject constructor(
                     updateState { copy(roomWallet = null) }
                     sendErrorEvent(it)
                 }
-                .flowOn(Main)
                 .collect {
                     onCompleted()
                     updateState { copy(roomWallet = it) }
@@ -133,7 +136,9 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun joinRoom() {
         viewModelScope.launch(IO) {
-            trySafe { session.joinRoom(room.roomId) }
+            if (EmailValidator.isNunchukEmail(currentEmail)) {
+                trySafe { SessionHolder.activeSession?.joinRoom(room.roomId) }
+            }
         }
     }
 
@@ -148,7 +153,7 @@ class RoomDetailViewModel @Inject constructor(
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
         val displayableEvents = events.filter(TimelineEvent::isDisplayable).filterNot { !debugMode && it.isNunchukErrorEvent() }.groupEvents(loadMore = ::handleLoadMore)
         val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent).filterNot(TimelineEvent::isNunchukErrorEvent)
-        viewModelScope.launch(IO) {
+        viewModelScope.launch {
             val consumableEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
                 .sortedBy(NunchukMatrixEvent::time)
@@ -195,7 +200,6 @@ class RoomDetailViewModel @Inject constructor(
             getTransactionsUseCase.execute(walletId, eventIds)
                 .flowOn(IO)
                 .onException { sendErrorEvent(it) }
-                .flowOn(Main)
                 .collect { updateState { copy(transactions = it) } }
         }
     }

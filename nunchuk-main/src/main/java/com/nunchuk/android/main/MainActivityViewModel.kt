@@ -354,8 +354,8 @@ internal class MainActivityViewModel @Inject constructor(
                 .flatMapConcat { loginWithMatrix(userName = it, password = token, encryptedDeviceId = encryptedDeviceId) }
                 .flowOn(Main)
                 .collect {
-                    checkCrossSigning(it)
                     setupSyncing()
+                    checkCrossSigning(it)
                 }
         }
     }

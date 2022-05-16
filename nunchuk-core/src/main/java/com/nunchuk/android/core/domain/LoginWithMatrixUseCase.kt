@@ -1,9 +1,7 @@
 package com.nunchuk.android.core.domain
 
 import com.nunchuk.android.core.matrix.MatrixInterceptor
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
 import org.matrix.android.sdk.api.session.Session
 import javax.inject.Inject
 
@@ -19,6 +17,6 @@ internal class LoginWithMatrixUseCaseImpl @Inject constructor(
         username = userName,
         password = password,
         encryptedDeviceId = encryptedDeviceId
-    ).flowOn(Dispatchers.IO)
+    )
 
 }

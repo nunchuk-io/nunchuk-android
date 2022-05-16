@@ -15,7 +15,6 @@ import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.core.loader.ImageLoader
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.hideKeyboard
-import com.nunchuk.android.core.util.isLastItemVisible
 import com.nunchuk.android.core.util.observable
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
@@ -47,8 +46,6 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
     private var selectMessageActionView: View? = null
 
-    private var lastCompletelyVisibleItemPosition = -1
-
     private var selectMode: Boolean by observable(false, ::setupViewForSelectMode)
 
     override fun initializeBinding() = ActivityRoomDetailBinding.inflate(layoutInflater)
@@ -75,7 +72,6 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         binding.memberCount.text = membersCount
 
         adapter?.update(state.messages.groupByDate(), state.transactions, state.roomWallet, count)
-        restoreLastVerticalScrollOffset()
         val hasRoomWallet = state.roomWallet != null
         stickyBinding.root.isVisible = hasRoomWallet
         binding.add.isVisible = !hasRoomWallet
@@ -93,10 +89,6 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
                 }
             )
         }
-    }
-
-    private fun restoreLastVerticalScrollOffset() {
-        (binding.recyclerView.layoutManager as LinearLayoutManager).scrollToPosition(lastCompletelyVisibleItemPosition)
     }
 
     private fun handleEvent(event: RoomDetailEvent) {
@@ -192,7 +184,6 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
                 if (RecyclerView.SCROLL_STATE_DRAGGING == newState) {
                     binding.recyclerView.hideKeyboard()
                 } else if (RecyclerView.SCROLL_STATE_IDLE == newState) {
-                    lastCompletelyVisibleItemPosition = (recyclerView.layoutManager as LinearLayoutManager).findLastCompletelyVisibleItemPosition()
                     if (!recyclerView.isLastItemVisible()) {
                         viewModel.handleLoadMore()
                     }
@@ -338,3 +329,12 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 }
 
+private fun RecyclerView.isLastItemVisible(): Boolean {
+    val adapter = adapter ?: return false
+    if (adapter.itemCount != 0) {
+        val linearLayoutManager = layoutManager as LinearLayoutManager
+        val lastVisibleItemPosition = linearLayoutManager.findLastCompletelyVisibleItemPosition()
+        if (lastVisibleItemPosition != RecyclerView.NO_POSITION && lastVisibleItemPosition == adapter.itemCount - 1) return true
+    }
+    return false
+}

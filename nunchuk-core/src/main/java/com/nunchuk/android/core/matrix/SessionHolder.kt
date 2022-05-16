@@ -28,7 +28,7 @@ object SessionHolder {
                 } else {
                     startSync(ProcessLifecycleOwner.get().isAtLeastStarted())
                 }
-            } catch (e: Error) {
+            } catch (e: Throwable) {
                 CrashlyticsReporter.recordException(e)
             }
         }
