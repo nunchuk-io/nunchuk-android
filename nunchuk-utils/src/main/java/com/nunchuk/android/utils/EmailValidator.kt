@@ -14,4 +14,5 @@ object EmailValidator {
                 ")+"
     ).matcher(email).matches()
 
+    fun isNunchukEmail(email: String) = email.trim().endsWith("@nunchuk.io")
 }
