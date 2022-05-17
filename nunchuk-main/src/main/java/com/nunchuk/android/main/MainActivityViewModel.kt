@@ -4,23 +4,38 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.callbacks.DownloadFileCallBack
 import com.nunchuk.android.callbacks.UploadFileCallBack
-import com.nunchuk.android.core.data.model.SyncStateMatrixResponse
-import com.nunchuk.android.core.domain.*
+import com.nunchuk.android.core.domain.CheckUpdateRecommendUseCase
+import com.nunchuk.android.core.domain.GetDisplayUnitSettingUseCase
+import com.nunchuk.android.core.domain.GetPriceConvertBTCUseCase
+import com.nunchuk.android.core.domain.ScheduleGetPriceConvertBTCUseCase
 import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
-import com.nunchuk.android.core.matrix.*
+import com.nunchuk.android.core.matrix.BackupFileUseCase
+import com.nunchuk.android.core.matrix.ConsumeSyncFileUseCase
+import com.nunchuk.android.core.matrix.ConsumerSyncEventUseCase
+import com.nunchuk.android.core.matrix.DownloadFileUseCase
+import com.nunchuk.android.core.matrix.RegisterDownloadBackUpFileUseCase
+import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.matrix.UploadFileUseCase
 import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.retry.DEFAULT_RETRY_POLICY
 import com.nunchuk.android.core.retry.RetryPolicy
 import com.nunchuk.android.core.retry.SYNC_RETRY_POLICY
 import com.nunchuk.android.core.retry.retryDefault
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.AppUpdateStateHolder
+import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
+import com.nunchuk.android.core.util.BTC_USD_EXCHANGE_RATE
+import com.nunchuk.android.core.util.PAGINATION
+import com.nunchuk.android.core.util.TimelineListenerAdapter
+import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.main.di.MainAppEvent
-import com.nunchuk.android.main.di.MainAppEvent.*
+import com.nunchuk.android.main.di.MainAppEvent.CrossSigningUnverified
+import com.nunchuk.android.main.di.MainAppEvent.DownloadFileSyncSucceed
+import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
+import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
+import com.nunchuk.android.main.di.MainAppEvent.UpdateAppRecommendEvent
 import com.nunchuk.android.messages.model.RoomNotFoundException
 import com.nunchuk.android.messages.model.SessionLostException
-import com.nunchuk.android.messages.usecase.message.CreateRoomWithTagUseCase
-import com.nunchuk.android.messages.util.STATE_NUNCHUK_SYNC
 import com.nunchuk.android.messages.util.isLocalEvent
 import com.nunchuk.android.messages.util.isNunchukConsumeSyncEvent
 import com.nunchuk.android.messages.util.toNunchukMatrixEvent
@@ -35,11 +50,9 @@ import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.withLock
 import org.matrix.android.sdk.api.MatrixCallback
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.Room
@@ -55,18 +68,14 @@ import javax.inject.Named
 
 internal class MainActivityViewModel @Inject constructor(
     private val enableAutoBackupUseCase: EnableAutoBackupUseCase,
-    private val createRoomWithTagUseCase: CreateRoomWithTagUseCase,
     private val uploadFileUseCase: UploadFileUseCase,
     private val downloadFileUseCase: DownloadFileUseCase,
     private val registerDownloadBackUpFileUseCase: RegisterDownloadBackUpFileUseCase,
     private val consumeSyncFileUseCase: ConsumeSyncFileUseCase,
     private val backupFileUseCase: BackupFileUseCase,
     private val consumerSyncEventUseCase: ConsumerSyncEventUseCase,
-    private val syncStateMatrixUseCase: SyncStateMatrixUseCase,
     private val getPriceConvertBTCUseCase: GetPriceConvertBTCUseCase,
     private val scheduleGetPriceConvertBTCUseCase: ScheduleGetPriceConvertBTCUseCase,
-    private val getUserProfileUseCase: GetUserProfileUseCase,
-    private val loginWithMatrixUseCase: LoginWithMatrixUseCase,
     private val getDisplayUnitSettingUseCase: GetDisplayUnitSettingUseCase,
     private val notificationManager: PushNotificationManager,
     @Named(DEFAULT_RETRY_POLICY) private val retryPolicy: RetryPolicy,
@@ -76,8 +85,6 @@ internal class MainActivityViewModel @Inject constructor(
 ) : NunchukViewModel<Unit, MainAppEvent>() {
 
     override val initialState = Unit
-
-    private var syncRoomId: String? = null
 
     private lateinit var timeline: Timeline
 
@@ -226,24 +233,6 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
-    private fun createRoomWithTagSync() {
-        viewModelScope.launch {
-            createRoomWithTagUseCase.execute(
-                STATE_NUNCHUK_SYNC,
-                listOf(SessionHolder.activeSession?.sessionParams?.userId.orEmpty()),
-                STATE_NUNCHUK_SYNC
-            )
-                .retryDefault(retryPolicy)
-                .flowOn(IO)
-                .onException { }
-                .flowOn(Main)
-                .collect {
-                    syncRoomId = it.roomId
-                    syncRoomId?.let(::syncData)
-                }
-        }
-    }
-
     private fun enableAutoBackup(syncRoomId: String, accessToken: String) {
         viewModelScope.launch {
             enableAutoBackupUseCase.execute(syncRoomId, accessToken)
@@ -279,41 +268,7 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
-    fun setupSyncing() {
-        Timber.tag(TAG).d("Bearer ${SessionHolder.activeSession?.sessionParams?.credentials?.accessToken.orEmpty()}")
-        viewModelScope.launch {
-            SyncStateHolder.lockStateCreateSyncRoom.withLock {
-                syncStateMatrixUseCase.execute()
-                    .retryDefault(retryPolicy)
-                    .flowOn(IO)
-                    .onException { }
-                    .flowOn(Main)
-                    .collect {
-                        event(SyncCompleted)
-                        syncRoomId = findSyncRoom(it)
-                        syncRoomId?.let { syncRoomId ->
-                            Timber.tag(TAG).d("Have sync room: $syncRoomId")
-                            syncData(roomId = syncRoomId)
-                        } ?: run {
-                            Timber.tag(TAG).d("Don't have sync room")
-                            createRoomWithTagSync()
-                        }
-                    }
-            }
-        }
-    }
-
-    private fun findSyncRoom(response: SyncStateMatrixResponse): String? {
-        return response.rooms?.join?.filter {
-            it.value.accountData?.events?.any { event ->
-                event.type == EVENT_TYPE_TAG_ROOM && event.content?.tags?.get(EVENT_TYPE_SYNC) != null
-            }.orFalse()
-        }?.map {
-            it.key
-        }?.firstOrNull()
-    }
-
-    private fun syncData(roomId: String) {
+    fun syncData(roomId: String) {
         Timber.tag(TAG).d("syncData::$roomId")
         enableAutoBackup(
             syncRoomId = roomId,
@@ -336,31 +291,7 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
-    private fun loginWithMatrix(
-        userName: String,
-        password: String,
-        encryptedDeviceId: String
-    ) = loginWithMatrixUseCase.execute(
-        userName = userName,
-        password = password,
-        encryptedDeviceId = encryptedDeviceId
-    ).retryDefault(retryPolicy).onException {}
-
-    fun setupMatrix(token: String, encryptedDeviceId: String) {
-        viewModelScope.launch {
-            getUserProfileUseCase.execute()
-                .flowOn(IO)
-                .retryDefault(retryPolicy)
-                .flatMapConcat { loginWithMatrix(userName = it, password = token, encryptedDeviceId = encryptedDeviceId) }
-                .flowOn(Main)
-                .collect {
-                    setupSyncing()
-                    checkCrossSigning(it)
-                }
-        }
-    }
-
-    private fun checkCrossSigning(session: Session) {
+    fun checkCrossSigning(session: Session) {
         val cryptoService = session.cryptoService()
         if (ncSharePreferences.newDevice) {
             cryptoService.fetchDevicesList(object : MatrixCallback<DevicesListResponse> {
@@ -395,7 +326,5 @@ internal class MainActivityViewModel @Inject constructor(
 
     companion object {
         private const val TAG = "MainActivityViewModel"
-        private const val EVENT_TYPE_SYNC = "io.nunchuk.sync"
-        private const val EVENT_TYPE_TAG_ROOM = "m.tag"
     }
 }

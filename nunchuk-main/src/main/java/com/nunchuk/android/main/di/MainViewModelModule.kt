@@ -31,5 +31,4 @@ internal interface MainViewModelModule {
     @IntoMap
     @ViewModelKey(RoomsViewModel::class)
     fun bindMessagesViewModel(viewModel: RoomsViewModel): ViewModel
-
 }
