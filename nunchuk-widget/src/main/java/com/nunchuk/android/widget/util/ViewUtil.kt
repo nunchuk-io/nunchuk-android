@@ -126,7 +126,7 @@ fun RecyclerView.smoothScrollToLastItem(delay: Long = DELAY) {
     postDelayed({
         adapter?.itemCount?.let {
             if (it > 0) {
-                scrollToPosition(it - 1)
+                smoothScrollToPosition(it - 1)
             }
         }
     }, delay)

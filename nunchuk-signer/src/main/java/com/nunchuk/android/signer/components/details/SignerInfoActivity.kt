@@ -15,6 +15,7 @@ import com.nunchuk.android.model.toSpec
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.details.SignerInfoEvent.*
 import com.nunchuk.android.signer.databinding.ActivitySignerInfoBinding
+import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import javax.inject.Inject
 
@@ -113,16 +114,19 @@ class SignerInfoActivity : BaseActivity<ActivitySignerInfoBinding>() {
         binding.btnDone.setOnClickListener { openMainScreen() }
         binding.btnRemove.setOnClickListener { viewModel.handleRemoveSigner() }
         binding.signerName.setOnClickListener { onEditClicked() }
-        binding.btnHealthCheck.setOnClickListener {
-            val masterSigner = viewModel.state.value?.masterSigner
-            if (masterSigner != null && masterSigner.software) {
-                viewModel.healthCheck(
-                    fingerprint = masterSigner.device.masterFingerprint,
-                    message = "",
-                    signature = "",
-                    path = masterSigner.device.path
+        binding.btnHealthCheck.setOnClickListener { handleRunHealthCheck() }
+    }
 
+    private fun handleRunHealthCheck() {
+        val masterSigner = viewModel.state.value?.masterSigner
+        if (masterSigner != null && masterSigner.software) {
+            if (masterSigner.device.needPassPhraseSent) {
+                NCInputDialog(this).showDialog(
+                    title = getString(R.string.nc_transaction_enter_passphrase),
+                    onConfirmed = { viewModel.handleHealthCheck(masterSigner, it) }
                 )
+            } else {
+                viewModel.handleHealthCheck(masterSigner)
             }
         }
     }
