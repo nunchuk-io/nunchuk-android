@@ -16,3 +16,4 @@ What's news:
 - NUN-1474 Android - Sometimes (many times) can not sign tx
 - NUN-1456 Android - Room chat display empty when create collab wallet
 - NUN-1486 Android - Run health check with keys have passphrase doesn't work
+- NUN-1469 Android - Minimize the ability to create many sync rooms

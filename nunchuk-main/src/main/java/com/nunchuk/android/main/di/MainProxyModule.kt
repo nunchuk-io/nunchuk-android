@@ -5,7 +5,8 @@ import dagger.Module
 @Module(
     includes = [
         MainActivityModule::class,
-        MainViewModelModule::class
+        MainViewModelModule::class,
+        SyncStateModule::class
     ]
 )
 interface MainProxyModule

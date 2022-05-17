@@ -51,11 +51,24 @@ class RoomsViewModel @Inject constructor(
             .onStart { event(RoomsEvent.LoadingEvent(true)) }
             .onEach {
                 Timber.tag(TAG).d("listenRoomSummaries($it)")
+                leaveDraftSyncRoom(it)
                 retrieveMessages()
             }
             .onCompletion { event(RoomsEvent.LoadingEvent(false)) }
             .flowOn(Dispatchers.Main)
             .launchIn(viewModelScope)
+    }
+
+    private fun leaveDraftSyncRoom(it: List<RoomSummary>) {
+        // delete to avoid misunderstandings
+        val draftSyncRooms = it.filter { roomSummary ->
+            roomSummary.displayName == TAG_SYNC && roomSummary.tags.isEmpty()
+        }
+        draftSyncRooms.forEach { roomSummary ->
+            getRoom(roomSummary)?.let {
+                leaveRoomUseCase.execute(it)
+            }
+        }
     }
 
     private fun addListener(session: Session) {
@@ -153,6 +166,7 @@ class RoomsViewModel @Inject constructor(
 
     companion object {
         private const val TAG = "MainActivityViewModel"
+        private const val TAG_SYNC = "io.nunchuk.sync"
         private const val DELAY_IN_SECONDS = 2L
     }
 

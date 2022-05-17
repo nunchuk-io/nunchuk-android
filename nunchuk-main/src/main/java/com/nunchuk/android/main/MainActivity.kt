@@ -43,6 +43,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private val roomViewModel: RoomsViewModel by viewModels { factory }
 
+    private val syncRoomViewModel: SyncRoomViewModel by viewModels { factory }
+
     private val loginHalfToken
         get() = intent.getStringExtra(EXTRAS_LOGIN_HALF_TOKEN).orEmpty()
 
@@ -100,16 +102,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private fun setupData() {
         if (loginHalfToken.isNotEmpty() && deviceId.isNotEmpty()) {
-            viewModel.setupMatrix(loginHalfToken, deviceId)
+            syncRoomViewModel.setupMatrix(loginHalfToken, deviceId)
         }
         if (SessionHolder.activeSession != null) {
-            viewModel.setupSyncing()
+            syncRoomViewModel.findSyncRoom()
         }
         viewModel.scheduleGetBTCConvertPrice()
     }
 
     private fun subscribeEvents() {
         viewModel.event.observe(this, ::handleEvent)
+        syncRoomViewModel.event.observe(this, ::handleEvent)
     }
 
     private fun handleEvent(event: MainAppEvent) {
@@ -118,6 +121,20 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             is MainAppEvent.UpdateAppRecommendEvent -> handleAppUpdateEvent(event.data)
             MainAppEvent.CrossSigningUnverified -> showUnverifiedDeviceWarning()
             else -> {}
+        }
+    }
+
+    private fun handleEvent(event: SyncRoomEvent) {
+        when (event) {
+            is SyncRoomEvent.FindSyncRoomSuccessEvent -> viewModel.syncData(event.syncRoomId)
+            is SyncRoomEvent.CreateSyncRoomSucceedEvent -> viewModel.syncData(event.syncRoomId)
+            is SyncRoomEvent.LoginMatrixSucceedEvent -> {
+                viewModel.checkCrossSigning(event.session)
+                syncRoomViewModel.findSyncRoom()
+            }
+            is SyncRoomEvent.FindSyncRoomFailedEvent -> if (event.syncRoomSize == 0) {
+                syncRoomViewModel.createRoomWithTagSync()
+            }
         }
     }
 

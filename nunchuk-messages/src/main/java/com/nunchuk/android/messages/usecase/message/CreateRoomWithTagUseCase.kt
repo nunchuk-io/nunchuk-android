@@ -1,6 +1,5 @@
 package com.nunchuk.android.messages.usecase.message
 
-import com.nunchuk.android.messages.model.RoomCreationException
 import com.nunchuk.android.messages.model.RoomWithTagCreationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
