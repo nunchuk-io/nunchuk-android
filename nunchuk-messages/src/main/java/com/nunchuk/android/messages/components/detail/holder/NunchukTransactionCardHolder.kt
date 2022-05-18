@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.components.detail.holder
 
+import androidx.core.view.isInvisible
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.messages.R
@@ -16,7 +17,10 @@ internal class NunchukTransactionCardHolder(
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(transactions: List<TransactionExtended>, model: NunchukTransactionMessage) {
-        val walletId = model.timelineEvent.getBodyElementValueByKey("wallet_id")
+        var walletId = model.timelineEvent.getBodyElementValueByKey("wallet_id")
+        if (walletId.isEmpty()) {
+            walletId = transactions.firstOrNull { it.walletId.isNotEmpty() }?.walletId.orEmpty()
+        }
         val initEventId = model.timelineEvent.eventId
         transactions.firstOrNull { it.initEventId == initEventId }?.let {
             bindTransaction(walletId = walletId, initEventId = initEventId, transaction = it.transaction)
@@ -40,6 +44,7 @@ internal class NunchukTransactionCardHolder(
         } else {
             binding.signatureStatus.text = context.getString(R.string.nc_message_transaction_enough_signature)
         }
+        binding.signatureStatus.isInvisible = transaction.status.hadBroadcast()
         binding.sign.setOnClickListener { signTransaction() }
         binding.viewDetails.setOnClickListener { viewTransaction(walletId, transaction.txId, initEventId) }
     }

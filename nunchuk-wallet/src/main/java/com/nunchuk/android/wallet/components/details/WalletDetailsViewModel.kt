@@ -72,7 +72,7 @@ internal class WalletDetailsViewModel @Inject constructor(
                 .onException { event(WalletDetailsError(it.message.orUnknownError())) }
                 .flowOn(Main)
                 .collect {
-                    transactions = it
+                    transactions = it.sortedWith(compareBy(Transaction::status).thenByDescending(Transaction::blockTime))
                     onRetrievedTransactionHistory()
                 }
         }

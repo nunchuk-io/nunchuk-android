@@ -30,7 +30,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_8"
-            android:layout_marginTop="@dimen/nc_padding_4"
             android:background="@drawable/nc_rounded_red_background"
             android:paddingHorizontal="@dimen/nc_padding_8"
             android:text="@string/nc_message_pending_signers"
@@ -38,7 +37,7 @@
             android:textSize="@dimen/nc_text_size_10"
             app:fontTextStyle="semi_bold"
             app:layout_constraintStart_toEndOf="@+id/icon"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="@+id/icon" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/configuration"

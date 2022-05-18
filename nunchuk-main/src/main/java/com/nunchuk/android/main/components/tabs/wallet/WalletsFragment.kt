@@ -86,8 +86,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         if (event is GetConnectionStatusSuccessEvent) {
             walletsViewModel.getAppSettings()
         } else if (event == SyncCompleted) {
-            Timber.tag("MainActivityViewModel").d("walletsViewModel.retrieveData()")
-            binding.root.postDelayed(walletsViewModel::retrieveData, 3000)
+            walletsViewModel.retrieveData()
         }
     }
 
@@ -251,7 +250,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     override fun onResume() {
         super.onResume()
-        binding.walletLoading.root.isVisible = true
         walletsViewModel.retrieveData()
         walletsViewModel.getAppSettings()
     }

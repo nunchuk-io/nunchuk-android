@@ -21,10 +21,7 @@ import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.trySafe
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.read.ReadService
@@ -33,6 +30,7 @@ import org.matrix.android.sdk.api.session.room.timeline.Timeline.Direction.BACKW
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
 import timber.log.Timber
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 class RoomDetailViewModel @Inject constructor(
@@ -66,6 +64,8 @@ class RoomDetailViewModel @Inject constructor(
     private var latestPreviewableEventTs: Long = -1
 
     private var timelineListenerAdapter = TimelineListenerAdapter(::handleTimelineEvents)
+
+    private var isConsumingEvents = AtomicBoolean(false)
 
     override val initialState = RoomDetailState.empty()
 
@@ -167,16 +167,21 @@ class RoomDetailViewModel @Inject constructor(
         nunchukEvents: List<TimelineEvent>
     ) {
         viewModelScope.launch {
-            consumeEventUseCase.execute(sortedEvents)
+            updateState { copy(messages = displayableEvents.toMessages(currentId)) }
+            sortedEvents.asFlow()
+                .flatMapConcat { consumeEventUseCase.execute(it) }
+                .onStart { isConsumingEvents.set(true) }
                 .flowOn(IO)
                 .onException { sendErrorEvent(it) }
-                .onCompletion { onConsumeEventCompleted(displayableEvents, nunchukEvents) }
+                .onCompletion {
+                    isConsumingEvents.set(false)
+                    onConsumeEventCompleted(nunchukEvents)
+                }
                 .collect { Timber.d("Consume event completed") }
         }
     }
 
-    private fun onConsumeEventCompleted(displayableEvents: List<TimelineEvent>, nunchukEvents: List<TimelineEvent>) {
-        updateState { copy(messages = displayableEvents.toMessages(currentId)) }
+    private fun onConsumeEventCompleted(nunchukEvents: List<TimelineEvent>) {
         getRoomWallet(nunchukEvents)
         val latestEventTs = room.roomSummary().latestPreviewableEventTs()
         if (latestEventTs != latestPreviewableEventTs) {
@@ -220,7 +225,8 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     fun handleLoadMore() {
-        if (timeline.hasMoreToLoad(BACKWARDS)) {
+        if (!isConsumingEvents.get() && timeline.hasMoreToLoad(BACKWARDS)) {
+            isConsumingEvents.set(true)
             timeline.paginate(BACKWARDS, PAGINATION)
         }
     }
@@ -278,7 +284,6 @@ class RoomDetailViewModel @Inject constructor(
                     .collect { onGetWallet(it.wallet) }
             }
         }
-
     }
 
     fun handleReceiveEvent() {
@@ -329,20 +334,9 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     override fun onCleared() {
-        if (room.isEncrypted()) {
-            prepareForEncryption()
-        }
         timeline.dispose()
         timeline.removeAllListeners()
         super.onCleared()
-    }
-
-    private fun prepareForEncryption() {
-        if (prepareToEncrypt) {
-            viewModelScope.launch(IO) {
-                runCatching { room.prepareToEncrypt() }.fold({ prepareToEncrypt = false }, { prepareToEncrypt = false })
-            }
-        }
     }
 
 }
