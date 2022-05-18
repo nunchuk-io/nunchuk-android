@@ -106,10 +106,15 @@ private fun TimelineEvent.isWalletEvent(type: WalletEventType) = try {
 }
 
 fun TimelineEvent.getNunchukInitEventId(): String? {
-    val map = root.getClearContent()?.toMap().orEmpty()
-    return gson.fromJson(gson.toJson(map["body"]), JsonObject::class.java)
-        ?.getAsJsonObject("io.nunchuk.relates_to")
-        ?.getAsJsonObject("init_event")
-        ?.get("event_id")
-        ?.asString
+    return try {
+        val map = root.getClearContent()?.toMap().orEmpty()
+        gson.fromJson(gson.toJson(map["body"]), JsonObject::class.java)
+            ?.getAsJsonObject("io.nunchuk.relates_to")
+            ?.getAsJsonObject("init_event")
+            ?.get("event_id")
+            ?.asString
+    } catch (t: Throwable) {
+        CrashlyticsReporter.recordException(t)
+        null
+    }
 }

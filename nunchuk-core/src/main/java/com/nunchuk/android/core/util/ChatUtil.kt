@@ -5,7 +5,7 @@ import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import timber.log.Timber
 
-const val PAGINATION = 50
+const val PAGINATION = 20
 
 open class TimelineListenerAdapter(val callback: (List<TimelineEvent>) -> Unit = {}) : Timeline.Listener {
 

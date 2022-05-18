@@ -16,8 +16,10 @@ class TransactionPagingSource @Inject constructor(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Transaction> {
         return try {
             val position = params.key ?: STARTING_PAGE
-            val data = transactions.subList(((position - 1) * PAGE_SIZE), (position * PAGE_SIZE).coerceAtMost(transactions.size))
-            val hasNextPage = ((position + 1) * PAGE_SIZE < transactions.size)
+            val fromIndex = (position - 1) * PAGE_SIZE
+            val toIndex = (position * PAGE_SIZE).coerceAtMost(transactions.size)
+            val data = transactions.subList(fromIndex, toIndex)
+            val hasNextPage = ((position * PAGE_SIZE) < transactions.size)
             LoadResult.Page(
                 data = data,
                 prevKey = null,

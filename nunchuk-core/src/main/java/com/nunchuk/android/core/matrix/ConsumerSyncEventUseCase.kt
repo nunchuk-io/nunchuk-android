@@ -2,6 +2,7 @@ package com.nunchuk.android.core.matrix
 
 import com.nunchuk.android.model.NunchukMatrixEvent
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -18,7 +19,11 @@ internal class ConsumerSyncEventUseCaseImpl @Inject constructor(
 
     override fun execute(events: List<NunchukMatrixEvent>) = flow<Unit> {
         events.forEach {
-            nativeSdk.consumeSyncEvent(it)
+            try {
+                nativeSdk.consumeSyncEvent(it)
+            } catch (t: Throwable) {
+                CrashlyticsReporter.recordException(t)
+            }
         }
     }.flowOn(Dispatchers.IO)
 

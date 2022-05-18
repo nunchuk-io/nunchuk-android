@@ -26,11 +26,11 @@ ext {
     gradleVersion = '7.0.4'
     googleServiceVersion = '4.3.4'
     kotlinGradlePluginVersion = '1.5.31'
-    kotlinStdlibVersion = '1.5.31'
+    kotlinStdlibVersion = '1.6.10'
     pagingVersion = "3.1.1"
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.1.35'
+    nativeSdkVersion = '1.1.36'
 
     // Matrix
     matrixSdkVersion = '1.3.9'
@@ -39,7 +39,7 @@ ext {
     MINOR_VERSION = 9
     PATCH_VERSION = 15
 
-    VERSION_CODE = 134
+    VERSION_CODE = 135
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
@@ -96,7 +96,7 @@ ext {
     ]
 
     playServices = [
-            firebaseBom           : "com.google.firebase:firebase-bom:28.4.1",
+            firebaseBom           : "com.google.firebase:firebase-bom:30.0.1",
             firebaseAnalytics     : "com.google.firebase:firebase-analytics-ktx",
             firebaseCrashlytics   : "com.google.firebase:firebase-crashlytics-ktx",
             firebaseNdkCrashlytics: "com.google.firebase:firebase-crashlytics-ndk",
