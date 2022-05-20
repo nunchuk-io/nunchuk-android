@@ -31,6 +31,26 @@ class RoomsViewModel @Inject constructor(
 
     override val initialState = RoomsState.empty()
 
+    val listener = object : Session.Listener {
+        override fun onNewInvitedRoom(session: Session, roomId: String) {
+            session.getRoom(roomId)?.let(::joinRoom)
+        }
+
+        override fun onGlobalError(session: Session, globalError: GlobalError) {
+            if (globalError is GlobalError.InvalidToken || globalError === GlobalError.ExpiredAccount) {
+                UnauthorizedEventBus.instance().publish()
+            }
+        }
+
+        override fun onSessionStarted(session: Session) {
+            Timber.d("onSessionStarted($session)")
+        }
+
+        override fun onSessionStopped(session: Session) {
+            Timber.d("onSessionStopped($session)")
+        }
+    }
+
     fun init() {
         SessionHolder.activeSession?.let(::subscribeEvent)
     }
@@ -40,7 +60,7 @@ class RoomsViewModel @Inject constructor(
     }
 
     private fun subscribeEvent(session: Session) {
-        addListener(session)
+        session.addListener(listener)
         listenRoomSummaries(session)
     }
 
@@ -69,28 +89,6 @@ class RoomsViewModel @Inject constructor(
                 leaveRoomUseCase.execute(it)
             }
         }
-    }
-
-    private fun addListener(session: Session) {
-        session.addListener(object : Session.Listener {
-            override fun onNewInvitedRoom(session: Session, roomId: String) {
-                session.getRoom(roomId)?.let(::joinRoom)
-            }
-
-            override fun onGlobalError(session: Session, globalError: GlobalError) {
-                if (globalError is GlobalError.InvalidToken || globalError === GlobalError.ExpiredAccount) {
-                    UnauthorizedEventBus.instance().publish()
-                }
-            }
-
-            override fun onSessionStarted(session: Session) {
-                Timber.d("onSessionStarted($session)")
-            }
-
-            override fun onSessionStopped(session: Session) {
-                Timber.d("onSessionStopped($session)")
-            }
-        })
     }
 
     private fun joinRoom(room: Room) {
@@ -160,6 +158,11 @@ class RoomsViewModel @Inject constructor(
             .doAfterTerminate { event(RoomsEvent.LoadingEvent(false)) }
             .subscribe(::retrieveMessages, CrashlyticsReporter::recordException)
             .addToDisposables()
+    }
+
+    override fun onCleared() {
+        SessionHolder.activeSession?.removeListener(listener)
+        super.onCleared()
     }
 
     private fun getRoom(roomSummary: RoomSummary) = SessionHolder.activeSession?.getRoom(roomSummary.roomId)

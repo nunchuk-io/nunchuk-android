@@ -233,7 +233,6 @@
                             android:textSize="@dimen/nc_text_size_16"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
-
                             tools:text="bc1qepuayeutds0ys0q82g3ucad7r0eqk0dpusmxwvlpn5wkjcmhv6sqyulylk" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
@@ -311,6 +310,7 @@
         android:paddingHorizontal="@dimen/nc_padding_16"
         android:paddingTop="@dimen/nc_padding_8"
         android:paddingBottom="@dimen/nc_padding_56"
+        android:scrollbars="vertical"
         app:layout_constraintBottom_toBottomOf="@+id/nav_view"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/scrollViewWalletTransactions"

@@ -30,13 +30,13 @@ class ContactsViewModel @Inject constructor(
 
     override val initialState = ContactsState.empty()
 
-    private lateinit var timeline: Timeline
+    private var timeline: Timeline? = null
 
     fun registerNewContactRequestEvent() {
         SessionHolder.activeSession?.getRoomSummaries(roomSummaryQueryParams {
             memberships = Membership.activeMemberships()
-        })?.find { roomSummary ->
-            roomSummary.hasTag(STATE_ROOM_SERVER_NOTICE)
+        })?.find {
+            it.hasTag(STATE_ROOM_SERVER_NOTICE)
         }?.let {
             SessionHolder.activeSession?.getRoom(it.roomId)?.let(::retrieveTimelineEvents)
         }
@@ -70,14 +70,23 @@ class ContactsViewModel @Inject constructor(
     }
 
     private fun retrieveTimelineEvents(room: Room) {
-        timeline = room.createTimeline(null, TimelineSettings(initialSize = PAGINATION, true))
-        timeline.removeAllListeners()
-        timeline.addListener(TimelineListenerAdapter(::handleTimelineEvents))
-        timeline.start()
+        timeline = room.createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
+            removeAllListeners()
+            addListener(TimelineListenerAdapter(::handleTimelineEvents))
+            start()
+        }
     }
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
         events.findLast(TimelineEvent::isContactUpdateEvent)?.let { retrieveContacts() }
+    }
+
+    override fun onCleared() {
+        timeline?.apply {
+            dispose()
+            removeAllListeners()
+        }
+        super.onCleared()
     }
 
 }

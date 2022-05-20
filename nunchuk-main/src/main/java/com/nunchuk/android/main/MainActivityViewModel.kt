@@ -9,31 +9,15 @@ import com.nunchuk.android.core.domain.GetDisplayUnitSettingUseCase
 import com.nunchuk.android.core.domain.GetPriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.ScheduleGetPriceConvertBTCUseCase
 import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
-import com.nunchuk.android.core.matrix.BackupFileUseCase
-import com.nunchuk.android.core.matrix.ConsumeSyncFileUseCase
-import com.nunchuk.android.core.matrix.ConsumerSyncEventUseCase
-import com.nunchuk.android.core.matrix.DownloadFileUseCase
-import com.nunchuk.android.core.matrix.RegisterDownloadBackUpFileUseCase
-import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.matrix.UploadFileUseCase
+import com.nunchuk.android.core.matrix.*
 import com.nunchuk.android.core.persistence.NCSharePreferences
-import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.retry.DEFAULT_RETRY_POLICY
 import com.nunchuk.android.core.retry.RetryPolicy
 import com.nunchuk.android.core.retry.SYNC_RETRY_POLICY
 import com.nunchuk.android.core.retry.retryDefault
-import com.nunchuk.android.core.util.AppUpdateStateHolder
-import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
-import com.nunchuk.android.core.util.BTC_USD_EXCHANGE_RATE
-import com.nunchuk.android.core.util.PAGINATION
-import com.nunchuk.android.core.util.TimelineListenerAdapter
-import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.di.MainAppEvent
-import com.nunchuk.android.main.di.MainAppEvent.CrossSigningUnverified
-import com.nunchuk.android.main.di.MainAppEvent.DownloadFileSyncSucceed
-import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
-import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
-import com.nunchuk.android.main.di.MainAppEvent.UpdateAppRecommendEvent
+import com.nunchuk.android.main.di.MainAppEvent.*
 import com.nunchuk.android.messages.model.RoomNotFoundException
 import com.nunchuk.android.messages.model.SessionLostException
 import com.nunchuk.android.messages.util.isLocalEvent
@@ -86,7 +70,7 @@ internal class MainActivityViewModel @Inject constructor(
 
     override val initialState = Unit
 
-    private lateinit var timeline: Timeline
+    private var timeline: Timeline? = null
 
     init {
         initSyncEventExecutor()
@@ -246,10 +230,11 @@ internal class MainActivityViewModel @Inject constructor(
 
     private fun Room.retrieveTimelineEvents() {
         Timber.tag(TAG).v("retrieveTimelineEvents")
-        timeline = createTimeline(null, TimelineSettings(initialSize = PAGINATION, true))
-        timeline.removeAllListeners()
-        timeline.addListener(TimelineListenerAdapter(::handleTimelineEvents))
-        timeline.start()
+        timeline = createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
+            removeAllListeners()
+            addListener(TimelineListenerAdapter(::handleTimelineEvents))
+            start()
+        }
     }
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
@@ -322,6 +307,14 @@ internal class MainActivityViewModel @Inject constructor(
 
     fun onTokenRetrieved(token: String) {
         notificationManager.enqueueRegisterPusherWithFcmKey(token)
+    }
+
+    override fun onCleared() {
+        timeline?.apply {
+            dispose()
+            removeAllListeners()
+        }
+        super.onCleared()
     }
 
     companion object {

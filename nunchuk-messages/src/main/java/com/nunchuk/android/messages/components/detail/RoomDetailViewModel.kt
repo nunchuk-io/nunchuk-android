@@ -7,10 +7,7 @@ import com.nunchuk.android.core.domain.GetDeveloperSettingUseCase
 import com.nunchuk.android.core.domain.HideBannerNewChatUseCase
 import com.nunchuk.android.core.domain.SendErrorEventUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.util.PAGINATION
-import com.nunchuk.android.core.util.TimelineListenerAdapter
-import com.nunchuk.android.core.util.pureBTC
-import com.nunchuk.android.core.util.toMatrixContent
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.usecase.message.CheckShowBannerNewChatUseCase
 import com.nunchuk.android.messages.util.*
@@ -49,11 +46,9 @@ class RoomDetailViewModel @Inject constructor(
 
     private var debugMode: Boolean = false
 
-    private var prepareToEncrypt: Boolean = true
-
     private lateinit var room: Room
 
-    private lateinit var timeline: Timeline
+    private var timeline: Timeline? = null
 
     private val currentName = accountManager.getAccount().name
 
@@ -144,10 +139,11 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun retrieveTimelineEvents() {
         updateState { copy(roomInfo = room.getRoomInfo(currentName)) }
-        timeline = room.createTimeline(null, TimelineSettings(initialSize = PAGINATION, true))
-        timeline.removeListener(timelineListenerAdapter)
-        timeline.addListener(timelineListenerAdapter)
-        timeline.start()
+        timeline = room.createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
+            removeListener(timelineListenerAdapter)
+            addListener(timelineListenerAdapter)
+            start()
+        }
     }
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
@@ -225,9 +221,9 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     fun handleLoadMore() {
-        if (!isConsumingEvents.get() && timeline.hasMoreToLoad(BACKWARDS)) {
+        if (!isConsumingEvents.get() && timeline?.hasMoreToLoad(BACKWARDS).orFalse()) {
             isConsumingEvents.set(true)
-            timeline.paginate(BACKWARDS, PAGINATION)
+            timeline?.paginate(BACKWARDS, PAGINATION)
         }
     }
 
@@ -263,12 +259,6 @@ class RoomDetailViewModel @Inject constructor(
     fun denyWallet() {
         // FIXME
         cancelWallet()
-    }
-
-    fun cleanUp() {
-        timeline.removeListener(timelineListenerAdapter)
-        timelineListenerAdapter = TimelineListenerAdapter {}
-        SessionHolder.currentRoom = null
     }
 
     fun handleAddEvent() {
@@ -334,8 +324,12 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     override fun onCleared() {
-        timeline.dispose()
-        timeline.removeAllListeners()
+        timeline?.apply {
+            dispose()
+            removeAllListeners()
+            timelineListenerAdapter = TimelineListenerAdapter {}
+        }
+        SessionHolder.currentRoom = null
         super.onCleared()
     }
 

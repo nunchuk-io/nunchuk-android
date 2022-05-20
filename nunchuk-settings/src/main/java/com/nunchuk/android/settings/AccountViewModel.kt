@@ -123,4 +123,11 @@ internal class AccountViewModel @Inject constructor(
             }
         )
     }
+
+    override fun onCleared() {
+        super.onCleared()
+        SyncFileEventHelper.syncFileExecutor = object : SyncFileCallBack {
+            override fun onSync(finished: Boolean, progress: Int) {}
+        }
+    }
 }

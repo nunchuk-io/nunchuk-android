@@ -9,13 +9,9 @@ import com.nunchuk.android.core.matrix.SyncStateHolder
 import com.nunchuk.android.core.matrix.SyncStateMatrixUseCase
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.util.orFalse
-import com.nunchuk.android.messages.components.list.RoomsEvent
-import com.nunchuk.android.messages.usecase.message.AddTagRoomUseCase
 import com.nunchuk.android.messages.usecase.message.CreateRoomWithTagUseCase
-import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.messages.util.STATE_NUNCHUK_SYNC
 import com.nunchuk.android.utils.onException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.collect
@@ -23,7 +19,6 @@ import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
-import org.matrix.android.sdk.api.session.room.Room
 import timber.log.Timber
 import javax.inject.Inject
 

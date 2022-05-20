@@ -31,7 +31,7 @@ internal class ChatFragment : BaseFragment<FragmentChatBinding>() {
         val pagers = binding.pagers
         val tabs = binding.tabs
 
-        pagerAdapter = ChatFragmentPagerAdapter(requireContext(), fragmentManager = parentFragmentManager)
+        pagerAdapter = ChatFragmentPagerAdapter(requireContext(), fragmentManager = childFragmentManager)
         binding.pagers.offscreenPageLimit = ChatFragmentTab.values().size
         ChatFragmentTab.values().forEach {
             tabs.addTab(tabs.newTab().setText(it.name))

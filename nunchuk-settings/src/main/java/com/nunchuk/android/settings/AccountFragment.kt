@@ -17,7 +17,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.entities.SAT
@@ -30,7 +30,7 @@ import java.io.ByteArrayOutputStream
 
 internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
 
-    private val viewModel: AccountViewModel by viewModels { factory }
+    private val viewModel: AccountViewModel by activityViewModels { factory }
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -76,7 +76,7 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
         binding.signUp.isVisible = isGuestMode
         binding.accountSettings.isVisible = !isGuestMode
 
-        binding.unit.text = when(CURRENT_DISPLAY_UNIT_TYPE) {
+        binding.unit.text = when (CURRENT_DISPLAY_UNIT_TYPE) {
             SAT -> getString(R.string.nc_settings_unit, getString(R.string.nc_currency_sat))
             else -> getString(R.string.nc_settings_unit, getString(R.string.nc_currency_btc))
         }

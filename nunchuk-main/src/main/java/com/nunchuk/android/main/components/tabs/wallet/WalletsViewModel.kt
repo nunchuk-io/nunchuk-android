@@ -8,8 +8,12 @@ import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 internal class WalletsViewModel @Inject constructor(
@@ -17,6 +21,8 @@ internal class WalletsViewModel @Inject constructor(
     private val getWalletsUseCase: GetWalletsUseCase,
     private val getAppSettingUseCase: GetAppSettingUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
+
+    private var isRetrievingData = AtomicBoolean(false)
 
     override val initialState = WalletsState()
 
@@ -35,6 +41,8 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     fun retrieveData() {
+        if (isRetrievingData.get()) return
+        isRetrievingData.set(true)
         viewModelScope.launch {
             getCompoundSignersUseCase.execute()
                 .zip(getWalletsUseCase.execute()) { p, wallets ->
@@ -47,6 +55,7 @@ internal class WalletsViewModel @Inject constructor(
                 .flowOn(Dispatchers.Main)
                 .onCompletion {
                     event(Loading(false))
+                    isRetrievingData.set(false)
                 }
                 .collect { updateState { copy(masterSigners = it.first, signers = it.second, wallets = it.third) } }
         }
