@@ -109,7 +109,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             is ViewWalletConfigEvent -> navigator.openSharedWalletConfigScreen(this, event.roomWalletData)
             is ReceiveBTCEvent -> navigator.openReceiveTransactionScreen(this, event.walletId)
             HasUpdatedEvent -> scrollToLastItem()
-            GetRoomWalletSuccessEvent -> args.roomAction?.let { handleRoomAction(it) }
+            GetRoomWalletSuccessEvent -> args.roomAction?.let(::handleRoomAction)
         }
     }
 
@@ -128,7 +128,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     private fun setupViews() {
         selectMessageActionView = binding.viewStubSelectMessageAction.inflate()
         selectMessageActionView?.findViewById<ImageView>(R.id.btnCopy)?.setOnClickListener {
-            copyMessageText(adapter?.getSelectedMessage()?.joinToString("\n") { it.content }.orEmpty())
+            copyMessageText(adapter?.getSelectedMessage()?.joinToString("\n", transform = MatrixMessage::content).orEmpty())
             selectMode = false
         }
         selectMode = false
@@ -149,15 +149,11 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             viewWalletConfig = viewModel::viewConfig,
             finalizeWallet = viewModel::finalizeWallet,
             viewTransaction = ::openTransactionDetails,
-            dismissBannerNewChatListener = { viewModel.hideBannerNewChat() },
-            createSharedWalletListener = { sendBTCAction() },
-            senderLongPressListener = { message, position ->
-                showSelectMessageBottomSheet(message, position)
-            },
-            countCheckedChangeListener = {
-                binding.tvSelectedMessageCount.text = getString(R.string.nc_text_count_selected_message, it)
-            },
-            onMessageRead = { viewModel.markMessageRead(it) }
+            dismissBannerNewChatListener = viewModel::hideBannerNewChat,
+            createSharedWalletListener = ::sendBTCAction,
+            senderLongPressListener = ::showSelectMessageBottomSheet,
+            countCheckedChangeListener = { binding.tvSelectedMessageCount.text = getString(R.string.nc_text_count_selected_message, it) },
+            onMessageRead = viewModel::markMessageRead
         )
         binding.recyclerView.adapter = adapter
         val layoutManager = LinearLayoutManager(this)

@@ -62,6 +62,8 @@ class RoomDetailViewModel @Inject constructor(
 
     private var isConsumingEvents = AtomicBoolean(false)
 
+    private val consumedEventIds = HashSet<String>()
+
     override val initialState = RoomDetailState.empty()
 
     fun initialize(roomId: String) {
@@ -147,8 +149,9 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
+        Timber.tag(TAG).d("handleTimelineEvents:${events.size}")
         val displayableEvents = events.filter(TimelineEvent::isDisplayable).filterNot { !debugMode && it.isNunchukErrorEvent() }.groupEvents(loadMore = ::handleLoadMore)
-        val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent).filterNot(TimelineEvent::isNunchukErrorEvent)
+        val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent).filterNot(TimelineEvent::isNunchukErrorEvent).sortedBy(TimelineEvent::time)
         viewModelScope.launch {
             val consumableEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
@@ -165,6 +168,7 @@ class RoomDetailViewModel @Inject constructor(
         viewModelScope.launch {
             updateState { copy(messages = displayableEvents.toMessages(currentId)) }
             sortedEvents.asFlow()
+                .filterNot { it.eventId in consumedEventIds }
                 .flatMapConcat { consumeEventUseCase.execute(it) }
                 .onStart { isConsumingEvents.set(true) }
                 .flowOn(IO)
@@ -172,8 +176,10 @@ class RoomDetailViewModel @Inject constructor(
                 .onCompletion {
                     isConsumingEvents.set(false)
                     onConsumeEventCompleted(nunchukEvents)
+                    consumedEventIds.addAll(sortedEvents.map(NunchukMatrixEvent::eventId))
+                    Timber.tag(TAG).d("onConsumeEventCompleted:${sortedEvents.size}")
                 }
-                .collect { Timber.d("Consume event completed") }
+                .collect { Timber.tag(TAG).d("Consume event completed") }
         }
     }
 
@@ -330,8 +336,12 @@ class RoomDetailViewModel @Inject constructor(
             timelineListenerAdapter = TimelineListenerAdapter {}
         }
         SessionHolder.currentRoom = null
+        consumedEventIds.clear()
         super.onCleared()
     }
 
-}
+    companion object {
+        private const val TAG = "RoomDetailViewModel"
+    }
 
+}
