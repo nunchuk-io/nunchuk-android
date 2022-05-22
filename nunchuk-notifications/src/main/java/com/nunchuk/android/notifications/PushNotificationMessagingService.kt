@@ -33,6 +33,9 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
     @Inject
     lateinit var intentProvider: PushNotificationIntentProvider
 
+    @Inject
+    lateinit var matrix: Matrix
+
     override fun androidInjector(): AndroidInjector<Any> = androidInjector
 
     private val mUIHandler by lazy {
@@ -95,10 +98,10 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
 
         val session = getActiveSession() ?: return defaultNotificationData()
         val room = session.getRoom(roomId) ?: return defaultNotificationData()
-        val event = room.getTimeLineEvent(eventId)
+        val event = room.getTimelineEvent(eventId)
         if (event == null) {
             mUIHandler.postDelayed({
-                room.getTimeLineEvent(eventId)?.toPushNotificationData(roomId)?.let(::showNotification)
+                room.getTimelineEvent(eventId)?.toPushNotificationData(roomId)?.let(::showNotification)
             }, RETRY_DELAY)
         }
         return event?.toPushNotificationData(roomId)
@@ -159,7 +162,7 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
         if (null != eventId && null != roomId) {
             try {
                 val room = session.getRoom(roomId) ?: return false
-                return room.getTimeLineEvent(eventId) != null
+                return room.getTimelineEvent(eventId) != null
             } catch (e: Exception) {
                 CrashlyticsReporter.recordException(e)
             }

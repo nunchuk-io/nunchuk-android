@@ -33,13 +33,13 @@ ext {
     nativeSdkVersion = '1.1.36'
 
     // Matrix
-    matrixSdkVersion = '1.3.9'
+    matrixSdkVersion = '1.4.4'
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
     PATCH_VERSION = 15
 
-    VERSION_CODE = 137
+    VERSION_CODE = 138
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
@@ -161,7 +161,6 @@ ext {
     workMangerDeps = [
             workManger   : "androidx.work:work-runtime:${workMangerVersion}",
             workMangerKtx: "androidx.work:work-runtime-ktx:${workMangerVersion}",
-            workRxJava2  : "androidx.work:work-rxjava2:${workMangerVersion}",
             testing      : "androidx.work:work-testing:${workMangerVersion}"
     ]
 
@@ -178,7 +177,6 @@ ext {
             lifeCycleProcess        : "androidx.lifecycle:lifecycle-process:${lifecycleVersion}",
             lifecycleLivedata       : "androidx.lifecycle:lifecycle-livedata:${lifecycleVersion}",
             lifecycleLivedataKtx    : "androidx.lifecycle:lifecycle-livedata-ktx:${lifecycleVersion}",
-            lifecycleReactiveStreams: "androidx.lifecycle:lifecycle-reactivestreams:${lifecycleVersion}",
             lifecycleViewModelKtx   : "androidx.lifecycle:lifecycle-viewmodel-ktx:${lifecycleVersion}"
     ]
 

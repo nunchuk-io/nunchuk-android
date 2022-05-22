@@ -24,6 +24,7 @@ internal class NunchukTransactionNotificationHolder(
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(roomWallet: RoomWallet?, transactions: List<TransactionExtended>, model: NunchukTransactionMessage) {
+        binding.root.minLines = 1
         val context = itemView.context
         binding.notification.apply {
             backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_whisper_color)
@@ -37,6 +38,7 @@ internal class NunchukTransactionNotificationHolder(
                 binding.notification.text = context.getString(R.string.nc_message_transaction_rejected)
             }
             RECEIVE -> {
+                binding.root.minLines = 2
                 bindReceiveTransaction(roomWallet = roomWallet, transactions = transactions, model = model)
             }
             CANCEL -> {

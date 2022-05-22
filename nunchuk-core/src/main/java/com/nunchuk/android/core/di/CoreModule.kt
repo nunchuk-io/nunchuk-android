@@ -7,11 +7,9 @@ import com.nunchuk.android.core.loader.ImageLoader
 import com.nunchuk.android.core.loader.ImageLoaderImpl
 import com.nunchuk.android.core.matrix.MatrixInterceptor
 import com.nunchuk.android.core.matrix.MatrixInterceptorImpl
-import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.utils.DeviceManager
 import dagger.Binds
 import dagger.Module
-import dagger.Provides
 
 @Module
 internal interface CoreModule {
@@ -27,10 +25,5 @@ internal interface CoreModule {
 
     @Binds
     fun bindImageLoader(interceptor: ImageLoaderImpl): ImageLoader
-
-    companion object {
-        @Provides
-        fun provideMatrixSession() = SessionHolder.activeSession!!
-    }
 
 }

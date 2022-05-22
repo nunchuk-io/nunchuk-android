@@ -8,19 +8,19 @@ import androidx.work.Configuration
 import com.nunchuk.android.BuildConfig
 import com.nunchuk.android.app.di.BootstrapInjectors
 import com.nunchuk.android.core.base.ForegroundAppBackgroundListener
-import com.nunchuk.android.core.matrix.*
+import com.nunchuk.android.core.matrix.MatrixInitializer
 import com.nunchuk.android.core.util.AppEvenBus
 import com.nunchuk.android.core.util.AppEvent
 import com.nunchuk.android.util.FileHelper
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasAndroidInjector
-import org.matrix.android.sdk.api.MatrixConfiguration
+import org.matrix.android.sdk.api.Matrix
 import timber.log.Timber
 import java.util.concurrent.Executors
 import javax.inject.Inject
 
-internal class NunchukApplication : Application(), HasAndroidInjector, MatrixConfiguration.Provider, Configuration.Provider {
+internal class NunchukApplication : Application(), HasAndroidInjector, Configuration.Provider {
 
     @Inject
     lateinit var androidInjector: DispatchingAndroidInjector<Any>
@@ -29,10 +29,14 @@ internal class NunchukApplication : Application(), HasAndroidInjector, MatrixCon
     lateinit var fileHelper: FileHelper
 
     @Inject
-    lateinit var matrix: MatrixInitializer
+    lateinit var initializer: MatrixInitializer
+
+    @Inject
+    lateinit var matrix: Matrix
 
     @Inject
     override fun androidInjector(): AndroidInjector<Any> = androidInjector
+
     private var foregroundAppBackgroundListener: ForegroundAppBackgroundListener? = null
 
     override fun onCreate() {
@@ -42,7 +46,7 @@ internal class NunchukApplication : Application(), HasAndroidInjector, MatrixCon
         }
         BootstrapInjectors.inject(this)
         fileHelper.getOrCreateNunchukRootDir()
-        matrix.initialize()
+        initializer.initialize()
         registerAppForegroundListener()
     }
 
@@ -72,17 +76,14 @@ internal class NunchukApplication : Application(), HasAndroidInjector, MatrixCon
         super.attachBaseContext(base)
     }
 
-    override fun providesMatrixConfiguration() = MatrixConfiguration(
-        roomDisplayNameFallbackProvider = RoomDisplayNameFallbackProviderImpl()
-    )
-
     override fun getWorkManagerConfiguration() = Configuration.Builder()
+        .setWorkerFactory(matrix.workerFactory())
         .setExecutor(Executors.newCachedThreadPool())
         .build()
 
     override fun onTerminate() {
         super.onTerminate()
-        matrix.terminate()
+        initializer.terminate()
         removeAppForegroundListener()
     }
 }

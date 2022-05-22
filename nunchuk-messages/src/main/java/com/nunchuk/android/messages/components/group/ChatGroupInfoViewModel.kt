@@ -88,7 +88,7 @@ class ChatGroupInfoViewModel @Inject constructor(
     fun handleLeaveGroup() {
         viewModelScope.launch {
             try {
-                room.leave()
+                SessionHolder.activeSession?.leaveRoom(room.roomId)
                 event(LeaveRoomSuccess)
             } catch (e: Throwable) {
                 CrashlyticsReporter.recordException(e)

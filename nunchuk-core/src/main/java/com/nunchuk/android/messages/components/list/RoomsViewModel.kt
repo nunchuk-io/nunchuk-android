@@ -12,6 +12,7 @@ import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
+import com.nunchuk.android.utils.trySafe
 import io.reactivex.Completable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -79,24 +80,20 @@ class RoomsViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
-    private fun leaveDraftSyncRoom(it: List<RoomSummary>) {
+    private fun leaveDraftSyncRoom(summaries: List<RoomSummary>) {
         // delete to avoid misunderstandings
-        val draftSyncRooms = it.filter { roomSummary ->
-            roomSummary.displayName == TAG_SYNC && roomSummary.tags.isEmpty()
+        val draftSyncRooms = summaries.filter {
+            it.displayName == TAG_SYNC && it.tags.isEmpty()
         }
-        draftSyncRooms.forEach { roomSummary ->
-            getRoom(roomSummary)?.let {
-                leaveRoomUseCase.execute(it)
-            }
+        draftSyncRooms.forEach {
+            getRoom(it)?.let(leaveRoomUseCase::execute)
         }
     }
 
     private fun joinRoom(room: Room) {
         viewModelScope.launch {
-            try {
-                room.join()
-            } catch (e: Throwable) {
-                CrashlyticsReporter.recordException(e)
+            trySafe {
+                SessionHolder.activeSession?.joinRoom(room.roomId)
             }
         }
     }
