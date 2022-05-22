@@ -136,7 +136,17 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
                     }
                 )
             }
+            is NetworkSettingEvent.LoadingEvent -> showLoading()
+            NetworkSettingEvent.SignOutSuccessEvent -> {
+                hideLoading()
+                moveToSignInScreen()
+            }
         }
+    }
+
+    private fun moveToSignInScreen() {
+        finish()
+        navigator.openSignInScreen(this)
     }
 
     private fun handleUpdateAppSettingsSuccess() {
@@ -146,8 +156,7 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
             btnYes = getString(R.string.nc_text_restart),
             btnNo = getString(R.string.nc_text_discard),
             onYesClick = {
-                finish()
-                navigator.restartApp(this)
+                viewModel.signOut()
             }
         )
     }
