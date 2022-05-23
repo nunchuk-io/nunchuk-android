@@ -8,6 +8,8 @@ interface MessageNavigator {
 
     fun openRoomDetailActivity(activityContext: Context, roomId: String, roomAction: RoomAction? = null)
 
+    fun returnRoomDetailScreen()
+
     fun openCreateRoomScreen(fragmentManager: FragmentManager)
 
     fun openChatInfoScreen(activityContext: Context, roomId: String)

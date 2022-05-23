@@ -293,7 +293,7 @@ internal class MainActivityViewModel @Inject constructor(
     private fun hasMultipleDevices(allDevices: List<DeviceInfo>, currentDevice: CryptoDeviceInfo): Boolean {
         Timber.tag(TAG).d("currentDevice::$currentDevice")
         Timber.tag(TAG).d("allDevices::$allDevices")
-        return (allDevices.map(DeviceInfo::deviceId).toSet() - currentDevice.deviceId).isNotEmpty()
+        return (allDevices.map(DeviceInfo::deviceId).toSet() + currentDevice.deviceId).size > 1
     }
 
     private fun getDisplayUnitSetting() {

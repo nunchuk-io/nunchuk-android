@@ -31,4 +31,14 @@ class ActivityManager {
         }
     }
 
+    fun <T : Activity> popUntil(clazz: Class<T>) {
+        if (activityStack.isNotEmpty()) {
+            while (!(activityStack.lastElement() instanceOf clazz)) {
+                activityStack.pop().finish()
+            }
+        }
+    }
+
 }
+
+infix fun <T : Activity> Activity?.instanceOf(clazz: Class<T>) = this != null && this.javaClass == clazz
