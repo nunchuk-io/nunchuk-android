@@ -123,7 +123,7 @@ class RoomDetailViewModel @Inject constructor(
             override fun execute(roomId: String, type: String, content: String, ignoreError: Boolean): String {
                 if (SessionHolder.hasActiveSession()) {
                     SessionHolder.activeSession?.getRoom(roomId)?.run {
-                        sendEvent(type, content.toMatrixContent())
+                        trySafe { sendEvent(type, content.toMatrixContent()) }
                     }
                 }
                 return ""
@@ -151,11 +151,11 @@ class RoomDetailViewModel @Inject constructor(
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
         Timber.tag(TAG).d("handleTimelineEvents:${events.size}")
         val displayableEvents = events.filter(TimelineEvent::isDisplayable).filterNot { !debugMode && it.isNunchukErrorEvent() }.groupEvents(loadMore = ::handleLoadMore)
-        val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent).filterNot(TimelineEvent::isNunchukErrorEvent).sortedBy(TimelineEvent::time)
+        val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent).filterNot(TimelineEvent::isNunchukErrorEvent).sortedByDescending(TimelineEvent::time)
         viewModelScope.launch {
             val consumableEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
-                .sortedBy(NunchukMatrixEvent::time)
+                .sortedByDescending(NunchukMatrixEvent::time)
             consumeEvents(consumableEvents, displayableEvents, nunchukEvents)
         }
     }

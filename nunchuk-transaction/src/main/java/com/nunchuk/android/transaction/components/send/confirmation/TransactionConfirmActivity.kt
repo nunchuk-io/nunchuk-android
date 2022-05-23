@@ -83,14 +83,13 @@ class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBindin
             is UpdateChangeAddress -> bindChangAddress(event.address, event.amount)
             LoadingEvent -> showLoading()
             is InitRoomTransactionError -> showCreateTransactionError(event.message)
-            is InitRoomTransactionSuccess -> returnActiveRoom(event.roomId)
+            is InitRoomTransactionSuccess -> returnActiveRoom()
         }
     }
 
-    private fun returnActiveRoom(roomId: String) {
+    private fun returnActiveRoom() {
         hideLoading()
-        ActivityManager.instance.popUntilRoot()
-        navigator.openRoomDetailActivity(this, roomId)
+        navigator.returnRoomDetailScreen()
     }
 
     private fun bindChangAddress(changeAddress: String, amount: Amount) {

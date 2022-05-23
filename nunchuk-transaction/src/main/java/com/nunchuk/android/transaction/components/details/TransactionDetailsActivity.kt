@@ -10,7 +10,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.*
@@ -64,6 +63,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
 
     override fun onResume() {
         super.onResume()
+        showLoading()
         viewModel.getTransactionInfo()
     }
 
@@ -117,6 +117,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
 
         bindTransaction(state.transaction)
         bindSigners(state.transaction.signers, state.signers)
+        hideLoading()
     }
 
     private fun bindSigners(signerMap: Map<String, Boolean>, signers: List<SignerModel>) {
@@ -289,7 +290,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         hideLoading()
         NCToastMessage(this).show(getString(R.string.nc_transaction_signed_successful))
         if (roomId.isNotEmpty()) {
-            returnActiveRoom(roomId)
+            returnActiveRoom()
         }
     }
 
@@ -299,7 +300,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         if (roomId.isEmpty()) {
             finish()
         } else {
-            returnActiveRoom(roomId)
+            returnActiveRoom()
         }
     }
 
@@ -323,9 +324,8 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         NCToastMessage(this).showError(message)
     }
 
-    private fun returnActiveRoom(roomId: String) {
-        ActivityManager.instance.popUntilRoot()
-        navigator.openRoomDetailActivity(this, roomId)
+    private fun returnActiveRoom() {
+        finish()
     }
 
     companion object {
