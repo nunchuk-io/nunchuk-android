@@ -110,7 +110,7 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
             is BackupWalletDescriptorEvent -> shareDescriptor(event.descriptor)
             is Loading -> showOrHideLoading(event.loading)
             DeleteWalletSuccess -> walletDeleted()
-            ImportPSBTSuccess -> showPSBTImported()
+            ImportPSBTSuccess -> onPSBTImported()
             is PaginationTransactions -> startPagination(event.hasTransactions)
         }
     }
@@ -125,7 +125,8 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
         }
     }
 
-    private fun showPSBTImported() {
+    private fun onPSBTImported() {
+        viewModel.syncData()
         hideLoading()
         NCToastMessage(this).showMessage(getString(R.string.nc_wallet_psbt_imported))
     }
