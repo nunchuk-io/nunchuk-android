@@ -7,6 +7,7 @@ import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.model.Amount
@@ -113,7 +114,9 @@ class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBindin
         navigator.openTransactionDetailsScreen(
             activityContext = this,
             walletId = args.walletId,
-            txId = txId
+            txId = txId,
+            initEventId = "",
+            SessionHolder.getActiveRoomId()
         )
         NCToastMessage(this).showMessage("Transaction created::$txId")
     }

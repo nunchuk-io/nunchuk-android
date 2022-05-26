@@ -58,7 +58,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
             finish()
             return
         }
-        viewModel.init(walletId = args.walletId, txId = args.txId, initEventId = args.initEventId)
+        viewModel.init(walletId = args.walletId, txId = args.txId, initEventId = args.initEventId, roomId = args.roomId)
     }
 
     override fun onResume() {
@@ -116,7 +116,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         binding.transactionDetailsContainer.isVisible = state.viewMore
 
         bindTransaction(state.transaction)
-        bindSigners(state.transaction.signers, state.signers)
+        bindSigners(state.transaction.signers, state.signers.sortedByDescending(SignerModel::localKey))
         hideLoading()
     }
 
@@ -136,10 +136,13 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
             transaction.outputs.firstOrNull()
         }
         binding.sendingTo.text = output?.first.orEmpty().truncatedAddress()
+        binding.signatureStatus.isVisible = !transaction.status.hadBroadcast()
         val pendingSigners = transaction.getPendingSignatures()
         if (pendingSigners > 0) {
-            binding.signatureStatus.text = getString(R.string.nc_transaction_pending_signature, pendingSigners)
+            binding.signatureStatus.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_pending_signatures, 0, 0, 0)
+            binding.signatureStatus.text = resources.getQuantityString(R.plurals.nc_transaction_pending_signature, pendingSigners, pendingSigners)
         } else {
+            binding.signatureStatus.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_check_circle, 0, 0, 0)
             binding.signatureStatus.text = getString(R.string.nc_transaction_enough_signers)
         }
         binding.confirmTime.text = transaction.getFormatDate()
@@ -330,9 +333,9 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
 
     companion object {
 
-        fun start(activityContext: Activity, walletId: String, txId: String, initEventId: String = "") {
+        fun start(activityContext: Activity, walletId: String, txId: String, initEventId: String = "", roomId: String = "") {
             activityContext.startActivity(
-                TransactionDetailsArgs(walletId = walletId, txId = txId, initEventId = initEventId).buildIntent(activityContext)
+                TransactionDetailsArgs(walletId = walletId, txId = txId, initEventId = initEventId, roomId = roomId).buildIntent(activityContext)
             )
         }
 

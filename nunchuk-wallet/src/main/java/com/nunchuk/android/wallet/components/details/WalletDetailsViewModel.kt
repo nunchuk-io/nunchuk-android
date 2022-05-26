@@ -47,6 +47,9 @@ internal class WalletDetailsViewModel @Inject constructor(
         this.walletId = walletId
     }
 
+    // well, don't do this, you know why
+    fun getRoomWallet() = getState().walletExtended.roomWallet
+
     fun syncData() {
         getWalletDetails()
     }

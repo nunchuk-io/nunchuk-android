@@ -47,10 +47,12 @@
                 android:id="@+id/transactionInfoContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#F5F5F5"
-                android:padding="@dimen/nc_padding_16"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent">
+                android:background="@color/nc_grey_light"
+                android:paddingHorizontal="@dimen/nc_padding_16"
+                android:paddingTop="@dimen/nc_padding_24"
+                android:paddingBottom="@dimen/nc_padding_16"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
                 <com.nunchuk.android.widget.NCFontTextView
                     android:id="@+id/status"
@@ -71,7 +73,7 @@
                     style="@style/NCText.Body"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/nc_padding_4"
+                    android:layout_marginTop="@dimen/nc_padding_12"
                     android:text="@string/nc_transaction_sending_to"
                     android:textColor="@color/nc_black_color"
                     app:layout_constraintStart_toStartOf="parent"
@@ -83,7 +85,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/nc_padding_4"
-                    android:layout_marginTop="@dimen/nc_padding_4"
+                    android:layout_marginTop="@dimen/nc_padding_12"
                     android:ellipsize="middle"
                     android:singleLine="true"
                     android:textColor="@color/nc_black_color"
@@ -98,7 +100,6 @@
                     style="@style/NCText.Heading"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/nc_padding_4"
                     android:layout_marginEnd="@dimen/nc_padding_16"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/sendingTo"
@@ -410,29 +411,42 @@
                 <com.nunchuk.android.widget.NCFontTextView
                     android:id="@+id/signatureStatus"
                     android:layout_width="0dp"
+                    style="@style/NCText.Title.Small"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/nc_padding_4"
                     android:drawableStart="@drawable/ic_check_circle"
                     android:drawablePadding="@dimen/nc_padding_2"
                     android:ellipsize="end"
                     android:gravity="center_vertical"
+                    android:textColor="@color/nc_grey_dark_color"
                     android:maxLines="2"
                     android:paddingVertical="@dimen/nc_padding_8"
                     android:text="@string/nc_transaction_enough_signers"
-                    android:textColor="@color/nc_primary_dark_color"
-                    android:textSize="@dimen/nc_text_size_14"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/memberSigners"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <LinearLayout
                     android:id="@+id/signerListView"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_marginTop="@dimen/nc_padding_16"
                     android:orientation="vertical"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/memberSigners" />
+
+                <LinearLayout
+                    android:id="@+id/signerListView2"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/memberSigners">
+
+                    <include layout="@layout/item_transaction_signer" />
+
+                    <include layout="@layout/item_transaction_signer" />
+                </LinearLayout>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>

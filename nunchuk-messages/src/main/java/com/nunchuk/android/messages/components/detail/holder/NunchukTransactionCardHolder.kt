@@ -40,7 +40,7 @@ internal class NunchukTransactionCardHolder(
         binding.address.text = getHtmlString(resId, transaction.outputs.first().first)
         val pendingSigners = transaction.getPendingSignatures()
         if (pendingSigners > 0) {
-            binding.signatureStatus.text = context.getString(R.string.nc_message_transaction_pending_signature, pendingSigners)
+            binding.signatureStatus.text = context.resources.getQuantityString(R.plurals.nc_transaction_pending_signature, pendingSigners, pendingSigners)
         } else {
             binding.signatureStatus.text = context.getString(R.string.nc_message_transaction_enough_signature)
         }

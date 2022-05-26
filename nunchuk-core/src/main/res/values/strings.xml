@@ -24,6 +24,10 @@
     <string name="nc_transaction_replaced">Replaced</string>
     <string name="nc_transaction_confirmations">confirmations</string>
     <string name="nc_transaction_enter_passphrase">Enter your passphrase</string>
+    <plurals name="nc_transaction_pending_signature">
+        <item quantity="one">Pending %d signature</item>
+        <item quantity="other">Pending %d signatures</item>
+    </plurals>
 
     <string name="nc_currency_btc">BTC</string>
     <string name="nc_currency_usd">USD</string>

@@ -280,7 +280,8 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             activityContext = this,
             walletId = walletId,
             txId = txId,
-            initEventId = initEventId
+            initEventId = initEventId,
+            args.roomId
         )
     }
 

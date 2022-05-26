@@ -45,7 +45,13 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
 
     private val adapter: TransactionAdapter by lazy {
         TransactionAdapter {
-            navigator.openTransactionDetailsScreen(this, args.walletId, it.txId)
+            navigator.openTransactionDetailsScreen(
+                activityContext = this,
+                walletId = args.walletId,
+                txId = it.txId,
+                initEventId = viewModel.getRoomWallet()?.initEventId.orEmpty(),
+                roomId = viewModel.getRoomWallet()?.roomId.orEmpty()
+            )
         }
     }
 
@@ -140,7 +146,7 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
         if (event.walletExtended.isShared) {
             navigator.openRoomDetailActivity(
                 activityContext = this,
-                roomId = event.walletExtended.roomWallet.roomId,
+                roomId = event.walletExtended.roomWallet!!.roomId,
                 roomAction = RoomAction.SEND
             )
         } else {
