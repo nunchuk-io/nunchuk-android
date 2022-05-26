@@ -42,7 +42,7 @@
     <string name="nc_text_wallet_name">Wallet name</string>
 
     <string name="nc_wallet_configuration">Wallet configuration</string>
-    <string name="nc_wallet_assigned_signers">Assigned keys</string>
+    <string name="nc_wallet_assigned_signers">Member keys</string>
     <string name="nc_wallet_signer_has_been_used_warning">This air-gapped key has already been used. Key reuse is not recommended</string>
 
 </resources>

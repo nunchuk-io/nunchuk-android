@@ -38,7 +38,7 @@ internal class GetWalletUseCaseImpl @Inject constructor(
         val wallet = nativeSdk.getWallet(walletId)
         val rWallets = nativeSdk.getAllRoomWallet()
         val rWalletIds = rWallets.map(RoomWallet::walletId)
-        val roomWallet = rWallets.firstOrNull { wallet.id == it.walletId } ?: RoomWallet()
+        val roomWallet = rWallets.firstOrNull { wallet.id == it.walletId }
         emit(WalletExtended(wallet, wallet.isShared(rWalletIds), roomWallet))
     }.flowOn(Dispatchers.IO)
 

@@ -6,7 +6,6 @@ import androidx.core.view.isVisible
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.toReadableSignerType
-import com.nunchuk.android.core.util.toReadableSignerTypeDrawable
 import com.nunchuk.android.transaction.databinding.ItemTransactionSignerBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
 
@@ -27,14 +26,19 @@ internal class TransactionSignersViewBinder(
         binding.xpf.text = xfpValue
         binding.signerType.text = model.toReadableSignerType(context)
         binding.btnSign.setOnClickListener { listener(model) }
-        val hasSigned = signerMap.count { !it.value } > 0
-        if (hasSigned) {
-            val isSigned = model.isSigned()
-            binding.btnSign.isVisible = !isSigned
-            binding.signed.isVisible = isSigned
-        } else {
+        val isSigned = model.isSigned()
+        if (isSigned) {
+            binding.btnSign.isVisible = false
+            binding.signed.isVisible = true
+            binding.signNotAvailable.isVisible = false
+        } else if (!model.localKey) {
             binding.btnSign.isVisible = false
             binding.signed.isVisible = false
+            binding.signNotAvailable.isVisible = true
+        } else {
+            binding.btnSign.isVisible = true
+            binding.signed.isVisible = false
+            binding.signNotAvailable.isVisible = false
         }
     }
 
