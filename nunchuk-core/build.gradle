@@ -8,6 +8,8 @@ dependencies {
     implementation project(':nunchuk-utils')
     implementation project(':nunchuk-widget')
     implementation project(':nunchuk-domain')
+    implementation project(':nunchuk-database')
+
     implementation nunchukDeps.nativeSdk
     implementation matrixDeps.matrixSdk
 

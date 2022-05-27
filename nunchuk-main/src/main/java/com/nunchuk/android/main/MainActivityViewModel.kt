@@ -4,17 +4,17 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.callbacks.DownloadFileCallBack
 import com.nunchuk.android.callbacks.UploadFileCallBack
+import com.nunchuk.android.core.data.model.SyncFileModel
 import com.nunchuk.android.core.domain.CheckUpdateRecommendUseCase
+import com.nunchuk.android.core.domain.CreateOrUpdateSyncFileUseCase
+import com.nunchuk.android.core.domain.DeleteSyncFileUseCase
 import com.nunchuk.android.core.domain.GetDisplayUnitSettingUseCase
 import com.nunchuk.android.core.domain.GetPriceConvertBTCUseCase
+import com.nunchuk.android.core.domain.GetSyncFileUseCase
 import com.nunchuk.android.core.domain.ScheduleGetPriceConvertBTCUseCase
 import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.matrix.*
 import com.nunchuk.android.core.persistence.NCSharePreferences
-import com.nunchuk.android.core.retry.DEFAULT_RETRY_POLICY
-import com.nunchuk.android.core.retry.RetryPolicy
-import com.nunchuk.android.core.retry.SYNC_RETRY_POLICY
-import com.nunchuk.android.core.retry.retryDefault
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.*
@@ -48,7 +48,6 @@ import org.matrix.android.sdk.internal.crypto.model.rest.DeviceInfo
 import org.matrix.android.sdk.internal.crypto.model.rest.DevicesListResponse
 import timber.log.Timber
 import javax.inject.Inject
-import javax.inject.Named
 
 internal class MainActivityViewModel @Inject constructor(
     private val enableAutoBackupUseCase: EnableAutoBackupUseCase,
@@ -62,10 +61,11 @@ internal class MainActivityViewModel @Inject constructor(
     private val scheduleGetPriceConvertBTCUseCase: ScheduleGetPriceConvertBTCUseCase,
     private val getDisplayUnitSettingUseCase: GetDisplayUnitSettingUseCase,
     private val notificationManager: PushNotificationManager,
-    @Named(DEFAULT_RETRY_POLICY) private val retryPolicy: RetryPolicy,
-    @Named(SYNC_RETRY_POLICY) private val syncRetryPolicy: RetryPolicy,
     private val checkUpdateRecommendUseCase: CheckUpdateRecommendUseCase,
-    private val ncSharePreferences: NCSharePreferences
+    private val ncSharePreferences: NCSharePreferences,
+    private val getSyncFileUseCase: GetSyncFileUseCase,
+    private val createOrUpdateSyncFileUseCase: CreateOrUpdateSyncFileUseCase,
+    private val deleteSyncFileUseCase: DeleteSyncFileUseCase
 ) : NunchukViewModel<Unit, MainAppEvent>() {
 
     override val initialState = Unit
@@ -77,6 +77,37 @@ internal class MainActivityViewModel @Inject constructor(
         registerDownloadFileBackupEvent()
         registerBlockChainConnectionStatusExecutor()
         getDisplayUnitSetting()
+        checkMissingSyncFile()
+    }
+
+    private fun checkMissingSyncFile() {
+        val userId = SessionHolder.activeSession?.sessionParams?.userId
+        if (userId.isNullOrEmpty()) {
+            return
+        }
+        viewModelScope.launch {
+            getSyncFileUseCase.execute(userId)
+                .flowOn(IO)
+                .onException {}
+                .collect { files ->
+                    files.forEach {
+                        if (it.action == "UPLOAD") {
+                            uploadFile(
+                                fileName = it.fileName.orEmpty(),
+                                fileJsonInfo = it.fileJsonInfo.orEmpty(),
+                                mineType = it.fileMineType.orEmpty(),
+                                data = it.fileData ?: byteArrayOf()
+                            )
+                        } else {
+                            downloadFile(
+                                fileJsonInfo = it.fileJsonInfo.orEmpty(),
+                                fileUrl = it.fileUrl.orEmpty()
+                            )
+                        }
+                    }
+
+                }
+        }
     }
 
     fun checkAppUpdateRecommend(isResume: Boolean) {
@@ -158,6 +189,106 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
+    private fun createOrUpdateUploadSyncFile(
+        fileName: String,
+        fileJsonInfo: String,
+        data: ByteArray,
+        mineType: String
+    ) {
+        viewModelScope.launch {
+            createOrUpdateSyncFileUseCase.execute(
+                SyncFileModel(
+                    userId = SessionHolder.activeSession?.sessionParams?.userId.orEmpty(),
+                    action = "UPLOAD",
+                    fileName = fileName,
+                    fileJsonInfo = fileJsonInfo,
+                    fileData = data,
+                    fileMineType = mineType,
+                )
+            ).flowOn(IO)
+                .onException {
+                    Timber.d("createOrUpdateSyncFileUseCase failed: ${it.message.orEmpty()}")
+                }
+                .flowOn(Main)
+                .collect {
+                    Timber.d("createOrUpdateSyncFileUseCase success")
+                }
+        }
+    }
+
+    private fun createOrUpdateDownloadSyncFile(
+        fileJsonInfo: String,
+        fileUrl: String
+    ) {
+        viewModelScope.launch {
+            createOrUpdateSyncFileUseCase.execute(
+                SyncFileModel(
+                    userId = SessionHolder.activeSession?.sessionParams?.userId.orEmpty(),
+                    action = "DOWNLOAD",
+                    fileJsonInfo = fileJsonInfo,
+                    fileUrl = fileUrl
+                )
+            ).flowOn(IO)
+                .onException {
+                    Timber.d("createOrUpdateDownloadSyncFile failed: ${it.message.orEmpty()}")
+                }
+                .flowOn(Main)
+                .collect {
+                    Timber.d("createOrUpdateDownloadSyncFile success")
+                }
+        }
+    }
+
+    private fun deleteDownloadSyncFile(
+        fileJsonInfo: String,
+        fileUrl: String
+    ) {
+        viewModelScope.launch {
+            deleteSyncFileUseCase.execute(
+                SyncFileModel(
+                    userId = SessionHolder.activeSession?.sessionParams?.userId.orEmpty(),
+                    action = "DOWNLOAD",
+                    fileJsonInfo = fileJsonInfo,
+                    fileUrl = fileUrl
+                )
+            ).flowOn(IO)
+                .onException {
+                    Timber.d("deleteDownloadSyncFile failed: ${it.message.orEmpty()}")
+                }
+                .flowOn(Main)
+                .collect {
+                    Timber.d("deleteDownloadSyncFile success")
+                }
+        }
+    }
+
+    private fun deleteUploadSyncFile(
+        fileName: String,
+        fileJsonInfo: String,
+        data: ByteArray,
+        mineType: String
+    ) {
+        viewModelScope.launch {
+            deleteSyncFileUseCase.execute(
+                SyncFileModel(
+                    userId = SessionHolder.activeSession?.sessionParams?.userId.orEmpty(),
+                    action = "UPLOAD",
+                    fileName = fileName,
+                    fileJsonInfo = fileJsonInfo,
+                    fileData = data,
+                    fileMineType = mineType,
+                )
+            ).flowOn(IO)
+                .onException {
+                    Timber.d("deleteUploadSyncFile failed: ${it.message.orEmpty()}")
+                }
+                .flowOn(Main)
+                .collect {
+                    Timber.d("deleteUploadSyncFile success")
+                }
+        }
+    }
+
     private fun uploadFile(
         fileName: String,
         fileJsonInfo: String,
@@ -166,11 +297,13 @@ internal class MainActivityViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             uploadFileUseCase.execute(fileName = fileName, fileType = mineType, fileData = data)
-                .retryDefault(retryPolicy)
                 .flowOn(IO)
-                .onException {}
+                .onException {
+                    createOrUpdateUploadSyncFile(fileName, fileJsonInfo, data, mineType)
+                }
                 .flowOn(Main)
                 .collect {
+                    deleteUploadSyncFile(fileName, fileJsonInfo, data, mineType)
                     Timber.tag(TAG).d("[App] fileUploadURL: ${it.contentUri}")
                     backupFile(fileJsonInfo, it.contentUri.orEmpty())
                 }
@@ -180,7 +313,6 @@ internal class MainActivityViewModel @Inject constructor(
     private fun backupFile(fileJsonInfo: String, fileUri: String) {
         viewModelScope.launch {
             backupFileUseCase.execute(fileJsonInfo, fileUri)
-                .retryDefault(retryPolicy)
                 .flowOn(IO)
                 .onException { }
                 .collect { Timber.tag(TAG).d("[App] backupFile success") }
@@ -194,11 +326,13 @@ internal class MainActivityViewModel @Inject constructor(
         val mediaId = if (contentUriInfo.isEmpty()) "" else contentUriInfo[1]
         viewModelScope.launch {
             downloadFileUseCase.execute(serverName = serverName, mediaId = mediaId)
-                .retryDefault(retryPolicy)
                 .flowOn(IO)
-                .onException { }
+                .onException {
+                    createOrUpdateDownloadSyncFile(fileJsonInfo, fileUrl)
+                }
                 .flowOn(Main)
                 .collect {
+                    deleteDownloadSyncFile(fileJsonInfo, fileUrl)
                     Timber.tag(TAG).d("[App] DownloadFileSyncSucceed: $fileJsonInfo")
                     event(DownloadFileSyncSucceed(fileJsonInfo, it))
                 }
@@ -209,7 +343,6 @@ internal class MainActivityViewModel @Inject constructor(
         Timber.tag(TAG).d("consumeSyncFile($fileJsonInfo, $fileData)")
         viewModelScope.launch {
             consumeSyncFileUseCase.execute(fileJsonInfo, fileData)
-                .retryDefault(retryPolicy)
                 .flowOn(IO)
                 .onException { }
                 .flowOn(Main)
@@ -220,7 +353,6 @@ internal class MainActivityViewModel @Inject constructor(
     private fun enableAutoBackup(syncRoomId: String, accessToken: String) {
         viewModelScope.launch {
             enableAutoBackupUseCase.execute(syncRoomId, accessToken)
-                .retryDefault(retryPolicy)
                 .flowOn(IO)
                 .onException { }
                 .flowOn(Main)
@@ -246,10 +378,13 @@ internal class MainActivityViewModel @Inject constructor(
                 .sortedByDescending(NunchukMatrixEvent::time)
             Timber.tag(TAG).v("sortedEvents::$sortedEvents")
             consumerSyncEventUseCase.execute(sortedEvents)
-                .retryDefault(retryPolicy)
                 .flowOn(IO)
-                .onException { }
-                .collect { Timber.tag(TAG).v("consumerSyncEventUseCase success") }
+                .onException {
+                    Timber.tag(TAG).v("consumerSyncEventUseCase fail")
+                }
+                .collect {
+                    Timber.tag(TAG).v("consumerSyncEventUseCase success")
+                }
         }
     }
 
@@ -268,8 +403,7 @@ internal class MainActivityViewModel @Inject constructor(
                 val activeSession = SessionHolder.activeSession ?: throw SessionLostException()
                 val room = activeSession.getRoom(roomId) ?: throw RoomNotFoundException(roomId)
                 emit(room)
-            }.retryDefault(syncRetryPolicy)
-                .flowOn(IO)
+            }.flowOn(IO)
                 .onException { }
                 .flowOn(Main)
                 .collect { it.retrieveTimelineEvents() }
