@@ -435,19 +435,6 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/memberSigners" />
 
-                <LinearLayout
-                    android:id="@+id/signerListView2"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/memberSigners">
-
-                    <include layout="@layout/item_transaction_signer" />
-
-                    <include layout="@layout/item_transaction_signer" />
-                </LinearLayout>
-
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>

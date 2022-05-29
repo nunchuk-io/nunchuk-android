@@ -3,7 +3,6 @@ package com.nunchuk.android.persistence.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.nunchuk.android.persistence.TABLE_CONTACT
 import com.nunchuk.android.persistence.TABLE_SYNC_FILE
 
 @Entity(tableName = TABLE_SYNC_FILE)

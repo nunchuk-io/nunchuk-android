@@ -22,10 +22,7 @@ import com.nunchuk.android.messages.databinding.ActivityRoomDetailBinding
 import com.nunchuk.android.messages.databinding.ViewWalletStickyBinding
 import com.nunchuk.android.model.TransactionExtended
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.util.addTextChangedCallback
-import com.nunchuk.android.widget.util.setLightStatusBar
-import com.nunchuk.android.widget.util.setOnEnterListener
-import com.nunchuk.android.widget.util.smoothScrollToLastItem
+import com.nunchuk.android.widget.util.*
 import javax.inject.Inject
 
 class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
@@ -180,7 +177,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
                 if (RecyclerView.SCROLL_STATE_DRAGGING == newState) {
                     binding.recyclerView.hideKeyboard()
                 } else if (RecyclerView.SCROLL_STATE_IDLE == newState) {
-                    if (!recyclerView.isLastItemVisible()) {
+                    if (recyclerView.isFirstItemVisible()) {
                         viewModel.handleLoadMore()
                     }
                 }
@@ -321,12 +318,4 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 }
 
-private fun RecyclerView.isLastItemVisible(): Boolean {
-    val adapter = adapter ?: return false
-    if (adapter.itemCount != 0) {
-        val linearLayoutManager = layoutManager as LinearLayoutManager
-        val lastVisibleItemPosition = linearLayoutManager.findLastCompletelyVisibleItemPosition()
-        if (lastVisibleItemPosition != RecyclerView.NO_POSITION && lastVisibleItemPosition == adapter.itemCount - 1) return true
-    }
-    return false
-}
+

@@ -1,12 +1,9 @@
 package com.nunchuk.android.persistence
 
 import android.content.Context
-import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.nunchuk.android.persistence.dao.ContactDao
 import com.nunchuk.android.persistence.dao.SyncFileDao
 import com.nunchuk.android.persistence.entity.ContactEntity
@@ -27,12 +24,6 @@ internal abstract class NunchukDatabase : RoomDatabase() {
 
     companion object {
 
-        private val MIGRATION_1_2 = object : Migration(1, 2) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("CREATE TABLE IF NOT EXISTS `sync_file` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `user_id` TEXT NOT NULL, `action` TEXT NOT NULL, `file_name` TEXT, `file_url` TEXT, `file_json_info` TEXT NOT NULL, `file_mine_type` TEXT, `file_length` INTEGER, `file_data` BLOB)")
-            }
-        }
-
         @Volatile
         private var INSTANCE: NunchukDatabase? = null
 
@@ -40,11 +31,9 @@ internal abstract class NunchukDatabase : RoomDatabase() {
             INSTANCE ?: buildDatabase(context).also { INSTANCE = it }
         }
 
-        private fun buildDatabase(applicationContext: Context): NunchukDatabase {
-            return Room.databaseBuilder(applicationContext, NunchukDatabase::class.java, DATABASE_NAME)
-                .addMigrations(MIGRATION_1_2)
-                .build()
-        }
+        private fun buildDatabase(applicationContext: Context) = Room.databaseBuilder(applicationContext, NunchukDatabase::class.java, DATABASE_NAME)
+            .addMigrations(DBMigrations.MIGRATION_1_2)
+            .build()
     }
 }
 

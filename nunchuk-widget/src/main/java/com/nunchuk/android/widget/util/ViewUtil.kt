@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import androidx.annotation.LayoutRes
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.R
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -133,6 +134,28 @@ fun RecyclerView.smoothScrollToLastItem(delay: Long = DELAY) {
 }
 
 const val DELAY = 100L
+
+
+@Suppress("unused")
+fun RecyclerView.isLastItemVisible(): Boolean {
+    val adapter = adapter ?: return false
+    if (adapter.itemCount != 0) {
+        val linearLayoutManager = layoutManager as LinearLayoutManager
+        val lastVisibleItemPosition = linearLayoutManager.findLastCompletelyVisibleItemPosition()
+        if (lastVisibleItemPosition != RecyclerView.NO_POSITION && lastVisibleItemPosition == adapter.itemCount - 1) return true
+    }
+    return false
+}
+
+fun RecyclerView.isFirstItemVisible(): Boolean {
+    val adapter = adapter ?: return false
+    if (adapter.itemCount != 0) {
+        val linearLayoutManager = layoutManager as LinearLayoutManager
+        val visibleItemPosition = linearLayoutManager.findFirstVisibleItemPosition()
+        if (visibleItemPosition != RecyclerView.NO_POSITION && visibleItemPosition == 0) return true
+    }
+    return false
+}
 
 
 
