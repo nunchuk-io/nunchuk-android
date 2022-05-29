@@ -5,13 +5,7 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.callbacks.DownloadFileCallBack
 import com.nunchuk.android.callbacks.UploadFileCallBack
 import com.nunchuk.android.core.data.model.SyncFileModel
-import com.nunchuk.android.core.domain.CheckUpdateRecommendUseCase
-import com.nunchuk.android.core.domain.CreateOrUpdateSyncFileUseCase
-import com.nunchuk.android.core.domain.DeleteSyncFileUseCase
-import com.nunchuk.android.core.domain.GetDisplayUnitSettingUseCase
-import com.nunchuk.android.core.domain.GetPriceConvertBTCUseCase
-import com.nunchuk.android.core.domain.GetSyncFileUseCase
-import com.nunchuk.android.core.domain.ScheduleGetPriceConvertBTCUseCase
+import com.nunchuk.android.core.domain.*
 import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.matrix.*
 import com.nunchuk.android.core.persistence.NCSharePreferences
@@ -37,15 +31,11 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
-import org.matrix.android.sdk.api.MatrixCallback
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
-import org.matrix.android.sdk.internal.crypto.model.CryptoDeviceInfo
-import org.matrix.android.sdk.internal.crypto.model.rest.DeviceInfo
-import org.matrix.android.sdk.internal.crypto.model.rest.DevicesListResponse
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -94,13 +84,13 @@ internal class MainActivityViewModel @Inject constructor(
                         if (it.action == "UPLOAD") {
                             uploadFile(
                                 fileName = it.fileName.orEmpty(),
-                                fileJsonInfo = it.fileJsonInfo.orEmpty(),
+                                fileJsonInfo = it.fileJsonInfo,
                                 mineType = it.fileMineType.orEmpty(),
                                 data = it.fileData ?: byteArrayOf()
                             )
                         } else {
                             downloadFile(
-                                fileJsonInfo = it.fileJsonInfo.orEmpty(),
+                                fileJsonInfo = it.fileJsonInfo,
                                 fileUrl = it.fileUrl.orEmpty()
                             )
                         }
@@ -205,14 +195,10 @@ internal class MainActivityViewModel @Inject constructor(
                     fileData = data,
                     fileMineType = mineType,
                 )
-            ).flowOn(IO)
-                .onException {
-                    Timber.d("createOrUpdateSyncFileUseCase failed: ${it.message.orEmpty()}")
-                }
-                .flowOn(Main)
-                .collect {
-                    Timber.d("createOrUpdateSyncFileUseCase success")
-                }
+            )
+                .flowOn(IO)
+                .onException { Timber.d("createOrUpdateSyncFileUseCase failed: ${it.message.orEmpty()}") }
+                .collect { Timber.d("createOrUpdateSyncFileUseCase success") }
         }
     }
 
@@ -228,14 +214,10 @@ internal class MainActivityViewModel @Inject constructor(
                     fileJsonInfo = fileJsonInfo,
                     fileUrl = fileUrl
                 )
-            ).flowOn(IO)
-                .onException {
-                    Timber.d("createOrUpdateDownloadSyncFile failed: ${it.message.orEmpty()}")
-                }
-                .flowOn(Main)
-                .collect {
-                    Timber.d("createOrUpdateDownloadSyncFile success")
-                }
+            )
+                .flowOn(IO)
+                .onException { Timber.d("createOrUpdateDownloadSyncFile failed: ${it.message.orEmpty()}") }
+                .collect { Timber.d("createOrUpdateDownloadSyncFile success") }
         }
     }
 
@@ -251,14 +233,10 @@ internal class MainActivityViewModel @Inject constructor(
                     fileJsonInfo = fileJsonInfo,
                     fileUrl = fileUrl
                 )
-            ).flowOn(IO)
-                .onException {
-                    Timber.d("deleteDownloadSyncFile failed: ${it.message.orEmpty()}")
-                }
-                .flowOn(Main)
-                .collect {
-                    Timber.d("deleteDownloadSyncFile success")
-                }
+            )
+                .flowOn(IO)
+                .onException { Timber.d("deleteDownloadSyncFile failed: ${it.message.orEmpty()}") }
+                .collect { Timber.d("deleteDownloadSyncFile success") }
         }
     }
 
@@ -278,14 +256,10 @@ internal class MainActivityViewModel @Inject constructor(
                     fileData = data,
                     fileMineType = mineType,
                 )
-            ).flowOn(IO)
-                .onException {
-                    Timber.d("deleteUploadSyncFile failed: ${it.message.orEmpty()}")
-                }
-                .flowOn(Main)
-                .collect {
-                    Timber.d("deleteUploadSyncFile success")
-                }
+            )
+                .flowOn(IO)
+                .onException { Timber.d("deleteUploadSyncFile failed: ${it.message.orEmpty()}") }
+                .collect { Timber.d("deleteUploadSyncFile success") }
         }
     }
 
@@ -298,9 +272,7 @@ internal class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             uploadFileUseCase.execute(fileName = fileName, fileType = mineType, fileData = data)
                 .flowOn(IO)
-                .onException {
-                    createOrUpdateUploadSyncFile(fileName, fileJsonInfo, data, mineType)
-                }
+                .onException { createOrUpdateUploadSyncFile(fileName, fileJsonInfo, data, mineType) }
                 .flowOn(Main)
                 .collect {
                     deleteUploadSyncFile(fileName, fileJsonInfo, data, mineType)
@@ -345,7 +317,6 @@ internal class MainActivityViewModel @Inject constructor(
             consumeSyncFileUseCase.execute(fileJsonInfo, fileData)
                 .flowOn(IO)
                 .onException { }
-                .flowOn(Main)
                 .collect { event(SyncCompleted) }
         }
     }
@@ -355,7 +326,6 @@ internal class MainActivityViewModel @Inject constructor(
             enableAutoBackupUseCase.execute(syncRoomId, accessToken)
                 .flowOn(IO)
                 .onException { }
-                .flowOn(Main)
                 .collect { Timber.tag(TAG).v("enableAutoBackup success") }
         }
     }
@@ -379,12 +349,8 @@ internal class MainActivityViewModel @Inject constructor(
             Timber.tag(TAG).v("sortedEvents::$sortedEvents")
             consumerSyncEventUseCase.execute(sortedEvents)
                 .flowOn(IO)
-                .onException {
-                    Timber.tag(TAG).v("consumerSyncEventUseCase fail")
-                }
-                .collect {
-                    Timber.tag(TAG).v("consumerSyncEventUseCase success")
-                }
+                .onException { Timber.tag(TAG).v("consumerSyncEventUseCase fail") }
+                .collect { Timber.tag(TAG).v("consumerSyncEventUseCase success") }
         }
     }
 
@@ -411,24 +377,15 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     fun checkCrossSigning(session: Session) {
-        val cryptoService = session.cryptoService()
         if (ncSharePreferences.newDevice) {
-            cryptoService.fetchDevicesList(object : MatrixCallback<DevicesListResponse> {
-                override fun onSuccess(data: DevicesListResponse) {
-                    if (hasMultipleDevices(data.devices.orEmpty(), cryptoService.getMyDevice())) {
-                        ncSharePreferences.newDevice = false
-                        event(CrossSigningUnverified)
-                    }
-                }
-            })
+            if (hasMultipleDevices(session)) {
+                ncSharePreferences.newDevice = false
+                event(CrossSigningUnverified)
+            }
         }
     }
 
-    private fun hasMultipleDevices(allDevices: List<DeviceInfo>, currentDevice: CryptoDeviceInfo): Boolean {
-        Timber.tag(TAG).d("currentDevice::$currentDevice")
-        Timber.tag(TAG).d("allDevices::$allDevices")
-        return (allDevices.map(DeviceInfo::deviceId).toSet() + currentDevice.deviceId).size > 1
-    }
+    private fun hasMultipleDevices(session: Session) = session.cryptoService().getCryptoDeviceInfo(session.myUserId).size > 1
 
     private fun getDisplayUnitSetting() {
         viewModelScope.launch {

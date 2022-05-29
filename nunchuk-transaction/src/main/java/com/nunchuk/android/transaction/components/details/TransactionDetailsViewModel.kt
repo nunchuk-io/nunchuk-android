@@ -22,12 +22,8 @@ import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 internal class TransactionDetailsViewModel @Inject constructor(
@@ -69,21 +65,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
         this.roomId = roomId
     }
 
-    private fun getAllSigners() {
-        viewModelScope.launch {
-            getAllSignersUseCase.execute()
-                .flowOn(IO)
-                .onException {
-                    masterSigners = emptyList()
-                    remoteSigners = emptyList()
-                }
-                .collect {
-                    masterSigners = it.first
-                    remoteSigners = it.second
-                }
-        }
-    }
-
     private fun getContacts() {
         viewModelScope.launch {
             getContactsUseCase.execute()
@@ -93,56 +74,48 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun getRoomWallet() {
+    fun getTransactionInfo() {
+        if (isSharedTransaction()) {
+            getSharedTransaction()
+        } else {
+            getPersonalTransaction()
+        }
+    }
+
+    private fun getPersonalTransaction() {
         viewModelScope.launch {
-            getRoomWalletUseCase.execute(roomId)
+            getAllSignersUseCase.execute()
+                .zip(getTransactionUseCase.execute(walletId, txId)
+                    .onException { event(TransactionDetailsError(it.message.orEmpty())) }
+                ) { p, tx -> Triple(p.first, p.second, tx) }
                 .flowOn(IO)
-                .onException { }
                 .collect {
-                    joinKeys = it?.joinKeys().orEmpty()
-                    roomWallet = it
-                    updateJoinKeys()
+                    masterSigners = it.first
+                    remoteSigners = it.second
+                    updateTransaction(it.third)
                 }
         }
     }
 
-    private fun updateJoinKeys() {
-        val transaction = getState().transaction
-        val signers = transaction.signers
-        val signedMasterSigners = masterSigners.filter { it.device.masterFingerprint in signers }.map(MasterSigner::toModel)
-        val signedRemoteSigners = remoteSigners.filter { it.masterFingerprint in signers }.map(SingleSigner::toModel)
-        val localSignedSigners = signedMasterSigners + signedRemoteSigners
-        if (joinKeys.isNotEmpty()) {
-            updateState { copy(signers = joinKeys.map { it.retrieveInfo(localSignedSigners) }) }
-        }
-    }
-
-    // why not use name but email?
-    private fun JoinKey.retrieveInfo(localSignedSigners: List<SignerModel>): SignerModel {
-        return localSignedSigners.firstOrNull { it.fingerPrint == masterFingerprint }
-            ?: return copy(name = contacts.firstOrNull { it.chatId == chatId }?.email.orEmpty()).toSignerModel().copy(localKey = false)
-    }
-
-    fun getTransactionInfo() {
-        getAllSigners()
-        if (isSharedTransaction()) {
-            getContacts()
-            getRoomWallet()
-        }
-        getTransaction()
-    }
-
-    private fun getTransaction() {
+    private fun getSharedTransaction() {
+        getContacts()
         viewModelScope.launch {
-            getTransactionUseCase.execute(walletId, txId)
-                .onException { event(TransactionDetailsError(it.message.orEmpty())) }
-                .collect { onRetrieveTransactionSuccess(it) }
+            getAllSignersUseCase.execute()
+                .zip(getRoomWalletUseCase.execute(roomId).map {
+                    joinKeys = it?.joinKeys().orEmpty()
+                    roomWallet = it
+                }
+                ) { p, _ -> p }
+                .zip(getTransactionUseCase.execute(walletId, txId)
+                    .onException { event(TransactionDetailsError(it.message.orEmpty())) }
+                ) { p, tx -> Triple(p.first, p.second, tx) }
+                .flowOn(IO)
+                .collect {
+                    masterSigners = it.first
+                    remoteSigners = it.second
+                    updateTransaction(it.third)
+                }
         }
-    }
-
-    private fun onRetrieveTransactionSuccess(transaction: Transaction) {
-        Timber.tag(TAG).d("transaction::${transaction}")
-        updateTransaction(transaction)
     }
 
     private fun updateTransaction(transaction: Transaction) {
@@ -152,7 +125,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         val signedRemoteSigners = remoteSigners.filter { it.masterFingerprint in signers }.map(SingleSigner::toModel)
         val localSignedSigners = signedMasterSigners + signedRemoteSigners
         if (joinKeys.isNotEmpty()) {
-            updateState { copy(signers = joinKeys.map { localSignedSigners.firstOrNull { local -> local.fingerPrint == it.masterFingerprint } ?: it.toSignerModel() }) }
+            updateState { copy(signers = joinKeys.map { it.retrieveInfo(localSignedSigners, contacts) }) }
         } else {
             updateState { copy(signers = localSignedSigners) }
         }
@@ -305,10 +278,25 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    companion object {
-        private const val TAG = "TransactionDetailsViewModel"
-    }
-
 }
 
 class TransactionException(message: String) : Exception(message)
+
+// why not use name but email?
+internal fun JoinKey.retrieveInfo(localSignedSigners: List<SignerModel>, contacts: List<Contact>) = retrieveByLocalKeys(localSignedSigners) ?: retrieveByContacts(contacts)
+
+internal fun JoinKey.retrieveByLocalKeys(localSignedSigners: List<SignerModel>) = localSignedSigners.firstOrNull { it.fingerPrint == masterFingerprint }
+
+internal fun JoinKey.retrieveByContacts(contacts: List<Contact>) = copy(name = getDisplayName(contacts)).toSignerModel().copy(localKey = false)
+
+internal fun JoinKey.getDisplayName(contacts: List<Contact>): String {
+    contacts.firstOrNull { it.chatId == chatId }?.apply {
+        if (email.isNotEmpty()) {
+            return@getDisplayName email
+        }
+        if (name.isNotEmpty()) {
+            return@getDisplayName chatId
+        }
+    }
+    return chatId
+}

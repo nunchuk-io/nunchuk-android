@@ -1,14 +1,9 @@
 package com.nunchuk.android.persistence.dao
 
 import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
 import androidx.room.Query
-import androidx.room.Update
 import com.nunchuk.android.persistence.BaseDao
-import com.nunchuk.android.persistence.TABLE_CONTACT
 import com.nunchuk.android.persistence.TABLE_SYNC_FILE
-import com.nunchuk.android.persistence.entity.ContactEntity
 import com.nunchuk.android.persistence.entity.SyncFileEntity
 import io.reactivex.Flowable
 

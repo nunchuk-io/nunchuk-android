@@ -9,6 +9,7 @@ import com.nunchuk.android.messages.databinding.ItemTransactionCardBinding
 import com.nunchuk.android.messages.util.getBodyElementValueByKey
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TransactionExtended
+import timber.log.Timber
 
 internal class NunchukTransactionCardHolder(
     val binding: ItemTransactionCardBinding,
@@ -17,13 +18,16 @@ internal class NunchukTransactionCardHolder(
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(transactions: List<TransactionExtended>, model: NunchukTransactionMessage) {
+        Timber.tag(TAG).d("bind(transactions::$transactions, model::$model)")
         var walletId = model.timelineEvent.getBodyElementValueByKey("wallet_id")
         if (walletId.isEmpty()) {
             walletId = transactions.firstOrNull { it.walletId.isNotEmpty() }?.walletId.orEmpty()
         }
         val initEventId = model.timelineEvent.eventId
+        Timber.tag(TAG).d("initEventId::$initEventId")
         transactions.firstOrNull { it.initEventId == initEventId }?.let {
             bindTransaction(walletId = walletId, initEventId = initEventId, transaction = it.transaction)
+            Timber.tag(TAG).d("bindTransaction(walletId = $walletId, initEventId = $initEventId, transaction = ${it.transaction})")
         }
         CardHelper.adjustCardLayout(binding.root, binding.cardTopContainer, model.isOwner)
     }
@@ -47,6 +51,10 @@ internal class NunchukTransactionCardHolder(
         binding.signatureStatus.isInvisible = transaction.status.hadBroadcast()
         binding.sign.setOnClickListener { signTransaction() }
         binding.viewDetails.setOnClickListener { viewTransaction(walletId, transaction.txId, initEventId) }
+    }
+
+    companion object {
+        private const val TAG = "NunchukTransactionCardHolder"
     }
 
 }
