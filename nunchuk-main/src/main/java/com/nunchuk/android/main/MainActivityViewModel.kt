@@ -31,12 +31,14 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
+import okhttp3.ResponseBody
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
 import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 
 internal class MainActivityViewModel @Inject constructor(
@@ -311,9 +313,11 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
-    fun consumeSyncFile(fileJsonInfo: String, fileData: ByteArray) {
-        Timber.tag(TAG).d("consumeSyncFile($fileJsonInfo, $fileData)")
+    fun consumeSyncFile(fileJsonInfo: String, responseBody: ResponseBody, saveFile: File) {
+        Timber.tag(TAG).d("consumeSyncFile($fileJsonInfo, $saveFile)")
         viewModelScope.launch {
+            responseBody.byteStream().saveToFile(saveFile.name)
+            val fileData = saveFile.readBytes()
             consumeSyncFileUseCase.execute(fileJsonInfo, fileData)
                 .flowOn(IO)
                 .onException { }

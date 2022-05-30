@@ -10,6 +10,7 @@ import com.nunchuk.android.core.util.isAtLeastStarted
 import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.NotificationUtils
+import com.nunchuk.android.utils.trySafe
 import dagger.android.AndroidInjection
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
@@ -145,10 +146,7 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
         getLastSession()
     }
 
-    private fun getLastSession(): Session? {
-        val matrix = Matrix.getInstance(applicationContext)
-        return matrix.authenticationService().getLastAuthenticatedSession()
-    }
+    private fun getLastSession(): Session? = trySafe(matrix.authenticationService()::getLastAuthenticatedSession)
 
     private fun defaultNotificationData() = if (!ProcessLifecycleOwner.get().isAtLeastStarted()) {
         PushNotificationData(
