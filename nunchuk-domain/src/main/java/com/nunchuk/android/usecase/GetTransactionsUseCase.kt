@@ -19,12 +19,11 @@ internal class GetTransactionsUseCaseImpl @Inject constructor(
 ) : GetTransactionsUseCase {
 
     override fun execute(walletId: String, eventIds: List<Pair<String, Boolean>>) = flow {
-        val transactions = eventIds.mapNotNull {
+        emit(eventIds.mapNotNull {
             val initEventId = it.first
             val isReceive = it.second
             getTransaction(walletId = walletId, initEventId = initEventId, isReceive = isReceive)
-        }
-        emit(transactions)
+        })
     }.catch {
         CrashlyticsReporter.recordException(it)
         emit(emptyList())
