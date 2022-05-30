@@ -13,6 +13,7 @@ class NCLoadingDialogCreator @Inject constructor(val activity: Activity) {
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         setCancelable(cancelable)
         setContentView(R.layout.nc_loading_dialog)
+        window?.attributes?.windowAnimations = R.style.NCAnimatedDialog
         show()
         window?.setLayout(MATCH_PARENT, MATCH_PARENT)
     }

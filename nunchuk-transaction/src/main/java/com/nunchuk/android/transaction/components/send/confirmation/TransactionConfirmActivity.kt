@@ -111,12 +111,13 @@ class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBindin
     private fun openTransactionDetailScreen(txId: String) {
         hideLoading()
         ActivityManager.instance.popUntilRoot()
+        val roomId = if (SessionHolder.hasActiveRoom()) SessionHolder.getActiveRoomId() else ""
         navigator.openTransactionDetailsScreen(
             activityContext = this,
             walletId = args.walletId,
             txId = txId,
             initEventId = "",
-            SessionHolder.getActiveRoomId()
+            roomId
         )
         NCToastMessage(this).showMessage("Transaction created::$txId")
     }
