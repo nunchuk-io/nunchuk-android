@@ -71,6 +71,7 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
 
     override fun onResume() {
         super.onResume()
+        showLoading()
         viewModel.syncData()
     }
 
@@ -78,7 +79,7 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
         binding.transactionList.adapter = adapter.withLoadStateFooter(LoadStateAdapter())
         adapter.addLoadStateListener {
             when (it.refresh) {
-                is LoadState.Loading -> showLoading()
+                is LoadState.Loading -> {}
                 is LoadState.Error -> hideLoading()
                 is LoadState.NotLoading -> hideLoading()
             }

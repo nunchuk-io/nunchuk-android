@@ -81,4 +81,10 @@
     <style name="NCBottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
         <item name="android:background">@drawable/nc_bottom_sheet_background</item>
     </style>
+
+    <style name="NCAnimatedDialog">
+        <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
+        <item name="android:windowExitAnimation">@android:anim/fade_out</item>
+    </style>
+
 </resources>

@@ -15,12 +15,15 @@ import com.nunchuk.android.network.util.MATRIX_HTTP_CLIENT
 import com.nunchuk.android.network.util.MATRIX_RETROFIT
 import dagger.Module
 import dagger.Provides
+import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.logging.HttpLoggingInterceptor.Level
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Named
@@ -40,14 +43,21 @@ class NetworkModule @Inject constructor() {
     fun provideOkHttpClient(
         loggingInterceptor: HttpLoggingInterceptor,
         headerInterceptor: HeaderInterceptor,
-        unauthorizedInterceptor: UnauthorizedInterceptor
+        unauthorizedInterceptor: UnauthorizedInterceptor,
+        connectionSpecs: List<ConnectionSpec>
     ): OkHttpClient = OkHttpClient.Builder()
+        .protocols(listOf(Protocol.HTTP_1_1))
         .connectTimeout(HTTP_CONNECT_TIMEOUT, TimeUnit.SECONDS)
         .readTimeout(HTTP_READ_TIMEOUT, TimeUnit.SECONDS)
         .writeTimeout(HTTP_WRITE_TIMEOUT, TimeUnit.SECONDS)
         .addInterceptor(loggingInterceptor)
         .addInterceptor(headerInterceptor)
+        .connectionSpecs(connectionSpecs)
         .build()
+
+    @Singleton
+    @Provides
+    fun provideConnectionSpecs(): List<ConnectionSpec> = Collections.singletonList(ConnectionSpec.Builder(ConnectionSpec.RESTRICTED_TLS).build())
 
     @Singleton
     @Provides
