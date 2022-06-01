@@ -26,6 +26,6 @@ internal object MatrixCommonModule {
 
     @Provides
     @Singleton
-    fun providesMatrix(context: Context, configuration: MatrixConfiguration) = Matrix.createInstance(context, configuration)
+    fun providesMatrix(context: Context, configuration: MatrixConfiguration) = Matrix(context, configuration)
 
 }

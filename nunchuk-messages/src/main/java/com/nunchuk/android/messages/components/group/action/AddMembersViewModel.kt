@@ -31,7 +31,7 @@ class AddMembersViewModel @Inject constructor(
     override val initialState = AddMembersState()
 
     fun initRoom(roomId: String) {
-        room = SessionHolder.activeSession?.getRoom(roomId)!!
+        room = SessionHolder.activeSession?.roomService()?.getRoom(roomId)!!
     }
 
     private fun getContacts() {
@@ -74,7 +74,7 @@ class AddMembersViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 userIds.map {
-                    room.invite(it)
+                    room.membershipService().invite(it)
                 }
                 event(AddMembersSuccessEvent)
             } catch (t: Throwable) {

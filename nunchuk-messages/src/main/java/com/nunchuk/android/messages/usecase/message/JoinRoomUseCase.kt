@@ -20,7 +20,7 @@ internal class JoinRoomUseCaseImpl @Inject constructor(
         reason: String?,
         viaServers: List<String>
     ) = flow {
-        emit(session.joinRoom(roomIdOrAlias, reason, viaServers))
+        emit(session.roomService().joinRoom(roomIdOrAlias, reason, viaServers))
     }
 
 }

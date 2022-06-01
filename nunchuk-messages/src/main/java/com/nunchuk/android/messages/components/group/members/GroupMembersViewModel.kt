@@ -20,7 +20,7 @@ class GroupMembersViewModel @Inject constructor(
     override val initialState = GroupMembersState()
 
     fun initialize(roomId: String) {
-        SessionHolder.activeSession?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
+        SessionHolder.activeSession?.roomService()?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
     }
 
     private fun onRetrievedRoom(room: Room) {

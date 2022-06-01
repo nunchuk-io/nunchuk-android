@@ -31,7 +31,7 @@ internal class CreateRoomUseCaseImpl @Inject constructor(
             params.enableEncryption()
         }
         emit(
-            session.getRoom(session.createRoom(params)) ?: throw RoomCreationException()
+            session.roomService().getRoom(session.roomService().createRoom(params)) ?: throw RoomCreationException()
         )
         delay(CREATE_ROOM_DELAY)
     }

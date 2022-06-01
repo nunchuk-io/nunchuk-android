@@ -33,12 +33,12 @@ class ContactsViewModel @Inject constructor(
     private var timeline: Timeline? = null
 
     fun registerNewContactRequestEvent() {
-        SessionHolder.activeSession?.getRoomSummaries(roomSummaryQueryParams {
+        SessionHolder.activeSession?.roomService()?.getRoomSummaries(roomSummaryQueryParams {
             memberships = Membership.activeMemberships()
         })?.find {
             it.hasTag(STATE_ROOM_SERVER_NOTICE)
         }?.let {
-            SessionHolder.activeSession?.getRoom(it.roomId)?.let(::retrieveTimelineEvents)
+            SessionHolder.activeSession?.roomService()?.getRoom(it.roomId)?.let(::retrieveTimelineEvents)
         }
     }
 
@@ -70,7 +70,7 @@ class ContactsViewModel @Inject constructor(
     }
 
     private fun retrieveTimelineEvents(room: Room) {
-        timeline = room.createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
+        timeline = room.timelineService().createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
             removeAllListeners()
             addListener(TimelineListenerAdapter(::handleTimelineEvents))
             start()

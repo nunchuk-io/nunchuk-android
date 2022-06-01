@@ -14,7 +14,7 @@ internal class AddTagRoomUseCaseImpl @Inject constructor(
 
     override fun execute(tagName: String, roomId: String) = flow {
         emit(
-            session.getRoom(roomId)?.addTag(tagName, 1.0) ?: throw RoomNotFoundException(roomId)
+            session.roomService().getRoom(roomId)?.tagsService()?.addTag(tagName, 1.0) ?: throw RoomNotFoundException(roomId)
         )
     }
 }

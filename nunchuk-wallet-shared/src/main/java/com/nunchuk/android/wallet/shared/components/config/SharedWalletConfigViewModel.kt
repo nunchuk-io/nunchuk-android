@@ -26,7 +26,7 @@ internal class SharedWalletConfigViewModel @Inject constructor(
     init {
         if (SessionHolder.hasActiveRoom()) {
             val currentRoom = SessionHolder.currentRoom!!
-            val roomMembers = currentRoom.getRoomMembers(RoomMemberQueryParams.Builder().build())
+            val roomMembers = currentRoom.membershipService().getRoomMembers(RoomMemberQueryParams.Builder().build())
             updateState { copy(signerModels = roomMembers.toSignerModels()) }
             getRoomWallet(currentRoom.roomId)
         }

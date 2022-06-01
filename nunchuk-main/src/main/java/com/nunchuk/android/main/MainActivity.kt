@@ -18,10 +18,7 @@ import com.nunchuk.android.core.matrix.MatrixEvenBus
 import com.nunchuk.android.core.matrix.MatrixEvent
 import com.nunchuk.android.core.matrix.MatrixEventListener
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.util.AppEvenBus
-import com.nunchuk.android.core.util.AppEvent
-import com.nunchuk.android.core.util.AppEventListener
-import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.DownloadFileSyncSucceed
@@ -149,8 +146,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun handleDownloadedSyncFile(event: DownloadFileSyncSucceed) {
+        event.responseBody.byteStream()
+            .saveToFile(externalCacheDir.toString() + File.separator + "FileBackup")
         val saveFile = File(externalCacheDir.toString() + File.separator + "FileBackup")
-        viewModel.consumeSyncFile(event.jsonInfo, event.responseBody, saveFile)
+        viewModel.consumeSyncFile(event.jsonInfo, saveFile.readBytes())
     }
 
     private val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
