@@ -14,9 +14,7 @@ import com.nunchuk.android.messages.util.STATE_NUNCHUK_SYNC
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flatMapConcat
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
@@ -99,7 +97,11 @@ internal class SyncRoomViewModel @Inject constructor(
                         userName = it,
                         password = token,
                         encryptedDeviceId = encryptedDeviceId
-                    )
+                    ).onStart {
+                        Timber.tag(TAG).d("start login matrix")
+                    }.onCompletion {
+                        Timber.tag(TAG).d("end login matrix")
+                    }
                 }
                 .flowOn(Main)
                 .collect {
@@ -119,6 +121,7 @@ internal class SyncRoomViewModel @Inject constructor(
     ).onException {}
 
     companion object {
+        private const val TAG = "SyncRoomViewModel"
         private const val EVENT_TYPE_SYNC = "io.nunchuk.sync"
         private const val EVENT_TYPE_SYNC_ERROR = "io.nunchuk.error"
         private const val EVENT_TYPE_TAG_ROOM = "m.tag"

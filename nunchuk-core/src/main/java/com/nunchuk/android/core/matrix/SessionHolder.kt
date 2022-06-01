@@ -53,6 +53,6 @@ object SessionHolder {
     fun getActiveRoomIdSafe() = currentRoom?.roomId.orEmpty()
 }
 
-fun Session.roomSummariesFlow() = getRoomSummariesLive(roomSummaryQueryParams {
+fun Session.roomSummariesFlow() = roomService().getRoomSummariesLive(roomSummaryQueryParams {
     memberships = Membership.activeMemberships()
 }).asFlow()

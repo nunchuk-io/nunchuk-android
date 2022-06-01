@@ -21,6 +21,6 @@ fun Room.getRoomInfo(currentName: String): RoomInfo {
     }
 }
 
-fun Room.getRoomMemberList() = getRoomMembers(roomMemberQueryParams())
+fun Room.getRoomMemberList() = membershipService().getRoomMembers(roomMemberQueryParams())
 
 private fun roomMemberQueryParams() = RoomMemberQueryParams.Builder().build()

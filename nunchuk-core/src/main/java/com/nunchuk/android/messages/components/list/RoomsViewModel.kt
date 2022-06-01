@@ -34,7 +34,7 @@ class RoomsViewModel @Inject constructor(
 
     val listener = object : Session.Listener {
         override fun onNewInvitedRoom(session: Session, roomId: String) {
-            session.getRoom(roomId)?.let(::joinRoom)
+            session.roomService().getRoom(roomId)?.let(::joinRoom)
         }
 
         override fun onGlobalError(session: Session, globalError: GlobalError) {
@@ -93,7 +93,7 @@ class RoomsViewModel @Inject constructor(
     private fun joinRoom(room: Room) {
         viewModelScope.launch {
             trySafe {
-                SessionHolder.activeSession?.joinRoom(room.roomId)
+                SessionHolder.activeSession?.roomService()?.joinRoom(room.roomId)
             }
         }
     }
@@ -162,7 +162,7 @@ class RoomsViewModel @Inject constructor(
         super.onCleared()
     }
 
-    private fun getRoom(roomSummary: RoomSummary) = SessionHolder.activeSession?.getRoom(roomSummary.roomId)
+    private fun getRoom(roomSummary: RoomSummary) = SessionHolder.activeSession?.roomService()?.getRoom(roomSummary.roomId)
 
     companion object {
         private const val TAG = "MainActivityViewModel"

@@ -26,7 +26,7 @@ internal class PushNotificationManagerImpl @Inject constructor(
 ) : PushNotificationManager {
 
     override suspend fun testPush(pushKey: String) {
-        SessionHolder.activeSession?.testPush(
+        getPushersService()?.testPush(
             stringProvider.getString(R.string.push_http_url),
             stringProvider.getString(R.string.push_app_id),
             pushKey,
@@ -35,11 +35,11 @@ internal class PushNotificationManagerImpl @Inject constructor(
     }
 
     override fun enqueueRegisterPusherWithFcmKey(pushKey: String): UUID? {
-        return SessionHolder.activeSession?.enqueueAddHttpPusher(createHttpPusher(pushKey))
+        return getPushersService()?.enqueueAddHttpPusher(createHttpPusher(pushKey))
     }
 
     override suspend fun registerPusherWithFcmKey(pushKey: String) {
-        SessionHolder.activeSession?.addHttpPusher(createHttpPusher(pushKey))
+        getPushersService()?.addHttpPusher(createHttpPusher(pushKey))
     }
 
     private fun createHttpPusher(pushKey: String) = PushersService.HttpPusher(
@@ -55,8 +55,10 @@ internal class PushNotificationManagerImpl @Inject constructor(
     )
 
     suspend fun unregisterPusher(pushKey: String) {
-        SessionHolder.activeSession?.removeHttpPusher(pushKey, stringProvider.getString(R.string.push_app_id))
+        getPushersService()?.removeHttpPusher(pushKey, stringProvider.getString(R.string.push_app_id))
     }
+
+    private fun getPushersService() = SessionHolder.activeSession?.pushersService()
 
     companion object {
         private const val TEST_EVENT_ID = "TEST_EVENT_ID"

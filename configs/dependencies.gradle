@@ -30,16 +30,17 @@ ext {
     pagingVersion = "3.1.1"
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.1.37'
+    nativeSdkVersion = '1.1.38'
 
     // Matrix
-    matrixSdkVersion = '1.4.4'
+    matrixSdkVersion = '1.4.16'
+    // https://user-images.githubusercontent.com/9841565/164481595-53564bf0-416c-469c-b251-71b0e59074c8.png
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
     PATCH_VERSION = 15
 
-    VERSION_CODE = 143
+    VERSION_CODE = 144
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",

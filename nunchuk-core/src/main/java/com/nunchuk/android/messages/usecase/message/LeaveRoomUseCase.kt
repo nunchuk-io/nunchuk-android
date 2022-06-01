@@ -16,7 +16,7 @@ internal class LeaveRoomUseCaseImpl @Inject constructor(
     override fun execute(room: Room, reason: String?) = flow {
         emit(
             if (SessionHolder.hasActiveSession()) {
-                SessionHolder.activeSession!!.leaveRoom(roomId = room.roomId, reason = reason)
+                SessionHolder.activeSession!!.roomService().leaveRoom(roomId = room.roomId, reason = reason)
             } else Unit
         )
     }

@@ -26,8 +26,8 @@ internal class CreateRoomWithTagUseCaseImpl @Inject constructor(
             preset = CreateRoomPreset.PRESET_PRIVATE_CHAT
             name = displayName
         }
-        val room = session.getRoom(session.createRoom(params))
-        room?.addTag(tag, 1.0)
+        val room = session.roomService().getRoom(session.roomService().createRoom(params))
+        room?.tagsService()?.addTag(tag, 1.0)
         emit(
             room ?: throw RoomWithTagCreationException()
         )

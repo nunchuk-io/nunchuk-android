@@ -77,7 +77,7 @@ internal class NunchukApplication : Application(), HasAndroidInjector, Configura
     }
 
     override fun getWorkManagerConfiguration() = Configuration.Builder()
-        .setWorkerFactory(matrix.workerFactory())
+        .setWorkerFactory(matrix.getWorkerFactory())
         .setExecutor(Executors.newCachedThreadPool())
         .build()
 

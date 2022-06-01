@@ -15,8 +15,9 @@ internal class CreateDirectRoomUseCaseImpl @Inject constructor(
 ) : BaseMessageUseCase(), CreateDirectRoomUseCase {
 
     override fun execute(userId: String) = flow {
-        val roomId = session.getExistingDirectRoomWithUser(userId) ?: session.createDirectRoom(userId)
-        val room = session.getRoom(roomId) ?: throw RoomCreationException()
+        val roomService = session.roomService()
+        val roomId = roomService.getExistingDirectRoomWithUser(userId) ?: roomService.createDirectRoom(userId)
+        val room = roomService.getRoom(roomId) ?: throw RoomCreationException()
         emit(room)
         delay(CREATE_ROOM_DELAY)
     }

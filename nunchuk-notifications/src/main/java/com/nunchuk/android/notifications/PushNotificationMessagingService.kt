@@ -98,11 +98,12 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
         if (roomId == SessionHolder.getActiveRoomIdSafe()) return null
 
         val session = getActiveSession() ?: return defaultNotificationData()
-        val room = session.getRoom(roomId) ?: return defaultNotificationData()
-        val event = room.getTimelineEvent(eventId)
+        val room = session.roomService().getRoom(roomId) ?: return defaultNotificationData()
+        val timelineService = room.timelineService()
+        val event = timelineService.getTimelineEvent(eventId)
         if (event == null) {
             mUIHandler.postDelayed({
-                room.getTimelineEvent(eventId)?.toPushNotificationData(roomId)?.let(::showNotification)
+                timelineService.getTimelineEvent(eventId)?.toPushNotificationData(roomId)?.let(::showNotification)
             }, RETRY_DELAY)
         }
         return event?.toPushNotificationData(roomId)
@@ -159,8 +160,8 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
     private fun isEventAlreadyKnown(session: Session, eventId: String?, roomId: String?): Boolean {
         if (null != eventId && null != roomId) {
             try {
-                val room = session.getRoom(roomId) ?: return false
-                return room.getTimelineEvent(eventId) != null
+                val room = session.roomService().getRoom(roomId) ?: return false
+                return room.timelineService().getTimelineEvent(eventId) != null
             } catch (e: Exception) {
                 CrashlyticsReporter.recordException(e)
             }

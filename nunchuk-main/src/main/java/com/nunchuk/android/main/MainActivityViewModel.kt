@@ -1,5 +1,6 @@
 package com.nunchuk.android.main
 
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.callbacks.DownloadFileCallBack
@@ -27,18 +28,19 @@ import com.nunchuk.android.usecase.EnableAutoBackupUseCase
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import okhttp3.ResponseBody
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupState
+import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
+import org.matrix.android.sdk.api.session.crypto.model.MXUsersDevicesMap
+import org.matrix.android.sdk.api.session.initsync.SyncStatusService
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
+import org.matrix.android.sdk.api.util.awaitCallback
 import timber.log.Timber
-import java.io.File
 import javax.inject.Inject
 
 internal class MainActivityViewModel @Inject constructor(
@@ -64,12 +66,44 @@ internal class MainActivityViewModel @Inject constructor(
 
     private var timeline: Timeline? = null
 
+    private var checkBootstrap: Boolean = false
+
     init {
         initSyncEventExecutor()
         registerDownloadFileBackupEvent()
         registerBlockChainConnectionStatusExecutor()
         getDisplayUnitSetting()
         checkMissingSyncFile()
+        observeInitialSync()
+    }
+
+    private fun observeInitialSync() {
+        SessionHolder.activeSession?.let {
+            it.syncStatusService().getSyncStatusLive()
+                .asFlow()
+                .onEach { status ->
+                    when (status) {
+                        is SyncStatusService.Status.Idle -> {
+                            if (!checkBootstrap) {
+                                checkBootstrap = true
+                                downloadKeys(it)
+                            }
+                        }
+                        else -> {}
+                    }
+                }
+                .launchIn(viewModelScope)
+        }
+
+    }
+
+    private fun downloadKeys(session: Session) {
+        viewModelScope.launch {
+            awaitCallback<MXUsersDevicesMap<CryptoDeviceInfo>> {
+                session.cryptoService().downloadKeys(listOf(session.myUserId), true, it)
+                Timber.tag(TAG).d("download keys for user ${session.myUserId}")
+            }
+        }
     }
 
     private fun checkMissingSyncFile() {
@@ -313,11 +347,9 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
-    fun consumeSyncFile(fileJsonInfo: String, responseBody: ResponseBody, saveFile: File) {
-        Timber.tag(TAG).d("consumeSyncFile($fileJsonInfo, $saveFile)")
+    fun consumeSyncFile(fileJsonInfo: String, fileData: ByteArray) {
+        Timber.tag(TAG).d("consumeSyncFile($fileJsonInfo, $fileData)")
         viewModelScope.launch {
-            responseBody.byteStream().saveToFile(saveFile.name)
-            val fileData = saveFile.readBytes()
             consumeSyncFileUseCase.execute(fileJsonInfo, fileData)
                 .flowOn(IO)
                 .onException { }
@@ -336,7 +368,7 @@ internal class MainActivityViewModel @Inject constructor(
 
     private fun Room.retrieveTimelineEvents() {
         Timber.tag(TAG).v("retrieveTimelineEvents")
-        timeline = createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
+        timeline = timelineService().createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
             removeAllListeners()
             addListener(TimelineListenerAdapter(::handleTimelineEvents))
             start()
@@ -345,6 +377,7 @@ internal class MainActivityViewModel @Inject constructor(
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
         Timber.tag(TAG).v("handleTimelineEvents")
+        //checkIfReRequestKeysNeeded(events)
         val nunchukEvents = events.filter(TimelineEvent::isNunchukConsumeSyncEvent)
         viewModelScope.launch {
             val sortedEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
@@ -355,6 +388,24 @@ internal class MainActivityViewModel @Inject constructor(
                 .flowOn(IO)
                 .onException { Timber.tag(TAG).v("consumerSyncEventUseCase fail") }
                 .collect { Timber.tag(TAG).v("consumerSyncEventUseCase success") }
+        }
+    }
+
+    private fun checkIfReRequestKeysNeeded(events: List<TimelineEvent>) {
+        events.forEach(::reRequestKeys)
+    }
+
+    private fun reRequestKeys(timelineEvent: TimelineEvent) {
+        val session = SessionHolder.activeSession ?: return
+        if (timelineEvent.isEncrypted() && timelineEvent.root.mCryptoError != null) {
+            val cryptoService = session.cryptoService()
+            val keysBackupService = cryptoService.keysBackupService()
+            if (keysBackupService.state == KeysBackupState.NotTrusted || (keysBackupService.state == KeysBackupState.ReadyToBackUp && keysBackupService.canRestoreKeys())) {
+                Timber.tag(TAG).d("Use backup key flow")
+            }
+            if (cryptoService.getCryptoDeviceInfo(session.myUserId).size > 1 || timelineEvent.senderInfo.userId != session.myUserId) {
+                cryptoService.reRequestRoomKeyForEvent(timelineEvent.root)
+            }
         }
     }
 
@@ -371,7 +422,7 @@ internal class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             flow {
                 val activeSession = SessionHolder.activeSession ?: throw SessionLostException()
-                val room = activeSession.getRoom(roomId) ?: throw RoomNotFoundException(roomId)
+                val room = activeSession.roomService().getRoom(roomId) ?: throw RoomNotFoundException(roomId)
                 emit(room)
             }.flowOn(IO)
                 .onException { }

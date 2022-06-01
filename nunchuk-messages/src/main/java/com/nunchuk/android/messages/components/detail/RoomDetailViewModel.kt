@@ -67,7 +67,7 @@ class RoomDetailViewModel @Inject constructor(
     override val initialState = RoomDetailState.empty()
 
     fun initialize(roomId: String) {
-        SessionHolder.activeSession?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
+        SessionHolder.activeSession?.roomService()?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
         getDeveloperSettings()
     }
 
@@ -82,10 +82,10 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun markRoomDisplayed(room: Room) {
         viewModelScope.launch(IO) {
-            trySafe { SessionHolder.activeSession?.onRoomDisplayed(room.roomId) }
+            trySafe { SessionHolder.activeSession?.roomService()?.onRoomDisplayed(room.roomId) }
         }
         viewModelScope.launch(IO) {
-            trySafe { room.markAsRead(ReadService.MarkAsReadParams.READ_RECEIPT) }
+            trySafe { room.readService().markAsRead(ReadService.MarkAsReadParams.READ_RECEIPT) }
         }
     }
 
@@ -122,8 +122,8 @@ class RoomDetailViewModel @Inject constructor(
         SendEventHelper.executor = object : SendEventExecutor {
             override fun execute(roomId: String, type: String, content: String, ignoreError: Boolean): String {
                 if (SessionHolder.hasActiveSession()) {
-                    SessionHolder.activeSession?.getRoom(roomId)?.run {
-                        trySafe { sendEvent(type, content.toMatrixContent()) }
+                    SessionHolder.activeSession?.roomService()?.getRoom(roomId)?.run {
+                        trySafe { sendService().sendEvent(type, content.toMatrixContent()) }
                     }
                 }
                 return ""
@@ -134,14 +134,14 @@ class RoomDetailViewModel @Inject constructor(
     private fun joinRoom() {
         viewModelScope.launch(IO) {
             if (EmailValidator.isNunchukEmail(currentEmail)) {
-                trySafe { SessionHolder.activeSession?.joinRoom(room.roomId) }
+                trySafe { SessionHolder.activeSession?.roomService()?.joinRoom(room.roomId) }
             }
         }
     }
 
     private fun retrieveTimelineEvents() {
         updateState { copy(roomInfo = room.getRoomInfo(currentName)) }
-        timeline = room.createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
+        timeline = room.timelineService().createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
             removeListener(timelineListenerAdapter)
             addListener(timelineListenerAdapter)
             start()
@@ -215,7 +215,7 @@ class RoomDetailViewModel @Inject constructor(
         .map { it.eventId to it.isReceiveTransactionEvent() }
 
     fun handleSendMessage(content: String) {
-        room.sendTextMessage(content)
+        room.sendService().sendTextMessage(content)
     }
 
     fun handleTitleClick() {
@@ -325,7 +325,7 @@ class RoomDetailViewModel @Inject constructor(
 
     fun markMessageRead(eventId: String) {
         viewModelScope.launch(IO) {
-            room.setReadReceipt(eventId = eventId)
+            room.readService().setReadReceipt(eventId = eventId)
         }
     }
 
