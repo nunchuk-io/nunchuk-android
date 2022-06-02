@@ -377,7 +377,7 @@ internal class MainActivityViewModel @Inject constructor(
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
         Timber.tag(TAG).v("handleTimelineEvents")
-        //checkIfReRequestKeysNeeded(events)
+        checkIfReRequestKeysNeeded(events)
         val nunchukEvents = events.filter(TimelineEvent::isNunchukConsumeSyncEvent)
         viewModelScope.launch {
             val sortedEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
