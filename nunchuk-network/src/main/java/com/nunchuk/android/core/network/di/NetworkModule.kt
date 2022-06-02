@@ -10,7 +10,6 @@ import com.nunchuk.android.core.network.ApiConstant.HTTP_READ_TIMEOUT
 import com.nunchuk.android.core.network.ApiConstant.HTTP_WRITE_TIMEOUT
 import com.nunchuk.android.core.network.BuildConfig
 import com.nunchuk.android.core.network.HeaderInterceptor
-import com.nunchuk.android.core.network.UnauthorizedInterceptor
 import com.nunchuk.android.network.util.MATRIX_HTTP_CLIENT
 import com.nunchuk.android.network.util.MATRIX_LOGGING_INTERCEPTOR
 import com.nunchuk.android.network.util.MATRIX_RETROFIT
@@ -70,7 +69,6 @@ class NetworkModule @Inject constructor() {
     fun provideNunchukOkHttpClient(
         loggingInterceptor: HttpLoggingInterceptor,
         headerInterceptor: HeaderInterceptor,
-        unauthorizedInterceptor: UnauthorizedInterceptor,
         connectionSpecs: List<ConnectionSpec>
     ): OkHttpClient = OkHttpClient.Builder()
         .protocols(listOf(Protocol.HTTP_1_1))
