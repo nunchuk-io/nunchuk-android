@@ -146,10 +146,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun handleDownloadedSyncFile(event: DownloadFileSyncSucceed) {
-        event.responseBody.byteStream()
-            .saveToFile(externalCacheDir.toString() + File.separator + "FileBackup")
-        val saveFile = File(externalCacheDir.toString() + File.separator + "FileBackup")
-        viewModel.consumeSyncFile(event.jsonInfo, saveFile.readBytes())
+        viewModel.saveSyncFileToCache(
+            data = event.responseBody,
+            path = externalCacheDir.toString() + File.separator + "FileBackup",
+            fileJsonInfo = event.jsonInfo
+        )
     }
 
     private val listener = NavController.OnDestinationChangedListener { _, destination, _ ->

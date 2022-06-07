@@ -27,7 +27,7 @@ internal class SyncFileRepositoryImpl @Inject constructor(
     }
 
     override fun deleteSyncFile(model: SyncFileModel) {
-        syncFileDao.delete(model.toEntity())
+        syncFileDao.deleteSyncFilesByInfo(listOf(model.fileJsonInfo))
     }
 
     override fun createSyncFile(model: SyncFileModel) {

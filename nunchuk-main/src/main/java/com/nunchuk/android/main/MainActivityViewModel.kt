@@ -30,6 +30,7 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import okhttp3.ResponseBody
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupState
 import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
@@ -59,7 +60,8 @@ internal class MainActivityViewModel @Inject constructor(
     private val ncSharePreferences: NCSharePreferences,
     private val getSyncFileUseCase: GetSyncFileUseCase,
     private val createOrUpdateSyncFileUseCase: CreateOrUpdateSyncFileUseCase,
-    private val deleteSyncFileUseCase: DeleteSyncFileUseCase
+    private val deleteSyncFileUseCase: DeleteSyncFileUseCase,
+    private val saveCacheFileUseCase: SaveCacheFileUseCase
 ) : NunchukViewModel<Unit, MainAppEvent>() {
 
     override val initialState = Unit
@@ -159,6 +161,23 @@ internal class MainActivityViewModel @Inject constructor(
                 .flowOn(IO)
                 .onException {}
                 .collect { getBTCConvertPrice() }
+        }
+    }
+
+    fun saveSyncFileToCache(
+        data: ResponseBody,
+        path: String,
+        fileJsonInfo: String
+    ) {
+        viewModelScope.launch {
+            saveCacheFileUseCase.execute(
+                data = data,
+                path = path
+            ).flowOn(IO)
+                .onException {}
+                .collect {
+                    consumeSyncFile(fileJsonInfo, it)
+                }
         }
     }
 
@@ -347,7 +366,7 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
-    fun consumeSyncFile(fileJsonInfo: String, fileData: ByteArray) {
+    private fun consumeSyncFile(fileJsonInfo: String, fileData: ByteArray) {
         Timber.tag(TAG).d("consumeSyncFile($fileJsonInfo, $fileData)")
         viewModelScope.launch {
             consumeSyncFileUseCase.execute(fileJsonInfo, fileData)
