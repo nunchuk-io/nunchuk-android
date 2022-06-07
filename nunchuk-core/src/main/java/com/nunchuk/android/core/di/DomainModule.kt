@@ -24,6 +24,8 @@ import com.nunchuk.android.core.domain.InitAppSettingsUseCase
 import com.nunchuk.android.core.domain.InitAppSettingsUseCaseImpl
 import com.nunchuk.android.core.domain.LoginWithMatrixUseCase
 import com.nunchuk.android.core.domain.LoginWithMatrixUseCaseImpl
+import com.nunchuk.android.core.domain.SaveCacheFileUseCase
+import com.nunchuk.android.core.domain.SaveCacheFileUseCaseImpl
 import com.nunchuk.android.core.domain.ScheduleGetPriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.ScheduleGetPriceConvertBTCUseCaseImpl
 import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
@@ -89,5 +91,8 @@ internal interface DomainModule {
 
     @Binds
     fun bindDeleteSyncFileUseCase(useCase: DeleteSyncFileUseCaseImpl): DeleteSyncFileUseCase
+
+    @Binds
+    fun bindSaveCacheFileUseCase(useCase: SaveCacheFileUseCaseImpl): SaveCacheFileUseCase
 
 }

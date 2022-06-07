@@ -16,4 +16,7 @@ interface SyncFileDao : BaseDao<SyncFileEntity> {
     @Query("DELETE FROM $TABLE_SYNC_FILE WHERE id IN (:syncFileIds)")
     fun deleteSyncFiles(syncFileIds: List<String>)
 
+    @Query("DELETE FROM $TABLE_SYNC_FILE WHERE file_json_info IN (:syncFileInfo)")
+    fun deleteSyncFilesByInfo(syncFileInfo: List<String>)
+
 }
