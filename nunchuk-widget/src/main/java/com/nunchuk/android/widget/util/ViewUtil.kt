@@ -17,6 +17,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.nunchuk.android.widget.NCEditTextView
+import kotlinx.coroutines.*
 
 fun NCEditTextView.heightExtended(dimensionPixelSize: Int) {
     getEditTextView().heightExtended(dimensionPixelSize)
@@ -155,6 +156,26 @@ fun RecyclerView.isFirstItemVisible(): Boolean {
         if (visibleItemPosition != RecyclerView.NO_POSITION && visibleItemPosition == 0) return true
     }
     return false
+}
+
+fun View.setOnDebounceClickListener(interval: Long = 500L, clickListener: (View) -> Unit) {
+    debounceClick(interval, clickListener)
+}
+
+internal fun View.debounceClick(interval: Long = 500L, clicked: (View) -> Unit) {
+    setOnClickListener(debounce(interval) { clicked(it) })
+}
+
+private fun <T> debounce(interval: Long = 500L, coroutineScope: CoroutineScope = MainScope(), func: (T) -> Unit): (T) -> Unit {
+    var job: Job? = null
+    return { param: T ->
+        if (job?.isCompleted != false) {
+            job = coroutineScope.launch {
+                func(param)
+                delay(interval)
+            }
+        }
+    }
 }
 
 

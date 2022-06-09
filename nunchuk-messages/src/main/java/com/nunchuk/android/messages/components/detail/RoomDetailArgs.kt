@@ -5,7 +5,7 @@ import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.core.constants.RoomAction
 
-data class RoomDetailArgs(val roomId: String, val roomAction: RoomAction? = null) : ActivityArgs {
+data class RoomDetailArgs(val roomId: String, var roomAction: RoomAction? = null) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) =
         Intent(activityContext, RoomDetailActivity::class.java).apply {
