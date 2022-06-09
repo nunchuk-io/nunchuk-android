@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.paging.CombinedLoadStates
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadState
+import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.vm.NunchukFactory
@@ -27,7 +28,10 @@ import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.widget.NCToastMessage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -93,6 +97,7 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
     }
 
     private fun paginateTransactions() {
+        adapter.submitData(lifecycle, PagingData.empty())
         job?.cancel()
         job = lifecycleScope.launch(Dispatchers.IO) {
             @OptIn(ExperimentalPagingApi::class)

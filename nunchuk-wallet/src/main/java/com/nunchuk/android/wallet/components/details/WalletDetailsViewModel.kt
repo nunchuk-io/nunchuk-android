@@ -17,7 +17,6 @@ import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
@@ -39,7 +38,6 @@ internal class WalletDetailsViewModel @Inject constructor(
     lateinit var walletId: String
 
     private var transactions: List<Transaction> = ArrayList()
-    private val pagingSource: TransactionPagingSource by lazy { TransactionPagingSource(transactions) }
 
     override val initialState = WalletDetailsState()
 
@@ -51,6 +49,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     fun getRoomWallet() = getState().walletExtended.roomWallet
 
     fun syncData() {
+        transactions = ArrayList()
         getWalletDetails()
     }
 
@@ -83,7 +82,7 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     fun paginateTransactions() = Pager(
         config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
-        pagingSourceFactory = { pagingSource }
+        pagingSourceFactory = { TransactionPagingSource(transactions) }
     ).flow.cachedIn(viewModelScope).flowOn(IO)
 
     private fun onRetrievedTransactionHistory() {

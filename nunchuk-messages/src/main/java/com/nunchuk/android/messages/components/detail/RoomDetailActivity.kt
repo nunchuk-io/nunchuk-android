@@ -166,7 +166,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         binding.toolbar.setOnClickListener {
             viewModel.handleTitleClick()
         }
-        binding.add.setOnClickListener {
+        binding.add.setOnDebounceClickListener {
             sendBTCAction()
         }
 
@@ -184,8 +184,8 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             }
         })
 
-        binding.sendBTC.setOnClickListener { sendBTCAction() }
-        binding.receiveBTC.setOnClickListener { receiveBTCAction() }
+        binding.sendBTC.setOnDebounceClickListener { sendBTCAction() }
+        binding.receiveBTC.setOnDebounceClickListener { receiveBTCAction() }
         setupAnimationForChatBar()
     }
 
@@ -303,6 +303,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 
     private fun handleRoomAction(roomAction: RoomAction) {
+        args.roomAction = null
         when (roomAction) {
             RoomAction.SEND -> sendBTCAction()
             RoomAction.RECEIVE -> receiveBTCAction()
