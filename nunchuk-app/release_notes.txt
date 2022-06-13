@@ -20,3 +20,4 @@ What's news:
 - NUN-1445 Android - Change network doesn't require restart app
 - NUN-1512 Android - Improve retry logic for upload/download sync files
 - NUN-1197 Android - Fix block UI thread, download sync file multiple times
+- NUN-1490 Android - Using WriteFileCallback instead of DownloadFileCallback

@@ -148,7 +148,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun handleDownloadedSyncFile(event: DownloadFileSyncSucceed) {
         viewModel.saveSyncFileToCache(
             data = event.responseBody,
-            path = externalCacheDir.toString() + File.separator + "FileBackup",
+            path = externalCacheDir.toString() + File.separator + "FileBackup" + System.currentTimeMillis(),
             fileJsonInfo = event.jsonInfo
         )
     }

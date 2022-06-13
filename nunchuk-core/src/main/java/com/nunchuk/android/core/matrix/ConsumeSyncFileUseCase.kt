@@ -11,7 +11,7 @@ import javax.inject.Inject
 interface ConsumeSyncFileUseCase {
     fun execute(
         fileJsonInfo: String,
-        fileData: ByteArray
+        filePath: String
     ): Flow<Unit>
 }
 
@@ -21,10 +21,10 @@ internal class ConsumeSyncFileUseCaseImpl @Inject constructor(
 
     override fun execute(
         fileJsonInfo: String,
-        fileData: ByteArray
+        filePath: String
     ) = flow<Unit> {
         trySafe {
-            nunchukNativeSdk.downloadFileCallback(fileJsonInfo = fileJsonInfo, fileData = fileData)
+            nunchukNativeSdk.writeFileCallback(fileJsonInfo = fileJsonInfo, fileData = filePath)
         }
     }.flowOn(Dispatchers.IO)
 }
