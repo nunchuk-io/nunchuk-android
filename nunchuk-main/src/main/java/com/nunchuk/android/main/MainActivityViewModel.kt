@@ -366,10 +366,10 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
-    private fun consumeSyncFile(fileJsonInfo: String, fileData: ByteArray) {
-        Timber.tag(TAG).d("consumeSyncFile($fileJsonInfo, $fileData)")
+    private fun consumeSyncFile(fileJsonInfo: String, filePath: String) {
+        Timber.tag(TAG).d("consumeSyncFile($fileJsonInfo, $filePath)")
         viewModelScope.launch {
-            consumeSyncFileUseCase.execute(fileJsonInfo, fileData)
+            consumeSyncFileUseCase.execute(fileJsonInfo, filePath)
                 .flowOn(IO)
                 .onException { }
                 .collect { event(SyncCompleted) }

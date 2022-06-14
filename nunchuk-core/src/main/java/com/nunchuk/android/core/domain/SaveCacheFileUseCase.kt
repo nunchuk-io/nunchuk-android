@@ -13,7 +13,7 @@ interface SaveCacheFileUseCase {
     fun execute(
         data: ResponseBody,
         path: String
-    ): Flow<ByteArray>
+    ): Flow<String>
 }
 
 internal class SaveCacheFileUseCaseImpl @Inject constructor(
@@ -26,7 +26,7 @@ internal class SaveCacheFileUseCaseImpl @Inject constructor(
         val saveFile = File(path)
         data.byteStream().saveToFile(saveFile.path)
         emit(
-            saveFile.readBytes()
+            saveFile.absolutePath
         )
     }.flowOn(Dispatchers.IO)
 
