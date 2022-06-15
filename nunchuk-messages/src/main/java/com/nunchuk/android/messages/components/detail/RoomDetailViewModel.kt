@@ -78,6 +78,17 @@ class RoomDetailViewModel @Inject constructor(
         initSendEventExecutor()
         retrieveTimelineEvents()
         getRoomWallet()
+        prepareForEncryption()
+    }
+
+    private fun prepareForEncryption() {
+        if (room.roomCryptoService().isEncrypted()) {
+            viewModelScope.launch {
+                runCatching {
+                    room.roomCryptoService().prepareToEncrypt()
+                }
+            }
+        }
     }
 
     private fun markRoomDisplayed(room: Room) {

@@ -60,6 +60,7 @@ class RoomViewHolder(
         binding.avatar.isVisible = isGroupChat
         bindCount(data)
         binding.shareIcon.isVisible = data.roomId in roomWallets
+        binding.encryptedIcon.isVisible = data.isEncrypted
 
         binding.itemLayout.setOnClickListener { enterRoom(data) }
         binding.delete.setOnClickListener { removeRoom(data) }
