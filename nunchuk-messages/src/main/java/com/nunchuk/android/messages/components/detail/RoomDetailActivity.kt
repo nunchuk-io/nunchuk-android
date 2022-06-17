@@ -68,7 +68,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         val membersCount = resources.getQuantityString(R.plurals.nc_message_members, count, count)
         binding.memberCount.text = membersCount
 
-        adapter?.update(state.messages.groupByDate(), state.transactions, state.roomWallet, count)
+        adapter?.update(state.messages.groupByDate(), state.transactions.filterNot { it.initEventId.startsWith("\$local.") }, state.roomWallet, count)
         val hasRoomWallet = state.roomWallet != null
         stickyBinding.root.isVisible = hasRoomWallet
         binding.add.isVisible = !hasRoomWallet

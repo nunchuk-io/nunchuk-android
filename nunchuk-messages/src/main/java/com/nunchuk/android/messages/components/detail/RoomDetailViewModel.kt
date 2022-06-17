@@ -213,12 +213,19 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     private fun getTransactions(walletId: String, events: List<TimelineEvent>) {
+        val eventFilterNotLocal = events.filterNot {
+            it.eventId.startsWith("\$local.")
+        }
         viewModelScope.launch {
-            val eventIds = mapTransactionEvents(events)
+            val eventIds = mapTransactionEvents(eventFilterNotLocal)
             getTransactionsUseCase.execute(walletId, eventIds)
                 .flowOn(IO)
                 .onException { sendErrorEvent(it) }
-                .collect { updateState { copy(transactions = it) } }
+                .flowOn(Main)
+                .collect {
+                    updateState { copy(transactions = it) }
+                    event(HasUpdatedEvent)
+                }
         }
     }
 

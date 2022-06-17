@@ -28,6 +28,8 @@ internal class NunchukTransactionCardHolder(
         transactions.firstOrNull { it.initEventId == initEventId }?.let {
             bindTransaction(walletId = walletId, initEventId = initEventId, transaction = it.transaction)
             Timber.tag(TAG).d("bindTransaction(walletId = $walletId, initEventId = $initEventId, transaction = ${it.transaction})")
+        } ?: run {
+            bindUnknownTransaction()
         }
         CardHelper.adjustCardLayout(binding.root, binding.cardTopContainer, model.isOwner)
     }
@@ -51,6 +53,14 @@ internal class NunchukTransactionCardHolder(
         binding.signatureStatus.isInvisible = transaction.status.hadBroadcast()
         binding.sign.setOnClickListener { signTransaction() }
         binding.viewDetails.setOnClickListener { viewTransaction(walletId, transaction.txId, initEventId) }
+    }
+
+    private fun bindUnknownTransaction() {
+        binding.amount.text = ""
+        binding.status.text = ""
+        binding.address.text = ""
+        binding.signatureStatus.text = ""
+        binding.signatureStatus.isInvisible = false
     }
 
     companion object {
