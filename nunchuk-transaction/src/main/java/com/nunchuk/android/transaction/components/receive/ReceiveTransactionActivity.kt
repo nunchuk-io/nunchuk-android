@@ -10,7 +10,9 @@ import com.nunchuk.android.transaction.components.receive.address.AddressTab
 import com.nunchuk.android.transaction.components.receive.address.AddressTab.*
 import com.nunchuk.android.transaction.databinding.ActivityTransactionReceiveBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ReceiveTransactionActivity : BaseActivity<ActivityTransactionReceiveBinding>(), TabCountChangeListener {
 
     private lateinit var pagerAdapter: AddressPagerAdapter

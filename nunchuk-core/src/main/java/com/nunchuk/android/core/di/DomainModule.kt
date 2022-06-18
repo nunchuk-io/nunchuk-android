@@ -38,8 +38,11 @@ import com.nunchuk.android.share.GetCurrentUserAsContactUseCase
 import com.nunchuk.android.share.GetCurrentUserAsContactUseCaseImpl
 import dagger.Binds
 import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 
 @Module
+@InstallIn(SingletonComponent::class)
 internal interface DomainModule {
     @Binds
     fun bindGetPriceConvertBTCUseCase(repository: GetPriceConvertBTCUseCaseImpl): GetPriceConvertBTCUseCase

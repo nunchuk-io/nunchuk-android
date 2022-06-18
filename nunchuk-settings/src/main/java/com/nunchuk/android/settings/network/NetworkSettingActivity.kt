@@ -9,7 +9,6 @@ import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.constants.Constants.GLOBAL_SIGNET_EXPLORER
 import com.nunchuk.android.core.constants.Constants.SIG_NET_HOST
@@ -21,15 +20,13 @@ import com.nunchuk.android.utils.getTrimmedText
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
 // TODO: refactor network list to recyclerview
+@AndroidEntryPoint
 class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
 
-    @Inject
-    lateinit var factory: ViewModelFactory
-
-    private val viewModel: NetworkSettingViewModel by viewModels { factory }
+    private val viewModel: NetworkSettingViewModel by viewModels()
 
     override fun initializeBinding() = ActivityNetworkSettingBinding.inflate(layoutInflater)
 

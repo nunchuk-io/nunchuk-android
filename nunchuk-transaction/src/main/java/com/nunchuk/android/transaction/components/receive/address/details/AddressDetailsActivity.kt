@@ -6,7 +6,9 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.qr.convertToQRCode
 import com.nunchuk.android.transaction.databinding.ActivityAddressDetailsBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class AddressDetailsActivity : BaseActivity<ActivityAddressDetailsBinding>() {
 
     private val args: AddressDetailsArgs by lazy { AddressDetailsArgs.deserializeFrom(intent) }

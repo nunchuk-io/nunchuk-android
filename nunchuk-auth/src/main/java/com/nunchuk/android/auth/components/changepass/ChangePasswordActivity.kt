@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.*
 import com.nunchuk.android.auth.databinding.ActivityChangePasswordBinding
@@ -14,14 +13,12 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.passwordEnabled
 import com.nunchuk.android.widget.util.setTransparentStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
 
-    @Inject
-    lateinit var factory: ViewModelFactory
-
-    private val viewModel: ChangePasswordViewModel by viewModels { factory }
+    private val viewModel: ChangePasswordViewModel by viewModels()
 
     override fun initializeBinding() = ActivityChangePasswordBinding.inflate(layoutInflater)
 

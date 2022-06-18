@@ -15,11 +15,13 @@ import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.InitRoomTransactionUseCase
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class TransactionConfirmViewModel @Inject constructor(
     private val draftTransactionUseCase: DraftTransactionUseCase,
     private val createTransactionUseCase: CreateTransactionUseCase,

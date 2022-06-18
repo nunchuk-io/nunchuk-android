@@ -17,7 +17,9 @@ import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletOptio
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletOption.QrCode
 import com.nunchuk.android.wallet.personal.databinding.ActivityWalletIntermediaryBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class WalletIntermediaryActivity : BaseActivity<ActivityWalletIntermediaryBinding>() {
     private val hasSigner
         get() = intent.getBooleanExtra(EXTRA_HAS_SIGNER, false)

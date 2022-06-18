@@ -3,11 +3,15 @@ package com.nunchuk.android.transaction.components.send.amount
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.entities.SAT
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.fromBTCToSAT
+import com.nunchuk.android.core.util.fromBTCToUSD
+import com.nunchuk.android.core.util.fromUSDToBTC
+import com.nunchuk.android.core.util.toNumericValue
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.SwapCurrencyEvent
-import java.text.NumberFormat
+import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
+@HiltViewModel
 internal class InputAmountViewModel @Inject constructor(
 ) : NunchukViewModel<InputAmountState, InputAmountEvent>() {
 

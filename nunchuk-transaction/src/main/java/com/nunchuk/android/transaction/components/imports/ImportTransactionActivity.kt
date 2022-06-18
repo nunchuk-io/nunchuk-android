@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.google.zxing.client.android.Intents
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.CHOOSE_FILE_REQUEST_CODE
 import com.nunchuk.android.core.util.getFileFromUri
@@ -17,16 +16,14 @@ import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent
 import com.nunchuk.android.transaction.databinding.ActivityImportTransactionBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     private val args: ImportTransactionArgs by lazy { ImportTransactionArgs.deserializeFrom(intent) }
 
-    private val viewModel: ImportTransactionViewModel by viewModels { factory }
+    private val viewModel: ImportTransactionViewModel by viewModels()
 
     override fun initializeBinding() = ActivityImportTransactionBinding.inflate(layoutInflater)
 

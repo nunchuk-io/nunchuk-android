@@ -4,21 +4,18 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.entities.DisplayUnitSetting
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.settings.databinding.ActivityDisplayUnitSettingBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class DisplayUnitActivity : BaseActivity<ActivityDisplayUnitSettingBinding>() {
 
-    @Inject
-    lateinit var factory: ViewModelFactory
-
-    private val viewModel: DisplayUnitViewModel by viewModels { factory }
+    private val viewModel: DisplayUnitViewModel by viewModels()
 
     override fun initializeBinding() = ActivityDisplayUnitSettingBinding.inflate(layoutInflater)
 

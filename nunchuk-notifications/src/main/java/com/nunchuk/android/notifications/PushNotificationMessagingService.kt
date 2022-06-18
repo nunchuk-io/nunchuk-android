@@ -11,19 +11,14 @@ import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.utils.trySafe
-import dagger.android.AndroidInjection
-import dagger.android.AndroidInjector
-import dagger.android.DispatchingAndroidInjector
-import dagger.android.HasAndroidInjector
+import dagger.hilt.android.AndroidEntryPoint
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import javax.inject.Inject
 
-class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidInjector {
-
-    @Inject
-    lateinit var androidInjector: DispatchingAndroidInjector<Any>
+@AndroidEntryPoint
+class PushNotificationMessagingService : FirebaseMessagingService() {
 
     @Inject
     lateinit var notificationHelper: PushNotificationHelper
@@ -37,15 +32,8 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
     @Inject
     lateinit var matrix: Matrix
 
-    override fun androidInjector(): AndroidInjector<Any> = androidInjector
-
     private val mUIHandler by lazy {
         Handler(Looper.getMainLooper())
-    }
-
-    override fun onCreate() {
-        AndroidInjection.inject(this)
-        super.onCreate()
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {

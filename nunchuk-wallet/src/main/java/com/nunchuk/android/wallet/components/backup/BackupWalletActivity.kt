@@ -3,21 +3,18 @@ package com.nunchuk.android.wallet.components.backup
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.wallet.R
-import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Success
 import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Failure
+import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Success
 import com.nunchuk.android.wallet.databinding.ActivityWalletBackupWalletBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 
@@ -25,7 +22,7 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
 
     private val args: BackupWalletArgs by lazy { BackupWalletArgs.deserializeFrom(intent) }
 
-    private val viewModel: BackupWalletViewModel by viewModels { factory }
+    private val viewModel: BackupWalletViewModel by viewModels()
 
     override fun initializeBinding() = ActivityWalletBackupWalletBinding.inflate(layoutInflater)
 

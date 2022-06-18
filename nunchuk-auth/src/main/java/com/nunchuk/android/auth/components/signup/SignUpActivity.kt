@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.signup.SignUpEvent.*
 import com.nunchuk.android.auth.databinding.ActivitySignupBinding
@@ -13,14 +12,12 @@ import com.nunchuk.android.core.util.linkify
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.widget.util.setTransparentStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class SignUpActivity : BaseActivity<ActivitySignupBinding>() {
 
-    @Inject
-    lateinit var factory: ViewModelFactory
-
-    private val viewModel: SignUpViewModel by viewModels { factory }
+    private val viewModel: SignUpViewModel by viewModels()
 
     override fun initializeBinding() = ActivitySignupBinding.inflate(layoutInflater)
 

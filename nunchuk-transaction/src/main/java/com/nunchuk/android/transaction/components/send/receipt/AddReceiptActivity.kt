@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.qr.QRCodeParser
 import com.nunchuk.android.core.qr.startQRCodeScan
@@ -15,16 +14,14 @@ import com.nunchuk.android.transaction.databinding.ActivityTransactionAddReceipt
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setMaxLength
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class AddReceiptActivity : BaseActivity<ActivityTransactionAddReceiptBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     private val args: AddReceiptArgs by lazy { AddReceiptArgs.deserializeFrom(intent) }
 
-    private val viewModel: AddReceiptViewModel by viewModels { factory }
+    private val viewModel: AddReceiptViewModel by viewModels()
 
     override fun initializeBinding() = ActivityTransactionAddReceiptBinding.inflate(layoutInflater)
 

@@ -26,6 +26,7 @@ import com.nunchuk.android.notifications.PushNotificationManager
 import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.usecase.EnableAutoBackupUseCase
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
@@ -44,6 +45,7 @@ import org.matrix.android.sdk.api.util.awaitCallback
 import timber.log.Timber
 import javax.inject.Inject
 
+@HiltViewModel
 internal class MainActivityViewModel @Inject constructor(
     private val enableAutoBackupUseCase: EnableAutoBackupUseCase,
     private val uploadFileUseCase: UploadFileUseCase,

@@ -4,15 +4,16 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.usecase.ImportKeystoneWalletUseCase
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class RecoverWalletQrCodeViewModel @Inject constructor(
     private val importKeystoneWalletUseCase: ImportKeystoneWalletUseCase
 ) : NunchukViewModel<Unit, RecoverWalletQrCodeEvent>() {

@@ -11,11 +11,13 @@ import com.nunchuk.android.messages.components.group.toMatrixError
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import java.util.*
 import javax.inject.Inject
 
+@HiltViewModel
 class AddMembersViewModel @Inject constructor(
     private val getContactsUseCase: GetContactsUseCase
 ) : NunchukViewModel<AddMembersState, AddMembersEvent>() {

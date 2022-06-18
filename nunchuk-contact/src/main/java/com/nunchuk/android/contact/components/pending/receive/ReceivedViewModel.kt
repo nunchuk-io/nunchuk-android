@@ -6,9 +6,11 @@ import com.nunchuk.android.contact.components.pending.receive.ReceivedEvent.Load
 import com.nunchuk.android.contact.repository.ContactsRepository
 import com.nunchuk.android.contact.usecase.GetReceivedContactsUseCase
 import com.nunchuk.android.model.ReceiveContact
+import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 // FIXME
+@HiltViewModel
 class ReceivedViewModel @Inject constructor(
     private val getReceivedContactsUseCase: GetReceivedContactsUseCase,
     private val contactsRepository: ContactsRepository,

@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.InputFilter.LengthFilter
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
@@ -14,14 +13,13 @@ import com.nunchuk.android.wallet.personal.databinding.ActivityAddRecoverWalletB
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
 // TODO: merge with AddWalletActivity later to avoid duplicate code
+@AndroidEntryPoint
 class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>() {
-    @Inject
-    lateinit var factory: NunchukFactory
 
-    private val viewModel: RecoverWalletViewModel by viewModels { factory }
+    private val viewModel: RecoverWalletViewModel by viewModels()
 
     private val recoverWalletData: RecoverWalletData?
         get() = intent.getParcelableExtra(EXTRAS_DATA)

@@ -10,11 +10,13 @@ import com.nunchuk.android.usecase.SendSignerPassphrase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.AssignSignerCompletedEvent
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.Loading
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class ConfigureWalletViewModel @Inject constructor(
     private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     private val sendSignerPassphrase: SendSignerPassphrase

@@ -13,12 +13,14 @@ import com.nunchuk.android.transaction.components.receive.address.AddressFragmen
 import com.nunchuk.android.transaction.components.receive.address.used.UsedAddressEvent.GetUsedAddressErrorEvent
 import com.nunchuk.android.transaction.databinding.FragmentUsedAddressBinding
 import com.nunchuk.android.widget.NCToastMessage
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 internal class UsedAddressFragment : BaseFragment<FragmentUsedAddressBinding>() {
 
     private val args: AddressFragmentArgs by lazy { AddressFragmentArgs.deserializeFrom(arguments) }
 
-    private val viewModel: UsedAddressViewModel by viewModels { factory }
+    private val viewModel: UsedAddressViewModel by viewModels()
 
     private lateinit var adapter: UsedAddressAdapter
 

@@ -1,17 +1,19 @@
-package com.nunchuk.android.app.splash
+package com.nunchuk.android.app.intro
 
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.app.splash.GuestModeEvent
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class GuestModeViewModel @Inject constructor(
     private val initNunchukUseCase: InitNunchukUseCase,
 ) : NunchukViewModel<Unit, GuestModeEvent>() {

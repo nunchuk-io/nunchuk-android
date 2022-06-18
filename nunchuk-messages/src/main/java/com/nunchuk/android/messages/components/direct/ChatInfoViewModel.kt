@@ -16,11 +16,13 @@ import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.usecase.GetRoomWalletUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.matrix.android.sdk.api.session.room.Room
 import javax.inject.Inject
 
+@HiltViewModel
 class ChatInfoViewModel @Inject constructor(
     accountManager: AccountManager,
     private val getContactsUseCase: GetContactsUseCase,

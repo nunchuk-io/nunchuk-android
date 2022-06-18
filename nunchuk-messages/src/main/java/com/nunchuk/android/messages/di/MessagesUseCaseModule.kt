@@ -3,8 +3,11 @@ package com.nunchuk.android.messages.di
 import com.nunchuk.android.messages.usecase.message.*
 import dagger.Binds
 import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 
 @Module
+@InstallIn(SingletonComponent::class)
 internal interface MessagesUseCaseModule {
 
     @Binds

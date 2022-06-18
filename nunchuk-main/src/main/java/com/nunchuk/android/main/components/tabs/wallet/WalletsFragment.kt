@@ -27,12 +27,14 @@ import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.utils.animateVisibility
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
-    private val walletsViewModel: WalletsViewModel by activityViewModels { factory }
+    private val walletsViewModel: WalletsViewModel by activityViewModels()
 
-    private val mainActivityViewModel: MainActivityViewModel by activityViewModels { factory }
+    private val mainActivityViewModel: MainActivityViewModel by activityViewModels()
 
     override fun initializeBinding(
         inflater: LayoutInflater,

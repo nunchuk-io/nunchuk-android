@@ -8,7 +8,6 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.signer.SignerModel
@@ -26,16 +25,14 @@ import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     private val args: TransactionDetailsArgs by lazy { TransactionDetailsArgs.deserializeFrom(intent) }
 
-    private val viewModel: TransactionDetailsViewModel by viewModels { factory }
+    private val viewModel: TransactionDetailsViewModel by viewModels()
 
     private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 

@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.google.gson.Gson
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.qr.QRCodeParser
 import com.nunchuk.android.core.qr.startQRCodeScan
@@ -19,17 +18,16 @@ import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.heightExtended
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setMaxLength
+import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     @Inject
     lateinit var gson: Gson
 
-    private val viewModel: AddSignerViewModel by viewModels { factory }
+    private val viewModel: AddSignerViewModel by viewModels()
 
     override fun initializeBinding() = ActivityAddSignerBinding.inflate(layoutInflater)
 

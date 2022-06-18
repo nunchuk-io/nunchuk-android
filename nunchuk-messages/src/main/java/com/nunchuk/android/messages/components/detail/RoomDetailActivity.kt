@@ -9,7 +9,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.core.loader.ImageLoader
@@ -23,17 +22,16 @@ import com.nunchuk.android.messages.databinding.ViewWalletStickyBinding
 import com.nunchuk.android.model.TransactionExtended
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.*
+import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
-
-    @Inject
-    lateinit var factory: ViewModelFactory
 
     @Inject
     lateinit var imageLoader: ImageLoader
 
-    private val viewModel: RoomDetailViewModel by viewModels { factory }
+    private val viewModel: RoomDetailViewModel by viewModels()
 
     private val args: RoomDetailArgs by lazy { RoomDetailArgs.deserializeFrom(intent) }
 

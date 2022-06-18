@@ -10,6 +10,7 @@ import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.*
 import com.nunchuk.android.usecase.CheckMnemonicUseCase
 import com.nunchuk.android.usecase.GetBip39WordListUseCase
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class RecoverSeedViewModel @Inject constructor(
     private val getBip39WordListUseCase: GetBip39WordListUseCase,
     private val checkMnemonicUseCase: CheckMnemonicUseCase

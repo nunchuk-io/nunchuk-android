@@ -6,24 +6,19 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.multidex.MultiDex
 import androidx.work.Configuration
 import com.nunchuk.android.BuildConfig
-import com.nunchuk.android.app.di.BootstrapInjectors
 import com.nunchuk.android.core.base.ForegroundAppBackgroundListener
 import com.nunchuk.android.core.matrix.MatrixInitializer
 import com.nunchuk.android.core.util.AppEvenBus
 import com.nunchuk.android.core.util.AppEvent
 import com.nunchuk.android.util.FileHelper
-import dagger.android.AndroidInjector
-import dagger.android.DispatchingAndroidInjector
-import dagger.android.HasAndroidInjector
+import dagger.hilt.android.HiltAndroidApp
 import org.matrix.android.sdk.api.Matrix
 import timber.log.Timber
 import java.util.concurrent.Executors
 import javax.inject.Inject
 
-internal class NunchukApplication : Application(), HasAndroidInjector, Configuration.Provider {
-
-    @Inject
-    lateinit var androidInjector: DispatchingAndroidInjector<Any>
+@HiltAndroidApp
+internal class NunchukApplication : Application(), Configuration.Provider {
 
     @Inject
     lateinit var fileHelper: FileHelper
@@ -34,9 +29,6 @@ internal class NunchukApplication : Application(), HasAndroidInjector, Configura
     @Inject
     lateinit var matrix: Matrix
 
-    @Inject
-    override fun androidInjector(): AndroidInjector<Any> = androidInjector
-
     private var foregroundAppBackgroundListener: ForegroundAppBackgroundListener? = null
 
     override fun onCreate() {
@@ -44,7 +36,6 @@ internal class NunchukApplication : Application(), HasAndroidInjector, Configura
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
-        BootstrapInjectors.inject(this)
         fileHelper.getOrCreateNunchukRootDir()
         initializer.initialize()
         registerAppForegroundListener()

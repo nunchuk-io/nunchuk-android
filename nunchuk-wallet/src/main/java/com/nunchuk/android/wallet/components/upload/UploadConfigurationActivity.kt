@@ -3,7 +3,6 @@ package com.nunchuk.android.wallet.components.upload
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.checkReadExternalPermission
@@ -11,12 +10,10 @@ import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.*
 import com.nunchuk.android.wallet.databinding.ActivityWalletUploadConfigurationBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class UploadConfigurationActivity : BaseActivity<ActivityWalletUploadConfigurationBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 
@@ -24,7 +21,7 @@ class UploadConfigurationActivity : BaseActivity<ActivityWalletUploadConfigurati
 
     private val args: UploadConfigurationArgs by lazy { UploadConfigurationArgs.deserializeFrom(intent) }
 
-    private val viewModel: UploadConfigurationViewModel by viewModels { factory }
+    private val viewModel: UploadConfigurationViewModel by viewModels()
 
     override fun initializeBinding() = ActivityWalletUploadConfigurationBinding.inflate(layoutInflater)
 

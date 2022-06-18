@@ -6,7 +6,9 @@ import android.os.Bundle
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.signer.airgap.databinding.ActivityBeforeAddAirSignerBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class AirSignerIntroActivity : BaseActivity<ActivityBeforeAddAirSignerBinding>() {
 
     override fun initializeBinding() = ActivityBeforeAddAirSignerBinding.inflate(layoutInflater)

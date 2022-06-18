@@ -7,11 +7,13 @@ import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.ImportWalletUseCase
 import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class RecoverWalletViewModel @Inject constructor(
     private val importWalletUseCase: ImportWalletUseCase,
     private val updateWalletUseCase: UpdateWalletUseCase,

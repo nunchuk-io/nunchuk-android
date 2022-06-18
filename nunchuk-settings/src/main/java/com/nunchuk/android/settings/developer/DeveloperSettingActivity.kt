@@ -4,19 +4,16 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.entities.DeveloperSetting
 import com.nunchuk.android.settings.databinding.ActivityDeveloperSettingBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class DeveloperSettingActivity : BaseActivity<ActivityDeveloperSettingBinding>() {
 
-    @Inject
-    lateinit var factory: ViewModelFactory
-
-    private val viewModel: DeveloperSettingViewModel by viewModels { factory }
+    private val viewModel: DeveloperSettingViewModel by viewModels()
 
     override fun initializeBinding() = ActivityDeveloperSettingBinding.inflate(layoutInflater)
 

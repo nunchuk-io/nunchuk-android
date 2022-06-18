@@ -12,10 +12,12 @@ import com.nunchuk.android.contact.databinding.FragmentReceivedBinding
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showLoading
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 internal class ReceivedFragment : BaseFragment<FragmentReceivedBinding>() {
 
-    private val viewModel: ReceivedViewModel by viewModels { factory }
+    private val viewModel: ReceivedViewModel by viewModels()
 
     private lateinit var adapter: ReceivedAdapter
 

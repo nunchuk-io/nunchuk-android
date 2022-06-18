@@ -6,7 +6,9 @@ import android.os.Bundle
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.signer.databinding.ActivitySignerIntroBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class SignerIntroActivity : BaseActivity<ActivitySignerIntroBinding>() {
 
     override fun initializeBinding() = ActivitySignerIntroBinding.inflate(layoutInflater)

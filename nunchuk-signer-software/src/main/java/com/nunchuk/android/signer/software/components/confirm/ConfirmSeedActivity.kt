@@ -4,22 +4,19 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.ConfirmSeedCompletedEvent
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.SelectedIncorrectWordEvent
-import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.databinding.ActivityConfirmSeedBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ConfirmSeedActivity : BaseActivity<ActivityConfirmSeedBinding>() {
 
-    @Inject
-    lateinit var factory: NunchukFactory
-
-    private val viewModel: ConfirmSeedViewModel by viewModels { factory }
+    private val viewModel: ConfirmSeedViewModel by viewModels()
 
     override fun initializeBinding() = ActivityConfirmSeedBinding.inflate(layoutInflater)
 

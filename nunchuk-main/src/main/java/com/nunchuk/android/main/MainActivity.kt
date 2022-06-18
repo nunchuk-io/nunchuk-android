@@ -11,14 +11,16 @@ import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.data.model.AppUpdateResponse
 import com.nunchuk.android.core.matrix.MatrixEvenBus
 import com.nunchuk.android.core.matrix.MatrixEvent
 import com.nunchuk.android.core.matrix.MatrixEventListener
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.AppEvenBus
+import com.nunchuk.android.core.util.AppEvent
+import com.nunchuk.android.core.util.AppEventListener
+import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.DownloadFileSyncSucceed
@@ -26,24 +28,23 @@ import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.notifications.PushNotificationHelper
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCInfoDialog
+import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : BaseActivity<ActivityMainBinding>() {
-
-    @Inject
-    lateinit var factory: ViewModelFactory
 
     @Inject
     lateinit var pushNotificationHelper: PushNotificationHelper
 
     private lateinit var navController: NavController
 
-    private val viewModel: MainActivityViewModel by viewModels { factory }
+    private val viewModel: MainActivityViewModel by viewModels()
 
-    private val roomViewModel: RoomsViewModel by viewModels { factory }
+    private val roomViewModel: RoomsViewModel by viewModels()
 
-    private val syncRoomViewModel: SyncRoomViewModel by viewModels { factory }
+    private val syncRoomViewModel: SyncRoomViewModel by viewModels()
 
     private val loginHalfToken
         get() = intent.getStringExtra(EXTRAS_LOGIN_HALF_TOKEN).orEmpty()

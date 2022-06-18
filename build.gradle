@@ -17,6 +17,7 @@ buildscript {
         classpath pluginsDeps.crashlytics
         classpath pluginsDeps.kotlinAndroidRuntime
         classpath pluginsDeps.appdistribution
+        classpath pluginsDeps.hilt
     }
 }
 

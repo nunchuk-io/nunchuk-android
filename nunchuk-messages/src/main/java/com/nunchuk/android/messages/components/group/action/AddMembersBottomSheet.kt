@@ -11,7 +11,6 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.arch.args.FragmentArgs
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showLoading
@@ -23,15 +22,12 @@ import com.nunchuk.android.messages.databinding.BottomSheetAddMembersBinding
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
-import dagger.android.support.AndroidSupportInjection
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class AddMembersBottomSheet : BaseBottomSheet<BottomSheetAddMembersBinding>() {
 
-    @Inject
-    lateinit var factory: NunchukFactory
-
-    private val viewModel: AddMembersViewModel by viewModels { factory }
+    private val viewModel: AddMembersViewModel by viewModels()
 
     private val args: AddMembersBottomSheetArgs by lazy { AddMembersBottomSheetArgs.deserializeFrom(arguments) }
 
@@ -39,11 +35,6 @@ class AddMembersBottomSheet : BaseBottomSheet<BottomSheetAddMembersBinding>() {
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): BottomSheetAddMembersBinding {
         return BottomSheetAddMembersBinding.inflate(inflater, container, false)
-    }
-
-    override fun onAttach(context: Context) {
-        AndroidSupportInjection.inject(this)
-        super.onAttach(context)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

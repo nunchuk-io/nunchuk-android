@@ -7,13 +7,14 @@ import com.nunchuk.android.contact.usecase.AddContactUseCase
 import com.nunchuk.android.contact.usecase.InviteFriendUseCase
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 class AddContactsViewModel @Inject constructor(
     private val addContactUseCase: AddContactUseCase,
     private val inviteFriendUseCase: InviteFriendUseCase

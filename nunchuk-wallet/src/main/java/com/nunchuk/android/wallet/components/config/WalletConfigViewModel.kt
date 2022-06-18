@@ -9,12 +9,14 @@ import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameSuccessEvent
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class WalletConfigViewModel @Inject constructor(
     private val getWalletUseCase: GetWalletUseCase,
     private val updateWalletUseCase: UpdateWalletUseCase

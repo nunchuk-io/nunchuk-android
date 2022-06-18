@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.databinding.ItemWalletBinding
 import com.nunchuk.android.messages.R
@@ -18,14 +17,12 @@ import com.nunchuk.android.messages.databinding.ActivityGroupChatInfoBinding
 import com.nunchuk.android.messages.util.getMembersCount
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ChatGroupInfoActivity : BaseActivity<ActivityGroupChatInfoBinding>() {
 
-    @Inject
-    lateinit var factory: ViewModelFactory
-
-    private val viewModel: ChatGroupInfoViewModel by viewModels { factory }
+    private val viewModel: ChatGroupInfoViewModel by viewModels()
 
     private val args: ChatGroupInfoArgs by lazy { ChatGroupInfoArgs.deserializeFrom(intent) }
 

@@ -15,6 +15,8 @@ import com.nunchuk.android.network.util.MATRIX_LOGGING_INTERCEPTOR
 import com.nunchuk.android.network.util.MATRIX_RETROFIT
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
@@ -30,6 +32,7 @@ import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
+@InstallIn(SingletonComponent::class)
 class NetworkModule @Inject constructor() {
 
     @Singleton

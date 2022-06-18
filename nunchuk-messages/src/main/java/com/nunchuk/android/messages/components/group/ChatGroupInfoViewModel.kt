@@ -14,8 +14,8 @@ import com.nunchuk.android.usecase.GetRoomWalletUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.failure.Failure
@@ -23,6 +23,7 @@ import org.matrix.android.sdk.api.session.room.Room
 import javax.inject.Inject
 
 // TODO eliminate duplicated
+@HiltViewModel
 class ChatGroupInfoViewModel @Inject constructor(
     private val getRoomWalletUseCase: GetRoomWalletUseCase,
     private val getWalletUseCase: GetWalletUseCase,
