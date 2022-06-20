@@ -13,6 +13,9 @@ import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.core.loader.ImageLoader
+import com.nunchuk.android.core.matrix.MatrixEvenBus
+import com.nunchuk.android.core.matrix.MatrixEvent
+import com.nunchuk.android.core.matrix.MatrixEventListener
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.hideKeyboard
 import com.nunchuk.android.core.util.observable
@@ -45,6 +48,12 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
     private var selectMode: Boolean by observable(false, ::setupViewForSelectMode)
 
+    private val matrixEventListener: MatrixEventListener = {
+        if (it === MatrixEvent.RoomTransactionCreated) {
+            viewModel.handleRoomTransactionCreated()
+        }
+    }
+
     override fun initializeBinding() = ActivityRoomDetailBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,6 +64,12 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         observeEvent()
         viewModel.initialize(args.roomId)
         viewModel.checkShowBannerNewChat()
+        MatrixEvenBus.instance.subscribe(matrixEventListener)
+    }
+
+    override fun onDestroy() {
+        MatrixEvenBus.instance.unsubscribe(matrixEventListener)
+        super.onDestroy()
     }
 
     private fun observeEvent() {
@@ -107,6 +122,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             is ReceiveBTCEvent -> navigator.openReceiveTransactionScreen(this, event.walletId)
             HasUpdatedEvent -> scrollToLastItem()
             GetRoomWalletSuccessEvent -> args.roomAction?.let(::handleRoomAction)
+            LeaveRoomEvent -> finish()
         }
     }
 
