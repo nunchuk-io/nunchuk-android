@@ -9,7 +9,9 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.databinding.ActivityTaprootWarningBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class TaprootWarningActivity : BaseActivity<ActivityTaprootWarningBinding>() {
 
     private val args: TaprootWarningArgs by lazy { TaprootWarningArgs.deserializeFrom(intent) }

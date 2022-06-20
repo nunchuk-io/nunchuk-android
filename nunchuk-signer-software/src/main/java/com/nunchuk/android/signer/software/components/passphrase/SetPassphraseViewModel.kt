@@ -6,6 +6,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.*
 import com.nunchuk.android.usecase.CreateSoftwareSignerUseCase
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class SetPassphraseViewModel @Inject constructor(
     private val createSoftwareSignerUseCase: CreateSoftwareSignerUseCase
 ) : NunchukViewModel<SetPassphraseState, SetPassphraseEvent>() {

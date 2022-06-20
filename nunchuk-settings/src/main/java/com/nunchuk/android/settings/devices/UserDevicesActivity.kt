@@ -6,7 +6,6 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.profile.UserDeviceResponse
 import com.nunchuk.android.settings.R
@@ -14,14 +13,12 @@ import com.nunchuk.android.settings.databinding.ActivityUserDevicesBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class UserDevicesActivity : BaseActivity<ActivityUserDevicesBinding>() {
 
-    @Inject
-    lateinit var factory: ViewModelFactory
-
-    private val viewModel: UserDevicesViewModel by viewModels { factory }
+    private val viewModel: UserDevicesViewModel by viewModels()
 
     private lateinit var adapter: UserDevicesAdapter
 

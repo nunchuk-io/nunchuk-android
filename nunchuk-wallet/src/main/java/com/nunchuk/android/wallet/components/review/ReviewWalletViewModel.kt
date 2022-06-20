@@ -14,12 +14,14 @@ import com.nunchuk.android.usecase.DraftWalletUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.*
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
+@HiltViewModel
 internal class ReviewWalletViewModel @Inject constructor(
     private val getUnusedSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
     private val draftWalletUseCase: DraftWalletUseCase,

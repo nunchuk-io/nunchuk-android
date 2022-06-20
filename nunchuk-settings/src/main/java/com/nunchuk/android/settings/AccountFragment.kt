@@ -14,6 +14,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
@@ -26,11 +28,13 @@ import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.settings.AccountEvent.SignOutEvent
 import com.nunchuk.android.settings.databinding.FragmentAccountBinding
+import dagger.hilt.android.AndroidEntryPoint
 import java.io.ByteArrayOutputStream
 
+@AndroidEntryPoint
 internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
 
-    private val viewModel: AccountViewModel by activityViewModels { factory }
+    private val viewModel: AccountViewModel by activityViewModels()
 
     override fun initializeBinding(
         inflater: LayoutInflater,

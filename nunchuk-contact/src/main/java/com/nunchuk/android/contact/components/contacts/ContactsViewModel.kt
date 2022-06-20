@@ -13,6 +13,7 @@ import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.ReceiveContact
 import com.nunchuk.android.model.SentContact
 import com.nunchuk.android.share.GetContactsUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.Single
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -22,6 +23,7 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
 import javax.inject.Inject
 
+@HiltViewModel
 class ContactsViewModel @Inject constructor(
     private val getContactsUseCase: GetContactsUseCase,
     private val getSentContactsUseCase: GetSentContactsUseCase,

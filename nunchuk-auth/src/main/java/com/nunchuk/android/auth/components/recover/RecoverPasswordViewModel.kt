@@ -7,9 +7,11 @@ import com.nunchuk.android.auth.domain.RecoverPasswordUseCase
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class RecoverPasswordViewModel @Inject constructor(
     private val recoverPasswordUseCase: RecoverPasswordUseCase,
 ) : NunchukViewModel<Unit, RecoverPasswordEvent>() {

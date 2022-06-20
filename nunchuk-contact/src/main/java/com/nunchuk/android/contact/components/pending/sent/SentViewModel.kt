@@ -6,9 +6,11 @@ import com.nunchuk.android.contact.components.pending.sent.SentEvent.LoadingEven
 import com.nunchuk.android.contact.repository.ContactsRepository
 import com.nunchuk.android.contact.usecase.GetSentContactsUseCase
 import com.nunchuk.android.model.SentContact
+import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 // FIXME
+@HiltViewModel
 class SentViewModel @Inject constructor(
     private val getSentContactsUseCase: GetSentContactsUseCase,
     private val contactsRepository: ContactsRepository

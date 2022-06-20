@@ -3,28 +3,24 @@ package com.nunchuk.android.transaction.components.send.amount
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.entities.SAT
 import com.nunchuk.android.core.util.*
-import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.*
 import com.nunchuk.android.transaction.databinding.ActivityTransactionInputAmountBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     private val args: InputAmountArgs by lazy { InputAmountArgs.deserializeFrom(intent) }
 
-    private val viewModel: InputAmountViewModel by viewModels { factory }
+    private val viewModel: InputAmountViewModel by viewModels()
 
     override fun initializeBinding() = ActivityTransactionInputAmountBinding.inflate(layoutInflater)
 

@@ -8,6 +8,7 @@ import com.nunchuk.android.core.profile.GetUserDevicesUseCase
 import com.nunchuk.android.core.profile.UserDeviceResponse
 import com.nunchuk.android.utils.DeviceManager
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
@@ -17,6 +18,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
+@HiltViewModel
 internal class UserDevicesViewModel @Inject constructor(
     private val deviceManager: DeviceManager,
     private val getUserDevicesUseCase: GetUserDevicesUseCase,

@@ -18,6 +18,7 @@ import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.trySafe
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
@@ -32,6 +33,7 @@ import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
+@HiltViewModel
 class RoomDetailViewModel @Inject constructor(
     accountManager: AccountManager,
     private val cancelWalletUseCase: CancelWalletUseCase,

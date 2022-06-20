@@ -13,12 +13,13 @@ import com.nunchuk.android.core.profile.UserProfileRepository
 import com.nunchuk.android.core.provider.AppInfoProvider
 import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class AccountViewModel @Inject constructor(
     private val accountManager: AccountManager,
     private val appInfoProvider: AppInfoProvider,

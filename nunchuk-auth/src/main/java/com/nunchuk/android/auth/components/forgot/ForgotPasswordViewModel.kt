@@ -7,9 +7,11 @@ import com.nunchuk.android.auth.domain.ForgotPasswordUseCase
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.utils.EmailValidator
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class ForgotPasswordViewModel @Inject constructor(
     private val forgotPasswordUseCase: ForgotPasswordUseCase,
 ) : NunchukViewModel<Unit, ForgotPasswordEvent>() {

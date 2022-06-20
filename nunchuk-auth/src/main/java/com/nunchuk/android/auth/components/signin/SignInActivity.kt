@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.EditText
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.signin.SignInEvent.*
 import com.nunchuk.android.auth.databinding.ActivitySigninBinding
@@ -20,14 +19,12 @@ import com.nunchuk.android.core.util.linkify
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.passwordEnabled
 import com.nunchuk.android.widget.util.setTransparentStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class SignInActivity : BaseActivity<ActivitySigninBinding>() {
 
-    @Inject
-    lateinit var factory: ViewModelFactory
-
-    private val viewModel: SignInViewModel by viewModels { factory }
+    private val viewModel: SignInViewModel by viewModels()
 
     override fun initializeBinding() = ActivitySigninBinding.inflate(layoutInflater)
 

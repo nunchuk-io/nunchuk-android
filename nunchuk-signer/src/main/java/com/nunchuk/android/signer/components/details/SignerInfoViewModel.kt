@@ -12,12 +12,13 @@ import com.nunchuk.android.signer.components.details.SignerInfoEvent.*
 import com.nunchuk.android.type.HealthStatus
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class SignerInfoViewModel @Inject constructor(
     private val getMasterSignerUseCase: GetMasterSignerUseCase,
     private val getRemoteSignerUseCase: GetRemoteSignerUseCase,

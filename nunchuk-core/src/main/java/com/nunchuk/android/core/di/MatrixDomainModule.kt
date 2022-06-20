@@ -9,8 +9,11 @@ import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCaseImpl
 import dagger.Binds
 import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 
 @Module
+@InstallIn(SingletonComponent::class)
 internal interface MatrixDomainModule {
     @Binds
     fun bindUploadFileUseCase(useCase: UploadFileUseCaseImpl): UploadFileUseCase

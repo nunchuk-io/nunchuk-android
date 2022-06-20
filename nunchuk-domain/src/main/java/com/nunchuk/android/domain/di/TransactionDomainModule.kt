@@ -3,8 +3,11 @@ package com.nunchuk.android.domain.di
 import com.nunchuk.android.usecase.*
 import dagger.Binds
 import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 
 @Module
+@InstallIn(SingletonComponent::class)
 internal interface TransactionDomainModule {
 
     @Binds

@@ -13,10 +13,12 @@ import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.model.SentContact
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 internal class SentFragment : BaseFragment<FragmentSentBinding>() {
 
-    private val viewModel: SentViewModel by viewModels { factory }
+    private val viewModel: SentViewModel by viewModels()
 
     private lateinit var adapter: SentAdapter
 

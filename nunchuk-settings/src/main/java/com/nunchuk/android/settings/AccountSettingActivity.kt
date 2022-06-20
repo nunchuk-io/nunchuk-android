@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.settings.AccountSettingEvent.*
 import com.nunchuk.android.settings.databinding.ActivityAccountSettingBinding
@@ -12,14 +11,12 @@ import com.nunchuk.android.settings.devices.UserDevicesActivity
 import com.nunchuk.android.widget.NCDeleteConfirmationDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class AccountSettingActivity : BaseActivity<ActivityAccountSettingBinding>() {
 
-    @Inject
-    lateinit var factory: ViewModelFactory
-
-    private val viewModel: AccountSettingViewModel by viewModels { factory }
+    private val viewModel: AccountSettingViewModel by viewModels()
 
     override fun initializeBinding() = ActivityAccountSettingBinding.inflate(layoutInflater)
 

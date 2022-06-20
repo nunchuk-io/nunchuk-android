@@ -13,6 +13,7 @@ import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.trySafe
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.Completable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -25,6 +26,7 @@ import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
+@HiltViewModel
 class RoomsViewModel @Inject constructor(
     private val getAllRoomWalletsUseCase: GetAllRoomWalletsUseCase,
     private val leaveRoomUseCase: LeaveRoomUseCase

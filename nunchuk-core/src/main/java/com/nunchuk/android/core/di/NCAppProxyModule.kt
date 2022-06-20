@@ -8,25 +8,20 @@ import com.nunchuk.android.core.repository.NCAppRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import javax.inject.Singleton
 
-@Module(
-    includes = [
-        NCAppDomainModule::class,
-        NCAppDataModule::class,
-        NCAppNetworkModule::class
-    ]
-)
-interface NCAppProxyModule
-
 @Module
+@InstallIn(SingletonComponent::class)
 internal interface NCAppDomainModule {
     @Binds
     fun bindCheckUpdateRecommendUseCase(userCase: CheckUpdateRecommendUseCaseImpl): CheckUpdateRecommendUseCase
 }
 
 @Module
+@InstallIn(SingletonComponent::class)
 internal interface NCAppDataModule {
 
     @Binds
@@ -35,6 +30,7 @@ internal interface NCAppDataModule {
 }
 
 @Module
+@InstallIn(SingletonComponent::class)
 internal object NCAppNetworkModule {
 
     @Singleton

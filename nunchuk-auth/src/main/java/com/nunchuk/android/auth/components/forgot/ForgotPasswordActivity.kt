@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.forgot.ForgotPasswordEvent.*
 import com.nunchuk.android.auth.databinding.ActivityForgotPasswordBinding
@@ -12,14 +11,12 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.widget.util.setTransparentStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ForgotPasswordActivity : BaseActivity<ActivityForgotPasswordBinding>() {
 
-    @Inject
-    lateinit var factory: ViewModelFactory
-
-    private val viewModel: ForgotPasswordViewModel by viewModels { factory }
+    private val viewModel: ForgotPasswordViewModel by viewModels()
 
     override fun initializeBinding() = ActivityForgotPasswordBinding.inflate(layoutInflater)
 

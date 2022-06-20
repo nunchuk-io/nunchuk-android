@@ -8,7 +8,9 @@ import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.main.databinding.FragmentChatBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 internal class ChatFragment : BaseFragment<FragmentChatBinding>() {
 
     private lateinit var pagerAdapter: ChatFragmentPagerAdapter

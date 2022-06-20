@@ -43,11 +43,9 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinStdlibVersion"
-    // Dagger
-    kapt daggerDeps.compiler
-    api daggerDeps.dagger
-    kapt daggerDeps.processor
-    implementation daggerDeps.support
+
+    kapt hiltDeps.processor
+    implementation hiltDeps.hilt
 
     // Coroutines
     implementation coroutineDeps.values()

@@ -4,22 +4,15 @@ import android.content.Context
 import com.nunchuk.android.core.matrix.RoomDisplayNameFallbackProviderImpl
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.MatrixConfiguration
 import javax.inject.Singleton
 
-@Module(
-    includes = [
-        MatrixNetworkModule::class,
-        MatrixDataModule::class,
-        MatrixDomainModule::class,
-        MatrixCommonModule::class
-    ]
-)
-interface MatrixProxyModule
-
 @Module
-internal object MatrixCommonModule {
+@InstallIn(SingletonComponent::class)
+object MatrixCommonModule {
 
     @Provides
     fun providesMatrixConfiguration() = MatrixConfiguration(roomDisplayNameFallbackProvider = RoomDisplayNameFallbackProviderImpl())

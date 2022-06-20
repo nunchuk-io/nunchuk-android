@@ -8,9 +8,11 @@ import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.GenerateMnemonicCodeErrorEvent
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.OpenSelectPhraseEvent
 import com.nunchuk.android.usecase.GenerateMnemonicUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class CreateNewSeedViewModel @Inject constructor(
     private val generateMnemonicUseCase: GenerateMnemonicUseCase
 ) : NunchukViewModel<CreateNewSeedState, CreateNewSeedEvent>() {

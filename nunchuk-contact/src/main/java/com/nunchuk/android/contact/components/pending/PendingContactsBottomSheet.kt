@@ -1,6 +1,5 @@
 package com.nunchuk.android.contact.components.pending
 
-import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,8 +8,9 @@ import android.view.ViewGroup
 import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.contact.databinding.BottomSheetPendingContactsBinding
 import com.nunchuk.android.core.base.BaseBottomSheet
-import dagger.android.support.AndroidSupportInjection
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class PendingContactsBottomSheet : BaseBottomSheet<BottomSheetPendingContactsBinding>() {
 
     private lateinit var pagerAdapter: PendingContactsPagerAdapter
@@ -19,11 +19,6 @@ class PendingContactsBottomSheet : BaseBottomSheet<BottomSheetPendingContactsBin
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): BottomSheetPendingContactsBinding {
         return BottomSheetPendingContactsBinding.inflate(inflater, container, false)
-    }
-
-    override fun onAttach(context: Context) {
-        AndroidSupportInjection.inject(this)
-        super.onAttach(context)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

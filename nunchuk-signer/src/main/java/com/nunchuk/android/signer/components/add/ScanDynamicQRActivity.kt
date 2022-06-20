@@ -6,21 +6,19 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import com.google.gson.Gson
 import com.google.zxing.client.android.Intents
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.signer.databinding.ActivityScanDynamicQrBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
+import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     @Inject
     lateinit var gson: Gson
 
-    private val viewModel: AddSignerViewModel by viewModels { factory }
+    private val viewModel: AddSignerViewModel by viewModels()
 
     override fun initializeBinding() = ActivityScanDynamicQrBinding.inflate(layoutInflater)
 

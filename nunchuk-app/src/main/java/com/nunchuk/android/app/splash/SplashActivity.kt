@@ -6,19 +6,16 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.app.splash.SplashEvent.*
 import com.nunchuk.android.arch.R
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.databinding.ActivitySplashBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 internal class SplashActivity : BaseActivity<ActivitySplashBinding>() {
 
-    @Inject
-    lateinit var factory: ViewModelFactory
-
-    private val viewModel: SplashViewModel by viewModels { factory }
+    private val viewModel: SplashViewModel by viewModels()
 
     override fun initializeBinding() = ActivitySplashBinding.inflate(layoutInflater)
 

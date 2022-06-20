@@ -3,7 +3,6 @@ package com.nunchuk.android.wallet.shared.components.assign
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.signer.SignerModel
@@ -18,16 +17,14 @@ import com.nunchuk.android.wallet.shared.components.assign.AssignSignerEvent.Ass
 import com.nunchuk.android.wallet.shared.databinding.ActivityAssignSignerBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class AssignSignerSharedWalletActivity : BaseActivity<ActivityAssignSignerBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     private val args: AssignSignerArgs by lazy { AssignSignerArgs.deserializeFrom(intent) }
 
-    private val viewModel: AssignSignerViewModel by viewModels { factory }
+    private val viewModel: AssignSignerViewModel by viewModels()
 
     override fun initializeBinding() = ActivityAssignSignerBinding.inflate(layoutInflater)
 

@@ -12,6 +12,7 @@ import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.messages.usecase.message.CreateRoomWithTagUseCase
 import com.nunchuk.android.messages.util.STATE_NUNCHUK_SYNC
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
@@ -20,6 +21,7 @@ import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 import javax.inject.Inject
 
+@HiltViewModel
 internal class SyncRoomViewModel @Inject constructor(
     private val createRoomWithTagUseCase: CreateRoomWithTagUseCase,
     private val syncStateMatrixUseCase: SyncStateMatrixUseCase,

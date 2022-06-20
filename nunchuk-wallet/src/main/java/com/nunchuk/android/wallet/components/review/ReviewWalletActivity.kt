@@ -3,7 +3,6 @@ package com.nunchuk.android.wallet.components.review
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.model.MasterSigner
@@ -18,16 +17,14 @@ import com.nunchuk.android.wallet.util.isWalletExisted
 import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ReviewWalletActivity : BaseActivity<ActivityReviewWalletBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     private val args: ReviewWalletArgs by lazy { ReviewWalletArgs.deserializeFrom(intent) }
 
-    private val viewModel: ReviewWalletViewModel by viewModels { factory }
+    private val viewModel: ReviewWalletViewModel by viewModels()
 
     override fun initializeBinding() = ActivityReviewWalletBinding.inflate(layoutInflater)
 

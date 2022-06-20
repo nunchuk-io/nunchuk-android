@@ -3,7 +3,6 @@ package com.nunchuk.android.wallet.shared.components.configure
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.bindEnableState
 import com.nunchuk.android.type.AddressType
@@ -12,16 +11,14 @@ import com.nunchuk.android.wallet.shared.components.configure.ConfigureSharedWal
 import com.nunchuk.android.wallet.shared.databinding.ActivityConfigureSharedWalletBinding
 import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ConfigureSharedWalletActivity : BaseActivity<ActivityConfigureSharedWalletBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     private val args: ConfigureSharedWalletArgs by lazy { ConfigureSharedWalletArgs.deserializeFrom(intent) }
 
-    private val viewModel: ConfigureSharedWalletViewModel by viewModels { factory }
+    private val viewModel: ConfigureSharedWalletViewModel by viewModels()
 
     override fun initializeBinding() = ActivityConfigureSharedWalletBinding.inflate(layoutInflater)
 

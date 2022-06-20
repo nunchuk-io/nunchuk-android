@@ -4,8 +4,11 @@ import com.nunchuk.android.contact.repository.ContactsRepository
 import com.nunchuk.android.contact.repository.ContactsRepositoryImpl
 import dagger.Binds
 import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 
 @Module
+@InstallIn(SingletonComponent::class)
 internal interface ContactDataModule {
 
     @Binds

@@ -13,7 +13,6 @@ import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.core.qr.convertToQRCode
@@ -26,6 +25,7 @@ import com.nunchuk.android.wallet.components.details.WalletDetailsOption.*
 import com.nunchuk.android.wallet.databinding.ActivityWalletDetailBinding
 import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.widget.NCToastMessage
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
@@ -35,17 +35,15 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
 
     @Inject
     lateinit var textUtils: TextUtils
 
-    @Inject
-    lateinit var factory: NunchukFactory
-
     private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 
-    private val viewModel: WalletDetailsViewModel by viewModels { factory }
+    private val viewModel: WalletDetailsViewModel by viewModels()
 
     private val adapter: TransactionAdapter by lazy {
         TransactionAdapter {

@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.text.InputFilter.LengthFilter
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.type.AddressType
@@ -18,14 +17,12 @@ import com.nunchuk.android.wallet.personal.components.add.AddWalletEvent.WalletS
 import com.nunchuk.android.wallet.personal.databinding.ActivityWalletAddBinding
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class AddWalletActivity : BaseActivity<ActivityWalletAddBinding>() {
 
-    @Inject
-    lateinit var factory: NunchukFactory
-
-    private val viewModel: AddWalletViewModel by viewModels { factory }
+    private val viewModel: AddWalletViewModel by viewModels()
 
     override fun initializeBinding() = ActivityWalletAddBinding.inflate(layoutInflater)
 

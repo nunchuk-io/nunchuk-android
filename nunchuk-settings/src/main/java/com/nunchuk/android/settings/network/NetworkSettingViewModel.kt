@@ -7,14 +7,14 @@ import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.InitAppSettingsUseCase
 import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
 import com.nunchuk.android.model.AppSettings
-import com.nunchuk.android.settings.AccountEvent
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class NetworkSettingViewModel @Inject constructor(
     private val initAppSettingsUseCase: InitAppSettingsUseCase,
     private val updateAppSettingUseCase: UpdateAppSettingUseCase,

@@ -13,16 +13,9 @@ import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.DisposableManager
 import com.nunchuk.android.widget.NCLoadingDialogCreator
-import dagger.android.AndroidInjection
-import dagger.android.AndroidInjector
-import dagger.android.DispatchingAndroidInjector
-import dagger.android.HasAndroidInjector
 import javax.inject.Inject
 
-abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity(), HasAndroidInjector {
-
-    @Inject
-    lateinit var androidInjector: DispatchingAndroidInjector<Any>
+abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity() {
 
     @Inject
     lateinit var navigator: NunchukNavigator
@@ -35,8 +28,6 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity(), HasAnd
     protected lateinit var binding: Binding
 
     abstract fun initializeBinding(): Binding
-
-    override fun androidInjector(): AndroidInjector<Any> = androidInjector
 
     private var dialog: Dialog? = null
 
@@ -68,7 +59,6 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity(), HasAnd
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        AndroidInjection.inject(this)
         super.onCreate(savedInstanceState)
         binding = initializeBinding()
         setContentView(binding.root)

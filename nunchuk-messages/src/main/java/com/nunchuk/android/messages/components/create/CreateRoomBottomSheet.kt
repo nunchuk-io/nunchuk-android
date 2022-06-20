@@ -1,6 +1,5 @@
 package com.nunchuk.android.messages.components.create
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,7 +9,6 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showLoading
@@ -21,28 +19,21 @@ import com.nunchuk.android.model.Contact
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
-import dagger.android.support.AndroidSupportInjection
+import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class CreateRoomBottomSheet : BaseBottomSheet<BottomSheetCreateRoomBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     @Inject
     lateinit var navigator: NunchukNavigator
 
-    private val viewModel: CreateRoomViewModel by viewModels { factory }
+    private val viewModel: CreateRoomViewModel by viewModels()
 
     private lateinit var adapter: ContactsAdapter
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): BottomSheetCreateRoomBinding {
         return BottomSheetCreateRoomBinding.inflate(inflater, container, false)
-    }
-
-    override fun onAttach(context: Context) {
-        AndroidSupportInjection.inject(this)
-        super.onAttach(context)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
