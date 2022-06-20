@@ -1,6 +1,7 @@
 package com.nunchuk.android.messages.components.detail
 
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetDeveloperSettingUseCase
@@ -10,10 +11,11 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.usecase.message.CheckShowBannerNewChatUseCase
+import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.model.*
+import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.usecase.*
-import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.trySafe
 import kotlinx.coroutines.Dispatchers.IO
@@ -41,7 +43,9 @@ class RoomDetailViewModel @Inject constructor(
     private val hideBannerNewChatUseCase: HideBannerNewChatUseCase,
     private val checkShowBannerNewChatUseCase: CheckShowBannerNewChatUseCase,
     private val sendErrorEventUseCase: SendErrorEventUseCase,
-    private val getDeveloperSettingUseCase: GetDeveloperSettingUseCase
+    private val getDeveloperSettingUseCase: GetDeveloperSettingUseCase,
+    private val getContactsUseCase: GetContactsUseCase,
+    private val leaveRoomUseCase: LeaveRoomUseCase
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
 
     private var debugMode: Boolean = false
@@ -53,8 +57,6 @@ class RoomDetailViewModel @Inject constructor(
     private val currentName = accountManager.getAccount().name
 
     private val currentId = accountManager.getAccount().chatId
-
-    private val currentEmail = accountManager.getAccount().email
 
     private var latestPreviewableEventTs: Long = -1
 
@@ -78,16 +80,26 @@ class RoomDetailViewModel @Inject constructor(
         initSendEventExecutor()
         retrieveTimelineEvents()
         getRoomWallet()
-        prepareForEncryption()
+        checkInviteUser(room)
     }
 
-    private fun prepareForEncryption() {
-        if (room.roomCryptoService().isEncrypted()) {
-            viewModelScope.launch {
-                runCatching {
-                    room.roomCryptoService().prepareToEncrypt()
+    private fun checkInviteUser(room: Room) {
+        getContactsUseCase.execute()
+            .defaultSchedulers()
+            .subscribe({
+                if (it.isNotEmpty() && (currentId in it.map(Contact::chatId))) {
+                    leaveRoom(room)
                 }
-            }
+            }, {})
+            .addToDisposables()
+    }
+
+    private fun leaveRoom(room: Room) {
+        viewModelScope.launch {
+            leaveRoomUseCase.execute(room)
+                .flowOn(IO)
+                .onException { }
+                .collect { event(LeaveRoomEvent) }
         }
     }
 
@@ -144,9 +156,7 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun joinRoom() {
         viewModelScope.launch(IO) {
-            if (EmailValidator.isNunchukEmail(currentEmail)) {
-                trySafe { SessionHolder.activeSession?.roomService()?.joinRoom(room.roomId) }
-            }
+            trySafe { SessionHolder.activeSession?.roomService()?.joinRoom(room.roomId) }
         }
     }
 
@@ -356,6 +366,12 @@ class RoomDetailViewModel @Inject constructor(
         SessionHolder.currentRoom = null
         consumedEventIds.clear()
         super.onCleared()
+    }
+
+    fun handleRoomTransactionCreated() {
+        // TODO
+        // updateState { RoomDetailState.empty() }
+        // retrieveTimelineEvents()
     }
 
     companion object {

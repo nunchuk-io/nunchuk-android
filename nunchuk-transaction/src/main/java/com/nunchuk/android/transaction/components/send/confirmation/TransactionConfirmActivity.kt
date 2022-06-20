@@ -7,6 +7,8 @@ import androidx.activity.viewModels
 import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.core.matrix.MatrixEvenBus
+import com.nunchuk.android.core.matrix.MatrixEvent.RoomTransactionCreated
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
@@ -90,6 +92,7 @@ class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBindin
 
     private fun returnActiveRoom() {
         hideLoading()
+        MatrixEvenBus.instance.publish(RoomTransactionCreated)
         navigator.returnRoomDetailScreen()
     }
 
