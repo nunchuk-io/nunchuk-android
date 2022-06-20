@@ -2,14 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/navigation_messages"
-        android:icon="@drawable/ic_messages"
-        android:title="@string/nc_title_message" />
-
-    <item
         android:id="@+id/navigation_wallets"
         android:icon="@drawable/ic_wallets"
         android:title="@string/nc_title_wallets" />
+
+    <item
+        android:id="@+id/navigation_messages"
+        android:icon="@drawable/ic_messages"
+        android:title="@string/nc_title_message" />
 
     <item
         android:id="@+id/navigation_account"
