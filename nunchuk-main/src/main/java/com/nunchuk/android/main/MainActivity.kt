@@ -1,12 +1,18 @@
 package com.nunchuk.android.main
 
 import android.app.Dialog
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.nfc.NfcAdapter
+import android.nfc.Tag
+import android.nfc.tech.IsoDep
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.IdRes
+import androidx.annotation.RequiresApi
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
@@ -18,15 +24,13 @@ import com.nunchuk.android.core.matrix.MatrixEvenBus
 import com.nunchuk.android.core.matrix.MatrixEvent
 import com.nunchuk.android.core.matrix.MatrixEventListener
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.util.AppEvenBus
-import com.nunchuk.android.core.util.AppEvent
-import com.nunchuk.android.core.util.AppEventListener
-import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.DownloadFileSyncSucceed
 import com.nunchuk.android.messages.components.list.RoomsState
 import com.nunchuk.android.messages.components.list.RoomsViewModel
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.notifications.PushNotificationHelper
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCInfoDialog
@@ -75,6 +79,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun initializeBinding() = ActivityMainBinding.inflate(layoutInflater)
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

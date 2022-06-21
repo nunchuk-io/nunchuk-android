@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation">
+
+    <fragment
+        android:id="@+id/turnOnNfcFragment"
+        android:name="com.nunchuk.android.signer.TurnOnNfcFragment"
+        android:label="TurnOnNfcFragment"
+        tools:layout="@layout/fragment_turn_on_nfc">
+        <action
+            android:id="@+id/action_turnOnNfcFragment_to_changeNfcCvcFragment"
+            app:destination="@id/changeNfcCvcFragment"
+            app:popUpTo="@+id/turnOnNfcFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/changeNfcCvcFragment"
+        android:name="com.nunchuk.android.signer.ui.nfc.ChangeNfcCvcFragment"
+        android:label="ChangeNfcCvcFragment"
+        tools:layout="@layout/fragment_nfc_change_cvc" />
+
+
+</navigation>

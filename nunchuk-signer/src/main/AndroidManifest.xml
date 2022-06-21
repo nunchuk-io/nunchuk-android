@@ -24,6 +24,12 @@
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
+            android:name=".AddNFCKeyActivity"
+            android:label="Add nfc key"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
             android:name=".AirSignerIntroActivity"
             android:label="@string/nc_signer_before_start_title"
             android:screenOrientation="portrait"
@@ -33,6 +39,12 @@
             android:name=".components.add.ScanDynamicQRActivity"
             android:label="Add passport signers"
             android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity android:name=".ui.nfc.NfcSetupActivity"
+            android:label="Nfc set up"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/NunchukNoActionBar.Light" />
 
     </application>

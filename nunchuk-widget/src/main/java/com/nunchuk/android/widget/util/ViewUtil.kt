@@ -29,6 +29,11 @@ fun NCEditTextView.passwordEnabled() {
     editText.transformationMethod = PasswordTransformationMethod.getInstance()
 }
 
+fun NCEditTextView.passwordNumberEnabled() {
+    val editText = getEditTextView()
+    editText.transformationMethod = PasswordTransformationMethod.getInstance()
+}
+
 fun NCEditTextView.setMaxLength(maxLength: Int) {
     getEditTextView().filters = arrayOf(InputFilter.LengthFilter(maxLength))
 }
