@@ -61,6 +61,8 @@ internal class NunchukTransactionCardHolder(
         binding.address.text = ""
         binding.signatureStatus.text = ""
         binding.signatureStatus.isInvisible = false
+        binding.sign.setOnClickListener(null)
+        binding.viewDetails.setOnClickListener(null)
     }
 
     companion object {
