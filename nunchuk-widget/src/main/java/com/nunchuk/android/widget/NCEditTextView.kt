@@ -48,8 +48,6 @@ class NCEditTextView @JvmOverloads constructor(
     private var editGravity: Int = GRAVITY_CENTER_VERTICAL
     private val binding = NcEditTextViewBinding.inflate(LayoutInflater.from(context), this)
 
-    var onSuffixIconClicked: (() -> Unit)? = null
-
     init {
         retrieveAttributes(context, attrs)
         onBindView()
@@ -78,20 +76,6 @@ class NCEditTextView @JvmOverloads constructor(
         editHigh = attr.getDimension(R.styleable.NCEditTextView_edit_height, resources.getDimension(R.dimen.nc_height_44))
         editTheme = attr.getInteger(R.styleable.NCEditTextView_edit_theme, NORMAL_THEME)
         editGravity = attr.getInteger(R.styleable.NCEditTextView_edit_gravity, GRAVITY_CENTER_VERTICAL)
-
-        val suffixIconId = attr.getResourceId(R.styleable.NCEditTextView_edit_suffix_icon, DEFAULT_VALUE)
-        if (suffixIconId != DEFAULT_VALUE) {
-            binding.editText.setCompoundDrawablesWithIntrinsicBounds(0,0,suffixIconId,0)
-            binding.editText.setOnTouchListener { v, event ->
-                if(event.action == MotionEvent.ACTION_UP) {
-                    if(event.rawX >= (binding.editText.right - binding.editText.compoundDrawables[2].bounds.width())) {
-                        onSuffixIconClicked?.invoke()
-                        return@setOnTouchListener true
-                    }
-                }
-                return@setOnTouchListener  false
-            }
-        }
         attr.recycle()
     }
 
@@ -172,5 +156,9 @@ class NCEditTextView @JvmOverloads constructor(
         binding.editText.background = ResourcesCompat.getDrawable(resources, R.drawable.nc_edit_text_error_bg, null)
         binding.errorText.visibility = View.VISIBLE
         binding.errorText.text = message
+    }
+
+    fun makeMaskedInput() {
+        binding.editText.makeMaskedInput()
     }
 }

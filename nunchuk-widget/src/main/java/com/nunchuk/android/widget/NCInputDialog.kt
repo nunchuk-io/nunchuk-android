@@ -13,7 +13,8 @@ class NCInputDialog @Inject constructor(private val context: Context) {
     fun showDialog(
         title: String,
         onConfirmed: (String) -> Unit = {},
-        onCanceled: () -> Unit = {}
+        onCanceled: () -> Unit = {},
+        isMaskedInput: Boolean = false
     ) {
         Dialog(context).apply {
             window?.setBackgroundDrawableResource(android.R.color.transparent)
@@ -30,6 +31,9 @@ class NCInputDialog @Inject constructor(private val context: Context) {
             binding.btnNo.setOnClickListener {
                 onCanceled()
                 dismiss()
+            }
+            if (isMaskedInput) {
+                binding.message.makeMaskedInput()
             }
             show()
             window?.setLayout(MATCH_PARENT, MATCH_PARENT)

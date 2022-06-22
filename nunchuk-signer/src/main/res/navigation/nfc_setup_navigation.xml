@@ -2,19 +2,8 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/mobile_navigation">
-
-    <fragment
-        android:id="@+id/turnOnNfcFragment"
-        android:name="com.nunchuk.android.signer.TurnOnNfcFragment"
-        android:label="TurnOnNfcFragment"
-        tools:layout="@layout/fragment_turn_on_nfc">
-        <action
-            android:id="@+id/action_turnOnNfcFragment_to_changeNfcCvcFragment"
-            app:destination="@id/changeNfcCvcFragment"
-            app:popUpTo="@+id/turnOnNfcFragment"
-            app:popUpToInclusive="true" />
-    </fragment>
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@id/changeNfcCvcFragment">
 
     <fragment
         android:id="@+id/changeNfcCvcFragment"
@@ -22,5 +11,10 @@
         android:label="ChangeNfcCvcFragment"
         tools:layout="@layout/fragment_nfc_change_cvc" />
 
+    <fragment
+        android:id="@+id/addNfcNameFragment"
+        android:name="com.nunchuk.android.signer.ui.nfc.AddNfcNameFragment"
+        android:label="AddNfcNameFragment"
+        tools:layout="@layout/fragment_nfc_add_name_key" />
 
 </navigation>

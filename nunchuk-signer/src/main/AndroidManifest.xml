@@ -8,8 +8,8 @@
             android:name=".components.add.AddSignerActivity"
             android:label="@string/nc_create_signer_title"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize"
-            android:theme="@style/NunchukNoActionBar.Light" />
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".components.details.SignerInfoActivity"
@@ -19,9 +19,17 @@
 
         <activity
             android:name=".SignerIntroActivity"
+            android:exported="true"
             android:label="@string/nc_add_signer_title"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukNoActionBar.Light" />
+            android:theme="@style/NunchukNoActionBar.Light">
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".AddNFCKeyActivity"
@@ -41,10 +49,17 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
-        <activity android:name=".ui.nfc.NfcSetupActivity"
+        <activity
+            android:name=".ui.nfc.NfcSetupActivity"
             android:label="Nfc set up"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden" />
+
+        <activity
+            android:name=".TurnOnNfcActivity"
+            android:label="Turn on nfc"
+            android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
     </application>

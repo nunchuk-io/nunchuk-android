@@ -22,7 +22,6 @@
         <attr name="edit_text_color" format="color" />
         <attr name="edit_text_size" format="dimension" />
         <attr name="edit_height" format="dimension" />
-        <attr name="edit_suffix_icon" format="reference" />
         <attr name="edit_theme" format="integer">
             <enum name="normal" value="0" />
             <enum name="scanner" value="1" />
