@@ -18,6 +18,7 @@ dependencies {
     implementation lifecycleDeps.values()
     implementation zxingDeps.values()
     implementation googleDeps.gson
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.4.1"
 
     testImplementation otherTestDeps.junit
 }

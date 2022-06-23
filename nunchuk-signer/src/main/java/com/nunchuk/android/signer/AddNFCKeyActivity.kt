@@ -63,7 +63,7 @@ class AddNFCKeyActivity : BaseActivity<ActivityAddNfcKeyBinding>() {
                 binding.desc.isVisible = false
                 binding.ivNfc.isVisible = false
                 binding.tvKeyInfo.isVisible = true
-                binding.tvKeyInfo.text = status
+                binding.tvKeyInfo.text = status.isSetup.toString()
             }
         } catch (e: Exception) {
             e.printStackTrace()

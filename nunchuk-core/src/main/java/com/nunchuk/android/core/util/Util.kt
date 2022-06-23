@@ -34,6 +34,8 @@ const val CONTACT_EMAIL = "contact@nunchuk.io"
 const val SATOSHI_BTC_EXCHANGE_RATE = 0.00000001
 const val BTC_SATOSHI_EXCHANGE_RATE = 100000000
 
+const val NFC_CARD_TIMEOUT = 2000
+
 fun Long.formatDate(): String = SimpleDateFormat("MM/dd/yyyy 'at' HH:mm aaa", Locale.US).format(Date(this * 1000))
 
 fun Transaction.getFormatDate(): String = if (blockTime <= 0) "--/--/--" else (blockTime).formatDate()

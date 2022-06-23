@@ -47,4 +47,5 @@
     <string name="nc_setup_nfc_key_desc">This NFC key has not been set up yet. Do you want to set it up now?</string>
     <string name="nc_name_your_key">Name your key</string>
     <string name="nc_add_your_key_hint">Adding your key to Nunchuk requires you to hold your device near your key up to 15 seconds</string>
+    <string name="nc_nfc_key_already_added">This key has already been added.</string>
 </resources>
