@@ -5,8 +5,8 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
-import com.nunchuk.android.core.entities.DisplayUnitSetting
+import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
+import com.nunchuk.android.core.domain.data.DisplayUnitSetting
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.settings.databinding.ActivityDisplayUnitSettingBinding
 import com.nunchuk.android.widget.util.setLightStatusBar

@@ -1,8 +1,8 @@
 package com.nunchuk.android.transaction.components.send.amount
 
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
-import com.nunchuk.android.core.entities.SAT
+import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
+import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.util.fromBTCToSAT
 import com.nunchuk.android.core.util.fromBTCToUSD
 import com.nunchuk.android.core.util.fromUSDToBTC

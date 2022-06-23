@@ -7,7 +7,7 @@ import com.nunchuk.android.callbacks.DownloadFileCallBack
 import com.nunchuk.android.callbacks.UploadFileCallBack
 import com.nunchuk.android.core.data.model.SyncFileModel
 import com.nunchuk.android.core.domain.*
-import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
+import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.matrix.*
 import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.core.util.*
@@ -25,6 +25,7 @@ import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.notifications.PushNotificationManager
 import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.usecase.EnableAutoBackupUseCase
+import com.nunchuk.android.usecase.RegisterAutoBackupUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
@@ -47,7 +48,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class MainActivityViewModel @Inject constructor(
+    private val getSyncSettingUseCase: GetSyncSettingUseCase,
     private val enableAutoBackupUseCase: EnableAutoBackupUseCase,
+    private val registerAutoBackupUseCase: RegisterAutoBackupUseCase,
     private val uploadFileUseCase: UploadFileUseCase,
     private val downloadFileUseCase: DownloadFileUseCase,
     private val registerDownloadBackUpFileUseCase: RegisterDownloadBackUpFileUseCase,
@@ -79,6 +82,7 @@ internal class MainActivityViewModel @Inject constructor(
         getDisplayUnitSetting()
         checkMissingSyncFile()
         observeInitialSync()
+        enableAutoBackup()
     }
 
     private fun observeInitialSync() {
@@ -378,12 +382,34 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
-    private fun enableAutoBackup(syncRoomId: String, accessToken: String) {
+    private fun registerAutoBackup(syncRoomId: String, accessToken: String) {
         viewModelScope.launch {
-            enableAutoBackupUseCase.execute(syncRoomId, accessToken)
+            getSyncSettingUseCase.execute()
+                .flatMapConcat {
+                    if (it.enable) {
+                        registerAutoBackupUseCase.execute(syncRoomId, accessToken)
+                    } else {
+                        flow {
+                            Timber.tag(TAG).v("can not registerAutoBackup due to disable")
+                            emit(Unit)
+                        }
+                    }
+                }
                 .flowOn(IO)
                 .onException { }
+                .collect { Timber.tag(TAG).v("registerAutoBackup success") }
+        }
+    }
+
+    private fun enableAutoBackup() {
+        viewModelScope.launch {
+            getSyncSettingUseCase.execute()
+                .flatMapConcat {
+                    enableAutoBackupUseCase.execute(it.enable)
+                }.flowOn(IO)
+                .onException { }
                 .collect { Timber.tag(TAG).v("enableAutoBackup success") }
+
         }
     }
 
@@ -405,10 +431,23 @@ internal class MainActivityViewModel @Inject constructor(
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
                 .sortedByDescending(NunchukMatrixEvent::time)
             Timber.tag(TAG).v("sortedEvents::$sortedEvents")
-            consumerSyncEventUseCase.execute(sortedEvents)
+            getSyncSettingUseCase.execute()
+                .flatMapConcat {
+                    if (it.enable) {
+                        consumerSyncEventUseCase.execute(sortedEvents)
+                    } else {
+                        flow {
+                            Timber.tag(TAG).v("can not consumerSyncEvent due to disable")
+                            emit(Unit)
+                        }
+                    }
+                }
                 .flowOn(IO)
-                .onException { Timber.tag(TAG).v("consumerSyncEventUseCase fail") }
-                .collect { Timber.tag(TAG).v("consumerSyncEventUseCase success") }
+                .onException { Timber.tag(TAG).v("consumerSyncEvent fail") }
+                .collect {
+                    Timber.tag(TAG).v("consumerSyncEvent success")
+                    event(ConsumeSyncEventCompleted)
+                }
         }
     }
 
@@ -432,7 +471,7 @@ internal class MainActivityViewModel @Inject constructor(
 
     fun syncData(roomId: String) {
         Timber.tag(TAG).d("syncData::$roomId")
-        enableAutoBackup(
+        registerAutoBackup(
             syncRoomId = roomId,
             accessToken = SessionHolder.activeSession?.sessionParams?.credentials?.accessToken.orEmpty()
         )

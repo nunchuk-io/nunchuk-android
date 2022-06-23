@@ -16,6 +16,8 @@ import com.nunchuk.android.core.domain.GetPriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.GetPriceConvertBTCUseCaseImpl
 import com.nunchuk.android.core.domain.GetSyncFileUseCase
 import com.nunchuk.android.core.domain.GetSyncFileUseCaseImpl
+import com.nunchuk.android.core.domain.GetSyncSettingUseCase
+import com.nunchuk.android.core.domain.GetSyncSettingUseCaseImpl
 import com.nunchuk.android.core.domain.HealthCheckMasterSignerUseCase
 import com.nunchuk.android.core.domain.HealthCheckMasterSignerUseCaseImpl
 import com.nunchuk.android.core.domain.HideBannerNewChatUseCase
@@ -34,6 +36,8 @@ import com.nunchuk.android.core.domain.UpdateDeveloperSettingUseCase
 import com.nunchuk.android.core.domain.UpdateDeveloperSettingUseCaseImpl
 import com.nunchuk.android.core.domain.UpdateDisplayUnitSettingUseCase
 import com.nunchuk.android.core.domain.UpdateDisplayUnitSettingUseCaseImpl
+import com.nunchuk.android.core.domain.UpdateSyncSettingUseCase
+import com.nunchuk.android.core.domain.UpdateSyncSettingUseCaseImpl
 import com.nunchuk.android.share.GetCurrentUserAsContactUseCase
 import com.nunchuk.android.share.GetCurrentUserAsContactUseCaseImpl
 import dagger.Binds
@@ -97,5 +101,11 @@ internal interface DomainModule {
 
     @Binds
     fun bindSaveCacheFileUseCase(useCase: SaveCacheFileUseCaseImpl): SaveCacheFileUseCase
+
+    @Binds
+    fun bindUpdateSyncSettingUseCase(useCase: UpdateSyncSettingUseCaseImpl): UpdateSyncSettingUseCase
+
+    @Binds
+    fun bindGetSyncSettingUseCase(useCase: GetSyncSettingUseCaseImpl): GetSyncSettingUseCase
 
 }

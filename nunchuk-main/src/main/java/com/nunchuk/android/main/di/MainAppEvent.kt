@@ -17,6 +17,8 @@ internal sealed class MainAppEvent {
 
     object SyncCompleted : MainAppEvent()
 
+    object ConsumeSyncEventCompleted : MainAppEvent()
+
     data class UpdateAppRecommendEvent(
         val data: AppUpdateResponse
     ) : MainAppEvent()

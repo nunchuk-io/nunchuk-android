@@ -1,6 +1,6 @@
 package com.nunchuk.android.settings.developer
 
-import com.nunchuk.android.core.entities.DeveloperSetting
+import com.nunchuk.android.core.domain.data.DeveloperSetting
 
 data class DeveloperSettingState(
     val developerSetting: DeveloperSetting = DeveloperSetting()

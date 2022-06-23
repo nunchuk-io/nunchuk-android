@@ -4,8 +4,8 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
-import com.nunchuk.android.core.entities.SAT
+import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
+import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.*

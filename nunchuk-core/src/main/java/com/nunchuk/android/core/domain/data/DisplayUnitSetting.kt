@@ -1,4 +1,4 @@
-package com.nunchuk.android.core.entities
+package com.nunchuk.android.core.domain.data
 
 
 const val BTC_AND_FIXED_PRECISION = 1

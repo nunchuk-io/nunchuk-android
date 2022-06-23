@@ -34,6 +34,14 @@
         android:text="@string/nc_settings_logged_in_devices" />
 
     <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/enableSync"
+        style="@style/NCText.Settings"
+        android:background="?android:selectableItemBackground"
+        android:drawableStart="@drawable/ic_enable_sync"
+        android:drawableEnd="@drawable/ic_arrow"
+        android:text="@string/nc_settings_enable_sync" />
+
+    <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/delete"
         style="@style/NCText.Settings"
         android:background="?android:selectableItemBackground"
