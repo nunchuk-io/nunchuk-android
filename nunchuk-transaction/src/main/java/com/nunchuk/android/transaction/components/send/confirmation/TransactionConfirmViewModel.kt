@@ -17,6 +17,7 @@ import com.nunchuk.android.usecase.room.transaction.InitRoomTransactionUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -69,7 +70,10 @@ internal class TransactionConfirmViewModel @Inject constructor(
             )
                 .flowOn(Dispatchers.IO)
                 .onException { event(InitRoomTransactionError(it.message.orUnknownError())) }
-                .collect { event(InitRoomTransactionSuccess(roomId)) }
+                .collect {
+                    delay(WAITING_FOR_CONSUME_EVENT_SECONDS)
+                    event(InitRoomTransactionSuccess(roomId))
+                }
         }
     }
 
@@ -121,6 +125,10 @@ internal class TransactionConfirmViewModel @Inject constructor(
                 is Error -> event(CreateTxErrorEvent(result.exception.message.orEmpty()))
             }
         }
+    }
+
+    companion object {
+        private const val WAITING_FOR_CONSUME_EVENT_SECONDS = 5L
     }
 
 }

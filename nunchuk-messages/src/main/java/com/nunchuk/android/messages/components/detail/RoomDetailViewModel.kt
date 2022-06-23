@@ -146,6 +146,7 @@ class RoomDetailViewModel @Inject constructor(
     private fun initSendEventExecutor() {
         SendEventHelper.executor = object : SendEventExecutor {
             override fun execute(roomId: String, type: String, content: String, ignoreError: Boolean): String {
+                Timber.d(" (${type}):  $content")
                 if (SessionHolder.hasActiveSession()) {
                     SessionHolder.activeSession?.roomService()?.getRoom(roomId)?.run {
                         trySafe { sendService().sendEvent(type, content.toMatrixContent()) }
@@ -372,8 +373,13 @@ class RoomDetailViewModel @Inject constructor(
 
     fun handleRoomTransactionCreated() {
         // TODO
-        // updateState { RoomDetailState.empty() }
-        // retrieveTimelineEvents()
+//        timeline?.apply {
+//            dispose()
+//            removeAllListeners()
+//            timelineListenerAdapter = TimelineListenerAdapter(::handleTimelineEvents)
+//        }
+//        updateState { RoomDetailState.empty() }
+//        retrieveTimelineEvents()
     }
 
     companion object {

@@ -6,8 +6,6 @@ import android.view.View
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.ActivityManager
-import com.nunchuk.android.core.matrix.MatrixEvenBus
-import com.nunchuk.android.core.matrix.MatrixEvent.RoomTransactionCreated
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
@@ -83,14 +81,15 @@ class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBindin
             is UpdateChangeAddress -> bindChangAddress(event.address, event.amount)
             LoadingEvent -> showLoading()
             is InitRoomTransactionError -> showCreateTransactionError(event.message)
-            is InitRoomTransactionSuccess -> returnActiveRoom()
+            is InitRoomTransactionSuccess -> returnActiveRoom(event.roomId)
         }
     }
 
-    private fun returnActiveRoom() {
+    private fun returnActiveRoom(roomId: String) {
         hideLoading()
-        MatrixEvenBus.instance.publish(RoomTransactionCreated)
-        navigator.returnRoomDetailScreen()
+        finish()
+        ActivityManager.instance.popUntilRoot()
+        navigator.openRoomDetailActivity(this, roomId)
     }
 
     private fun bindChangAddress(changeAddress: String, amount: Amount) {
