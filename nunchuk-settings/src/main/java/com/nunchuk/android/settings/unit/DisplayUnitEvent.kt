@@ -1,6 +1,7 @@
 package com.nunchuk.android.settings.unit
 
-import com.nunchuk.android.core.entities.DisplayUnitSetting
+import com.nunchuk.android.core.domain.data.DisplayUnitSetting
+
 
 data class DisplayUnitState(
     val displayUnitSetting: DisplayUnitSetting = DisplayUnitSetting()

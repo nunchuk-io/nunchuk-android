@@ -53,7 +53,8 @@ class AccountSettingActivity : BaseActivity<ActivityAccountSettingBinding>() {
 
     private fun setupViews() {
         binding.toolbar.setNavigationOnClickListener { finish() }
-        binding.devices.setOnClickListener { UserDevicesActivity.start(this) }
+        binding.devices.setOnClickListener { navigator.openUserDevicesScreen(this) }
+        binding.enableSync.setOnClickListener { navigator.openSyncSettingScreen(this) }
         binding.password.setOnClickListener { navigator.openChangePasswordScreen(this) }
         binding.delete.setOnClickListener { showDeleteAccountConfirmation() }
     }

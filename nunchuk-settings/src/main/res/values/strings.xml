@@ -5,6 +5,7 @@
     <string name="nc_settings_network">Network settings</string>
     <string name="nc_settings_change_password">Change password</string>
     <string name="nc_settings_logged_in_devices">Logged-in devices</string>
+    <string name="nc_settings_enable_sync">Multi-device sync (experimental)</string>
     <string name="nc_settings_delete_account">Delete account</string>
     <string name="nc_settings_about">About</string>
     <string name="nc_text_save">Save</string>
@@ -47,4 +48,7 @@
     <string name="nc_txt_explorer_address">Explorer Address</string>
     <string name="nc_settings_developer_mode">Developer settings</string>
     <string name="nc_txt_debug_mode">Enable debug mode</string>
+    <string name="nc_txt_sync_mode">Enable sync</string>
+    <string name="nc_settings_sync_mode">Multi-device sync</string>
+
 </resources>

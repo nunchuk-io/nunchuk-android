@@ -35,5 +35,10 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
+        <activity
+            android:name=".sync.SyncSettingActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustPan"/>
     </application>
 </manifest>

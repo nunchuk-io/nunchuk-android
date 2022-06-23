@@ -21,8 +21,8 @@ import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
-import com.nunchuk.android.core.entities.SAT
+import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
+import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.util.*

@@ -121,6 +121,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             is DownloadFileSyncSucceed -> handleDownloadedSyncFile(event)
             is MainAppEvent.UpdateAppRecommendEvent -> handleAppUpdateEvent(event.data)
             MainAppEvent.CrossSigningUnverified -> showUnverifiedDeviceWarning()
+            MainAppEvent.ConsumeSyncEventCompleted -> syncRoomViewModel.findSyncRoom() // safe way to trigger sync data
             else -> {}
         }
     }

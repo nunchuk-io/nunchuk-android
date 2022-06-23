@@ -37,4 +37,7 @@ internal interface RoomWalletDomainModule {
     @Binds
     fun bindCreateSharedWalletUseCase(useCase: CreateSharedWalletUseCaseImpl): CreateSharedWalletUseCase
 
+    @Binds
+    fun bindRegisterAutoBackupUseCase(useCase: RegisterAutoBackupUseCaseImpl): RegisterAutoBackupUseCase
+
 }

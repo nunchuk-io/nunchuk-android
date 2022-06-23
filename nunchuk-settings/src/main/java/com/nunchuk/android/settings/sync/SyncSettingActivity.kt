@@ -1,21 +1,21 @@
-package com.nunchuk.android.settings.developer
+package com.nunchuk.android.settings.sync
 
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.domain.data.DeveloperSetting
-import com.nunchuk.android.settings.databinding.ActivityDeveloperSettingBinding
+import com.nunchuk.android.core.domain.data.SyncSetting
+import com.nunchuk.android.settings.databinding.ActivitySyncSettingBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class DeveloperSettingActivity : BaseActivity<ActivityDeveloperSettingBinding>() {
+class SyncSettingActivity : BaseActivity<ActivitySyncSettingBinding>() {
 
-    private val viewModel: DeveloperSettingViewModel by viewModels()
+    private val viewModel: SyncSettingViewModel by viewModels()
 
-    override fun initializeBinding() = ActivityDeveloperSettingBinding.inflate(layoutInflater)
+    override fun initializeBinding() = ActivitySyncSettingBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,43 +40,43 @@ class DeveloperSettingActivity : BaseActivity<ActivityDeveloperSettingBinding>()
         viewModel.state.observe(this, ::handleState)
     }
 
-    private fun handleState(state: DeveloperSettingState) {
-        binding.switchDebugMode.isChecked = state.developerSetting.debugMode
+    private fun handleState(state: SyncSettingState) {
+        binding.switchSyncMode.isChecked = state.syncSetting.enable
     }
 
-    private fun handleEvent(event: DeveloperSettingEvent) {
-        when (event) {
-            is DeveloperSettingEvent.UpdateSuccessEvent -> {
-                // currently we do nothing
+    private fun handleEvent(event: SyncSettingEvent) {
+        when(event) {
+            is SyncSettingEvent.UpdateSyncSettingSuccessEvent -> {
+                viewModel.enableAutoBackup(event.enable)
             }
         }
     }
 
     private fun setupViews() {
-        binding.switchDebugMode.setOnCheckedChangeListener { _, checked ->
+        binding.switchSyncMode.setOnCheckedChangeListener { _, checked ->
             updateDisplayUnitSetting(
-                debugMode = checked
+                enable = checked
             )
         }
     }
 
     private fun updateDisplayUnitSetting(
-        debugMode: Boolean
+        enable: Boolean
     ) {
-        viewModel.updateDeveloperSettings(
-            developerSetting = DeveloperSetting(
-                debugMode = debugMode
+        viewModel.updateSyncSettings(
+            syncSetting = SyncSetting(
+                enable = enable
             )
         )
     }
 
     private fun setupData() {
-        viewModel.getDeveloperSettings()
+        viewModel.getSyncSettings()
     }
 
     companion object {
         fun start(activityContext: Context) {
-            activityContext.startActivity(Intent(activityContext, DeveloperSettingActivity::class.java))
+            activityContext.startActivity(Intent(activityContext, SyncSettingActivity::class.java))
         }
     }
 }

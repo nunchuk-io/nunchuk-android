@@ -4,7 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.GetDisplayUnitSettingUseCase
 import com.nunchuk.android.core.domain.UpdateDisplayUnitSettingUseCase
-import com.nunchuk.android.core.entities.DisplayUnitSetting
+import com.nunchuk.android.core.domain.data.DisplayUnitSetting
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
