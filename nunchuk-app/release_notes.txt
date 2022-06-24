@@ -23,3 +23,4 @@ What's news:
 - NUN-1490 Android - Using WriteFileCallback instead of DownloadFileCallback
 - NUN-1490 Android -Fix not show  Pending signature card immediately
 - NUN-1559 Android - Add toggle in setting's page to allow user to enable sync across devices
+- NUN-1580 Android - Change "Shared wallet" to "Collaborative wallet"

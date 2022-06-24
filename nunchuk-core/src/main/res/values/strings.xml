@@ -35,7 +35,7 @@
 
     <string name="nc_message_pending_finalization">Pending finalization</string>
     <string name="nc_message_pending_signers">Pending keys</string>
-    <string name="nc_message_wallet_created">Shared wallet has been created</string>
+    <string name="nc_message_wallet_created">Collaborative wallet has been created</string>
 
     <string name="nc_text_title_permission_denied">Permission Denied</string>
     <string name="nc_text_des_permission_denied">The app can\'t work properly without this permission. Do you want to grant access permission again?</string>
