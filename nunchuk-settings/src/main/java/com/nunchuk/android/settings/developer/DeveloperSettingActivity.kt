@@ -6,9 +6,12 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.domain.data.DeveloperSetting
+import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.log.FileLogTree
 import com.nunchuk.android.settings.databinding.ActivityDeveloperSettingBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+
 
 @AndroidEntryPoint
 class DeveloperSettingActivity : BaseActivity<ActivityDeveloperSettingBinding>() {
@@ -58,6 +61,16 @@ class DeveloperSettingActivity : BaseActivity<ActivityDeveloperSettingBinding>()
                 debugMode = checked
             )
         }
+        binding.btnClearLog.setOnClickListener {
+            try {
+                FileLogTree.getLogFile(this).outputStream()
+                    .use { it.write("".toByteArray(Charsets.UTF_8)) }
+            } catch (e: Exception) {
+            }
+        }
+        binding.btnShareLog.setOnClickListener {
+            IntentSharingController.from(this).shareFile(FileLogTree.getLogFile(this).absolutePath)
+        }
     }
 
     private fun updateDisplayUnitSetting(
@@ -76,7 +89,12 @@ class DeveloperSettingActivity : BaseActivity<ActivityDeveloperSettingBinding>()
 
     companion object {
         fun start(activityContext: Context) {
-            activityContext.startActivity(Intent(activityContext, DeveloperSettingActivity::class.java))
+            activityContext.startActivity(
+                Intent(
+                    activityContext,
+                    DeveloperSettingActivity::class.java
+                )
+            )
         }
     }
 }

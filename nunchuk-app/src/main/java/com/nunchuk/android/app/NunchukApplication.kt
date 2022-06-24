@@ -6,6 +6,7 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.multidex.MultiDex
 import androidx.work.Configuration
 import com.nunchuk.android.BuildConfig
+import com.nunchuk.android.log.FileLogTree
 import com.nunchuk.android.core.base.ForegroundAppBackgroundListener
 import com.nunchuk.android.core.matrix.MatrixInitializer
 import com.nunchuk.android.core.util.AppEvenBus
@@ -34,7 +35,7 @@ internal class NunchukApplication : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         if (BuildConfig.DEBUG) {
-            Timber.plant(Timber.DebugTree())
+            Timber.plant(FileLogTree(this))
         }
         fileHelper.getOrCreateNunchukRootDir()
         initializer.initialize()
