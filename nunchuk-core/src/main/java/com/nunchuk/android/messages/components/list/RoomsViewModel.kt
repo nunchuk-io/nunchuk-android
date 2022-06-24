@@ -6,6 +6,7 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.matrix.roomSummariesFlow
 import com.nunchuk.android.core.network.UnauthorizedEventBus
+import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.messages.util.sortByLastMessage
 import com.nunchuk.android.model.RoomWallet
@@ -54,7 +55,7 @@ class RoomsViewModel @Inject constructor(
         }
     }
 
-    fun init() {
+    init {
         SessionHolder.activeSession?.let(::subscribeEvent)
     }
 
@@ -73,7 +74,7 @@ class RoomsViewModel @Inject constructor(
             .distinctUntilChanged()
             .onStart { event(RoomsEvent.LoadingEvent(true)) }
             .onEach {
-                Timber.tag(TAG).d("listenRoomSummaries($it)")
+                fileLog("listenRoomSummaries($it)")
                 leaveDraftSyncRoom(it)
                 retrieveMessages()
             }
@@ -107,7 +108,10 @@ class RoomsViewModel @Inject constructor(
                 .flowOn(Dispatchers.IO)
                 .onException { onRetrieveMessageError(it) }
                 .flowOn(Dispatchers.Main)
-                .onEach { onRetrieveMessageSuccess(it) }
+                .onEach {
+                    fileLog("onRetrieveMessageSuccess")
+                    onRetrieveMessageSuccess(it)
+                }
                 .distinctUntilChanged()
                 .launchIn(viewModelScope)
         }

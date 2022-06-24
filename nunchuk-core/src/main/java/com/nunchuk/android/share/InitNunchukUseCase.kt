@@ -4,6 +4,7 @@ import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
 import com.nunchuk.android.core.util.toMatrixContent
+import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.model.*
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.type.ConnectionStatus
@@ -35,9 +36,11 @@ internal class InitNunchukUseCaseImpl @Inject constructor(
 
     private fun initNunchuk(appSettings: AppSettings, passphrase: String, accountId: String, deviceId: String) = flow {
         initReceiver()
+        fileLog(message = "start nativeSdk initNunchuk")
         emit(nativeSdk.run {
             initNunchuk(appSettings = appSettings, passphrase = passphrase, accountId = accountId, deviceId = deviceId)
         })
+        fileLog("end nativeSdk initNunchuk")
     }.flowOn(Dispatchers.IO)
 
     private fun initReceiver() {

@@ -44,7 +44,6 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
         super.onViewCreated(view, savedInstanceState)
         setupViews()
         observeEvent()
-        viewModel.init()
     }
 
     override fun onDestroyView() {
