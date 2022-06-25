@@ -53,5 +53,6 @@
     <string name="nc_version">Version</string>
     <string name="nc_transaction_no_app_to_open_link">There is no apps found to open link</string>
     <string name="nc_account_deleted_message">Your account has successfully been deleted</string>
+    <string name="nc_nfc">NFC</string>
 
 </resources>

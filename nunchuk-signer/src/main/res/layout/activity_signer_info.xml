@@ -11,6 +11,7 @@
         android:id="@+id/toolbar"
         style="@style/NCToolbar"
         android:layout_width="0dp"
+        app:menu="@menu/menu_singer_details"
         android:layout_height="wrap_content"
         android:background="@color/nc_primary_dark_color"
         app:layout_constraintEnd_toEndOf="parent"
