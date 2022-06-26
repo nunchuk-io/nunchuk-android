@@ -7,6 +7,8 @@ data class SyncSettingState(
 )
 
 sealed class SyncSettingEvent {
+    data class GetSyncSettingSuccessEvent(val enable: Boolean) : SyncSettingEvent()
     data class UpdateSyncSettingSuccessEvent(val enable: Boolean) : SyncSettingEvent()
+    object EnableAutoUpdateSuccessEvent : SyncSettingEvent()
 }
 

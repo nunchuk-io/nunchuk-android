@@ -6,26 +6,23 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
-interface EnableAutoBackupUseCase {
+interface BackupDataUseCase {
     fun execute(
-        enable: Boolean
-    ): Flow<Boolean>
+    ): Flow<Unit>
 }
 
-internal class EnableAutoBackupUseCaseImpl @Inject constructor(
+internal class BackupDataUseCaseImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
-) : EnableAutoBackupUseCase {
+) : BackupDataUseCase {
 
     override fun execute(
-        enable: Boolean
     ) = flow {
-        try {
-            nativeSdk.enableAutoBackUp(enable = enable)
-        } catch (t: Throwable) {
-            CrashlyticsReporter.recordException(t)
-        }
         emit(
-            enable
+            try {
+                nativeSdk.backup()
+            } catch (t: Throwable) {
+                CrashlyticsReporter.recordException(t)
+            }
         )
     }
 

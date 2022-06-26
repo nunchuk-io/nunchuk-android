@@ -40,4 +40,7 @@ internal interface RoomWalletDomainModule {
     @Binds
     fun bindRegisterAutoBackupUseCase(useCase: RegisterAutoBackupUseCaseImpl): RegisterAutoBackupUseCase
 
+    @Binds
+    fun bindBackupDataUseCase(useCase: BackupDataUseCaseImpl): BackupDataUseCase
+
 }

@@ -24,10 +24,12 @@ import com.nunchuk.android.model.NunchukMatrixEvent
 import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.notifications.PushNotificationManager
 import com.nunchuk.android.type.ConnectionStatus
+import com.nunchuk.android.usecase.BackupDataUseCase
 import com.nunchuk.android.usecase.EnableAutoBackupUseCase
 import com.nunchuk.android.usecase.RegisterAutoBackupUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
@@ -48,6 +50,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class MainActivityViewModel @Inject constructor(
+    private val backupDataUseCase: BackupDataUseCase,
     private val getSyncSettingUseCase: GetSyncSettingUseCase,
     private val enableAutoBackupUseCase: EnableAutoBackupUseCase,
     private val registerAutoBackupUseCase: RegisterAutoBackupUseCase,
@@ -408,10 +411,26 @@ internal class MainActivityViewModel @Inject constructor(
                     enableAutoBackupUseCase.execute(it.enable)
                 }.flowOn(IO)
                 .onException { }
-                .collect { Timber.tag(TAG).v("enableAutoBackup success") }
+                .collect {
+                    Timber.tag(TAG).v("enableAutoBackup success")
+                    if (it) {
+                        backupData()
+                    }
+                }
 
         }
     }
+
+    private fun backupData() {
+        // backup missing data if needed
+        viewModelScope.launch {
+            backupDataUseCase.execute()
+                .flowOn(Dispatchers.IO)
+                .onException { }
+                .collect { Timber.v("backupDataUseCase success") }
+        }
+    }
+
 
     private fun Room.retrieveTimelineEvents() {
         Timber.tag(TAG).v("retrieveTimelineEvents")
