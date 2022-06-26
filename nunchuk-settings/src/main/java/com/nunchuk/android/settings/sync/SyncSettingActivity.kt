@@ -49,6 +49,12 @@ class SyncSettingActivity : BaseActivity<ActivitySyncSettingBinding>() {
             is SyncSettingEvent.UpdateSyncSettingSuccessEvent -> {
                 viewModel.enableAutoBackup(event.enable)
             }
+            is SyncSettingEvent.GetSyncSettingSuccessEvent -> {
+                viewModel.enableAutoBackup(event.enable)
+            }
+            SyncSettingEvent.EnableAutoUpdateSuccessEvent -> {
+                viewModel.backupData()
+            }
         }
     }
 

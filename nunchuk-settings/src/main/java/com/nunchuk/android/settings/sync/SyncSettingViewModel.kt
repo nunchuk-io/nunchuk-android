@@ -5,6 +5,7 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.GetSyncSettingUseCase
 import com.nunchuk.android.core.domain.UpdateSyncSettingUseCase
 import com.nunchuk.android.core.domain.data.SyncSetting
+import com.nunchuk.android.usecase.BackupDataUseCase
 import com.nunchuk.android.usecase.EnableAutoBackupUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,6 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class SyncSettingViewModel @Inject constructor(
+    private val backupDataUseCase: BackupDataUseCase,
     private val updateSyncSettingUseCase: UpdateSyncSettingUseCase,
     private val getSyncSettingUseCase: GetSyncSettingUseCase,
     private val enableAutoBackupUseCase: EnableAutoBackupUseCase,
@@ -33,7 +35,7 @@ internal class SyncSettingViewModel @Inject constructor(
                     updateState {
                         copy(syncSetting = it)
                     }
-                    event(SyncSettingEvent.UpdateSyncSettingSuccessEvent(it.enable))
+                    event(SyncSettingEvent.GetSyncSettingSuccessEvent(it.enable))
                 }
         }
     }
@@ -58,7 +60,20 @@ internal class SyncSettingViewModel @Inject constructor(
             enableAutoBackupUseCase.execute(enable)
                 .flowOn(Dispatchers.IO)
                 .onException { }
-                .collect { Timber.v("enableAutoBackup success") }
+                .collect {
+                    Timber.v("enableAutoBackup success")
+                    event(SyncSettingEvent.EnableAutoUpdateSuccessEvent)
+                }
+        }
+    }
+
+    fun backupData() {
+        // backup missing data if needed
+        viewModelScope.launch {
+            backupDataUseCase.execute()
+                .flowOn(Dispatchers.IO)
+                .onException { }
+                .collect { Timber.v("backupDataUseCase success") }
         }
     }
 
