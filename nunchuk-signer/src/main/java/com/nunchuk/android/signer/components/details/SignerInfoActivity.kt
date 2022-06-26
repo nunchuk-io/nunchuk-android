@@ -15,12 +15,14 @@ import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.details.SignerInfoEvent.*
 import com.nunchuk.android.signer.components.details.model.SingerOption
 import com.nunchuk.android.signer.databinding.ActivitySignerInfoBinding
+import com.nunchuk.android.signer.nfc.NfcSetupActivity
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class SignerInfoActivity : BaseActivity<ActivitySignerInfoBinding>(), SingerInfoOptionBottomSheet.OptionClickListener {
+class SignerInfoActivity : BaseActivity<ActivitySignerInfoBinding>(),
+    SingerInfoOptionBottomSheet.OptionClickListener {
 
     private val viewModel: SignerInfoViewModel by viewModels()
 
@@ -37,9 +39,9 @@ class SignerInfoActivity : BaseActivity<ActivitySignerInfoBinding>(), SingerInfo
     }
 
     override fun onOptionClickListener(option: SingerOption) {
-        when(option) {
+        when (option) {
             SingerOption.TOP_UP -> {}
-            SingerOption.CHANGE_CVC -> {}
+            SingerOption.CHANGE_CVC -> NfcSetupActivity.navigate(this, NfcSetupActivity.CHANGE_CVC)
             SingerOption.BACKUP_KEY -> {}
             SingerOption.REMOVE_KEY -> viewModel.handleRemoveSigner()
         }
@@ -120,13 +122,16 @@ class SignerInfoActivity : BaseActivity<ActivitySignerInfoBinding>(), SingerInfo
         binding.toolbar.setNavigationOnClickListener { openMainScreen() }
         binding.toolbar.setOnMenuItemClickListener {
             if (it.itemId == R.id.menu_more) {
-                // TODO Hai apply for all signer or not?
-                SingerInfoOptionBottomSheet().show(supportFragmentManager, "SingerInfoOptionBottomSheet")
+                val type = viewModel.state.value?.masterSigner?.type
+                    ?: viewModel.state.value?.remoteSigner?.type
+                type?.let { signerType ->
+                    SingerInfoOptionBottomSheet.newInstance(signerType)
+                        .show(supportFragmentManager, "SingerInfoOptionBottomSheet")
+                }
             }
             false
         }
         binding.btnDone.setOnClickListener { openMainScreen() }
-        binding.btnRemove.setOnClickListener { viewModel.handleRemoveSigner() }
         binding.signerName.setOnClickListener { onEditClicked() }
         binding.btnHealthCheck.setOnClickListener { handleRunHealthCheck() }
     }

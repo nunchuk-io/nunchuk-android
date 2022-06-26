@@ -14,7 +14,7 @@ import com.nunchuk.android.utils.PendingIntentUtils
 import com.nunchuk.android.widget.NCInfoDialog
 
 abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() {
-    private val nfcViewModel : NfcViewModel by viewModels()
+    private val nfcViewModel: NfcViewModel by viewModels()
     private var requestCode: Int = 0
 
     private val nfcAdapter: NfcAdapter? by lazy(LazyThreadSafetyMode.NONE) {
@@ -54,7 +54,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
         super.onPause()
     }
 
-    protected fun startNfcFlow(requestCode: Int) {
+    fun startNfcFlow(requestCode: Int) {
         this.requestCode = requestCode
         nfcAdapter?.let {
             if (it.isEnabled) {

@@ -7,13 +7,13 @@
 
     <fragment
         android:id="@+id/changeNfcCvcFragment"
-        android:name="com.nunchuk.android.signer.ui.nfc.ChangeNfcCvcFragment"
+        android:name="com.nunchuk.android.signer.nfc.ChangeNfcCvcFragment"
         android:label="ChangeNfcCvcFragment"
         tools:layout="@layout/fragment_nfc_change_cvc" />
 
     <fragment
         android:id="@+id/addNfcNameFragment"
-        android:name="com.nunchuk.android.signer.ui.nfc.AddNfcNameFragment"
+        android:name="com.nunchuk.android.signer.nfc.AddNfcNameFragment"
         android:label="AddNfcNameFragment"
         tools:layout="@layout/fragment_nfc_add_name_key" />
 

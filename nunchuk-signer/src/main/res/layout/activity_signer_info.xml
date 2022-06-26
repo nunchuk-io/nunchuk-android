@@ -140,17 +140,6 @@ xpub661MyMwAqRbcG8Zah6TcX3QpP5yJApaXcyLK8CJcZkuYjczivsHxVL5qm9cw8BYLYehgFeddK5Wr
         android:layout_margin="@dimen/nc_padding_16"
         android:text="@string/nc_txt_run_health_check"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/btnRemove"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/btnRemove"
-        style="@style/NCPrimaryButton.Red"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/nc_padding_16"
-        android:text="@string/nc_remove_signer"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

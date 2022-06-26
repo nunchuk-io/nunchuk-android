@@ -1,12 +1,16 @@
-package com.nunchuk.android.signer.ui.nfc
+package com.nunchuk.android.signer.nfc
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.signer.BaseNfcActivity
+import com.nunchuk.android.signer.NfcViewModel
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.FragmentNfcChangeCvcBinding
 import com.nunchuk.android.widget.NCEditTextView
@@ -14,9 +18,12 @@ import com.nunchuk.android.widget.util.passwordDisabled
 import com.nunchuk.android.widget.util.passwordEnabled
 import com.nunchuk.android.widget.util.setMaxLength
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
 class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
+    private val nfcViewModel by activityViewModels<NfcViewModel>()
+
     override fun initializeBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
@@ -28,6 +35,18 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
         super.onViewCreated(view, savedInstanceState)
         initViews()
         registerEvents()
+        observer()
+    }
+
+    private fun observer() {
+        lifecycleScope.launchWhenCreated {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_CHANGE_CVC }
+                    .collect {
+                        // TODO Hai
+                    }
+            }
+        }
     }
 
     private fun initViews() {
@@ -55,8 +74,7 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
             binding.editExistCvc.hideError()
             binding.editNewCvc.hideError()
             binding.editConfirmCvc.hideError()
-            // TODO Hai request NFC
-            findNavController().navigate(R.id.addNfcNameFragment)
+            (requireActivity() as BaseNfcActivity<*>).startNfcFlow(BaseNfcActivity.REQUEST_NFC_CHANGE_CVC)
         }
     }
 
@@ -66,16 +84,6 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
             return false
         }
         return true
-    }
-
-    private fun applyMasked(view: NCEditTextView, isMasked: Boolean) {
-        if (isMasked) {
-            view.getEditTextView().setCompoundDrawablesWithIntrinsicBounds(0,0, R.drawable.ic_hide_pass,0)
-            view.passwordEnabled()
-        } else {
-            view.getEditTextView().setCompoundDrawablesWithIntrinsicBounds(0,0, R.drawable.ic_show_pass,0)
-            view.passwordDisabled()
-        }
     }
 
     companion object {

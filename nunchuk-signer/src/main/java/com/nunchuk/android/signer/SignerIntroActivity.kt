@@ -10,13 +10,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.signer.databinding.ActivitySignerIntroBinding
-import com.nunchuk.android.signer.ui.nfc.NfcSetupActivity
+import com.nunchuk.android.signer.nfc.NfcSetupActivity
 import com.nunchuk.android.signer.util.showAddNfcKey
 import com.nunchuk.android.signer.util.showNfcAlreadyAdded
 import com.nunchuk.android.signer.util.showSetupNfc
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
@@ -74,11 +73,11 @@ class SignerIntroActivity : BaseNfcActivity<ActivitySignerIntroBinding>() {
     }
 
     private fun navigateToSetupNfc() {
-        NfcSetupActivity.navigate(this)
+        NfcSetupActivity.navigate(this, NfcSetupActivity.SETUP_NFC)
     }
 
     private fun navigateToAddNfcKeySigner() {
-        NfcSetupActivity.navigate(this)
+        NfcSetupActivity.navigate(this, NfcSetupActivity.ADD_KEY)
     }
 
     private fun handleTapSignerStatus(status: TapSignerStatus) {

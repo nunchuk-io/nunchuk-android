@@ -50,7 +50,7 @@
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
-            android:name=".ui.nfc.NfcSetupActivity"
+            android:name=".nfc.NfcSetupActivity"
             android:label="Nfc set up"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light"
