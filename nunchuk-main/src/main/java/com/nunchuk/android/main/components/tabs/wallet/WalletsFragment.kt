@@ -9,7 +9,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -27,13 +26,15 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
-import timber.log.Timber
+import com.nunchuk.android.utils.animateVisibility
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
-    private val walletsViewModel: WalletsViewModel by viewModels { factory }
+    private val walletsViewModel: WalletsViewModel by activityViewModels()
 
-    private val mainActivityViewModel: MainActivityViewModel by activityViewModels { factory }
+    private val mainActivityViewModel: MainActivityViewModel by activityViewModels()
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -86,13 +87,12 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         if (event is GetConnectionStatusSuccessEvent) {
             walletsViewModel.getAppSettings()
         } else if (event == SyncCompleted) {
-            Timber.tag("MainActivityViewModel").d("walletsViewModel.retrieveData()")
-            binding.root.postDelayed(walletsViewModel::retrieveData, 3000)
+            walletsViewModel.retrieveData()
         }
     }
 
     private fun handleLoading(event: Loading) {
-        binding.walletLoading.root.isVisible = event.loading
+        binding.walletLoading.root.animateVisibility(isVisible = event.loading, duration = 400)
     }
 
     private fun openWalletIntroScreen() {
@@ -165,6 +165,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     private fun showChainText(chain: Chain): String {
         return when (chain) {
             Chain.TESTNET -> getString(R.string.nc_text_home_wallet_chain_testnet)
+            Chain.SIGNET -> getString(R.string.nc_text_home_wallet_chain_signet)
             else -> ""
         }
     }
@@ -250,7 +251,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     override fun onResume() {
         super.onResume()
-        binding.walletLoading.root.isVisible = true
         walletsViewModel.retrieveData()
         walletsViewModel.getAppSettings()
     }

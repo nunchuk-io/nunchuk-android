@@ -14,12 +14,14 @@ import com.nunchuk.android.core.retry.retryIO
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 import javax.inject.Named
 
+@HiltViewModel
 internal class SignInViewModel @Inject constructor(
     private val signInUseCase: SignInUseCase,
     private val initNunchukUseCase: InitNunchukUseCase,

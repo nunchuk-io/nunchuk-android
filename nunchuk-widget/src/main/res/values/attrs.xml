@@ -63,6 +63,7 @@
 
         <attr name="sb_checkedbutton_color" format="reference|color"/>
         <attr name="sb_uncheckbutton_color" format="reference|color"/>
+        <attr name="sb_enable_animate" format="reference|boolean"/>
 
     </declare-styleable>
 

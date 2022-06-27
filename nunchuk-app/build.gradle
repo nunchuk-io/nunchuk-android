@@ -5,6 +5,7 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 apply plugin: 'com.google.firebase.appdistribution'
+apply plugin: 'dagger.hilt.android.plugin'
 
 android {
     compileSdkVersion androidConfig.compileSdkVersion
@@ -26,6 +27,12 @@ android {
         ndk {
             //abiFilters 'armeabi-v7a', 'x86', 'arm64-v8a', 'x86_64'
             abiFilters 'arm64-v8a'
+        }
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments["room.incremental"] = "true"
+            }
         }
     }
 
@@ -145,11 +152,9 @@ dependencies {
 
     implementation lifecycleDeps.values()
 
-    // Dagger
-    kapt daggerDeps.compiler
-    api daggerDeps.dagger
-    kapt daggerDeps.processor
-    implementation daggerDeps.support
+    kapt hiltDeps.processor
+    implementation hiltDeps.hilt
+
     implementation reactiveDeps.rxAndroid2
 
     implementation networkDeps.values()
@@ -158,7 +163,7 @@ dependencies {
     implementation googleDeps.values()
 
     // FIXME ci disable
-    // debugImplementation leakDetectionDeps.leakCanary
+    // debugImplementation "com.squareup.leakcanary:leakcanary-android:2.9.1"
 
     // FIXME
     // Kotlin

@@ -4,19 +4,13 @@ import com.nunchuk.android.core.profile.*
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import javax.inject.Singleton
 
-@Module(
-    includes = [
-        UserProfileDomainModule::class,
-        UserProfileDataModule::class,
-        UserProfileNetworkModule::class
-    ]
-)
-interface UserProfileProxyModule
-
 @Module
+@InstallIn(SingletonComponent::class)
 internal interface UserProfileDomainModule {
     @Binds
     fun bindCompromiseUserDevicesUseCase(userCase: CompromiseUserDevicesUseCaseImpl): CompromiseUserDevicesUseCase
@@ -36,6 +30,7 @@ internal interface UserProfileDomainModule {
 }
 
 @Module
+@InstallIn(SingletonComponent::class)
 internal interface UserProfileDataModule {
 
     @Binds
@@ -44,6 +39,7 @@ internal interface UserProfileDataModule {
 }
 
 @Module
+@InstallIn(SingletonComponent::class)
 internal object UserProfileNetworkModule {
 
     @Singleton

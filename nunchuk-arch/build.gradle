@@ -2,5 +2,6 @@ apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 
 dependencies {
+    implementation project(':nunchuk-utils')
     implementation lifecycleDeps.values()
 }

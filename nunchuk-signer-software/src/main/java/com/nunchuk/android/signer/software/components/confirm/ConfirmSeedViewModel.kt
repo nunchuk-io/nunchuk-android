@@ -4,8 +4,10 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.ConfirmSeedCompletedEvent
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.SelectedIncorrectWordEvent
 import com.nunchuk.android.signer.software.components.create.PHRASE_SEPARATOR
+import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
+@HiltViewModel
 internal class ConfirmSeedViewModel @Inject constructor(
 
 ) : NunchukViewModel<ConfirmSeedState, ConfirmSeedEvent>() {

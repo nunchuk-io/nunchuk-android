@@ -3,9 +3,11 @@ package com.nunchuk.android.usecase
 import com.nunchuk.android.model.TransactionExtended
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.utils.CrashlyticsReporter
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface GetTransactionsUseCase {
@@ -17,16 +19,15 @@ internal class GetTransactionsUseCaseImpl @Inject constructor(
 ) : GetTransactionsUseCase {
 
     override fun execute(walletId: String, eventIds: List<Pair<String, Boolean>>) = flow {
-        val transactions = eventIds.mapNotNull {
+        emit(eventIds.mapNotNull {
             val initEventId = it.first
             val isReceive = it.second
             getTransaction(walletId = walletId, initEventId = initEventId, isReceive = isReceive)
-        }
-        emit(transactions)
+        })
     }.catch {
         CrashlyticsReporter.recordException(it)
         emit(emptyList())
-    }
+    }.flowOn(Dispatchers.IO)
 
     private fun getTransaction(walletId: String, initEventId: String, isReceive: Boolean): TransactionExtended? {
         try {

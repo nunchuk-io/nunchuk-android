@@ -8,12 +8,13 @@ import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.InitWalletUseCase
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class ReviewSharedWalletViewModel @Inject constructor(
     private val initWalletUseCase: InitWalletUseCase
 ) : NunchukViewModel<ReviewSharedWalletState, ReviewSharedWalletEvent>() {

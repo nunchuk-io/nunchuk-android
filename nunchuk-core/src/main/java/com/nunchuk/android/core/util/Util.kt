@@ -5,11 +5,10 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.text.util.Linkify
 import android.widget.TextView
-import com.nunchuk.android.core.R
 import com.nunchuk.android.core.network.UNKNOWN_ERROR
 import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
+import com.nunchuk.android.utils.CrashlyticsReporter
 import java.io.File
 import java.io.InputStream
 import java.text.SimpleDateFormat
@@ -49,10 +48,15 @@ fun String.fromMxcUriToMatrixDownloadUrl(): String {
 
 internal const val BASE_DOWNLOAD_URL_MATRIX = "https://matrix.nunchuk.io/_matrix/media/r0/download/"
 
-fun InputStream.saveToFile(file: String) = use { input ->
-    File(file).outputStream().use { output ->
-        input.copyTo(output)
+fun InputStream.saveToFile(file: String) = try {
+    use { input ->
+        File(file).outputStream().use { output ->
+            input.copyTo(output)
+        }
     }
+} catch (t: Throwable) {
+    CrashlyticsReporter.recordException(t)
+    0
 }
 
 fun TextView.linkify(textToLink: String, url: String) {
@@ -70,6 +74,7 @@ inline fun <T> observable(
 fun Context.copyToClipboard(label: String, text: String) {
     val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     val clip =
-        ClipData.newPlainText(label,text)
+        ClipData.newPlainText(label, text)
     clipboard.setPrimaryClip(clip)
 }
+

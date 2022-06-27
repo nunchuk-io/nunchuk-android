@@ -1,18 +1,26 @@
 What's news:
-- NUN-1190 [Android] Can't view member details in Group chat info screen
-- NUN-968 Android - Add timestamp for confirmed transaction in transaction details
-- Support Taproot.
-- Optimize load chat message.
-- NUN-1036 [Android] - Make sure user passwords are never leaked in plaintext (on crashes)
-- NUN-1079 [Android] - Can edit wallet name to all Space character
-- NUN-1266 [Android] - manual fee rate suggestions could be fractions
-- NUN-128 [Mobile] - Change copy on Transaction Details "view on blockchain explorer"
-- NUN-1145 [Android] When login screen is loading, swipe to top or bottom screen, app is not login anymore
-- NUN-1205 [Android] "Continue" Button is hidden and Can't close keyboard on the "New Transaction"/"Add air- gapped key" screen
-- NUN-1274 [Android] Don't show an temporary message to let user know account is deleted
-- NUN-1270 [Android] update timeline alert copy from "are receiving" to "received" and "are sending" to "sent" after the transaction has been confirmed
-- NUN-1189 [Android] GUI is showing overlap when add new member to chat group
-- NUN-1091 Android - When login acc, message tab must wait to display list of chat
-- NUN-1057 Android - Create an account small copy change
-- NUN-839 AND-User will receive notification when get a message, contact request or contact's confirmation
-- NUN-845 AND-User will receive notification when someone they invite join Nunchuk for the first time
+- NUN-1327 Set up signet
+- NUN-1365 Update signet UI
+- NUN-1327 Fix difficult to edit manual explorer Address
+- NUN-1414 Room chat: view message already but it still have red bubble
+- NUN-1415 Android - Large psbt: app crash when go to room chat
+- NUN-1409 Jump to the in-chat send flow when send in a shared wallet
+- NUN-1423 Android - Can not create shared wallet (encryption room)
+- NUN-1444 Android - Don't show pop up encryption with new account
+- NUN-1446 Android - New message doesn't auto-scroll to bottom of room chat
+- NUN-1394 Android - room encryption logic
+- NUN-1449 Android - More than 99 new message, red bubble is broken layout
+- NUN-1428 Android - add 'Import PSBT via QR' option to wallet menu
+- NUN-1471 Android - Export PSBT doesn't work
+- NUN-1473 Android - Create collab wallet: Still not assign enough key but show All keys have been assigned
+- NUN-1474 Android - Sometimes (many times) can not sign tx
+- NUN-1456 Android - Room chat display empty when create collab wallet
+- NUN-1486 Android - Run health check with keys have passphrase doesn't work
+- NUN-1469 Android - Minimize the ability to create many sync rooms
+- NUN-1445 Android - Change network doesn't require restart app
+- NUN-1512 Android - Improve retry logic for upload/download sync files
+- NUN-1197 Android - Fix block UI thread, download sync file multiple times
+- NUN-1490 Android - Using WriteFileCallback instead of DownloadFileCallback
+- NUN-1490 Android -Fix not show  Pending signature card immediately
+- NUN-1559 Android - Add toggle in setting's page to allow user to enable sync across devices
+- NUN-1580 Android - Change "Shared wallet" to "Collaborative wallet"

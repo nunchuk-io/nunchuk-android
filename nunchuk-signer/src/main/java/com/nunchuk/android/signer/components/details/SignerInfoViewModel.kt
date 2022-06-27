@@ -5,18 +5,20 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.HealthCheckMasterSignerUseCase
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.signer.components.details.SignerInfoEvent.*
 import com.nunchuk.android.type.HealthStatus
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class SignerInfoViewModel @Inject constructor(
     private val getMasterSignerUseCase: GetMasterSignerUseCase,
     private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
@@ -24,7 +26,8 @@ internal class SignerInfoViewModel @Inject constructor(
     private val deleteRemoteSignerUseCase: DeleteRemoteSignerUseCase,
     private val updateMasterSignerUseCase: UpdateMasterSignerUseCase,
     private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
-    private val healthCheckMasterSignerUseCase: HealthCheckMasterSignerUseCase
+    private val healthCheckMasterSignerUseCase: HealthCheckMasterSignerUseCase,
+    private val sendSignerPassphrase: SendSignerPassphrase
 ) : NunchukViewModel<SignerInfoState, SignerInfoEvent>() {
 
     override val initialState = SignerInfoState()
@@ -98,19 +101,29 @@ internal class SignerInfoViewModel @Inject constructor(
         }
     }
 
-    fun healthCheck(
-        fingerprint: String,
-        message: String,
-        signature: String,
-        path: String
-    ) {
+    fun handleHealthCheck(masterSigner: MasterSigner, passPhrase: String? = null) {
+        if (passPhrase != null) {
+            viewModelScope.launch {
+                sendSignerPassphrase.execute(masterSigner.id, passPhrase)
+                    .flowOn(Dispatchers.IO)
+                    .onException { event(HealthCheckErrorEvent(it.message.orEmpty())) }
+                    .flowOn(Dispatchers.Main)
+                    .collect { healthCheck(fingerprint = masterSigner.device.masterFingerprint, path = masterSigner.device.path) }
+            }
+        } else {
+            healthCheck(fingerprint = masterSigner.device.masterFingerprint, path = masterSigner.device.path)
+        }
+
+    }
+
+    private fun healthCheck(fingerprint: String, path: String) {
         viewModelScope.launch {
-            healthCheckMasterSignerUseCase.execute(fingerprint, message, signature, path)
+            healthCheckMasterSignerUseCase.execute(fingerprint = fingerprint, message = "", signature = "", path = path)
                 .flowOn(Dispatchers.IO)
                 .onException { event(HealthCheckErrorEvent(it.message)) }
                 .flowOn(Dispatchers.Main)
-                .collect { healthStatus ->
-                    if (healthStatus == HealthStatus.SUCCESS) {
+                .collect {
+                    if (it == HealthStatus.SUCCESS) {
                         event(HealthCheckSuccessEvent)
                     } else {
                         event(HealthCheckErrorEvent())

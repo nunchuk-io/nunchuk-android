@@ -5,25 +5,19 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.app.splash.GuestModeEvent
-import com.nunchuk.android.app.splash.GuestModeViewModel
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
-import com.nunchuk.android.core.util.hideLoading
-import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.databinding.ActivityGuestModeIntroBinding
 import com.nunchuk.android.widget.NCToastMessage
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 internal class GuestModeIntroActivity : BaseActivity<ActivityGuestModeIntroBinding>() {
-
-    @Inject
-    lateinit var factory: ViewModelFactory
 
     override fun initializeBinding() = ActivityGuestModeIntroBinding.inflate(layoutInflater)
 
-    private val viewModel: GuestModeViewModel by viewModels { factory }
+    private val viewModel: GuestModeViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

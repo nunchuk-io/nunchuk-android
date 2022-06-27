@@ -1,6 +1,5 @@
 package com.nunchuk.android.contact.components.add
 
-import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,7 +9,6 @@ import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.viewModels
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.contact.R
 import com.nunchuk.android.contact.components.add.AddContactsEvent.*
 import com.nunchuk.android.contact.databinding.BottomSheetAddContactsBinding
@@ -18,25 +16,17 @@ import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setOnEnterOrSpaceListener
-import dagger.android.support.AndroidSupportInjection
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class AddContactsBottomSheet : BaseBottomSheet<BottomSheetAddContactsBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     var listener: () -> Unit = {}
 
-    private val viewModel: AddContactsViewModel by viewModels { factory }
+    private val viewModel: AddContactsViewModel by viewModels()
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): BottomSheetAddContactsBinding {
         return BottomSheetAddContactsBinding.inflate(inflater, container, false)
-    }
-
-    override fun onAttach(context: Context) {
-        AndroidSupportInjection.inject(this)
-        super.onAttach(context)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

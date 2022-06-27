@@ -6,39 +6,62 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
+import androidx.paging.CombinedLoadStates
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.LoadState
+import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.core.qr.convertToQRCode
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.*
+import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import com.nunchuk.android.wallet.components.details.WalletDetailsOption.*
 import com.nunchuk.android.wallet.databinding.ActivityWalletDetailBinding
 import com.nunchuk.android.wallet.util.bindWalletConfiguration
-import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
 
     @Inject
     lateinit var textUtils: TextUtils
 
-    @Inject
-    lateinit var factory: NunchukFactory
-
     private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 
-    private val viewModel: WalletDetailsViewModel by viewModels { factory }
+    private val viewModel: WalletDetailsViewModel by viewModels()
 
-    private lateinit var adapter: TransactionAdapter
+    private val adapter: TransactionAdapter by lazy {
+        TransactionAdapter {
+            navigator.openTransactionDetailsScreen(
+                activityContext = this,
+                walletId = args.walletId,
+                txId = it.txId,
+                initEventId = viewModel.getRoomWallet()?.initEventId.orEmpty(),
+                roomId = viewModel.getRoomWallet()?.roomId.orEmpty()
+            )
+        }
+    }
 
     private val args: WalletDetailsArgs by lazy { WalletDetailsArgs.deserializeFrom(intent) }
 
     override fun initializeBinding() = ActivityWalletDetailBinding.inflate(layoutInflater)
+
+    private var job: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,7 +73,36 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
 
     override fun onResume() {
         super.onResume()
+        showLoading()
         viewModel.syncData()
+    }
+
+    private fun setupPaginationAdapter() {
+        binding.transactionList.adapter = adapter.withLoadStateFooter(LoadStateAdapter())
+        adapter.addLoadStateListener {
+            when (it.refresh) {
+                is LoadState.Loading -> {}
+                is LoadState.Error -> hideLoading()
+                is LoadState.NotLoading -> hideLoading()
+            }
+        }
+        lifecycleScope.launch {
+            @OptIn(ExperimentalPagingApi::class)
+            adapter.loadStateFlow.distinctUntilChangedBy(CombinedLoadStates::refresh)
+                .filter { it.refresh is LoadState.NotLoading }
+                .collect { binding.transactionList.scrollToPosition(0) }
+        }
+    }
+
+    private fun paginateTransactions() {
+        adapter.submitData(lifecycle, PagingData.empty())
+        job?.cancel()
+        job = lifecycleScope.launch(Dispatchers.IO) {
+            @OptIn(ExperimentalPagingApi::class)
+            viewModel.paginateTransactions()
+                .catch { hideLoading() }
+                .collectLatest(adapter::submitData)
+        }
     }
 
     private fun observeEvent() {
@@ -68,11 +120,23 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
             is BackupWalletDescriptorEvent -> shareDescriptor(event.descriptor)
             is Loading -> showOrHideLoading(event.loading)
             DeleteWalletSuccess -> walletDeleted()
-            ImportPSBTSuccess -> showPSBTImported()
+            ImportPSBTSuccess -> onPSBTImported()
+            is PaginationTransactions -> startPagination(event.hasTransactions)
         }
     }
 
-    private fun showPSBTImported() {
+    private fun startPagination(hasTx: Boolean) {
+        hideLoading()
+        binding.emptyTxContainer.isVisible = !hasTx
+        binding.transactionTitle.isVisible = hasTx
+        binding.transactionList.isVisible = hasTx
+        if (hasTx) {
+            paginateTransactions()
+        }
+    }
+
+    private fun onPSBTImported() {
+        viewModel.syncData()
         hideLoading()
         NCToastMessage(this).showMessage(getString(R.string.nc_wallet_psbt_imported))
     }
@@ -84,8 +148,10 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
 
     private fun openInputAmountScreen(event: SendMoneyEvent) {
         if (event.walletExtended.isShared) {
-            NCInfoDialog(this).showDialog(
-                message = getString(R.string.nc_txt_send_from_shared_description),
+            navigator.openRoomDetailActivity(
+                activityContext = this,
+                roomId = event.walletExtended.roomWallet!!.roomId,
+                roomAction = RoomAction.SEND
             )
         } else {
             navigator.openInputAmountScreen(
@@ -102,6 +168,7 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
     }
 
     private fun bindUnusedAddress(address: String) {
+        hideLoading()
         if (address.isEmpty()) {
             binding.emptyTxContainer.isVisible = false
         } else {
@@ -121,20 +188,13 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
         binding.cashAmount.text = wallet.getUSDAmount()
         binding.btnSend.isClickable = wallet.balance.value > 0
 
-        adapter.items = state.transactions
-        val emptyTransactions = state.transactions.isEmpty()
-        binding.emptyTxContainer.isVisible = emptyTransactions
-        binding.transactionTitle.isVisible = !emptyTransactions
-        binding.transactionList.isVisible = !emptyTransactions
         binding.shareIcon.isVisible = state.walletExtended.isShared
     }
 
     private fun setupViews() {
-        adapter = TransactionAdapter {
-            navigator.openTransactionDetailsScreen(this, args.walletId, it.txId)
-        }
         binding.transactionList.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
         binding.transactionList.isNestedScrollingEnabled = false
+        binding.transactionList.setHasFixedSize(false)
         binding.transactionList.adapter = adapter
 
         binding.viewWalletConfig.setUnderline()
@@ -165,12 +225,11 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
         binding.btnShare.setOnClickListener { controller.shareText(binding.addressText.text.toString()) }
         binding.navView.selectedItemId = R.id.navigation_wallets
         binding.navView.setOnNavigationItemSelectedListener {
-            navigator.openMainScreen(
-                activityContext = this,
-                bottomNavViewPosition = it.itemId
-            )
+            navigator.openMainScreen(activityContext = this, bottomNavViewPosition = it.itemId)
             true
         }
+
+        setupPaginationAdapter()
     }
 
     private fun shareDescriptor(descriptor: String) {
@@ -186,6 +245,8 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
         bottomSheet.setListener {
             when (it) {
                 IMPORT_PSBT -> handleImportPSBT()
+                IMPORT_KEYSTONE -> openImportTransactionScreen(TransactionOption.IMPORT_KEYSTONE)
+                IMPORT_PASSPORT -> openImportTransactionScreen(TransactionOption.IMPORT_PASSPORT)
                 EXPORT_BSMS -> handleExportBSMS()
                 EXPORT_COLDCARD -> handleExportColdcard()
                 EXPORT_QR -> viewModel.handleExportWalletQR()
@@ -193,6 +254,14 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
                 DELETE -> viewModel.handleDeleteWallet()
             }
         }
+    }
+
+    private fun openImportTransactionScreen(transactionOption: TransactionOption) {
+        navigator.openImportTransactionScreen(
+            activityContext = this,
+            walletId = args.walletId,
+            transactionOption = transactionOption
+        )
     }
 
     private fun handleExportColdcard() {

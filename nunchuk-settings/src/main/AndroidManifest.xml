@@ -7,7 +7,8 @@
         <activity
             android:name=".network.NetworkSettingActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukNoActionBar.Light" />
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustPan"/>
 
         <activity
             android:name=".AccountSettingActivity"
@@ -29,5 +30,15 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
+        <activity
+            android:name=".developer.DeveloperSettingActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".sync.SyncSettingActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustPan"/>
     </application>
 </manifest>

@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.databinding.ItemWalletBinding
 import com.nunchuk.android.core.util.shorten
@@ -14,14 +13,12 @@ import com.nunchuk.android.messages.components.direct.ChatInfoEvent.*
 import com.nunchuk.android.messages.databinding.ActivityChatInfoBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ChatInfoActivity : BaseActivity<ActivityChatInfoBinding>() {
 
-    @Inject
-    lateinit var factory: ViewModelFactory
-
-    private val viewModel: ChatInfoViewModel by viewModels { factory }
+    private val viewModel: ChatInfoViewModel by viewModels()
 
     private val args: ChatInfoArgs by lazy { ChatInfoArgs.deserializeFrom(intent) }
 

@@ -5,21 +5,18 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.GenerateMnemonicCodeErrorEvent
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.OpenSelectPhraseEvent
 import com.nunchuk.android.signer.software.databinding.ActivityCreateSeedBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
 
-    @Inject
-    lateinit var factory: NunchukFactory
-
-    private val viewModel: CreateNewSeedViewModel by viewModels { factory }
+    private val viewModel: CreateNewSeedViewModel by viewModels()
 
     override fun initializeBinding() = ActivityCreateSeedBinding.inflate(layoutInflater)
 

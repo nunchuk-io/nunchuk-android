@@ -19,28 +19,28 @@ fun TimelineEvent.toMessageSafe(chatId: String): Message? = try {
 fun TimelineEvent.toMessage(chatId: String): Message {
     return when {
         isNunchukWalletEvent() -> {
-            val content = root.content?.toMap().orEmpty()
+            val content = root.getClearContent()?.toMap().orEmpty()
             val msgType = WalletEventType.of(content[KEY] as String)
             NunchukWalletMessage(
                 sender = senderInfo,
                 content = gson.toJson(root.getClearContent()),
                 time = time(),
                 timelineEvent = this,
-                eventType = root.type!!,
+                eventType = root.getClearType(),
                 msgType = WalletEventType.of(content[KEY] as String),
                 type = if (msgType == WalletEventType.INIT) MessageType.TYPE_NUNCHUK_WALLET_CARD.index else MessageType.TYPE_NUNCHUK_WALLET_NOTIFICATION.index,
                 isOwner = chatId == senderInfo.userId
             )
         }
         isNunchukTransactionEvent() -> {
-            val content = root.content?.toMap().orEmpty()
+            val content = root.getClearContent()?.toMap().orEmpty()
             val msgType = TransactionEventType.of(content[KEY] as String)
             NunchukTransactionMessage(
                 sender = senderInfo,
                 content = gson.toJson(root.getClearContent()),
                 time = time(),
                 timelineEvent = this,
-                eventType = root.type!!,
+                eventType = root.getClearType(),
                 msgType = TransactionEventType.of(content[KEY] as String),
                 type = if (msgType == TransactionEventType.INIT) MessageType.TYPE_NUNCHUK_TRANSACTION_CARD.index else MessageType.TYPE_NUNCHUK_TRANSACTION_NOTIFICATION.index,
                 isOwner = chatId == senderInfo.userId
@@ -52,6 +52,17 @@ fun TimelineEvent.toMessage(chatId: String): Message {
                 content = root.getClearContent().toModel<MessageContent>()?.body.orEmpty(),
                 state = root.sendState,
                 time = time(),
+                timelineEvent = this,
+                type = chatType(chatId)
+            )
+        }
+        isEncryptedEvent() -> {
+            MatrixMessage(
+                sender = senderInfo,
+                content = STATE_ENCRYPTED_MESSAGE,
+                state = root.sendState,
+                time = time(),
+                timelineEvent = this,
                 type = chatType(chatId)
             )
         }

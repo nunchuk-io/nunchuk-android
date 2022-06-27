@@ -8,16 +8,15 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.share.model.TransactionOption
+import com.nunchuk.android.share.model.TransactionOption.*
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
-import com.nunchuk.android.transaction.components.details.TransactionOption.*
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.imports.ImportTransactionActivity
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
@@ -26,16 +25,14 @@ import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     private val args: TransactionDetailsArgs by lazy { TransactionDetailsArgs.deserializeFrom(intent) }
 
-    private val viewModel: TransactionDetailsViewModel by viewModels { factory }
+    private val viewModel: TransactionDetailsViewModel by viewModels()
 
     private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 
@@ -47,11 +44,23 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         setLightStatusBar()
         setupViews()
         observeEvent()
-        viewModel.init(walletId = args.walletId, txId = args.txId, initEventId = args.initEventId)
+        if (args.walletId.isEmpty()) {
+            CrashlyticsReporter.recordException(Exception("Wallet id is empty"))
+            finish()
+            return
+        }
+
+        if (args.txId.isEmpty()) {
+            CrashlyticsReporter.recordException(Exception("Tx id is empty"))
+            finish()
+            return
+        }
+        viewModel.init(walletId = args.walletId, txId = args.txId, initEventId = args.initEventId, roomId = args.roomId)
     }
 
     override fun onResume() {
         super.onResume()
+        showLoading()
         viewModel.getTransactionInfo()
     }
 
@@ -104,7 +113,8 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         binding.transactionDetailsContainer.isVisible = state.viewMore
 
         bindTransaction(state.transaction)
-        bindSigners(state.transaction.signers, state.signers)
+        bindSigners(state.transaction.signers, state.signers.sortedByDescending(SignerModel::localKey))
+        hideLoading()
     }
 
     private fun bindSigners(signerMap: Map<String, Boolean>, signers: List<SignerModel>) {
@@ -123,10 +133,13 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
             transaction.outputs.firstOrNull()
         }
         binding.sendingTo.text = output?.first.orEmpty().truncatedAddress()
+        binding.signatureStatus.isVisible = !transaction.status.hadBroadcast()
         val pendingSigners = transaction.getPendingSignatures()
         if (pendingSigners > 0) {
-            binding.signatureStatus.text = getString(R.string.nc_transaction_pending_signature, pendingSigners)
+            binding.signatureStatus.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_pending_signatures, 0, 0, 0)
+            binding.signatureStatus.text = resources.getQuantityString(R.plurals.nc_transaction_pending_signature, pendingSigners, pendingSigners)
         } else {
+            binding.signatureStatus.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_check_circle, 0, 0, 0)
             binding.signatureStatus.text = getString(R.string.nc_transaction_enough_signers)
         }
         binding.confirmTime.text = transaction.getFormatDate()
@@ -241,7 +254,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
                 when (it) {
                     CANCEL -> promptCancelTransactionConfirmation()
                     EXPORT -> openExportTransactionScreen(EXPORT)
-                    IMPORT -> openImportTransactionScreen(IMPORT)
+                    IMPORT_KEYSTONE -> openImportTransactionScreen(IMPORT_KEYSTONE)
                     EXPORT_PASSPORT -> openExportTransactionScreen(EXPORT_PASSPORT)
                     IMPORT_PASSPORT -> openImportTransactionScreen(IMPORT_PASSPORT)
                     EXPORT_PSBT -> viewModel.exportTransactionToFile()
@@ -277,7 +290,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         hideLoading()
         NCToastMessage(this).show(getString(R.string.nc_transaction_signed_successful))
         if (roomId.isNotEmpty()) {
-            returnActiveRoom(roomId)
+            returnActiveRoom()
         }
     }
 
@@ -287,7 +300,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         if (roomId.isEmpty()) {
             finish()
         } else {
-            returnActiveRoom(roomId)
+            returnActiveRoom()
         }
     }
 
@@ -311,25 +324,15 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         NCToastMessage(this).showError(message)
     }
 
-    private fun returnActiveRoom(roomId: String) {
-        ActivityManager.instance.popUntilRoot()
-        navigator.openRoomDetailActivity(this, roomId)
+    private fun returnActiveRoom() {
+        finish()
     }
 
     companion object {
 
-        fun start(
-            activityContext: Activity,
-            walletId: String,
-            txId: String,
-            initEventId: String = ""
-        ) {
+        fun start(activityContext: Activity, walletId: String, txId: String, initEventId: String = "", roomId: String = "") {
             activityContext.startActivity(
-                TransactionDetailsArgs(
-                    walletId = walletId,
-                    txId = txId,
-                    initEventId = initEventId
-                ).buildIntent(activityContext)
+                TransactionDetailsArgs(walletId = walletId, txId = txId, initEventId = initEventId, roomId = roomId).buildIntent(activityContext)
             )
         }
 

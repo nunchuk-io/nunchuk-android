@@ -1,5 +1,6 @@
 apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
+apply plugin: 'dagger.hilt.android.plugin'
 
 dependencies {
 
@@ -16,11 +17,8 @@ dependencies {
     implementation matrixDeps.matrixSdk
     implementation platform(playServices.firebaseBom)
 
-    // Dagger
-    kapt daggerDeps.compiler
-    api daggerDeps.dagger
-    kapt daggerDeps.processor
-    implementation daggerDeps.support
+    kapt hiltDeps.processor
+    api hiltDeps.hilt
 
     implementation 'com.google.android.gms:play-services-base:18.0.1'
     implementation 'com.google.firebase:firebase-messaging-ktx:23.0.0'

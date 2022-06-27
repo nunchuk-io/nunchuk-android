@@ -58,15 +58,25 @@ class RoomViewHolder(
         }
         binding.badge.isVisible = isGroupChat
         binding.avatar.isVisible = isGroupChat
-        binding.count.isVisible = data.hasUnreadMessages && (data.notificationCount > 0)
-        binding.count.text = "${data.notificationCount}"
+        bindCount(data)
         binding.shareIcon.isVisible = data.roomId in roomWallets
+        binding.encryptedIcon.isVisible = data.isEncrypted
 
         binding.itemLayout.setOnClickListener { enterRoom(data) }
         binding.delete.setOnClickListener { removeRoom(data) }
 
         binding.swipeLayout.showMode = SwipeLayout.ShowMode.LayDown
         binding.swipeLayout.addDrag(SwipeLayout.DragEdge.Left, binding.actionLayout)
+    }
+
+    private fun bindCount(data: RoomSummary) {
+        val notificationCount = data.notificationCount
+        binding.count.isVisible = data.hasUnreadMessages && (notificationCount > 0)
+        if (notificationCount <= 99) {
+            binding.count.text = "$notificationCount"
+        } else {
+            binding.count.text = "99+"
+        }
     }
 
 }
@@ -78,8 +88,12 @@ object RoomSummaryComparator : ItemComparator<RoomSummary> {
         item2: RoomSummary
     ) = (item1.roomId == item2.roomId)
 
-    override fun areContentsTheSame(
-        item1: RoomSummary,
-        item2: RoomSummary
-    ) = (item1.roomId == item2.roomId && item1.roomType == item2.roomType)
+    override fun areContentsTheSame(item1: RoomSummary, item2: RoomSummary): Boolean {
+        return item1.roomId == item2.roomId
+                && item1.roomType == item2.roomType
+                && item1.hasUnreadMessages == item2.hasUnreadMessages
+                && item1.hasNewMessages == item2.hasNewMessages
+                && item1.notificationCount == item2.notificationCount
+                && item1.latestPreviewableEvent?.root?.originServerTs == item2.latestPreviewableEvent?.root?.originServerTs
+    }
 }

@@ -2,6 +2,8 @@ package com.nunchuk.android.messages.nav
 
 import android.content.Context
 import androidx.fragment.app.FragmentManager
+import com.nunchuk.android.core.constants.RoomAction
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.messages.components.create.CreateRoomBottomSheet
 import com.nunchuk.android.messages.components.detail.RoomDetailActivity
 import com.nunchuk.android.messages.components.direct.ChatInfoActivity
@@ -10,8 +12,12 @@ import com.nunchuk.android.nav.MessageNavigator
 
 interface MessageNavigatorDelegate : MessageNavigator {
 
-    override fun openRoomDetailActivity(activityContext: Context, roomId: String) {
-        RoomDetailActivity.start(activityContext, roomId)
+    override fun openRoomDetailActivity(activityContext: Context, roomId: String, roomAction: RoomAction?) {
+        RoomDetailActivity.start(activityContext, roomId, roomAction)
+    }
+
+    override fun returnRoomDetailScreen() {
+        ActivityManager.instance.popUntil(RoomDetailActivity::class.java)
     }
 
     override fun openCreateRoomScreen(fragmentManager: FragmentManager) {

@@ -1,7 +1,10 @@
 package com.nunchuk.android.core.matrix
 
 import kotlinx.coroutines.sync.Mutex
+import javax.inject.Inject
+import javax.inject.Singleton
 
-object SyncStateHolder {
-    val lockStateCreateSyncRoom = Mutex()
+@Singleton
+class SyncStateHolder @Inject constructor() {
+    val lockStateSyncRoom = Mutex()
 }

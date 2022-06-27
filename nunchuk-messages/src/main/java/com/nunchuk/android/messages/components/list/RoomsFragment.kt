@@ -18,12 +18,15 @@ import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
 import com.nunchuk.android.messages.databinding.FragmentMessagesBinding
 import com.nunchuk.android.messages.util.shouldShow
 import com.nunchuk.android.model.RoomWallet
+import com.nunchuk.android.utils.animateVisibility
+import dagger.hilt.android.AndroidEntryPoint
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
-    private val viewModel: RoomsViewModel by activityViewModels { factory }
+    private val viewModel: RoomsViewModel by activityViewModels()
 
     @Inject
     lateinit var accountManager: AccountManager
@@ -88,7 +91,9 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
     private fun handleEvent(event: RoomsEvent) {
         when (event) {
-            is LoadingEvent -> binding.skeletonContainer.root.isVisible = event.loading
+            is LoadingEvent -> {
+                binding.skeletonContainer.root.animateVisibility(isVisible = event.loading, duration = 250)
+            }
         }
     }
 

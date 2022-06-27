@@ -6,20 +6,21 @@ import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
-import com.nunchuk.android.transaction.components.details.TransactionOption
+import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.*
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.ExportKeystoneTransactionUseCase
 import com.nunchuk.android.usecase.ExportPassportTransactionUseCase
 import com.nunchuk.android.usecase.ExportTransactionUseCase
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class ExportTransactionViewModel @Inject constructor(
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val exportTransactionUseCase: ExportTransactionUseCase,

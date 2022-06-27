@@ -14,8 +14,10 @@ import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.receive.address.AddressFragmentArgs
 import com.nunchuk.android.transaction.databinding.FragmentUnusedAddressBinding
 import com.nunchuk.android.widget.NCToastMessage
+import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+@AndroidEntryPoint
 internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding>() {
 
     @Inject
@@ -27,7 +29,7 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
 
     private val args: AddressFragmentArgs by lazy { AddressFragmentArgs.deserializeFrom(arguments) }
 
-    private val viewModel: UnusedAddressViewModel by viewModels { factory }
+    private val viewModel: UnusedAddressViewModel by viewModels()
 
     override fun initializeBinding(
         inflater: LayoutInflater,

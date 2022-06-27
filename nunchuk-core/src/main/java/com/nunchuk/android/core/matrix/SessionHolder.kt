@@ -20,6 +20,7 @@ object SessionHolder {
         Timber.tag("MainActivityViewModel").d("storeActiveSession of ${session.myUserId}")
         session.apply {
             activeSession = this
+            cryptoService().setWarnOnUnknownDevices(false)
             try {
                 open()
                 if (!hasAlreadySynced()) {
@@ -27,7 +28,7 @@ object SessionHolder {
                 } else {
                     startSync(ProcessLifecycleOwner.get().isAtLeastStarted())
                 }
-            } catch (e: Error) {
+            } catch (e: Throwable) {
                 CrashlyticsReporter.recordException(e)
             }
         }
@@ -52,6 +53,6 @@ object SessionHolder {
     fun getActiveRoomIdSafe() = currentRoom?.roomId.orEmpty()
 }
 
-fun Session.roomSummariesFlow() = getRoomSummariesLive(roomSummaryQueryParams {
+fun Session.roomSummariesFlow() = roomService().getRoomSummariesLive(roomSummaryQueryParams {
     memberships = Membership.activeMemberships()
 }).asFlow()

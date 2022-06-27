@@ -19,16 +19,11 @@ fun ViewWalletStickyBinding.bindRoomWallet(
     root.isVisible = wallet.isInitialized() && !wallet.isCanceled() && !wallet.isCreated()
     root.setOnClickListener { onClick() }
 
-    val transaction = transactions.getOrNull(0)
-    if (transaction != null && transaction.isPendingSignatures()) {
+    val transaction = transactions.firstOrNull { it.status.isPending() }
+    if (transaction != null) {
         bindPendingSignature(transaction)
         root.isVisible = true
-        root.setOnClickListener {
-            onClickViewTransactionDetail(
-                transaction.txId
-            )
-        }
-
+        root.setOnClickListener { onClickViewTransactionDetail(transaction.txId) }
         return
     }
 
@@ -57,8 +52,8 @@ private fun TextView.bindRatio(isEscrow: Boolean, requireSigners: Int, totalSign
 }
 
 fun ViewWalletStickyBinding.bindPendingSignature(transaction: Transaction) {
-    icon.setImageDrawable(ContextCompat.getDrawable(icon.context, R.drawable.ic_pending_signatures))
-    status.bindPendingSignatures()
+    icon.setImageDrawable(ContextCompat.getDrawable(icon.context, R.drawable.ic_pending_transaction))
+    status.bindTransactionStatus(transaction)
     name.text = transaction.totalAmount.getBTCAmount()
     val resId = if (transaction.status.isConfirmed()) {
         R.string.nc_message_transaction_sent_to

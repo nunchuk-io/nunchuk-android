@@ -24,10 +24,11 @@ internal class NunchukTransactionNotificationHolder(
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(roomWallet: RoomWallet?, transactions: List<TransactionExtended>, model: NunchukTransactionMessage) {
+        binding.root.minLines = 1
         val context = itemView.context
         binding.notification.apply {
             backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_whisper_color)
-            setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_info, 0, R.drawable.ic_arrow, 0)
+            setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_info_small, 0, R.drawable.ic_arrow, 0)
         }
         when (model.msgType) {
             SIGN -> {
@@ -37,6 +38,7 @@ internal class NunchukTransactionNotificationHolder(
                 binding.notification.text = context.getString(R.string.nc_message_transaction_rejected)
             }
             RECEIVE -> {
+                binding.root.minLines = 2
                 bindReceiveTransaction(roomWallet = roomWallet, transactions = transactions, model = model)
             }
             CANCEL -> {
@@ -76,7 +78,7 @@ internal class NunchukTransactionNotificationHolder(
         binding.notification.apply {
             backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_whisper_color)
             text = getString(R.string.nc_message_transaction_broadcast)
-            setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_info, 0, R.drawable.ic_arrow, 0)
+            setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_info_small, 0, R.drawable.ic_arrow, 0)
         }
     }
 
@@ -84,7 +86,7 @@ internal class NunchukTransactionNotificationHolder(
         binding.notification.apply {
             backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_green_color)
             text = getString(R.string.nc_message_transaction_confirmed)
-            setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_check_circle_outline, 0, R.drawable.ic_arrow, 0)
+            setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_check_circle_small, 0, R.drawable.ic_arrow, 0)
         }
     }
 

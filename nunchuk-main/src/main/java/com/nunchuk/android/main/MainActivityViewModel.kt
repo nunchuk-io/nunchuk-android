@@ -1,26 +1,20 @@
 package com.nunchuk.android.main
 
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.callbacks.DownloadFileCallBack
 import com.nunchuk.android.callbacks.UploadFileCallBack
-import com.nunchuk.android.core.data.model.AppUpdateResponse
-import com.nunchuk.android.core.data.model.SyncStateMatrixResponse
+import com.nunchuk.android.core.data.model.SyncFileModel
 import com.nunchuk.android.core.domain.*
-import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
+import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.matrix.*
-import com.nunchuk.android.core.profile.GetUserProfileUseCase
-import com.nunchuk.android.core.retry.DEFAULT_RETRY_POLICY
-import com.nunchuk.android.core.retry.RetryPolicy
-import com.nunchuk.android.core.retry.SYNC_RETRY_POLICY
-import com.nunchuk.android.core.retry.retryDefault
+import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.*
 import com.nunchuk.android.messages.model.RoomNotFoundException
 import com.nunchuk.android.messages.model.SessionLostException
-import com.nunchuk.android.messages.usecase.message.CreateRoomWithTagUseCase
-import com.nunchuk.android.messages.util.STATE_NUNCHUK_SYNC
 import com.nunchuk.android.messages.util.isLocalEvent
 import com.nunchuk.android.messages.util.isNunchukConsumeSyncEvent
 import com.nunchuk.android.messages.util.toNunchukMatrixEvent
@@ -30,54 +24,127 @@ import com.nunchuk.android.model.NunchukMatrixEvent
 import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.notifications.PushNotificationManager
 import com.nunchuk.android.type.ConnectionStatus
+import com.nunchuk.android.usecase.BackupDataUseCase
 import com.nunchuk.android.usecase.EnableAutoBackupUseCase
-import com.nunchuk.android.utils.CrashlyticsReporter
+import com.nunchuk.android.usecase.RegisterAutoBackupUseCase
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.withLock
+import okhttp3.ResponseBody
+import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupState
+import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
+import org.matrix.android.sdk.api.session.crypto.model.MXUsersDevicesMap
+import org.matrix.android.sdk.api.session.initsync.SyncStatusService
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
+import org.matrix.android.sdk.api.util.awaitCallback
 import timber.log.Timber
 import javax.inject.Inject
-import javax.inject.Named
 
+@HiltViewModel
 internal class MainActivityViewModel @Inject constructor(
+    private val backupDataUseCase: BackupDataUseCase,
+    private val getSyncSettingUseCase: GetSyncSettingUseCase,
     private val enableAutoBackupUseCase: EnableAutoBackupUseCase,
-    private val createRoomWithTagUseCase: CreateRoomWithTagUseCase,
+    private val registerAutoBackupUseCase: RegisterAutoBackupUseCase,
     private val uploadFileUseCase: UploadFileUseCase,
     private val downloadFileUseCase: DownloadFileUseCase,
     private val registerDownloadBackUpFileUseCase: RegisterDownloadBackUpFileUseCase,
     private val consumeSyncFileUseCase: ConsumeSyncFileUseCase,
     private val backupFileUseCase: BackupFileUseCase,
     private val consumerSyncEventUseCase: ConsumerSyncEventUseCase,
-    private val syncStateMatrixUseCase: SyncStateMatrixUseCase,
     private val getPriceConvertBTCUseCase: GetPriceConvertBTCUseCase,
     private val scheduleGetPriceConvertBTCUseCase: ScheduleGetPriceConvertBTCUseCase,
-    private val getUserProfileUseCase: GetUserProfileUseCase,
-    private val loginWithMatrixUseCase: LoginWithMatrixUseCase,
     private val getDisplayUnitSettingUseCase: GetDisplayUnitSettingUseCase,
     private val notificationManager: PushNotificationManager,
-    @Named(DEFAULT_RETRY_POLICY) private val retryPolicy: RetryPolicy,
-    @Named(SYNC_RETRY_POLICY) private val syncRetryPolicy: RetryPolicy,
-    private val checkUpdateRecommendUseCase: CheckUpdateRecommendUseCase
-    ) : NunchukViewModel<Unit, MainAppEvent>() {
+    private val checkUpdateRecommendUseCase: CheckUpdateRecommendUseCase,
+    private val ncSharePreferences: NCSharePreferences,
+    private val getSyncFileUseCase: GetSyncFileUseCase,
+    private val createOrUpdateSyncFileUseCase: CreateOrUpdateSyncFileUseCase,
+    private val deleteSyncFileUseCase: DeleteSyncFileUseCase,
+    private val saveCacheFileUseCase: SaveCacheFileUseCase
+) : NunchukViewModel<Unit, MainAppEvent>() {
 
     override val initialState = Unit
 
-    private var syncRoomId: String? = null
+    private var timeline: Timeline? = null
 
-    private lateinit var timeline: Timeline
+    private var checkBootstrap: Boolean = false
 
     init {
         initSyncEventExecutor()
         registerDownloadFileBackupEvent()
         registerBlockChainConnectionStatusExecutor()
         getDisplayUnitSetting()
+        checkMissingSyncFile()
+        observeInitialSync()
+        enableAutoBackup()
+    }
+
+    private fun observeInitialSync() {
+        SessionHolder.activeSession?.let {
+            it.syncStatusService().getSyncStatusLive()
+                .asFlow()
+                .onEach { status ->
+                    when (status) {
+                        is SyncStatusService.Status.Idle -> {
+                            if (!checkBootstrap) {
+                                checkBootstrap = true
+                                downloadKeys(it)
+                            }
+                        }
+                        else -> {}
+                    }
+                }
+                .launchIn(viewModelScope)
+        }
+
+    }
+
+    private fun downloadKeys(session: Session) {
+        viewModelScope.launch {
+            awaitCallback<MXUsersDevicesMap<CryptoDeviceInfo>> {
+                session.cryptoService().downloadKeys(listOf(session.myUserId), true, it)
+                Timber.tag(TAG).d("download keys for user ${session.myUserId}")
+            }
+        }
+    }
+
+    private fun checkMissingSyncFile() {
+        val userId = SessionHolder.activeSession?.sessionParams?.userId
+        if (userId.isNullOrEmpty()) {
+            return
+        }
+        viewModelScope.launch {
+            getSyncFileUseCase.execute(userId)
+                .flowOn(IO)
+                .onException {}
+                .collect { files ->
+                    files.forEach {
+                        if (it.action == "UPLOAD") {
+                            uploadFile(
+                                fileName = it.fileName.orEmpty(),
+                                fileJsonInfo = it.fileJsonInfo,
+                                mineType = it.fileMineType.orEmpty(),
+                                data = it.fileData ?: byteArrayOf()
+                            )
+                        } else {
+                            downloadFile(
+                                fileJsonInfo = it.fileJsonInfo,
+                                fileUrl = it.fileUrl.orEmpty()
+                            )
+                        }
+                    }
+
+                }
+        }
     }
 
     fun checkAppUpdateRecommend(isResume: Boolean) {
@@ -91,11 +158,7 @@ internal class MainActivityViewModel @Inject constructor(
                     val isUpdateAvailable = data.isUpdateAvailable.orFalse() && count == 1
                     val isForceUpdate = data.isUpdateAvailable.orFalse() && data.isUpdateRequired.orFalse() && isResume
                     if (isUpdateAvailable || isForceUpdate) {
-                        event(
-                            UpdateAppRecommendEvent(
-                                data = data
-                            )
-                        )
+                        event(UpdateAppRecommendEvent(data = data))
                     }
                 }
         }
@@ -107,6 +170,23 @@ internal class MainActivityViewModel @Inject constructor(
                 .flowOn(IO)
                 .onException {}
                 .collect { getBTCConvertPrice() }
+        }
+    }
+
+    fun saveSyncFileToCache(
+        data: ResponseBody,
+        path: String,
+        fileJsonInfo: String
+    ) {
+        viewModelScope.launch {
+            saveCacheFileUseCase.execute(
+                data = data,
+                path = path
+            ).flowOn(IO)
+                .onException {}
+                .collect {
+                    consumeSyncFile(fileJsonInfo, it)
+                }
         }
     }
 
@@ -133,7 +213,6 @@ internal class MainActivityViewModel @Inject constructor(
             registerDownloadBackUpFileUseCase.execute()
                 .flowOn(IO)
                 .onException {}
-                .flowOn(Main)
                 .collect { Timber.tag(TAG).d("[App] registerDownloadFileBackup") }
         }
     }
@@ -164,6 +243,90 @@ internal class MainActivityViewModel @Inject constructor(
         }
     }
 
+    private fun createOrUpdateUploadSyncFile(
+        fileName: String,
+        fileJsonInfo: String,
+        data: ByteArray,
+        mineType: String
+    ) {
+        viewModelScope.launch {
+            createOrUpdateSyncFileUseCase.execute(
+                SyncFileModel(
+                    userId = SessionHolder.activeSession?.sessionParams?.userId.orEmpty(),
+                    action = "UPLOAD",
+                    fileName = fileName,
+                    fileJsonInfo = fileJsonInfo,
+                    fileData = data,
+                    fileMineType = mineType,
+                )
+            )
+                .flowOn(IO)
+                .onException { Timber.d("createOrUpdateSyncFileUseCase failed: ${it.message.orEmpty()}") }
+                .collect { Timber.d("createOrUpdateSyncFileUseCase success") }
+        }
+    }
+
+    private fun createOrUpdateDownloadSyncFile(
+        fileJsonInfo: String,
+        fileUrl: String
+    ) {
+        viewModelScope.launch {
+            createOrUpdateSyncFileUseCase.execute(
+                SyncFileModel(
+                    userId = SessionHolder.activeSession?.sessionParams?.userId.orEmpty(),
+                    action = "DOWNLOAD",
+                    fileJsonInfo = fileJsonInfo,
+                    fileUrl = fileUrl
+                )
+            )
+                .flowOn(IO)
+                .onException { Timber.d("createOrUpdateDownloadSyncFile failed: ${it.message.orEmpty()}") }
+                .collect { Timber.d("createOrUpdateDownloadSyncFile success") }
+        }
+    }
+
+    private fun deleteDownloadSyncFile(
+        fileJsonInfo: String,
+        fileUrl: String
+    ) {
+        viewModelScope.launch {
+            deleteSyncFileUseCase.execute(
+                SyncFileModel(
+                    userId = SessionHolder.activeSession?.sessionParams?.userId.orEmpty(),
+                    action = "DOWNLOAD",
+                    fileJsonInfo = fileJsonInfo,
+                    fileUrl = fileUrl
+                )
+            )
+                .flowOn(IO)
+                .onException { Timber.d("deleteDownloadSyncFile failed: ${it.message.orEmpty()}") }
+                .collect { Timber.d("deleteDownloadSyncFile success") }
+        }
+    }
+
+    private fun deleteUploadSyncFile(
+        fileName: String,
+        fileJsonInfo: String,
+        data: ByteArray,
+        mineType: String
+    ) {
+        viewModelScope.launch {
+            deleteSyncFileUseCase.execute(
+                SyncFileModel(
+                    userId = SessionHolder.activeSession?.sessionParams?.userId.orEmpty(),
+                    action = "UPLOAD",
+                    fileName = fileName,
+                    fileJsonInfo = fileJsonInfo,
+                    fileData = data,
+                    fileMineType = mineType,
+                )
+            )
+                .flowOn(IO)
+                .onException { Timber.d("deleteUploadSyncFile failed: ${it.message.orEmpty()}") }
+                .collect { Timber.d("deleteUploadSyncFile success") }
+        }
+    }
+
     private fun uploadFile(
         fileName: String,
         fileJsonInfo: String,
@@ -172,11 +335,11 @@ internal class MainActivityViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             uploadFileUseCase.execute(fileName = fileName, fileType = mineType, fileData = data)
-                .retryDefault(retryPolicy)
                 .flowOn(IO)
-                .onException {}
+                .onException { createOrUpdateUploadSyncFile(fileName, fileJsonInfo, data, mineType) }
                 .flowOn(Main)
                 .collect {
+                    deleteUploadSyncFile(fileName, fileJsonInfo, data, mineType)
                     Timber.tag(TAG).d("[App] fileUploadURL: ${it.contentUri}")
                     backupFile(fileJsonInfo, it.contentUri.orEmpty())
                 }
@@ -184,20 +347,11 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     private fun backupFile(fileJsonInfo: String, fileUri: String) {
-        if (syncRoomId == null) {
-            CrashlyticsReporter.recordException(Throwable("Sync room null. Can't backup file"))
-            return
-        }
-
-        syncRoomId?.let {
-            viewModelScope.launch {
-                backupFileUseCase.execute(it, fileJsonInfo, fileUri)
-                    .retryDefault(retryPolicy)
-                    .flowOn(IO)
-                    .onException { }
-                    .flowOn(Main)
-                    .collect { Timber.tag(TAG).d("[App] backupFile success") }
-            }
+        viewModelScope.launch {
+            backupFileUseCase.execute(fileJsonInfo, fileUri)
+                .flowOn(IO)
+                .onException { }
+                .collect { Timber.tag(TAG).d("[App] backupFile success") }
         }
     }
 
@@ -208,125 +362,138 @@ internal class MainActivityViewModel @Inject constructor(
         val mediaId = if (contentUriInfo.isEmpty()) "" else contentUriInfo[1]
         viewModelScope.launch {
             downloadFileUseCase.execute(serverName = serverName, mediaId = mediaId)
-                .retryDefault(retryPolicy)
                 .flowOn(IO)
-                .onException { }
+                .onException {
+                    createOrUpdateDownloadSyncFile(fileJsonInfo, fileUrl)
+                }
                 .flowOn(Main)
                 .collect {
+                    deleteDownloadSyncFile(fileJsonInfo, fileUrl)
                     Timber.tag(TAG).d("[App] DownloadFileSyncSucceed: $fileJsonInfo")
                     event(DownloadFileSyncSucceed(fileJsonInfo, it))
                 }
         }
     }
 
-    fun consumeSyncFile(fileJsonInfo: String, fileData: ByteArray) {
-        Timber.tag(TAG).d("consumeSyncFile($fileJsonInfo, $fileData)")
+    private fun consumeSyncFile(fileJsonInfo: String, filePath: String) {
+        Timber.tag(TAG).d("consumeSyncFile($fileJsonInfo, $filePath)")
         viewModelScope.launch {
-            consumeSyncFileUseCase.execute(fileJsonInfo, fileData)
-                .retryDefault(retryPolicy)
+            consumeSyncFileUseCase.execute(fileJsonInfo, filePath)
                 .flowOn(IO)
                 .onException { }
-                .flowOn(Main)
-                .collect {
-                    event(SyncCompleted)
-                    Timber.tag(TAG).d("[App] consumeSyncFile")
-                }
+                .collect { event(SyncCompleted) }
         }
     }
 
-    private fun createRoomWithTagSync() {
+    private fun registerAutoBackup(syncRoomId: String, accessToken: String) {
         viewModelScope.launch {
-            createRoomWithTagUseCase.execute(
-                STATE_NUNCHUK_SYNC,
-                listOf(SessionHolder.activeSession?.sessionParams?.userId.orEmpty()),
-                STATE_NUNCHUK_SYNC
-            )
-                .retryDefault(retryPolicy)
+            getSyncSettingUseCase.execute()
+                .flatMapConcat {
+                    if (it.enable) {
+                        registerAutoBackupUseCase.execute(syncRoomId, accessToken)
+                    } else {
+                        flow {
+                            Timber.tag(TAG).v("can not registerAutoBackup due to disable")
+                            emit(Unit)
+                        }
+                    }
+                }
                 .flowOn(IO)
                 .onException { }
-                .flowOn(Main)
-                .collect {
-                    syncRoomId = it.roomId
-                    syncRoomId?.let(::syncData)
-                }
+                .collect { Timber.tag(TAG).v("registerAutoBackup success") }
         }
     }
 
-    private fun enableAutoBackup(syncRoomId: String) {
+    private fun enableAutoBackup() {
         viewModelScope.launch {
-            enableAutoBackupUseCase.execute(syncRoomId)
-                .retryDefault(retryPolicy)
-                .flowOn(IO)
+            getSyncSettingUseCase.execute()
+                .flatMapConcat {
+                    enableAutoBackupUseCase.execute(it.enable)
+                }.flowOn(IO)
                 .onException { }
-                .flowOn(Main)
-                .collect { Timber.tag(TAG).v("enableAutoBackup success") }
+                .collect {
+                    Timber.tag(TAG).v("enableAutoBackup success")
+                    if (it) {
+                        backupData()
+                    }
+                }
+
         }
     }
+
+    private fun backupData() {
+        // backup missing data if needed
+        viewModelScope.launch {
+            backupDataUseCase.execute()
+                .flowOn(Dispatchers.IO)
+                .onException { }
+                .collect { Timber.v("backupDataUseCase success") }
+        }
+    }
+
 
     private fun Room.retrieveTimelineEvents() {
         Timber.tag(TAG).v("retrieveTimelineEvents")
-        timeline = createTimeline(null, TimelineSettings(initialSize = PAGINATION, true))
-        timeline.removeAllListeners()
-        timeline.addListener(TimelineListenerAdapter(::handleTimelineEvents))
-        timeline.start()
+        timeline = timelineService().createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
+            removeAllListeners()
+            addListener(TimelineListenerAdapter(::handleTimelineEvents))
+            start()
+        }
     }
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
         Timber.tag(TAG).v("handleTimelineEvents")
+        checkIfReRequestKeysNeeded(events)
         val nunchukEvents = events.filter(TimelineEvent::isNunchukConsumeSyncEvent)
         viewModelScope.launch {
             val sortedEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
                 .sortedByDescending(NunchukMatrixEvent::time)
             Timber.tag(TAG).v("sortedEvents::$sortedEvents")
-            consumerSyncEventUseCase.execute(sortedEvents)
-                .retryDefault(retryPolicy)
+            getSyncSettingUseCase.execute()
+                .flatMapConcat {
+                    if (it.enable) {
+                        consumerSyncEventUseCase.execute(sortedEvents)
+                    } else {
+                        flow {
+                            Timber.tag(TAG).v("can not consumerSyncEvent due to disable")
+                            emit(Unit)
+                        }
+                    }
+                }
                 .flowOn(IO)
-                .onException { }
-                .flowOn(Main)
+                .onException { Timber.tag(TAG).v("consumerSyncEvent fail") }
                 .collect {
-                    Timber.tag(TAG).v("consumerSyncEventUseCase success")
+                    Timber.tag(TAG).v("consumerSyncEvent success")
+                    event(ConsumeSyncEventCompleted)
                 }
         }
     }
 
-    fun setupSyncing() {
-        Timber.tag(TAG).d("Bearer ${SessionHolder.activeSession?.sessionParams?.credentials?.accessToken.orEmpty()}")
-        viewModelScope.launch {
-            SyncStateHolder.lockStateCreateSyncRoom.withLock {
-                syncStateMatrixUseCase.execute()
-                    .retryDefault(retryPolicy)
-                    .flowOn(IO)
-                    .onException { }
-                    .flowOn(Main)
-                    .collect {
-                            event(SyncCompleted)
-                            syncRoomId = findSyncRoom(it)
-                            syncRoomId?.let { syncRoomId ->
-                                Timber.tag(TAG).d("Have sync room: $syncRoomId")
-                                syncData(roomId = syncRoomId)
-                            } ?: run {
-                                Timber.tag(TAG).d("Don't have sync room")
-                                createRoomWithTagSync()
-                            }
-                        }
+    private fun checkIfReRequestKeysNeeded(events: List<TimelineEvent>) {
+        events.forEach(::reRequestKeys)
+    }
+
+    private fun reRequestKeys(timelineEvent: TimelineEvent) {
+        val session = SessionHolder.activeSession ?: return
+        if (timelineEvent.isEncrypted() && timelineEvent.root.mCryptoError != null) {
+            val cryptoService = session.cryptoService()
+            val keysBackupService = cryptoService.keysBackupService()
+            if (keysBackupService.state == KeysBackupState.NotTrusted || (keysBackupService.state == KeysBackupState.ReadyToBackUp && keysBackupService.canRestoreKeys())) {
+                Timber.tag(TAG).d("Use backup key flow")
+            }
+            if (cryptoService.getCryptoDeviceInfo(session.myUserId).size > 1 || timelineEvent.senderInfo.userId != session.myUserId) {
+                cryptoService.reRequestRoomKeyForEvent(timelineEvent.root)
             }
         }
     }
 
-    private fun findSyncRoom(response: SyncStateMatrixResponse): String? {
-        return response.rooms?.join?.filter {
-            it.value.accountData?.events?.any { event ->
-                event.type == EVENT_TYPE_TAG_ROOM && event.content?.tags?.get(EVENT_TYPE_SYNC) != null
-            }.orFalse()
-        }?.map {
-            it.key
-        }?.firstOrNull()
-    }
-
-    private fun syncData(roomId: String) {
+    fun syncData(roomId: String) {
         Timber.tag(TAG).d("syncData::$roomId")
-        enableAutoBackup(roomId)
+        registerAutoBackup(
+            syncRoomId = roomId,
+            accessToken = SessionHolder.activeSession?.sessionParams?.credentials?.accessToken.orEmpty()
+        )
         retrieveTimelines(roomId)
     }
 
@@ -334,56 +501,32 @@ internal class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             flow {
                 val activeSession = SessionHolder.activeSession ?: throw SessionLostException()
-                val room = activeSession.getRoom(roomId) ?: throw RoomNotFoundException(roomId)
+                val room = activeSession.roomService().getRoom(roomId) ?: throw RoomNotFoundException(roomId)
                 emit(room)
-            }.retryDefault(syncRetryPolicy)
-                .flowOn(IO)
+            }.flowOn(IO)
                 .onException { }
                 .flowOn(Main)
-                .collect {
-                    it.retrieveTimelineEvents()
-                }
+                .collect { it.retrieveTimelineEvents() }
         }
     }
 
-    private fun loginWithMatrix(
-        userName: String,
-        password: String,
-        encryptedDeviceId: String
-    ) = loginWithMatrixUseCase.execute(
-        userName = userName,
-        password = password,
-        encryptedDeviceId = encryptedDeviceId
-    ).retryDefault(retryPolicy)
-        .onException {}
-
-    fun setupMatrix(token: String, encryptedDeviceId: String) {
-        getUserProfileUseCase.execute()
-            .flowOn(IO)
-            .retryDefault(retryPolicy)
-            .flatMapConcat {
-                loginWithMatrix(
-                    userName = it,
-                    password = token,
-                    encryptedDeviceId = encryptedDeviceId
-                )
+    fun checkCrossSigning(session: Session) {
+        if (ncSharePreferences.newDevice) {
+            if (hasMultipleDevices(session)) {
+                ncSharePreferences.newDevice = false
+                event(CrossSigningUnverified)
             }
-            .onEach {
-                setupSyncing()
-            }
-            .flowOn(Main)
-            .launchIn(viewModelScope)
+        }
     }
+
+    private fun hasMultipleDevices(session: Session) = session.cryptoService().getCryptoDeviceInfo(session.myUserId).size > 1
 
     private fun getDisplayUnitSetting() {
         viewModelScope.launch {
             getDisplayUnitSettingUseCase.execute()
                 .flowOn(IO)
                 .onException { }
-                .flowOn(Main)
-                .collect {
-                    CURRENT_DISPLAY_UNIT_TYPE = it.getCurrentDisplayUnitType()
-                }
+                .collect { CURRENT_DISPLAY_UNIT_TYPE = it.getCurrentDisplayUnitType() }
         }
     }
 
@@ -391,9 +534,15 @@ internal class MainActivityViewModel @Inject constructor(
         notificationManager.enqueueRegisterPusherWithFcmKey(token)
     }
 
+    override fun onCleared() {
+        timeline?.apply {
+            dispose()
+            removeAllListeners()
+        }
+        super.onCleared()
+    }
+
     companion object {
         private const val TAG = "MainActivityViewModel"
-        private const val EVENT_TYPE_SYNC = "io.nunchuk.sync"
-        private const val EVENT_TYPE_TAG_ROOM = "m.tag"
     }
 }

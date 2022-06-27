@@ -13,12 +13,13 @@ import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.Est
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class EstimatedFeeViewModel @Inject constructor(
     private val estimateFeeUseCase: EstimateFeeUseCase,
     private val draftTransactionUseCase: DraftTransactionUseCase

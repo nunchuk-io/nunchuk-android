@@ -4,9 +4,9 @@ import android.app.Activity
 import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.model.Amount
@@ -14,16 +14,14 @@ import com.nunchuk.android.transaction.components.send.confirmation.TransactionC
 import com.nunchuk.android.transaction.databinding.ActivityTransactionConfirmBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     private val args: TransactionConfirmArgs by lazy { TransactionConfirmArgs.deserializeFrom(intent) }
 
-    private val viewModel: TransactionConfirmViewModel by viewModels { factory }
+    private val viewModel: TransactionConfirmViewModel by viewModels()
 
     override fun initializeBinding() = ActivityTransactionConfirmBinding.inflate(layoutInflater)
 
@@ -89,6 +87,7 @@ class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBindin
 
     private fun returnActiveRoom(roomId: String) {
         hideLoading()
+        finish()
         ActivityManager.instance.popUntilRoot()
         navigator.openRoomDetailActivity(this, roomId)
     }
@@ -114,7 +113,9 @@ class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBindin
         navigator.openTransactionDetailsScreen(
             activityContext = this,
             walletId = args.walletId,
-            txId = txId
+            txId = txId,
+            initEventId = "",
+            roomId = SessionHolder.getActiveRoomIdSafe()
         )
         NCToastMessage(this).showMessage("Transaction created::$txId")
     }

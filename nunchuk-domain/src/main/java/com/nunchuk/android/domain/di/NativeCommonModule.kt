@@ -1,20 +1,23 @@
 package com.nunchuk.android.domain.di
 
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.CreateShareFileUseCase
+import com.nunchuk.android.usecase.CreateShareFileUseCaseImpl
+import com.nunchuk.android.usecase.GetChainTipUseCase
+import com.nunchuk.android.usecase.GetChainTipUseCaseImpl
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 @Module
+@InstallIn(SingletonComponent::class)
 internal interface NativeCommonModule {
 
     @Binds
     fun bindGetChainTipUseCase(useCase: GetChainTipUseCaseImpl): GetChainTipUseCase
-
-    @Binds
-    fun bindGetDeviceUseCase(useCase: GetDevicesUseCaseImpl): GetDevicesUseCase
 
     @Binds
     fun bindCreateShareFileUseCase(useCase: CreateShareFileUseCaseImpl): CreateShareFileUseCase

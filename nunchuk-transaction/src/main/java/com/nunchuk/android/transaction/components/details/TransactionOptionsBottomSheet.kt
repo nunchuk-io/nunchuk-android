@@ -9,10 +9,10 @@ import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.arch.args.FragmentArgs
 import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.util.checkCameraPermission
-import com.nunchuk.android.core.util.checkReadExternalPermission
 import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.orFalse
-import com.nunchuk.android.transaction.components.details.TransactionOption.*
+import com.nunchuk.android.share.model.TransactionOption
+import com.nunchuk.android.share.model.TransactionOption.*
 import com.nunchuk.android.transaction.databinding.DialogTransactionSignBottomSheetBinding
 
 class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBottomSheetBinding>() {
@@ -33,11 +33,10 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
     private fun setupViews() {
         binding.btnCancel.isVisible = args.isPending
         binding.btnCancel.setOnClickListener {
-            if (requireActivity().checkReadExternalPermission()) {
-                listener(CANCEL)
-                dismiss()
-            }
+            listener(CANCEL)
+            dismiss()
         }
+        binding.btnExportPSBT.isVisible = args.isPending
         binding.btnExportPSBT.setOnClickListener {
             listener(EXPORT_PSBT)
             dismiss()
@@ -58,7 +57,7 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
         binding.btnImport.isVisible = args.isPending
         binding.btnImport.setOnClickListener {
             if (requireActivity().checkCameraPermission()) {
-                listener(IMPORT)
+                listener(IMPORT_KEYSTONE)
                 dismiss()
             }
         }

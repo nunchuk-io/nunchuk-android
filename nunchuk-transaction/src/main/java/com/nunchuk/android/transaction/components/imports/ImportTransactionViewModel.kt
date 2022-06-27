@@ -3,16 +3,16 @@ package com.nunchuk.android.transaction.components.imports
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.readableMessage
-import com.nunchuk.android.transaction.components.details.TransactionOption
+import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionError
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionSuccess
 import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCase
 import com.nunchuk.android.usecase.ImportPassportTransactionUseCase
 import com.nunchuk.android.usecase.ImportTransactionUseCase
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
+@HiltViewModel
 internal class ImportTransactionViewModel @Inject constructor(
     private val importTransactionUseCase: ImportTransactionUseCase,
     private val importKeystoneTransactionUseCase: ImportKeystoneTransactionUseCase,
@@ -39,7 +40,7 @@ internal class ImportTransactionViewModel @Inject constructor(
         this.transactionOption = transactionOption
     }
 
-    fun importTransaction(filePath: String) {
+    fun importTransactionViaFile(filePath: String) {
         viewModelScope.launch {
             importTransactionUseCase.execute(walletId, filePath)
                 .flowOn(IO)
@@ -49,7 +50,7 @@ internal class ImportTransactionViewModel @Inject constructor(
         }
     }
 
-    fun updateQRCode(qrData: String) {
+    fun importTransactionViaQR(qrData: String) {
         qrDataList.add(qrData)
         Timber.d("[ImportTransaction]updateQRCode($qrData)")
         Timber.d("[ImportTransaction]isProcessing::$isProcessing")
@@ -63,7 +64,7 @@ internal class ImportTransactionViewModel @Inject constructor(
                 }
                     .onStart { isProcessing = true }
                     .flowOn(IO)
-                    .onException { event(ImportTransactionError(it.readableMessage())) }
+                    .onException { }
                     .flowOn(Main)
                     .onCompletion { isProcessing = false }
                     .collect { event(ImportTransactionSuccess) }

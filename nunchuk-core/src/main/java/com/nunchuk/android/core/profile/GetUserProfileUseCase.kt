@@ -1,7 +1,9 @@
 package com.nunchuk.android.core.profile
 
 import com.nunchuk.android.core.account.AccountManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -21,5 +23,5 @@ internal class GetUserProfileUseCaseImpl @Inject constructor(
                     .copy(chatId = this, name = it.name.orEmpty(), avatarUrl = it.avatar.orEmpty())
             )
         }
-    }
+    }.flowOn(Dispatchers.IO)
 }

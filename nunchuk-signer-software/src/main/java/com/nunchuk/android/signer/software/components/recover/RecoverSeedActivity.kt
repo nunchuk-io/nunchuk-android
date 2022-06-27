@@ -6,23 +6,20 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.bindEnableState
-import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.*
 import com.nunchuk.android.signer.software.R
+import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.*
 import com.nunchuk.android.signer.software.databinding.ActivityRecoverSeedBinding
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.heightExtended
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
 
-    @Inject
-    lateinit var factory: NunchukFactory
-
-    private val viewModel: RecoverSeedViewModel by viewModels { factory }
+    private val viewModel: RecoverSeedViewModel by viewModels()
 
     private lateinit var adapter: RecoverSeedSuggestionAdapter
 

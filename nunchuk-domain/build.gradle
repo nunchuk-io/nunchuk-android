@@ -6,11 +6,8 @@ dependencies {
     implementation project(':nunchuk-utils')
     implementation nunchukDeps.nativeSdk
 
-    // Dagger
-    kapt daggerDeps.compiler
-    api daggerDeps.dagger
-    kapt daggerDeps.processor
-    implementation daggerDeps.support
+    kapt hiltDeps.processor
+    api hiltDeps.hilt
 
     implementation networkDeps.values()
 }

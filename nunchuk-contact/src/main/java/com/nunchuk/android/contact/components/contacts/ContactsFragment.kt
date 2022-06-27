@@ -14,10 +14,12 @@ import com.nunchuk.android.contact.R
 import com.nunchuk.android.contact.databinding.FragmentContactsBinding
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.model.Contact
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
 
-    private val viewModel: ContactsViewModel by viewModels { factory }
+    private val viewModel: ContactsViewModel by viewModels()
 
     private lateinit var adapter: ContactsAdapter
 

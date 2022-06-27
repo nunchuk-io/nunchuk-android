@@ -39,9 +39,10 @@
     <string name="nc_wallet_delete_wallet">Delete wallet</string>
     <string name="nc_wallet_delete_wallet_success">Delete wallet success</string>
     <string name="nc_txt_send_from_shared_description">For collaborative wallets, please initiate the send transaction from inside the chat room</string>
-    <string name="nc_transaction_enter_passphrase">Enter your passphrase</string>
     <string name="nc_address_copy_to_clipboard">Address copied to clipboard</string>
 
     <string name="nc_wallet_select_file">Please select your transaction file</string>
     <string name="nc_wallet_psbt_imported">PSBT imported successfully</string>
+    <string name="nc_wallet_import_keystone_seed_signer">Import PSBT QR (Keystone/SeedSigner)</string>
+    <string name="nc_wallet_import_passport">Import PSBT QR (Passport)</string>
 </resources>

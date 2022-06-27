@@ -5,7 +5,6 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
@@ -20,21 +19,19 @@ import com.nunchuk.android.utils.safeManualFee
 import com.nunchuk.android.utils.textChanges
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import javax.inject.Inject
 
+@AndroidEntryPoint
 class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     private val args: EstimatedFeeArgs by lazy { EstimatedFeeArgs.deserializeFrom(intent) }
 
-    private val viewModel: EstimatedFeeViewModel by viewModels { factory }
+    private val viewModel: EstimatedFeeViewModel by viewModels()
 
     override fun initializeBinding() = ActivityTransactionEstimateFeeBinding.inflate(layoutInflater)
 

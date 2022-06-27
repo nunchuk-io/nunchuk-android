@@ -2,6 +2,7 @@ package com.nunchuk.android.wallet.shared.components.assign
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.SendErrorEventUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.model.SingleSigner
@@ -12,18 +13,18 @@ import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.JoinWalletUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.shared.components.assign.AssignSignerEvent.AssignSignerErrorEvent
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class AssignSignerViewModel @Inject constructor(
     private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     private val getUnusedSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
-    private val joinWalletUseCase: JoinWalletUseCase
+    private val joinWalletUseCase: JoinWalletUseCase,
+    private val sendErrorEventUseCase: SendErrorEventUseCase
 ) : NunchukViewModel<AssignSignerState, AssignSignerEvent>() {
 
     override val initialState = AssignSignerState()
@@ -75,7 +76,10 @@ internal class AssignSignerViewModel @Inject constructor(
             SessionHolder.currentRoom?.let { room ->
                 joinWalletUseCase.execute(room.roomId, remoteSigners + unusedSignerSigners)
                     .flowOn(Dispatchers.IO)
-                    .onException { event(AssignSignerErrorEvent(it.readableMessage())) }
+                    .onException {
+                        event(AssignSignerErrorEvent(it.readableMessage()))
+                        sendErrorEvent(room.roomId, it, sendErrorEventUseCase::execute)
+                    }
                     .onEach { event(AssignSignerEvent.AssignSignerCompletedEvent(room.roomId)) }
                     .flowOn(Dispatchers.Main)
                     .launchIn(viewModelScope)

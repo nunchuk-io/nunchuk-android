@@ -1,8 +1,11 @@
 package com.nunchuk.android.core.matrix
 
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.utils.trySafe
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface RegisterDownloadBackUpFileUseCase {
@@ -14,6 +17,6 @@ internal class RegisterDownloadBackUpFileUseCaseImpl @Inject constructor(
 ) : RegisterDownloadBackUpFileUseCase {
 
     override fun execute() = flow {
-        emit(nunchukNativeSdk.registerDownloadFileBackup())
-    }
+        emit(trySafe(nunchukNativeSdk::registerDownloadFileBackup) ?: Unit)
+    }.flowOn(Dispatchers.IO)
 }

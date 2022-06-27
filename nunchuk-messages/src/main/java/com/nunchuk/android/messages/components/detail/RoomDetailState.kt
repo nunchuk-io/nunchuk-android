@@ -42,4 +42,8 @@ sealed class RoomDetailEvent {
         val roomId: String,
         val roomWalletData: RoomWalletData
     ) : RoomDetailEvent()
+
+    object HasUpdatedEvent : RoomDetailEvent()
+    object GetRoomWalletSuccessEvent : RoomDetailEvent()
+    object LeaveRoomEvent : RoomDetailEvent()
 }

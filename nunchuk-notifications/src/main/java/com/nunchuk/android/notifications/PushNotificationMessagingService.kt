@@ -10,19 +10,15 @@ import com.nunchuk.android.core.util.isAtLeastStarted
 import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.NotificationUtils
-import dagger.android.AndroidInjection
-import dagger.android.AndroidInjector
-import dagger.android.DispatchingAndroidInjector
-import dagger.android.HasAndroidInjector
+import com.nunchuk.android.utils.trySafe
+import dagger.hilt.android.AndroidEntryPoint
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import javax.inject.Inject
 
-class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidInjector {
-
-    @Inject
-    lateinit var androidInjector: DispatchingAndroidInjector<Any>
+@AndroidEntryPoint
+class PushNotificationMessagingService : FirebaseMessagingService() {
 
     @Inject
     lateinit var notificationHelper: PushNotificationHelper
@@ -33,15 +29,11 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
     @Inject
     lateinit var intentProvider: PushNotificationIntentProvider
 
-    override fun androidInjector(): AndroidInjector<Any> = androidInjector
+    @Inject
+    lateinit var matrix: Matrix
 
     private val mUIHandler by lazy {
         Handler(Looper.getMainLooper())
-    }
-
-    override fun onCreate() {
-        AndroidInjection.inject(this)
-        super.onCreate()
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
@@ -94,11 +86,12 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
         if (roomId == SessionHolder.getActiveRoomIdSafe()) return null
 
         val session = getActiveSession() ?: return defaultNotificationData()
-        val room = session.getRoom(roomId) ?: return defaultNotificationData()
-        val event = room.getTimeLineEvent(eventId)
+        val room = session.roomService().getRoom(roomId) ?: return defaultNotificationData()
+        val timelineService = room.timelineService()
+        val event = timelineService.getTimelineEvent(eventId)
         if (event == null) {
             mUIHandler.postDelayed({
-                room.getTimeLineEvent(eventId)?.toPushNotificationData(roomId)?.let(::showNotification)
+                timelineService.getTimelineEvent(eventId)?.toPushNotificationData(roomId)?.let(::showNotification)
             }, RETRY_DELAY)
         }
         return event?.toPushNotificationData(roomId)
@@ -142,10 +135,7 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
         getLastSession()
     }
 
-    private fun getLastSession(): Session? {
-        val matrix = Matrix.getInstance(applicationContext)
-        return matrix.authenticationService().getLastAuthenticatedSession()
-    }
+    private fun getLastSession(): Session? = trySafe(matrix.authenticationService()::getLastAuthenticatedSession)
 
     private fun defaultNotificationData() = if (!ProcessLifecycleOwner.get().isAtLeastStarted()) {
         PushNotificationData(
@@ -158,8 +148,8 @@ class PushNotificationMessagingService : FirebaseMessagingService(), HasAndroidI
     private fun isEventAlreadyKnown(session: Session, eventId: String?, roomId: String?): Boolean {
         if (null != eventId && null != roomId) {
             try {
-                val room = session.getRoom(roomId) ?: return false
-                return room.getTimeLineEvent(eventId) != null
+                val room = session.roomService().getRoom(roomId) ?: return false
+                return room.timelineService().getTimelineEvent(eventId) != null
             } catch (e: Exception) {
                 CrashlyticsReporter.recordException(e)
             }

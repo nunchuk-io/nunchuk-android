@@ -5,26 +5,20 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.google.gson.Gson
-import com.google.zxing.ResultPoint
 import com.google.zxing.client.android.Intents
-import com.journeyapps.barcodescanner.BarcodeCallback
-import com.journeyapps.barcodescanner.BarcodeResult
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.signer.databinding.ActivityScanDynamicQrBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
-import timber.log.Timber
+import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
 
     @Inject
     lateinit var gson: Gson
 
-    private val viewModel: AddSignerViewModel by viewModels { factory }
+    private val viewModel: AddSignerViewModel by viewModels()
 
     override fun initializeBinding() = ActivityScanDynamicQrBinding.inflate(layoutInflater)
 
@@ -39,28 +33,19 @@ class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
         val barcodeViewIntent = intent
         barcodeViewIntent.putExtra(Intents.Scan.MODE, Intents.Scan.QR_CODE_MODE)
         binding.barcodeView.initializeFromIntent(barcodeViewIntent)
-        binding.barcodeView.decodeContinuous(object : BarcodeCallback {
-
-            override fun barcodeResult(result: BarcodeResult) {
-                Timber.tag(TAG).d("barcodeResult($result")
-                viewModel.handAddPassportSigners(result.text) {
-                    setResult(Activity.RESULT_OK, Intent().apply {
-                        putExtra(PASSPORT_EXTRA_KEYS, gson.toJson(it))
-                    })
-                    finish()
-                }
+        binding.barcodeView.decodeContinuous { result ->
+            viewModel.handAddPassportSigners(result.text) {
+                setResult(Activity.RESULT_OK, Intent().apply {
+                    putExtra(PASSPORT_EXTRA_KEYS, gson.toJson(it))
+                })
+                finish()
             }
-
-            override fun possibleResultPoints(resultPoints: MutableList<ResultPoint>?) {
-                Timber.tag(TAG).d("possibleResultPoints($resultPoints")
-            }
-        })
+        }
 
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
     }
-
 
     override fun onResume() {
         super.onResume()
@@ -73,7 +58,6 @@ class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
     }
 
     companion object {
-        private const val TAG = "ScanDynamicQRActivity"
         fun start(activityContext: Activity, requestCode: Int) {
             activityContext.startActivityForResult(Intent(activityContext, ScanDynamicQRActivity::class.java), requestCode)
         }

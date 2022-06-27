@@ -8,14 +8,15 @@ import com.nunchuk.android.usecase.CreateSharedWalletUseCase
 import com.nunchuk.android.usecase.GetRoomWalletUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.shared.components.config.SharedWalletConfigEvent.CreateSharedWalletSuccess
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.members.RoomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import javax.inject.Inject
 
+@HiltViewModel
 internal class SharedWalletConfigViewModel @Inject constructor(
     private val createSharedWalletUseCase: CreateSharedWalletUseCase,
     private val getRoomWalletUseCase: GetRoomWalletUseCase
@@ -26,7 +27,7 @@ internal class SharedWalletConfigViewModel @Inject constructor(
     init {
         if (SessionHolder.hasActiveRoom()) {
             val currentRoom = SessionHolder.currentRoom!!
-            val roomMembers = currentRoom.getRoomMembers(RoomMemberQueryParams.Builder().build())
+            val roomMembers = currentRoom.membershipService().getRoomMembers(RoomMemberQueryParams.Builder().build())
             updateState { copy(signerModels = roomMembers.toSignerModels()) }
             getRoomWallet(currentRoom.roomId)
         }

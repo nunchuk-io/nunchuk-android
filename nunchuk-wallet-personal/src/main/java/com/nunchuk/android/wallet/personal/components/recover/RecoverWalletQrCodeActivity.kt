@@ -4,24 +4,19 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.google.zxing.ResultPoint
 import com.google.zxing.client.android.Intents
-import com.journeyapps.barcodescanner.*
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
 import com.nunchuk.android.wallet.personal.databinding.ActivityImportWalletQrcodeBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class RecoverWalletQrCodeActivity : BaseActivity<ActivityImportWalletQrcodeBinding>() {
 
-    @Inject
-    lateinit var factory: NunchukFactory
-
-    private val viewModel: RecoverWalletQrCodeViewModel by viewModels { factory }
+    private val viewModel: RecoverWalletQrCodeViewModel by viewModels()
 
     override fun initializeBinding() = ActivityImportWalletQrcodeBinding.inflate(layoutInflater)
 
@@ -41,16 +36,7 @@ class RecoverWalletQrCodeActivity : BaseActivity<ActivityImportWalletQrcodeBindi
         val barcodeViewIntent = intent
         barcodeViewIntent.putExtra(Intents.Scan.MODE, Intents.Scan.QR_CODE_MODE)
         binding.barcodeView.initializeFromIntent(barcodeViewIntent)
-        binding.barcodeView.decodeContinuous(object : BarcodeCallback {
-
-            override fun barcodeResult(result: BarcodeResult) {
-                viewModel.updateQRCode(result.text, "")
-            }
-
-            override fun possibleResultPoints(resultPoints: MutableList<ResultPoint>?) {
-
-            }
-        })
+        binding.barcodeView.decodeContinuous { viewModel.updateQRCode(it.text, "") }
 
         binding.toolbar.setNavigationOnClickListener {
             finish()

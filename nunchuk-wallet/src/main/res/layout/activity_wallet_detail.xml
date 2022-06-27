@@ -155,20 +155,19 @@
         android:layout_height="@dimen/nc_padding_16"
         app:layout_constraintTop_toBottomOf="@+id/btnReceive" />
 
-
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollViewWalletTransactions"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:background="#F5F5F5"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_height="wrap_content"
+        android:background="@color/nc_white_color"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/spaceBottom16">
 
         <LinearLayout
             android:id="@+id/clWalletTransactions"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#F5F5F5"
+            android:background="@color/nc_white_color"
             android:orientation="vertical"
             tools:ignore="ContentDescription">
 
@@ -194,9 +193,7 @@
                     android:textColor="@color/nc_primary_dark_color"
                     android:textSize="@dimen/nc_text_size_16"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-
-                    />
+                    app:layout_constraintStart_toStartOf="parent" />
 
                 <androidx.cardview.widget.CardView
                     android:id="@+id/cvQR"
@@ -236,7 +233,6 @@
                             android:textSize="@dimen/nc_text_size_16"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
-
                             tools:text="bc1qepuayeutds0ys0q82g3ucad7r0eqk0dpusmxwvlpn5wkjcmhv6sqyulylk" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
@@ -302,21 +298,24 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/transactionList"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/nc_padding_8"
-                android:nestedScrollingEnabled="false"
-                android:paddingHorizontal="@dimen/nc_padding_16"
-                android:visibility="gone"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/transactionTitle"
-                tools:listitem="@layout/item_transaction" />
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/transactionList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="@dimen/nc_padding_8"
+        android:background="@color/nc_white_color"
+        android:paddingHorizontal="@dimen/nc_padding_16"
+        android:paddingTop="@dimen/nc_padding_8"
+        android:paddingBottom="@dimen/nc_padding_56"
+        android:scrollbars="vertical"
+        app:layout_constraintBottom_toBottomOf="@+id/nav_view"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/scrollViewWalletTransactions"
+        tools:listitem="@layout/item_transaction"
+        tools:visibility="visible" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/nav_view"

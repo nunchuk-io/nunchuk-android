@@ -1,5 +1,6 @@
 package com.nunchuk.android.core.signer
 
+import com.nunchuk.android.model.JoinKey
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.SignerType
@@ -12,7 +13,8 @@ data class SignerModel(
     val fingerPrint: String,
     val used: Boolean = false,
     val type: SignerType = SignerType.AIRGAP,
-    val software: Boolean = false
+    val software: Boolean = false,
+    val localKey: Boolean = true
 ) {
     fun isSame(other: SignerModel) = fingerPrint == other.fingerPrint && derivationPath == other.derivationPath
 }
@@ -36,6 +38,14 @@ fun MasterSigner.toModel() = SignerModel(
     software = software
 )
 
+fun JoinKey.toSignerModel() = SignerModel(
+    id = chatId,
+    name = name,
+    derivationPath = derivationPath,
+    fingerPrint = masterFingerprint,
+    type = SignerType.valueOf(signerType)
+)
+
 data class SignerInput(
     val fingerPrint: String,
     val derivationPath: String,
@@ -46,7 +56,7 @@ class InvalidSignerFormatException(override val message: String) : Exception()
 
 fun String.toSigner(): SignerInput {
     val trimmed = trim()
-    val pattern = Pattern.compile("^\\[([0-9a-f]{8})/(.*)]([^/]+).*\$")
+    val pattern = Pattern.compile("^\\[([0-9a-fA-F]{8})/(.*)]([^/]+).*\$")
     val matcher = pattern.matcher(trimmed)
     if (matcher.find()) {
         val fingerPrint = requireNotNull(matcher.group(1))

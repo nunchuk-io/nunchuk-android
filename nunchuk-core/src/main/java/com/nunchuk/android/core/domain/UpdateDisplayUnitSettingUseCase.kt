@@ -1,7 +1,7 @@
 package com.nunchuk.android.core.domain
 
 import com.google.gson.Gson
-import com.nunchuk.android.core.entities.DisplayUnitSetting
+import com.nunchuk.android.core.domain.data.DisplayUnitSetting
 import com.nunchuk.android.core.persistence.NCSharePreferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

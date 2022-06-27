@@ -26,7 +26,7 @@ internal class NunchukWalletCardHolder(
     private val gson = Gson()
 
     fun bind(roomWallet: RoomWallet? = null, model: NunchukWalletMessage) {
-        val map = model.timelineEvent.root.content?.toMap().orEmpty()
+        val map = model.timelineEvent.root.getClearContent()?.toMap().orEmpty()
         val body = gson.toJson(map["body"])
         val initData = body.toRoomWalletData(gson)
         val ratio = "${initData.requireSigners} / ${initData.totalSigners}"
@@ -43,7 +43,7 @@ internal class NunchukWalletCardHolder(
             binding.cancelWallet.isVisible = !roomWallet.isCreated()
             binding.pendingKeys.isVisible = true
             binding.status.bindWalletStatus(roomWallet)
-            val remainingKeys = initData.requireSigners - roomWallet.joinEventIds.size
+            val remainingKeys = initData.totalSigners - roomWallet.joinEventIds.size
             if (remainingKeys > 0) {
                 binding.pendingKeys.text = context.getString(R.string.nc_message_pending_signers_to_assign, remainingKeys)
             } else {

@@ -3,7 +3,6 @@ package com.nunchuk.android.auth.components.recover
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.recover.RecoverPasswordEvent.*
 import com.nunchuk.android.auth.databinding.ActivityRecoverPasswordBinding
@@ -12,16 +11,14 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.widget.util.passwordEnabled
 import com.nunchuk.android.widget.util.setTransparentStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class RecoverPasswordActivity : BaseActivity<ActivityRecoverPasswordBinding>() {
-
-    @Inject
-    lateinit var factory: ViewModelFactory
 
     private val args: RecoverPasswordArgs by lazy { RecoverPasswordArgs.deserializeFrom(intent) }
 
-    private val viewModel: RecoverPasswordViewModel by viewModels { factory }
+    private val viewModel: RecoverPasswordViewModel by viewModels()
 
     override fun initializeBinding() = ActivityRecoverPasswordBinding.inflate(layoutInflater)
 

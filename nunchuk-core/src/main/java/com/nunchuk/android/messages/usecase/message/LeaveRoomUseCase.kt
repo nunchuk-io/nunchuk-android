@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.usecase.message
 
+import com.nunchuk.android.core.matrix.SessionHolder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.matrix.android.sdk.api.session.room.Room
@@ -12,6 +13,12 @@ interface LeaveRoomUseCase {
 internal class LeaveRoomUseCaseImpl @Inject constructor(
 ) : LeaveRoomUseCase {
 
-    override fun execute(room: Room, reason: String?) = flow { emit(room.leave(reason)) }
+    override fun execute(room: Room, reason: String?) = flow {
+        emit(
+            if (SessionHolder.hasActiveSession()) {
+                SessionHolder.activeSession!!.roomService().leaveRoom(roomId = room.roomId, reason = reason)
+            } else Unit
+        )
+    }
 
 }

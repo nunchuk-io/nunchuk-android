@@ -9,21 +9,21 @@
     <string name="nc_message_chat_info">Chat Info</string>
     <string name="nc_message_mute_conversation">Mute conversation</string>
     <string name="nc_message_more_option">More \nOption</string>
-    <string name="nc_message_create_shared_wallet">Create\nshared\nwallet</string>
-    <string name="nc_message_spend_from_shared_wallet">Spend from\nshared\nwallet</string>
+    <string name="nc_message_create_shared_wallet">Create\ncollaborative\nwallet</string>
+    <string name="nc_message_spend_from_shared_wallet">Spend from\ncollaborative\nwallet</string>
     <string name="nc_message_edit_group_name">Edit group name</string>
     <string name="nc_message_add_members">Add members</string>
     <string name="nc_message_leave_group">Leave group</string>
     <string name="nc_message_group_name">Group Name</string>
     <string name="nc_message_invalid_email">That does not look like a valid email address</string>
     <string name="nc_message_email_hint">Type email here</string>
-    <string name="nc_message_add_members_title">Enter the emails of your contacts, separated by spaces</string>
 
     <string name="nc_message_member_left_group"><![CDATA[<b>%1$s</b> has left the group chat]]></string>
     <string name="nc_message_member_join_group"><![CDATA[<b>%1$s</b> has joined the group chat]]></string>
     <string name="nc_message_member_kick_group"><![CDATA[<b>%1$s</b> has been kicked off the group chat]]></string>
     <string name="nc_message_member_ban_group"><![CDATA[<b>%1$s</b> has been ban from the group chat]]></string>
     <string name="nc_message_member_invite_group"><![CDATA[<b>%1$s</b> has invited <b>%2$s</b> to the group chat]]></string>
+    <string name="nc_message_nunchuk_error"><![CDATA[<b>%1$s</b>]]></string>
 
     <string name="nc_message_status_delivered">Delivered</string>
     <string name="nc_message_status_sending">Sending</string>
@@ -66,26 +66,26 @@
     <string name="nc_message_transaction_view_details">View details</string>
     <string name="nc_message_transaction_sending_to"><![CDATA[Sending to <b>%1$s</b>]]></string>
     <string name="nc_message_transaction_sent_to"><![CDATA[Sent to <b>%1$s</b>]]></string>
-    <string name="nc_message_transaction_pending_signature">Pending %1d signature</string>
     <string name="nc_message_transaction_enough_signature">Enough signatures collected</string>
     <string name="nc_message_room_not_found">Room not found!</string>
     <string name="nc_message_contact_not_found">Contact not found!</string>
     <string name="nc_message_room_name_updated">Room name has been updated</string>
-    <string name="nc_message_empty_messages">If you want to create a shared wallet, please add your contacts then start a conversation.</string>
+    <string name="nc_message_empty_messages">If you want to create a collaborative wallet, please add your contacts then start a conversation.</string>
     <string name="nc_message_empty_contacts">You don\'t have any contacts</string>
     <string name="nc_message_new_members_added">New members have been added</string>
 
-    <string name="nc_transaction_not_found">Received transaction not found</string>
-    <string name="nc_text_create_a_shared_wallet">Create a shared wallet</string>
+    <string name="nc_transaction_not_found">You received a transaction</string>
+    <string name="nc_text_create_a_shared_wallet">Create a collaborative wallet</string>
     <string name="nc_text_no_thanks">No, thanks</string>
-    <string name="nc_text_banner_new_chat_des">A shared wallet is one of the safest ways to store your bitcoin because it eliminates single points of failure. Want to learn more about shared wallets? Read our guide</string>
-    <string name="nc_text_banner_new_chat_title">Would you like to create a shared wallet?</string>
+    <string name="nc_text_banner_new_chat_des">A collaborative wallet is one of the safest ways to store your bitcoin because it eliminates single points of failure. Want to learn more about collaborative wallets? Read our guide</string>
+    <string name="nc_text_banner_new_chat_title">Would you like to create a collaborative wallet?</string>
     <string name="nc_text_read_our_guide_linkify">Read our guide</string>
     <string name="nc_text_count_selected_message">%d Selected</string>
     <string name="nc_text_select">Select</string>
     <string name="nc_text_copy">Copy</string>
     <string name="nc_text_delete">Delete</string>
     <string name="nc_text_copied_to_clipboard">Message is copied to your clipboard</string>
+    <string name="nc_message_encrypted">Encrypted</string>
     <plurals name="nc_message_members">
         <item quantity="one">%d member</item>
         <item quantity="other">%d members</item>

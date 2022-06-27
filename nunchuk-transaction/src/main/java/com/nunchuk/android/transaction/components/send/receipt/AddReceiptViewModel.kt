@@ -6,9 +6,11 @@ import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.*
 import com.nunchuk.android.usecase.CheckAddressValidUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class AddReceiptViewModel @Inject constructor(
     private val checkAddressValidUseCase: CheckAddressValidUseCase
 ) : NunchukViewModel<AddReceiptState, AddReceiptEvent>() {

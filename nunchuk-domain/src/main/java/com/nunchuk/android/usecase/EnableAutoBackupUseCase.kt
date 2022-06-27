@@ -7,20 +7,25 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface EnableAutoBackupUseCase {
-    fun execute(syncRoomId: String): Flow<Unit>
+    fun execute(
+        enable: Boolean
+    ): Flow<Boolean>
 }
 
 internal class EnableAutoBackupUseCaseImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
 ) : EnableAutoBackupUseCase {
 
-    override fun execute(syncRoomId: String) = flow {
+    override fun execute(
+        enable: Boolean
+    ) = flow {
+        try {
+            nativeSdk.enableAutoBackUp(enable = enable)
+        } catch (t: Throwable) {
+            CrashlyticsReporter.recordException(t)
+        }
         emit(
-            try {
-                nativeSdk.enableAutoBackUp(syncRoomId)
-            } catch (t: Throwable) {
-                CrashlyticsReporter.recordException(t)
-            }
+            enable
         )
     }
 

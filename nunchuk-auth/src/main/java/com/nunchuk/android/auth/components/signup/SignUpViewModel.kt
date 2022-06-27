@@ -11,9 +11,11 @@ import com.nunchuk.android.core.network.accountExisted
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.utils.EmailValidator
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class SignUpViewModel @Inject constructor(
     private val nameValidator: NameValidator,
     private val registerUseCase: RegisterUseCase

@@ -2,8 +2,10 @@ package com.nunchuk.android.wallet.shared.components.configure
 
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.wallet.shared.components.configure.ConfigureSharedWalletEvent.ConfigureCompletedEvent
+import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
+@HiltViewModel
 internal class ConfigureSharedWalletViewModel @Inject constructor(
 ) : NunchukViewModel<ConfigureSharedWalletState, ConfigureSharedWalletEvent>() {
 

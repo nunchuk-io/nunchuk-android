@@ -6,8 +6,10 @@ import com.nunchuk.android.type.WalletType.ESCROW
 import com.nunchuk.android.type.WalletType.MULTI_SIG
 import com.nunchuk.android.wallet.shared.components.create.AddSharedWalletEvent.WalletNameRequiredEvent
 import com.nunchuk.android.wallet.shared.components.create.AddSharedWalletEvent.WalletSetupDoneEvent
+import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
+@HiltViewModel
 internal class CreateSharedWalletViewModel @Inject constructor(
 ) : NunchukViewModel<AddSharedWalletState, AddSharedWalletEvent>() {
 

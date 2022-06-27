@@ -10,7 +10,7 @@
     <string name="nc_contact_status_pending">Pending</string>
     <string name="nc_contact_requests">Requests</string>
     <string name="nc_text_invite_message">These contacts are not on Nunchuk. Would you like to send an invite?</string>
-    <string name="nc_contacts_enter_the_emails">Enter the emails of your contacts, separated by spaces</string>
+    <string name="nc_contacts_enter_the_emails">Enter emails or usernames, separated by spaces</string>
     <string name="nc_contacts_type_email_here">Type email here</string>
     <string name="nc_contact_add_contacts">Add Contacts</string>
     <string name="nc_contact_valid_email_address">That does not look like a valid email address</string>

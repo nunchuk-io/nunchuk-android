@@ -9,9 +9,12 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.core.loader.ImageLoader
+import com.nunchuk.android.core.matrix.MatrixEvenBus
+import com.nunchuk.android.core.matrix.MatrixEvent
+import com.nunchuk.android.core.matrix.MatrixEventListener
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.hideKeyboard
 import com.nunchuk.android.core.util.observable
@@ -21,30 +24,32 @@ import com.nunchuk.android.messages.databinding.ActivityRoomDetailBinding
 import com.nunchuk.android.messages.databinding.ViewWalletStickyBinding
 import com.nunchuk.android.model.TransactionExtended
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.util.addTextChangedCallback
-import com.nunchuk.android.widget.util.setLightStatusBar
-import com.nunchuk.android.widget.util.setOnEnterListener
-import com.nunchuk.android.widget.util.smoothScrollToLastItem
+import com.nunchuk.android.widget.util.*
+import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
-
-    @Inject
-    lateinit var factory: ViewModelFactory
 
     @Inject
     lateinit var imageLoader: ImageLoader
 
-    private val viewModel: RoomDetailViewModel by viewModels { factory }
+    private val viewModel: RoomDetailViewModel by viewModels()
 
     private val args: RoomDetailArgs by lazy { RoomDetailArgs.deserializeFrom(intent) }
 
     private var adapter: MessagesAdapter? = null
+
     private lateinit var stickyBinding: ViewWalletStickyBinding
+
     private var selectMessageActionView: View? = null
 
-    private var selectMode: Boolean by observable(false) {
-        setupViewForSelectMode(it)
+    private var selectMode: Boolean by observable(false, ::setupViewForSelectMode)
+
+    private val matrixEventListener: MatrixEventListener = {
+        if (it === MatrixEvent.RoomTransactionCreated) {
+            viewModel.handleRoomTransactionCreated()
+        }
     }
 
     override fun initializeBinding() = ActivityRoomDetailBinding.inflate(layoutInflater)
@@ -57,11 +62,12 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         observeEvent()
         viewModel.initialize(args.roomId)
         viewModel.checkShowBannerNewChat()
+        MatrixEvenBus.instance.subscribe(matrixEventListener)
     }
 
-    override fun onResume() {
-        super.onResume()
-        viewModel.retrieveTimelineEvents()
+    override fun onDestroy() {
+        MatrixEvenBus.instance.unsubscribe(matrixEventListener)
+        super.onDestroy()
     }
 
     private fun observeEvent() {
@@ -75,26 +81,21 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         val membersCount = resources.getQuantityString(R.plurals.nc_message_members, count, count)
         binding.memberCount.text = membersCount
 
-        adapter?.update(state.messages.groupByDate(), state.transactions, state.roomWallet, count)
-        if (state.messages.isNotEmpty()) {
-            binding.recyclerView.scrollToPosition((adapter?.itemCount ?: 0) - 1)
-        }
-        stickyBinding.root.isVisible = state.roomWallet != null
-        binding.add.isVisible = state.roomWallet == null
-        binding.sendBTC.isVisible = state.roomWallet != null
-        binding.receiveBTC.isVisible = state.roomWallet != null
-
+        adapter?.update(state.messages.groupByDate(), state.transactions.filterNot { it.initEventId.startsWith("\$local.") }, state.roomWallet, count)
+        val hasRoomWallet = state.roomWallet != null
+        stickyBinding.root.isVisible = hasRoomWallet
+        binding.add.isVisible = !hasRoomWallet
+        binding.sendBTC.isVisible = hasRoomWallet
+        binding.receiveBTC.isVisible = hasRoomWallet
+        binding.expand.isVisible = hasRoomWallet
+        expandChatBar()
         state.roomWallet?.let {
             stickyBinding.bindRoomWallet(
                 wallet = it,
                 transactions = state.transactions.map(TransactionExtended::transaction),
                 onClick = viewModel::viewConfig,
                 onClickViewTransactionDetail = { txId ->
-                    openTransactionDetails(
-                        walletId = it.walletId,
-                        txId = txId,
-                        initEventId = ""
-                    )
+                    openTransactionDetails(walletId = it.walletId, txId = txId, initEventId = "")
                 }
             )
         }
@@ -116,7 +117,17 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             RoomWalletCreatedEvent -> NCToastMessage(this).show(R.string.nc_message_wallet_created)
             HideBannerNewChatEvent -> adapter?.removeBannerNewChat()
             is ViewWalletConfigEvent -> navigator.openSharedWalletConfigScreen(this, event.roomWalletData)
-            is ReceiveBTCEvent ->  navigator.openReceiveTransactionScreen(this, event.walletId)
+            is ReceiveBTCEvent -> navigator.openReceiveTransactionScreen(this, event.walletId)
+            HasUpdatedEvent -> scrollToLastItem()
+            GetRoomWalletSuccessEvent -> args.roomAction?.let(::handleRoomAction)
+            LeaveRoomEvent -> finish()
+        }
+    }
+
+    private fun scrollToLastItem() {
+        val itemCount = adapter?.itemCount ?: 0
+        if (itemCount > 0) {
+            binding.recyclerView.smoothScrollToLastItem()
         }
     }
 
@@ -128,12 +139,11 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     private fun setupViews() {
         selectMessageActionView = binding.viewStubSelectMessageAction.inflate()
         selectMessageActionView?.findViewById<ImageView>(R.id.btnCopy)?.setOnClickListener {
-            copyMessageText(adapter?.getSelectedMessage()?.joinToString("\n") { it.content }.orEmpty())
+            copyMessageText(adapter?.getSelectedMessage()?.joinToString("\n", transform = MatrixMessage::content).orEmpty())
             selectMode = false
         }
         selectMode = false
         stickyBinding = ViewWalletStickyBinding.bind(binding.walletStickyContainer.root)
-        stickyBinding.root.setOnClickListener { }
 
         binding.send.setOnClickListener { sendMessage() }
         binding.editText.setOnEnterListener(::sendMessage)
@@ -150,14 +160,11 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             viewWalletConfig = viewModel::viewConfig,
             finalizeWallet = viewModel::finalizeWallet,
             viewTransaction = ::openTransactionDetails,
-            dismissBannerNewChatListener = { viewModel.hideBannerNewChat() },
-            createSharedWalletListener = { viewModel.handleAddEvent() },
-            senderLongPressListener = { message, position ->
-                showSelectMessageBottomSheet(message, position)
-            },
-            countCheckedChangeListener = {
-                binding.tvSelectedMessageCount.text = getString(R.string.nc_text_count_selected_message, it)
-            }
+            dismissBannerNewChatListener = viewModel::hideBannerNewChat,
+            createSharedWalletListener = ::sendBTCAction,
+            senderLongPressListener = ::showSelectMessageBottomSheet,
+            countCheckedChangeListener = { binding.tvSelectedMessageCount.text = getString(R.string.nc_text_count_selected_message, it) },
+            onMessageRead = viewModel::markMessageRead
         )
         binding.recyclerView.adapter = adapter
         val layoutManager = LinearLayoutManager(this)
@@ -173,40 +180,62 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         binding.toolbar.setOnClickListener {
             viewModel.handleTitleClick()
         }
-        binding.add.setOnClickListener {
-            viewModel.handleAddEvent()
+        binding.add.setOnDebounceClickListener {
+            sendBTCAction()
         }
 
         binding.recyclerView.smoothScrollToLastItem()
         binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 if (RecyclerView.SCROLL_STATE_DRAGGING == newState) {
                     binding.recyclerView.hideKeyboard()
-                }
-
-                if (!recyclerView.isLastItemVisible()) {
-                    viewModel.handleLoadMore()
+                } else if (RecyclerView.SCROLL_STATE_IDLE == newState) {
+                    if (recyclerView.isFirstItemVisible()) {
+                        viewModel.handleLoadMore()
+                    }
                 }
             }
         })
 
-        binding.sendBTC.setOnClickListener { viewModel.handleAddEvent()  }
-        binding.receiveBTC.setOnClickListener { viewModel.handleReceiveEvent() }
+        binding.sendBTC.setOnDebounceClickListener { sendBTCAction() }
+        binding.receiveBTC.setOnDebounceClickListener { receiveBTCAction() }
         setupAnimationForChatBar()
     }
 
+    private fun receiveBTCAction() {
+        viewModel.handleReceiveEvent()
+    }
+
+    private fun sendBTCAction() {
+        viewModel.handleAddEvent()
+    }
+
     private fun setupAnimationForChatBar() {
-        binding.editText.setOnFocusChangeListener { view, changed ->
+        binding.editText.setOnFocusChangeListener { _, _ ->
             collapseChatBar()
         }
 
         binding.editText.setOnClickListener {
             collapseChatBar()
         }
+        binding.expand.setOnClickListener {
+            if (it.isVisible) {
+                expandChatBar()
+            } else {
+                collapseChatBar()
+            }
+        }
     }
 
     private fun collapseChatBar() {
-        binding.rootLayout.transitionToEnd()
+        binding.groupWalletAction.isVisible = false
+        binding.expand.isVisible = true
+    }
+
+    private fun expandChatBar() {
+        binding.groupWalletAction.isVisible = true
+        binding.expand.isVisible = false
     }
 
     private fun showSelectMessageBottomSheet(message: Message, position: Int) {
@@ -232,16 +261,12 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
                 SelectMessageOption.Dismiss -> {
                     selectMode = false
                 }
-
             }
         }
     }
 
     private fun copyMessageText(text: String) {
-        this.copyToClipboard(
-            label = "Nunchuk",
-            text = text
-        )
+        this.copyToClipboard(label = "Nunchuk", text = text)
         NCToastMessage(this).showMessage(getString(R.string.nc_text_copied_to_clipboard))
     }
 
@@ -266,7 +291,8 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             activityContext = this,
             walletId = walletId,
             txId = txId,
-            initEventId = initEventId
+            initEventId = initEventId,
+            args.roomId
         )
     }
 
@@ -290,24 +316,21 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         }
     }
 
-    override fun onDestroy() {
-        viewModel.cleanUp()
-        super.onDestroy()
+    private fun handleRoomAction(roomAction: RoomAction) {
+        args.roomAction = null
+        when (roomAction) {
+            RoomAction.SEND -> sendBTCAction()
+            RoomAction.RECEIVE -> receiveBTCAction()
+        }
     }
 
     companion object {
-        fun start(activityContext: Context, roomId: String) {
-            activityContext.startActivity(RoomDetailArgs(roomId = roomId).buildIntent(activityContext))
+        fun start(activityContext: Context, roomId: String, roomAction: RoomAction? = null) {
+            activityContext.startActivity(
+                RoomDetailArgs(roomId = roomId, roomAction = roomAction).buildIntent(activityContext)
+            )
         }
     }
 }
 
-private fun RecyclerView.isLastItemVisible(): Boolean {
-    val adapter = adapter ?: return false
-    if (adapter.itemCount != 0) {
-        val linearLayoutManager = layoutManager as LinearLayoutManager
-        val lastVisibleItemPosition = linearLayoutManager.findLastCompletelyVisibleItemPosition()
-        if (lastVisibleItemPosition != RecyclerView.NO_POSITION && lastVisibleItemPosition == adapter.itemCount - 1) return true
-    }
-    return false
-}
+

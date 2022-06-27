@@ -33,4 +33,5 @@ typealias MatrixEventListener = (MatrixEvent) -> Unit
 
 sealed class MatrixEvent {
     data class SignedInEvent(val session: Session) : MatrixEvent()
+    object RoomTransactionCreated : MatrixEvent()
 }

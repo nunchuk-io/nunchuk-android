@@ -3,8 +3,11 @@ package com.nunchuk.android.domain.di
 import com.nunchuk.android.usecase.*
 import dagger.Binds
 import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 
 @Module
+@InstallIn(SingletonComponent::class)
 internal interface TransactionDomainModule {
 
     @Binds
@@ -32,13 +35,7 @@ internal interface TransactionDomainModule {
     fun bindImportTransactionUseCase(useCase: ImportTransactionUseCaseImpl): ImportTransactionUseCase
 
     @Binds
-    fun bindReplaceTransactionUseCase(useCase: ReplaceTransactionUseCaseImpl): ReplaceTransactionUseCase
-
-    @Binds
     fun bindSignTransactionUseCase(useCase: SignTransactionUseCaseImpl): SignTransactionUseCase
-
-    @Binds
-    fun bindUpdateTransactionMemoUseCase(useCase: UpdateTransactionMemoUseCaseImpl): UpdateTransactionMemoUseCase
 
     @Binds
     fun bindExportTransactionHistoryUseCase(useCase: ExportTransactionHistoryUseCaseImpl): ExportTransactionHistoryUseCase
@@ -48,9 +45,6 @@ internal interface TransactionDomainModule {
 
     @Binds
     fun bindGetAddressesUseCase(useCase: GetAddressesUseCaseImpl): GetAddressesUseCase
-
-    @Binds
-    fun bindGetUnspentOutputsUseCase(useCase: GetUnspentOutputsUseCaseImpl): GetUnspentOutputsUseCase
 
     @Binds
     fun bindNewAddressUseCase(useCase: NewAddressUseCaseImpl): NewAddressUseCase

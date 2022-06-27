@@ -6,10 +6,12 @@ import com.nunchuk.android.transaction.components.receive.address.unused.UnusedA
 import com.nunchuk.android.usecase.GetAddressesUseCase
 import com.nunchuk.android.usecase.NewAddressUseCase
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class UnusedAddressViewModel @Inject constructor(
     private val addressesUseCase: GetAddressesUseCase,
     private val newAddressUseCase: NewAddressUseCase

@@ -10,23 +10,20 @@ import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface ConsumeEventUseCase {
-    fun execute(events: List<NunchukMatrixEvent>): Flow<Unit>
+    fun execute(event: NunchukMatrixEvent): Flow<NunchukMatrixEvent>
 }
 
 internal class ConsumeEventUseCaseImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
 ) : ConsumeEventUseCase {
 
-    override fun execute(events: List<NunchukMatrixEvent>) = flow {
-        emit(
-            events.forEach {
-                try {
-                    nativeSdk.consumeEvent(it)
-                } catch (t: Throwable) {
-                    CrashlyticsReporter.recordException(t)
-                }
-            }
-        )
+    override fun execute(event: NunchukMatrixEvent) = flow {
+        try {
+            nativeSdk.consumeEvent(event)
+        } catch (t: Throwable) {
+            CrashlyticsReporter.recordException(t)
+        }
+        emit(event)
     }.flowOn(IO)
 
 }

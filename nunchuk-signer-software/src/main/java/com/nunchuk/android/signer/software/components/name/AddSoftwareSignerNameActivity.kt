@@ -3,23 +3,20 @@ package com.nunchuk.android.signer.software.components.name
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.components.name.AddSoftwareSignerNameEvent.SignerNameInputCompletedEvent
 import com.nunchuk.android.signer.software.components.name.AddSoftwareSignerNameEvent.SignerNameRequiredEvent
-import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.databinding.ActivityAddNameBinding
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setMaxLength
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
 
-    @Inject
-    lateinit var factory: NunchukFactory
-
-    private val viewModel: AddSoftwareSignerNameViewModel by viewModels { factory }
+    private val viewModel: AddSoftwareSignerNameViewModel by viewModels()
 
     private val args: AddSoftwareSignerNameArgs by lazy { AddSoftwareSignerNameArgs.deserializeFrom(intent) }
 

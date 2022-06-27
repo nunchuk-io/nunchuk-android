@@ -14,46 +14,52 @@
         android:gravity="center"
         android:textColor="@color/nc_black_color"
         app:fontTextStyle="semi_bold"
-        app:layout_constraintBottom_toBottomOf="@+id/xpf"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="TN" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/signerName"
+        style="@style/NCText.Body"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
         app:fontTextStyle="semi_bold"
+        app:layout_constraintEnd_toStartOf="@+id/barrier"
         app:layout_constraintStart_toEndOf="@+id/avatar"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Tom’s Trezor Model T" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/xpf"
+        style="@style/NCText.Body.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        android:textColor="@color/nc_grey_dark_color"
+        app:layout_constraintStart_toEndOf="@+id/avatar"
+        app:layout_constraintTop_toBottomOf="@+id/signerName"
+        tools:text="XFP: 79EB35F4" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/signerType"
         style="@style/NCText.Badges"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginStart="@dimen/nc_padding_8"
         android:layout_marginTop="@dimen/nc_padding_4"
         android:background="@drawable/nc_rounded_tag_whisper_background"
-        app:layout_constraintStart_toEndOf="@+id/avatar"
-        app:layout_constraintTop_toBottomOf="@+id/signerName"
-        tools:text="Air-gapped signer" />
+        app:layout_constraintBottom_toBottomOf="@+id/xpf"
+        app:layout_constraintStart_toEndOf="@+id/xpf"
+        tools:text="Software signer" />
 
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/xpf"
-        android:layout_width="0dp"
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_4"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_14"
-        app:layout_constraintStart_toEndOf="@+id/avatar"
-        app:layout_constraintTop_toBottomOf="@+id/signerType"
-        tools:text="XFP: 79EB35F4" />
+        app:barrierDirection="start"
+        app:constraint_referenced_ids="btnSign,signNotAvailable,signed" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btnSign"
@@ -64,7 +70,7 @@
         android:background="@drawable/nc_rounded_dark_background"
         android:foreground="?attr/selectableItemBackground"
         android:paddingHorizontal="@dimen/nc_padding_16"
-        android:paddingVertical="@dimen/nc_padding_6"
+        android:paddingVertical="@dimen/nc_padding_8"
         android:text="@string/nc_transaction_sign"
         android:visibility="visible"
         android:textColor="@color/nc_white_color"
@@ -81,14 +87,13 @@
         android:layout_marginTop="@dimen/nc_padding_4"
         android:drawableEnd="@drawable/ic_help"
         android:drawablePadding="@dimen/nc_padding_2"
-        android:drawableTint="#757575"
+        android:drawableTint="@color/nc_boulder_color"
         android:gravity="center_vertical"
-        android:paddingHorizontal="@dimen/nc_padding_16"
         android:paddingVertical="@dimen/nc_padding_6"
         android:text="@string/nc_text_n_a"
-        android:visibility="gone"
         android:textColor="@color/nc_primary_dark_color"
         android:textSize="@dimen/nc_text_size_14"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -99,16 +104,15 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_4"
-        android:drawableEnd="@drawable/ic_check_circle"
+        android:drawableEnd="@drawable/ic_check_circle_24"
         android:drawablePadding="@dimen/nc_padding_2"
-        android:drawableTint="@color/nc_primary_dark_color"
         android:gravity="center_vertical"
-        android:paddingHorizontal="@dimen/nc_padding_16"
         android:paddingVertical="@dimen/nc_padding_6"
         android:text="@string/nc_transaction_signed"
         android:textColor="@color/nc_primary_dark_color"
         android:textSize="@dimen/nc_text_size_14"
         android:visibility="gone"
+        app:fontTextStyle="semi_bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

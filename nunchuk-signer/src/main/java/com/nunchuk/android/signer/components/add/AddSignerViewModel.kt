@@ -14,9 +14,9 @@ import com.nunchuk.android.usecase.CreatePassportSignersUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
+@HiltViewModel
 internal class AddSignerViewModel @Inject constructor(
     private val createSignerUseCase: CreateSignerUseCase,
     private val createKeystoneSignerUseCase: CreateKeystoneSignerUseCase,

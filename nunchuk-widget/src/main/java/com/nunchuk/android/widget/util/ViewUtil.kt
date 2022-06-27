@@ -10,12 +10,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import androidx.annotation.LayoutRes
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.R
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.nunchuk.android.widget.NCEditTextView
+import kotlinx.coroutines.*
 
 fun NCEditTextView.heightExtended(dimensionPixelSize: Int) {
     getEditTextView().heightExtended(dimensionPixelSize)
@@ -100,7 +102,8 @@ fun EditText.setOnEnterOrSpaceListener(callback: () -> Unit) {
         override fun onKey(v: View, keyCode: Int, event: KeyEvent): Boolean {
             // only work with hardware keyboard
             if (event.action == KeyEvent.ACTION_DOWN
-                && (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_SPACE)) {
+                && (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_SPACE)
+            ) {
                 callback()
                 return true
             }
@@ -122,20 +125,58 @@ fun EditText.setOnEnterListener(callback: () -> Unit) {
 }
 
 fun RecyclerView.smoothScrollToLastItem(delay: Long = DELAY) {
-    addOnLayoutChangeListener { _, _, _, _, bottom, _, _, _, oldBottom ->
-        if (bottom < oldBottom) {
-            postDelayed({
-                adapter?.itemCount?.let {
-                    if (it > 0) {
-                        smoothScrollToPosition(it - 1)
-                    }
-                }
-            }, delay)
+    postDelayed({
+        adapter?.itemCount?.let {
+            if (it > 0) {
+                smoothScrollToPosition(it - 1)
+            }
         }
-    }
+    }, delay)
 }
 
 const val DELAY = 100L
+
+
+@Suppress("unused")
+fun RecyclerView.isLastItemVisible(): Boolean {
+    val adapter = adapter ?: return false
+    if (adapter.itemCount != 0) {
+        val linearLayoutManager = layoutManager as LinearLayoutManager
+        val lastVisibleItemPosition = linearLayoutManager.findLastCompletelyVisibleItemPosition()
+        if (lastVisibleItemPosition != RecyclerView.NO_POSITION && lastVisibleItemPosition == adapter.itemCount - 1) return true
+    }
+    return false
+}
+
+fun RecyclerView.isFirstItemVisible(): Boolean {
+    val adapter = adapter ?: return false
+    if (adapter.itemCount != 0) {
+        val linearLayoutManager = layoutManager as LinearLayoutManager
+        val visibleItemPosition = linearLayoutManager.findFirstVisibleItemPosition()
+        if (visibleItemPosition != RecyclerView.NO_POSITION && visibleItemPosition == 0) return true
+    }
+    return false
+}
+
+fun View.setOnDebounceClickListener(interval: Long = 500L, clickListener: (View) -> Unit) {
+    debounceClick(interval, clickListener)
+}
+
+internal fun View.debounceClick(interval: Long = 500L, clicked: (View) -> Unit) {
+    setOnClickListener(debounce(interval) { clicked(it) })
+}
+
+private fun <T> debounce(interval: Long = 500L, coroutineScope: CoroutineScope = MainScope(), func: (T) -> Unit): (T) -> Unit {
+    var job: Job? = null
+    return { param: T ->
+        if (job?.isCompleted != false) {
+            job = coroutineScope.launch {
+                func(param)
+                delay(interval)
+            }
+        }
+    }
+}
 
 
 

@@ -3,6 +3,7 @@ package com.nunchuk.android.core.matrix
 import com.nunchuk.android.core.network.HeaderProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.session.Session
 import javax.inject.Inject
 
@@ -11,11 +12,12 @@ interface MatrixInterceptor {
 }
 
 internal class MatrixInterceptorImpl @Inject constructor(
+    matrix: Matrix,
     private val matrixProvider: MatrixProvider,
     private val headerProvider: HeaderProvider
 ) : MatrixInterceptor {
 
-    private var authenticationService = matrixProvider.getMatrix().authenticationService()
+    private var authenticationService = matrix.authenticationService()
 
     override fun login(username: String, password: String, encryptedDeviceId: String) = flow {
         emit(

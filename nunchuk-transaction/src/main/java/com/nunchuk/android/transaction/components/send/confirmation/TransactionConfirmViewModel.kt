@@ -12,20 +12,20 @@ import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.*
 import com.nunchuk.android.usecase.CreateTransactionUseCase
-import com.nunchuk.android.usecase.DeleteTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.InitRoomTransactionUseCase
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class TransactionConfirmViewModel @Inject constructor(
     private val draftTransactionUseCase: DraftTransactionUseCase,
     private val createTransactionUseCase: CreateTransactionUseCase,
-    private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val initRoomTransactionUseCase: InitRoomTransactionUseCase
 ) : NunchukViewModel<Unit, TransactionConfirmEvent>() {
 
@@ -36,8 +36,6 @@ internal class TransactionConfirmViewModel @Inject constructor(
     private var estimateFee: Double = 0.0
     private var subtractFeeFromAmount: Boolean = false
     private lateinit var privateNote: String
-
-    private var tempTxId: String = ""
 
     override val initialState = Unit
 
@@ -72,7 +70,10 @@ internal class TransactionConfirmViewModel @Inject constructor(
             )
                 .flowOn(Dispatchers.IO)
                 .onException { event(InitRoomTransactionError(it.message.orUnknownError())) }
-                .collect { event(InitRoomTransactionSuccess(roomId)) }
+                .collect {
+                    delay(WAITING_FOR_CONSUME_EVENT_SECONDS)
+                    event(InitRoomTransactionSuccess(roomId))
+                }
         }
     }
 
@@ -93,7 +94,6 @@ internal class TransactionConfirmViewModel @Inject constructor(
     }
 
     private fun onDraftTransactionSuccess(data: Transaction) {
-        tempTxId = data.txId
         val hasChange: Boolean = data.hasChangeIndex()
         if (hasChange) {
             val txOutput = data.outputs[data.changeIndex]
@@ -104,21 +104,6 @@ internal class TransactionConfirmViewModel @Inject constructor(
     }
 
     fun handleConfirmEvent() {
-        if (tempTxId.isNotEmpty()) {
-            deleteDraftTransaction()
-        }
-    }
-
-    private fun deleteDraftTransaction() {
-        viewModelScope.launch {
-            when (val result = deleteTransactionUseCase.execute(walletId, tempTxId)) {
-                is Success -> onDeleteCompleted()
-                is Error -> onDeleteFailed(result)
-            }
-        }
-    }
-
-    private fun onDeleteCompleted() {
         if (SessionHolder.hasActiveRoom()) {
             initRoomTransaction()
         } else {
@@ -142,11 +127,8 @@ internal class TransactionConfirmViewModel @Inject constructor(
         }
     }
 
-    private fun onDeleteFailed(result: Error) {
-        event(CreateTxErrorEvent(result.exception.message.orEmpty()))
-        if (SessionHolder.hasActiveRoom()) {
-            initRoomTransaction()
-        }
+    companion object {
+        private const val WAITING_FOR_CONSUME_EVENT_SECONDS = 5L
     }
 
 }

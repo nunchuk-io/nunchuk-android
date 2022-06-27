@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.getHtmlText
 import com.nunchuk.android.settings.DeleteAccountEvent.*
@@ -12,14 +11,12 @@ import com.nunchuk.android.settings.databinding.ActivityDeleteAccountBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class DeleteAccountActivity : BaseActivity<ActivityDeleteAccountBinding>() {
 
-    @Inject
-    lateinit var factory: ViewModelFactory
-
-    private val viewModel: DeleteAccountViewModel by viewModels { factory }
+    private val viewModel: DeleteAccountViewModel by viewModels()
 
     override fun initializeBinding() = ActivityDeleteAccountBinding.inflate(layoutInflater)
 

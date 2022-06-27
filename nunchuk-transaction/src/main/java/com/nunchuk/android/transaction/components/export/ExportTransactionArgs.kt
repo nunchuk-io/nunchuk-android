@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.core.util.getStringValue
-import com.nunchuk.android.transaction.components.details.TransactionOption
+import com.nunchuk.android.share.model.TransactionOption
 
 data class ExportTransactionArgs(
     val walletId: String,

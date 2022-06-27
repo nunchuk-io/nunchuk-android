@@ -12,13 +12,14 @@ import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.share.GetCurrentUserAsContactUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
 
+@HiltViewModel
 class CreateRoomViewModel @Inject constructor(
     accountManager: AccountManager,
     private val getContactsUseCase: GetContactsUseCase,

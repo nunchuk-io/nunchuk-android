@@ -6,7 +6,9 @@ import android.os.Bundle
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.wallet.databinding.ActivityWalletEmptySignerBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class WalletEmptySignerActivity : BaseActivity<ActivityWalletEmptySignerBinding>() {
 
     override fun initializeBinding() = ActivityWalletEmptySignerBinding.inflate(layoutInflater)

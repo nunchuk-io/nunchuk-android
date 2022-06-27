@@ -12,6 +12,8 @@ import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
+import com.nunchuk.android.utils.trySafe
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.Completable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -24,12 +26,33 @@ import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
+@HiltViewModel
 class RoomsViewModel @Inject constructor(
     private val getAllRoomWalletsUseCase: GetAllRoomWalletsUseCase,
     private val leaveRoomUseCase: LeaveRoomUseCase
 ) : NunchukViewModel<RoomsState, RoomsEvent>() {
 
     override val initialState = RoomsState.empty()
+
+    val listener = object : Session.Listener {
+        override fun onNewInvitedRoom(session: Session, roomId: String) {
+            session.roomService().getRoom(roomId)?.let(::joinRoom)
+        }
+
+        override fun onGlobalError(session: Session, globalError: GlobalError) {
+            if (globalError is GlobalError.InvalidToken || globalError === GlobalError.ExpiredAccount) {
+                UnauthorizedEventBus.instance().publish()
+            }
+        }
+
+        override fun onSessionStarted(session: Session) {
+            Timber.d("onSessionStarted($session)")
+        }
+
+        override fun onSessionStopped(session: Session) {
+            Timber.d("onSessionStopped($session)")
+        }
+    }
 
     fun init() {
         SessionHolder.activeSession?.let(::subscribeEvent)
@@ -40,7 +63,7 @@ class RoomsViewModel @Inject constructor(
     }
 
     private fun subscribeEvent(session: Session) {
-        addListener(session)
+        session.addListener(listener)
         listenRoomSummaries(session)
     }
 
@@ -51,6 +74,7 @@ class RoomsViewModel @Inject constructor(
             .onStart { event(RoomsEvent.LoadingEvent(true)) }
             .onEach {
                 Timber.tag(TAG).d("listenRoomSummaries($it)")
+                leaveDraftSyncRoom(it)
                 retrieveMessages()
             }
             .onCompletion { event(RoomsEvent.LoadingEvent(false)) }
@@ -58,34 +82,20 @@ class RoomsViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
-    private fun addListener(session: Session) {
-        session.addListener(object : Session.Listener {
-            override fun onNewInvitedRoom(session: Session, roomId: String) {
-                session.getRoom(roomId)?.let(::joinRoom)
-            }
-
-            override fun onGlobalError(session: Session, globalError: GlobalError) {
-                if (globalError is GlobalError.InvalidToken || globalError === GlobalError.ExpiredAccount) {
-                    UnauthorizedEventBus.instance().publish()
-                }
-            }
-
-            override fun onSessionStarted(session: Session) {
-                Timber.d("onSessionStarted($session)")
-            }
-
-            override fun onSessionStopped(session: Session) {
-                Timber.d("onSessionStopped($session)")
-            }
-        })
+    private fun leaveDraftSyncRoom(summaries: List<RoomSummary>) {
+        // delete to avoid misunderstandings
+        val draftSyncRooms = summaries.filter {
+            it.displayName == TAG_SYNC && it.tags.isEmpty()
+        }
+        draftSyncRooms.forEach {
+            getRoom(it)?.let(leaveRoomUseCase::execute)
+        }
     }
 
     private fun joinRoom(room: Room) {
         viewModelScope.launch {
-            try {
-                room.join()
-            } catch (e: Throwable) {
-                CrashlyticsReporter.recordException(e)
+            trySafe {
+                SessionHolder.activeSession?.roomService()?.joinRoom(room.roomId)
             }
         }
     }
@@ -149,10 +159,16 @@ class RoomsViewModel @Inject constructor(
             .addToDisposables()
     }
 
-    private fun getRoom(roomSummary: RoomSummary) = SessionHolder.activeSession?.getRoom(roomSummary.roomId)
+    override fun onCleared() {
+        SessionHolder.activeSession?.removeListener(listener)
+        super.onCleared()
+    }
+
+    private fun getRoom(roomSummary: RoomSummary) = SessionHolder.activeSession?.roomService()?.getRoom(roomSummary.roomId)
 
     companion object {
         private const val TAG = "MainActivityViewModel"
+        private const val TAG_SYNC = "io.nunchuk.sync"
         private const val DELAY_IN_SECONDS = 2L
     }
 

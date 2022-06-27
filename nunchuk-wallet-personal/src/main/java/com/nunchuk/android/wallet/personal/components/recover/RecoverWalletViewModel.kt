@@ -2,19 +2,18 @@ package com.nunchuk.android.wallet.personal.components.recover
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
-import com.nunchuk.android.model.Result
-import com.nunchuk.android.usecase.DeleteWalletUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.ImportWalletUseCase
 import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class RecoverWalletViewModel @Inject constructor(
     private val importWalletUseCase: ImportWalletUseCase,
     private val updateWalletUseCase: UpdateWalletUseCase,
@@ -44,13 +43,10 @@ internal class RecoverWalletViewModel @Inject constructor(
         updateState { copy(walletName = walletName) }
     }
 
-
     fun updateWallet(walletId: String, walletName: String) {
         getWalletUseCase.execute(walletId)
             .flowOn(Dispatchers.IO)
-            .onException {
-                event(RecoverWalletEvent.UpdateWalletErrorEvent(it.message.orEmpty()))
-            }
+            .onException { event(RecoverWalletEvent.UpdateWalletErrorEvent(it.message.orEmpty())) }
             .flatMapConcat {
                 updateWalletUseCase.execute(it.wallet.copy(name = walletName))
                     .flowOn(Dispatchers.IO)
@@ -65,11 +61,7 @@ internal class RecoverWalletViewModel @Inject constructor(
     fun handleContinueEvent() {
         val currentState = getState()
         if (currentState.walletName.isNotEmpty()) {
-            event(
-                RecoverWalletEvent.WalletSetupDoneEvent(
-                    walletName = currentState.walletName
-                )
-            )
+            event(RecoverWalletEvent.WalletSetupDoneEvent(walletName = currentState.walletName))
         } else {
             event(RecoverWalletEvent.WalletNameRequiredEvent)
         }

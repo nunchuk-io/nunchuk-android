@@ -7,12 +7,14 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class SplashViewModel @Inject constructor(
     private val initNunchukUseCase: InitNunchukUseCase,
     private val accountManager: AccountManager

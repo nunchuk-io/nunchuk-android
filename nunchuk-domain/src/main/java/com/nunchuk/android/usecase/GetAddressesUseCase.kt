@@ -1,8 +1,10 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface GetAddressesUseCase {
@@ -23,6 +25,6 @@ internal class GetAddressesUseCaseImpl @Inject constructor(
         internal: Boolean
     ) = flow {
         emit(nativeSdk.getAddresses(walletId = walletId, used = used, internal = internal))
-    }
+    }.flowOn(Dispatchers.IO)
 
 }

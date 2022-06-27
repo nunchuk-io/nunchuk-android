@@ -1,5 +1,9 @@
 package com.nunchuk.android.core.domain
 
+import com.nunchuk.android.core.constants.Constants.GLOBAL_SIGNET_EXPLORER
+import com.nunchuk.android.core.constants.Constants.MAIN_NET_HOST
+import com.nunchuk.android.core.constants.Constants.SIG_NET_HOST
+import com.nunchuk.android.core.constants.Constants.TEST_NET_HOST
 import com.nunchuk.android.model.AppSettings
 import com.nunchuk.android.type.BackendType
 import com.nunchuk.android.type.Chain
@@ -22,11 +26,14 @@ internal class InitAppSettingsUseCaseImpl @Inject constructor(
             AppSettings(
                 chain = Chain.MAIN,
                 hwiPath = "bin/hwi",
-                testnetServers = listOf("testnet.nunchuk.io:50001"),
-                mainnetServers = listOf("mainnet.nunchuk.io:51001"),
+                testnetServers = listOf(TEST_NET_HOST),
+                mainnetServers = listOf(MAIN_NET_HOST),
+                signetServers = listOf(SIG_NET_HOST),
                 backendType = BackendType.ELECTRUM,
-                storagePath = path
+                storagePath = path,
+                signetExplorerHost = GLOBAL_SIGNET_EXPLORER
             )
+
         )
     }
 }

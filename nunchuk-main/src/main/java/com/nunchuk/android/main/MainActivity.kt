@@ -7,41 +7,44 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.IdRes
-import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.base.ForegroundAppBackgroundListener
 import com.nunchuk.android.core.data.model.AppUpdateResponse
-import com.nunchuk.android.core.matrix.*
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.matrix.MatrixEvenBus
+import com.nunchuk.android.core.matrix.MatrixEvent
+import com.nunchuk.android.core.matrix.MatrixEventListener
+import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.util.AppEvenBus
+import com.nunchuk.android.core.util.AppEvent
+import com.nunchuk.android.core.util.AppEventListener
+import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.DownloadFileSyncSucceed
-import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
 import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.notifications.PushNotificationHelper
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCInfoDialog
+import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : BaseActivity<ActivityMainBinding>() {
-
-    @Inject
-    lateinit var factory: ViewModelFactory
 
     @Inject
     lateinit var pushNotificationHelper: PushNotificationHelper
 
     private lateinit var navController: NavController
 
-    private val viewModel: MainActivityViewModel by viewModels { factory }
+    private val viewModel: MainActivityViewModel by viewModels()
 
-    private val roomViewModel: RoomsViewModel by viewModels { factory }
+    private val roomViewModel: RoomsViewModel by viewModels()
+
+    private val syncRoomViewModel: SyncRoomViewModel by viewModels()
 
     private val loginHalfToken
         get() = intent.getStringExtra(EXTRAS_LOGIN_HALF_TOKEN).orEmpty()
@@ -63,8 +66,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             viewModel.checkAppUpdateRecommend(true)
         }
     }
-    private var foregroundAppBackgroundListener: ForegroundAppBackgroundListener? = null
-
     private var dialogUpdateRecommend: Dialog? = null
 
     override fun initializeBinding() = ActivityMainBinding.inflate(layoutInflater)
@@ -102,32 +103,56 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private fun setupData() {
         if (loginHalfToken.isNotEmpty() && deviceId.isNotEmpty()) {
-            viewModel.setupMatrix(loginHalfToken, deviceId)
+            syncRoomViewModel.setupMatrix(loginHalfToken, deviceId)
         }
         if (SessionHolder.activeSession != null) {
-            viewModel.setupSyncing()
+            syncRoomViewModel.findSyncRoom()
         }
         viewModel.scheduleGetBTCConvertPrice()
     }
 
     private fun subscribeEvents() {
         viewModel.event.observe(this, ::handleEvent)
+        syncRoomViewModel.event.observe(this, ::handleEvent)
     }
 
     private fun handleEvent(event: MainAppEvent) {
         when (event) {
             is DownloadFileSyncSucceed -> handleDownloadedSyncFile(event)
-            is GetConnectionStatusSuccessEvent -> {
-            }
             is MainAppEvent.UpdateAppRecommendEvent -> handleAppUpdateEvent(event.data)
+            MainAppEvent.CrossSigningUnverified -> showUnverifiedDeviceWarning()
+            MainAppEvent.ConsumeSyncEventCompleted -> syncRoomViewModel.findSyncRoom() // safe way to trigger sync data
+            else -> {}
         }
     }
 
+    private fun handleEvent(event: SyncRoomEvent) {
+        when (event) {
+            is SyncRoomEvent.FindSyncRoomSuccessEvent -> viewModel.syncData(event.syncRoomId)
+            is SyncRoomEvent.CreateSyncRoomSucceedEvent -> viewModel.syncData(event.syncRoomId)
+            is SyncRoomEvent.LoginMatrixSucceedEvent -> {
+                viewModel.checkCrossSigning(event.session)
+                syncRoomViewModel.findSyncRoom()
+            }
+            is SyncRoomEvent.FindSyncRoomFailedEvent -> if (event.syncRoomSize == 0) {
+                syncRoomViewModel.createRoomWithTagSync()
+            }
+        }
+    }
+
+    private fun showUnverifiedDeviceWarning() {
+        NCInfoDialog(this).showDialog(
+            message = getString(R.string.nc_unverified_device),
+            cancelable = true
+        )
+    }
+
     private fun handleDownloadedSyncFile(event: DownloadFileSyncSucceed) {
-        event.responseBody.byteStream()
-            .saveToFile(externalCacheDir.toString() + File.separator + "FileBackup")
-        val saveFile = File(externalCacheDir.toString() + File.separator + "FileBackup")
-        viewModel.consumeSyncFile(event.jsonInfo, saveFile.readBytes())
+        viewModel.saveSyncFileToCache(
+            data = event.responseBody,
+            path = externalCacheDir.toString() + File.separator + "FileBackup" + System.currentTimeMillis(),
+            fileJsonInfo = event.jsonInfo
+        )
     }
 
     private val listener = NavController.OnDestinationChangedListener { _, destination, _ ->

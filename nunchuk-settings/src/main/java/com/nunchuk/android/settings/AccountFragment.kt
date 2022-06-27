@@ -14,23 +14,27 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.entities.CURRENT_DISPLAY_UNIT_TYPE
-import com.nunchuk.android.core.entities.SAT
+import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
+import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.settings.AccountEvent.SignOutEvent
 import com.nunchuk.android.settings.databinding.FragmentAccountBinding
+import dagger.hilt.android.AndroidEntryPoint
 import java.io.ByteArrayOutputStream
 
+@AndroidEntryPoint
 internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
 
-    private val viewModel: AccountViewModel by viewModels { factory }
+    private val viewModel: AccountViewModel by activityViewModels()
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -76,7 +80,7 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
         binding.signUp.isVisible = isGuestMode
         binding.accountSettings.isVisible = !isGuestMode
 
-        binding.unit.text = when(CURRENT_DISPLAY_UNIT_TYPE) {
+        binding.unit.text = when (CURRENT_DISPLAY_UNIT_TYPE) {
             SAT -> getString(R.string.nc_settings_unit, getString(R.string.nc_currency_sat))
             else -> getString(R.string.nc_settings_unit, getString(R.string.nc_currency_btc))
         }
@@ -305,7 +309,7 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
         binding.unit.setOnClickListener { changeUnitSetting() }
         binding.network.setOnClickListener { changeNetworkSetting() }
         binding.about.setOnClickListener { openAboutScreen() }
-
+        binding.developerMode.setOnClickListener { openDeveloperScreen() }
         if (SignInModeHolder.currentMode.isGuestMode()) {
             binding.name.setOnClickListener(null)
             binding.takePicture.setOnClickListener(null)
@@ -315,6 +319,10 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
             binding.takePicture.setOnClickListener { changeAvatar() }
             binding.accountSettings.setOnClickListener { AccountSettingActivity.start(requireActivity()) }
         }
+    }
+
+    private fun openDeveloperScreen() {
+        navigator.openDeveloperScreen(requireActivity())
     }
 
     private fun setupData() {

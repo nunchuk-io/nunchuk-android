@@ -1,5 +1,7 @@
 package com.nunchuk.android.core.di
 
+import com.nunchuk.android.core.domain.SendErrorEventUseCase
+import com.nunchuk.android.core.domain.SendErrorEventUseCaseImpl
 import com.nunchuk.android.core.matrix.*
 import com.nunchuk.android.core.matrix.DownloadFileUseCaseImpl
 import com.nunchuk.android.core.matrix.UploadFileUseCaseImpl
@@ -7,8 +9,11 @@ import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCaseImpl
 import dagger.Binds
 import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 
 @Module
+@InstallIn(SingletonComponent::class)
 internal interface MatrixDomainModule {
     @Binds
     fun bindUploadFileUseCase(useCase: UploadFileUseCaseImpl): UploadFileUseCase
@@ -33,4 +38,7 @@ internal interface MatrixDomainModule {
 
     @Binds
     fun bindLeaveRoomUseCase(useCase: LeaveRoomUseCaseImpl): LeaveRoomUseCase
+
+    @Binds
+    fun bindSendErrorEventUseCase(useCase: SendErrorEventUseCaseImpl): SendErrorEventUseCase
 }

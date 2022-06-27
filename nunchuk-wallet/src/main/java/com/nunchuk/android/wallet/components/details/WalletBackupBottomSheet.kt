@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.core.base.BaseBottomSheet
+import com.nunchuk.android.core.util.checkCameraPermission
 import com.nunchuk.android.wallet.components.details.WalletDetailsOption.*
 import com.nunchuk.android.wallet.databinding.DialogBackupWalletBottomSheetBinding
 
@@ -25,11 +26,20 @@ internal class WalletUpdateBottomSheet : BaseBottomSheet<DialogBackupWalletBotto
 
     private fun setupViews() {
         binding.btnImportPsbt.setOnClickListener { onSaveClicked(IMPORT_PSBT) }
+        binding.btnImportKeystone.setOnClickListener { requestPermissionAndReturn(IMPORT_KEYSTONE) }
+        binding.btnImportPassport.setOnClickListener { requestPermissionAndReturn(IMPORT_PASSPORT) }
         binding.btnExportBsms.setOnClickListener { onSaveClicked(EXPORT_BSMS) }
         binding.btnExportColdcard.setOnClickListener { onSaveClicked(EXPORT_COLDCARD) }
         binding.btnQR.setOnClickListener { onSaveClicked(EXPORT_QR) }
         binding.btnExportPassport.setOnClickListener { onSaveClicked(EXPORT_PASSPORT) }
         binding.btnDelete.setOnClickListener { onSaveClicked(DELETE) }
+    }
+
+    private fun requestPermissionAndReturn(option: WalletDetailsOption) {
+        if (requireActivity().checkCameraPermission()) {
+            listener(option)
+            dismiss()
+        }
     }
 
     private fun onSaveClicked(option: WalletDetailsOption) {

@@ -4,16 +4,11 @@ import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
 import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCaseImpl
 import dagger.Binds
 import dagger.Module
-
-@Module(
-    includes = [
-        TransactionActivityModule::class,
-        TransactionDomainModule::class,
-    ]
-)
-interface TransactionProxyModule
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 
 @Module
+@InstallIn(SingletonComponent::class)
 internal interface TransactionDomainModule {
 
     @Binds

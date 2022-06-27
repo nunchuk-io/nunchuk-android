@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.model.SingleSigner
@@ -18,14 +17,12 @@ import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class WalletConfigActivity : BaseActivity<ActivityWalletConfigBinding>() {
 
-    @Inject
-    lateinit var factory: NunchukFactory
-
-    private val viewModel: WalletConfigViewModel by viewModels { factory }
+    private val viewModel: WalletConfigViewModel by viewModels()
 
     private val args: WalletConfigArgs by lazy { WalletConfigArgs.deserializeFrom(intent) }
 

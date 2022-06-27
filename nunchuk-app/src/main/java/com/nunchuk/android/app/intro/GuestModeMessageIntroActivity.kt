@@ -3,15 +3,12 @@ package com.nunchuk.android.app.intro
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.databinding.ActivityGuestModeMessageIntroBinding
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 internal class GuestModeMessageIntroActivity : BaseActivity<ActivityGuestModeMessageIntroBinding>() {
-
-    @Inject
-    lateinit var factory: ViewModelFactory
 
     override fun initializeBinding() = ActivityGuestModeMessageIntroBinding.inflate(layoutInflater)
 

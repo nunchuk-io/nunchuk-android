@@ -7,10 +7,12 @@ import com.nunchuk.android.messages.components.group.members.GroupMembersEvent.R
 import com.nunchuk.android.messages.util.getRoomMemberList
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.share.GetContactsUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import javax.inject.Inject
 
+@HiltViewModel
 class GroupMembersViewModel @Inject constructor(
     private val getContactsUseCase: GetContactsUseCase
 ) : NunchukViewModel<GroupMembersState, GroupMembersEvent>() {
@@ -20,7 +22,7 @@ class GroupMembersViewModel @Inject constructor(
     override val initialState = GroupMembersState()
 
     fun initialize(roomId: String) {
-        SessionHolder.activeSession?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
+        SessionHolder.activeSession?.roomService()?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
     }
 
     private fun onRetrievedRoom(room: Room) {

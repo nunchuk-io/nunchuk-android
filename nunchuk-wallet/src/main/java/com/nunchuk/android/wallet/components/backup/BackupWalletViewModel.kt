@@ -9,9 +9,11 @@ import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
 import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Failure
 import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Success
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class BackupWalletViewModel @Inject constructor(
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val exportWalletUseCase: ExportWalletUseCase,

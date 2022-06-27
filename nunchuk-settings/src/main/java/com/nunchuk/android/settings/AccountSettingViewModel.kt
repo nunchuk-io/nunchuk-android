@@ -6,13 +6,14 @@ import com.nunchuk.android.core.profile.UserProfileRepository
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.settings.AccountSettingEvent.*
 import com.nunchuk.android.utils.onException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 internal class AccountSettingViewModel @Inject constructor(
     private val repository: UserProfileRepository
 ) : NunchukViewModel<Unit, AccountSettingEvent>() {

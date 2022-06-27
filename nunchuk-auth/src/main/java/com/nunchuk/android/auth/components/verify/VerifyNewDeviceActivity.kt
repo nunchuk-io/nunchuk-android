@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.arch.vm.ViewModelFactory
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.verify.VerifyNewDeviceEvent.*
 import com.nunchuk.android.auth.databinding.ActivityVerifyNewDeviceBinding
@@ -14,14 +13,12 @@ import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class VerifyNewDeviceActivity : BaseActivity<ActivityVerifyNewDeviceBinding>() {
 
-    @Inject
-    lateinit var factory: ViewModelFactory
-
-    private val viewModel: VerifyNewDeviceViewModel by viewModels { factory }
+    private val viewModel: VerifyNewDeviceViewModel by viewModels()
 
     private val email
         get() = intent.getStringExtra(EXTRAS_EMAIL)

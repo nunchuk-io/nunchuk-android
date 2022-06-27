@@ -10,11 +10,11 @@ class AppInfoProviderImpl @Inject constructor(
     private val context: Context
 ) : AppInfoProvider {
 
-    override fun getAppVersion(): String {
-        val versionName = BuildConfig.VERSION_NAME
-        val versionCode = BuildConfig.VERSION_CODE
-        return "$versionName ($versionCode)"
-    }
+    override fun getAppVersion() = "${getAppVersionName()} (${getAppVersionCode()})"
+
+    override fun getAppVersionName() = BuildConfig.VERSION_NAME
+
+    override fun getAppVersionCode() = BuildConfig.VERSION_CODE
 
     override fun getAppName() = try {
         val appPackageName = context.applicationContext.packageName
@@ -27,7 +27,7 @@ class AppInfoProviderImpl @Inject constructor(
         appName
     } catch (e: Throwable) {
         CrashlyticsReporter.recordException(e)
-        "NunchukAndroid"
+        "Nunchuk"
     }
 
 }

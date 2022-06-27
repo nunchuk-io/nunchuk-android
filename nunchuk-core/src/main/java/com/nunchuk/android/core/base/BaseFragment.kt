@@ -4,16 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.viewbinding.ViewBinding
-import com.nunchuk.android.arch.vm.NunchukFactory
 import com.nunchuk.android.nav.NunchukNavigator
-import dagger.android.support.DaggerFragment
 import javax.inject.Inject
 
-abstract class BaseFragment<out Binding : ViewBinding> : DaggerFragment() {
-
-    @Inject
-    lateinit var factory: NunchukFactory
+abstract class BaseFragment<out Binding : ViewBinding> : Fragment() {
 
     @Inject
     protected lateinit var navigator: NunchukNavigator

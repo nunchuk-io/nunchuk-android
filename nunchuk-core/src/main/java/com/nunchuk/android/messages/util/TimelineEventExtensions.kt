@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.util
 
+import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.nunchuk.android.core.util.gson
 import com.nunchuk.android.messages.components.detail.MessageType
@@ -18,21 +19,37 @@ internal const val TAG = "TimelineEvent"
 
 fun TimelineEvent.lastMessage() = "${lastMessageSender()}: ${lastMessageContent()}"
 
-fun TimelineEvent.lastMessageContent() = getLastMessageContent()?.body ?: getTextEditableContent()
+fun TimelineEvent.lastMessageContent() = getLastMessageContentSafe() ?: getTextEditableContentSafe()
+
+fun TimelineEvent.getLastMessageContentSafe() = try {
+    if (isEncryptedEvent()) {
+        STATE_ENCRYPTED_MESSAGE
+    } else {
+        getLastMessageContent()?.body
+    }
+} catch (e: Throwable) {
+    null
+}
+
+fun TimelineEvent.getTextEditableContentSafe() = try {
+    getTextEditableContent()
+} catch (e: Throwable) {
+    ""
+}
 
 fun TimelineEvent.lastMessageSender() = senderInfo.disambiguatedDisplayName
 
 fun TimelineEvent.membership(): Membership {
-    val content = root.content.toModel<RoomMemberContent>()
+    val content = root.getClearContent().toModel<RoomMemberContent>()
     return content?.membership ?: Membership.NONE
 }
 
-fun TimelineEvent.nameChange() = root.content.toModel<RoomNameContent>()?.name
+fun TimelineEvent.nameChange() = root.getClearContent().toModel<RoomNameContent>()?.name
 
 fun TimelineEvent.toNunchukMatrixEvent() = NunchukMatrixEvent(
     eventId = root.eventId!!,
-    type = root.type!!,
-    content = gson.toJson(root.content?.toMap().orEmpty()),
+    type = root.getClearType(),
+    content = gson.toJson(root.getClearContent()?.toMap().orEmpty()),
     roomId = roomId,
     sender = senderInfo.userId,
     time = root.originServerTs ?: 0L
@@ -49,10 +66,13 @@ fun TimelineEvent.chatType(chatId: String) = if (chatId == senderInfo.userId) {
 fun SenderInfo?.displayNameOrId(): String = this?.displayName ?: this?.userId ?: "Guest"
 
 fun TimelineEvent.getBodyElementValueByKey(key: String): String {
-    val map = root.content?.toMap().orEmpty()
-    val element = gson.fromJson(gson.toJson(map["body"]), JsonObject::class.java).get(key)
+    var element: JsonElement? = null
     return try {
-        element?.asString ?: ""
+        val map = root.getClearContent()?.toMap().orEmpty()
+        if (map.containsKey("body")) {
+            element = gson.fromJson(gson.toJson(map["body"]), JsonObject::class.java).get(key)
+            element?.asString ?: ""
+        } else ""
     } catch (t: Throwable) {
         CrashlyticsReporter.recordException(t)
         element?.toString()?.replace("\"", "") ?: ""
@@ -68,7 +88,7 @@ fun TimelineEvent.isTransactionReadyEvent() = isTransactionEvent(TransactionEven
 fun TimelineEvent.isWalletReadyEvent() = isWalletEvent(WalletEventType.READY)
 
 private fun TimelineEvent.isTransactionEvent(type: TransactionEventType) = try {
-    val content = root.content?.toMap().orEmpty()
+    val content = root.getClearContent()?.toMap().orEmpty()
     val msgType = TransactionEventType.of(content[KEY] as String)
     msgType == type
 } catch (t: Throwable) {
@@ -77,7 +97,7 @@ private fun TimelineEvent.isTransactionEvent(type: TransactionEventType) = try {
 }
 
 private fun TimelineEvent.isWalletEvent(type: WalletEventType) = try {
-    val content = root.content?.toMap().orEmpty()
+    val content = root.getClearContent()?.toMap().orEmpty()
     val msgType = WalletEventType.of(content[KEY] as String)
     msgType == type
 } catch (t: Throwable) {
@@ -86,10 +106,15 @@ private fun TimelineEvent.isWalletEvent(type: WalletEventType) = try {
 }
 
 fun TimelineEvent.getNunchukInitEventId(): String? {
-    val map = root.content?.toMap().orEmpty()
-    return gson.fromJson(gson.toJson(map["body"]), JsonObject::class.java)
-        ?.getAsJsonObject("io.nunchuk.relates_to")
-        ?.getAsJsonObject("init_event")
-        ?.get("event_id")
-        ?.asString
+    return try {
+        val map = root.getClearContent()?.toMap().orEmpty()
+        gson.fromJson(gson.toJson(map["body"]), JsonObject::class.java)
+            ?.getAsJsonObject("io.nunchuk.relates_to")
+            ?.getAsJsonObject("init_event")
+            ?.get("event_id")
+            ?.asString
+    } catch (t: Throwable) {
+        CrashlyticsReporter.recordException(t)
+        null
+    }
 }

@@ -95,6 +95,41 @@
                 app:barrierDirection="start"
                 app:constraint_referenced_ids="time,count" />
 
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/badgeContainer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="@+id/name"
+                app:layout_constraintTop_toBottomOf="@+id/name">
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/share_icon"
+                    style="@style/NCText.Badges"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_4"
+                    android:layout_marginEnd="@dimen/nc_padding_4"
+                    android:background="@drawable/nc_rounded_tag_whisper_background"
+                    android:drawableStart="@drawable/ic_wallet_small"
+                    android:drawablePadding="@dimen/nc_padding_4"
+                    android:paddingHorizontal="@dimen/nc_padding_8"
+                    android:text="@string/nc_text_shared"
+                    tools:text="Shared" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/encrypted_icon"
+                    style="@style/NCText.Badges"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_4"
+                    android:background="@drawable/nc_rounded_tag_whisper_background"
+                    android:drawableStart="@drawable/ic_secured_dark"
+                    android:drawablePadding="@dimen/nc_padding_4"
+                    android:paddingHorizontal="@dimen/nc_padding_8"
+                    android:text="@string/nc_message_encrypted"
+                    tools:text="Encrypted" />
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/message"
                 style="@style/NCText.Body.Small"
@@ -107,7 +142,7 @@
                 android:textColor="@color/nc_grey_dark_color"
                 app:layout_constraintEnd_toStartOf="@+id/endBarrier"
                 app:layout_constraintStart_toEndOf="@+id/avatarHolder"
-                app:layout_constraintTop_toBottomOf="@+id/share_icon"
+                app:layout_constraintTop_toBottomOf="@+id/badgeContainer"
                 tools:text="Bruce: Welcome to Nunchuk! My name is Bruce Bee. I'm Nunchuk assistant" />
 
             <com.nunchuk.android.widget.NCFontTextView
@@ -125,21 +160,6 @@
                 tools:text="Bruce Bee" />
 
             <com.nunchuk.android.widget.NCFontTextView
-                android:id="@+id/share_icon"
-                style="@style/NCText.Badges"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/nc_padding_4"
-                android:background="@drawable/nc_rounded_tag_whisper_background"
-                android:drawableStart="@drawable/ic_wallet_small"
-                android:drawablePadding="@dimen/nc_padding_4"
-                android:paddingHorizontal="@dimen/nc_padding_8"
-                android:text="@string/nc_text_shared"
-                app:layout_constraintStart_toStartOf="@+id/name"
-                app:layout_constraintTop_toBottomOf="@+id/name"
-                tools:text="Shared" />
-
-            <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/time"
                 style="@style/NCText.Body.Small"
                 android:layout_width="wrap_content"
@@ -152,8 +172,8 @@
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/count"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="@dimen/nc_padding_26"
+                android:layout_height="@dimen/nc_padding_26"
                 android:layout_marginStart="@dimen/nc_padding_16"
                 android:layout_marginTop="@dimen/nc_padding_4"
                 android:background="@drawable/nc_circle_whisper_background"

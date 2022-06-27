@@ -1,6 +1,7 @@
 apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'dagger.hilt.android.plugin'
 
 dependencies {
 
