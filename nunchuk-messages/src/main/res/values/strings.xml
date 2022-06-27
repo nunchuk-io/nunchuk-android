@@ -17,7 +17,6 @@
     <string name="nc_message_group_name">Group Name</string>
     <string name="nc_message_invalid_email">That does not look like a valid email address</string>
     <string name="nc_message_email_hint">Type email here</string>
-    <string name="nc_message_add_members_title">Enter the emails of your contacts, separated by spaces</string>
 
     <string name="nc_message_member_left_group"><![CDATA[<b>%1$s</b> has left the group chat]]></string>
     <string name="nc_message_member_join_group"><![CDATA[<b>%1$s</b> has joined the group chat]]></string>
