@@ -25,14 +25,10 @@ class AddContactsViewModel @Inject constructor(
     fun handleAddEmail(email: String) {
         val emails = getState().emails
         if (!emails.map(EmailWithState::email).contains(email)) {
-            val valid = EmailValidator.valid(email)
-            if (!valid) {
-                event(InvalidEmailEvent)
-            }
-            (emails as MutableList).add(EmailWithState(email, valid))
+            (emails as MutableList).add(EmailWithState(email, email.trim().isNotEmpty()))
             updateState { copy(emails = emails) }
         }
-        if (emails.all(EmailWithState::valid)) {
+        if (isAllValid(emails)) {
             event(AllEmailValidEvent)
         }
     }
@@ -41,14 +37,16 @@ class AddContactsViewModel @Inject constructor(
         val emails = getState().emails
         (emails as MutableList).remove(email)
         updateState { copy(emails = emails) }
-        if (emails.all(EmailWithState::valid)) {
+        if (isAllValid(emails)) {
             event(AllEmailValidEvent)
         }
     }
 
+    private fun isAllValid(emails: List<EmailWithState>) = emails.all { it.email.trim().isNotEmpty() }
+
     fun handleSend() {
         val emails = getState().emails
-        if (emails.isNotEmpty() && emails.all(EmailWithState::valid)) {
+        if (isAllValid(emails)) {
             viewModelScope.launch {
                 addContactUseCase.execute(emails.map(EmailWithState::email))
                     .flowOn(IO)
@@ -87,7 +85,7 @@ class AddContactsViewModel @Inject constructor(
     }
 
     fun inviteFriend(emails: List<String>) {
-        if (emails.isEmpty()) {
+        if (emails.none(EmailValidator::valid)) {
             return
         }
         viewModelScope.launch {
