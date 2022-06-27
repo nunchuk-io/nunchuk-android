@@ -8,7 +8,7 @@ before_script:
   - echo "sdk.dir=${ANDROID_HOME}" >> local.properties
   - echo "ndk.dir=${ANDROID_NDK_HOME}" >> local.properties
   - chmod +x ./gradlew
-  - export FIREBASE_TOKEN=1//0gsy1LpYlyhipCgYIARAAGBASNgF-L9Ir8BMFlGPgO26TPvZkh2ww5UATzm4Lb_ccjRXIZm7aprm0LZdMrg41geGD4Viaq2OA6Q
+  - export FIREBASE_TOKEN=1//0eFo0ughP5DHoCgYIARAAGA4SNwF-L9IrLGxik_P7gzRKrqk2eWqegoo0sxjtEZL1Y5AaYW_KYavsE2CJySv2aQb3Gl_KBOOTKy4
 
 stages:
   - build
