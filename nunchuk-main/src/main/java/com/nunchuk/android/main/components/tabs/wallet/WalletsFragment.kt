@@ -26,7 +26,6 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
-import com.nunchuk.android.utils.animateVisibility
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -92,7 +91,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun handleLoading(event: Loading) {
-        binding.walletLoading.root.animateVisibility(isVisible = event.loading, duration = 400)
+        binding.walletLoading.root.isVisible = event.loading
     }
 
     private fun openWalletIntroScreen() {
