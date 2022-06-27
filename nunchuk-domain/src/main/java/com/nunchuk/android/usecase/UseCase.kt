@@ -13,7 +13,7 @@ abstract class UseCase<in P, R>(private val coroutineDispatcher: CoroutineDispat
                     Result.success(it)
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Timber.e(e)
             Result.failure(e)
         }

@@ -1,4 +1,4 @@
-package com.nunchuk.android.signer
+package com.nunchuk.android.core.nfc
 
 import android.app.Dialog
 import android.app.PendingIntent
@@ -9,12 +9,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.viewbinding.ViewBinding
+import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.utils.PendingIntentUtils
 import com.nunchuk.android.widget.NCInfoDialog
+import com.nunchuk.android.widget.NCInputDialog
 
 abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() {
-    private val nfcViewModel: NfcViewModel by viewModels()
+    protected val nfcViewModel: NfcViewModel by viewModels()
     private var requestCode: Int = 0
 
     private val nfcAdapter: NfcAdapter? by lazy(LazyThreadSafetyMode.NONE) {
@@ -28,6 +30,18 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
         )
     }
 
+    private val inputCvcDialog: Dialog by lazy(LazyThreadSafetyMode.NONE) {
+        NCInputDialog(this)
+            .showDialog(
+                title = "Enter CVC",
+                onConfirmed = {
+                    nfcViewModel.updateInputCvc(it)
+                    askToScan(requestCode)
+                },
+                isMaskedInput = true
+            )
+    }
+
     private val requestEnableNfc =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (nfcAdapter?.isEnabled == true) {
@@ -39,7 +53,20 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
         NCInfoDialog(this).init(
             title = "Ready to Scan",
             message = "Hold your device near the NFC key."
-        )
+        ).apply {
+            setOnShowListener {
+                nfcAdapter?.enableForegroundDispatch(
+                    this@BaseNfcActivity,
+                    getNfcPendingIntent(requestCode),
+                    null,
+                    null
+                )
+            }
+
+            setOnDismissListener {
+                nfcAdapter?.disableForegroundDispatch(this@BaseNfcActivity)
+            }
+        }
     }
 
     override fun onResume() {
@@ -58,7 +85,11 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
         this.requestCode = requestCode
         nfcAdapter?.let {
             if (it.isEnabled) {
-                askToScan(requestCode)
+                if (shouldShowInputCvcFirst(requestCode)) {
+                    showInputCvcDialog()
+                } else {
+                    askToScan(requestCode)
+                }
             } else {
                 navigateTurnOnNfc()
             }
@@ -66,6 +97,9 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
             nfcUnsupportedDialog.show()
         }
     }
+
+    private fun shouldShowInputCvcFirst(requestCode: Int) =
+        requestCode != REQUEST_NFC_STATUS && requestCode != REQUEST_NFC_CHANGE_CVC
 
     private fun askToScan(requestCode: Int) {
         if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
@@ -88,10 +122,17 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
     )
 
     private fun processNfcIntent(intent: Intent) {
-        val tag: Tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG) as? Tag ?: return
-        val requestCode = intent.getIntExtra(EXTRA_REQUEST_NFC_CODE, 0)
-        if (requestCode == 0) return
-        nfcViewModel.updateNfcScanInfo(requestCode, tag)
+        if (NfcAdapter.ACTION_NDEF_DISCOVERED == intent.action) {
+            askScanNfcDialog.dismiss()
+            val tag: Tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG) as? Tag ?: return
+            val requestCode = intent.getIntExtra(EXTRA_REQUEST_NFC_CODE, 0)
+            if (requestCode == 0) return
+            nfcViewModel.updateNfcScanInfo(requestCode, tag)
+        }
+    }
+
+    private fun showInputCvcDialog() {
+        inputCvcDialog.show()
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -104,5 +145,6 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
         const val REQUEST_NFC_STATUS = 1
         const val REQUEST_NFC_CHANGE_CVC = 2
         const val REQUEST_NFC_ADD_KEY = 3
+        const val REQUEST_NFC_SIGN_TRANSACTION = 4
     }
 }

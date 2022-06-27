@@ -4,7 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.navigation.fragment.NavHostFragment
-import com.nunchuk.android.signer.BaseNfcActivity
+import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ActivityNfcSetupBinding
 import dagger.hilt.android.AndroidEntryPoint

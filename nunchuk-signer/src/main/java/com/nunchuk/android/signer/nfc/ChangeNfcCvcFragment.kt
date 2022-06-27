@@ -1,21 +1,23 @@
 package com.nunchuk.android.signer.nfc
 
+import android.nfc.tech.IsoDep
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.signer.BaseNfcActivity
-import com.nunchuk.android.signer.NfcViewModel
+import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.FragmentNfcChangeCvcBinding
 import com.nunchuk.android.widget.NCEditTextView
-import com.nunchuk.android.widget.util.passwordDisabled
-import com.nunchuk.android.widget.util.passwordEnabled
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setMaxLength
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
@@ -23,6 +25,7 @@ import kotlinx.coroutines.flow.filter
 @AndroidEntryPoint
 class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
     private val nfcViewModel by activityViewModels<NfcViewModel>()
+    private val viewModel by viewModels<ChangeNfcCvcViewModel>()
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -43,8 +46,25 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_CHANGE_CVC }
                     .collect {
-                        // TODO Hai
+                        viewModel.changeCvc(
+                            IsoDep.get(it.tag),
+                            binding.editExistCvc.getEditText(),
+                            binding.editNewCvc.getEditText()
+                        )
+                        nfcViewModel.clearScanInfo()
                     }
+            }
+        }
+
+        lifecycleScope.launchWhenCreated {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    showOrHideLoading(state is ChangeNfcCvcState.Loading)
+                    if (state is ChangeNfcCvcState.Success) {
+                        NCToastMessage(requireActivity()).show(getString(R.string.nc_cvc_has_been_changed))
+                        NCToastMessage(requireActivity()).show(getString(R.string.nc_master_private_key_init))
+                    }
+                }
             }
         }
     }

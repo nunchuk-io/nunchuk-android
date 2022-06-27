@@ -54,5 +54,8 @@
     <string name="nc_transaction_no_app_to_open_link">There is no apps found to open link</string>
     <string name="nc_account_deleted_message">Your account has successfully been deleted</string>
     <string name="nc_nfc">NFC</string>
-
+    <string name="nc_please_turn_on_nfc">Please turn on NFC</string>
+    <string name="nc_turn_on_nfc_desc">An NFC connection is required to add an NFC key. Please do the following to turn on NFC connection on your device:</string>
+    <string name="nc_no_nfc_title">No NFC support</string>
+    <string name="no_nfc_message">This device does not support NFC.</string>
 </resources>

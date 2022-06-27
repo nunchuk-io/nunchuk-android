@@ -1,4 +1,4 @@
-package com.nunchuk.android.signer.model
+package com.nunchuk.android.core.nfc
 
 import android.nfc.Tag
 

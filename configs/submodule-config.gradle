@@ -62,6 +62,8 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
 
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.4.1"
+
     implementation imageLoaderDeps.glide
     kapt imageLoaderDeps.processor
 }

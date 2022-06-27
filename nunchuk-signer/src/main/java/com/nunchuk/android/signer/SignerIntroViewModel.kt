@@ -18,13 +18,13 @@ class SignerIntroViewModel @Inject constructor(
     private val _tapSignerStatus = MutableStateFlow<TapSignerStatus?>(null)
     val tapSignerStatus = _tapSignerStatus.filterIsInstance<TapSignerStatus>()
 
-    fun getTapSignerStatus(isoDep: IsoDep) {
+    fun getTapSignerStatus(isoDep: IsoDep?) {
+        isoDep ?: return
         viewModelScope.launch {
             val result = getTapSignerStatusUseCase(isoDep)
             if (result.isSuccess) {
                 _tapSignerStatus.value = result.getOrNull()
             }
-
         }
     }
 

@@ -32,12 +32,6 @@
         </activity>
 
         <activity
-            android:name=".AddNFCKeyActivity"
-            android:label="Add nfc key"
-            android:screenOrientation="portrait"
-            android:theme="@style/NunchukNoActionBar.Light" />
-
-        <activity
             android:name=".AirSignerIntroActivity"
             android:label="@string/nc_signer_before_start_title"
             android:screenOrientation="portrait"
@@ -55,12 +49,6 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light"
             android:windowSoftInputMode="adjustResize|stateAlwaysHidden" />
-
-        <activity
-            android:name=".TurnOnNfcActivity"
-            android:label="Turn on nfc"
-            android:screenOrientation="portrait"
-            android:theme="@style/NunchukNoActionBar.Light" />
 
     </application>
 

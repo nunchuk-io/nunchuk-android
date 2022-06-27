@@ -32,10 +32,6 @@
     <string name="nc_txt_run_health_check_success_event">%s is healthy</string>
     <string name="nc_txt_run_health_check_error_event">%s is not healthy</string>
     <string name="nc_add_nfc_key">Add NFC key</string>
-    <string name="nc_no_nfc_title">No NFC support</string>
-    <string name="no_nfc_message">This device does not support NFC.</string>
-    <string name="nc_please_turn_on_nfc">Please turn on NFC</string>
-    <string name="nc_turn_on_nfc_desc">An NFC connection is required to add an NFC key. Please do the following to turn on NFC connection on your device:</string>
     <string name="nc_existing_cvc">Existing CVC</string>
     <string name="nc_set_up_nfc_key">Set up NFC key</string>
     <string name="nc_new_cvc">New CVC</string>
@@ -52,4 +48,6 @@
     <string name="nc_change_cvc">Change CVC</string>
     <string name="nc_back_up_key">Back up key</string>
     <string name="nc_remove_key">Remove key</string>
+    <string name="nc_cvc_has_been_changed">CVC has been changed</string>
+    <string name="nc_master_private_key_init">Master private key has been initialized</string>
 </resources>
