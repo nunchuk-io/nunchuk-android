@@ -40,7 +40,7 @@ ext {
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
-    PATCH_VERSION = 15
+    PATCH_VERSION = 16
 
     VERSION_CODE = 162
 
