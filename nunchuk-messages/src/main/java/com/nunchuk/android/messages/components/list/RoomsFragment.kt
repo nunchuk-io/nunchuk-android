@@ -1,6 +1,7 @@
 package com.nunchuk.android.messages.components.list
 
 import android.os.Bundle
+import android.util.SparseArray
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -82,7 +83,10 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     }
 
     private fun handleState(state: RoomsState) {
-        adapter.roomWallets = state.roomWallets.map(RoomWallet::roomId)
+        adapter.roomWallets.apply {
+            clear()
+            addAll(state.roomWallets.map(RoomWallet::roomId))
+        }
         adapter.updateItems(state.rooms.filter(RoomSummary::shouldShow))
         emptyStateView?.isVisible = state.rooms.isEmpty()
 
