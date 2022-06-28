@@ -49,21 +49,6 @@
                 android:src="@drawable/ic_camera" />
         </androidx.cardview.widget.CardView>
 
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/name"
-            style="@style/NCText.Heading"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/nc_padding_12"
-            android:drawablePadding="@dimen/nc_padding_4"
-            android:gravity="center"
-            android:paddingHorizontal="@dimen/nc_padding_16"
-            app:drawableRightCompat="@drawable/ic_edit"
-            app:layout_constraintEnd_toEndOf="@+id/avatar"
-            app:layout_constraintStart_toStartOf="@+id/avatar"
-            app:layout_constraintTop_toBottomOf="@+id/take_picture"
-            tools:text="Hung Tran Long text text text " />
-
         <include
             android:id="@+id/layoutSync"
             layout="@layout/layout_syncing_data" />
@@ -82,16 +67,55 @@
             app:layout_constraintTop_toBottomOf="@+id/layoutSync"
             tools:text="HT" />
 
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/name"
+            style="@style/NCText.Heading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_12"
+            android:drawablePadding="@dimen/nc_padding_4"
+            android:gravity="center"
+            android:paddingHorizontal="@dimen/nc_padding_16"
+            app:drawableRightCompat="@drawable/ic_edit"
+            app:layout_constraintEnd_toEndOf="@+id/avatar"
+            app:layout_constraintStart_toStartOf="@+id/avatar"
+            app:layout_constraintTop_toBottomOf="@+id/take_picture"
+            tools:text="Hung Tran Long text text text " />
+
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/email"
             style="@style/NCText.Body.Small"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textColor="@color/nc_grey_dark_color"
+            android:gravity="center"
+            android:layout_marginHorizontal="@dimen/nc_padding_16"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/name"
             tools:text="hung.tran@nunchuk.io" />
+
+        <com.nunchuk.android.widget.NCFontButton
+            android:id="@+id/signUp"
+            style="@style/NCPrimaryButton.Dark"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/nc_padding_16"
+            android:layout_marginTop="@dimen/nc_padding_16"
+            android:text="@string/nc_text_create_an_account"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/email" />
+
+        <com.nunchuk.android.widget.NCFontButton
+            android:id="@+id/signIn"
+            style="@style/NCPrimaryButton.Light"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/nc_padding_16"
+            android:layout_marginTop="@dimen/nc_padding_16"
+            android:text="@string/nc_text_sign_in"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/signUp" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/unit"
@@ -101,7 +125,7 @@
             android:drawableEnd="@drawable/ic_arrow"
             android:text="@string/nc_settings_unit"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/email" />
+            app:layout_constraintTop_toBottomOf="@+id/signIn" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/account_settings"
@@ -148,34 +172,12 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/about" />
 
-        <com.nunchuk.android.widget.NCFontButton
-            android:id="@+id/signUp"
-            style="@style/NCPrimaryButton.Dark"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/nc_padding_16"
-            android:layout_marginTop="@dimen/nc_padding_16"
-            android:text="@string/nc_text_create_an_account"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnSignOut" />
-
-        <com.nunchuk.android.widget.NCFontButton
-            android:id="@+id/signIn"
-            style="@style/NCPrimaryButton.Light"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/nc_padding_16"
-            android:layout_marginTop="@dimen/nc_padding_16"
-            android:text="@string/nc_text_sign_in"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/signUp" />
-
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/appVersion"
             style="@style/NCText.Settings"
             android:gravity="center"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/signIn"
+            app:layout_constraintTop_toBottomOf="@+id/btnSignOut"
             tools:text="v1.0.0 (1)" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

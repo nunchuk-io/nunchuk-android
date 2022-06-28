@@ -40,6 +40,7 @@ internal class SplashActivity : BaseActivity<ActivitySplashBinding>() {
             NavActivateAccountEvent -> navigator.openChangePasswordScreen(this)
             NavSignInEvent -> navigator.openSignInScreen(this)
             NavHomeScreenEvent -> navigator.openMainScreen(this)
+            NavIntroEvent -> navigator.openIntroScreen(this)
             is InitErrorEvent -> NCToastMessage(this).showError(event.error)
         }
         finish()

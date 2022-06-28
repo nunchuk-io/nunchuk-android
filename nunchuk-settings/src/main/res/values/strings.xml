@@ -50,6 +50,8 @@
     <string name="nc_txt_debug_mode">Enable debug mode</string>
     <string name="nc_txt_sync_mode">Enable sync</string>
     <string name="nc_settings_sync_mode">Multi-device sync</string>
+    <string name="nc_create_account_to_take_advantage">Create an account or sign in to take advantage of our advanced features, such as collaborative wallets and encrypted messaging.</string>
+    <string name="nc_do_more_with_nunchuk">Do more with Nunchuk</string>
     <string name="nc_developer_log_file">Developer log file, use fileLog method</string>
     <string name="nc_clear_log">Clear log</string>
     <string name="nc_share_log">Share log</string>

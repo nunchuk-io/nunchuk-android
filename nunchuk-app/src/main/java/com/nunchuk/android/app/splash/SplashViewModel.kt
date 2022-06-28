@@ -4,6 +4,8 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.app.splash.SplashEvent.*
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.utils.onException
@@ -22,6 +24,10 @@ internal class SplashViewModel @Inject constructor(
 
     override val initialState = Unit
 
+    init {
+        SignInModeHolder.currentMode = if (accountManager.isAccountExisted()) SignInMode.NORMAL else SignInMode.GUEST_MODE
+    }
+
     private fun initFlow() {
         val account = accountManager.getAccount()
         viewModelScope.launch {
@@ -35,8 +41,12 @@ internal class SplashViewModel @Inject constructor(
 
     fun handleNavigation() {
         when {
-            !accountManager.isStaySignedIn() || !accountManager.isLinkedWithMatrix() || !accountManager.isAccountExisted() -> event(NavSignInEvent)
-            !accountManager.isAccountActivated() -> event(NavActivateAccountEvent)
+            accountManager.isFreshInstall() -> {
+                event(NavIntroEvent)
+                accountManager.clearFreshInstall()
+            }
+            accountManager.isAccountExisted() && !accountManager.isAccountActivated() -> event(NavActivateAccountEvent)
+            accountManager.isHasAccountBefore() -> event(NavSignInEvent)
             else -> initFlow()
         }
     }
