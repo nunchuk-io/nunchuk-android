@@ -123,7 +123,7 @@ class RoomsViewModel @Inject constructor(
         event(RoomsEvent.LoadingEvent(false))
         updateState {
             copy(
-                rooms = p.first.sortByLastMessage(),
+                rooms = p.first.sortByLastMessage(p.second),
                 roomWallets = p.second
             )
         }
