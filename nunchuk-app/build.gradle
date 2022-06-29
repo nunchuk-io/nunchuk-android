@@ -55,6 +55,7 @@ android {
 
     buildTypes {
         debug {
+            defaultConfig.versionName androidConfig.versionNameDebug
             minifyEnabled false
             debuggable true
         }

@@ -66,7 +66,7 @@ class VerifyNewDeviceActivity : BaseActivity<ActivityVerifyNewDeviceBinding>() {
     private fun openMainScreen(token: String, deviceId: String) {
         hideLoading()
         finish()
-        navigator.openMainScreen(this, token, deviceId)
+        navigator.openMainScreen(activityContext = this, loginHalfToken = token, deviceId = deviceId, isNewDevice = true)
     }
 
     private fun setupViews() {

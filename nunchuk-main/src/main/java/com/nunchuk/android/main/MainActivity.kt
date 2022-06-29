@@ -94,6 +94,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         MatrixEvenBus.instance.subscribe(matrixEventListener)
         AppEvenBus.instance.subscribe(appEventListener)
         viewModel.checkAppUpdateRecommend(false)
+        if (savedInstanceState == null && intent.getBooleanExtra(EXTRAS_IS_NEW_DEVICE, false)) {
+            showUnverifiedDeviceWarning()
+        }
     }
 
     override fun onDestroy() {
@@ -135,7 +138,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         when (event) {
             is DownloadFileSyncSucceed -> handleDownloadedSyncFile(event)
             is MainAppEvent.UpdateAppRecommendEvent -> handleAppUpdateEvent(event.data)
-            MainAppEvent.CrossSigningUnverified -> showUnverifiedDeviceWarning()
             MainAppEvent.ConsumeSyncEventCompleted -> syncRoomViewModel.findSyncRoom() // safe way to trigger sync data
             else -> {}
         }
@@ -146,7 +148,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             is SyncRoomEvent.FindSyncRoomSuccessEvent -> viewModel.syncData(event.syncRoomId)
             is SyncRoomEvent.CreateSyncRoomSucceedEvent -> viewModel.syncData(event.syncRoomId)
             is SyncRoomEvent.LoginMatrixSucceedEvent -> {
-                viewModel.checkCrossSigning(event.session)
                 syncRoomViewModel.findSyncRoom()
             }
             is SyncRoomEvent.FindSyncRoomFailedEvent -> if (event.syncRoomSize == 0) {
@@ -232,19 +233,22 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         const val EXTRAS_LOGIN_HALF_TOKEN = "EXTRAS_LOGIN_HALF_TOKEN"
         const val EXTRAS_ENCRYPTED_DEVICE_ID = "EXTRAS_ENCRYPTED_DEVICE_ID"
         const val EXTRAS_BOTTOM_NAV_VIEW_POSITION = "EXTRAS_BOTTOM_NAV_VIEW_POSITION"
+        const val EXTRAS_IS_NEW_DEVICE = "EXTRAS_IS_NEW_DEVICE"
 
         fun start(
             activityContext: Context,
             loginHalfToken: String? = null,
             deviceId: String? = null,
-            position: Int? = null
+            position: Int? = null,
+            isNewDevice: Boolean = false
         ) {
             activityContext.startActivity(
                 createIntent(
                     activityContext = activityContext,
                     loginHalfToken = loginHalfToken,
                     deviceId = deviceId,
-                    bottomNavViewPosition = position
+                    bottomNavViewPosition = position,
+                    isNewDevice
                 )
             )
         }
@@ -254,13 +258,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             activityContext: Context,
             loginHalfToken: String? = null,
             deviceId: String? = null,
-            @IdRes bottomNavViewPosition: Int? = null
+            @IdRes bottomNavViewPosition: Int? = null,
+            isNewDevice: Boolean = false
         ): Intent {
             return Intent(activityContext, MainActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 putExtra(EXTRAS_LOGIN_HALF_TOKEN, loginHalfToken)
                 putExtra(EXTRAS_ENCRYPTED_DEVICE_ID, deviceId)
                 putExtra(EXTRAS_BOTTOM_NAV_VIEW_POSITION, bottomNavViewPosition)
+                putExtra(EXTRAS_IS_NEW_DEVICE, isNewDevice)
             }
         }
     }

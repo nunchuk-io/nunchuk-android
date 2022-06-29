@@ -30,10 +30,6 @@ class NCSharePreferences @Inject constructor(context: Context) {
         get() = prefs.getString(SP_KEY_FCM_TOKEN, "").orEmpty()
         set(value) = prefs.edit().putString(SP_KEY_DEVICE_SHOW_BANNER_NEW_CHAT, value).apply()
 
-    var newDevice: Boolean
-        get() = prefs.getBoolean(SP_KEY_NEW_DEVICE, true)
-        set(value) = prefs.edit().putBoolean(SP_KEY_NEW_DEVICE, value).apply()
-
     var developerSetting: String
         get() = prefs.getString(SP_KEY_DEVELOPER_SETTING, "").orEmpty()
         set(value) = prefs.edit().putString(SP_KEY_DEVELOPER_SETTING, value).apply()
