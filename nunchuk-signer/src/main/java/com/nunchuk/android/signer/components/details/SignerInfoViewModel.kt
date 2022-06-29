@@ -1,8 +1,10 @@
 package com.nunchuk.android.signer.components.details
 
+import android.nfc.tech.IsoDep
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
 import com.nunchuk.android.core.domain.HealthCheckMasterSignerUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MasterSigner
@@ -27,7 +29,8 @@ internal class SignerInfoViewModel @Inject constructor(
     private val updateMasterSignerUseCase: UpdateMasterSignerUseCase,
     private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
     private val healthCheckMasterSignerUseCase: HealthCheckMasterSignerUseCase,
-    private val sendSignerPassphrase: SendSignerPassphrase
+    private val sendSignerPassphrase: SendSignerPassphrase,
+    private val getTapSignerBackupUseCase: GetTapSignerBackupUseCase
 ) : NunchukViewModel<SignerInfoState, SignerInfoEvent>() {
 
     override val initialState = SignerInfoState()
@@ -134,6 +137,15 @@ internal class SignerInfoViewModel @Inject constructor(
                         event(HealthCheckErrorEvent())
                     }
                 }
+        }
+    }
+
+    fun getTapSignerBackup(isoDep: IsoDep, cvc: String) {
+        viewModelScope.launch {
+            val result = getTapSignerBackupUseCase(GetTapSignerBackupUseCase.Data(isoDep, cvc))
+            if (result.isSuccess) {
+                event(GetTapSignerBackupKeyEvent(result.getOrThrow()))
+            }
         }
     }
 

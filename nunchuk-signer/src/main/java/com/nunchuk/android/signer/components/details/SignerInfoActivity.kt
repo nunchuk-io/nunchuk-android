@@ -1,11 +1,18 @@
 package com.nunchuk.android.signer.components.details
 
 import android.content.Context
+import android.nfc.tech.IsoDep
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.NfcScanInfo
+import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.core.util.toReadableString
 import com.nunchuk.android.model.MasterSigner
@@ -19,9 +26,10 @@ import com.nunchuk.android.signer.nfc.NfcSetupActivity
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
-class SignerInfoActivity : BaseActivity<ActivitySignerInfoBinding>(),
+class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     SingerInfoOptionBottomSheet.OptionClickListener {
 
     private val viewModel: SignerInfoViewModel by viewModels()
@@ -40,9 +48,9 @@ class SignerInfoActivity : BaseActivity<ActivitySignerInfoBinding>(),
 
     override fun onOptionClickListener(option: SingerOption) {
         when (option) {
-            SingerOption.TOP_UP -> {}
+            SingerOption.TOP_UP -> startNfcFlow(REQUEST_NFC_TOPUP_XPUBS)
             SingerOption.CHANGE_CVC -> NfcSetupActivity.navigate(this, NfcSetupActivity.CHANGE_CVC)
-            SingerOption.BACKUP_KEY -> {}
+            SingerOption.BACKUP_KEY -> startNfcFlow(REQUEST_NFC_VIEW_BACKUP_KEY)
             SingerOption.REMOVE_KEY -> viewModel.handleRemoveSigner()
         }
     }
@@ -50,6 +58,30 @@ class SignerInfoActivity : BaseActivity<ActivitySignerInfoBinding>(),
     private fun observeEvent() {
         viewModel.event.observe(this, ::handleEvent)
         viewModel.state.observe(this, ::handleState)
+
+        lifecycleScope.launchWhenStarted {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
+                nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_VIEW_BACKUP_KEY }.collect {
+                    requestViewBackupKey(it)
+                }
+            }
+        }
+
+        lifecycleScope.launchWhenStarted {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
+                nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_TOPUP_XPUBS }.collect {
+                    topUpXPubs(it)
+                }
+            }
+        }
+    }
+
+    private fun requestViewBackupKey(nfcScanInfo: NfcScanInfo) {
+        viewModel.getTapSignerBackup(IsoDep.get(nfcScanInfo.tag) ?: return, nfcViewModel.inputCvc.orEmpty())
+    }
+
+    private fun topUpXPubs(nfcScanInfo: NfcScanInfo) {
+
     }
 
     private fun handleState(state: SignerInfoState) {
@@ -83,10 +115,11 @@ class SignerInfoActivity : BaseActivity<ActivitySignerInfoBinding>(),
             is RemoveSignerErrorEvent -> showToast(event.message)
             is UpdateNameErrorEvent -> showToast(event.message)
             is HealthCheckErrorEvent -> showHealthCheckError(event)
-            HealthCheckSuccessEvent -> NCToastMessage(this).showMessage(
+            is HealthCheckSuccessEvent -> NCToastMessage(this).showMessage(
                 message = getString(R.string.nc_txt_run_health_check_success_event, args.name),
                 icon = R.drawable.ic_check_circle_outline
             )
+            is GetTapSignerBackupKeyEvent -> IntentSharingController.from(this).shareText(event.backupKey)
         }
     }
 

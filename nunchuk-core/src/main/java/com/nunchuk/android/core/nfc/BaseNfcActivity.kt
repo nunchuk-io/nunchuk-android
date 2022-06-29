@@ -146,5 +146,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
         const val REQUEST_NFC_CHANGE_CVC = 2
         const val REQUEST_NFC_ADD_KEY = 3
         const val REQUEST_NFC_SIGN_TRANSACTION = 4
+        const val REQUEST_NFC_VIEW_BACKUP_KEY = 5
+        const val REQUEST_NFC_TOPUP_XPUBS = 6
     }
 }
