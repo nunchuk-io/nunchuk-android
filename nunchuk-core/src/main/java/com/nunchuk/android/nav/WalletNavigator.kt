@@ -69,7 +69,7 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         addressType: AddressType
     )
 
-    fun openBackupWalletScreen(activityContext: Context, walletId: String)
+    fun openBackupWalletScreen(activityContext: Context, walletId: String, totalRequireSigns: Int)
 
     fun openUploadConfigurationScreen(activityContext: Context, walletId: String)
 

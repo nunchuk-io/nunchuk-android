@@ -38,7 +38,7 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
     override fun onResume() {
         super.onResume()
         if (isShared) {
-            navigator.openUploadConfigurationScreen(this, args.walletId)
+            navigateToNextScreen()
             isShared = false
         }
     }
@@ -46,9 +46,19 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
     private fun setupViews() {
         NCToastMessage(this).show(R.string.nc_wallet_has_been_created)
         binding.btnBackup.setOnClickListener { viewModel.handleBackupDescriptorEvent() }
-        binding.btnSkipBackup.setOnClickListener { navigator.openUploadConfigurationScreen(this, args.walletId) }
+        binding.btnSkipBackup.setOnClickListener {
+            navigateToNextScreen()
+        }
         binding.toolbar.setNavigationOnClickListener {
             finish()
+        }
+    }
+
+    private fun navigateToNextScreen() {
+        if (args.totalRequireSigns > 1) {
+            navigator.openUploadConfigurationScreen(this, args.walletId)
+        } else {
+            navigator.openMainScreen(this)
         }
     }
 
@@ -70,8 +80,8 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
 
     companion object {
 
-        fun start(activityContext: Context, walletId: String) {
-            activityContext.startActivity(BackupWalletArgs(walletId).buildIntent(activityContext))
+        fun start(activityContext: Context, walletId: String, totalRequireSigns: Int) {
+            activityContext.startActivity(BackupWalletArgs(walletId, totalRequireSigns).buildIntent(activityContext))
         }
     }
 
