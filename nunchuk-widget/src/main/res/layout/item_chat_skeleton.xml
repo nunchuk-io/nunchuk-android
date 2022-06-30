@@ -15,8 +15,8 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/avatar"
-        android:layout_width="@dimen/nc_padding_48"
-        android:layout_height="@dimen/nc_padding_48"
+        android:layout_width="@dimen/nc_padding_64"
+        android:layout_height="@dimen/nc_padding_64"
         android:background="@drawable/nc_skeleton_circle_background"
         android:gravity="center"
         app:layout_constraintStart_toStartOf="parent"

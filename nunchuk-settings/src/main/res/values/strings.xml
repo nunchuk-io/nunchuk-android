@@ -50,5 +50,7 @@
     <string name="nc_txt_debug_mode">Enable debug mode</string>
     <string name="nc_txt_sync_mode">Enable sync</string>
     <string name="nc_settings_sync_mode">Multi-device sync</string>
-
+    <string name="nc_developer_log_file">Developer log file, use fileLog method</string>
+    <string name="nc_clear_log">Clear log</string>
+    <string name="nc_share_log">Share log</string>
 </resources>

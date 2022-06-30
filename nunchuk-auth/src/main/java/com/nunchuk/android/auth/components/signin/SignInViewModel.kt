@@ -11,6 +11,7 @@ import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.retry.DEFAULT_RETRY_POLICY
 import com.nunchuk.android.core.retry.RetryPolicy
 import com.nunchuk.android.core.retry.retryIO
+import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
@@ -69,7 +70,10 @@ internal class SignInViewModel @Inject constructor(
                 .flatMapConcat {
                     token = it.first
                     encryptedDeviceId = it.second
-                    initNunchuk()
+                    fileLog(message = "start initNunchuk")
+                    val result = initNunchuk()
+                    fileLog(message = "end initNunchuk")
+                    result
                 }
                 .onEach {
                     event(

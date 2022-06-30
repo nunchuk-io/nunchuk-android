@@ -9,6 +9,7 @@ import com.nunchuk.android.core.matrix.SyncStateHolder
 import com.nunchuk.android.core.matrix.SyncStateMatrixUseCase
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.messages.usecase.message.CreateRoomWithTagUseCase
 import com.nunchuk.android.messages.util.STATE_NUNCHUK_SYNC
 import com.nunchuk.android.utils.onException
@@ -91,6 +92,8 @@ internal class SyncRoomViewModel @Inject constructor(
     }
 
     fun setupMatrix(token: String, encryptedDeviceId: String) {
+        fileLog("Start setup matrix")
+
         viewModelScope.launch {
             getUserProfileUseCase.execute()
                 .flowOn(IO)
@@ -100,9 +103,9 @@ internal class SyncRoomViewModel @Inject constructor(
                         password = token,
                         encryptedDeviceId = encryptedDeviceId
                     ).onStart {
-                        Timber.tag(TAG).d("start login matrix")
+                        fileLog("start login matrix")
                     }.onCompletion {
-                        Timber.tag(TAG).d("end login matrix")
+                        fileLog("end login matrix")
                     }
                 }
                 .flowOn(Main)

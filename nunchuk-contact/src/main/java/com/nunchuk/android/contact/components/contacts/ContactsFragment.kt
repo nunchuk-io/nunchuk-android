@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.view.isVisible
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.contact.R
@@ -19,7 +19,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
 
-    private val viewModel: ContactsViewModel by viewModels()
+    private val viewModel: ContactsViewModel by activityViewModels()
 
     private lateinit var adapter: ContactsAdapter
 
@@ -41,7 +41,6 @@ class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
     override fun onResume() {
         super.onResume()
         viewModel.retrieveContacts()
-        viewModel.registerNewContactRequestEvent()
     }
 
     override fun onDestroyView() {

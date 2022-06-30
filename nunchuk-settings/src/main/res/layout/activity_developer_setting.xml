@@ -44,6 +44,42 @@
                 app:layout_constraintTop_toTopOf="@+id/tvDebugMode"
                 app:sb_checked_color="@color/nc_primary_color" />
 
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/tv_enable_log"
+                style="@style/NCText.Body"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/nc_padding_28"
+                android:text="@string/nc_developer_log_file"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/switchDebugMode" />
+
+
+            <com.nunchuk.android.widget.NCFontButton
+                android:id="@+id/btn_clear_log"
+                android:layout_width="0dp"
+                style="@style/NCPrimaryButton.Dark"
+                android:layout_marginTop="@dimen/nc_padding_16"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/btn_share_log"
+                android:text="@string/nc_clear_log"
+                app:layout_constraintTop_toBottomOf="@+id/tv_enable_log"
+                android:layout_marginEnd="@dimen/nc_padding_16"
+                />
+
+            <com.nunchuk.android.widget.NCFontButton
+                android:id="@+id/btn_share_log"
+                android:layout_width="0dp"
+                style="@style/NCPrimaryButton.Dark"
+                android:layout_height="wrap_content"
+                android:text="@string/nc_share_log"
+                android:layout_marginTop="@dimen/nc_padding_16"
+                app:layout_constraintStart_toEndOf="@+id/btn_clear_log"
+                app:layout_constraintTop_toBottomOf="@+id/tv_enable_log"
+                app:layout_constraintEnd_toEndOf="parent"
+                />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </ScrollView>

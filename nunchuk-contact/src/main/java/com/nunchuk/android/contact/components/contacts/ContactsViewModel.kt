@@ -34,7 +34,7 @@ class ContactsViewModel @Inject constructor(
 
     private var timeline: Timeline? = null
 
-    fun registerNewContactRequestEvent() {
+    init {
         SessionHolder.activeSession?.roomService()?.getRoomSummaries(roomSummaryQueryParams {
             memberships = Membership.activeMemberships()
         })?.find {

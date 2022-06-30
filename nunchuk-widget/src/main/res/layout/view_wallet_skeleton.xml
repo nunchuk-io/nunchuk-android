@@ -20,19 +20,4 @@
 
     <include layout="@layout/item_wallet_skeleton" />
 
-    <include layout="@layout/item_wallet_skeleton" />
-
-    <include layout="@layout/item_wallet_skeleton" />
-
-    <include layout="@layout/item_wallet_skeleton" />
-
-    <include layout="@layout/item_wallet_skeleton" />
-
-    <include layout="@layout/item_wallet_skeleton" />
-
-    <include layout="@layout/item_wallet_skeleton" />
-
-    <include layout="@layout/item_wallet_skeleton" />
-
-    <include layout="@layout/item_wallet_skeleton" />
 </LinearLayout>
