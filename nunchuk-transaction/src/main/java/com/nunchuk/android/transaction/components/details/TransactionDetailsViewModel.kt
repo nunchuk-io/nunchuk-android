@@ -314,7 +314,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             } else {
                 val message =
                     "${result.exceptionOrNull()?.message.orEmpty()},walletId::$walletId,txId::$txId"
-                event(TransactionDetailsError(message))
+                event(TransactionDetailsError(message, result.exceptionOrNull()))
                 CrashlyticsReporter.recordException(TransactionException(message))
             }
         }

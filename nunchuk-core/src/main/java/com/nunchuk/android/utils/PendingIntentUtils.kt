@@ -5,8 +5,8 @@ import android.os.Build
 
 object PendingIntentUtils {
     fun getFlagCompat() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        PendingIntent.FLAG_MUTABLE
+        PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
     } else {
-        0
+        PendingIntent.FLAG_UPDATE_CURRENT
     }
 }

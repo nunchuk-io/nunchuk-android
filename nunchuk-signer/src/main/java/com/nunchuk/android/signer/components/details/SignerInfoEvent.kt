@@ -5,6 +5,8 @@ import com.nunchuk.android.model.SingleSigner
 
 sealed class SignerInfoEvent {
 
+    object Loading : SignerInfoEvent()
+
     data class UpdateNameSuccessEvent(val signerName: String) : SignerInfoEvent()
 
     data class UpdateNameErrorEvent(val message: String) : SignerInfoEvent()
@@ -15,9 +17,11 @@ sealed class SignerInfoEvent {
 
     object HealthCheckSuccessEvent : SignerInfoEvent()
 
-    data class HealthCheckErrorEvent(val message: String? = null) : SignerInfoEvent()
+    data class HealthCheckErrorEvent(val message: String? = null, val e: Throwable? = null) : SignerInfoEvent()
 
     data class GetTapSignerBackupKeyEvent(val backupKeyPath: String) : SignerInfoEvent()
+
+    data class GetTapSignerBackupKeyError(val e: Throwable?) : SignerInfoEvent()
 }
 
 data class SignerInfoState(val remoteSigner: SingleSigner? = null, val masterSigner: MasterSigner? = null)

@@ -244,7 +244,10 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             is BroadcastTransactionSuccess -> showBroadcastTransactionSuccess(event.roomId)
             DeleteTransactionSuccess -> showTransactionDeleteSuccess()
             is ViewBlockchainExplorer -> openExternalLink(event.url)
-            is TransactionDetailsError -> showError(event.message)
+            is TransactionDetailsError -> {
+                nfcViewModel.handleNfcError(event.e)
+                showError(event.message)
+            }
             is PromptInputPassphrase -> requireInputPassphrase(event.func)
             is PromptTransactionOptions -> promptTransactionOptions(event.isPendingTransaction)
             LoadingEvent -> showLoading()

@@ -69,6 +69,15 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
 
         lifecycleScope.launchWhenStarted {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
+                nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_HEALTH_CHECK }.collect {
+                    val isoDep = IsoDep.get(it.tag) ?: return@collect
+                    viewModel.healthCheckTapSigner(isoDep, nfcViewModel.inputCvc.orEmpty(), viewModel.state.value?.masterSigner ?: return@collect)
+                }
+            }
+        }
+
+        lifecycleScope.launchWhenStarted {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_TOPUP_XPUBS }.collect {
                     topUpXPubs(it)
                 }
@@ -106,6 +115,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     }
 
     private fun handleEvent(event: SignerInfoEvent) {
+        showOrHideLoading(event is Loading)
         when (event) {
             is UpdateNameSuccessEvent -> {
                 binding.signerName.text = event.signerName
@@ -114,18 +124,22 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
             RemoveSignerCompletedEvent -> openMainScreen()
             is RemoveSignerErrorEvent -> showToast(event.message)
             is UpdateNameErrorEvent -> showToast(event.message)
-            is HealthCheckErrorEvent -> showHealthCheckError(event)
+            is HealthCheckErrorEvent -> {
+                nfcViewModel.handleNfcError(event.e)
+                showHealthCheckError(event)
+            }
             is HealthCheckSuccessEvent -> NCToastMessage(this).showMessage(
                 message = getString(R.string.nc_txt_run_health_check_success_event, args.name),
                 icon = R.drawable.ic_check_circle_outline
             )
             is GetTapSignerBackupKeyEvent -> IntentSharingController.from(this).shareFile(event.backupKeyPath)
+            is GetTapSignerBackupKeyError -> nfcViewModel.handleNfcError(event.e)
         }
     }
 
     private fun showHealthCheckError(event: HealthCheckErrorEvent) {
         if (event.message.isNullOrEmpty()) {
-            NCToastMessage(this).show(getString(R.string.nc_txt_run_health_check_error_event, args.name))
+            NCToastMessage(this).showError(getString(R.string.nc_txt_run_health_check_error_event, args.name))
         } else {
             NCToastMessage(this).showWarning(event.message)
         }
@@ -167,14 +181,18 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
 
     private fun handleRunHealthCheck() {
         val masterSigner = viewModel.state.value?.masterSigner
-        if (masterSigner != null && masterSigner.software) {
-            if (masterSigner.device.needPassPhraseSent) {
-                NCInputDialog(this).showDialog(
-                    title = getString(R.string.nc_transaction_enter_passphrase),
-                    onConfirmed = { viewModel.handleHealthCheck(masterSigner, it) }
-                )
-            } else {
-                viewModel.handleHealthCheck(masterSigner)
+        if (masterSigner != null) {
+            if (masterSigner.type == SignerType.NFC) {
+                startNfcFlow(REQUEST_NFC_HEALTH_CHECK)
+            } else if (masterSigner.software) {
+                if (masterSigner.device.needPassPhraseSent) {
+                    NCInputDialog(this).showDialog(
+                        title = getString(R.string.nc_transaction_enter_passphrase),
+                        onConfirmed = { viewModel.handleHealthCheck(masterSigner, it) }
+                    )
+                } else {
+                    viewModel.handleHealthCheck(masterSigner)
+                }
             }
         }
     }

@@ -21,9 +21,9 @@ class GetTapSignerStatusUseCase @Inject constructor(
             if (card.isConnected) {
                 return nunchukNativeSdk.tapSignerStatus(card)
             }
-            throw IOException("Can not connect nfc card")
         } finally {
             runCatching { card.close() }
         }
+        throw IOException("Can not connect nfc card")
     }
 }

@@ -8,7 +8,7 @@ sealed class TransactionDetailsEvent {
     data class BroadcastTransactionSuccess(val roomId: String = "") : TransactionDetailsEvent()
     object DeleteTransactionSuccess : TransactionDetailsEvent()
     data class PromptInputPassphrase(val func: (String) -> Unit) : TransactionDetailsEvent()
-    data class TransactionDetailsError(val message: String) : TransactionDetailsEvent()
+    data class TransactionDetailsError(val message: String, val e: Throwable? = null) : TransactionDetailsEvent()
     data class ViewBlockchainExplorer(val url: String) : TransactionDetailsEvent()
     data class PromptTransactionOptions(val isPendingTransaction: Boolean) : TransactionDetailsEvent()
     data class ExportToFileSuccess(val filePath: String) : TransactionDetailsEvent()

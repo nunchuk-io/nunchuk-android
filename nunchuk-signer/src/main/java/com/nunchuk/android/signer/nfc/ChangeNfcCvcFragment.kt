@@ -91,10 +91,12 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
                             NCToastMessage(requireActivity()).show(getString(R.string.nc_master_private_key_init))
                         }
                         is ChangeNfcCvcEvent.Error -> {
+                            nfcViewModel.handleNfcError(state.e)
                             NCToastMessage(requireActivity()).showError(getString(R.string.nc_config_cvc_failed))
                         }
                         else -> {}
                     }
+                    viewModel.clearEvent()
                 }
             }
         }

@@ -3,6 +3,8 @@ package com.nunchuk.android.core.nfc
 import android.nfc.Tag
 import android.nfc.tech.IsoDep
 import androidx.lifecycle.ViewModel
+import com.nunchuk.android.exception.NCNativeException
+import com.nunchuk.android.model.TapProtocolException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -11,10 +13,13 @@ import javax.inject.Inject
 @HiltViewModel
 class NfcViewModel @Inject constructor() : ViewModel() {
     private val _nfcScanInfo = MutableStateFlow<NfcScanInfo?>(null)
+    private val _event = MutableStateFlow<NfcState?>(null)
+
     var inputCvc: String? = null
         private set
 
     val nfcScanInfo = _nfcScanInfo.filterIsInstance<NfcScanInfo>()
+    val event = _event.filterIsInstance<NfcState>()
 
     fun updateInputCvc(cvc: String) {
         inputCvc = cvc
@@ -26,6 +31,20 @@ class NfcViewModel @Inject constructor() : ViewModel() {
 
     fun clearScanInfo() {
         _nfcScanInfo.value = null
+    }
+
+    fun clearEvent() {
+        _event.value = null
+    }
+
+    fun handleNfcError(e: Throwable?) {
+        if (e is NCNativeException) {
+            if (e.message.contains(TapProtocolException.BAD_AUTH.toString())) {
+                _event.value = NfcState.WrongCvc
+            } else if (e.message.contains(TapProtocolException.RATE_LIMIT.toString())) {
+                _event.value = NfcState.LimitCvcInput
+            }
+        }
     }
 
     override fun onCleared() {
@@ -40,4 +59,9 @@ class NfcViewModel @Inject constructor() : ViewModel() {
             }
         }
     }
+}
+
+sealed class NfcState {
+    object WrongCvc : NfcState()
+    object LimitCvcInput : NfcState()
 }

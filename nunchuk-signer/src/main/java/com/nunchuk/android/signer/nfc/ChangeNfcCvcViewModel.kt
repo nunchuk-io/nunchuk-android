@@ -37,7 +37,7 @@ class ChangeNfcCvcViewModel @Inject constructor(
         _event.value = ChangeNfcCvcEvent.Loading
         viewModelScope.launch {
             val result = changeCvcTapSignerUseCase(ChangeCvcTapSignerUseCase.Data(isoDep, oldCvc, newCvc))
-            if (result.isSuccess) {
+            if (result.isSuccess && result.getOrThrow()) {
                 _event.value = ChangeNfcCvcEvent.ChangeCvcSuccess
             } else {
                 _event.value = ChangeNfcCvcEvent.Error(result.exceptionOrNull())

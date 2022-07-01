@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
 import com.nunchuk.android.core.domain.HealthCheckMasterSignerUseCase
+import com.nunchuk.android.core.domain.HealthCheckTapSignerUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.Result.Error
@@ -31,7 +32,8 @@ internal class SignerInfoViewModel @Inject constructor(
     private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
     private val healthCheckMasterSignerUseCase: HealthCheckMasterSignerUseCase,
     private val sendSignerPassphrase: SendSignerPassphrase,
-    private val getTapSignerBackupUseCase: GetTapSignerBackupUseCase
+    private val getTapSignerBackupUseCase: GetTapSignerBackupUseCase,
+    private val healthCheckTapSignerUseCase: HealthCheckTapSignerUseCase
 ) : NunchukViewModel<SignerInfoState, SignerInfoEvent>() {
 
     override val initialState = SignerInfoState()
@@ -141,11 +143,34 @@ internal class SignerInfoViewModel @Inject constructor(
         }
     }
 
+    fun healthCheckTapSigner(isoDep: IsoDep, cvc: String, masterSigner: MasterSigner) {
+        viewModelScope.launch {
+            event(Loading)
+            val result = healthCheckTapSignerUseCase(
+                HealthCheckTapSignerUseCase.Data(
+                    isoDep = isoDep,
+                    cvc = cvc,
+                    fingerprint = masterSigner.device.masterFingerprint,
+                    message = "",
+                    signature = "",
+                    path = masterSigner.device.path
+                )
+            )
+            if (result.isSuccess && result.getOrThrow() == HealthStatus.SUCCESS) {
+                event(HealthCheckSuccessEvent)
+            } else {
+                event(HealthCheckErrorEvent(e = result.exceptionOrNull()))
+            }
+        }
+    }
+
     fun getTapSignerBackup(isoDep: IsoDep, cvc: String) {
         viewModelScope.launch {
             val result = getTapSignerBackupUseCase(GetTapSignerBackupUseCase.Data(isoDep, cvc))
             if (result.isSuccess) {
                 event(GetTapSignerBackupKeyEvent(result.getOrThrow()))
+            } else {
+                event(GetTapSignerBackupKeyError(result.exceptionOrNull()))
             }
         }
     }

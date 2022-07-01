@@ -15,7 +15,8 @@ class NCInputDialog @Inject constructor(private val context: Context) {
         title: String,
         onConfirmed: (String) -> Unit = {},
         onCanceled: () -> Unit = {},
-        isMaskedInput: Boolean = false
+        isMaskedInput: Boolean = false,
+        errorMessage: String? = null
     ) = Dialog(context).apply {
         window?.setBackgroundDrawableResource(android.R.color.transparent)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -24,7 +25,7 @@ class NCInputDialog @Inject constructor(private val context: Context) {
         setContentView(binding.root)
         binding.title.text = title
         binding.btnYes.setOnClickListener {
-            onConfirmed(binding.message.text.toString())
+            onConfirmed(binding.message.getEditText())
             dismiss()
         }
 
@@ -34,6 +35,9 @@ class NCInputDialog @Inject constructor(private val context: Context) {
         }
         if (isMaskedInput) {
             binding.message.makeMaskedInput()
+        }
+        if (!errorMessage.isNullOrEmpty()) {
+            binding.message.setError(errorMessage)
         }
         show()
         window?.setLayout(MATCH_PARENT, MATCH_PARENT)

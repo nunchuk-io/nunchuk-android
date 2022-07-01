@@ -58,4 +58,5 @@
     <string name="nc_turn_on_nfc_desc">An NFC connection is required to add an NFC key. Please do the following to turn on NFC connection on your device:</string>
     <string name="nc_no_nfc_title">No NFC support</string>
     <string name="no_nfc_message">This device does not support NFC.</string>
+    <string name="nc_incorrect_cvc_please_try_again">Incorrect CVC. Please try again.</string>
 </resources>
