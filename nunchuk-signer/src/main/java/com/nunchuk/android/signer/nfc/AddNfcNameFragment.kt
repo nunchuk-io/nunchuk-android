@@ -15,8 +15,8 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.signer.R
-import com.nunchuk.android.signer.components.details.SignerInfoActivity
 import com.nunchuk.android.signer.databinding.FragmentNfcAddNameKeyBinding
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setMaxLength
 import dagger.hilt.android.AndroidEntryPoint
@@ -64,10 +64,13 @@ class AddNfcNameFragment : BaseFragment<FragmentNfcAddNameKeyBinding>() {
                         navigator.openSignerInfoScreen(
                             activityContext = requireActivity(),
                             id = state.masterSigner.id,
+                            justAdded = true,
                             name = state.masterSigner.name,
-                            software = state.masterSigner.software
+                            type = state.masterSigner.type
                         )
                         requireActivity().finish()
+                    } else if (state is AddNfcNameState.Error) {
+                        NCToastMessage(requireActivity()).showError(getString(R.string.nc_create_signer_failed))
                     }
                 }
             }

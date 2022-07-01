@@ -18,14 +18,18 @@ class SignTransactionByTapSignerUseCase @Inject constructor(
     override suspend fun execute(parameters: Data): Transaction {
         val card = parameters.isoDep
         card.timeout = NFC_CARD_TIMEOUT
-        if (card.isConnected.not()) card.connect()
-        if (card.isConnected) {
-            return nunchukNativeSdk.signTransactionByTapSigner(
-                isoDep = parameters.isoDep,
-                cvc = parameters.cvc,
-                walletId = parameters.walletId,
-                txId = parameters.txId
-            )
+        card.connect()
+        try {
+            if (card.isConnected) {
+                return nunchukNativeSdk.signTransactionByTapSigner(
+                    isoDep = parameters.isoDep,
+                    cvc = parameters.cvc,
+                    walletId = parameters.walletId,
+                    txId = parameters.txId
+                )
+            }
+        } finally {
+            runCatching { card.close() }
         }
         throw IOException("Can not connect nfc card")
     }

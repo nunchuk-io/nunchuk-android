@@ -5,12 +5,14 @@ import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.getStringValue
+import com.nunchuk.android.type.SignerType
 
 data class SignerInfoArgs(
     val id: String,
     val name: String,
+    val signerType: SignerType,
     val justAdded: Boolean = false,
-    val software: Boolean = false,
+    val isNfc: Boolean = false,
     val setPassphrase: Boolean = false
 ) : ActivityArgs {
 
@@ -18,7 +20,7 @@ data class SignerInfoArgs(
         putExtra(EXTRA_SIGNER_ID, id)
         putExtra(EXTRA_SIGNER_NAME, name)
         putExtra(EXTRA_SIGNER_ADDED, justAdded)
-        putExtra(EXTRA_SIGNER_SOFTWARE, software)
+        putExtra(EXTRA_SIGNER_TYPE, signerType)
         putExtra(EXTRA_SIGNER_SET_PASS_PHRASE, setPassphrase)
     }
 
@@ -26,7 +28,7 @@ data class SignerInfoArgs(
         private const val EXTRA_SIGNER_ID = "EXTRA_SIGNER_ID"
         private const val EXTRA_SIGNER_NAME = "EXTRA_SIGNER_NAME"
         private const val EXTRA_SIGNER_ADDED = "EXTRA_SIGNER_ADDED"
-        private const val EXTRA_SIGNER_SOFTWARE = "EXTRA_SIGNER_SOFTWARE"
+        private const val EXTRA_SIGNER_TYPE = "EXTRA_SIGNER_SOFTWARE"
         private const val EXTRA_SIGNER_SET_PASS_PHRASE = "EXTRA_SIGNER_SET_PASS_PHRASE"
 
         fun deserializeFrom(intent: Intent): SignerInfoArgs {
@@ -35,7 +37,7 @@ data class SignerInfoArgs(
                 id = bundle.getStringValue(EXTRA_SIGNER_ID),
                 name = bundle.getStringValue(EXTRA_SIGNER_NAME),
                 justAdded = bundle.getBooleanValue(EXTRA_SIGNER_ADDED),
-                software = bundle.getBooleanValue(EXTRA_SIGNER_SOFTWARE),
+                signerType = intent.getSerializableExtra(EXTRA_SIGNER_TYPE) as SignerType,
                 setPassphrase = bundle.getBooleanValue(EXTRA_SIGNER_SET_PASS_PHRASE)
             )
         }

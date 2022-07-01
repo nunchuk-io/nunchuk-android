@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.components.details.model.SingerOption
 import com.nunchuk.android.signer.databinding.ActivityNfcSetupBinding
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -23,12 +24,15 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNfcSetupBinding>() {
         val navHostFragment = (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.nfc_setup_navigation)
-        when(intent.getIntExtra(EXTRA_ACTION, SETUP_NFC)) {
-            SETUP_NFC -> graph.startDestination = R.id.changeNfcCvcFragment
+        when (setUpAction) {
+            SETUP_NFC, CHANGE_CVC -> graph.startDestination = R.id.changeNfcCvcFragment
             else -> graph.startDestination = R.id.addNfcNameFragment
         }
         navHostFragment.navController.graph = graph
     }
+
+    val setUpAction: Int
+        get() = intent.getIntExtra(EXTRA_ACTION, SETUP_NFC)
 
     companion object {
         private const val EXTRA_ACTION = "EXTRA_ACTION"

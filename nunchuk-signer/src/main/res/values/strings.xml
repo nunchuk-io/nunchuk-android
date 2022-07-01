@@ -50,4 +50,7 @@
     <string name="nc_remove_key">Remove key</string>
     <string name="nc_cvc_has_been_changed">CVC has been changed</string>
     <string name="nc_master_private_key_init">Master private key has been initialized</string>
+    <string name="nc_config_cvc_failed">Config cvc failed</string>
+    <string name="nc_required_minimum_6_characters">Required minimum 6 characters</string>
+    <string name="nc_create_signer_failed">Create signer failed</string>
 </resources>

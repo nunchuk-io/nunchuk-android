@@ -1,6 +1,7 @@
 package com.nunchuk.android.nav
 
 import android.content.Context
+import com.nunchuk.android.type.SignerType
 
 interface SignerNavigator {
     fun openSignerIntroScreen(activityContext: Context)
@@ -9,8 +10,8 @@ interface SignerNavigator {
         activityContext: Context,
         id: String,
         name: String,
+        type: SignerType,
         justAdded: Boolean = false,
-        software: Boolean = false,
         setPassphrase: Boolean = false
     )
 

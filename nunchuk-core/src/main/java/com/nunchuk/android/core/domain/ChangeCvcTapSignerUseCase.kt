@@ -10,24 +10,27 @@ import kotlinx.coroutines.CoroutineDispatcher
 import java.io.IOException
 import javax.inject.Inject
 
-class SignTransactionTapSignerUseCase @Inject constructor(
+class ChangeCvcTapSignerUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val nunchukNativeSdk: NunchukNativeSdk
-) : UseCase<SignTransactionTapSignerUseCase.Data, Transaction>(dispatcher) {
-    override suspend fun execute(parameters: Data): Transaction {
+) : UseCase<ChangeCvcTapSignerUseCase.Data, Boolean>(dispatcher) {
+    override suspend fun execute(parameters: Data): Boolean {
         val card = parameters.isoDep
         card.timeout = NFC_CARD_TIMEOUT
-        if (card.isConnected.not()) card.connect()
-        if (card.isConnected) {
-            return nunchukNativeSdk.signTransactionByTapSigner(
-                isoDep = parameters.isoDep,
-                cvc = parameters.cvc,
-                walletId = parameters.walletId,
-                txId = parameters.txId
-            )
+        card.connect()
+        try {
+            if (card.isConnected) {
+                return nunchukNativeSdk.changeCvcTapSigner(
+                    isoDep = parameters.isoDep,
+                    oldCvc = parameters.oldCvc,
+                    newCvc = parameters.newCvc,
+                )
+            }
+        } finally {
+            runCatching { card.close() }
         }
         throw IOException("Can not connect nfc card")
     }
 
-    data class Data(val isoDep: IsoDep, val cvc: String, val walletId: String, val txId: String)
+    data class Data(val isoDep: IsoDep, val oldCvc: String, val newCvc: String)
 }

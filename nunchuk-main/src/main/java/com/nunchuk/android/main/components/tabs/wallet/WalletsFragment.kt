@@ -246,7 +246,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             activityContext = requireActivity(),
             id = signer.id,
             name = signer.name,
-            software = signer.software
+            type = signer.type
         )
     }
 

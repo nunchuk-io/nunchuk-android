@@ -12,6 +12,7 @@ import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.signer.components.details.SignerInfoEvent.*
 import com.nunchuk.android.type.HealthStatus
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,13 +37,13 @@ internal class SignerInfoViewModel @Inject constructor(
     override val initialState = SignerInfoState()
 
     lateinit var id: String
-    private var software: Boolean = false
+    private var signerType: SignerType = SignerType.SOFTWARE
 
-    fun init(id: String, software: Boolean) {
+    fun init(id: String, type: SignerType) {
         this.id = id
-        this.software = software
+        this.signerType = type
         viewModelScope.launch {
-            if (software) {
+            if (shouldLoadMasterSigner(signerType)) {
                 when (val result = getMasterSignerUseCase.execute(id)) {
                     is Success -> updateState { copy(masterSigner = result.data) }
                     is Error -> Log.e(TAG, "get software signer error", result.exception)
@@ -60,7 +61,7 @@ internal class SignerInfoViewModel @Inject constructor(
     fun handleEditCompletedEvent(updateSignerName: String) {
         viewModelScope.launch {
             val state = getState()
-            if (software) {
+            if (shouldLoadMasterSigner(signerType)) {
                 state.masterSigner?.let {
                     when (val result = updateMasterSignerUseCase.execute(masterSigner = it.copy(name = updateSignerName))) {
                         is Success -> event(UpdateNameSuccessEvent(updateSignerName))
@@ -81,7 +82,7 @@ internal class SignerInfoViewModel @Inject constructor(
     fun handleRemoveSigner() {
         viewModelScope.launch {
             val state = getState()
-            if (software) {
+            if (shouldLoadMasterSigner(signerType)) {
                 state.masterSigner?.let {
                     when (val result = deleteMasterSignerUseCase.execute(
                         masterSignerId = it.id
@@ -148,6 +149,8 @@ internal class SignerInfoViewModel @Inject constructor(
             }
         }
     }
+
+    private fun shouldLoadMasterSigner(type: SignerType) = type == SignerType.SOFTWARE || type == SignerType.NFC
 
     companion object {
         private const val TAG = "SignerInfoViewModel"

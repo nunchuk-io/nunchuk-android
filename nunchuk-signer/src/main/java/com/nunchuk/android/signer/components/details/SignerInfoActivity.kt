@@ -9,7 +9,6 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.share.IntentSharingController
@@ -23,6 +22,7 @@ import com.nunchuk.android.signer.components.details.SignerInfoEvent.*
 import com.nunchuk.android.signer.components.details.model.SingerOption
 import com.nunchuk.android.signer.databinding.ActivitySignerInfoBinding
 import com.nunchuk.android.signer.nfc.NfcSetupActivity
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -43,7 +43,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
 
         setupViews()
         observeEvent()
-        viewModel.init(args.id, args.software)
+        viewModel.init(args.id, args.signerType)
     }
 
     override fun onOptionClickListener(option: SingerOption) {
@@ -119,7 +119,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
                 message = getString(R.string.nc_txt_run_health_check_success_event, args.name),
                 icon = R.drawable.ic_check_circle_outline
             )
-            is GetTapSignerBackupKeyEvent -> IntentSharingController.from(this).shareText(event.backupKey)
+            is GetTapSignerBackupKeyEvent -> IntentSharingController.from(this).shareFile(event.backupKeyPath)
         }
     }
 
@@ -147,11 +147,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
             }
         }
         binding.btnDone.isVisible = args.justAdded
-        if (args.software) {
-            binding.signerType.text = getString(R.string.nc_signer_type_software)
-        } else {
-            binding.signerType.text = getString(R.string.nc_signer_type_air_gapped)
-        }
+        binding.signerType.text = args.signerType.toReadableString(this)
         binding.toolbar.setNavigationOnClickListener { openMainScreen() }
         binding.toolbar.setOnMenuItemClickListener {
             if (it.itemId == R.id.menu_more) {
@@ -214,8 +210,8 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
             activityContext: Context,
             id: String,
             name: String,
+            type: SignerType,
             justAdded: Boolean = false,
-            software: Boolean = false,
             setPassphrase: Boolean = false
         ) {
             activityContext.startActivity(
@@ -223,7 +219,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
                     id = id,
                     name = name,
                     justAdded = justAdded,
-                    software = software,
+                    signerType = type,
                     setPassphrase = setPassphrase
                 ).buildIntent(activityContext)
             )

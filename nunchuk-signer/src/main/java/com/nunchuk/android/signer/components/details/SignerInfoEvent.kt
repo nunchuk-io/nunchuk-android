@@ -17,7 +17,7 @@ sealed class SignerInfoEvent {
 
     data class HealthCheckErrorEvent(val message: String? = null) : SignerInfoEvent()
 
-    data class GetTapSignerBackupKeyEvent(val backupKey: String) : SignerInfoEvent()
+    data class GetTapSignerBackupKeyEvent(val backupKeyPath: String) : SignerInfoEvent()
 }
 
 data class SignerInfoState(val remoteSigner: SingleSigner? = null, val masterSigner: MasterSigner? = null)

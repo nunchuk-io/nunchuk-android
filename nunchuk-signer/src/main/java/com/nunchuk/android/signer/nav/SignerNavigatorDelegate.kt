@@ -4,14 +4,15 @@ import android.content.Context
 import com.nunchuk.android.nav.SignerNavigator
 import com.nunchuk.android.signer.AirSignerIntroActivity
 import com.nunchuk.android.signer.SignerIntroActivity
-import com.nunchuk.android.signer.software.SoftwareSignerIntroActivity
 import com.nunchuk.android.signer.components.add.AddSignerActivity
 import com.nunchuk.android.signer.components.details.SignerInfoActivity
+import com.nunchuk.android.signer.software.SoftwareSignerIntroActivity
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedActivity
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedActivity
 import com.nunchuk.android.signer.software.components.name.AddSoftwareSignerNameActivity
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseActivity
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedActivity
+import com.nunchuk.android.type.SignerType
 
 interface SignerNavigatorDelegate : SignerNavigator {
 
@@ -23,8 +24,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
         activityContext: Context,
         id: String,
         name: String,
+        type: SignerType,
         justAdded: Boolean,
-        software: Boolean,
         setPassphrase: Boolean
     ) {
         SignerInfoActivity.start(
@@ -32,7 +33,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
             id = id,
             name = name,
             justAdded = justAdded,
-            software = software,
+            type = type,
             setPassphrase = setPassphrase
         )
     }

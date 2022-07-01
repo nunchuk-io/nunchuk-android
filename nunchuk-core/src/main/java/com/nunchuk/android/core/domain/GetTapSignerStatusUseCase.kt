@@ -17,11 +17,13 @@ class GetTapSignerStatusUseCase @Inject constructor(
     override suspend fun execute(card: IsoDep): TapSignerStatus {
         card.timeout = NFC_CARD_TIMEOUT
         card.connect()
-        card.use {
+        try {
             if (card.isConnected) {
                 return nunchukNativeSdk.tapSignerStatus(card)
             }
             throw IOException("Can not connect nfc card")
+        } finally {
+            runCatching { card.close() }
         }
     }
 }
