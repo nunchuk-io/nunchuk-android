@@ -245,8 +245,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             DeleteTransactionSuccess -> showTransactionDeleteSuccess()
             is ViewBlockchainExplorer -> openExternalLink(event.url)
             is TransactionDetailsError -> {
-                nfcViewModel.handleNfcError(event.e)
-                showError(event.message)
+                if (nfcViewModel.handleNfcError(event.e).not()) showError(event.message)
             }
             is PromptInputPassphrase -> requireInputPassphrase(event.func)
             is PromptTransactionOptions -> promptTransactionOptions(event.isPendingTransaction)

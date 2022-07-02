@@ -70,8 +70,9 @@ class AddNfcNameFragment : BaseFragment<FragmentNfcAddNameKeyBinding>() {
                         )
                         requireActivity().finish()
                     } else if (state is AddNfcNameState.Error) {
-                        nfcViewModel.handleNfcError(state.e)
-                        NCToastMessage(requireActivity()).showError(getString(R.string.nc_create_signer_failed))
+                        if (nfcViewModel.handleNfcError(state.e).not()) {
+                            NCToastMessage(requireActivity()).showError(getString(R.string.nc_create_signer_failed))
+                        }
                     }
                 }
             }

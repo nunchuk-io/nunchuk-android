@@ -15,6 +15,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.util.isValidCvc
 import com.nunchuk.android.utils.PendingIntentUtils
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
@@ -83,6 +84,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
                         NfcState.WrongCvc -> handleWrongCvc()
                         NfcState.LimitCvcInput -> handleLimitCvcInput()
                     }
+                    nfcViewModel.clearEvent()
                 }
             }
         }
@@ -90,13 +92,16 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
 
     private fun handleLimitCvcInput() {
         if (shouldShowInputCvcFirst(requestCode)) {
-
+            showInputCvcDialog(
+                errorMessage = getString(R.string.nc_incorrect_cvc_please_try_again),
+                descMessage = getString(R.string.nc_cvc_incorrect_3_times)
+            )
         }
     }
 
     private fun handleWrongCvc() {
         if (shouldShowInputCvcFirst(requestCode)) {
-            showInputCvcDialog(getString(R.string.nc_incorrect_cvc_please_try_again))
+            showInputCvcDialog(errorMessage = getString(R.string.nc_incorrect_cvc_please_try_again))
         }
     }
 
@@ -160,16 +165,21 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
         }
     }
 
-    private fun showInputCvcDialog(errorMessage: String? = null) {
+    private fun showInputCvcDialog(errorMessage: String? = null, descMessage: String? = null) {
         NCInputDialog(this)
             .showDialog(
                 title = "Enter CVC",
-                onConfirmed = {
-                    nfcViewModel.updateInputCvc(it)
-                    askToScan()
+                onConfirmed = { cvc ->
+                    if (cvc.isValidCvc()) {
+                        nfcViewModel.updateInputCvc(cvc)
+                        askToScan()
+                    } else {
+                        showInputCvcDialog(errorMessage = getString(R.string.nc_required_minimum_6_characters))
+                    }
                 },
                 isMaskedInput = true,
-                errorMessage = errorMessage
+                errorMessage = errorMessage,
+                descMessage = descMessage
             ).show()
     }
 

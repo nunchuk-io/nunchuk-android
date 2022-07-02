@@ -42,7 +42,7 @@
         android:layout_marginTop="@dimen/nc_padding_4"
         android:singleLine="true"
         android:textColor="@color/nc_red_color"
-        android:textSize="@dimen/nc_text_size_14"
+        android:textSize="@dimen/nc_text_size_12"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

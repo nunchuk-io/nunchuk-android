@@ -1,7 +1,7 @@
 package com.nunchuk.android.model
 
 object TapProtocolException {
-    const val TAP_PROTOCOL_ERROR = -5000
+    const val TAP_PROTOCOL_ERROR = -6000
     const val UNLUCKY_NUMBER = TAP_PROTOCOL_ERROR - 205
     const val BAD_ARGUMENT = TAP_PROTOCOL_ERROR - 400
     const val BAD_AUTH = TAP_PROTOCOL_ERROR - 401

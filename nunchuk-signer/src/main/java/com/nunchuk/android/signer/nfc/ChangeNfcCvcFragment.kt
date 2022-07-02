@@ -15,6 +15,8 @@ import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.core.util.MAX_CVC_LENGTH
+import com.nunchuk.android.core.util.isValidCvc
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.FragmentNfcChangeCvcBinding
@@ -91,8 +93,9 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
                             NCToastMessage(requireActivity()).show(getString(R.string.nc_master_private_key_init))
                         }
                         is ChangeNfcCvcEvent.Error -> {
-                            nfcViewModel.handleNfcError(state.e)
-                            NCToastMessage(requireActivity()).showError(getString(R.string.nc_config_cvc_failed))
+                            if (nfcViewModel.handleNfcError(state.e).not()) {
+                                NCToastMessage(requireActivity()).showError(getString(R.string.nc_config_cvc_failed))
+                            }
                         }
                         else -> {}
                     }
@@ -132,7 +135,7 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
     }
 
     private fun isFillInput(ncEditTextView: NCEditTextView): Boolean {
-        if (ncEditTextView.getEditText().length < 6) {
+        if (ncEditTextView.getEditText().isValidCvc().not()) {
             ncEditTextView.setError(getString(R.string.nc_required_minimum_6_characters))
             return false
         }
@@ -141,8 +144,4 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
 
     private val setUpAction: Int
         get() = (requireActivity() as NfcSetupActivity).setUpAction
-
-    companion object {
-        private const val MAX_CVC_LENGTH = 32
-    }
 }

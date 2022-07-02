@@ -59,4 +59,6 @@
     <string name="nc_no_nfc_title">No NFC support</string>
     <string name="no_nfc_message">This device does not support NFC.</string>
     <string name="nc_incorrect_cvc_please_try_again">Incorrect CVC. Please try again.</string>
+    <string name="nc_required_minimum_6_characters">CVC from 6 characters to 32 characters </string>
+    <string name="nc_cvc_incorrect_3_times">3 incorrect CVC attempts. Please hold your device near your key for 15 seconds for the next tap.</string>
 </resources>

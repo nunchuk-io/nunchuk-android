@@ -6,6 +6,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.Window
+import androidx.core.view.isVisible
 import com.nunchuk.android.widget.databinding.NcConfirmDialogBinding
 import javax.inject.Inject
 
@@ -16,7 +17,8 @@ class NCInputDialog @Inject constructor(private val context: Context) {
         onConfirmed: (String) -> Unit = {},
         onCanceled: () -> Unit = {},
         isMaskedInput: Boolean = false,
-        errorMessage: String? = null
+        errorMessage: String? = null,
+        descMessage: String? = null
     ) = Dialog(context).apply {
         window?.setBackgroundDrawableResource(android.R.color.transparent)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -36,8 +38,12 @@ class NCInputDialog @Inject constructor(private val context: Context) {
         if (isMaskedInput) {
             binding.message.makeMaskedInput()
         }
+        binding.tvDesc.isVisible = descMessage.isNullOrEmpty().not()
+        binding.tvDesc.text = descMessage
         if (!errorMessage.isNullOrEmpty()) {
             binding.message.setError(errorMessage)
+        } else {
+            binding.message.hideError()
         }
         show()
         window?.setLayout(MATCH_PARENT, MATCH_PARENT)

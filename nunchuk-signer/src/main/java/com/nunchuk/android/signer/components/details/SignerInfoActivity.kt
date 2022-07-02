@@ -125,8 +125,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
             is RemoveSignerErrorEvent -> showToast(event.message)
             is UpdateNameErrorEvent -> showToast(event.message)
             is HealthCheckErrorEvent -> {
-                nfcViewModel.handleNfcError(event.e)
-                showHealthCheckError(event)
+                if (nfcViewModel.handleNfcError(event.e).not()) showHealthCheckError(event)
             }
             is HealthCheckSuccessEvent -> NCToastMessage(this).showMessage(
                 message = getString(R.string.nc_txt_run_health_check_success_event, args.name),

@@ -11,7 +11,9 @@ import kotlinx.coroutines.flow.filterIsInstance
 import javax.inject.Inject
 
 @HiltViewModel
-class NfcViewModel @Inject constructor() : ViewModel() {
+class NfcViewModel @Inject constructor(
+
+) : ViewModel() {
     private val _nfcScanInfo = MutableStateFlow<NfcScanInfo?>(null)
     private val _event = MutableStateFlow<NfcState?>(null)
 
@@ -37,14 +39,17 @@ class NfcViewModel @Inject constructor() : ViewModel() {
         _event.value = null
     }
 
-    fun handleNfcError(e: Throwable?) {
+    fun handleNfcError(e: Throwable?) : Boolean {
         if (e is NCNativeException) {
             if (e.message.contains(TapProtocolException.BAD_AUTH.toString())) {
                 _event.value = NfcState.WrongCvc
+                return true
             } else if (e.message.contains(TapProtocolException.RATE_LIMIT.toString())) {
                 _event.value = NfcState.LimitCvcInput
+                return true
             }
         }
+        return false
     }
 
     override fun onCleared() {
