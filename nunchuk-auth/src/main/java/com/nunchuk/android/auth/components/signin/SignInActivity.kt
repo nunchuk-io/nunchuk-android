@@ -135,6 +135,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
 
     private fun onGuestModeClick() {
         navigator.openGuestModeIntroScreen(this)
+        finish()
     }
 
     companion object {

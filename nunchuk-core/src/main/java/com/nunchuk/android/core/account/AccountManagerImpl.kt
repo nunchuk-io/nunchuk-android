@@ -13,6 +13,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 interface AccountManager {
+    fun isHasAccountBefore(): Boolean
+
     fun isAccountExisted(): Boolean
 
     fun isAccountActivated(): Boolean
@@ -28,6 +30,10 @@ interface AccountManager {
     fun signOut(onStartSignOut: () -> Unit = {}, onSignedOut: () -> Unit = {})
 
     fun clearUserData()
+
+    fun isFreshInstall() : Boolean
+
+    fun clearFreshInstall()
 }
 
 @Singleton
@@ -36,6 +42,8 @@ internal class AccountManagerImpl @Inject constructor(
 ) : AccountManager {
 
     val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    override fun isHasAccountBefore(): Boolean = accountSharedPref.isHasAccountBefore()
 
     override fun isAccountExisted() = accountSharedPref.getAccountInfo().token.isNotBlank()
 
@@ -73,6 +81,14 @@ internal class AccountManagerImpl @Inject constructor(
         accountSharedPref.clearAccountInfo()
         SessionHolder.activeSession = null
         SessionHolder.currentRoom = null
+    }
+
+    override fun isFreshInstall(): Boolean {
+        return accountSharedPref.isFreshInstall()
+    }
+
+    override fun clearFreshInstall() {
+        accountSharedPref.clearFreshInstall()
     }
 
     private fun signOutMatrix() = flow {

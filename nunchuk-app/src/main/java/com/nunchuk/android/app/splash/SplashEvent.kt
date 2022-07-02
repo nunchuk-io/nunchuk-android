@@ -6,6 +6,8 @@ sealed class SplashEvent {
 
     object NavSignInEvent : SplashEvent()
 
+    object NavIntroEvent : SplashEvent()
+
     object NavHomeScreenEvent : SplashEvent()
 
     data class InitErrorEvent(val error: String) : SplashEvent()

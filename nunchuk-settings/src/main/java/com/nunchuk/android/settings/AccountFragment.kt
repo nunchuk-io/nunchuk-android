@@ -183,10 +183,17 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
             imageUrl = getString(R.string.nc_txt_guest),
             circleCrop = true,
             cornerRadius = null,
-            errorHolder = ContextCompat.getDrawable(requireContext(), R.drawable.ic_account),
-            placeHolder = ContextCompat.getDrawable(requireContext(), R.drawable.ic_account)
+            errorHolder = ContextCompat.getDrawable(requireContext(), R.drawable.ic_avatar),
+            placeHolder = ContextCompat.getDrawable(requireContext(), R.drawable.ic_avatar)
         )
-        binding.name.text = getString(R.string.nc_txt_guest)
+        binding.takePicture.isVisible = false
+        binding.name.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            binding.name.setTextAppearance(R.style.NCText_Title)
+            binding.email.setTextAppearance(R.style.NCText_Body)
+        }
+        binding.name.text = getString(R.string.nc_do_more_with_nunchuk)
+        binding.email.text = getString(R.string.nc_create_account_to_take_advantage)
     }
 
     private fun openAlbum() {
