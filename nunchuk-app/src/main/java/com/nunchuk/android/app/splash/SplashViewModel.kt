@@ -46,7 +46,7 @@ internal class SplashViewModel @Inject constructor(
                 accountManager.clearFreshInstall()
             }
             accountManager.isAccountExisted() && !accountManager.isAccountActivated() -> event(NavActivateAccountEvent)
-            accountManager.isHasAccountBefore() -> event(NavSignInEvent)
+            accountManager.isHasAccountBefore() && !accountManager.isStaySignedIn() -> event(NavSignInEvent)
             else -> initFlow()
         }
     }
