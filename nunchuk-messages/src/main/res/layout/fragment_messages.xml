@@ -23,10 +23,11 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_margin="@dimen/nc_padding_16"
-        android:backgroundTint="@color/nc_primary_color"
         android:src="@drawable/ic_new_message"
+        app:backgroundTint="@color/nc_primary_color"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="@color/nc_whisper_color" />
 
     <include
         android:id="@+id/skeletonContainer"

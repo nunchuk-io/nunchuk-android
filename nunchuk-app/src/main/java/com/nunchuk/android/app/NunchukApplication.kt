@@ -1,16 +1,14 @@
 package com.nunchuk.android.app
 
-import android.app.Application
-import android.content.Context
 import androidx.lifecycle.ProcessLifecycleOwner
-import androidx.multidex.MultiDex
+import androidx.multidex.MultiDexApplication
 import androidx.work.Configuration
 import com.nunchuk.android.BuildConfig
-import com.nunchuk.android.log.FileLogTree
 import com.nunchuk.android.core.base.ForegroundAppBackgroundListener
 import com.nunchuk.android.core.matrix.MatrixInitializer
 import com.nunchuk.android.core.util.AppEvenBus
 import com.nunchuk.android.core.util.AppEvent
+import com.nunchuk.android.log.FileLogTree
 import com.nunchuk.android.util.FileHelper
 import dagger.hilt.android.HiltAndroidApp
 import org.matrix.android.sdk.api.Matrix
@@ -19,7 +17,7 @@ import java.util.concurrent.Executors
 import javax.inject.Inject
 
 @HiltAndroidApp
-internal class NunchukApplication : Application(), Configuration.Provider {
+internal class NunchukApplication : MultiDexApplication(), Configuration.Provider {
 
     @Inject
     lateinit var fileHelper: FileHelper
@@ -60,12 +58,6 @@ internal class NunchukApplication : Application(), Configuration.Provider {
                 .removeObserver(it)
         }
         foregroundAppBackgroundListener = null
-    }
-
-
-    override fun attachBaseContext(base: Context) {
-        MultiDex.install(base)
-        super.attachBaseContext(base)
     }
 
     override fun getWorkManagerConfiguration() = Configuration.Builder()
