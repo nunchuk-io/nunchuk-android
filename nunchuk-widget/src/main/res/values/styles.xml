@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="NunchukTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="NunchukTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/nc_primary_color</item>
         <item name="colorPrimaryDark">@color/nc_primary_dark_color</item>
         <item name="colorAccent">@color/nc_accent_color</item>
@@ -25,7 +25,7 @@
         <item name="fontTextStyle">semi_bold</item>
     </style>
 
-    <style name="NunchukNoActionBar" parent="Theme.AppCompat.Light.NoActionBar" />
+    <style name="NunchukNoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar" />
 
     <style name="NunchukNoActionBar.Light" parent="NunchukNoActionBar">
         <item name="colorPrimary">@android:color/transparent</item>

@@ -50,10 +50,10 @@
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/avatar"
-                android:layout_marginTop="@dimen/nc_padding_4"
-                android:layout_marginBottom="@dimen/nc_padding_4"
                 android:layout_width="@dimen/nc_padding_48"
                 android:layout_height="@dimen/nc_padding_48"
+                android:layout_marginTop="@dimen/nc_padding_4"
+                android:layout_marginBottom="@dimen/nc_padding_4"
                 android:background="@drawable/nc_circle_beeswax_light_background"
                 android:gravity="center"
                 android:textColor="@color/nc_black_color"
@@ -108,10 +108,11 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_margin="@dimen/nc_padding_16"
-        android:backgroundTint="@color/nc_primary_color"
         android:src="@drawable/ic_plus_white"
+        app:backgroundTint="@color/nc_primary_color"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="@color/nc_whisper_color" />
 
     <ViewStub
         android:id="@+id/viewStubEmptyState"

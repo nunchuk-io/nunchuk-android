@@ -10,6 +10,7 @@ import androidx.annotation.IdRes
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.data.model.AppUpdateResponse
@@ -24,6 +25,7 @@ import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.DownloadFileSyncSucceed
+import com.nunchuk.android.messages.components.list.RoomsState
 import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.notifications.PushNotificationHelper
 import com.nunchuk.android.utils.NotificationUtils
@@ -54,6 +56,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private val bottomNavViewPosition: Int
         get() = intent.getIntExtra(EXTRAS_BOTTOM_NAV_VIEW_POSITION, 0)
+
+    private val messageBadge: BadgeDrawable
+        get() = binding.navView.getOrCreateBadge(R.id.navigation_messages)
 
     private val matrixEventListener: MatrixEventListener = {
         if (it is MatrixEvent.SignedInEvent) {
@@ -114,6 +119,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun subscribeEvents() {
         viewModel.event.observe(this, ::handleEvent)
         syncRoomViewModel.event.observe(this, ::handleEvent)
+        roomViewModel.state.observe(this, ::handleRoomState)
+    }
+
+    private fun handleRoomState(state: RoomsState) {
+        val count = state.rooms.sumOf { if (it.hasUnreadMessages) it.notificationCount else 0 }
+        messageBadge.apply {
+            isVisible = count > 0
+            number = count
+            maxCharacterCount = 3
+        }
     }
 
     private fun handleEvent(event: MainAppEvent) {
