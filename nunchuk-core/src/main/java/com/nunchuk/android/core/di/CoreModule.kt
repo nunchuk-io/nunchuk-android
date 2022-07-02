@@ -12,21 +12,26 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 internal interface CoreModule {
 
     @Binds
+    @Singleton
     fun bindAccountManager(manager: AccountManagerImpl): AccountManager
 
     @Binds
+    @Singleton
     fun bindDeviceManager(manager: DeviceManagerImpl): DeviceManager
 
     @Binds
+    @Singleton
     fun bindMatrixInterceptor(interceptor: MatrixInterceptorImpl): MatrixInterceptor
 
     @Binds
+    @Singleton
     fun bindImageLoader(interceptor: ImageLoaderImpl): ImageLoader
 
 }

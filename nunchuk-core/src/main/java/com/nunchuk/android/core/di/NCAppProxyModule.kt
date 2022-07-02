@@ -25,6 +25,7 @@ internal interface NCAppDomainModule {
 internal interface NCAppDataModule {
 
     @Binds
+    @Singleton
     fun bindNCAppRepository(userCase: NCAppRepositoryImpl): NCAppRepository
 
 }

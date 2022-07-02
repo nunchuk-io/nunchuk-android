@@ -10,6 +10,7 @@ import com.nunchuk.android.core.network.ApiConstant.HTTP_READ_TIMEOUT
 import com.nunchuk.android.core.network.ApiConstant.HTTP_WRITE_TIMEOUT
 import com.nunchuk.android.core.network.BuildConfig
 import com.nunchuk.android.core.network.HeaderInterceptor
+import com.nunchuk.android.network.util.APP_HTTP_CLIENT
 import com.nunchuk.android.network.util.MATRIX_HTTP_CLIENT
 import com.nunchuk.android.network.util.MATRIX_LOGGING_INTERCEPTOR
 import com.nunchuk.android.network.util.MATRIX_RETROFIT
@@ -43,12 +44,19 @@ class NetworkModule @Inject constructor() {
 
     @Singleton
     @Provides
+    fun provideGsonConverterFactory(gson: Gson): GsonConverterFactory = GsonConverterFactory.create(gson)
+
+    @Singleton
+    @Provides
     fun provideConnectionSpecs(): List<ConnectionSpec> = Collections.singletonList(ConnectionSpec.Builder(ConnectionSpec.RESTRICTED_TLS).build())
 
     @Singleton
     @Provides
-    fun provideNunchukRetrofit(gson: Gson, client: OkHttpClient): Retrofit = Retrofit.Builder()
-        .addConverterFactory(GsonConverterFactory.create(gson))
+    fun provideNunchukRetrofit(
+        gsonConverterFactory: GsonConverterFactory,
+        @Named(APP_HTTP_CLIENT) client: OkHttpClient
+    ): Retrofit = Retrofit.Builder()
+        .addConverterFactory(gsonConverterFactory)
         .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
         .baseUrl(BASE_URL)
         .client(client)
@@ -58,26 +66,33 @@ class NetworkModule @Inject constructor() {
     @Provides
     @Named(MATRIX_RETROFIT)
     fun provideMatrixRetrofit(
-        gson: Gson,
+        gsonConverterFactory: GsonConverterFactory,
         @Named(MATRIX_HTTP_CLIENT)
         client: OkHttpClient
     ): Retrofit = Retrofit.Builder()
-        .addConverterFactory(GsonConverterFactory.create(gson))
+        .addConverterFactory(gsonConverterFactory)
         .baseUrl(BASE_URL_MATRIX)
         .client(client)
         .build()
 
     @Singleton
     @Provides
-    fun provideNunchukOkHttpClient(
-        loggingInterceptor: HttpLoggingInterceptor,
-        headerInterceptor: HeaderInterceptor,
-        connectionSpecs: List<ConnectionSpec>
-    ): OkHttpClient = OkHttpClient.Builder()
-        .protocols(listOf(Protocol.HTTP_1_1))
+    fun provideBaseOkHttpClient() : OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(HTTP_CONNECT_TIMEOUT, TimeUnit.SECONDS)
         .readTimeout(HTTP_READ_TIMEOUT, TimeUnit.SECONDS)
         .writeTimeout(HTTP_WRITE_TIMEOUT, TimeUnit.SECONDS)
+        .build()
+
+    @Singleton
+    @Provides
+    @Named(APP_HTTP_CLIENT)
+    fun provideNunchukOkHttpClient(
+        baseOkHttpClient: OkHttpClient,
+        loggingInterceptor: HttpLoggingInterceptor,
+        headerInterceptor: HeaderInterceptor,
+        connectionSpecs: List<ConnectionSpec>
+    ): OkHttpClient = baseOkHttpClient.newBuilder()
+        .protocols(listOf(Protocol.HTTP_1_1))
         .addInterceptor(loggingInterceptor)
         .addInterceptor(headerInterceptor)
         .connectionSpecs(connectionSpecs)
@@ -87,12 +102,10 @@ class NetworkModule @Inject constructor() {
     @Provides
     @Named(MATRIX_HTTP_CLIENT)
     fun provideMatrixOkHttpClient(
+        baseOkHttpClient: OkHttpClient,
         @Named(MATRIX_LOGGING_INTERCEPTOR)
         loggingInterceptor: HttpLoggingInterceptor
-    ): OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(HTTP_CONNECT_TIMEOUT, TimeUnit.SECONDS)
-        .readTimeout(HTTP_READ_TIMEOUT, TimeUnit.SECONDS)
-        .writeTimeout(HTTP_WRITE_TIMEOUT, TimeUnit.SECONDS)
+    ): OkHttpClient = baseOkHttpClient.newBuilder()
         .addInterceptor(loggingInterceptor)
         .build()
 
@@ -117,5 +130,4 @@ class NetworkModule @Inject constructor() {
             setLevel(Level.NONE)
         }
     }
-
 }
