@@ -19,13 +19,20 @@ abstract class BaseNfcUseCase<P : BaseNfcUseCase.Data, R>(
         parameters.isoDep.connect()
         try {
             if (parameters.isoDep.isConnected) {
+                val isSuccess = if (waitTapSignerUseCase.needWaitUnlockTap[String(parameters.isoDep.tag.id)] == true) {
+                    val result = waitTapSignerUseCase(parameters.isoDep)
+                    if (result.isSuccess) {
+                        Timber.d("Delay auth after wait: ${result.getOrThrow().authDelayInSecond}")
+                    }
+                    result.isSuccess
+                } else true
+                if (isSuccess) waitTapSignerUseCase.needWaitUnlockTap[String(parameters.isoDep.tag.id)] = false
                 return executeNfc(parameters)
             }
         } catch (e: Throwable) {
             if (e is NCNativeException && e.message.contains(TapProtocolException.RATE_LIMIT.toString())) {
                 Timber.d("NFC Rate limit")
-                val result = waitTapSignerUseCase(parameters.isoDep)
-                if (result.isSuccess) Timber.d("Delay auth after wait: ${result.getOrThrow().authDelayInSecond}")
+                waitTapSignerUseCase.needWaitUnlockTap[String(parameters.isoDep.tag.id)] = true
             }
             throw e
         } finally {
