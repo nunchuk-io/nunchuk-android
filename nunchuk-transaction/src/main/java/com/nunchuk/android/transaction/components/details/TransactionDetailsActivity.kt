@@ -20,6 +20,7 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.imports.ImportTransactionActivity
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
+import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
@@ -127,6 +128,7 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
     }
 
     private fun bindTransaction(transaction: Transaction) {
+        binding.toolbar.menu.findItem(R.id.menu_more).isVisible = transaction.status != TransactionStatus.CONFIRMED && transaction.status != TransactionStatus.PENDING_CONFIRMATION
         val output = if (transaction.isReceive) {
             transaction.receiveOutputs.firstOrNull()
         } else {
