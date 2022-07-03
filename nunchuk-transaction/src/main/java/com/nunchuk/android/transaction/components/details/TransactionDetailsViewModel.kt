@@ -201,6 +201,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     event(PromptInputPassphrase {
                         viewModelScope.launch {
                             sendSignerPassphrase.execute(signer.id, it)
+                                .flowOn(IO)
                                 .onException { event(TransactionDetailsError("${it.message.orEmpty()},walletId::$walletId,txId::$txId")) }
                                 .collect { signTransaction(device) }
                         }
