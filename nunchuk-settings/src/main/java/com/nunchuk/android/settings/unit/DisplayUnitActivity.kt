@@ -31,9 +31,6 @@ class DisplayUnitActivity : BaseActivity<ActivityDisplayUnitSettingBinding>() {
     }
 
     private fun showToolbarBackButton() {
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setDisplayShowHomeEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
     }
 

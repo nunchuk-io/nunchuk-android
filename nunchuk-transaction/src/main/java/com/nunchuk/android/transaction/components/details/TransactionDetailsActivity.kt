@@ -306,16 +306,6 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
         }
     }
 
-    private fun openExternalLink(url: String) {
-        val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        try {
-            startActivity(webIntent)
-        } catch (e: ActivityNotFoundException) {
-            CrashlyticsReporter.recordException(e)
-            NCToastMessage(this).showWarning(getString(R.string.nc_transaction_no_app_to_open_link))
-        }
-    }
-
     private fun showTransactionDeleteSuccess() {
         finish()
         NCToastMessage(this).show(getString(R.string.nc_transaction_deleted))
