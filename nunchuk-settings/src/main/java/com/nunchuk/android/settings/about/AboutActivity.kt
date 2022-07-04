@@ -12,6 +12,7 @@ import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.sendEmail
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.settings.databinding.ActivityAboutBinding
+import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -22,6 +23,8 @@ class AboutActivity : BaseActivity<ActivityAboutBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setLightStatusBar()
+
         initViews()
         registerEvents()
     }
