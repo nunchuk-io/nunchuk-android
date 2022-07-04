@@ -19,7 +19,7 @@ import javax.inject.Inject
 internal class DeleteAccountViewModel @Inject constructor(
     private val accountManager: AccountManager,
     private val repository: UserProfileRepository,
-    private val cleanUpCryptoAssetsUseCase: CleanUpCryptoAssetsUseCase
+    private val cleanUpCryptoAssetsUseCase: CleanUpCryptoAssetsUseCase,
 ) : NunchukViewModel<DeleteAccountState, DeleteAccountEvent>() {
 
     override val initialState = DeleteAccountState("")
@@ -51,6 +51,15 @@ internal class DeleteAccountViewModel @Inject constructor(
                         event(ConfirmDeleteSuccess)
                     })
                 }
+        }
+    }
+
+    fun signOutNunchuk() {
+        viewModelScope.launch {
+            repository.signOut()
+                .flowOn(Dispatchers.IO)
+                .onException { }
+                .collect {}
         }
     }
 

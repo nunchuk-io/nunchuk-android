@@ -14,8 +14,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
@@ -25,7 +23,18 @@ import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
+import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.isPermissionGranted
+import com.nunchuk.android.core.util.loadImage
+import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.core.util.pickPhotoWithResult
+import com.nunchuk.android.core.util.shorten
+import com.nunchuk.android.core.util.showAlertDialog
+import com.nunchuk.android.core.util.showLoading
+import com.nunchuk.android.core.util.showToast
+import com.nunchuk.android.core.util.startActivityAppSetting
+import com.nunchuk.android.core.util.takePhotoWithResult
 import com.nunchuk.android.settings.AccountEvent.SignOutEvent
 import com.nunchuk.android.settings.databinding.FragmentAccountBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -153,9 +162,7 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
         when (event) {
             SignOutEvent -> {
                 hideLoading()
-                val activity = requireActivity()
-                navigator.openSignInScreen(activity)
-                activity.finish()
+                navigator.restartApp(requireActivity())
             }
             is AccountEvent.GetUserProfileSuccessEvent -> {
             }

@@ -38,11 +38,14 @@ ext {
     matrixSdkVersion = '1.4.16'
     // https://user-images.githubusercontent.com/9841565/164481595-53564bf0-416c-469c-b251-71b0e59074c8.png
 
+    // trigger restart
+    triggerRestartVersion = '2.1.2'
+
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
     PATCH_VERSION = 16
 
-    VERSION_CODE = 166
+    VERSION_CODE = 167
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
@@ -220,4 +223,7 @@ ext {
             runtimeKtx: "androidx.paging:paging-runtime-ktx:$pagingVersion"
     ]
 
+    triggerRestartDeps = [
+            core: "com.jakewharton:process-phoenix:$triggerRestartVersion"
+    ]
 }
