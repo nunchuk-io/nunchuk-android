@@ -5,7 +5,7 @@ import android.app.Dialog
 import android.view.LayoutInflater
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.Window
-import com.nunchuk.android.widget.databinding.NcInfoDialogBinding
+import com.nunchuk.android.widget.databinding.NcInfoLoadingDialogBinding
 import javax.inject.Inject
 
 class NCInfoLoadingDialog @Inject constructor(
@@ -22,7 +22,7 @@ class NCInfoLoadingDialog @Inject constructor(
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         setCancelable(cancelable)
         setCanceledOnTouchOutside(cancelable)
-        val binding = NcInfoDialogBinding.inflate(LayoutInflater.from(context))
+        val binding = NcInfoLoadingDialogBinding.inflate(LayoutInflater.from(context))
         setContentView(binding.root)
 
         binding.title.text = title

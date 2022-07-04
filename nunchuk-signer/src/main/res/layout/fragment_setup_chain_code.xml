@@ -44,13 +44,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/nc_padding_16"
                 android:layout_marginTop="@dimen/nc_padding_24"
-                app:cardCornerRadius="@dimen/nc_padding_12"
-                app:contentPadding="@dimen/nc_padding_16">
+                app:cardCornerRadius="@dimen/nc_padding_12">
 
                 <LinearLayout
+                    android:id="@+id/card_automatic"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:padding="@dimen/nc_padding_16">
 
                     <com.nunchuk.android.widget.NCFontRadioButton
                         android:id="@+id/radio_automatic"
@@ -59,6 +60,9 @@
                         android:layout_height="wrap_content"
                         android:buttonTint="@color/nc_primary_color"
                         android:checked="true"
+                        android:clickable="false"
+                        android:duplicateParentState="true"
+                        android:focusable="false"
                         android:paddingHorizontal="@dimen/nc_padding_12"
                         android:text="@string/nc_automatic" />
 
@@ -76,13 +80,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/nc_padding_16"
                 android:layout_marginTop="@dimen/nc_padding_24"
-                app:cardCornerRadius="@dimen/nc_padding_12"
-                app:contentPadding="@dimen/nc_padding_16">
+                app:cardCornerRadius="@dimen/nc_padding_12">
 
                 <LinearLayout
+                    android:id="@+id/card_advanced"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:padding="@dimen/nc_padding_16">
 
                     <com.nunchuk.android.widget.NCFontRadioButton
                         android:id="@+id/radio_advanced"
@@ -90,6 +95,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:buttonTint="@color/nc_primary_color"
+                        android:clickable="false"
+                        android:duplicateParentState="true"
+                        android:focusable="false"
                         android:paddingHorizontal="@dimen/nc_padding_12"
                         android:text="@string/nc_advanced" />
 

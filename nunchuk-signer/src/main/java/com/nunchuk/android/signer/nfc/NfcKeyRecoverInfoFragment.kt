@@ -24,9 +24,10 @@ class NfcKeyRecoverInfoFragment : BaseFragment<FragmentNfcKeyRecoverInfoBinding>
 
     private fun registerEvents() {
         binding.toolbar.setNavigationOnClickListener {
-
+            activity?.onBackPressed()
         }
         binding.btnContinue.setOnClickListener {
+            findNavController().popBackStack()
             findNavController().navigate(R.id.addNfcNameFragment)
         }
     }

@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -58,7 +59,7 @@ class AddNfcNameFragment : BaseFragment<FragmentNfcAddNameKeyBinding>() {
 
         lifecycleScope.launchWhenCreated {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { state ->
+                viewModel.event.collect { state ->
                     showOrHideLoading(state is AddNfcNameState.Loading)
                     if (state is AddNfcNameState.Success) {
                         navigator.openSignerInfoScreen(
@@ -73,6 +74,8 @@ class AddNfcNameFragment : BaseFragment<FragmentNfcAddNameKeyBinding>() {
                         if (nfcViewModel.handleNfcError(state.e).not()) {
                             NCToastMessage(requireActivity()).showError(getString(R.string.nc_create_signer_failed))
                         }
+                    } else if (state is AddNfcNameState.UpdateError) {
+                        NCToastMessage(requireActivity()).showError(state.e?.message.orEmpty())
                     }
                 }
             }
@@ -80,6 +83,8 @@ class AddNfcNameFragment : BaseFragment<FragmentNfcAddNameKeyBinding>() {
     }
 
     private fun initViews() {
+        binding.tvHint.isVisible = nfcViewModel.masterSigner == null
+        binding.signerName.getEditTextView().setText(nfcViewModel.masterSigner?.name.orEmpty())
         binding.signerName.setMaxLength(20)
     }
 
@@ -96,7 +101,11 @@ class AddNfcNameFragment : BaseFragment<FragmentNfcAddNameKeyBinding>() {
                 return@setOnClickListener
             }
             binding.signerName.hideError()
-            startNfcAddKeyFlow()
+            nfcViewModel.masterSigner?.let { masterSigner ->
+                viewModel.updateName(masterSigner, binding.signerName.getEditText())
+            } ?: run {
+                startNfcAddKeyFlow()
+            }
         }
     }
 

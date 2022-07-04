@@ -19,6 +19,7 @@ import com.nunchuk.android.core.util.isValidCvc
 import com.nunchuk.android.utils.PendingIntentUtils
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
+import com.nunchuk.android.widget.util.setLightStatusBar
 import timber.log.Timber
 
 abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() {
@@ -51,22 +52,27 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
             cancelable = false
         ).apply {
             setOnShowListener {
-                nfcAdapter?.enableForegroundDispatch(
-                    this@BaseNfcActivity,
-                    getNfcPendingIntent(requestCode),
-                    null,
-                    null
-                )
+                if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                    nfcAdapter?.enableForegroundDispatch(
+                        this@BaseNfcActivity,
+                        getNfcPendingIntent(requestCode),
+                        null,
+                        null
+                    )
+                }
             }
 
             setOnDismissListener {
-                nfcAdapter?.disableForegroundDispatch(this@BaseNfcActivity)
+                if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                    nfcAdapter?.enableForegroundDispatch(this@BaseNfcActivity, getNfcPendingIntent(0), null, null)
+                }
             }
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setLightStatusBar()
         if (savedInstanceState != null) {
             requestCode = savedInstanceState.getInt(EXTRA_REQUEST_NFC_CODE, 0)
         }
@@ -109,9 +115,8 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
 
     override fun onResume() {
         super.onResume()
-        if (askScanNfcDialog.isShowing) {
-            nfcAdapter?.enableForegroundDispatch(this, getNfcPendingIntent(requestCode), null, null)
-        }
+        val requestCode = if (askScanNfcDialog.isShowing) requestCode else 0
+        nfcAdapter?.enableForegroundDispatch(this, getNfcPendingIntent(requestCode), null, null)
     }
 
     override fun onPause() {

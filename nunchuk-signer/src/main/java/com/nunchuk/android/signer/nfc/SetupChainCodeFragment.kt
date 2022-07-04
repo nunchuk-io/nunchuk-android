@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.CompoundButton
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -37,7 +38,6 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
     private fun initViews() {
         binding.etChainCode.setMaxLength(CHAIN_CODE_LENGTH)
         binding.etChainCode.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_120))
-        binding.radioAutomatic.isChecked = true
     }
 
     private fun observer() {
@@ -50,14 +50,17 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
 
     private fun registerEvents() {
         val onRadioClickListener = View.OnClickListener {
-            binding.radioAdvanced.isChecked = it.id == binding.radioAdvanced.id
-            binding.radioAutomatic.isChecked = it.id == binding.radioAutomatic.id
-
+            binding.radioAdvanced.isChecked = it.id == binding.cardAdvanced.id
+            binding.radioAutomatic.isChecked = it.id == binding.cardAutomatic.id
+        }
+        val onCheckChangeListener = CompoundButton.OnCheckedChangeListener { _, _ ->
             binding.btnGenerate.isVisible = binding.radioAdvanced.isChecked
             binding.etChainCode.isVisible = binding.radioAdvanced.isChecked
         }
-        binding.radioAdvanced.setOnClickListener(onRadioClickListener)
-        binding.radioAutomatic.setOnClickListener(onRadioClickListener)
+        binding.radioAdvanced.setOnCheckedChangeListener(onCheckChangeListener)
+        binding.radioAutomatic.setOnCheckedChangeListener(onCheckChangeListener)
+        binding.cardAdvanced.setOnClickListener(onRadioClickListener)
+        binding.cardAutomatic.setOnClickListener(onRadioClickListener)
         binding.toolbar.setNavigationOnClickListener {
             activity?.onBackPressed()
         }

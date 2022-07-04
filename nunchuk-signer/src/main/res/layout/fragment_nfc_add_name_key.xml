@@ -62,6 +62,7 @@
         tools:text="18/20" />
 
     <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/tv_hint"
         style="@style/NCText.Title.Small"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
