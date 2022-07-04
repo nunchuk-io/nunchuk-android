@@ -44,19 +44,26 @@ class DeleteAccountActivity : BaseActivity<ActivityDeleteAccountBinding>() {
         when (event) {
             Loading -> showLoading()
             is ConfirmDeleteError -> showConfirmError(event.message)
-            ConfirmDeleteSuccess -> handleConfirmSuccess()
+            ConfirmDeleteSuccess -> {
+                viewModel.signOutNunchuk()
+                handleConfirmSuccess()
+            }
         }
     }
 
     private fun handleConfirmSuccess() {
         hideLoading()
         NCToastMessage(this).showMessage(getString(R.string.nc_account_deleted_message))
-        binding.root.postDelayed(::gotoLogin, DELAY)
+        binding.root.postDelayed(::restartApp, DELAY)
 
     }
 
     private fun gotoLogin() {
         navigator.openSignInScreen(this)
+    }
+
+    private fun restartApp() {
+        navigator.restartApp(this)
     }
 
     private fun showConfirmError(message: String) {

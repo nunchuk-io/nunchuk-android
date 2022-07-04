@@ -1,7 +1,8 @@
 package com.nunchuk.android.app.nav
 
-import android.app.Activity
 import android.content.Context
+import android.content.Intent
+import com.jakewharton.processphoenix.ProcessPhoenix
 import com.nunchuk.android.app.intro.GuestModeIntroActivity
 import com.nunchuk.android.app.intro.GuestModeMessageIntroActivity
 import com.nunchuk.android.app.intro.IntroActivity
@@ -53,7 +54,7 @@ internal class NunchukNavigatorImpl @Inject constructor(
 
 interface AppNavigatorDelegate : AppNavigator {
 
-    override fun restartApp(activity: Activity) {
-        SplashActivity.start(activity)
+    override fun restartApp(activityContext: Context) {
+        ProcessPhoenix.triggerRebirth(activityContext, Intent(activityContext, SplashActivity::class.java))
     }
 }
