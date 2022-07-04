@@ -41,7 +41,7 @@ abstract class BaseNfcUseCase<P : BaseNfcUseCase.Data, R>(
         throw IOException("Can not connect nfc card")
     }
 
-    abstract fun executeNfc(parameters: P): R
+    abstract suspend fun executeNfc(parameters: P): R
 
     open class Data(val isoDep: IsoDep)
 }

@@ -4,6 +4,7 @@ import android.nfc.Tag
 import android.nfc.tech.IsoDep
 import androidx.lifecycle.ViewModel
 import com.nunchuk.android.exception.NCNativeException
+import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.TapProtocolException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,11 +21,18 @@ class NfcViewModel @Inject constructor(
     var inputCvc: String? = null
         private set
 
+    var masterSigner: MasterSigner? = null
+        private set
+
     val nfcScanInfo = _nfcScanInfo.filterIsInstance<NfcScanInfo>()
     val event = _event.filterIsInstance<NfcState>()
 
     fun updateInputCvc(cvc: String) {
         inputCvc = cvc
+    }
+
+    fun updateMasterSigner(masterSigner: MasterSigner) {
+        this.masterSigner = masterSigner
     }
 
     fun updateNfcScanInfo(requestCode: Int, tag: Tag) {

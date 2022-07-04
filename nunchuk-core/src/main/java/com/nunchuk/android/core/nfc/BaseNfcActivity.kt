@@ -45,8 +45,10 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
 
     private val askScanNfcDialog: Dialog by lazy(LazyThreadSafetyMode.NONE) {
         NCInfoDialog(this).init(
-            title = "Ready to Scan",
-            message = "Hold your device near the NFC key."
+            title = getString(R.string.nc_ready_to_scan),
+            message = getString(R.string.nc_hold_your_device_near_the_nfc),
+            btnYes = getString(R.string.nc_text_cancel),
+            cancelable = false
         ).apply {
             setOnShowListener {
                 nfcAdapter?.enableForegroundDispatch(

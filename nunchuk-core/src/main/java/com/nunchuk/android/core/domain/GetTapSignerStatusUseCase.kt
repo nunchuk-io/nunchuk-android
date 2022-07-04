@@ -12,7 +12,7 @@ class GetTapSignerStatusUseCase @Inject constructor(
     private val nunchukNativeSdk: NunchukNativeSdk,
     waitTapSignerUseCase: WaitTapSignerUseCase
 ) : BaseNfcUseCase<BaseNfcUseCase.Data, TapSignerStatus>(dispatcher, waitTapSignerUseCase) {
-    override fun executeNfc(parameters: Data): TapSignerStatus {
+    override suspend fun executeNfc(parameters: Data): TapSignerStatus {
         return nunchukNativeSdk.tapSignerStatus(parameters.isoDep)
     }
 }

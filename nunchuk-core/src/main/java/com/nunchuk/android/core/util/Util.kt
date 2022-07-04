@@ -29,6 +29,8 @@ fun String.isValidCvc() = length in MIN_CVC_LENGTH..MAX_CVC_LENGTH
 const val MAX_CVC_LENGTH = 32
 const val MIN_CVC_LENGTH = 6
 
+const val CHAIN_CODE_LENGTH = 64
+
 var BTC_USD_EXCHANGE_RATE = 45000.0
 
 var BLOCKCHAIN_STATUS: ConnectionStatus? = null

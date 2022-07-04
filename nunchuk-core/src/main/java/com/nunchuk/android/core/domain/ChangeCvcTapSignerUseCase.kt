@@ -13,7 +13,7 @@ class ChangeCvcTapSignerUseCase @Inject constructor(
     waitTapSignerUseCase: WaitTapSignerUseCase
 ) : BaseNfcUseCase<ChangeCvcTapSignerUseCase.Data, Boolean>(dispatcher, waitTapSignerUseCase) {
 
-    override fun executeNfc(parameters: Data): Boolean {
+    override suspend fun executeNfc(parameters: Data): Boolean {
         return nunchukNativeSdk.changeCvcTapSigner(
             isoDep = parameters.isoDep,
             oldCvc = parameters.oldCvc,

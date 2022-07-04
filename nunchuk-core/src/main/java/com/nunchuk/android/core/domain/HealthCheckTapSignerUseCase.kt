@@ -14,7 +14,7 @@ class HealthCheckTapSignerUseCase @Inject constructor(
     waitTapSignerUseCase: WaitTapSignerUseCase
 ) : BaseNfcUseCase<HealthCheckTapSignerUseCase.Data, HealthStatus>(dispatcher, waitTapSignerUseCase) {
 
-    override fun executeNfc(parameters: Data): HealthStatus {
+    override suspend fun executeNfc(parameters: Data): HealthStatus {
         return nunchukNativeSdk.healthCheckTapSigner(
             isoDep = parameters.isoDep,
             cvc = parameters.cvc,

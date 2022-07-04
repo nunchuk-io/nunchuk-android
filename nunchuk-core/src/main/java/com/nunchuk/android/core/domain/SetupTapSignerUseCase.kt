@@ -4,11 +4,14 @@ import android.content.Context
 import android.nfc.tech.IsoDep
 import com.nunchuk.android.core.domain.data.WaitTapSignerUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ensureActive
 import java.io.File
 import javax.inject.Inject
+import kotlin.coroutines.coroutineContext
 
 @Suppress("BlockingMethodInNonBlockingContext")
 class SetupTapSignerUseCase @Inject constructor(
@@ -16,18 +19,21 @@ class SetupTapSignerUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
     private val nunchukNativeSdk: NunchukNativeSdk,
     waitTapSignerUseCase: WaitTapSignerUseCase
-) : BaseNfcUseCase<SetupTapSignerUseCase.Data, String>(dispatcher, waitTapSignerUseCase) {
+) : BaseNfcUseCase<SetupTapSignerUseCase.Data, SetupTapSignerUseCase.Result>(dispatcher, waitTapSignerUseCase) {
 
-    override fun executeNfc(parameters: Data): String {
-        val tapStatus = nunchukNativeSdk.setupTapSigner(parameters.isoDep, parameters.oldCvc, parameters.newCvc)
+    override suspend fun executeNfc(parameters: Data): Result {
+        val tapStatus = nunchukNativeSdk.setupTapSigner(parameters.isoDep, parameters.oldCvc, parameters.newCvc, parameters.chainCode)
+        coroutineContext.ensureActive()
+        val masterSigner = nunchukNativeSdk.createTapSigner(parameters.isoDep, parameters.newCvc, "")
         val file = File(context.filesDir, "backup.${tapStatus.ident.orEmpty()}.${System.currentTimeMillis()}.aes").apply {
             if (exists().not()) {
                 createNewFile()
             }
         }
         file.outputStream().use { it.write(tapStatus.backupKey) }
-        return file.path
+        return Result(file.path, masterSigner)
     }
 
-    class Data(isoDep: IsoDep, val oldCvc: String, val newCvc: String) : BaseNfcUseCase.Data(isoDep)
+    class Data(isoDep: IsoDep, val oldCvc: String, val newCvc: String, val chainCode: String) : BaseNfcUseCase.Data(isoDep)
+    class Result(val backUpKeyPath: String, val masterSigner: MasterSigner)
 }

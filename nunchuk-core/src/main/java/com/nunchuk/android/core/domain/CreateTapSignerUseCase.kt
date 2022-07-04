@@ -14,7 +14,7 @@ class CreateTapSignerUseCase @Inject constructor(
     waitTapSignerUseCase: WaitTapSignerUseCase
 ) : BaseNfcUseCase<CreateTapSignerUseCase.Data, MasterSigner>(dispatcher, waitTapSignerUseCase) {
 
-    override fun executeNfc(parameters: Data): MasterSigner {
+    override suspend fun executeNfc(parameters: Data): MasterSigner {
         return nunchukNativeSdk.createTapSigner(
             isoDep = parameters.isoDep,
             cvc = parameters.cvc,

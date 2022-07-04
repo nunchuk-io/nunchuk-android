@@ -16,11 +16,14 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.MAX_CVC_LENGTH
+import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.isValidCvc
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.FragmentNfcChangeCvcBinding
 import com.nunchuk.android.widget.NCEditTextView
+import com.nunchuk.android.widget.NCInfoDialog
+import com.nunchuk.android.widget.NCInfoLoadingDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setMaxLength
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,7 +34,15 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
     private val nfcViewModel by activityViewModels<NfcViewModel>()
     private val viewModel by viewModels<ChangeNfcCvcViewModel>()
 
-    private var isSharingBackUpKey: Boolean = false
+    private val progressSetupDialog by lazy(LazyThreadSafetyMode.NONE) {
+        NCInfoLoadingDialog(requireActivity()).init(
+            cancelable = false,
+            message = getString(R.string.nc_keep_holding_near_key),
+            onBtnClick = {
+                viewModel.cancelSetupNfc()
+            }
+        )
+    }
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -47,23 +58,18 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
         observer()
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (isSharingBackUpKey) {
-            findNavController().navigate(R.id.addNfcNameFragment)
-        }
-    }
-
     private fun observer() {
         lifecycleScope.launchWhenCreated {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_CHANGE_CVC }
                     .collect {
                         if (setUpAction == NfcSetupActivity.SETUP_NFC) {
+                            val chainCode = arguments?.getString(EXTRA_CHAIN_CODE).orEmpty()
                             viewModel.setUpCvc(
                                 IsoDep.get(it.tag),
                                 binding.editExistCvc.getEditText(),
-                                binding.editNewCvc.getEditText()
+                                binding.editNewCvc.getEditText(),
+                                chainCode
                             )
                         } else if (setUpAction == NfcSetupActivity.CHANGE_CVC) {
                             viewModel.changeCvc(
@@ -81,6 +87,11 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.event.collect { state ->
                     showOrHideLoading(state is ChangeNfcCvcEvent.Loading)
+                    if (state is ChangeNfcCvcEvent.LongLoading) {
+                        progressSetupDialog.show()
+                    } else {
+                        progressSetupDialog.hide()
+                    }
                     when (state) {
                         is ChangeNfcCvcEvent.ChangeCvcSuccess -> {
                             NCToastMessage(requireActivity()).show(getString(R.string.nc_cvc_has_been_changed))
@@ -88,9 +99,11 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
                         }
                         is ChangeNfcCvcEvent.SetupCvcSuccess -> {
                             IntentSharingController.from(requireActivity()).shareFile(state.backupKeyPath)
-                            isSharingBackUpKey = true
-                            NCToastMessage(requireActivity()).show(getString(R.string.nc_cvc_has_been_changed))
-                            NCToastMessage(requireActivity()).show(getString(R.string.nc_master_private_key_init))
+                            nfcViewModel.updateMasterSigner(state.masterSigner)
+                            findNavController().apply {
+                                popBackStack(findNavController().graph.startDestination, true)
+                                navigate(R.id.nfcKeyRecoverInfoFragment)
+                            }
                         }
                         is ChangeNfcCvcEvent.Error -> {
                             if (nfcViewModel.handleNfcError(state.e).not()) {
@@ -116,7 +129,7 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
 
     private fun registerEvents() {
         binding.toolbar.setNavigationOnClickListener {
-            activity?.finish()
+            activity?.onBackPressed()
         }
         binding.btnContinue.setOnClickListener {
             binding.editExistCvc.hideError()
@@ -130,7 +143,13 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
                 binding.editConfirmCvc.setError(getString(R.string.nc_cvc_not_match))
                 return@setOnClickListener
             }
-            (requireActivity() as BaseNfcActivity<*>).startNfcFlow(BaseNfcActivity.REQUEST_NFC_CHANGE_CVC)
+            NCInfoDialog(requireActivity()).init(
+                message = getString(R.string.nc_set_up_nfc_hint),
+                cancelable = false,
+                onYesClick = {
+                    (requireActivity() as BaseNfcActivity<*>).startNfcFlow(BaseNfcActivity.REQUEST_NFC_CHANGE_CVC)
+                }
+            ).show()
         }
     }
 
@@ -144,4 +163,14 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
 
     private val setUpAction: Int
         get() = (requireActivity() as NfcSetupActivity).setUpAction
+
+    companion object {
+        private const val EXTRA_CHAIN_CODE = "EXTRA_CHAIN_CODE"
+
+        fun buildArguments(chainCode: String): Bundle {
+            return Bundle().apply {
+                putString(EXTRA_CHAIN_CODE, chainCode)
+            }
+        }
+    }
 }

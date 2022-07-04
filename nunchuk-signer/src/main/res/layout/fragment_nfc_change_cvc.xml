@@ -7,13 +7,11 @@
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         style="@style/NCToolbar"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:navigationIcon="@drawable/ic_close">
+        app:navigationIcon="@drawable/ic_back">
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/toolbarTitle"

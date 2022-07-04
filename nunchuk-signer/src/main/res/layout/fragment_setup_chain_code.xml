@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:navigationIcon="@drawable/ic_back">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            style="@style/NCToolbar.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/nc_set_up_chain_code" />
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/tv_desc"
+                style="@style/NCText.Body"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_16"
+                android:text="@string/nc_chain_code_desc" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_24"
+                app:cardCornerRadius="@dimen/nc_padding_12"
+                app:contentPadding="@dimen/nc_padding_16">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <com.nunchuk.android.widget.NCFontRadioButton
+                        android:id="@+id/radio_automatic"
+                        style="@style/NCText.Title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:buttonTint="@color/nc_primary_color"
+                        android:checked="true"
+                        android:paddingHorizontal="@dimen/nc_padding_12"
+                        android:text="@string/nc_automatic" />
+
+                    <com.nunchuk.android.widget.NCFontTextView
+                        style="@style/NCText.Body"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/nc_padding_44"
+                        android:text="@string/nc_app_generate_chain_code" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_24"
+                app:cardCornerRadius="@dimen/nc_padding_12"
+                app:contentPadding="@dimen/nc_padding_16">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <com.nunchuk.android.widget.NCFontRadioButton
+                        android:id="@+id/radio_advanced"
+                        style="@style/NCText.Title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:buttonTint="@color/nc_primary_color"
+                        android:paddingHorizontal="@dimen/nc_padding_12"
+                        android:text="@string/nc_advanced" />
+
+                    <com.nunchuk.android.widget.NCFontTextView
+                        style="@style/NCText.Body"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/nc_padding_44"
+                        android:text="@string/nc_pick_my_chain_code" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <com.nunchuk.android.widget.NCEditTextView
+                android:id="@+id/et_chain_code"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_12"
+                android:visibility="gone"
+                app:edit_gravity="top"
+                app:edit_input_type="multi_lines"
+                app:edit_title="@string/nc_enter_32_byte_hex_string"
+                tools:text="123243435435435345345435"
+                tools:visibility="visible" />
+
+            <com.nunchuk.android.widget.NCFontButton
+                android:id="@+id/btn_generate"
+                style="@style/NCPrimaryButton.Light"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/nc_padding_16"
+                android:text="@string/nc_generate_new_string"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <com.nunchuk.android.widget.NCFontButton
+                android:id="@+id/btn_continue"
+                style="@style/NCPrimaryButton.Dark"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/nc_padding_16"
+                android:text="@string/nc_text_continue" />
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

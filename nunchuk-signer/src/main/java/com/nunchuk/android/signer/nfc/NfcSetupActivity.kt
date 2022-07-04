@@ -25,7 +25,8 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNfcSetupBinding>() {
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.nfc_setup_navigation)
         when (setUpAction) {
-            SETUP_NFC, CHANGE_CVC -> graph.startDestination = R.id.changeNfcCvcFragment
+            SETUP_NFC -> graph.startDestination = R.id.setupChainCodeFragment
+            CHANGE_CVC -> graph.startDestination = R.id.changeNfcCvcFragment
             else -> graph.startDestination = R.id.addNfcNameFragment
         }
         navHostFragment.navController.graph = graph

@@ -18,7 +18,7 @@ class GetTapSignerBackupUseCase @Inject constructor(
     waitTapSignerUseCase: WaitTapSignerUseCase
 ) : BaseNfcUseCase<GetTapSignerBackupUseCase.Data, String>(dispatcher, waitTapSignerUseCase) {
 
-    override fun executeNfc(parameters: Data): String {
+    override suspend fun executeNfc(parameters: Data): String {
         val tapStatus = nunchukNativeSdk.getBackupTapSignerKey(
             isoDep = parameters.isoDep,
             cvc = parameters.cvc

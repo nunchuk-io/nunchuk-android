@@ -14,7 +14,7 @@ class SignTransactionByTapSignerUseCase @Inject constructor(
     waitTapSignerUseCase: WaitTapSignerUseCase
 ) : BaseNfcUseCase<SignTransactionByTapSignerUseCase.Data, Transaction>(dispatcher, waitTapSignerUseCase) {
 
-    override fun executeNfc(parameters: Data): Transaction {
+    override suspend fun executeNfc(parameters: Data): Transaction {
         return nunchukNativeSdk.signTransactionByTapSigner(
             isoDep = parameters.isoDep,
             cvc = parameters.cvc,
