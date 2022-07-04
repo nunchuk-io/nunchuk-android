@@ -34,6 +34,7 @@
     <string name="nc_add_nfc_key">Add NFC key</string>
     <string name="nc_existing_cvc">Existing CVC</string>
     <string name="nc_set_up_nfc_key">Set up NFC key</string>
+    <string name="nc_set_up_cvc">Set up CVC</string>
     <string name="nc_new_cvc">New CVC</string>
     <string name="nc_confirm_new_cvc">Confirm new CVC</string>
     <string name="nc_keep_your_cvc_hint">Please keep your CVC safe. There is no recovery method if it’s forgotten.</string>
@@ -65,4 +66,5 @@
     <string name="nc_recovery_key_info_desc">The encrypted backup file you just saved is required if you want to recover the NFC key later.\n\nYou’ll also need the decryption key printed on the back of the card.</string>
     <string name="nc_nfc_key_recovery_info_title">NFC key recovery information</string>
     <string name="nc_keep_holding_near_key">Keep holding your device near your key until it’s finished.</string>
+    <string name="nc_confirm_change_cvc">Confirm change CVC</string>
 </resources>

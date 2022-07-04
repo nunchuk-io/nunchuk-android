@@ -13,10 +13,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.NfcState
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.MAX_CVC_LENGTH
-import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.isValidCvc
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.signer.R
@@ -83,6 +83,18 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
             }
         }
 
+        lifecycleScope.launchWhenStarted {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                nfcViewModel.event.collect {
+                    when (it) {
+                        NfcState.WrongCvc -> handleWrongCvc()
+                        NfcState.LimitCvcInput -> handleLimitCvcInput()
+                    }
+                    nfcViewModel.clearEvent()
+                }
+            }
+        }
+
         lifecycleScope.launchWhenCreated {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.event.collect { state ->
@@ -118,7 +130,23 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
         }
     }
 
+
+    private fun handleLimitCvcInput() {
+        binding.editExistCvc.setError(getString(R.string.nc_cvc_incorrect_3_times))
+    }
+
+    private fun handleWrongCvc() {
+        binding.editExistCvc.setError(getString(R.string.nc_incorrect_cvc_please_try_again))
+    }
+
     private fun initViews() {
+        if (setUpAction == NfcSetupActivity.CHANGE_CVC) {
+            binding.toolbarTitle.text = getString(R.string.nc_change_cvc)
+            binding.btnContinue.text = getString(R.string.nc_confirm_change_cvc)
+        } else {
+            binding.toolbarTitle.text = getString(R.string.nc_set_up_cvc)
+            binding.btnContinue.text = getString(R.string.nc_text_continue)
+        }
         binding.editExistCvc.makeMaskedInput()
         binding.editExistCvc.setMaxLength(MAX_CVC_LENGTH)
         binding.editNewCvc.makeMaskedInput()
@@ -143,13 +171,17 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
                 binding.editConfirmCvc.setError(getString(R.string.nc_cvc_not_match))
                 return@setOnClickListener
             }
-            NCInfoDialog(requireActivity()).init(
-                message = getString(R.string.nc_set_up_nfc_hint),
-                cancelable = false,
-                onYesClick = {
-                    (requireActivity() as BaseNfcActivity<*>).startNfcFlow(BaseNfcActivity.REQUEST_NFC_CHANGE_CVC)
-                }
-            ).show()
+            if (setUpAction == NfcSetupActivity.SETUP_NFC) {
+                NCInfoDialog(requireActivity()).init(
+                    message = getString(R.string.nc_set_up_nfc_hint),
+                    cancelable = false,
+                    onYesClick = {
+                        (requireActivity() as BaseNfcActivity<*>).startNfcFlow(BaseNfcActivity.REQUEST_NFC_CHANGE_CVC)
+                    }
+                ).show()
+            } else {
+                (requireActivity() as BaseNfcActivity<*>).startNfcFlow(BaseNfcActivity.REQUEST_NFC_CHANGE_CVC)
+            }
         }
     }
 
