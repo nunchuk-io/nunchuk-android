@@ -173,6 +173,7 @@ internal class SignerInfoViewModel @Inject constructor(
 
     fun getTapSignerBackup(isoDep: IsoDep, cvc: String) {
         viewModelScope.launch {
+            event(Loading)
             val result = getTapSignerBackupUseCase(GetTapSignerBackupUseCase.Data(isoDep, cvc))
             if (result.isSuccess) {
                 event(GetTapSignerBackupKeyEvent(result.getOrThrow()))
@@ -184,6 +185,7 @@ internal class SignerInfoViewModel @Inject constructor(
 
     fun topUpXpubTapSigner(isoDep: IsoDep, cvc: String, masterSignerId: String) {
         viewModelScope.launch {
+            event(Loading)
             val result = topUpXpubTapSignerUseCase(TopUpXpubTapSignerUseCase.Data(isoDep, cvc, masterSignerId))
             if (result.isSuccess) {
                 event(TopUpXpubSuccess)

@@ -4,6 +4,7 @@ import android.nfc.tech.IsoDep
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.SignRoomTransactionByTapSignerUseCase
 import com.nunchuk.android.core.domain.SignTransactionByTapSignerUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.signer.SignerModel
@@ -44,7 +45,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val exportTransactionUseCase: ExportTransactionUseCase,
     private val getRoomWalletUseCase: GetRoomWalletUseCase,
     private val getContactsUseCase: GetContactsUseCase,
-    private val signTransactionByTapSignerUseCase: SignTransactionByTapSignerUseCase
+    private val signTransactionByTapSignerUseCase: SignTransactionByTapSignerUseCase,
+    private val signRoomTransactionByTapSignerUseCase: SignRoomTransactionByTapSignerUseCase
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
 
     private var walletId: String = ""
@@ -272,9 +274,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             signRoomTransactionUseCase.execute(initEventId = initEventId, device = device, signerId)
                 .flowOn(IO)
                 .onException {
-                    val message = "${it.message.orEmpty()},walletId::$walletId,txId::$txId"
-                    event(TransactionDetailsError(message))
-                    CrashlyticsReporter.recordException(TransactionException(message))
+                    fireSignError(it)
                 }
                 .collect { event(SignTransactionSuccess(SessionHolder.getActiveRoomId())) }
         }
@@ -288,10 +288,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     event(SignTransactionSuccess())
                 }
                 is Error -> {
-                    val message =
-                        "${result.exception.messageOrUnknownError()},walletId::$walletId,txId::$txId"
-                    event(TransactionDetailsError(message))
-                    CrashlyticsReporter.recordException(TransactionException(message))
+                    fireSignError(result.exception)
                 }
             }
         }
@@ -299,6 +296,25 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun handleSignByTapSigner(isoDep: IsoDep?, inputCvc: String) {
         isoDep ?: return
+        if (isSharedTransaction()) {
+            signRoomTransactionTapSigner(isoDep, inputCvc)
+        } else {
+            signPersonTapSignerTransaction(isoDep, inputCvc)
+        }
+    }
+
+    private fun signRoomTransactionTapSigner(isoDep: IsoDep, inputCvc: String) {
+        viewModelScope.launch {
+            val result = signRoomTransactionByTapSignerUseCase(SignRoomTransactionByTapSignerUseCase.Data(isoDep, inputCvc, initEventId))
+            if (result.isSuccess) {
+                event(SignTransactionSuccess(SessionHolder.getActiveRoomId()))
+            } else {
+                fireSignError(result.exceptionOrNull())
+            }
+        }
+    }
+
+    private fun signPersonTapSignerTransaction(isoDep: IsoDep, inputCvc: String) {
         viewModelScope.launch {
             val result = signTransactionByTapSignerUseCase(
                 SignTransactionByTapSignerUseCase.Data(
@@ -312,12 +328,15 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 updateTransaction(result.getOrThrow())
                 event(SignTransactionSuccess())
             } else {
-                val message =
-                    "${result.exceptionOrNull()?.message.orEmpty()},walletId::$walletId,txId::$txId"
-                event(TransactionDetailsError(message, result.exceptionOrNull()))
-                CrashlyticsReporter.recordException(TransactionException(message))
+                fireSignError(result.exceptionOrNull())
             }
         }
+    }
+
+    private fun fireSignError(e: Throwable?) {
+        val message = "${e?.message.orEmpty()},walletId::$walletId,txId::$txId"
+        event(TransactionDetailsError(message))
+        CrashlyticsReporter.recordException(TransactionException(message))
     }
 }
 
