@@ -172,13 +172,5 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/about" />
 
-        <com.nunchuk.android.widget.NCFontTextView
-            android:id="@+id/appVersion"
-            style="@style/NCText.Settings"
-            android:gravity="center"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnSignOut"
-            tools:text="v1.0.0 (1)" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

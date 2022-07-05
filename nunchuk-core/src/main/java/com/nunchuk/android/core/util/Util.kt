@@ -28,6 +28,9 @@ var BTC_USD_EXCHANGE_RATE = 45000.0
 
 var BLOCKCHAIN_STATUS: ConnectionStatus? = null
 
+const val TWITTER_LINK = "https://twitter.com/nunchuk_io"
+const val CONTACT_EMAIL = "contact@nunchuk.io"
+
 const val SATOSHI_BTC_EXCHANGE_RATE = 0.00000001
 const val BTC_SATOSHI_EXCHANGE_RATE = 100000000
 

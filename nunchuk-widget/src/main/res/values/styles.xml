@@ -22,7 +22,7 @@
         <item name="android:gravity">center</item>
         <item name="android:textColor">@color/nc_black_color</item>
         <item name="android:textSize">@dimen/nc_text_size_18</item>
-        <item name="fontTextStyle">semi_bold</item>
+        <item name="fontTextStyle">bold</item>
     </style>
 
     <style name="NunchukNoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar" />

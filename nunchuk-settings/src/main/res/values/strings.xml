@@ -55,4 +55,7 @@
     <string name="nc_developer_log_file">Developer log file, use fileLog method</string>
     <string name="nc_clear_log">Clear log</string>
     <string name="nc_share_log">Share log</string>
+    <string name="nc_display_unit">Display unit</string>
+    <string name="nc_follow_us">Follow us</string>
+    <string name="nc_contact_us">Contact us</string>
 </resources>

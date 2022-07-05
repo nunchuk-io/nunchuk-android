@@ -2,6 +2,7 @@ package com.nunchuk.android.settings.nav
 
 import android.content.Context
 import com.nunchuk.android.nav.SettingNavigator
+import com.nunchuk.android.settings.about.AboutActivity
 import com.nunchuk.android.settings.developer.DeveloperSettingActivity
 import com.nunchuk.android.settings.devices.UserDevicesActivity
 import com.nunchuk.android.settings.network.NetworkSettingActivity
@@ -28,5 +29,9 @@ interface SettingNavigatorDelegate : SettingNavigator {
 
     override fun openUserDevicesScreen(activityContext: Context) {
         UserDevicesActivity.start(activityContext)
+    }
+
+    override fun openAboutScreen(activityContext: Context) {
+        AboutActivity.start(activityContext)
     }
 }

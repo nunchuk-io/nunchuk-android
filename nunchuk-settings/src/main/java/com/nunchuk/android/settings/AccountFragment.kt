@@ -63,7 +63,6 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
     }
 
     private fun handleState(state: AccountState) {
-        binding.appVersion.text = state.appVersion
         binding.avatar.loadImage(
             imageUrl = state.account.avatarUrl.orEmpty().fromMxcUriToMatrixDownloadUrl(),
             circleCrop = true,
@@ -96,7 +95,7 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
     }
 
     private fun openAboutScreen() {
-        requireActivity().showComingSoonText()
+        navigator.openAboutScreen(requireActivity())
     }
 
     private fun changeNetworkSetting() {
@@ -350,8 +349,4 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
         private const val REQUEST_SELECT_PHOTO_CODE = 1250
     }
 
-}
-
-internal fun Activity.showComingSoonText() {
-    showToast("Coming soon")
 }

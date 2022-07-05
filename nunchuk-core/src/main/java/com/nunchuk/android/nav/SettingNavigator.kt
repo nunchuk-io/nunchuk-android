@@ -8,4 +8,5 @@ interface SettingNavigator {
     fun openDeveloperScreen(activityContext: Context)
     fun openSyncSettingScreen(activityContext: Context)
     fun openUserDevicesScreen(activityContext: Context)
+    fun openAboutScreen(activityContext: Context)
 }
