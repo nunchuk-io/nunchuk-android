@@ -90,12 +90,17 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     }
 
     private fun topUpXPubs(nfcScanInfo: NfcScanInfo) {
-
+        viewModel.topUpXpubTapSigner(IsoDep.get(nfcScanInfo.tag) ?: return, nfcViewModel.inputCvc.orEmpty(), args.id)
     }
 
     private fun handleState(state: SignerInfoState) {
         state.remoteSigner?.let(::bindRemoteSigner)
         state.masterSigner?.let(::bindMasterSigner)
+        state.nfcCardId?.let { cardId ->
+            binding.tvCardId.isVisible = true
+            binding.tvCardIdLabel.isVisible = true
+            binding.tvCardId.text = cardId
+        }
     }
 
     private fun bindMasterSigner(signer: MasterSigner) {
@@ -133,6 +138,15 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
             )
             is GetTapSignerBackupKeyEvent -> IntentSharingController.from(this).shareFile(event.backupKeyPath)
             is GetTapSignerBackupKeyError -> nfcViewModel.handleNfcError(event.e)
+            TopUpXpubSuccess -> NCToastMessage(this).showMessage(
+                message = getString(R.string.nc_xpub_topped_up),
+                icon = R.drawable.ic_check_circle_outline
+            )
+            is TopUpXpubFailed -> {
+                if (!event.e?.message.isNullOrEmpty()) {
+                    NCToastMessage(this).showError(event.e?.message.orEmpty())
+                }
+            }
         }
     }
 

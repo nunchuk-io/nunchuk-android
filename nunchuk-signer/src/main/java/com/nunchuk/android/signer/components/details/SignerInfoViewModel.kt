@@ -4,9 +4,7 @@ import android.nfc.tech.IsoDep
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
-import com.nunchuk.android.core.domain.HealthCheckMasterSignerUseCase
-import com.nunchuk.android.core.domain.HealthCheckTapSignerUseCase
+import com.nunchuk.android.core.domain.*
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.Result.Error
@@ -33,7 +31,9 @@ internal class SignerInfoViewModel @Inject constructor(
     private val healthCheckMasterSignerUseCase: HealthCheckMasterSignerUseCase,
     private val sendSignerPassphrase: SendSignerPassphrase,
     private val getTapSignerBackupUseCase: GetTapSignerBackupUseCase,
-    private val healthCheckTapSignerUseCase: HealthCheckTapSignerUseCase
+    private val healthCheckTapSignerUseCase: HealthCheckTapSignerUseCase,
+    private val topUpXpubTapSignerUseCase: TopUpXpubTapSignerUseCase,
+    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase
 ) : NunchukViewModel<SignerInfoState, SignerInfoEvent>() {
 
     override val initialState = SignerInfoState()
@@ -57,7 +57,14 @@ internal class SignerInfoViewModel @Inject constructor(
                 }
             }
         }
-
+        if (signerType == SignerType.NFC) {
+            viewModelScope.launch {
+                val result = getTapSignerStatusByIdUseCase(id)
+                if (result.isSuccess) {
+                    updateState { copy(nfcCardId = result.getOrThrow().ident) }
+                }
+            }
+        }
     }
 
     fun handleEditCompletedEvent(updateSignerName: String) {
@@ -171,6 +178,17 @@ internal class SignerInfoViewModel @Inject constructor(
                 event(GetTapSignerBackupKeyEvent(result.getOrThrow()))
             } else {
                 event(GetTapSignerBackupKeyError(result.exceptionOrNull()))
+            }
+        }
+    }
+
+    fun topUpXpubTapSigner(isoDep: IsoDep, cvc: String, masterSignerId: String) {
+        viewModelScope.launch {
+            val result = topUpXpubTapSignerUseCase(TopUpXpubTapSignerUseCase.Data(isoDep, cvc, masterSignerId))
+            if (result.isSuccess) {
+                event(TopUpXpubSuccess)
+            } else {
+                event(TopUpXpubFailed(result.exceptionOrNull()))
             }
         }
     }

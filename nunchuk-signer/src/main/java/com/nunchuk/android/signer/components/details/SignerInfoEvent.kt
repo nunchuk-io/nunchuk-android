@@ -22,6 +22,10 @@ sealed class SignerInfoEvent {
     data class GetTapSignerBackupKeyEvent(val backupKeyPath: String) : SignerInfoEvent()
 
     data class GetTapSignerBackupKeyError(val e: Throwable?) : SignerInfoEvent()
+
+    object TopUpXpubSuccess : SignerInfoEvent()
+
+    data class TopUpXpubFailed(val e: Throwable?) : SignerInfoEvent()
 }
 
-data class SignerInfoState(val remoteSigner: SingleSigner? = null, val masterSigner: MasterSigner? = null)
+data class SignerInfoState(val remoteSigner: SingleSigner? = null, val masterSigner: MasterSigner? = null, val nfcCardId: String? = null)
