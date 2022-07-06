@@ -32,7 +32,7 @@ ext {
     hiltVersion = "2.42"
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.1.43'
+    nativeSdkVersion = '1.1.44'
 
     // Matrix
     matrixSdkVersion = '1.4.16'
@@ -45,7 +45,7 @@ ext {
     MINOR_VERSION = 9
     PATCH_VERSION = 16
 
-    VERSION_CODE = 173
+    VERSION_CODE = 174
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
