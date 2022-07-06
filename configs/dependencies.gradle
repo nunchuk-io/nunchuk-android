@@ -44,6 +44,7 @@ ext {
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
     PATCH_VERSION = 16
+    TASK_LABEL = "NUN-1444"
 
     VERSION_CODE = 174
 
@@ -54,6 +55,7 @@ ext {
             minSdkVersion    : 21,
             buildToolsVersion: "31.0.0",
             versionName      : "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}",
+            versionNameDebug : "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}.${TASK_LABEL}",
             versionCode      : VERSION_CODE
     ]
 

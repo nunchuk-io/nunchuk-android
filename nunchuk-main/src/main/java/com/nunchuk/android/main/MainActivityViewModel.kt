@@ -65,11 +65,10 @@ internal class MainActivityViewModel @Inject constructor(
     private val getDisplayUnitSettingUseCase: GetDisplayUnitSettingUseCase,
     private val notificationManager: PushNotificationManager,
     private val checkUpdateRecommendUseCase: CheckUpdateRecommendUseCase,
-    private val ncSharePreferences: NCSharePreferences,
     private val getSyncFileUseCase: GetSyncFileUseCase,
     private val createOrUpdateSyncFileUseCase: CreateOrUpdateSyncFileUseCase,
     private val deleteSyncFileUseCase: DeleteSyncFileUseCase,
-    private val saveCacheFileUseCase: SaveCacheFileUseCase
+    private val saveCacheFileUseCase: SaveCacheFileUseCase,
 ) : NunchukViewModel<Unit, MainAppEvent>() {
 
     override val initialState = Unit
@@ -509,17 +508,6 @@ internal class MainActivityViewModel @Inject constructor(
                 .collect { it.retrieveTimelineEvents() }
         }
     }
-
-    fun checkCrossSigning(session: Session) {
-        if (ncSharePreferences.newDevice) {
-            if (hasMultipleDevices(session)) {
-                ncSharePreferences.newDevice = false
-                event(CrossSigningUnverified)
-            }
-        }
-    }
-
-    private fun hasMultipleDevices(session: Session) = session.cryptoService().getCryptoDeviceInfo(session.myUserId).size > 1
 
     private fun getDisplayUnitSetting() {
         viewModelScope.launch {

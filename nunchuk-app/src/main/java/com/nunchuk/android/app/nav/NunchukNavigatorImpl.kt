@@ -38,9 +38,10 @@ internal class NunchukNavigatorImpl @Inject constructor(
         activityContext: Context,
         loginHalfToken: String?,
         deviceId: String?,
-        bottomNavViewPosition: Int?
+        bottomNavViewPosition: Int?,
+        isNewDevice: Boolean
     ) {
-        MainActivity.start(activityContext, loginHalfToken, deviceId, bottomNavViewPosition)
+        MainActivity.start(activityContext, loginHalfToken, deviceId, bottomNavViewPosition, isNewDevice)
     }
 
     override fun openGuestModeIntroScreen(activityContext: Context) {
