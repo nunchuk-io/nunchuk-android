@@ -33,7 +33,7 @@ internal class AccountSharedPref @Inject constructor(
     }
 
     fun clearFreshInstall() {
-        sharedPreferences.edit().putBoolean(FRESH_INSTALL, false).apply()
+        sharedPreferences.edit().putBoolean(FRESH_INSTALL, false).commit()
     }
 
     fun isHasAccountBefore() = sharedPreferences.contains(ACCOUNT_KEY)

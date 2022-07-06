@@ -25,7 +25,11 @@ internal class SplashViewModel @Inject constructor(
     override val initialState = Unit
 
     init {
-        SignInModeHolder.currentMode = if (accountManager.isAccountExisted()) SignInMode.NORMAL else SignInMode.GUEST_MODE
+        val isAccountExist = accountManager.isAccountExisted()
+        SignInModeHolder.currentMode = if (isAccountExist) SignInMode.NORMAL else SignInMode.GUEST_MODE
+        if (isAccountExist) {
+            accountManager.clearFreshInstall()
+        }
     }
 
     private fun initFlow() {
