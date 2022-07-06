@@ -1,3 +1,4 @@
 What's news:
 - NUN-1606: Android - Message "Send failed"
 - NUN-1616: Android - Sometimes "Send failed" in chat room
+- Update libnunchuk f2d6ab3c3be8e680d41e1b7e2e16f7b721e1f121
