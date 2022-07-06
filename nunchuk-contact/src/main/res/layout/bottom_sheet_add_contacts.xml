@@ -6,6 +6,7 @@
     android:background="@drawable/nc_bottom_sheet_background"
     android:orientation="vertical"
     android:paddingBottom="@dimen/nc_padding_24"
+    xmlns:tools="http://schemas.android.com/tools"
     app:behavior_hideable="true"
     app:behavior_peekHeight="90dp">
 
@@ -98,7 +99,7 @@
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/errorText"
+        android:id="@+id/tv_error_email"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
@@ -108,6 +109,22 @@
         android:text="@string/nc_contact_valid_email_address"
         android:textColor="@color/nc_red_color"
         android:textSize="@dimen/nc_text_size_14"
+        tools:visibility="visible"
         android:visibility="gone" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_error_userName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:drawableStart="@drawable/ic_error_outline"
+        android:gravity="start|center_vertical"
+        android:text="@string/nc_user_name_invalid"
+        android:textColor="@color/nc_red_color"
+        android:textSize="@dimen/nc_text_size_14"
+        tools:visibility="visible"
+        android:visibility="gone" />
+
 
 </androidx.appcompat.widget.LinearLayoutCompat>

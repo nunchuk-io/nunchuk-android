@@ -5,7 +5,6 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.contact.components.add.AddContactsEvent.*
 import com.nunchuk.android.contact.usecase.AddContactUseCase
 import com.nunchuk.android.contact.usecase.InviteFriendUseCase
-import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
@@ -47,6 +46,7 @@ class AddContactsViewModel @Inject constructor(
     fun handleSend() {
         val emails = getState().emails
         if (isAllValid(emails)) {
+            event(LoadingEvent)
             viewModelScope.launch {
                 addContactUseCase.execute(emails.map(EmailWithState::email))
                     .flowOn(IO)
@@ -85,14 +85,12 @@ class AddContactsViewModel @Inject constructor(
     }
 
     fun inviteFriend(emails: List<String>) {
-        if (emails.none(EmailValidator::valid)) {
-            return
-        }
+        event(LoadingEvent)
         viewModelScope.launch {
             inviteFriendUseCase.execute(emails)
                 .flowOn(IO)
                 .onException {
-                    event(InviteFriendSuccessEvent)
+                    onSendError(it)
                 }
                 .flowOn(Main)
                 .collect { event(InviteFriendSuccessEvent) }
