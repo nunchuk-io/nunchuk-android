@@ -4,14 +4,14 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.CleanUpCryptoAssetsUseCase
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.profile.UserProfileRepository
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.settings.DeleteAccountEvent.*
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -42,14 +42,20 @@ internal class DeleteAccountViewModel @Inject constructor(
     private fun handleSuccess() {
         viewModelScope.launch {
             cleanUpCryptoAssetsUseCase.execute()
+                .flatMapLatest {
+                    flow {
+                        emit(SessionHolder.clearActiveSession())
+                    }
+                }
+                .flatMapLatest {
+                    flow {
+                        emit(accountManager.clearUserData())
+                    }
+                }
                 .flowOn(Dispatchers.IO)
                 .onException { }
-                .flowOn(Dispatchers.Main)
                 .collect {
-                    accountManager.clearUserData()
-                    accountManager.signOut(onSignedOut = {
-                        event(ConfirmDeleteSuccess)
-                    })
+                    event(ConfirmDeleteSuccess)
                 }
         }
     }
