@@ -223,14 +223,15 @@
                 android:visibility="gone"
                 tools:visibility="visible" />
 
-            <androidx.appcompat.widget.LinearLayoutCompat
+            <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/signerList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/nc_padding_8"
-                android:orientation="vertical"
+                android:orientation="horizontal"
                 android:paddingVertical="@dimen/nc_padding_8"
-                android:visibility="gone" />
+                android:visibility="gone"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
         </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.core.widget.NestedScrollView>
 

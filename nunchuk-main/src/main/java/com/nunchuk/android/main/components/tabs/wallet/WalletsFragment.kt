@@ -37,6 +37,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private val mainActivityViewModel: MainActivityViewModel by activityViewModels()
 
+    private val signerAdapter = SignerAdapter(::openSignerInfoScreen)
+
     override fun initializeBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
@@ -50,6 +52,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun setupViews() {
+        binding.signerList.adapter = signerAdapter
         binding.doLater.setOnClickListener { hideIntroContainerView() }
         binding.btnAdd.setOnClickListener { walletsViewModel.handleAddSignerOrWallet() }
         binding.btnAddSigner.setOnClickListener { walletsViewModel.handleAddSigner() }
@@ -238,7 +241,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     private fun showSignersListView(signers: List<SignerModel>) {
         binding.signerEmpty.isVisible = false
         binding.signerList.isVisible = true
-        SignersViewBinder(binding.signerList, signers, ::openSignerInfoScreen).bindItems()
+        signerAdapter.submitList(signers)
     }
 
     private fun openSignerInfoScreen(signer: SignerModel) {
