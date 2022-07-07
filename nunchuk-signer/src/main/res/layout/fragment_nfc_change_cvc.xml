@@ -104,6 +104,7 @@
                 android:layout_weight="1" />
 
             <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tv_hint"
                 style="@style/NCText.Title.Small"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

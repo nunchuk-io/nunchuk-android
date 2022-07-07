@@ -39,11 +39,11 @@
 
         <ImageView
             android:id="@+id/signerTypeIcon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
             android:layout_marginTop="@dimen/nc_padding_24"
             android:background="@drawable/nc_circle_white_background"
-            android:padding="@dimen/nc_padding_16"
+            android:padding="@dimen/nc_padding_24"
             android:src="@drawable/ic_software_signer_big"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

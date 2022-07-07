@@ -13,6 +13,7 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.showToast
+import com.nunchuk.android.core.util.toReadableDrawable
 import com.nunchuk.android.core.util.toReadableString
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
@@ -104,7 +105,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     }
 
     private fun bindMasterSigner(signer: MasterSigner) {
-        binding.signerTypeIcon.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_software_signer_big))
+        binding.signerTypeIcon.setImageDrawable(signer.type.toReadableDrawable(this))
         binding.fingerprint.isVisible = true
         binding.fingerprint.text = signer.device.masterFingerprint
         binding.signerSpec.isVisible = false

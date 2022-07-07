@@ -195,7 +195,7 @@ internal class SignerInfoViewModel @Inject constructor(
         }
     }
 
-    private fun shouldLoadMasterSigner(type: SignerType) = type == SignerType.SOFTWARE || type == SignerType.NFC
+    private fun shouldLoadMasterSigner(type: SignerType) = type != SignerType.AIRGAP
 
     companion object {
         private const val TAG = "SignerInfoViewModel"

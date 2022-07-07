@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -140,7 +141,9 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
     }
 
     private fun initViews() {
-        if (setUpAction == NfcSetupActivity.CHANGE_CVC) {
+        val isChangeCvcFlow = setUpAction == NfcSetupActivity.CHANGE_CVC
+        binding.tvHint.isVisible = isChangeCvcFlow.not()
+        if (isChangeCvcFlow) {
             binding.toolbarTitle.text = getString(R.string.nc_change_cvc)
             binding.btnContinue.text = getString(R.string.nc_confirm_change_cvc)
         } else {
