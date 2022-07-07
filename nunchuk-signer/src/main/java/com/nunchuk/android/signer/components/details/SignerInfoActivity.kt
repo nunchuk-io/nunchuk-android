@@ -96,9 +96,9 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     private fun handleState(state: SignerInfoState) {
         state.remoteSigner?.let(::bindRemoteSigner)
         state.masterSigner?.let(::bindMasterSigner)
+        binding.tvCardId.isVisible = state.nfcCardId != null
+        binding.tvCardIdLabel.isVisible = binding.tvCardId.isVisible
         state.nfcCardId?.let { cardId ->
-            binding.tvCardId.isVisible = true
-            binding.tvCardIdLabel.isVisible = true
             binding.tvCardId.text = cardId
         }
     }
