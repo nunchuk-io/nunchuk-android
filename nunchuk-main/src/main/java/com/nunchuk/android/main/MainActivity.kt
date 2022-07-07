@@ -179,6 +179,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         val navView: BottomNavigationView = binding.navView
         navController = findNavController(R.id.nav_host_fragment_activity_main)
         navView.setupWithNavController(navController)
+        navView.setOnNavigationItemReselectedListener {}
     }
 
     override fun onResume() {

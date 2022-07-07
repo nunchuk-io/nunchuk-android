@@ -389,17 +389,21 @@ internal class MainActivityViewModel @Inject constructor(
             getSyncSettingUseCase.execute()
                 .flatMapConcat {
                     if (it.enable) {
-                        registerAutoBackupUseCase.execute(syncRoomId, accessToken)
+                        registerAutoBackupUseCase.execute(syncRoomId, accessToken).map { true }
                     } else {
                         flow {
                             Timber.tag(TAG).v("can not registerAutoBackup due to disable")
-                            emit(Unit)
+                            emit(false)
                         }
                     }
                 }
                 .flowOn(IO)
                 .onException { }
-                .collect { Timber.tag(TAG).v("registerAutoBackup success") }
+                .collect { isRegister ->
+                    if (isRegister) {
+                        Timber.tag(TAG).v("registerAutoBackup success")
+                    }
+                }
         }
     }
 
@@ -452,19 +456,21 @@ internal class MainActivityViewModel @Inject constructor(
             getSyncSettingUseCase.execute()
                 .flatMapConcat {
                     if (it.enable) {
-                        consumerSyncEventUseCase.execute(sortedEvents)
+                        consumerSyncEventUseCase.execute(sortedEvents).map { true }
                     } else {
                         flow {
                             Timber.tag(TAG).v("can not consumerSyncEvent due to disable")
-                            emit(Unit)
+                            emit(false)
                         }
                     }
                 }
                 .flowOn(IO)
                 .onException { Timber.tag(TAG).v("consumerSyncEvent fail") }
-                .collect {
-                    Timber.tag(TAG).v("consumerSyncEvent success")
-                    event(ConsumeSyncEventCompleted)
+                .collect { consume ->
+                    if (consume) {
+                        Timber.tag(TAG).v("consumerSyncEvent success")
+                        event(ConsumeSyncEventCompleted)
+                    }
                 }
         }
     }
