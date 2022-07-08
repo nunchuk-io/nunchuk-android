@@ -26,6 +26,7 @@ import com.nunchuk.android.signer.nfc.NfcSetupActivity
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 
@@ -52,8 +53,18 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
             SingerOption.TOP_UP -> startNfcFlow(REQUEST_NFC_TOPUP_XPUBS)
             SingerOption.CHANGE_CVC -> NfcSetupActivity.navigate(this, NfcSetupActivity.CHANGE_CVC)
             SingerOption.BACKUP_KEY -> startNfcFlow(REQUEST_NFC_VIEW_BACKUP_KEY)
-            SingerOption.REMOVE_KEY -> viewModel.handleRemoveSigner()
+            SingerOption.REMOVE_KEY -> handleRemoveKey()
         }
+    }
+
+    private fun handleRemoveKey() {
+        NCWarningDialog(this).showDialog(
+            title = getString(R.string.nc_confirmation),
+            message = getString(R.string.nc_delete_key_msg),
+            onYesClick = {
+                viewModel.handleRemoveSigner()
+            }
+        )
     }
 
     private fun observeEvent() {

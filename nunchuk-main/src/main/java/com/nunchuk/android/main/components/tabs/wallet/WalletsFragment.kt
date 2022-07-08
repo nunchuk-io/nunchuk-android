@@ -52,6 +52,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun setupViews() {
+        binding.signerList.addItemDecoration(SimpleItemDecoration(requireContext()))
         binding.signerList.adapter = signerAdapter
         binding.doLater.setOnClickListener { hideIntroContainerView() }
         binding.btnAdd.setOnClickListener { walletsViewModel.handleAddSignerOrWallet() }
