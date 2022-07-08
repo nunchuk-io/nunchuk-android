@@ -1,33 +1,27 @@
 package com.nunchuk.android.app.splash
 
-import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import com.nunchuk.android.app.splash.SplashEvent.*
-import com.nunchuk.android.arch.R
-import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.databinding.ActivitySplashBinding
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
-internal class SplashActivity : BaseActivity<ActivitySplashBinding>() {
+internal class SplashActivity : AppCompatActivity() {
+    @Inject
+    lateinit var navigator: NunchukNavigator
 
     private val viewModel: SplashViewModel by viewModels()
-
-    override fun initializeBinding() = ActivitySplashBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setTransparentStatusBar()
         subscribeEvents()
-    }
-
-    override fun onResume() {
-        super.onResume()
         viewModel.handleNavigation()
     }
 
@@ -38,22 +32,13 @@ internal class SplashActivity : BaseActivity<ActivitySplashBinding>() {
     private fun handleEvent(event: SplashEvent) {
         when (event) {
             NavActivateAccountEvent -> navigator.openChangePasswordScreen(this)
-            NavSignInEvent -> navigator.openSignInScreen(this)
+            NavSignInEvent -> navigator.openSignInScreen(this, false)
             NavHomeScreenEvent -> navigator.openMainScreen(this)
             NavIntroEvent -> navigator.openIntroScreen(this)
             is InitErrorEvent -> NCToastMessage(this).showError(event.error)
         }
+        overridePendingTransition(0,0)
         finish()
     }
-
-    companion object {
-
-        fun start(activity: Activity) {
-            activity.startActivity(Intent(activity, SplashActivity::class.java))
-            activity.overridePendingTransition(R.anim.enter, R.anim.exit)
-        }
-
-    }
-
 }
 

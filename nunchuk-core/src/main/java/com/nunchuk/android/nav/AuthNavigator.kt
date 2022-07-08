@@ -3,7 +3,7 @@ package com.nunchuk.android.nav
 import android.content.Context
 
 interface AuthNavigator {
-    fun openSignInScreen(activityContext: Context)
+    fun openSignInScreen(activityContext: Context, isNeedNewTask: Boolean = true)
 
     fun openSignUpScreen(activityContext: Context)
 

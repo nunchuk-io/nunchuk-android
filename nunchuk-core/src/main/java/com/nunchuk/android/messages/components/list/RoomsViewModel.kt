@@ -85,11 +85,13 @@ class RoomsViewModel @Inject constructor(
 
     private fun leaveDraftSyncRoom(summaries: List<RoomSummary>) {
         // delete to avoid misunderstandings
-        val draftSyncRooms = summaries.filter {
-            it.displayName == TAG_SYNC && it.tags.isEmpty()
-        }
-        draftSyncRooms.forEach {
-            getRoom(it)?.let(leaveRoomUseCase::execute)
+        viewModelScope.launch(Dispatchers.IO) {
+            val draftSyncRooms = summaries.filter {
+                it.displayName == TAG_SYNC && it.tags.isEmpty()
+            }
+            draftSyncRooms.forEach {
+                getRoom(it)?.let(leaveRoomUseCase::execute)
+            }
         }
     }
 

@@ -11,8 +11,8 @@ import com.nunchuk.android.nav.AuthNavigator
 
 interface AuthNavigatorDelegate : AuthNavigator {
 
-    override fun openSignInScreen(activityContext: Context) {
-        SignInActivity.start(activityContext)
+    override fun openSignInScreen(activityContext: Context, isNeedNewTask: Boolean) {
+        SignInActivity.start(activityContext, isNeedNewTask)
     }
 
     override fun openSignUpScreen(activityContext: Context) {

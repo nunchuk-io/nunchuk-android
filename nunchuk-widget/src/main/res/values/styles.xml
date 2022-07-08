@@ -7,10 +7,6 @@
         <item name="colorAccent">@color/nc_accent_color</item>
     </style>
 
-    <style name="SplashTheme" parent="NunchukTheme">
-        <item name="android:windowBackground">@color/nc_primary_dark_color</item>
-    </style>
-
     <style name="NCToolbar">
         <item name="android:minHeight">?attr/actionBarSize</item>
         <item name="buttonGravity">center_vertical</item>

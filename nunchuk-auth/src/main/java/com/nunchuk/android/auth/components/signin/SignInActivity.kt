@@ -141,9 +141,12 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
     companion object {
         private const val PRIVACY_URL = "https://www.nunchuk.io/privacy.html"
         private const val TERM_URL = "https://www.nunchuk.io/terms.html"
-        fun start(activityContext: Context) {
-            val intent = Intent(activityContext, SignInActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        fun start(activityContext: Context, isNeedNewTask: Boolean) {
+            val intent = Intent(activityContext, SignInActivity::class.java).apply {
+                if (isNeedNewTask) {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                }
+            }
             activityContext.startActivity(intent)
         }
     }

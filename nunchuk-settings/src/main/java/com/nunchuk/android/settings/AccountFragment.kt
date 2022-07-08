@@ -2,7 +2,6 @@ package com.nunchuk.android.settings
 
 import android.Manifest.permission.CAMERA
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -32,7 +31,6 @@ import com.nunchuk.android.core.util.pickPhotoWithResult
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.showAlertDialog
 import com.nunchuk.android.core.util.showLoading
-import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.core.util.startActivityAppSetting
 import com.nunchuk.android.core.util.takePhotoWithResult
 import com.nunchuk.android.settings.AccountEvent.SignOutEvent
