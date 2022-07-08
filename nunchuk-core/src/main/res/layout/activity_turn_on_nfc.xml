@@ -77,7 +77,7 @@
             <com.nunchuk.android.widget.NCLabelWithNumber
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:pos="3"
+                app:pos="2"
                 app:text="Tap and turn on NFC"
                 android:layout_marginTop="@dimen/nc_padding_24"
                 android:layout_marginHorizontal="@dimen/nc_padding_16"
