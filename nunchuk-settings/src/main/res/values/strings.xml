@@ -31,7 +31,6 @@
     <string name="nc_txt_guest">Guest</string>
     <string name="nc_settings_account_settings">Account settings</string>
     <string name="nc_account_delete_account_information"><![CDATA[We’ve sent a confirmation code to <b>%1$s</b>. Please enter the code below to confirm the deletion of this account]]></string>
-    <string name="nc_account_deleted_message">Your account has successfully been deleted</string>
     <string name="nc_user_device_bottom_sheet_sign_out"><![CDATA[ Sign out of <b>%1$s</b>]]></string>
     <string name="nc_user_device_bottom_sheet_mark_compromise"><![CDATA[ Mark <b>%1$s</b> as compromised]]></string>
     <string name="nc_txt_dialog_sign_out_message">Are you sure you want to sign out %1$s?</string>

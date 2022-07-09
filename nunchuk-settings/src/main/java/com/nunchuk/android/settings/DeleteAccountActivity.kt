@@ -53,13 +53,11 @@ class DeleteAccountActivity : BaseActivity<ActivityDeleteAccountBinding>() {
 
     private fun handleConfirmSuccess() {
         hideLoading()
-        NCToastMessage(this).showMessage(getString(R.string.nc_account_deleted_message))
-        binding.root.postDelayed(::restartApp, DELAY)
-
+        gotoLogin()
     }
 
     private fun gotoLogin() {
-        navigator.openSignInScreen(this)
+        navigator.openSignInScreen(this, isAccountDeleted = true)
     }
 
     private fun restartApp() {
@@ -89,7 +87,6 @@ class DeleteAccountActivity : BaseActivity<ActivityDeleteAccountBinding>() {
     }
 
     companion object {
-        private const val DELAY = 3000L
         fun start(activityContext: Context) {
             activityContext.startActivity(Intent(activityContext, DeleteAccountActivity::class.java))
         }
