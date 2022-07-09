@@ -24,13 +24,12 @@ class AddContactsViewModel @Inject constructor(
 
     fun handleAddEmail(email: String) {
         val emails = getState().emails
-        if (emails.any { it.email == email }) return
-        (emails as MutableList).add(EmailWithState(email, EmailValidator.valid(email)))
-        updateState { copy(emails = emails) }
+        if (!emails.map(EmailWithState::email).contains(email)) {
+            (emails as MutableList).add(EmailWithState(email, email.trim().isNotEmpty()))
+            updateState { copy(emails = emails) }
+        }
         if (isAllValid(emails)) {
             event(AllEmailValidEvent)
-        } else {
-            event(InvalidEmailEvent)
         }
     }
 
@@ -43,7 +42,7 @@ class AddContactsViewModel @Inject constructor(
         }
     }
 
-    private fun isAllValid(emails: List<EmailWithState>) = emails.all { it.valid }
+    private fun isAllValid(emails: List<EmailWithState>) = emails.all { it.email.trim().isNotEmpty() }
 
     fun handleSend() {
         val emails = getState().emails
