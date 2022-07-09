@@ -57,7 +57,7 @@ class DeleteAccountActivity : BaseActivity<ActivityDeleteAccountBinding>() {
     }
 
     private fun gotoLogin() {
-        navigator.openSignInScreen(this, true)
+        navigator.openSignInScreen(this, isAccountDeleted = true)
     }
 
     private fun restartApp() {
