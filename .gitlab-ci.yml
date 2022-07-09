@@ -34,7 +34,7 @@ testDevelopment:
 
 deployDevelop:
   only:
-    - /^sandbox.android.v\d+.\d+.\d+$/
+    - /^release.android.v\d+.\d+.\d+$/
   stage: deploy
   script:
     - ./gradlew assembleDevelopmentDebug appDistributionUploadDevelopmentDebug
