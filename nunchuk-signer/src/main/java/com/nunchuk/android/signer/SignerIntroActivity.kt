@@ -8,11 +8,13 @@ import androidx.activity.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.findNavController
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.signer.databinding.ActivitySignerIntroBinding
 import com.nunchuk.android.signer.nfc.NfcSetupActivity
+import com.nunchuk.android.signer.nfc.SetUpNfcOptionSheet
 import com.nunchuk.android.signer.util.showAddNfcKey
 import com.nunchuk.android.signer.util.showNfcAlreadyAdded
 import com.nunchuk.android.signer.util.showSetupNfc
@@ -21,7 +23,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
-class SignerIntroActivity : BaseNfcActivity<ActivitySignerIntroBinding>() {
+class SignerIntroActivity : BaseNfcActivity<ActivitySignerIntroBinding>(), SetUpNfcOptionSheet.OptionClickListener {
     private val viewModel : SignerIntroViewModel by viewModels()
 
     override fun initializeBinding() = ActivitySignerIntroBinding.inflate(layoutInflater)
@@ -34,8 +36,17 @@ class SignerIntroActivity : BaseNfcActivity<ActivitySignerIntroBinding>() {
         observer()
     }
 
+    override fun onOptionClickListener(option: SetUpNfcOptionSheet.SetUpNfcOption) {
+        when(option) {
+            SetUpNfcOptionSheet.SetUpNfcOption.ADD_NEW -> startNfcFlow(REQUEST_NFC_STATUS)
+            SetUpNfcOptionSheet.SetUpNfcOption.RECOVER -> NfcSetupActivity.navigate(this, NfcSetupActivity.RECOVER_NFC)
+        }
+    }
+
     private fun setupViews() {
-        binding.btnAddNFC.setOnClickListener { startNfcFlow(REQUEST_NFC_STATUS) }
+        binding.btnAddNFC.setOnClickListener {
+            SetUpNfcOptionSheet.newInstance().show(supportFragmentManager, "SetUpNfcOptionSheet")
+        }
         binding.btnAddAirSigner.setOnClickListener { openAddAirSignerIntroScreen() }
         binding.btnAddSSigner.setOnClickListener { openAddSoftwareSignerScreen() }
         binding.toolbar.setNavigationOnClickListener {

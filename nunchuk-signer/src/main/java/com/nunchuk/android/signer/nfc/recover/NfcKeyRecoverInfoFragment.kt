@@ -1,4 +1,4 @@
-package com.nunchuk.android.signer.nfc
+package com.nunchuk.android.signer.nfc.recover
 
 import android.os.Bundle
 import android.view.LayoutInflater

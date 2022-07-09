@@ -71,4 +71,12 @@
     <string name="nc_card_id">Card ID</string>
     <string name="nc_confirmation">Confirmation</string>
     <string name="nc_delete_key_msg">Are you sure you want to remove this key?</string>
+    <string name="nc_recover_nfc_key">Recover NFC key</string>
+    <string name="nc_convert_backup_key_msg">Note that we will convert the NFC key backup into a software key. On the next screens, you will:</string>
+    <string name="nc_select_the_encrypted_backup">Select the encrypted backup file</string>
+    <string name="nc_enter_descryption_key_msg">Enter the decryption key. You can find it on the back of the card.</string>
+    <string name="nc_add_new_nfc_key">Add new NFC Key</string>
+    <string name="nc_recover_nfc_key_from_backup">Recover NFC key from backup</string>
+    <string name="nc_enter_decryption_key">Enter decryption key</string>
+    <string name="nc_decryption_key">Decryption key</string>
 </resources>
