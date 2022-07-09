@@ -3,13 +3,13 @@ package com.nunchuk.android.core.domain
 import android.content.Context
 import android.nfc.tech.IsoDep
 import com.nunchuk.android.core.domain.data.WaitTapSignerUseCase
+import com.nunchuk.android.core.domain.utils.NfcFile
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ensureActive
-import java.io.File
 import javax.inject.Inject
 import kotlin.coroutines.coroutineContext
 
@@ -25,13 +25,8 @@ class SetupTapSignerUseCase @Inject constructor(
         val tapStatus = nunchukNativeSdk.setupTapSigner(parameters.isoDep, parameters.oldCvc, parameters.newCvc, parameters.chainCode)
         coroutineContext.ensureActive()
         val masterSigner = nunchukNativeSdk.createTapSigner(parameters.isoDep, parameters.newCvc, "")
-        val file = File(context.filesDir, "backup.${tapStatus.ident.orEmpty()}.${System.currentTimeMillis()}.aes").apply {
-            if (exists().not()) {
-                createNewFile()
-            }
-        }
-        file.outputStream().use { it.write(tapStatus.backupKey) }
-        return Result(file.path, masterSigner)
+        val filePath = NfcFile.storeBackupKeyToFile(context, tapStatus)
+        return Result(filePath, masterSigner)
     }
 
     class Data(isoDep: IsoDep, val oldCvc: String, val newCvc: String, val chainCode: String) : BaseNfcUseCase.Data(isoDep)
