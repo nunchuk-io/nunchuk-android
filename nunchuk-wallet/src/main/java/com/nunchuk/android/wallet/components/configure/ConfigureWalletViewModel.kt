@@ -54,7 +54,7 @@ internal class ConfigureWalletViewModel @Inject constructor(
         if (needPassPhraseSent) {
             event(ConfigureWalletEvent.PromptInputPassphrase {
                 viewModelScope.launch {
-                    sendSignerPassphrase.execute(signer.id, it, true)
+                    sendSignerPassphrase.execute(signer.id, it)
                         .onException { event(ConfigureWalletEvent.InputPassphraseError(it.message.orEmpty())) }
                         .collect { updateStateSelectedSigner(checked, signer) }
                 }
