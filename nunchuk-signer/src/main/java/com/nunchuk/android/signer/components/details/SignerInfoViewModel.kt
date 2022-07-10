@@ -108,17 +108,22 @@ internal class SignerInfoViewModel @Inject constructor(
                     .flowOn(Dispatchers.IO)
                     .onException { event(HealthCheckErrorEvent(it.message.orEmpty())) }
                     .flowOn(Dispatchers.Main)
-                    .collect { healthCheck(fingerprint = masterSigner.device.masterFingerprint, path = masterSigner.device.path) }
+                    .collect { healthCheck(masterSigner) }
             }
         } else {
-            healthCheck(fingerprint = masterSigner.device.masterFingerprint, path = masterSigner.device.path)
+            healthCheck(masterSigner)
         }
-
     }
 
-    private fun healthCheck(fingerprint: String, path: String) {
+    private fun healthCheck(masterSigner: MasterSigner) {
         viewModelScope.launch {
-            healthCheckMasterSignerUseCase.execute(fingerprint = fingerprint, message = "", signature = "", path = path)
+            healthCheckMasterSignerUseCase.execute(
+                fingerprint = masterSigner.device.masterFingerprint,
+                message = "",
+                signature = "",
+                path = masterSigner.device.path,
+                masterSignerId = if (masterSigner.device.needPassPhraseSent) masterSigner.id else null
+                )
                 .flowOn(Dispatchers.IO)
                 .onException { event(HealthCheckErrorEvent(it.message)) }
                 .flowOn(Dispatchers.Main)
