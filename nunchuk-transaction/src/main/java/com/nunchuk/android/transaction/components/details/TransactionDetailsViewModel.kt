@@ -201,12 +201,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     event(PromptInputPassphrase {
                         viewModelScope.launch {
                             sendSignerPassphrase.execute(signer.id, it)
+                                .flowOn(IO)
                                 .onException { event(TransactionDetailsError("${it.message.orEmpty()},walletId::$walletId,txId::$txId")) }
-                                .collect { signTransaction(device) }
+                                .collect { signTransaction(device, signer.id) }
                         }
                     })
                 } else {
-                    signTransaction(device)
+                    signTransaction(device, signer.id)
                 }
             }
         } else {
@@ -214,11 +215,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun signTransaction(device: Device) {
+    private fun signTransaction(device: Device, signerId: String) {
         if (isSharedTransaction()) {
-            signRoomTransaction(device)
+            signRoomTransaction(device, signerId)
         } else {
-            signPersonalTransaction(device)
+            signPersonalTransaction(device, signerId)
         }
     }
 
@@ -251,9 +252,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun signRoomTransaction(device: Device) {
+    private fun signRoomTransaction(device: Device, signerId: String) {
         viewModelScope.launch {
-            signRoomTransactionUseCase.execute(initEventId = initEventId, device = device)
+            signRoomTransactionUseCase.execute(initEventId = initEventId, device = device, signerId)
                 .flowOn(IO)
                 .onException {
                     val message = "${it.message.orEmpty()},walletId::$walletId,txId::$txId"
@@ -264,9 +265,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun signPersonalTransaction(device: Device) {
+    private fun signPersonalTransaction(device: Device, signerId: String) {
         viewModelScope.launch {
-            when (val result = signTransactionUseCase.execute(walletId, txId, device)) {
+            when (val result = signTransactionUseCase.execute(walletId, txId, device, signerId)) {
                 is Success -> {
                     updateTransaction(result.data)
                     event(SignTransactionSuccess())
