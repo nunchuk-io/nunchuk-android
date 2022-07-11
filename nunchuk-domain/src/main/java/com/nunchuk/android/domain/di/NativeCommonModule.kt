@@ -31,7 +31,7 @@ internal interface NativeCommonModule {
     }
 }
 
-internal class NativeSdkProvider {
+class NativeSdkProvider {
     val nativeSdk = NunchukNativeSdk()
 
     companion object {

@@ -3,6 +3,7 @@ package com.nunchuk.android.core.util
 import com.nunchuk.android.core.domain.data.BTC
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
+import com.nunchuk.android.domain.di.NativeSdkProvider
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.type.AddressType
@@ -16,7 +17,7 @@ fun Wallet.getUSDAmount() = balance.getUSDAmount()
 
 fun Amount.getBTCAmount() = when (CURRENT_DISPLAY_UNIT_TYPE) {
     SAT -> "${value.beautifySATFormat()} sat"
-    BTC -> "${formattedValue.toDouble().toLong().numberFormat()} BTC"
+    BTC -> "${NativeSdkProvider.instance.nativeSdk.valueFromAmount(this)} BTC"
     else -> "$formattedValue BTC"
 }
 
@@ -26,7 +27,7 @@ fun Double.fromBTCToUSD() = this * BTC_USD_EXCHANGE_RATE
 
 fun Double.fromUSDToBTC() = this / BTC_USD_EXCHANGE_RATE
 
-fun Amount.pureBTC() = value * SATOSHI_BTC_EXCHANGE_RATE
+fun Amount.pureBTC() = value.toDouble().fromSATtoBTC()
 
 fun Double.getBTCAmount() = when (CURRENT_DISPLAY_UNIT_TYPE) {
     SAT -> "${((this * BTC_SATOSHI_EXCHANGE_RATE).roundToLong()).beautifySATFormat()} sat"
@@ -38,7 +39,7 @@ fun Double.getUSDAmount() = "$${fromBTCToUSD().formatDecimal(USD_FRACTION_DIGITS
 
 private fun Amount.fromBTCToUSD() = value * SATOSHI_BTC_EXCHANGE_RATE * BTC_USD_EXCHANGE_RATE
 
-fun Double.fromBTCToSAT() = (this * SATOSHI_BTC_EXCHANGE_RATE)
+fun Double.fromSATtoBTC() = (this * SATOSHI_BTC_EXCHANGE_RATE)
 
 fun Double.toAmount() = Amount().copy(value = (this * BTC_SATOSHI_EXCHANGE_RATE).roundToLong())
 
