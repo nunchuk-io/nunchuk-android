@@ -31,9 +31,12 @@ class ActivityManager {
         }
     }
 
-    fun <T : Activity> popUntil(clazz: Class<T>) {
+    fun <T : Activity> popUntil(clazz: Class<T>, inclusive: Boolean = false) {
         if (activityStack.isNotEmpty()) {
-            while (!(activityStack.lastElement() instanceOf clazz)) {
+            while (activityStack.isNotEmpty() && !(activityStack.lastElement() instanceOf clazz)) {
+                activityStack.pop().finish()
+            }
+            if (inclusive && activityStack.isNotEmpty() && activityStack.lastElement() instanceOf clazz) {
                 activityStack.pop().finish()
             }
         }
