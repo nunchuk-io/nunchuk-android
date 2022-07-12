@@ -37,7 +37,7 @@
     <string name="nc_set_up_cvc">Set up CVC</string>
     <string name="nc_new_cvc">New CVC</string>
     <string name="nc_confirm_new_cvc">Confirm new CVC</string>
-    <string name="nc_keep_your_cvc_hint">Please keep your CVC safe. There is no recovery method if it’s forgotten.</string>
+    <string name="nc_keep_your_cvc_hint">The Card Verification Code (CVC) is a security feature that prevents unauthorized access to your key. Please keep it safe. You\'ll need it for signing transactions.</string>
     <string name="nc_cvc_not_match">New CVCs do not match</string>
     <string name="nc_cvc_incorrect">CVC is inccorect</string>
     <string name="nc_add_nfc_key_desc">This NFC key has already been set up. Do you want to add it to Nunchuk?</string>
