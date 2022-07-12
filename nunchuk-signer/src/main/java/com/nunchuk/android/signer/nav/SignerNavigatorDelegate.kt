@@ -26,7 +26,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
         name: String,
         type: SignerType,
         justAdded: Boolean,
-        setPassphrase: Boolean
+        setPassphrase: Boolean,
+        isInWallet: Boolean
     ) {
         SignerInfoActivity.start(
             activityContext = activityContext,
@@ -34,7 +35,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
             name = name,
             justAdded = justAdded,
             type = type,
-            setPassphrase = setPassphrase
+            setPassphrase = setPassphrase,
+            isInWallet = isInWallet
         )
     }
 

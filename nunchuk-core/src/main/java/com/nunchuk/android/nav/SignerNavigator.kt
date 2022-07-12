@@ -12,7 +12,8 @@ interface SignerNavigator {
         name: String,
         type: SignerType,
         justAdded: Boolean = false,
-        setPassphrase: Boolean = false
+        setPassphrase: Boolean = false,
+        isInWallet: Boolean = false
     )
 
     fun openAddAirSignerScreen(activityContext: Context)

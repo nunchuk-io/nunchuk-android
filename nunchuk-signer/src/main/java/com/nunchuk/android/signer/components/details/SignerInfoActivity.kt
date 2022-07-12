@@ -24,6 +24,7 @@ import com.nunchuk.android.signer.components.details.model.SingerOption
 import com.nunchuk.android.signer.databinding.ActivitySignerInfoBinding
 import com.nunchuk.android.signer.nfc.NfcSetupActivity
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
@@ -58,13 +59,23 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     }
 
     private fun handleRemoveKey() {
-        NCWarningDialog(this).showDialog(
-            title = getString(R.string.nc_confirmation),
-            message = getString(R.string.nc_delete_key_msg),
-            onYesClick = {
-                viewModel.handleRemoveSigner()
-            }
-        )
+        if (args.isInWallet) {
+            NCInfoDialog(this).showDialog(
+                message = getString(R.string.nc_warning_key_use_in_wallet),
+            )
+        } else if (args.signerType == SignerType.FOREIGN_SOFTWARE) {
+            NCInfoDialog(this).showDialog(
+                message = getString(R.string.nc_please_remove_on_added_device),
+            )
+        } else {
+            NCWarningDialog(this).showDialog(
+                title = getString(R.string.nc_confirmation),
+                message = getString(R.string.nc_delete_key_msg),
+                onYesClick = {
+                    viewModel.handleRemoveSigner()
+                }
+            )
+        }
     }
 
     private fun observeEvent() {
@@ -164,7 +175,15 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
 
     private fun showHealthCheckError(event: HealthCheckErrorEvent) {
         if (event.message.isNullOrEmpty()) {
-            NCToastMessage(this).showError(getString(R.string.nc_txt_run_health_check_error_event, args.name))
+            val errorMessage = if (event.e?.message.isNullOrEmpty()) {
+                getString(
+                    R.string.nc_txt_run_health_check_error_event,
+                    args.name
+                )
+            } else {
+                event.e?.message.orEmpty()
+            }
+            NCToastMessage(this).showError(errorMessage)
         } else {
             NCToastMessage(this).showWarning(event.message)
         }
@@ -255,7 +274,8 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
             name: String,
             type: SignerType,
             justAdded: Boolean = false,
-            setPassphrase: Boolean = false
+            setPassphrase: Boolean = false,
+            isInWallet: Boolean
         ) {
             activityContext.startActivity(
                 SignerInfoArgs(
@@ -263,7 +283,8 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
                     name = name,
                     justAdded = justAdded,
                     signerType = type,
-                    setPassphrase = setPassphrase
+                    setPassphrase = setPassphrase,
+                    isInWallet = isInWallet
                 ).buildIntent(activityContext)
             )
         }

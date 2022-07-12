@@ -79,4 +79,6 @@
     <string name="nc_recover_nfc_key_from_backup">Recover NFC key from backup</string>
     <string name="nc_enter_decryption_key">Enter decryption key</string>
     <string name="nc_decryption_key">Decryption key</string>
+    <string name="nc_warning_key_use_in_wallet">Oops, your key is currently being used in a wallet. Please remove the wallet first.</string>
+    <string name="nc_please_remove_on_added_device">Please remove this key on the device that it was added to.</string>
 </resources>

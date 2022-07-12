@@ -13,7 +13,8 @@ data class SignerInfoArgs(
     val signerType: SignerType,
     val justAdded: Boolean = false,
     val isNfc: Boolean = false,
-    val setPassphrase: Boolean = false
+    val setPassphrase: Boolean = false,
+    val isInWallet: Boolean = false
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, SignerInfoActivity::class.java).apply {
@@ -22,6 +23,7 @@ data class SignerInfoArgs(
         putExtra(EXTRA_SIGNER_ADDED, justAdded)
         putExtra(EXTRA_SIGNER_TYPE, signerType)
         putExtra(EXTRA_SIGNER_SET_PASS_PHRASE, setPassphrase)
+        putExtra(EXTRA_IS_IN_WALLET, isInWallet)
     }
 
     companion object {
@@ -30,6 +32,7 @@ data class SignerInfoArgs(
         private const val EXTRA_SIGNER_ADDED = "EXTRA_SIGNER_ADDED"
         private const val EXTRA_SIGNER_TYPE = "EXTRA_SIGNER_SOFTWARE"
         private const val EXTRA_SIGNER_SET_PASS_PHRASE = "EXTRA_SIGNER_SET_PASS_PHRASE"
+        private const val EXTRA_IS_IN_WALLET = "EXTRA_IS_IN_WALLET"
 
         fun deserializeFrom(intent: Intent): SignerInfoArgs {
             val bundle = intent.extras
@@ -38,7 +41,8 @@ data class SignerInfoArgs(
                 name = bundle.getStringValue(EXTRA_SIGNER_NAME),
                 justAdded = bundle.getBooleanValue(EXTRA_SIGNER_ADDED),
                 signerType = intent.getSerializableExtra(EXTRA_SIGNER_TYPE) as SignerType,
-                setPassphrase = bundle.getBooleanValue(EXTRA_SIGNER_SET_PASS_PHRASE)
+                setPassphrase = bundle.getBooleanValue(EXTRA_SIGNER_SET_PASS_PHRASE),
+                isInWallet = bundle.getBooleanValue(EXTRA_IS_IN_WALLET)
             )
         }
     }
