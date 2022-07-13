@@ -10,6 +10,7 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.transaction.components.send.amount.InputAmountActivity
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.*
 import com.nunchuk.android.transaction.databinding.ActivityTransactionConfirmBinding
 import com.nunchuk.android.widget.NCToastMessage
@@ -88,7 +89,7 @@ class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBindin
     private fun returnActiveRoom(roomId: String) {
         hideLoading()
         finish()
-        ActivityManager.instance.popUntilRoot()
+        ActivityManager.instance.popUntil(InputAmountActivity::class.java, true)
         navigator.openRoomDetailActivity(this, roomId)
     }
 
@@ -109,7 +110,7 @@ class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBindin
 
     private fun openTransactionDetailScreen(txId: String) {
         hideLoading()
-        ActivityManager.instance.popUntilRoot()
+        ActivityManager.instance.popUntil(InputAmountActivity::class.java, true)
         navigator.openTransactionDetailsScreen(
             activityContext = this,
             walletId = args.walletId,

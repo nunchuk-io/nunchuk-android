@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/nc_header_gradient_background"
+    app:layoutDescription="@xml/motion_collapse_wallet_header"
+    app:layout_constraintTop_toTopOf="parent">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        style="@style/NCToolbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:contentInsetStartWithNavigation="@dimen/nc_padding_16"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:menu="@menu/menu_wallet_details"
+        app:navigationIcon="@drawable/ic_back_white">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/toolbarTitle"
+            style="@style/NCToolbar.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/nc_white_color"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="Nunchuk’s Fun Fund" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <Space
+        android:id="@+id/spaceTop16"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/nc_padding_16"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/configuration_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/spaceTop16">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/configuration"
+            style="@style/NCText.Badges"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/nc_rounded_tag_whisper_background"
+            tools:text="2/3 Multisig" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/share_icon"
+            style="@style/NCText.Badges"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/nc_padding_4"
+            android:background="@drawable/nc_rounded_tag_whisper_background"
+            android:drawableStart="@drawable/ic_wallet_small"
+            android:drawablePadding="@dimen/nc_padding_4"
+            android:text="@string/nc_text_shared"
+            app:layout_constraintBottom_toBottomOf="@+id/btc"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/btc"
+            tools:text="Shared" />
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/btcAmount"
+        style="@style/NCText.Heading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/nc_padding_8"
+        android:textColor="@color/nc_white_color"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/configuration_container"
+        tools:text="1.00000001 BTC" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/cashAmount"
+        style="@style/NCText.Body.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_text_size_8"
+        android:paddingHorizontal="@dimen/nc_padding_8"
+        android:textColor="@color/nc_white_color"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btcAmount"
+        tools:text="$45,200" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/viewWalletConfig"
+        style="@style/NCText.Body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:paddingHorizontal="@dimen/nc_padding_8"
+        android:paddingVertical="@dimen/nc_padding_4"
+        android:text="@string/nc_wallet_view_wallet_config"
+        android:textColor="@color/nc_white_color"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cashAmount" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="end"
+        app:constraint_referenced_ids="configuration_container,btcAmount" />
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btnSend"
+        style="@style/NCPrimaryButton.Light.Solid"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:layout_marginEnd="@dimen/nc_padding_8"
+        android:text="@string/nc_wallet_send"
+        app:layout_constraintEnd_toStartOf="@id/guideline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/viewWalletConfig" />
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btnReceive"
+        style="@style/NCPrimaryButton.Light.Solid"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_8"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:layout_marginEnd="@dimen/nc_padding_16"
+        android:text="@string/nc_wallet_receive"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/guideline"
+        app:layout_constraintTop_toBottomOf="@+id/viewWalletConfig" />
+
+    <Space
+        android:id="@+id/spaceBottom16"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/nc_padding_16"
+        app:layout_constraintTop_toBottomOf="@+id/btnReceive" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollViewWalletTransactions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/nc_white_color"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/spaceBottom16">
+
+        <LinearLayout
+            android:id="@+id/clWalletTransactions"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/nc_white_color"
+            android:orientation="vertical"
+            tools:ignore="ContentDescription">
+
+            <LinearLayout
+                android:id="@+id/emptyTxContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:visibility="visible">
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/emptyTransactionTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_8"
+                    android:gravity="center"
+                    android:paddingHorizontal="@dimen/nc_padding_16"
+                    android:paddingVertical="@dimen/nc_padding_4"
+                    android:text="@string/nc_transaction_empty_title"
+                    android:textColor="@color/nc_primary_dark_color"
+                    android:textSize="@dimen/nc_text_size_16"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cvQR"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/nc_padding_16"
+                    android:layout_marginVertical="@dimen/nc_padding_2"
+                    app:cardCornerRadius="@dimen/nc_padding_8"
+                    app:cardUseCompatPadding="true">
+
+                    <LinearLayout
+                        android:id="@+id/llQR"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingVertical="@dimen/nc_padding_16">
+
+                        <ImageView
+                            android:id="@+id/addressQR"
+                            android:layout_width="180dp"
+                            android:layout_height="180dp"
+                            android:layout_gravity="center"
+                            android:layout_marginTop="@dimen/nc_padding_16"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/emptyTransactionTitle"
+                            tools:src="@drawable/ic_qr" />
+
+                        <com.nunchuk.android.widget.NCFontTextView
+                            android:id="@+id/addressText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/nc_padding_8"
+                            android:paddingHorizontal="@dimen/nc_padding_16"
+                            android:paddingVertical="@dimen/nc_padding_4"
+                            android:textColor="@color/nc_primary_dark_color"
+                            android:textSize="@dimen/nc_text_size_16"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            tools:text="bc1qepuayeutds0ys0q82g3ucad7r0eqk0dpusmxwvlpn5wkjcmhv6sqyulylk" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_32">
+
+                    <com.nunchuk.android.widget.NCFontTextView
+                        android:id="@+id/btnShare"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/nc_rounded_dark_background"
+                        android:drawableStart="@drawable/ic_share"
+                        android:drawablePadding="@dimen/nc_padding_4"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:gravity="center"
+                        android:paddingVertical="@dimen/nc_padding_8"
+                        android:paddingHorizontal="@dimen/nc_padding_32"
+                        android:text="@string/nc_address_share"
+                        android:textColor="@color/nc_white_color"
+                        android:textSize="@dimen/nc_text_size_14"
+                        app:fontTextStyle="semi_bold"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/btnCopy"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <com.nunchuk.android.widget.NCFontTextView
+                        android:id="@+id/btnCopy"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/nc_rounded_light_background"
+                        android:drawableStart="@drawable/ic_copy"
+                        android:drawablePadding="@dimen/nc_padding_4"
+                        android:paddingVertical="@dimen/nc_padding_8"
+                        android:paddingHorizontal="@dimen/nc_padding_32"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:gravity="center"
+                        android:text="@string/nc_address_copy"
+                        android:textColor="@color/nc_black_color"
+                        android:textSize="@dimen/nc_text_size_14"
+                        app:fontTextStyle="semi_bold"
+                        app:layout_constraintEnd_toStartOf="@+id/btnShare"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </LinearLayout>
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/transactionTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/nc_padding_8"
+                android:paddingHorizontal="@dimen/nc_padding_16"
+                android:paddingVertical="@dimen/nc_padding_4"
+                android:text="@string/nc_transaction"
+                android:textColor="@color/nc_primary_dark_color"
+                android:textSize="@dimen/nc_text_size_16"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/transactionList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/nc_white_color"
+        android:paddingHorizontal="@dimen/nc_padding_16"
+        android:paddingTop="@dimen/nc_padding_8"
+        android:paddingBottom="@dimen/nc_padding_56"
+        android:scrollbars="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/scrollViewWalletTransactions"
+        tools:listitem="@layout/item_transaction"
+        tools:visibility="visible" />
+
+</androidx.constraintlayout.motion.widget.MotionLayout>
+

@@ -8,6 +8,24 @@
     android:fillViewport="true"
     android:fitsSystemWindows="true">
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_gravity="center"
+        android:background="@color/nc_primary_color"
+        android:gravity="center"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/toolbarTitle"
+            style="@style/NCToolbar.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/nc_title_wallets"
+            android:textColor="@color/nc_white_color" />
+    </androidx.appcompat.widget.Toolbar>
+
     <androidx.core.widget.NestedScrollView
         android:id="@+id/content"
         android:layout_width="match_parent"
@@ -15,7 +33,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
@@ -39,10 +57,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:contentDescription="@string/nc_title_wallets"
-                    tools:src="@drawable/ic_key_info"
                     app:layout_constraintBottom_toBottomOf="@id/introSubtitle"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="@id/introTitle" />
+                    app:layout_constraintTop_toTopOf="@id/introTitle"
+                    tools:src="@drawable/ic_key_info" />
 
                 <com.nunchuk.android.widget.NCFontTextView
                     android:id="@+id/introTitle"
@@ -159,12 +177,12 @@
 
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/walletList"
-                android:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/nc_padding_8"
                 android:orientation="vertical"
-                android:paddingVertical="@dimen/nc_padding_8" />
+                android:paddingVertical="@dimen/nc_padding_8"
+                android:visibility="gone" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"

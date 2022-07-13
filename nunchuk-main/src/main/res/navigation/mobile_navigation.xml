@@ -22,4 +22,10 @@
         android:name="com.nunchuk.android.settings.AccountFragment"
         android:label="@string/nc_title_account"
         tools:layout="@layout/fragment_account" />
+
+    <fragment
+        android:id="@+id/walletDetailsFragment"
+        android:name="com.nunchuk.android.wallet.components.details.WalletDetailsFragment"
+        android:label="WalletDetailsFragment"
+        tools:layout="@layout/fragment_wallet_detail" />
 </navigation>
