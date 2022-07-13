@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -26,6 +27,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
+import com.nunchuk.android.wallet.components.details.WalletDetailsArgs
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -217,7 +219,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun openWalletDetailsScreen(walletId: String) {
-        navigator.openWalletDetailsScreen(requireActivity(), walletId)
+        findNavController().navigate(R.id.walletDetailsFragment, WalletDetailsArgs(walletId).buildBundle())
     }
 
     private fun showSigners(signers: List<SignerModel>) {

@@ -33,11 +33,11 @@ internal class SplashActivity : AppCompatActivity() {
         when (event) {
             NavActivateAccountEvent -> navigator.openChangePasswordScreen(this)
             NavSignInEvent -> navigator.openSignInScreen(this, false)
-            NavHomeScreenEvent -> navigator.openMainScreen(this)
+            is NavHomeScreenEvent -> navigator.openMainScreen(this, loginHalfToken = event.loginHalfToken, deviceId = event.deviceId)
             NavIntroEvent -> navigator.openIntroScreen(this)
             is InitErrorEvent -> NCToastMessage(this).showError(event.error)
         }
-        overridePendingTransition(0,0)
+        overridePendingTransition(0, 0)
         finish()
     }
 }

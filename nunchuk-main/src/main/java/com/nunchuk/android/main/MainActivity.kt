@@ -171,10 +171,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         )
     }
 
-    private val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
-        binding.toolbarTitle.text = destination.label
-    }
-
     private fun setupNavigationView() {
         val navView: BottomNavigationView = binding.navView
         navController = findNavController(R.id.nav_host_fragment_activity_main)
@@ -182,13 +178,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         navView.setOnNavigationItemReselectedListener {}
     }
 
-    override fun onResume() {
-        super.onResume()
-        navController.addOnDestinationChangedListener(listener)
-    }
-
     override fun onPause() {
-        navController.removeOnDestinationChangedListener(listener)
         super.onPause()
         if (!NotificationUtils.areNotificationsEnabled(this)) {
             NotificationUtils.openNotificationSettings(this)

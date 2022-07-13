@@ -38,7 +38,7 @@ internal class SplashViewModel @Inject constructor(
                 .flowOn(Dispatchers.IO)
                 .onException { event(InitErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
-                .collect { event(NavHomeScreenEvent) }
+                .collect { event(NavHomeScreenEvent(account.token, account.deviceId)) }
         }
     }
 
