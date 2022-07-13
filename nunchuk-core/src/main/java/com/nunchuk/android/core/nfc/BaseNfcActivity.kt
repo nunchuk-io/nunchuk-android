@@ -19,7 +19,6 @@ import com.nunchuk.android.core.util.isValidCvc
 import com.nunchuk.android.utils.PendingIntentUtils
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
-import com.nunchuk.android.widget.util.setLightStatusBar
 import timber.log.Timber
 
 abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() {

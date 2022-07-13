@@ -18,8 +18,8 @@
         <ProgressBar
             android:id="@+id/progressBar"
             style="?android:attr/progressBarStyle"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_gravity="center_horizontal"
             android:indeterminate="true"
             android:indeterminateTint="@color/nc_primary_color"
@@ -43,14 +43,6 @@
             android:gravity="center"
             android:lineSpacingMultiplier="1.5"
             tools:text="It is not recommended for the software signers to have complete control of the wallet. Software signers are not as safe as hardware signers. Are you sure you want to proceed?" />
-
-        <com.nunchuk.android.widget.NCFontTextView
-            android:id="@+id/btnYes"
-            style="@style/NCPrimaryButton.Light.Solid"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/nc_padding_24"
-            android:text="@string/nc_text_cancel" />
     </LinearLayout>
 
 </FrameLayout>

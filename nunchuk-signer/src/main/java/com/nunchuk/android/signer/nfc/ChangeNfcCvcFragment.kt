@@ -24,7 +24,6 @@ import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.FragmentNfcChangeCvcBinding
 import com.nunchuk.android.widget.NCEditTextView
 import com.nunchuk.android.widget.NCInfoDialog
-import com.nunchuk.android.widget.NCInfoLoadingDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setMaxLength
 import dagger.hilt.android.AndroidEntryPoint
@@ -34,16 +33,6 @@ import kotlinx.coroutines.flow.filter
 class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
     private val nfcViewModel by activityViewModels<NfcViewModel>()
     private val viewModel by viewModels<ChangeNfcCvcViewModel>()
-
-    private val progressSetupDialog by lazy(LazyThreadSafetyMode.NONE) {
-        NCInfoLoadingDialog(requireActivity()).init(
-            cancelable = false,
-            message = getString(R.string.nc_keep_holding_near_key),
-            onBtnClick = {
-                viewModel.cancelSetupNfc()
-            }
-        )
-    }
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -99,12 +88,7 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
         lifecycleScope.launchWhenCreated {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.event.collect { state ->
-                    showOrHideLoading(state is ChangeNfcCvcEvent.Loading)
-                    if (state is ChangeNfcCvcEvent.LongLoading) {
-                        progressSetupDialog.show()
-                    } else {
-                        progressSetupDialog.hide()
-                    }
+                    showOrHideLoading(state is ChangeNfcCvcEvent.Loading, message = getString(R.string.nc_keep_holding_near_key))
                     when (state) {
                         is ChangeNfcCvcEvent.ChangeCvcSuccess -> {
                             NCToastMessage(requireActivity()).show(getString(R.string.nc_cvc_has_been_changed))

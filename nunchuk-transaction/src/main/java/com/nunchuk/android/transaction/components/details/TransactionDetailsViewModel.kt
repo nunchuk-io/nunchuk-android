@@ -304,7 +304,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private fun signRoomTransactionTapSigner(isoDep: IsoDep, inputCvc: String) {
         viewModelScope.launch {
-            setEvent(LoadingEvent)
+            setEvent(NfcLoadingEvent)
             val result = signRoomTransactionByTapSignerUseCase(SignRoomTransactionByTapSignerUseCase.Data(isoDep, inputCvc, initEventId))
             if (result.isSuccess) {
                 setEvent(SignTransactionSuccess(SessionHolder.getActiveRoomId()))
@@ -316,7 +316,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private fun signPersonTapSignerTransaction(isoDep: IsoDep, inputCvc: String) {
         viewModelScope.launch {
-            setEvent(LoadingEvent)
+            setEvent(NfcLoadingEvent)
             val result = signTransactionByTapSignerUseCase(
                 SignTransactionByTapSignerUseCase.Data(
                     isoDep = isoDep,

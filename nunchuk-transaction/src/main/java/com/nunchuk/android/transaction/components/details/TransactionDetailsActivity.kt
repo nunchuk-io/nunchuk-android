@@ -1,9 +1,6 @@
 package com.nunchuk.android.transaction.components.details
 
 import android.app.Activity
-import android.content.ActivityNotFoundException
-import android.content.Intent
-import android.net.Uri
 import android.nfc.tech.IsoDep
 import android.os.Bundle
 import androidx.activity.viewModels
@@ -24,8 +21,8 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.imports.ImportTransactionActivity
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
-import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
@@ -244,15 +241,19 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             is BroadcastTransactionSuccess -> showBroadcastTransactionSuccess(event.roomId)
             DeleteTransactionSuccess -> showTransactionDeleteSuccess()
             is ViewBlockchainExplorer -> openExternalLink(event.url)
-            is TransactionDetailsError -> {
-                if (nfcViewModel.handleNfcError(event.e).not()) showError(event.message)
-            }
+            is TransactionDetailsError -> handleSignError(event)
             is PromptInputPassphrase -> requireInputPassphrase(event.func)
             is PromptTransactionOptions -> promptTransactionOptions(event.isPendingTransaction)
             LoadingEvent -> showLoading()
+            NfcLoadingEvent -> showLoading(message = getString(R.string.nc_keep_holding_nfc))
             is ExportToFileSuccess -> showExportToFileSuccess(event)
             is ExportTransactionError -> showExportToFileError(event)
         }
+    }
+
+    private fun handleSignError(event: TransactionDetailsError) {
+        hideLoading()
+        if (nfcViewModel.handleNfcError(event.e).not()) showError(event.message)
     }
 
     private fun showExportToFileError(event: ExportTransactionError) {

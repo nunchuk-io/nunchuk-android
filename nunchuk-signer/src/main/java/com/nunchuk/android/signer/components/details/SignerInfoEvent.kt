@@ -5,7 +5,7 @@ import com.nunchuk.android.model.SingleSigner
 
 sealed class SignerInfoEvent {
 
-    object Loading : SignerInfoEvent()
+    object NfcLoading : SignerInfoEvent()
 
     data class UpdateNameSuccessEvent(val signerName: String) : SignerInfoEvent()
 

@@ -54,7 +54,7 @@
     <string name="nc_config_cvc_failed">Config cvc failed</string>
     <string name="nc_create_signer_failed">Create signer failed</string>
     <string name="nc_set_up_chain_code">Set up chain code</string>
-    <string name="nc_chain_code_desc">The chain code is a 32-byte of entropy, used for the key picking process. How do you want to generate the chain code?</string>
+    <string name="nc_chain_code_desc">The chain code is a 32-byte of entropy, used for the key picking process.</string>
     <string name="nc_automatic">Automatic</string>
     <string name="nc_advanced">Advanced</string>
     <string name="nc_pick_my_chain_code">I’ll pick my chain code</string>
