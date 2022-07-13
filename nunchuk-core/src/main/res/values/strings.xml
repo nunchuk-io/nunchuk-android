@@ -62,6 +62,6 @@
     <string name="nc_required_minimum_6_characters">CVC from 6 characters to 32 characters </string>
     <string name="nc_cvc_incorrect_3_times">Key locked, either due to too many failed CVC attempts or a power loss. To unlock, please hold the key near the device for at least 15 seconds on the next tap.</string>
     <string name="nc_ready_to_scan">Ready to Scan</string>
-    <string name="nc_hold_your_device_near_the_nfc">Hold your device near the NFC key.</string>
+    <string name="nc_hold_your_device_near_the_nfc">Hold the key near the NFC key.</string>
     <string name="nc_keep_holding_nfc">Keep holding the key near the device until it\'s finished.</string>
 </resources>
