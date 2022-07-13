@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.InitWalletUseCase
@@ -30,7 +31,8 @@ internal class ReviewSharedWalletViewModel @Inject constructor(
         walletType: WalletType,
         addressType: AddressType,
         totalSigns: Int,
-        requireSigns: Int
+        requireSigns: Int,
+        signers: List<SingleSigner>
     ) {
         SessionHolder.currentRoom?.roomId?.let {
             initWallet(
@@ -39,7 +41,8 @@ internal class ReviewSharedWalletViewModel @Inject constructor(
                 walletType = walletType,
                 addressType = addressType,
                 totalSigns = totalSigns,
-                requireSigns = requireSigns
+                requireSigns = requireSigns,
+                signers = signers
             )
         }
     }
@@ -50,7 +53,8 @@ internal class ReviewSharedWalletViewModel @Inject constructor(
         walletType: WalletType,
         addressType: AddressType,
         totalSigns: Int,
-        requireSigns: Int
+        requireSigns: Int,
+        signers : List<SingleSigner>
     ) {
         viewModelScope.launch {
             initWalletUseCase.execute(
@@ -59,12 +63,16 @@ internal class ReviewSharedWalletViewModel @Inject constructor(
                 totalSigns = totalSigns,
                 requireSigns = requireSigns,
                 addressType = addressType,
-                isEscrow = walletType == WalletType.ESCROW
+                isEscrow = walletType == WalletType.ESCROW,
+                des = "",
+                signers = signers
             )
                 .flowOn(Dispatchers.IO)
                 .onException { event(ReviewSharedWalletEvent.InitWalletErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
-                .collect { event(ReviewSharedWalletEvent.InitWalletCompletedEvent) }
+                .collect {
+                    event(ReviewSharedWalletEvent.InitWalletCompletedEvent)
+                }
         }
     }
 

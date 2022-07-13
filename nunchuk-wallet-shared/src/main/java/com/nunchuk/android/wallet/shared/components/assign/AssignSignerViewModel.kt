@@ -2,6 +2,7 @@ package com.nunchuk.android.wallet.shared.components.assign
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.domain.SendErrorEventUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.readableMessage
@@ -24,7 +25,8 @@ internal class AssignSignerViewModel @Inject constructor(
     private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     private val getUnusedSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
     private val joinWalletUseCase: JoinWalletUseCase,
-    private val sendErrorEventUseCase: SendErrorEventUseCase
+    private val sendErrorEventUseCase: SendErrorEventUseCase,
+    private val hasSignerUseCase: HasSignerUseCase
 ) : NunchukViewModel<AssignSignerState, AssignSignerEvent>() {
 
     override val initialState = AssignSignerState()
@@ -32,6 +34,25 @@ internal class AssignSignerViewModel @Inject constructor(
     fun init() {
         updateState { initialState }
         getSigners()
+    }
+
+    fun filterSigners(signer: SingleSigner) {
+        hasSignerUseCase.execute(signer)
+            .flowOn(Dispatchers.IO)
+            .onException {  }
+            .onEach {
+                if (it) {
+                    updateState {
+                        val newList = filterRecSigners.toMutableList()
+                        newList.add(signer)
+                        copy(
+                            filterRecSigners = newList
+                        )
+                    }
+                }
+            }
+            .flowOn(Dispatchers.Main)
+            .launchIn(viewModelScope)
     }
 
     private fun getSigners() {
@@ -59,7 +80,8 @@ internal class AssignSignerViewModel @Inject constructor(
     fun handleContinueEvent(walletType: WalletType, addressType: AddressType) {
         val state = getState()
         val masterSigners = state.masterSigners.filter { it.device.masterFingerprint in state.selectedPFXs }
-        val remoteSigners = state.remoteSigners.filter { it.masterFingerprint in state.selectedPFXs }
+        //
+        val remoteSigners = if (state.filterRecSigners.isNotEmpty()) state.filterRecSigners.filter { it.masterFingerprint in state.selectedPFXs } else state.remoteSigners.filter { it.masterFingerprint in state.selectedPFXs }
 
         if (masterSigners.isEmpty() && remoteSigners.isEmpty()) {
             event(AssignSignerErrorEvent("No keys found"))
@@ -74,7 +96,7 @@ internal class AssignSignerViewModel @Inject constructor(
                 .collect { unusedSignerSigners.addAll(it) }
 
             SessionHolder.currentRoom?.let { room ->
-                joinWalletUseCase.execute(room.roomId, remoteSigners + unusedSignerSigners)
+                joinWalletUseCase.execute(room.roomId, if (state.filterRecSigners.isNotEmpty()) remoteSigners else remoteSigners + unusedSignerSigners)
                     .flowOn(Dispatchers.IO)
                     .onException {
                         event(AssignSignerErrorEvent(it.readableMessage()))

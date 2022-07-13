@@ -7,6 +7,7 @@ import com.nunchuk.android.type.AddressType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
+import kotlin.properties.Delegates
 
 interface CreateWalletUseCase {
     fun execute(

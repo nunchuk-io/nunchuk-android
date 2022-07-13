@@ -109,7 +109,9 @@ internal class AccountViewModel @Inject constructor(
         viewModelScope.launch {
             repository.signOut()
                 .flowOn(Dispatchers.IO)
-                .onException { }
+                .onException {
+                    event(AccountEvent.LoadingEvent(false))
+                }
                 .collect {}
         }
         accountManager.signOut(

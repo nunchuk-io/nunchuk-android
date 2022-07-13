@@ -5,6 +5,20 @@
     <application>
 
         <activity
+            android:name=".components.recover.AddRecoverSharedWalletActivity"
+            android:label="@string/nc_txt_recover_collaborative_wallet"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".components.recover.RecoverSharedWalletActivity"
+            android:label="@string/nc_txt_recover_collaborative_wallet"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
             android:name=".components.create.CreateSharedWalletActivity"
             android:label="@string/nc_wallet_create_shared_wallet"
             android:screenOrientation="portrait"

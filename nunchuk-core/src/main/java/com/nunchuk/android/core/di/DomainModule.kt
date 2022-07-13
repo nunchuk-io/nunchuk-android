@@ -18,6 +18,8 @@ import com.nunchuk.android.core.domain.GetSyncFileUseCase
 import com.nunchuk.android.core.domain.GetSyncFileUseCaseImpl
 import com.nunchuk.android.core.domain.GetSyncSettingUseCase
 import com.nunchuk.android.core.domain.GetSyncSettingUseCaseImpl
+import com.nunchuk.android.core.domain.HasSignerUseCase
+import com.nunchuk.android.core.domain.HasSignerUseCaseImpl
 import com.nunchuk.android.core.domain.HealthCheckMasterSignerUseCase
 import com.nunchuk.android.core.domain.HealthCheckMasterSignerUseCaseImpl
 import com.nunchuk.android.core.domain.HideBannerNewChatUseCase
@@ -26,6 +28,8 @@ import com.nunchuk.android.core.domain.InitAppSettingsUseCase
 import com.nunchuk.android.core.domain.InitAppSettingsUseCaseImpl
 import com.nunchuk.android.core.domain.LoginWithMatrixUseCase
 import com.nunchuk.android.core.domain.LoginWithMatrixUseCaseImpl
+import com.nunchuk.android.core.domain.ParseWalletDescriptorUseCase
+import com.nunchuk.android.core.domain.ParseWalletDescriptorUseCaseImpl
 import com.nunchuk.android.core.domain.SaveCacheFileUseCase
 import com.nunchuk.android.core.domain.SaveCacheFileUseCaseImpl
 import com.nunchuk.android.core.domain.ScheduleGetPriceConvertBTCUseCase
@@ -108,4 +112,9 @@ internal interface DomainModule {
     @Binds
     fun bindGetSyncSettingUseCase(useCase: GetSyncSettingUseCaseImpl): GetSyncSettingUseCase
 
+    @Binds
+    fun bindParseWalletDescriptorUseCase(useCase: ParseWalletDescriptorUseCaseImpl): ParseWalletDescriptorUseCase
+
+    @Binds
+    fun bindHasSignerUseCase(useCase: HasSignerUseCaseImpl): HasSignerUseCase
 }

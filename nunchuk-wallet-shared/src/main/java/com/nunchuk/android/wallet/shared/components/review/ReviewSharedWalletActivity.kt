@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.shared.databinding.ActivityReviewSharedWalletBinding
@@ -46,7 +47,8 @@ class ReviewSharedWalletActivity : BaseActivity<ActivityReviewSharedWalletBindin
                 args.walletType,
                 args.addressType,
                 args.totalSigns,
-                args.requireSigns
+                args.requireSigns,
+                args.signers
             )
         }
         binding.toolbar.setNavigationOnClickListener {
@@ -75,7 +77,8 @@ class ReviewSharedWalletActivity : BaseActivity<ActivityReviewSharedWalletBindin
             walletType = args.walletType,
             addressType = args.addressType,
             totalSigns = args.totalSigns,
-            requireSigns = args.requireSigns
+            requireSigns = args.requireSigns,
+            signers = args.signers
         )
     }
 
@@ -87,7 +90,8 @@ class ReviewSharedWalletActivity : BaseActivity<ActivityReviewSharedWalletBindin
             walletType: WalletType,
             addressType: AddressType,
             totalSigns: Int,
-            requireSigns: Int
+            requireSigns: Int,
+            signers: List<SingleSigner>
         ) {
             activityContext.startActivity(
                 ReviewSharedWalletArgs(
@@ -95,7 +99,8 @@ class ReviewSharedWalletActivity : BaseActivity<ActivityReviewSharedWalletBindin
                     walletType = walletType,
                     addressType = addressType,
                     totalSigns = totalSigns,
-                    requireSigns = requireSigns
+                    requireSigns = requireSigns,
+                    signers = signers
                 ).buildIntent(activityContext)
             )
         }
