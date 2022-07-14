@@ -88,7 +88,7 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
         lifecycleScope.launchWhenCreated {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.event.collect { state ->
-                    showOrHideLoading(state is ChangeNfcCvcEvent.Loading, message = getString(R.string.nc_keep_holding_near_key))
+                    showOrHideLoading(state is ChangeNfcCvcEvent.Loading, message = getString(R.string.nc_keep_holding_nfc))
                     when (state) {
                         is ChangeNfcCvcEvent.ChangeCvcSuccess -> {
                             NCToastMessage(requireActivity()).show(getString(R.string.nc_cvc_has_been_changed))

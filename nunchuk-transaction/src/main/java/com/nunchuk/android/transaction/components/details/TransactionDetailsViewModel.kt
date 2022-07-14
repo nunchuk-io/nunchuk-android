@@ -73,17 +73,19 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     private fun getContacts() {
-        viewModelScope.launch {
-            getContactsUseCase.execute()
-                .defaultSchedulers()
-                .subscribe({ contacts = it }, { contacts = emptyList() })
-                .addToDisposables()
-        }
+        getContactsUseCase.execute()
+            .defaultSchedulers()
+            .subscribe({
+                contacts = it
+                getSharedTransaction()
+            }, { contacts = emptyList() })
+            .addToDisposables()
     }
 
     fun getTransactionInfo() {
+        setEvent(LoadingEvent)
         if (isSharedTransaction()) {
-            getSharedTransaction()
+            getContacts()
         } else {
             getPersonalTransaction()
         }
@@ -104,7 +106,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     private fun getSharedTransaction() {
-        getContacts()
         viewModelScope.launch {
             getAllSignersUseCase.execute()
                 .zip(getRoomWalletUseCase.execute(roomId).map {

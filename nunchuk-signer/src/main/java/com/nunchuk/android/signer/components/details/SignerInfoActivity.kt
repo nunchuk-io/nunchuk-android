@@ -143,7 +143,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     }
 
     private fun handleEvent(event: SignerInfoEvent) {
-        showOrHideLoading(event is NfcLoading, getString(R.string.nc_keep_holding_near_key))
+        showOrHideLoading(event is NfcLoading, getString(R.string.nc_keep_holding_nfc))
         when (event) {
             is UpdateNameSuccessEvent -> {
                 binding.signerName.text = event.signerName

@@ -43,7 +43,7 @@
     <string name="nc_add_nfc_key_desc">This NFC key has already been set up. Do you want to add it to Nunchuk?</string>
     <string name="nc_setup_nfc_key_desc">This NFC key has not been set up yet. Do you want to set it up now?</string>
     <string name="nc_name_your_key">Name your key</string>
-    <string name="nc_add_your_key_hint">Adding your key to Nunchuk requires you to hold the key near your key up to 15 seconds</string>
+    <string name="nc_add_your_key_hint">Adding your key to Nunchuk requires you to hold the key near the device up to 15 seconds</string>
     <string name="nc_nfc_key_already_added">This key has already been added.</string>
     <string name="nc_top_up_xpubs">Top up XPUBs</string>
     <string name="nc_change_cvc">Change CVC</string>
@@ -65,7 +65,6 @@
     <string name="nc_set_up_nfc_hint">We’ll scan your NFC key again to activate it. This could take a few seconds.\n\nWe’ll give you an encrypted backup file for the key once this process is done.</string>
     <string name="nc_recovery_key_info_desc">The encrypted backup file you just saved is required if you want to recover the NFC key later.\n\nYou’ll also need the decryption key printed on the back of the card.</string>
     <string name="nc_nfc_key_recovery_info_title">NFC key recovery information</string>
-    <string name="nc_keep_holding_near_key">Keep holding the key near your key until it’s finished.</string>
     <string name="nc_confirm_change_cvc">Confirm change CVC</string>
     <string name="nc_xpub_topped_up">XPUBs have been topped up</string>
     <string name="nc_card_id">Card ID</string>

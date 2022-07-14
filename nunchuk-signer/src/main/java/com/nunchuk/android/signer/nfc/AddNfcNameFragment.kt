@@ -60,7 +60,7 @@ class AddNfcNameFragment : BaseFragment<FragmentNfcAddNameKeyBinding>() {
         lifecycleScope.launchWhenCreated {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.event.collect { state ->
-                    showOrHideLoading(state is AddNfcNameState.Loading, message = getString(R.string.nc_keep_holding_near_key))
+                    showOrHideLoading(state is AddNfcNameState.Loading, message = getString(R.string.nc_keep_holding_nfc))
                     if (state is AddNfcNameState.Success) {
                         navigator.openSignerInfoScreen(
                             activityContext = requireActivity(),
