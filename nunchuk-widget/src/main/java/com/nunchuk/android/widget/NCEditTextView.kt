@@ -7,9 +7,7 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
-import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -104,27 +102,7 @@ class NCEditTextView @JvmOverloads constructor(
         binding.editText.setTextColor(editTextColor)
         binding.editText.setTextSize(TypedValue.COMPLEX_UNIT_PX, editTextSize)
 
-        when (inputType) {
-            TEXT_TYPE -> {
-                binding.editText.inputType = EditorInfo.TYPE_CLASS_TEXT
-                binding.editText.setSingleLine()
-            }
-            NUMBER_TYPE -> {
-                binding.editText.inputType = EditorInfo.TYPE_CLASS_PHONE
-                binding.editText.setSingleLine()
-            }
-            TEXT_MULTI_LINE_TYPE -> {
-                binding.editText.inputType = EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE
-                binding.editText.isSingleLine = false
-            }
-            TEXT_READ_ONLY_TYPE -> {
-                binding.editText.inputType = InputType.TYPE_NULL
-                binding.editText.setTextIsSelectable(false)
-            }
-            TEXT_NO_SUGGESTION -> {
-                binding.editText.inputType = InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-            }
-        }
+        setInputType(inputType)
 
         val padding12 = context.resources.getDimensionPixelOffset(R.dimen.nc_padding_12)
         val padding10 = context.resources.getDimensionPixelOffset(R.dimen.nc_padding_10)
@@ -139,6 +117,30 @@ class NCEditTextView @JvmOverloads constructor(
 
         binding.editText.setBackgroundResource(editTextBackground)
         binding.editText.layoutParams.height = editHigh.toInt()
+    }
+
+    fun setInputType(inputType: Int) {
+        when (inputType) {
+            TEXT_TYPE -> {
+                binding.editText.inputType = InputType.TYPE_CLASS_TEXT
+                binding.editText.setSingleLine()
+            }
+            NUMBER_TYPE -> {
+                binding.editText.inputType = InputType.TYPE_CLASS_NUMBER
+                binding.editText.setSingleLine()
+            }
+            TEXT_MULTI_LINE_TYPE -> {
+                binding.editText.inputType = InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                binding.editText.isSingleLine = false
+            }
+            TEXT_READ_ONLY_TYPE -> {
+                binding.editText.inputType = InputType.TYPE_NULL
+                binding.editText.setTextIsSelectable(false)
+            }
+            TEXT_NO_SUGGESTION -> {
+                binding.editText.inputType = InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            }
+        }
     }
 
     fun getTextView(): TextView = binding.textView

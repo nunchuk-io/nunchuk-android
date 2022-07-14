@@ -70,6 +70,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
         this.txId = txId
         this.initEventId = initEventId
         this.roomId = roomId
+
+        if (isSharedTransaction()) {
+            getContacts()
+        }
     }
 
     private fun getContacts() {
@@ -80,7 +84,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 getSharedTransaction()
             }, {
                 contacts = emptyList()
-                getSharedTransaction()
             })
             .addToDisposables()
     }
@@ -88,7 +91,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     fun getTransactionInfo() {
         setEvent(LoadingEvent)
         if (isSharedTransaction()) {
-            getContacts()
+            getSharedTransaction()
         } else {
             getPersonalTransaction()
         }

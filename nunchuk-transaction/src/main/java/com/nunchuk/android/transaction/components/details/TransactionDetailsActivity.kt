@@ -1,6 +1,7 @@
 package com.nunchuk.android.transaction.components.details
 
 import android.app.Activity
+import android.nfc.NfcAdapter
 import android.nfc.tech.IsoDep
 import android.os.Bundle
 import androidx.activity.viewModels
@@ -64,8 +65,9 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     override fun onResume() {
         super.onResume()
-        showLoading()
-        viewModel.getTransactionInfo()
+        if (intent.action != NfcAdapter.ACTION_NDEF_DISCOVERED) {
+            viewModel.getTransactionInfo()
+        }
     }
 
     private fun observeEvent() {
@@ -146,7 +148,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     private fun bindTransaction(transaction: Transaction) {
-        binding.toolbar.menu.findItem(R.id.menu_more).isVisible = transaction.status != TransactionStatus.CONFIRMED && transaction.status != TransactionStatus.PENDING_CONFIRMATION
+        binding.toolbar.menu.findItem(R.id.menu_more).isVisible =
+            transaction.status != TransactionStatus.CONFIRMED && transaction.status != TransactionStatus.PENDING_CONFIRMATION
         val output = if (transaction.isReceive) {
             transaction.receiveOutputs.firstOrNull()
         } else {

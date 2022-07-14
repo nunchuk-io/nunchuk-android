@@ -19,6 +19,7 @@ import com.nunchuk.android.core.util.isValidCvc
 import com.nunchuk.android.utils.PendingIntentUtils
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
+import com.nunchuk.android.widget.NUMBER_TYPE
 import timber.log.Timber
 
 abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() {
@@ -185,12 +186,14 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
                 },
                 isMaskedInput = true,
                 errorMessage = errorMessage,
-                descMessage = descMessage
+                descMessage = descMessage,
+                inputType = NUMBER_TYPE
             ).show()
     }
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
+        setIntent(intent)
         processNfcIntent(intent ?: return)
     }
 

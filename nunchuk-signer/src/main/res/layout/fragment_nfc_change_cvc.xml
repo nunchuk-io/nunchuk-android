@@ -25,8 +25,8 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:fillViewport="true"
         android:layout_marginBottom="@dimen/nc_padding_16"
+        android:fillViewport="true"
         app:layout_constraintBottom_toTopOf="@+id/btn_continue"
         app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
@@ -51,6 +51,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/nc_padding_16"
+                app:edit_input_type="number"
                 app:edit_title_color="@color/nc_black_color"
                 app:edit_title_text_size="@dimen/nc_text_size_16"
                 app:layout_constraintStart_toStartOf="parent"
@@ -72,6 +73,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/nc_padding_16"
+                app:edit_input_type="number"
                 app:edit_title_color="@color/nc_black_color"
                 app:edit_title_text_size="@dimen/nc_text_size_16"
                 app:layout_constraintStart_toStartOf="parent"
@@ -93,6 +95,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/nc_padding_16"
+                app:edit_input_type="number"
                 app:edit_title_color="@color/nc_black_color"
                 app:edit_title_text_size="@dimen/nc_text_size_16"
                 app:layout_constraintStart_toStartOf="parent"
@@ -108,8 +111,8 @@
                 style="@style/NCText.Title.Small"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/nc_padding_16"
                 android:layout_marginStart="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_16"
                 android:layout_marginEnd="@dimen/nc_padding_16"
                 android:background="@drawable/nc_rounded_whisper_background"
                 android:drawableStart="@drawable/ic_info"

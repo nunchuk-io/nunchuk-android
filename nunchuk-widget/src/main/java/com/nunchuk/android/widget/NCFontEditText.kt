@@ -53,7 +53,7 @@ class NCFontEditText : AppCompatEditText {
     }
 
     private fun passwordEnabled() {
-        inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+        inputType = inputType or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
         transformationMethod = PasswordTransformationMethod.getInstance()
         setSelection(length())
     }

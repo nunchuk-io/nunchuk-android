@@ -24,7 +24,7 @@ class SetupTapSignerUseCase @Inject constructor(
     override suspend fun executeNfc(parameters: Data): Result {
         val tapStatus = nunchukNativeSdk.setupTapSigner(parameters.isoDep, parameters.oldCvc, parameters.newCvc, parameters.chainCode)
         coroutineContext.ensureActive()
-        val masterSigner = nunchukNativeSdk.createTapSigner(parameters.isoDep, parameters.newCvc, "")
+        val masterSigner = nunchukNativeSdk.createTapSigner(parameters.isoDep, parameters.newCvc, "NFC Key")
         val filePath = NfcFile.storeBackupKeyToFile(context, tapStatus)
         return Result(filePath, masterSigner)
     }

@@ -1,7 +1,6 @@
 package com.nunchuk.android.widget
 
 import android.app.Dialog
-import android.app.ProgressDialog.show
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -18,7 +17,8 @@ class NCInputDialog @Inject constructor(private val context: Context) {
         onCanceled: () -> Unit = {},
         isMaskedInput: Boolean = false,
         errorMessage: String? = null,
-        descMessage: String? = null
+        descMessage: String? = null,
+        inputType: Int = TEXT_TYPE
     ) = Dialog(context).apply {
         window?.setBackgroundDrawableResource(android.R.color.transparent)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -35,6 +35,7 @@ class NCInputDialog @Inject constructor(private val context: Context) {
             onCanceled()
             dismiss()
         }
+        binding.message.setInputType(inputType)
         if (isMaskedInput) {
             binding.message.makeMaskedInput()
         }
