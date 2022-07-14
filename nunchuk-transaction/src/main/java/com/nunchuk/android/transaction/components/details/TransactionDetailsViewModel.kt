@@ -78,7 +78,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
             .subscribe({
                 contacts = it
                 getSharedTransaction()
-            }, { contacts = emptyList() })
+            }, {
+                contacts = emptyList()
+                getSharedTransaction()
+            })
             .addToDisposables()
     }
 

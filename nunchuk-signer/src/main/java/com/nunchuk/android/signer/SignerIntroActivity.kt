@@ -8,9 +8,7 @@ import androidx.activity.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.findNavController
 import com.nunchuk.android.core.nfc.BaseNfcActivity
-import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.signer.databinding.ActivitySignerIntroBinding
 import com.nunchuk.android.signer.nfc.NfcSetupActivity
@@ -18,6 +16,7 @@ import com.nunchuk.android.signer.nfc.SetUpNfcOptionSheet
 import com.nunchuk.android.signer.util.showAddNfcKey
 import com.nunchuk.android.signer.util.showNfcAlreadyAdded
 import com.nunchuk.android.signer.util.showSetupNfc
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
@@ -67,8 +66,18 @@ class SignerIntroActivity : BaseNfcActivity<ActivitySignerIntroBinding>(), SetUp
 
         lifecycleScope.launchWhenCreated {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.tapSignerStatus.collect {
-                    handleTapSignerStatus(it)
+                viewModel.event.collect {
+                    showOrHideLoading(it is SignerIntroState.Loading, message = getString(R.string.nc_keep_holding_nfc))
+                    when(it) {
+                        is SignerIntroState.GetTapSignerStatusSuccess -> handleTapSignerStatus(it.status)
+                        is SignerIntroState.GetTapSignerStatusError -> {
+                            val message = it.e?.message.orEmpty()
+                            if (message.isNotEmpty()) {
+                                NCToastMessage(this@SignerIntroActivity).showError(message)
+                            }
+                        }
+                        else -> {}
+                    }
                     viewModel.clearTapSignerStatus()
                 }
             }
