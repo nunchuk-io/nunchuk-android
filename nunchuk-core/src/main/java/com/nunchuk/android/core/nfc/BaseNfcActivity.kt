@@ -155,7 +155,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
     private fun getNfcPendingIntent(requestCode: Int) = PendingIntent.getActivity(
         this,
         0,
-        Intent(this, this.javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP).apply {
+        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP).apply {
             putExtra(EXTRA_REQUEST_NFC_CODE, requestCode)
         },
         PendingIntentUtils.getFlagCompat()
