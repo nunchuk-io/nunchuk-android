@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.NfcViewModel.Companion.EXTRA_MASTER_SIGNER_ID
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ActivityNfcSetupBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -35,7 +36,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNfcSetupBinding>() {
     }
 
     val setUpAction: Int
-        get() = intent.getIntExtra(EXTRA_ACTION, SETUP_NFC)
+            by lazy(LazyThreadSafetyMode.NONE) { intent.getIntExtra(EXTRA_ACTION, SETUP_NFC) }
 
     companion object {
         private const val EXTRA_ACTION = "EXTRA_ACTION"
@@ -44,9 +45,10 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNfcSetupBinding>() {
         const val CHANGE_CVC = 3
         const val RECOVER_NFC = 4
 
-        fun navigate(activity: Activity, setUpAction: Int) {
+        fun navigate(activity: Activity, setUpAction: Int, masterSignerId: String? = null) {
             activity.startActivity(Intent(activity, NfcSetupActivity::class.java).apply {
                 putExtra(EXTRA_ACTION, setUpAction)
+                putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
             })
         }
     }

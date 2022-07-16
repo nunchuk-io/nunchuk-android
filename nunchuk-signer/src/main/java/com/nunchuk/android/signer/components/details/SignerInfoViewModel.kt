@@ -172,9 +172,10 @@ internal class SignerInfoViewModel @Inject constructor(
     }
 
     fun getTapSignerBackup(isoDep: IsoDep, cvc: String) {
+        val masterSignerId = state.value?.masterSigner?.id ?: return
         viewModelScope.launch {
             event(NfcLoading)
-            val result = getTapSignerBackupUseCase(GetTapSignerBackupUseCase.Data(isoDep, cvc))
+            val result = getTapSignerBackupUseCase(GetTapSignerBackupUseCase.Data(isoDep, cvc, masterSignerId))
             if (result.isSuccess) {
                 event(GetTapSignerBackupKeyEvent(result.getOrThrow()))
             } else {

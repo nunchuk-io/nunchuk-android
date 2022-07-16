@@ -34,11 +34,11 @@ class ChangeNfcCvcViewModel @Inject constructor(
         }
     }
 
-    fun changeCvc(isoDep: IsoDep?, oldCvc: String, newCvc: String) {
+    fun changeCvc(isoDep: IsoDep?, oldCvc: String, newCvc: String, masterSignerId: String) {
         isoDep ?: return
         _event.value = ChangeNfcCvcEvent.Loading
         viewModelScope.launch {
-            val result = changeCvcTapSignerUseCase(ChangeCvcTapSignerUseCase.Data(isoDep, oldCvc, newCvc))
+            val result = changeCvcTapSignerUseCase(ChangeCvcTapSignerUseCase.Data(isoDep, oldCvc, newCvc, masterSignerId))
             if (result.isSuccess && result.getOrThrow()) {
                 _event.value = ChangeNfcCvcEvent.ChangeCvcSuccess
             } else {

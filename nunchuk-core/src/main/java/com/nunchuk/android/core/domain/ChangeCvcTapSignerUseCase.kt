@@ -18,8 +18,9 @@ class ChangeCvcTapSignerUseCase @Inject constructor(
             isoDep = parameters.isoDep,
             oldCvc = parameters.oldCvc,
             newCvc = parameters.newCvc,
+            masterSignerId = parameters.masterSignerId
         )
     }
 
-    class Data(isoDep: IsoDep, val oldCvc: String, val newCvc: String) : BaseNfcUseCase.Data(isoDep)
+    class Data(isoDep: IsoDep, val oldCvc: String, val newCvc: String, val masterSignerId: String) : BaseNfcUseCase.Data(isoDep)
 }

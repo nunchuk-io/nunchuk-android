@@ -21,8 +21,9 @@ class NfcViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val getMasterSignerUseCase: GetMasterSignerUseCase
 ) : ViewModel() {
+    val masterSignerId = savedStateHandle.get<String>(EXTRA_MASTER_SIGNER_ID).orEmpty()
+
     init {
-        val masterSignerId = savedStateHandle.get<String>(EXTRA_MASTER_SIGNER_ID).orEmpty()
         if (masterSignerId.isNotEmpty()) {
             viewModelScope.launch {
                 val result = getMasterSignerUseCase.execute(masterSignerId)
@@ -93,7 +94,7 @@ class NfcViewModel @Inject constructor(
     }
 
     companion object {
-        private const val EXTRA_MASTER_SIGNER_ID = "EXTRA_MASTER_SIGNER_ID"
+        const val EXTRA_MASTER_SIGNER_ID = "EXTRA_MASTER_SIGNER_ID"
     }
 }
 

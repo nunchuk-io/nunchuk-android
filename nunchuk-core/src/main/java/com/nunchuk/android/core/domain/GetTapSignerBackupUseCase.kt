@@ -21,10 +21,11 @@ class GetTapSignerBackupUseCase @Inject constructor(
     override suspend fun executeNfc(parameters: Data): String {
         val tapStatus = nunchukNativeSdk.getBackupTapSignerKey(
             isoDep = parameters.isoDep,
-            cvc = parameters.cvc
+            cvc = parameters.cvc,
+            masterSignerId = parameters.masterSignerId
         )
         return NfcFile.storeBackupKeyToFile(context, tapStatus)
     }
 
-    class Data(isoDep: IsoDep, val cvc: String) : BaseNfcUseCase.Data(isoDep)
+    class Data(isoDep: IsoDep, val cvc: String, val masterSignerId: String) : BaseNfcUseCase.Data(isoDep)
 }

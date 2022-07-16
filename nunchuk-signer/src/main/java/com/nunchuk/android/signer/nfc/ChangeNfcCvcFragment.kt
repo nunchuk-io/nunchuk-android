@@ -65,7 +65,8 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
                             viewModel.changeCvc(
                                 IsoDep.get(it.tag),
                                 binding.editExistCvc.getEditText(),
-                                binding.editNewCvc.getEditText()
+                                binding.editNewCvc.getEditText(),
+                                nfcViewModel.masterSignerId
                             )
                         }
                         nfcViewModel.clearScanInfo()
@@ -104,7 +105,8 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
                         }
                         is ChangeNfcCvcEvent.Error -> {
                             if (nfcViewModel.handleNfcError(state.e).not()) {
-                                NCToastMessage(requireActivity()).showError(getString(R.string.nc_config_cvc_failed))
+                                val message = state.e?.message ?: getString(R.string.nc_config_cvc_failed)
+                                NCToastMessage(requireActivity()).showError(message)
                             }
                         }
                         else -> {}

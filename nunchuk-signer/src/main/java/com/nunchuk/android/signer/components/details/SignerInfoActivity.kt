@@ -160,15 +160,19 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
                 icon = R.drawable.ic_check_circle_outline
             )
             is GetTapSignerBackupKeyEvent -> IntentSharingController.from(this).shareFile(event.backupKeyPath)
-            is GetTapSignerBackupKeyError -> nfcViewModel.handleNfcError(event.e)
+            is GetTapSignerBackupKeyError -> {
+                if (nfcViewModel.handleNfcError(event.e).not()) {
+                    val message = event.e?.message ?: getString(R.string.nc_backup_key_failed)
+                    NCToastMessage(this).showError(message)
+                }
+            }
             TopUpXpubSuccess -> NCToastMessage(this).showMessage(
                 message = getString(R.string.nc_xpub_topped_up),
                 icon = R.drawable.ic_check_circle_outline
             )
             is TopUpXpubFailed -> {
-                if (!event.e?.message.isNullOrEmpty()) {
-                    NCToastMessage(this).showError(event.e?.message.orEmpty())
-                }
+                val message = event.e?.message ?: getString(R.string.nc_topup_xpub_failed)
+                NCToastMessage(this).showError(message)
             }
         }
     }
