@@ -52,9 +52,15 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     override fun onOptionClickListener(option: SingerOption) {
         when (option) {
             SingerOption.TOP_UP -> startNfcFlow(REQUEST_NFC_TOPUP_XPUBS)
-            SingerOption.CHANGE_CVC -> NfcSetupActivity.navigate(this, NfcSetupActivity.CHANGE_CVC)
+            SingerOption.CHANGE_CVC -> onChangeCvcOptionClicked()
             SingerOption.BACKUP_KEY -> startNfcFlow(REQUEST_NFC_VIEW_BACKUP_KEY)
             SingerOption.REMOVE_KEY -> handleRemoveKey()
+        }
+    }
+
+    private fun onChangeCvcOptionClicked() {
+        viewModel.state.value?.masterSigner?.id?.let { masterSignerId ->
+            NfcSetupActivity.navigate(activity = this, setUpAction = NfcSetupActivity.CHANGE_CVC, masterSignerId = masterSignerId)
         }
     }
 
