@@ -1,6 +1,7 @@
 package com.nunchuk.android.transaction.components.details
 
 import android.app.Activity
+import android.content.Intent
 import android.nfc.NfcAdapter
 import android.nfc.tech.IsoDep
 import android.os.Bundle
@@ -34,6 +35,7 @@ import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
 class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBinding>() {
+    private var shouldReload: Boolean = true
 
     private val args: TransactionDetailsArgs by lazy { TransactionDetailsArgs.deserializeFrom(intent) }
 
@@ -42,6 +44,13 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 
     override fun initializeBinding() = ActivityTransactionDetailsBinding.inflate(layoutInflater)
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        if (NfcAdapter.ACTION_NDEF_DISCOVERED == intent?.action) {
+            shouldReload = false
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,9 +74,10 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     override fun onResume() {
         super.onResume()
-        if (intent.action != NfcAdapter.ACTION_NDEF_DISCOVERED) {
+        if (shouldReload) {
             viewModel.getTransactionInfo()
         }
+        shouldReload = true
     }
 
     private fun observeEvent() {
