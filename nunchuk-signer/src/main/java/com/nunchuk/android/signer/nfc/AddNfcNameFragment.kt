@@ -14,6 +14,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcViewModel
+import com.nunchuk.android.core.util.NFC_DEFAULT_NAME
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.FragmentNfcAddNameKeyBinding
@@ -84,7 +85,7 @@ class AddNfcNameFragment : BaseFragment<FragmentNfcAddNameKeyBinding>() {
 
     private fun initViews() {
         binding.tvHint.isVisible = nfcViewModel.masterSigner == null
-        binding.signerName.getEditTextView().setText(nfcViewModel.masterSigner?.name.orEmpty())
+        binding.signerName.getEditTextView().setText(nfcViewModel.masterSigner?.name ?: NFC_DEFAULT_NAME)
         binding.signerName.setMaxLength(20)
     }
 
