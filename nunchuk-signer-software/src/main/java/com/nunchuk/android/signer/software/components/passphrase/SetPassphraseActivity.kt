@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.*
 import com.nunchuk.android.signer.software.databinding.ActivitySetPassphraseBinding
@@ -46,7 +47,7 @@ class SetPassphraseActivity : BaseActivity<ActivitySetPassphraseBinding>() {
             PassPhraseRequiredEvent -> binding.passphrase.setError(getString(R.string.nc_text_required))
             ConfirmPassPhraseRequiredEvent -> binding.confirmPassphrase.setError(getString(R.string.nc_text_required))
             ConfirmPassPhraseNotMatchedEvent -> binding.confirmPassphrase.setError(getString(R.string.nc_text_confirm_passphrase_not_matched))
-            is CreateSoftwareSignerCompletedEvent -> onCreateSignerCompleted(event.id, event.name, event.skipPassphrase)
+            is CreateSoftwareSignerCompletedEvent -> onCreateSignerCompleted(event.masterSigner, event.skipPassphrase)
             is CreateSoftwareSignerErrorEvent -> onCreateSignerError(event)
             PassPhraseValidEvent -> removeValidationError()
             is LoadingEvent -> showLoading()
@@ -63,14 +64,14 @@ class SetPassphraseActivity : BaseActivity<ActivitySetPassphraseBinding>() {
         binding.confirmPassphrase.hideError()
     }
 
-    private fun onCreateSignerCompleted(id: String, name: String, skipPassphrase: Boolean) {
+    private fun onCreateSignerCompleted(masterSigner: MasterSigner, skipPassphrase: Boolean) {
         hideLoading()
         navigator.openSignerInfoScreen(
             activityContext = this,
-            id = id,
-            name = name,
+            id = masterSigner.id,
+            name = masterSigner.name,
             justAdded = true,
-            software = true,
+            type = masterSigner.type,
             setPassphrase = !skipPassphrase
         )
     }

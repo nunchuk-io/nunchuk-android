@@ -20,6 +20,7 @@
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/title"
+            style="@style/NCText.Title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
@@ -30,23 +31,33 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Enter your passphrase" />
 
-        <com.nunchuk.android.widget.NCFontEditText
-            android:id="@+id/message"
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/tvDesc"
+            style="@style/NCText.Body"
+            android:layout_marginTop="@dimen/nc_padding_12"
+            tools:visibility="visible"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginVertical="@dimen/nc_padding_16"
-            android:background="@drawable/nc_edit_text_bg"
-            android:inputType="textPassword"
-            android:padding="@dimen/nc_padding_12"
-            android:scrollHorizontally="false"
-            android:singleLine="false"
+            android:gravity="center"
             android:textColor="@color/nc_black_color"
-            android:textCursorDrawable="@null"
             android:textSize="@dimen/nc_text_size_16"
+            android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/title"
-            tools:text="tb1qgu4hrgq6elva2px86xefkkhsjkeh8a5sellrygtb1qgu4hrgq6elva2px86xefkkhsjkeh8a5sellryg" />
+            tools:text="Description here" />
+
+        <com.nunchuk.android.widget.NCEditTextView
+            android:id="@+id/message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_24"
+            app:edit_input_type="text"
+            app:edit_title_color="@color/nc_black_color"
+            app:edit_title_text_size="@dimen/nc_text_size_16"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvDesc" />
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guideline"
@@ -79,7 +90,7 @@
             android:text="@string/nc_text_confirm"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/guideline"
-        app:layout_constraintTop_toBottomOf="@+id/message" />
+            app:layout_constraintTop_toBottomOf="@+id/message" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

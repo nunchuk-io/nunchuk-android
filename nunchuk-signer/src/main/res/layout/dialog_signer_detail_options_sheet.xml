@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/nc_bottom_sheet_background"
+    android:orientation="vertical"
+    android:padding="@dimen/nc_padding_16"
+    android:paddingBottom="300dp"
+    app:behavior_hideable="false"
+    app:behavior_peekHeight="90dp">
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btn_top_up_xpu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:background="?attr/selectableItemBackground"
+        android:paddingVertical="@dimen/nc_padding_16"
+        android:text="@string/nc_top_up_xpubs"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btn_change_cvc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:paddingVertical="@dimen/nc_padding_16"
+        android:text="@string/nc_change_cvc"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btn_back_up_key"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:background="?attr/selectableItemBackground"
+        android:paddingVertical="@dimen/nc_padding_16"
+        android:text="@string/nc_back_up_key"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:drawableTint="@color/nc_primary_color" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btn_remove_key"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:paddingVertical="@dimen/nc_padding_16"
+        android:text="@string/nc_remove_key"
+        android:textColor="@color/nc_orange_dark_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:drawableTint="@color/nc_orange_dark_color" />
+
+</LinearLayout>

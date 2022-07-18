@@ -27,4 +27,5 @@
     <string name="nc_text_completed">Completed</string>
     <string name="nc_confirmation">Confirmation</string>
     <string name="nc_delete_account">Are you sure you want to delete this account? Please type DELETE to confirm.</string>
+    <string name="nc_please_wait">Please wait...</string>
 </resources>

@@ -70,7 +70,7 @@ internal class SetPassphraseViewModel @Inject constructor(
                 .flowOn(Dispatchers.Main)
                 .collect {
                     event(
-                        CreateSoftwareSignerCompletedEvent(id = it.id, name = it.name, skipPassphrase = skipPassphrase)
+                        CreateSoftwareSignerCompletedEvent(it, skipPassphrase)
                     )
                 }
         }

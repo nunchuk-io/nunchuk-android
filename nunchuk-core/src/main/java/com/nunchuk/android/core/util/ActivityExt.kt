@@ -29,8 +29,8 @@ fun Activity.hideLoading() {
     (this as BaseActivity<*>).hideLoading()
 }
 
-fun Activity.showOrHideLoading(loading: Boolean) {
-    (this as BaseActivity<*>).showOrHideLoading(loading)
+fun Activity.showOrHideLoading(loading: Boolean, message: String? = null) {
+    (this as BaseActivity<*>).showOrHideLoading(loading, message)
 }
 
 fun Activity.startActivityAppSetting() = startActivity(
@@ -48,8 +48,8 @@ fun Fragment.hideLoading() {
     activity?.let(FragmentActivity::hideLoading)
 }
 
-fun Fragment.showOrHideLoading(loading: Boolean) {
-    activity?.showOrHideLoading(loading)
+fun Fragment.showOrHideLoading(loading: Boolean, message: String? = null) {
+    activity?.showOrHideLoading(loading, message)
 }
 
 fun Fragment.pickPhotoWithResult(requestCode: Int) {

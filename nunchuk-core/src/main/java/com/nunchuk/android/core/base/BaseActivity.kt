@@ -1,6 +1,5 @@
 package com.nunchuk.android.core.base
 
-import android.app.Dialog
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewbinding.ViewBinding
@@ -23,25 +22,25 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity() {
     @Inject
     lateinit var accountManager: AccountManager
 
-    private lateinit var creator: NCLoadingDialogCreator
+    private val creator: NCLoadingDialogCreator by lazy(LazyThreadSafetyMode.NONE) {
+        NCLoadingDialogCreator(this)
+    }
 
     protected lateinit var binding: Binding
 
     abstract fun initializeBinding(): Binding
 
-    private var dialog: Dialog? = null
-
-    fun showLoading(cancelable: Boolean = true) {
-        dialog?.cancel()
-        dialog = creator.showDialog(cancelable)
+    fun showLoading(cancelable: Boolean = true, message: String? = null) {
+        creator.cancel()
+        creator.showDialog(cancelable, message)
     }
 
     fun hideLoading() {
-        dialog?.cancel()
+        creator.cancel()
     }
 
-    fun showOrHideLoading(loading: Boolean) {
-        if (loading) showLoading() else hideLoading()
+    fun showOrHideLoading(loading: Boolean, message: String? = null) {
+        if (loading) showLoading(message = message) else hideLoading()
     }
 
     override fun onResume() {
@@ -65,14 +64,12 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity() {
         overridePendingTransition(R.anim.enter, R.anim.exit)
 
         ActivityManager.instance.add(this)
-        creator = NCLoadingDialogCreator(this)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         DisposableManager.instance.dispose()
         ActivityManager.instance.remove(this)
-        dialog?.cancel()
+        creator.cancel()
     }
-
 }

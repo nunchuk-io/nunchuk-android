@@ -54,7 +54,7 @@ internal class AddSignerViewModel @Inject constructor(
                 .flowOn(IO)
                 .onException { event(AddSignerErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Main)
-                .collect { event(AddSignerSuccessEvent(id = it.masterSignerId, name = it.name)) }
+                .collect { event(AddSignerSuccessEvent(it)) }
         }
     }
 
