@@ -19,7 +19,7 @@
             style="@style/NCToolbar.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/nc_text_qr_code" />
+            android:text="@string/nc_export_as_qr_keystone" />
     </androidx.appcompat.widget.Toolbar>
 
     <ImageView

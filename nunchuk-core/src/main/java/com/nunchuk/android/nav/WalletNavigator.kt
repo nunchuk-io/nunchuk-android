@@ -1,6 +1,8 @@
 package com.nunchuk.android.nav
 
 import android.content.Context
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RoomWalletData
@@ -84,6 +86,8 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
     fun openUploadConfigurationScreen(activityContext: Context, walletId: String)
 
     fun openWalletConfigScreen(activityContext: Context, walletId: String)
+
+    fun openWalletConfigScreen(launcher: ActivityResultLauncher<Intent>,activityContext: Context, walletId: String)
 
     fun openDynamicQRScreen(activityContext: Context, values: List<String>)
 

@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -19,11 +20,14 @@ import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.core.qr.convertToQRCode
 import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
-import com.nunchuk.android.wallet.components.details.WalletDetailsOption.*
 import com.nunchuk.android.wallet.databinding.FragmentWalletDetailBinding
 import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.widget.NCToastMessage
@@ -38,10 +42,16 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>() {
+class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(), BottomSheetOptionListener {
 
     @Inject
     lateinit var textUtils: TextUtils
+
+    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            activity?.onBackPressed()
+        }
+    }
 
     private val controller: IntentSharingController by lazy { IntentSharingController.from(requireActivity()) }
 
@@ -81,6 +91,16 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>() {
         viewModel.syncData()
     }
 
+    override fun onOptionClicked(option: SheetOption) {
+        when (option.type) {
+            SheetOptionType.TYPE_IMPORT_PSBT -> handleImportPSBT()
+            SheetOptionType.TYPE_IMPORT_PSBT_QR -> showSubImportPsbtViaQr()
+            SheetOptionType.TYPE_PSBT_QR_KEY_STONE -> openImportTransactionScreen(TransactionOption.IMPORT_KEYSTONE)
+            SheetOptionType.TYPE_PSBT_QR_PASSPORT -> openImportTransactionScreen(TransactionOption.IMPORT_PASSPORT)
+            SheetOptionType.TYPE_SAVE_WALLET_CONFIG -> handleExportBSMS()
+        }
+    }
+
     private fun setupPaginationAdapter() {
         binding.transactionList.adapter = adapter.withLoadStateFooter(LoadStateAdapter())
         adapter.addLoadStateListener {
@@ -117,11 +137,8 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>() {
             is WalletDetailsError -> onGetWalletError(event)
             is SendMoneyEvent -> openInputAmountScreen(event)
             is UpdateUnusedAddress -> bindUnusedAddress(event.address)
-            is OpenDynamicQRScreen -> navigator.openDynamicQRScreen(requireActivity(), event.descriptors)
             is UploadWalletConfigEvent -> shareConfigurationFile(event.filePath)
-            is BackupWalletDescriptorEvent -> shareDescriptor(event.descriptor)
             is Loading -> showOrHideLoading(event.loading)
-            DeleteWalletSuccess -> walletDeleted()
             ImportPSBTSuccess -> onPSBTImported()
             is PaginationTransactions -> startPagination(event.hasTransactions)
         }
@@ -164,11 +181,6 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>() {
         }
     }
 
-    private fun walletDeleted() {
-        NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_wallet_delete_wallet_success))
-        requireActivity().onBackPressed()
-    }
-
     private fun bindUnusedAddress(address: String) {
         hideLoading()
         if (address.isEmpty()) {
@@ -201,7 +213,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>() {
 
         binding.viewWalletConfig.setUnderline()
         binding.viewWalletConfig.setOnClickListener {
-            navigator.openWalletConfigScreen(requireActivity(), args.walletId)
+            navigator.openWalletConfigScreen(launcher, requireActivity(), args.walletId)
         }
         binding.btnReceive.setOnClickListener { navigator.openReceiveTransactionScreen(requireActivity(), args.walletId) }
         binding.btnSend.setOnClickListener { viewModel.handleSendMoneyEvent() }
@@ -229,28 +241,27 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>() {
         setupPaginationAdapter()
     }
 
-    private fun shareDescriptor(descriptor: String) {
-        controller.shareText(descriptor)
-    }
-
     private fun shareConfigurationFile(filePath: String) {
         controller.shareFile(filePath)
     }
 
     private fun onMoreClicked() {
-        val bottomSheet = WalletUpdateBottomSheet.show(fragmentManager = childFragmentManager)
-        bottomSheet.setListener {
-            when (it) {
-                IMPORT_PSBT -> handleImportPSBT()
-                IMPORT_KEYSTONE -> openImportTransactionScreen(TransactionOption.IMPORT_KEYSTONE)
-                IMPORT_PASSPORT -> openImportTransactionScreen(TransactionOption.IMPORT_PASSPORT)
-                EXPORT_BSMS -> handleExportBSMS()
-                EXPORT_COLDCARD -> handleExportColdcard()
-                EXPORT_QR -> viewModel.handleExportWalletQR()
-                EXPORT_PASSPORT -> viewModel.handleExportPassport()
-                DELETE -> viewModel.handleDeleteWallet()
-            }
-        }
+        val options = listOf(
+            SheetOption(SheetOptionType.TYPE_IMPORT_PSBT, R.drawable.ic_import, R.string.nc_wallet_import_psbt),
+            SheetOption(SheetOptionType.TYPE_IMPORT_PSBT_QR, R.drawable.ic_import, R.string.nc_import_psbt_via_qr),
+            SheetOption(SheetOptionType.TYPE_IMPORT_PSBT, R.drawable.ic_backup, R.string.nc_wallet_save_wallet_configuration),
+        )
+        val bottomSheet = BottomSheetOption.newInstance(options)
+        bottomSheet.show(childFragmentManager, "BottomSheetOption")
+    }
+
+    private fun showSubImportPsbtViaQr() {
+        val options = listOf(
+            SheetOption(SheetOptionType.TYPE_PSBT_QR_KEY_STONE, R.drawable.ic_import, R.string.nc_wallet_import_keystone_seed_signer),
+            SheetOption(SheetOptionType.TYPE_PSBT_QR_KEY_STONE, R.drawable.ic_import, R.string.nc_wallet_import_passport),
+        )
+        val bottomSheet = BottomSheetOption.newInstance(options)
+        bottomSheet.show(childFragmentManager, "BottomSheetOption")
     }
 
     private fun openImportTransactionScreen(transactionOption: TransactionOption) {
@@ -261,9 +272,9 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>() {
         )
     }
 
-    private fun handleExportColdcard() {
+    private fun handleExportBSMS() {
         if (requireActivity().checkReadExternalPermission()) {
-            viewModel.handleExportColdcard()
+            viewModel.handleExportBSMS()
         }
     }
 
@@ -279,12 +290,6 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>() {
             intent?.data?.let {
                 getFileFromUri(requireActivity().contentResolver, it, requireActivity().cacheDir)
             }?.absolutePath?.let(viewModel::handleImportPSBT)
-        }
-    }
-
-    private fun handleExportBSMS() {
-        if (requireActivity().checkReadExternalPermission()) {
-            viewModel.handleExportBSMS()
         }
     }
 
