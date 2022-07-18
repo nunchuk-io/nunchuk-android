@@ -25,6 +25,8 @@ import com.nunchuk.android.wallet.shared.components.assign.AssignSignerSharedWal
 import com.nunchuk.android.wallet.shared.components.config.SharedWalletConfigActivity
 import com.nunchuk.android.wallet.shared.components.configure.ConfigureSharedWalletActivity
 import com.nunchuk.android.wallet.shared.components.create.CreateSharedWalletActivity
+import com.nunchuk.android.wallet.shared.components.recover.AddRecoverSharedWalletActivity
+import com.nunchuk.android.wallet.shared.components.recover.RecoverSharedWalletActivity
 import com.nunchuk.android.wallet.shared.components.review.ReviewSharedWalletActivity
 
 interface WalletNavigatorDelegate : WalletNavigator {
@@ -117,9 +119,10 @@ interface WalletNavigatorDelegate : WalletNavigator {
         walletType: WalletType,
         addressType: AddressType,
         totalSigns: Int,
-        requireSigns: Int
+        requireSigns: Int,
+        signers: List<SingleSigner>
     ) {
-        ReviewSharedWalletActivity.start(activityContext, walletName, walletType, addressType, totalSigns, requireSigns)
+        ReviewSharedWalletActivity.start(activityContext, walletName, walletType, addressType, totalSigns, requireSigns, signers)
     }
 
     override fun openAssignSignerSharedWalletScreen(
@@ -128,9 +131,10 @@ interface WalletNavigatorDelegate : WalletNavigator {
         walletType: WalletType,
         addressType: AddressType,
         totalSigns: Int,
-        requireSigns: Int
+        requireSigns: Int,
+        signers: List<SingleSigner>
     ) {
-        AssignSignerSharedWalletActivity.start(activityContext, walletName, walletType, addressType, totalSigns, requireSigns)
+        AssignSignerSharedWalletActivity.start(activityContext, walletName, walletType, addressType, totalSigns, requireSigns, signers)
     }
 
     override fun openSharedWalletConfigScreen(
@@ -149,4 +153,11 @@ interface WalletNavigatorDelegate : WalletNavigator {
         TaprootWarningActivity.start(activityContext, walletName, walletType, addressType)
     }
 
+    override fun openRecoverSharedWalletScreen(activityContext: Context) {
+        RecoverSharedWalletActivity.start(activityContext)
+    }
+
+    override fun openAddRecoverSharedWalletScreen(activityContext: Context, data: String) {
+        AddRecoverSharedWalletActivity.start(activityContext, data)
+    }
 }

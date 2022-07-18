@@ -4,6 +4,7 @@ import android.os.Parcelable
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import com.google.gson.reflect.TypeToken
+import com.nunchuk.android.type.SignerType
 import kotlinx.parcelize.Parcelize
 import org.json.JSONObject
 import java.io.Serializable
@@ -21,7 +22,7 @@ data class RoomWalletData(
     @SerializedName("m")
     val requireSigners: Int,
     @SerializedName("members")
-    val members: List<String>? = emptyList(),
+    val members: List<MemberData>? = emptyList(),
     @SerializedName("n")
     val totalSigners: Int,
     @SerializedName("name")
@@ -39,6 +40,28 @@ data class JoinKey(
     @SerializedName("signer_type")
     val signerType: String,
 ) : Serializable, Parcelable
+
+@Parcelize
+data class MemberData(
+    @SerializedName("xpub")
+    var xpub: String = "",
+
+    @SerializedName("public_key")
+    var publicKey: String = "",
+
+    @SerializedName("derivation_path")
+    var derivationPath: String = "",
+
+    @SerializedName("master_fingerprint")
+    var masterFingerprint: String = "",
+): Parcelable
+
+fun MemberData.toSingleSigner() = SingleSigner(
+    xpub = xpub,
+    publicKey = publicKey,
+    derivationPath = derivationPath,
+    masterFingerprint = masterFingerprint
+)
 
 fun String.toRoomWalletData(gson: Gson): RoomWalletData = gson.fromJson(this, RoomWalletData::class.java)
 

@@ -118,6 +118,14 @@ class CreateSharedWalletActivity : BaseActivity<ActivityCreateSharedWalletBindin
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
+
+        binding.btnRecover.setOnClickListener {
+            moveToRecoverSharedWallet()
+        }
+    }
+
+    private fun moveToRecoverSharedWallet() {
+        navigator.openRecoverSharedWalletScreen(this)
     }
 
     private fun handleCustomizeAddressChanged(checked: Boolean) {
