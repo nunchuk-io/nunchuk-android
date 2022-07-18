@@ -17,8 +17,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
-        android:layout_marginBottom="@dimen/nc_padding_48"
+        android:layout_marginBottom="@dimen/nc_padding_16"
         android:text="@string/nc_text_get_started"
+        app:layout_constraintBottom_toTopOf="@+id/btnSignIn"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btnSignIn"
+        style="@style/NCPrimaryButton.Dark"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginBottom="@dimen/nc_padding_24"
+        android:text="@string/nc_text_sign_in"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 

@@ -1,6 +1,8 @@
 package com.nunchuk.android.auth.nav
 
 import android.content.Context
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.auth.components.changepass.ChangePasswordActivity
 import com.nunchuk.android.auth.components.forgot.ForgotPasswordActivity
 import com.nunchuk.android.auth.components.recover.RecoverPasswordActivity
@@ -31,13 +33,14 @@ interface AuthNavigatorDelegate : AuthNavigator {
         ForgotPasswordActivity.start(activityContext)
     }
 
-    override fun openVerifyNewDeviceScreen(activityContext: Context, email: String, loginHalfToken: String, deviceId: String, staySignedIn: Boolean) {
-        VerifyNewDeviceActivity.start(
-            activityContext = activityContext,
-            email = email,
-            loginHalfToken = loginHalfToken,
-            deviceId = deviceId,
-            staySignedIn = staySignedIn
-        )
+    override fun openVerifyNewDeviceScreen(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Context,
+        email: String,
+        loginHalfToken: String,
+        deviceId: String,
+        staySignedIn: Boolean
+    ) {
+        launcher.launch(VerifyNewDeviceActivity.buildIntent(activityContext, email, loginHalfToken, deviceId, staySignedIn))
     }
 }

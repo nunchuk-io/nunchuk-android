@@ -26,6 +26,11 @@ internal class IntroActivity : BaseActivity<ActivityIntroBinding>() {
             viewModel.initGuestModeNunchuk()
         }
 
+        binding.btnSignIn.setOnClickListener {
+            navigator.openSignInScreen(this, isNeedNewTask = false)
+            finish()
+        }
+
         subscribeEvents()
     }
 

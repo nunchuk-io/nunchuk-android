@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.EditText
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.signin.SignInEvent.*
@@ -23,6 +24,11 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class SignInActivity : BaseActivity<ActivitySigninBinding>() {
+    private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            finish()
+        }
+    }
 
     private val viewModel: SignInViewModel by viewModels()
 
@@ -65,6 +71,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         when (code) {
             NEW_DEVICE -> {
                 navigator.openVerifyNewDeviceScreen(
+                    launcher = signInLauncher,
                     activityContext = this,
                     email = binding.email.getTextTrimmed(),
                     deviceId = errorDetail?.deviceID.orEmpty(),
@@ -149,7 +156,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         fun start(activityContext: Context, isNeedNewTask: Boolean, isAccountDeleted: Boolean) {
             val intent = Intent(activityContext, SignInActivity::class.java).apply {
                 if (isNeedNewTask) {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 }
                 putExtra(EXTRA_IS_DELETED, isAccountDeleted)
             }
