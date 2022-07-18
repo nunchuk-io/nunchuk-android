@@ -13,9 +13,9 @@ sealed class AddContactsEvent {
     object AllEmailValidEvent : AddContactsEvent()
     object AddContactSuccessEvent : AddContactsEvent()
     object InviteFriendSuccessEvent : AddContactsEvent()
-    data class FailedSendEmailsEvent(val emails: List<String>) : AddContactsEvent()
+    data class FailedSendEmailsEvent(val emailsAndUserNames: List<String>) : AddContactsEvent()
     data class AddContactsErrorEvent(val message: String) : AddContactsEvent()
-    data class LoadingEvent(val loading: Boolean = true) : AddContactsEvent()
+    object LoadingEvent : AddContactsEvent()
 }
 
 data class EmailWithState(val email: String, val valid: Boolean = true)

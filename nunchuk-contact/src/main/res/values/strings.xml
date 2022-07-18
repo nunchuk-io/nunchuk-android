@@ -15,5 +15,6 @@
     <string name="nc_contact_add_contacts">Add Contacts</string>
     <string name="nc_contact_valid_email_address">That does not look like a valid email address</string>
     <string name="nc_contact_add_contact_success">Add contact success</string>
+    <string name="nc_user_name_invalid">That does not look like a valid username</string>
 
 </resources>

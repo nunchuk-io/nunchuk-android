@@ -14,6 +14,7 @@ import com.nunchuk.android.contact.components.add.AddContactsEvent.*
 import com.nunchuk.android.contact.databinding.BottomSheetAddContactsBinding
 import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setOnEnterOrSpaceListener
 import dagger.hilt.android.AndroidEntryPoint
@@ -56,35 +57,38 @@ class AddContactsBottomSheet : BaseBottomSheet<BottomSheetAddContactsBinding>() 
         } else {
             EmailsViewBinder(binding.emails, emails, viewModel::handleRemove).bindItems()
         }
+        val isHasErrorEmail = emails.any { it.valid.not() && EmailValidator.valid(it.email) }
+        val isHasErrorUserName = emails.any { it.valid.not() && !EmailValidator.valid(it.email) }
+        binding.tvErrorEmail.isVisible = isHasErrorEmail
+        binding.tvErrorUserName.isVisible = isHasErrorUserName
     }
 
     private fun handleEvent(event: AddContactsEvent) {
+        showOrHideLoading(event is LoadingEvent)
         when (event) {
             InviteFriendSuccessEvent -> cleanUp()
             InvalidEmailEvent -> showErrorMessage(true)
             AllEmailValidEvent -> showErrorMessage(false)
             AddContactSuccessEvent -> showAddContactSuccess()
             is AddContactsErrorEvent -> showAddContactError(event.message)
-            is LoadingEvent -> showOrHideLoading(event.loading)
-            is FailedSendEmailsEvent -> showDialogConfirmationEmailInvitation(event.emails)
+            is FailedSendEmailsEvent -> showDialogConfirmationEmailInvitation(event.emailsAndUserNames)
         }
     }
 
     private fun showAddContactError(message: String) {
-        showOrHideLoading(false)
-        NCToastMessage(requireActivity()).showError(message)
+        if (message.isNotEmpty()) {
+            NCToastMessage(requireActivity()).showError(message)
+        }
         cleanUp()
     }
 
     private fun showAddContactSuccess() {
-        showOrHideLoading(false)
         NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_contact_add_contact_success))
         cleanUp()
     }
 
     private fun showErrorMessage(show: Boolean) {
-        showOrHideLoading(false)
-        binding.errorText.isVisible = show
+        binding.tvErrorEmail.isVisible = show
     }
 
     private fun setupViews() {
@@ -123,16 +127,16 @@ class AddContactsBottomSheet : BaseBottomSheet<BottomSheetAddContactsBinding>() 
         dismiss()
     }
 
-    private fun showDialogConfirmationEmailInvitation(emails: List<String>) {
-        NCInviteFriendDialog(requireActivity()).showDialog(
-            inviteList = emails.joinToString(),
-            onYesClick = {
-                viewModel.inviteFriend(emails)
-            },
-            onNoClick = {
-                cleanUp()
-            }
-        )
+    private fun showDialogConfirmationEmailInvitation(emailsAndUserNames: List<String>) {
+        val emails = emailsAndUserNames.filter(EmailValidator::valid)
+        if (emails.isNotEmpty()) {
+            NCInviteFriendDialog(requireActivity()).showDialog(
+                inviteList = emails.joinToString(),
+                onYesClick = {
+                    viewModel.inviteFriend(emails)
+                }
+            )
+        }
     }
 
     companion object {
