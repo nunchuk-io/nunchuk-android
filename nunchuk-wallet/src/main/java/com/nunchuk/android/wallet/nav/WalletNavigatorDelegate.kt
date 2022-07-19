@@ -1,6 +1,8 @@
 package com.nunchuk.android.wallet.nav
 
 import android.content.Context
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.qr.DynamicQRCodeActivity
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.RecoverWalletData
@@ -17,9 +19,9 @@ import com.nunchuk.android.wallet.components.intro.WalletEmptySignerActivity
 import com.nunchuk.android.wallet.components.review.ReviewWalletActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationActivity
 import com.nunchuk.android.wallet.personal.components.TaprootWarningActivity
+import com.nunchuk.android.wallet.personal.components.WalletIntermediaryActivity
 import com.nunchuk.android.wallet.personal.components.add.AddWalletActivity
 import com.nunchuk.android.wallet.personal.components.recover.AddRecoverWalletActivity
-import com.nunchuk.android.wallet.personal.components.WalletIntermediaryActivity
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletQrCodeActivity
 import com.nunchuk.android.wallet.shared.components.assign.AssignSignerSharedWalletActivity
 import com.nunchuk.android.wallet.shared.components.config.SharedWalletConfigActivity
@@ -86,6 +88,10 @@ interface WalletNavigatorDelegate : WalletNavigator {
 
     override fun openWalletConfigScreen(activityContext: Context, walletId: String) {
         WalletConfigActivity.start(activityContext, walletId)
+    }
+
+    override fun openWalletConfigScreen(launcher: ActivityResultLauncher<Intent>, activityContext: Context, walletId: String) {
+        WalletConfigActivity.start(launcher, activityContext, walletId)
     }
 
     override fun openDynamicQRScreen(activityContext: Context, values: List<String>) {

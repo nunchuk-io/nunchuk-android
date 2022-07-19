@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.nunchuk.android.widget.NCFontTextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/tv_label"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="4dp"
+    style="@style/NCText.Body"
+    android:gravity="center_vertical"
+    android:includeFontPadding="false"
+    android:background="?attr/selectableItemBackground"
+    android:drawableStart="@drawable/ic_backup"
+    android:drawablePadding="@dimen/nc_padding_8"
+    android:paddingHorizontal="@dimen/nc_padding_14"
+    android:paddingVertical="@dimen/nc_padding_16"
+    android:textColor="@color/nc_black_color"
+    android:textSize="@dimen/nc_text_size_16"
+    tools:text="Option" />
