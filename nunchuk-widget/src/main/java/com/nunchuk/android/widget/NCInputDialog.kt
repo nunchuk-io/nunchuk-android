@@ -5,6 +5,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.Window
+import android.view.WindowManager
 import androidx.core.view.isVisible
 import com.nunchuk.android.widget.databinding.NcConfirmDialogBinding
 import javax.inject.Inject
@@ -46,7 +47,10 @@ class NCInputDialog @Inject constructor(private val context: Context) {
         } else {
             binding.message.hideError()
         }
+        window?.apply {
+            setLayout(MATCH_PARENT, MATCH_PARENT)
+            setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+        }
         show()
-        window?.setLayout(MATCH_PARENT, MATCH_PARENT)
     }
 }
