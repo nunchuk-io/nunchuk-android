@@ -47,6 +47,7 @@ class NCInputDialog @Inject constructor(private val context: Context) {
         } else {
             binding.message.hideError()
         }
+        binding.message.getEditTextView().requestFocus()
         window?.apply {
             setLayout(MATCH_PARENT, MATCH_PARENT)
             setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
