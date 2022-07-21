@@ -19,20 +19,27 @@ abstract class BaseNfcUseCase<P : BaseNfcUseCase.Data, R>(
         parameters.isoDep.connect()
         try {
             if (parameters.isoDep.isConnected) {
-                val isSuccess = if (waitTapSignerUseCase.needWaitUnlockTap[String(parameters.isoDep.tag.id)] == true) {
+                if (waitTapSignerUseCase.needWaitUnlockTap[String(parameters.isoDep.tag.id)] == true) {
                     val result = waitTapSignerUseCase(parameters.isoDep)
                     if (result.isSuccess) {
                         Timber.d("Delay auth after wait: ${result.getOrThrow().authDelayInSecond}")
                     }
                     result.isSuccess
-                } else true
-                if (isSuccess) waitTapSignerUseCase.needWaitUnlockTap[String(parameters.isoDep.tag.id)] = false
-                return executeNfc(parameters)
+                }
+                val result = executeNfc(parameters)
+                waitTapSignerUseCase.needWaitUnlockTap[String(parameters.isoDep.tag.id)] = false
+                return result
             }
         } catch (e: Throwable) {
             if (e is NCNativeException && e.message.contains(TapProtocolException.RATE_LIMIT.toString())) {
                 Timber.d("NFC Rate limit")
                 waitTapSignerUseCase.needWaitUnlockTap[String(parameters.isoDep.tag.id)] = true
+            } else if (e is NCNativeException
+                && e.message.contains(TapProtocolException.BAD_AUTH.toString())
+                && waitTapSignerUseCase.needWaitUnlockTap[String(parameters.isoDep.tag.id)] == true
+            ) {
+                // if bad_auth in case tap signer still rate limit, should throw rate_limit instead
+                throw NCNativeException(TapProtocolException.RATE_LIMIT.toString())
             }
             throw e
         } finally {
@@ -41,7 +48,7 @@ abstract class BaseNfcUseCase<P : BaseNfcUseCase.Data, R>(
         throw IOException("Can not connect nfc card")
     }
 
-    abstract suspend fun executeNfc(parameters: P): R
+    protected abstract suspend fun executeNfc(parameters: P): R
 
     open class Data(val isoDep: IsoDep)
 }
