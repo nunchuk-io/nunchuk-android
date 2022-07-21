@@ -50,6 +50,11 @@
             android:theme="@style/NunchukNoActionBar.Light"
             android:windowSoftInputMode="adjustResize|stateAlwaysHidden" />
 
+        <activity android:name=".satscard.SatsCardActivity"
+            android:label="Sats Card Activity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
     </application>
 
 </manifest>

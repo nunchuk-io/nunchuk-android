@@ -1,8 +1,11 @@
 package com.nunchuk.android.main.components.tabs.wallet
 
+import android.nfc.tech.IsoDep
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.BaseNfcUseCase
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
+import com.nunchuk.android.core.domain.GetSatsCardStatusUseCase
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
@@ -21,7 +24,8 @@ import javax.inject.Inject
 internal class WalletsViewModel @Inject constructor(
     private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     private val getWalletsUseCase: GetWalletsUseCase,
-    private val getAppSettingUseCase: GetAppSettingUseCase
+    private val getAppSettingUseCase: GetAppSettingUseCase,
+    private val getSatsCardStatusUseCase: GetSatsCardStatusUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
 
     private var isRetrievingData = AtomicBoolean(false)
@@ -88,4 +92,27 @@ internal class WalletsViewModel @Inject constructor(
 
     fun hasSigner() = getState().signers.isNotEmpty() || getState().masterSigners.isNotEmpty()
 
+    fun getSatsCardStatus(isoDep: IsoDep?) {
+        isoDep ?: return
+        viewModelScope.launch {
+            setEvent(NfcLoading(true))
+            val result = getSatsCardStatusUseCase(BaseNfcUseCase.Data(isoDep))
+            setEvent(NfcLoading(false))
+            if (result.isSuccess) {
+                val status = result.getOrThrow()
+                if (status.isNeedSetup) {
+                    setEvent(NeedSetupSatsCard)
+                } else if (status.isUsedUp) {
+                    setEvent(SatsCardUsedUp(status.numberOfSlot))
+                } else {
+                    setEvent(GoToSatsCardScreen(status))
+                }
+            } else {
+                val message = result.exceptionOrNull()?.message.orEmpty()
+                if (message.isNotEmpty()) {
+                    setEvent(ShowErrorEvent(message))
+                }
+            }
+        }
+    }
 }

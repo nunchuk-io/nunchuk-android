@@ -22,7 +22,7 @@ import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NUMBER_TYPE
 import timber.log.Timber
 
-abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() {
+abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>(), NfcActionListener {
     protected val nfcViewModel: NfcViewModel by viewModels()
     private var requestCode: Int = 0
 
@@ -124,7 +124,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
         super.onPause()
     }
 
-    fun startNfcFlow(requestCode: Int) {
+    override fun startNfcFlow(requestCode: Int) {
         this.requestCode = requestCode
         nfcAdapter?.let {
             if (it.isEnabled) {
@@ -141,8 +141,9 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
         }
     }
 
-    private fun shouldShowInputCvcFirst(requestCode: Int) =
-        requestCode != REQUEST_NFC_STATUS && requestCode != REQUEST_NFC_CHANGE_CVC
+    private fun shouldShowInputCvcFirst(requestCode: Int) = requestCode != REQUEST_NFC_STATUS
+                && requestCode != REQUEST_NFC_CHANGE_CVC
+                && requestCode != REQUEST_SATSCARD_STATUS
 
     private fun askToScan() {
         askScanNfcDialog.show()
@@ -198,6 +199,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
 
     companion object {
         private const val EXTRA_REQUEST_NFC_CODE = "EXTRA_REQUEST_NFC_CODE"
+        // NFC
         const val REQUEST_NFC_STATUS = 1
         const val REQUEST_NFC_CHANGE_CVC = 2
         const val REQUEST_NFC_ADD_KEY = 3
@@ -205,5 +207,9 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>() 
         const val REQUEST_NFC_VIEW_BACKUP_KEY = 5
         const val REQUEST_NFC_TOPUP_XPUBS = 6
         const val REQUEST_NFC_HEALTH_CHECK = 7
+        // SATSCARD
+        const val REQUEST_SATSCARD_STATUS = 8
+        const val REQUEST_SATSCARD_UNSEAL_SWEEP_ACTIVE_SLOT = 9
+        const val REQUEST_SATSCARD_UNSEAL_SWEEP_SLOTS = 10
     }
 }

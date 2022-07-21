@@ -1,6 +1,7 @@
 package com.nunchuk.android.main.components.tabs.wallet
 
 import android.content.res.ColorStateList
+import android.nfc.tech.IsoDep
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,9 +12,14 @@ import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.NfcActionListener
+import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.main.MainActivityViewModel
 import com.nunchuk.android.main.R
@@ -25,10 +31,16 @@ import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
+import com.nunchuk.android.signer.nfc.NfcSetupActivity
+import com.nunchuk.android.signer.satscard.SatsCardActivity
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.wallet.components.details.WalletDetailsArgs
+import com.nunchuk.android.widget.NCInfoDialog
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
 internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
@@ -38,6 +50,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     private val mainActivityViewModel: MainActivityViewModel by activityViewModels()
 
     private val signerAdapter = SignerAdapter(::openSignerInfoScreen)
+
+    private val nfcViewModel: NfcViewModel by activityViewModels()
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -58,6 +72,13 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         binding.btnAdd.setOnClickListener { walletsViewModel.handleAddSignerOrWallet() }
         binding.btnAddSigner.setOnClickListener { walletsViewModel.handleAddSigner() }
         binding.ivAddWallet.setOnClickListener { walletsViewModel.handleAddWallet() }
+        binding.toolbar.setOnMenuItemClickListener {
+            if (it.itemId == R.id.menu_nfc) {
+                (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_SATSCARD_STATUS)
+                return@setOnMenuItemClickListener true
+            }
+            return@setOnMenuItemClickListener false
+        }
     }
 
     private fun openAddWalletScreen() {
@@ -76,6 +97,12 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         walletsViewModel.state.observe(viewLifecycleOwner, ::showWalletState)
         walletsViewModel.event.observe(viewLifecycleOwner, ::handleEvent)
         mainActivityViewModel.event.observe(viewLifecycleOwner, ::handleMainActivityEvent)
+        flowObserver {
+            nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_SATSCARD_STATUS }
+                .collectLatest {
+                    walletsViewModel.getSatsCardStatus(IsoDep.get(it.tag))
+                }
+        }
     }
 
     private fun handleEvent(event: WalletsEvent) {
@@ -84,8 +111,26 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             ShowSignerIntroEvent -> openSignerIntroScreen()
             WalletEmptySignerEvent -> openWalletIntroScreen()
             is ShowErrorEvent -> requireActivity().showToast(event.message)
+            is GoToSatsCardScreen -> SatsCardActivity.navigate(requireActivity(), event.status)
+            NeedSetupSatsCard -> handleNeedSetupSatsCard()
+            is SatsCardUsedUp -> handleSatsCardUsedUp(event.numberOfSlot)
             is Loading -> handleLoading(event)
+            is NfcLoading -> showOrHideLoading(event.loading, message = getString(com.nunchuk.android.signer.R.string.nc_keep_holding_nfc))
         }
+    }
+
+    private fun handleNeedSetupSatsCard() {
+        NCWarningDialog(requireActivity()).showDialog(
+            title = getString(R.string.nc_setup_satscard),
+            message = getString(R.string.nc_setup_satscard_msg),
+            onYesClick = {
+                NfcSetupActivity.navigate(requireActivity(), NfcSetupActivity.SETUP_SATSCARD)
+            }
+        )
+    }
+
+    private fun handleSatsCardUsedUp(numberOfSlot: Int) {
+        NCInfoDialog(requireActivity()).showDialog(message = getString(R.string.nc_all_slot_used_up, numberOfSlot))
     }
 
     private fun handleMainActivityEvent(event: MainAppEvent) {

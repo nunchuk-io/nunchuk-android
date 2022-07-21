@@ -26,12 +26,13 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNfcSetupBinding>() {
         val navHostFragment = (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.nfc_setup_navigation)
-        graph.startDestination = when (setUpAction) {
-            SETUP_NFC -> R.id.setupChainCodeFragment
+        val startDestinationId = when (setUpAction) {
+            SETUP_NFC, SETUP_SATSCARD -> R.id.setupChainCodeFragment
             CHANGE_CVC -> R.id.changeNfcCvcFragment
             RECOVER_NFC -> R.id.recoverNfcKeyGuideFragment
             else -> R.id.addNfcNameFragment
         }
+        graph.setStartDestination(startDestinationId)
         navHostFragment.navController.graph = graph
     }
 
@@ -44,6 +45,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNfcSetupBinding>() {
         const val ADD_KEY = 2
         const val CHANGE_CVC = 3
         const val RECOVER_NFC = 4
+        const val SETUP_SATSCARD = 5
 
         fun navigate(activity: Activity, setUpAction: Int, masterSignerId: String? = null) {
             activity.startActivity(Intent(activity, NfcSetupActivity::class.java).apply {

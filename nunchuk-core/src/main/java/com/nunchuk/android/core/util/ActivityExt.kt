@@ -8,7 +8,6 @@ import android.net.Uri
 import android.provider.MediaStore
 import android.provider.Settings
 import android.view.View
-import android.widget.Toast
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
@@ -19,7 +18,7 @@ import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.widget.NCToastMessage
 import java.io.File
 
-fun Activity.showToast(message: String) = Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+fun Activity.showToast(message: String) = NCToastMessage(this).show(message)
 
 fun Activity.showLoading() {
     (this as BaseActivity<*>).showLoading()

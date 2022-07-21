@@ -21,4 +21,6 @@ object SheetOptionType {
     const val TYPE_EXPORT_PASSPORT_QR = 8
     const val TYPE_EXPORT_TO_COLD_CARD = 9
     const val TYPE_DELETE_WALLET = 10
+    // Sats card
+    const val TYPE_VIEW_SATSCARD_UNSEAL = 11
 }

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        style="@style/NCToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:menu="@menu/menu_more_black"
+        app:navigationIcon="@drawable/ic_close">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/toolbarTitle"
+            style="@style/NCToolbar.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/nc_satscard" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/nc_padding_16"
+                app:cardCornerRadius="@dimen/nc_padding_12">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/nc_padding_24">
+
+                    <com.nunchuk.android.widget.NCFontTextView
+                        android:id="@+id/tv_slot"
+                        style="@style/NCText.Body.Small"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:background="@drawable/nc_bg_whisper_color_radius"
+                        android:paddingHorizontal="@dimen/nc_padding_10"
+                        android:paddingVertical="@dimen/nc_padding_4"
+                        tools:text="Slot 2/10" />
+
+                    <com.nunchuk.android.widget.NCFontTextView
+                        android:id="@+id/tv_balance_btc"
+                        style="@style/NCText.Heading"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="@dimen/nc_padding_8"
+                        tools:text="0.001000 sats" />
+
+                    <com.nunchuk.android.widget.NCFontTextView
+                        android:id="@+id/tv_balance_usd"
+                        style="@style/NCText.Body.Small"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="@dimen/nc_padding_8"
+                        tools:text="$200.00 USD" />
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="@dimen/nc_padding_16"
+                        app:cardCornerRadius="@dimen/nc_padding_12"
+                        app:contentPadding="@dimen/nc_padding_16">
+
+                        <ImageView
+                            android:id="@+id/qrCode"
+                            android:layout_width="144dp"
+                            android:layout_height="144dp" />
+
+                    </androidx.cardview.widget.CardView>
+
+                    <com.nunchuk.android.widget.NCFontTextView
+                        android:id="@+id/address"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/nc_padding_16"
+                        android:gravity="center"
+                        android:lines="2"
+                        android:textColor="@color/nc_black_color"
+                        android:textSize="@dimen/nc_text_size_16"
+                        tools:text="bc1qepuayeutds0ys0q82g3ucad7r0eqk0dpusmxwvlpn5wkjcmhv6sqyulylk" />
+
+                    <FrameLayout
+                        android:id="@+id/btnCopy"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/nc_height_48"
+                        android:layout_marginHorizontal="@dimen/nc_padding_16"
+                        android:layout_marginTop="@dimen/nc_padding_12"
+                        android:background="@drawable/nc_rounded_light_background"
+                        android:orientation="horizontal">
+
+                        <com.nunchuk.android.widget.NCFontTextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:drawableStart="@drawable/ic_copy"
+                            android:drawablePadding="@dimen/nc_padding_6"
+                            android:text="@string/nc_address_copy"
+                            android:textColor="@color/nc_black_color"
+                            android:textSize="@dimen/nc_text_size_14"
+                            app:fontTextStyle="semi_bold" />
+                    </FrameLayout>
+
+                    <com.nunchuk.android.widget.NCFontTextView
+                        android:id="@+id/tv_card_id"
+                        style="@style/NCText.Body.Small"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="@dimen/nc_padding_24"
+                        tools:text="Card ID: XDXKQ-W6VW6-GEQI3-ATSC2 " />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <com.nunchuk.android.widget.NCFontButton
+                android:id="@+id/btn_unseal_and_sweep"
+                style="@style/NCPrimaryButton.Dark"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/nc_padding_16"
+                android:text="@string/nc_unseal_and_sweep_balance" />
+
+            <com.nunchuk.android.widget.NCFontButton
+                android:id="@+id/btn_view_on_explore"
+                style="@style/NCOutlineButton.Light"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/nc_padding_16"
+                android:text="@string/nc_view_on_explorer" />
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>
