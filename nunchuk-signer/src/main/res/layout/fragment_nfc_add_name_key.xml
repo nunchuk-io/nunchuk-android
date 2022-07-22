@@ -61,23 +61,6 @@
         app:layout_constraintTop_toTopOf="@+id/signerNameLabel"
         tools:text="18/20" />
 
-    <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/tv_hint"
-        style="@style/NCText.Title.Small"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_16"
-        android:layout_marginEnd="@dimen/nc_padding_16"
-        android:layout_marginBottom="@dimen/nc_padding_16"
-        android:background="@drawable/nc_rounded_whisper_background"
-        android:drawableStart="@drawable/ic_info"
-        android:drawablePadding="@dimen/nc_padding_8"
-        android:padding="@dimen/nc_padding_14"
-        android:text="@string/nc_add_your_key_hint"
-        app:layout_constraintBottom_toTopOf="@+id/btnContinue"
-        app:layout_constraintStart_toStartOf="parent" />
-
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnContinue"
         style="@style/NCPrimaryButton.Dark"

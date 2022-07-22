@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -84,7 +83,6 @@ class AddNfcNameFragment : BaseFragment<FragmentNfcAddNameKeyBinding>() {
     }
 
     private fun initViews() {
-        binding.tvHint.isVisible = nfcViewModel.masterSigner == null
         binding.signerName.getEditTextView().setText(nfcViewModel.masterSigner?.name ?: NFC_DEFAULT_NAME)
         binding.signerName.setMaxLength(20)
     }
