@@ -82,4 +82,5 @@
     <string name="nc_topup_xpub_failed">Topup Xpub failed</string>
     <string name="nc_not_now">Not now</string>
     <string name="nc_detect_unseal_has_balance">We detect that there is %1$s in unsealed slot %2$s. Unsealed slots are unsafe. Do you want to transfer the balance to a new wallet?</string>
+    <string name="nc_select_wallet_first">Select wallet first</string>
 </resources>
