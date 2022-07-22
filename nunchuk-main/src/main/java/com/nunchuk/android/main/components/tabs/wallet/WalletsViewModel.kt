@@ -3,6 +3,7 @@ package com.nunchuk.android.main.components.tabs.wallet
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
@@ -76,6 +77,13 @@ internal class WalletsViewModel @Inject constructor(
 
     fun handleAddWallet() {
         event(AddWalletEvent)
+    }
+
+    fun isInWallet(signer: SignerModel): Boolean {
+        return getState().wallets
+            .any {
+                it.wallet.signers.any { singleSigner -> singleSigner.masterSignerId == signer.id }
+            }
     }
 
     fun hasSigner() = getState().signers.isNotEmpty() || getState().masterSigners.isNotEmpty()

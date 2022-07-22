@@ -8,15 +8,15 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface SignRoomTransactionUseCase {
-    fun execute(initEventId: String, device: Device): Flow<NunchukMatrixEvent>
+    fun execute(initEventId: String, device: Device, signerId: String): Flow<NunchukMatrixEvent>
 }
 
 internal class SignRoomTransactionUseCaseImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
 ) : SignRoomTransactionUseCase {
 
-    override fun execute(initEventId: String, device: Device) = flow {
+    override fun execute(initEventId: String, device: Device, signerId: String) = flow {
         emit(nativeSdk.signRoomTransaction(initEventId, device))
+        if (device.needPassPhraseSent && signerId.isNotEmpty()) nativeSdk.clearSignerPassphrase(signerId)
     }
-
 }

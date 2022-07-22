@@ -7,10 +7,13 @@ import com.nunchuk.android.auth.domain.SignInUseCase
 import com.nunchuk.android.auth.util.orUnknownError
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.network.ApiErrorCode
 import com.nunchuk.android.core.network.NunchukApiException
+import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.core.retry.DEFAULT_RETRY_POLICY
 import com.nunchuk.android.core.retry.RetryPolicy
 import com.nunchuk.android.core.retry.retryIO
+import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
@@ -26,6 +29,7 @@ internal class SignInViewModel @Inject constructor(
     private val signInUseCase: SignInUseCase,
     private val initNunchukUseCase: InitNunchukUseCase,
     private val accountManager: AccountManager,
+    private val ncSharePreferences: NCSharePreferences,
     @Named(DEFAULT_RETRY_POLICY) private val retryPolicy: RetryPolicy
 ) : NunchukViewModel<Unit, SignInEvent>() {
 
@@ -69,7 +73,10 @@ internal class SignInViewModel @Inject constructor(
                 .flatMapConcat {
                     token = it.first
                     encryptedDeviceId = it.second
-                    initNunchuk()
+                    fileLog(message = "start initNunchuk")
+                    val result = initNunchuk()
+                    fileLog(message = "end initNunchuk")
+                    result
                 }
                 .onEach {
                     event(

@@ -15,6 +15,7 @@ import com.nunchuk.android.messages.components.detail.bindWalletStatus
 import com.nunchuk.android.messages.databinding.ItemWalletCardBinding
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.toRoomWalletData
+import timber.log.Timber
 
 internal class NunchukWalletCardHolder(
     val binding: ItemWalletCardBinding,
@@ -26,8 +27,10 @@ internal class NunchukWalletCardHolder(
     private val gson = Gson()
 
     fun bind(roomWallet: RoomWallet? = null, model: NunchukWalletMessage) {
-        val map = model.timelineEvent.root.getClearContent()?.toMap().orEmpty()
-        val body = gson.toJson(map["body"])
+        if (roomWallet?.jsonContent == null) {
+            return
+        }
+        val body = roomWallet?.jsonContent.orEmpty()
         val initData = body.toRoomWalletData(gson)
         val ratio = "${initData.requireSigners} / ${initData.totalSigners}"
         val context = itemView.context

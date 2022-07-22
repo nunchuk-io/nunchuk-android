@@ -1,15 +1,17 @@
 package com.nunchuk.android.signer.components.details
 
+import android.nfc.tech.IsoDep
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.core.domain.HealthCheckMasterSignerUseCase
+import com.nunchuk.android.core.domain.*
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.signer.components.details.SignerInfoEvent.*
 import com.nunchuk.android.type.HealthStatus
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,19 +29,23 @@ internal class SignerInfoViewModel @Inject constructor(
     private val updateMasterSignerUseCase: UpdateMasterSignerUseCase,
     private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
     private val healthCheckMasterSignerUseCase: HealthCheckMasterSignerUseCase,
-    private val sendSignerPassphrase: SendSignerPassphrase
+    private val sendSignerPassphrase: SendSignerPassphrase,
+    private val getTapSignerBackupUseCase: GetTapSignerBackupUseCase,
+    private val healthCheckTapSignerUseCase: HealthCheckTapSignerUseCase,
+    private val topUpXpubTapSignerUseCase: TopUpXpubTapSignerUseCase,
+    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase
 ) : NunchukViewModel<SignerInfoState, SignerInfoEvent>() {
 
     override val initialState = SignerInfoState()
 
     lateinit var id: String
-    private var software: Boolean = false
+    private var signerType: SignerType = SignerType.SOFTWARE
 
-    fun init(id: String, software: Boolean) {
+    fun init(id: String, type: SignerType) {
         this.id = id
-        this.software = software
+        this.signerType = type
         viewModelScope.launch {
-            if (software) {
+            if (shouldLoadMasterSigner(signerType)) {
                 when (val result = getMasterSignerUseCase.execute(id)) {
                     is Success -> updateState { copy(masterSigner = result.data) }
                     is Error -> Log.e(TAG, "get software signer error", result.exception)
@@ -51,13 +57,20 @@ internal class SignerInfoViewModel @Inject constructor(
                 }
             }
         }
-
+        if (signerType == SignerType.NFC) {
+            viewModelScope.launch {
+                val result = getTapSignerStatusByIdUseCase(id)
+                if (result.isSuccess) {
+                    updateState { copy(nfcCardId = result.getOrThrow().ident) }
+                }
+            }
+        }
     }
 
     fun handleEditCompletedEvent(updateSignerName: String) {
         viewModelScope.launch {
             val state = getState()
-            if (software) {
+            if (shouldLoadMasterSigner(signerType)) {
                 state.masterSigner?.let {
                     when (val result = updateMasterSignerUseCase.execute(masterSigner = it.copy(name = updateSignerName))) {
                         is Success -> event(UpdateNameSuccessEvent(updateSignerName))
@@ -78,7 +91,7 @@ internal class SignerInfoViewModel @Inject constructor(
     fun handleRemoveSigner() {
         viewModelScope.launch {
             val state = getState()
-            if (software) {
+            if (shouldLoadMasterSigner(signerType)) {
                 state.masterSigner?.let {
                     when (val result = deleteMasterSignerUseCase.execute(
                         masterSignerId = it.id
@@ -108,17 +121,22 @@ internal class SignerInfoViewModel @Inject constructor(
                     .flowOn(Dispatchers.IO)
                     .onException { event(HealthCheckErrorEvent(it.message.orEmpty())) }
                     .flowOn(Dispatchers.Main)
-                    .collect { healthCheck(fingerprint = masterSigner.device.masterFingerprint, path = masterSigner.device.path) }
+                    .collect { healthCheck(masterSigner) }
             }
         } else {
-            healthCheck(fingerprint = masterSigner.device.masterFingerprint, path = masterSigner.device.path)
+            healthCheck(masterSigner)
         }
-
     }
 
-    private fun healthCheck(fingerprint: String, path: String) {
+    private fun healthCheck(masterSigner: MasterSigner) {
         viewModelScope.launch {
-            healthCheckMasterSignerUseCase.execute(fingerprint = fingerprint, message = "", signature = "", path = path)
+            healthCheckMasterSignerUseCase.execute(
+                fingerprint = masterSigner.device.masterFingerprint,
+                message = "",
+                signature = "",
+                path = masterSigner.device.path,
+                masterSignerId = if (masterSigner.device.needPassPhraseSent) masterSigner.id else null
+                )
                 .flowOn(Dispatchers.IO)
                 .onException { event(HealthCheckErrorEvent(it.message)) }
                 .flowOn(Dispatchers.Main)
@@ -131,6 +149,54 @@ internal class SignerInfoViewModel @Inject constructor(
                 }
         }
     }
+
+    fun healthCheckTapSigner(isoDep: IsoDep, cvc: String, masterSigner: MasterSigner) {
+        viewModelScope.launch {
+            event(NfcLoading)
+            val result = healthCheckTapSignerUseCase(
+                HealthCheckTapSignerUseCase.Data(
+                    isoDep = isoDep,
+                    cvc = cvc,
+                    fingerprint = masterSigner.device.masterFingerprint,
+                    message = "",
+                    signature = "",
+                    path = masterSigner.device.path
+                )
+            )
+            if (result.isSuccess && result.getOrThrow() == HealthStatus.SUCCESS) {
+                event(HealthCheckSuccessEvent)
+            } else {
+                event(HealthCheckErrorEvent(e = result.exceptionOrNull()))
+            }
+        }
+    }
+
+    fun getTapSignerBackup(isoDep: IsoDep, cvc: String) {
+        val masterSignerId = state.value?.masterSigner?.id ?: return
+        viewModelScope.launch {
+            event(NfcLoading)
+            val result = getTapSignerBackupUseCase(GetTapSignerBackupUseCase.Data(isoDep, cvc, masterSignerId))
+            if (result.isSuccess) {
+                event(GetTapSignerBackupKeyEvent(result.getOrThrow()))
+            } else {
+                event(GetTapSignerBackupKeyError(result.exceptionOrNull()))
+            }
+        }
+    }
+
+    fun topUpXpubTapSigner(isoDep: IsoDep, cvc: String, masterSignerId: String) {
+        viewModelScope.launch {
+            event(NfcLoading)
+            val result = topUpXpubTapSignerUseCase(TopUpXpubTapSignerUseCase.Data(isoDep, cvc, masterSignerId))
+            if (result.isSuccess) {
+                event(TopUpXpubSuccess)
+            } else {
+                event(TopUpXpubFailed(result.exceptionOrNull()))
+            }
+        }
+    }
+
+    private fun shouldLoadMasterSigner(type: SignerType) = type != SignerType.AIRGAP
 
     companion object {
         private const val TAG = "SignerInfoViewModel"

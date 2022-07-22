@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="NunchukTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="NunchukTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/nc_primary_color</item>
         <item name="colorPrimaryDark">@color/nc_primary_dark_color</item>
         <item name="colorAccent">@color/nc_accent_color</item>
-    </style>
-
-    <style name="SplashTheme" parent="NunchukTheme">
-        <item name="android:windowBackground">@color/nc_primary_dark_color</item>
     </style>
 
     <style name="NCToolbar">
@@ -22,10 +18,10 @@
         <item name="android:gravity">center</item>
         <item name="android:textColor">@color/nc_black_color</item>
         <item name="android:textSize">@dimen/nc_text_size_18</item>
-        <item name="fontTextStyle">semi_bold</item>
+        <item name="fontTextStyle">bold</item>
     </style>
 
-    <style name="NunchukNoActionBar" parent="Theme.AppCompat.Light.NoActionBar" />
+    <style name="NunchukNoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar" />
 
     <style name="NunchukNoActionBar.Light" parent="NunchukNoActionBar">
         <item name="colorPrimary">@android:color/transparent</item>

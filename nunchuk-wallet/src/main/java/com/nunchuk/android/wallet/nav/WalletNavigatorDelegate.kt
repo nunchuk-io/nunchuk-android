@@ -1,6 +1,8 @@
 package com.nunchuk.android.wallet.nav
 
 import android.content.Context
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.qr.DynamicQRCodeActivity
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.RecoverWalletData
@@ -17,14 +19,16 @@ import com.nunchuk.android.wallet.components.intro.WalletEmptySignerActivity
 import com.nunchuk.android.wallet.components.review.ReviewWalletActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationActivity
 import com.nunchuk.android.wallet.personal.components.TaprootWarningActivity
+import com.nunchuk.android.wallet.personal.components.WalletIntermediaryActivity
 import com.nunchuk.android.wallet.personal.components.add.AddWalletActivity
 import com.nunchuk.android.wallet.personal.components.recover.AddRecoverWalletActivity
-import com.nunchuk.android.wallet.personal.components.WalletIntermediaryActivity
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletQrCodeActivity
 import com.nunchuk.android.wallet.shared.components.assign.AssignSignerSharedWalletActivity
 import com.nunchuk.android.wallet.shared.components.config.SharedWalletConfigActivity
 import com.nunchuk.android.wallet.shared.components.configure.ConfigureSharedWalletActivity
 import com.nunchuk.android.wallet.shared.components.create.CreateSharedWalletActivity
+import com.nunchuk.android.wallet.shared.components.recover.AddRecoverSharedWalletActivity
+import com.nunchuk.android.wallet.shared.components.recover.RecoverSharedWalletActivity
 import com.nunchuk.android.wallet.shared.components.review.ReviewSharedWalletActivity
 
 interface WalletNavigatorDelegate : WalletNavigator {
@@ -74,8 +78,8 @@ interface WalletNavigatorDelegate : WalletNavigator {
         )
     }
 
-    override fun openBackupWalletScreen(activityContext: Context, walletId: String) {
-        BackupWalletActivity.start(activityContext = activityContext, walletId = walletId)
+    override fun openBackupWalletScreen(activityContext: Context, walletId: String, totalRequireSigns: Int) {
+        BackupWalletActivity.start(activityContext = activityContext, walletId = walletId, totalRequireSigns = totalRequireSigns)
     }
 
     override fun openUploadConfigurationScreen(activityContext: Context, walletId: String) {
@@ -84,6 +88,10 @@ interface WalletNavigatorDelegate : WalletNavigator {
 
     override fun openWalletConfigScreen(activityContext: Context, walletId: String) {
         WalletConfigActivity.start(activityContext, walletId)
+    }
+
+    override fun openWalletConfigScreen(launcher: ActivityResultLauncher<Intent>, activityContext: Context, walletId: String) {
+        WalletConfigActivity.start(launcher, activityContext, walletId)
     }
 
     override fun openDynamicQRScreen(activityContext: Context, values: List<String>) {
@@ -117,9 +125,10 @@ interface WalletNavigatorDelegate : WalletNavigator {
         walletType: WalletType,
         addressType: AddressType,
         totalSigns: Int,
-        requireSigns: Int
+        requireSigns: Int,
+        signers: List<SingleSigner>
     ) {
-        ReviewSharedWalletActivity.start(activityContext, walletName, walletType, addressType, totalSigns, requireSigns)
+        ReviewSharedWalletActivity.start(activityContext, walletName, walletType, addressType, totalSigns, requireSigns, signers)
     }
 
     override fun openAssignSignerSharedWalletScreen(
@@ -128,9 +137,10 @@ interface WalletNavigatorDelegate : WalletNavigator {
         walletType: WalletType,
         addressType: AddressType,
         totalSigns: Int,
-        requireSigns: Int
+        requireSigns: Int,
+        signers: List<SingleSigner>
     ) {
-        AssignSignerSharedWalletActivity.start(activityContext, walletName, walletType, addressType, totalSigns, requireSigns)
+        AssignSignerSharedWalletActivity.start(activityContext, walletName, walletType, addressType, totalSigns, requireSigns, signers)
     }
 
     override fun openSharedWalletConfigScreen(
@@ -149,4 +159,11 @@ interface WalletNavigatorDelegate : WalletNavigator {
         TaprootWarningActivity.start(activityContext, walletName, walletType, addressType)
     }
 
+    override fun openRecoverSharedWalletScreen(activityContext: Context) {
+        RecoverSharedWalletActivity.start(activityContext)
+    }
+
+    override fun openAddRecoverSharedWalletScreen(activityContext: Context, data: String) {
+        AddRecoverSharedWalletActivity.start(activityContext, data)
+    }
 }

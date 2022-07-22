@@ -7,7 +7,7 @@ import com.nunchuk.android.widget.util.FontInitializer
 
 class NCFontRadioButton : AppCompatRadioButton {
 
-    private val initializer: FontInitializer by lazy { FontInitializer(context) }
+    private val initializer: FontInitializer by lazy(LazyThreadSafetyMode.NONE) { FontInitializer(context) }
 
     constructor(context: Context) : super(context) {
         initializer.initTypeface(this)

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.EditText
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.signin.SignInEvent.*
@@ -23,6 +24,11 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class SignInActivity : BaseActivity<ActivitySigninBinding>() {
+    private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            finish()
+        }
+    }
 
     private val viewModel: SignInViewModel by viewModels()
 
@@ -36,6 +42,10 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         setupViews()
 
         observeEvent()
+
+        if (savedInstanceState == null && intent.getBooleanExtra(EXTRA_IS_DELETED, false)) {
+            NCToastMessage(this).showMessage(getString(R.string.nc_account_deleted_message), dismissTime = NCToastMessage.LONG_TIME)
+        }
     }
 
     private fun observeEvent() {
@@ -61,6 +71,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         when (code) {
             NEW_DEVICE -> {
                 navigator.openVerifyNewDeviceScreen(
+                    launcher = signInLauncher,
                     activityContext = this,
                     email = binding.email.getTextTrimmed(),
                     deviceId = errorDetail?.deviceID.orEmpty(),
@@ -135,14 +146,20 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
 
     private fun onGuestModeClick() {
         navigator.openGuestModeIntroScreen(this)
+        finish()
     }
 
     companion object {
         private const val PRIVACY_URL = "https://www.nunchuk.io/privacy.html"
         private const val TERM_URL = "https://www.nunchuk.io/terms.html"
-        fun start(activityContext: Context) {
-            val intent = Intent(activityContext, SignInActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        private const val EXTRA_IS_DELETED = "EXTRA_IS_DELETED"
+        fun start(activityContext: Context, isNeedNewTask: Boolean, isAccountDeleted: Boolean) {
+            val intent = Intent(activityContext, SignInActivity::class.java).apply {
+                if (isNeedNewTask) {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                }
+                putExtra(EXTRA_IS_DELETED, isAccountDeleted)
+            }
             activityContext.startActivity(intent)
         }
     }

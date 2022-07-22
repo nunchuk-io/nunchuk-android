@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        style="@style/NCToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_back">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/toolbarTitle"
+            style="@style/NCToolbar.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/nc_set_up_cvc" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="@dimen/nc_padding_16"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@+id/btn_continue"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                style="@style/NCText.EditText.Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_16"
+                android:layout_marginEnd="@dimen/nc_padding_16"
+                android:text="@string/nc_existing_cvc"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+            <com.nunchuk.android.widget.NCEditTextView
+                android:id="@+id/edit_exist_cvc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/nc_padding_16"
+                app:edit_input_type="number"
+                app:edit_title_color="@color/nc_black_color"
+                app:edit_title_text_size="@dimen/nc_text_size_16"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/signerNameLabel" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                style="@style/NCText.EditText.Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_16"
+                android:layout_marginEnd="@dimen/nc_padding_16"
+                android:text="@string/nc_new_cvc"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+            <com.nunchuk.android.widget.NCEditTextView
+                android:id="@+id/edit_new_cvc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/nc_padding_16"
+                app:edit_input_type="number"
+                app:edit_title_color="@color/nc_black_color"
+                app:edit_title_text_size="@dimen/nc_text_size_16"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/signerNameLabel" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                style="@style/NCText.EditText.Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_16"
+                android:layout_marginEnd="@dimen/nc_padding_16"
+                android:text="@string/nc_confirm_new_cvc"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+            <com.nunchuk.android.widget.NCEditTextView
+                android:id="@+id/edit_confirm_cvc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/nc_padding_16"
+                app:edit_input_type="number"
+                app:edit_title_color="@color/nc_black_color"
+                app:edit_title_text_size="@dimen/nc_text_size_16"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/signerNameLabel" />
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tv_hint"
+                style="@style/NCText.Title.Small"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_16"
+                android:layout_marginEnd="@dimen/nc_padding_16"
+                android:background="@drawable/nc_rounded_whisper_background"
+                android:drawableStart="@drawable/ic_info"
+                android:drawablePadding="@dimen/nc_padding_8"
+                android:padding="@dimen/nc_padding_14"
+                android:text="@string/nc_keep_your_cvc_hint"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btn_continue"
+        style="@style/NCPrimaryButton.Dark"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/nc_padding_16"
+        android:text="@string/nc_text_continue"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

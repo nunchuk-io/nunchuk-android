@@ -3,11 +3,17 @@ package com.nunchuk.android.app.intro
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.viewModels
+import com.nunchuk.android.app.splash.GuestModeEvent
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.databinding.ActivityIntroBinding
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 internal class IntroActivity : BaseActivity<ActivityIntroBinding>() {
+    private val viewModel: GuestModeViewModel by viewModels()
 
     override fun initializeBinding() = ActivityIntroBinding.inflate(layoutInflater)
 
@@ -17,8 +23,33 @@ internal class IntroActivity : BaseActivity<ActivityIntroBinding>() {
         setTransparentStatusBar()
 
         binding.btnGetStarted.setOnClickListener {
+            viewModel.initGuestModeNunchuk()
+        }
+
+        binding.btnSignIn.setOnClickListener {
+            navigator.openSignInScreen(this, isNeedNewTask = false)
             finish()
-            navigator.openSignUpScreen(this)
+        }
+
+        subscribeEvents()
+    }
+
+    private fun handleInitGuestModeNunchukSuccess() {
+        hideLoading()
+        finish()
+        navigator.openMainScreen(this)
+        overridePendingTransition(0, 0)
+    }
+
+    private fun subscribeEvents() {
+        viewModel.event.observe(this, ::handleEvent)
+    }
+
+    private fun handleEvent(event: GuestModeEvent) {
+        when (event) {
+            GuestModeEvent.InitSuccessEvent -> handleInitGuestModeNunchukSuccess()
+            is GuestModeEvent.InitErrorEvent -> NCToastMessage(this).showError(event.error)
+            is GuestModeEvent.LoadingEvent -> showLoading()
         }
     }
 

@@ -12,6 +12,7 @@ import com.nunchuk.android.core.util.isReadyFinalize
 import com.nunchuk.android.messages.components.detail.bindWalletStatus
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.RoomWalletData
+import com.nunchuk.android.model.toSingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.shared.R
@@ -90,7 +91,8 @@ class SharedWalletConfigActivity : BaseActivity<ActivitySharedWalletConfigBindin
                 walletType = if (it.isEscrow) WalletType.ESCROW else WalletType.MULTI_SIG,
                 addressType = AddressType.valueOf(it.addressType),
                 totalSigns = it.totalSigners,
-                requireSigns = it.requireSigners
+                requireSigns = it.requireSigners,
+                signers = args.roomWalletData?.members.orEmpty().map { memberData -> memberData.toSingleSigner() }
             )
         }
     }

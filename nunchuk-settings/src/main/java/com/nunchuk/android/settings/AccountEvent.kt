@@ -3,7 +3,6 @@ package com.nunchuk.android.settings
 import com.nunchuk.android.core.account.AccountInfo
 
 data class AccountState(
-    val appVersion: String = "",
     val account: AccountInfo = AccountInfo(),
     val syncProgress: Int = 0,
     val finishedSync: Boolean = false

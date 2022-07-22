@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/nc_white_color"
     android:fitsSystemWindows="true"
+    app:menu="@menu/menu_wallet_details"
     tools:ignore="ContentDescription">
 
     <androidx.appcompat.widget.Toolbar
@@ -15,7 +16,8 @@
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:menu="@menu/menu_wallet_config">
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/toolbarTitle"
@@ -58,11 +60,11 @@
             android:id="@+id/configuration"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:paddingVertical="@dimen/nc_padding_2"
-            android:paddingHorizontal="@dimen/nc_padding_12"
             android:layout_marginStart="@dimen/nc_padding_16"
             android:layout_marginTop="@dimen/nc_text_size_16"
             android:background="@drawable/nc_rounded_tag_whisper_background"
+            android:paddingHorizontal="@dimen/nc_padding_12"
+            android:paddingVertical="@dimen/nc_padding_2"
             android:textColor="@color/nc_primary_color"
             android:textSize="@dimen/nc_text_size_12"
             app:fontTextStyle="semi_bold"

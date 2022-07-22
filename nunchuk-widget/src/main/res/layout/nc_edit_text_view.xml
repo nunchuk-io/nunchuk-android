@@ -30,6 +30,7 @@
         android:textColor="@color/nc_black_color"
         android:textCursorDrawable="@null"
         android:textSize="@dimen/nc_text_size_16"
+        android:drawablePadding="@dimen/nc_padding_8"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView" />
@@ -39,9 +40,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_4"
-        android:singleLine="true"
         android:textColor="@color/nc_red_color"
-        android:textSize="@dimen/nc_text_size_14"
+        android:textSize="@dimen/nc_text_size_12"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

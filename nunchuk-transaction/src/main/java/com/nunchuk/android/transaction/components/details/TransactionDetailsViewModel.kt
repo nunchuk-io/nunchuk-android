@@ -1,8 +1,11 @@
 package com.nunchuk.android.transaction.components.details
 
+import android.nfc.tech.IsoDep
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.SignRoomTransactionByTapSignerUseCase
+import com.nunchuk.android.core.domain.SignTransactionByTapSignerUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -41,7 +44,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val exportTransactionUseCase: ExportTransactionUseCase,
     private val getRoomWalletUseCase: GetRoomWalletUseCase,
-    private val getContactsUseCase: GetContactsUseCase
+    private val getContactsUseCase: GetContactsUseCase,
+    private val signTransactionByTapSignerUseCase: SignTransactionByTapSignerUseCase,
+    private val signRoomTransactionByTapSignerUseCase: SignRoomTransactionByTapSignerUseCase
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
 
     private var walletId: String = ""
@@ -65,18 +70,26 @@ internal class TransactionDetailsViewModel @Inject constructor(
         this.txId = txId
         this.initEventId = initEventId
         this.roomId = roomId
-    }
 
-    private fun getContacts() {
-        viewModelScope.launch {
-            getContactsUseCase.execute()
-                .defaultSchedulers()
-                .subscribe({ contacts = it }, { contacts = emptyList() })
-                .addToDisposables()
+        if (isSharedTransaction()) {
+            getContacts()
         }
     }
 
+    private fun getContacts() {
+        getContactsUseCase.execute()
+            .defaultSchedulers()
+            .subscribe({
+                contacts = it
+                getSharedTransaction()
+            }, {
+                contacts = emptyList()
+            })
+            .addToDisposables()
+    }
+
     fun getTransactionInfo() {
+        setEvent(LoadingEvent)
         if (isSharedTransaction()) {
             getSharedTransaction()
         } else {
@@ -87,10 +100,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private fun getPersonalTransaction() {
         viewModelScope.launch {
             getAllSignersUseCase.execute()
-                .zip(getTransactionUseCase.execute(walletId, txId)
-                    .onException { event(TransactionDetailsError(it.message.orEmpty())) }
-                ) { p, tx -> Triple(p.first, p.second, tx) }
+                .zip(getTransactionUseCase.execute(walletId, txId)) { p, tx -> Triple(p.first, p.second, tx) }
                 .flowOn(IO)
+                .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }
                 .collect {
                     masterSigners = it.first
                     remoteSigners = it.second
@@ -100,7 +112,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     private fun getSharedTransaction() {
-        getContacts()
         viewModelScope.launch {
             getAllSignersUseCase.execute()
                 .zip(getRoomWalletUseCase.execute(roomId).map {
@@ -108,10 +119,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     roomWallet = it
                 }
                 ) { p, _ -> p }
-                .zip(getTransactionUseCase.execute(walletId, txId)
-                    .onException { event(TransactionDetailsError(it.message.orEmpty())) }
-                ) { p, tx -> Triple(p.first, p.second, tx) }
+                .zip(getTransactionUseCase.execute(walletId, txId)) { p, tx -> Triple(p.first, p.second, tx) }
                 .flowOn(IO)
+                .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }
                 .collect {
                     masterSigners = it.first
                     remoteSigners = it.second
@@ -123,11 +133,20 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private fun updateTransaction(transaction: Transaction) {
         updateState { copy(transaction = transaction) }
         val signers = transaction.signers
-        val signedMasterSigners = masterSigners.filter { it.device.masterFingerprint in signers }.map(MasterSigner::toModel)
-        val signedRemoteSigners = remoteSigners.filter { it.masterFingerprint in signers }.map(SingleSigner::toModel)
+        val signedMasterSigners = masterSigners.filter { it.device.masterFingerprint in signers }
+            .map(MasterSigner::toModel)
+        val signedRemoteSigners =
+            remoteSigners.filter { it.masterFingerprint in signers }.map(SingleSigner::toModel)
         val localSignedSigners = signedMasterSigners + signedRemoteSigners
         if (joinKeys.isNotEmpty()) {
-            updateState { copy(signers = joinKeys.map { it.retrieveInfo(localSignedSigners, contacts) }) }
+            updateState {
+                copy(signers = joinKeys.map {
+                    it.retrieveInfo(
+                        localSignedSigners,
+                        contacts
+                    )
+                })
+            }
         } else {
             updateState { copy(signers = localSignedSigners) }
         }
@@ -147,31 +166,32 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private fun broadcastPersonalTransaction() {
         viewModelScope.launch {
-            event(LoadingEvent)
+            setEvent(LoadingEvent)
             broadcastTransactionUseCase.execute(walletId, txId)
-                .onException { event(TransactionDetailsError(it.message.orEmpty())) }
+                .flowOn(IO)
+                .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }
                 .collect {
                     updateTransaction(it)
-                    event(BroadcastTransactionSuccess())
+                    setEvent(BroadcastTransactionSuccess())
                 }
         }
     }
 
     private fun broadcastSharedTransaction() {
         viewModelScope.launch {
-            event(LoadingEvent)
+            setEvent(LoadingEvent)
             broadcastRoomTransactionUseCase.execute(initEventId)
                 .flowOn(IO)
-                .onException { event(TransactionDetailsError(it.message.orEmpty())) }
-                .collect { event(BroadcastTransactionSuccess(SessionHolder.getActiveRoomId())) }
+                .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }
+                .collect { setEvent(BroadcastTransactionSuccess(SessionHolder.getActiveRoomId())) }
         }
     }
 
     fun handleViewBlockchainEvent() {
         getBlockchainExplorerUrlUseCase.execute(txId)
             .flowOn(IO)
-            .onException { event(TransactionDetailsError(it.message.orEmpty())) }
-            .onEach { event(ViewBlockchainExplorer(it)) }
+            .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }
+            .onEach { setEvent(ViewBlockchainExplorer(it)) }
             .flowOn(Main)
             .launchIn(viewModelScope)
     }
@@ -179,15 +199,15 @@ internal class TransactionDetailsViewModel @Inject constructor(
     fun handleMenuMoreEvent() {
         val pending = getState().transaction.status.isPending()
         if (pending) {
-            event(PromptTransactionOptions(pending))
+            setEvent(PromptTransactionOptions(pending))
         }
     }
 
     fun handleDeleteTransactionEvent() {
         viewModelScope.launch {
             when (val result = deleteTransactionUseCase.execute(walletId, txId)) {
-                is Success -> event(DeleteTransactionSuccess)
-                is Error -> event(TransactionDetailsError("${result.exception.message.orEmpty()},walletId::$walletId,txId::$txId"))
+                is Success -> setEvent(DeleteTransactionSuccess)
+                is Error -> setEvent(TransactionDetailsError("${result.exception.message.orEmpty()},walletId::$walletId,txId::$txId"))
             }
         }
     }
@@ -196,29 +216,31 @@ internal class TransactionDetailsViewModel @Inject constructor(
         if (signer.software) {
             viewModelScope.launch {
                 val fingerPrint = signer.fingerPrint
-                val device = masterSigners.first { it.device.masterFingerprint == fingerPrint }.device
+                val device =
+                    masterSigners.first { it.device.masterFingerprint == fingerPrint }.device
                 if (device.needPassPhraseSent) {
-                    event(PromptInputPassphrase {
+                    setEvent(PromptInputPassphrase {
                         viewModelScope.launch {
                             sendSignerPassphrase.execute(signer.id, it)
-                                .onException { event(TransactionDetailsError("${it.message.orEmpty()},walletId::$walletId,txId::$txId")) }
-                                .collect { signTransaction(device) }
+                                .flowOn(IO)
+                                .onException { setEvent(TransactionDetailsError("${it.message.orEmpty()},walletId::$walletId,txId::$txId")) }
+                                .collect { signTransaction(device, signer.id) }
                         }
                     })
                 } else {
-                    signTransaction(device)
+                    signTransaction(device, signer.id)
                 }
             }
         } else {
-            event(PromptTransactionOptions(true))
+            setEvent(PromptTransactionOptions(true))
         }
     }
 
-    private fun signTransaction(device: Device) {
+    private fun signTransaction(device: Device, signerId: String) {
         if (isSharedTransaction()) {
-            signRoomTransaction(device)
+            signRoomTransaction(device, signerId)
         } else {
-            signPersonalTransaction(device)
+            signPersonalTransaction(device, signerId)
         }
     }
 
@@ -226,12 +248,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun exportTransactionToFile() {
         viewModelScope.launch {
-            event(LoadingEvent)
+            setEvent(LoadingEvent)
             when (val result = createShareFileUseCase.execute("${walletId}_${txId}")) {
                 is Success -> exportTransaction(result.data)
                 is Error -> {
-                    val message = "${result.exception.messageOrUnknownError()},walletId::$walletId,txId::$txId"
-                    event(ExportTransactionError(message))
+                    val message =
+                        "${result.exception.messageOrUnknownError()},walletId::$walletId,txId::$txId"
+                    setEvent(ExportTransactionError(message))
                     CrashlyticsReporter.recordException(TransactionException(message))
                 }
             }
@@ -241,55 +264,101 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private fun exportTransaction(filePath: String) {
         viewModelScope.launch {
             when (val result = exportTransactionUseCase.execute(walletId, txId, filePath)) {
-                is Success -> event(ExportToFileSuccess(filePath))
+                is Success -> setEvent(ExportToFileSuccess(filePath))
                 is Error -> {
-                    val message = "${result.exception.messageOrUnknownError()},walletId::$walletId,txId::$txId"
-                    event(ExportTransactionError(message))
+                    val message =
+                        "${result.exception.messageOrUnknownError()},walletId::$walletId,txId::$txId"
+                    setEvent(ExportTransactionError(message))
                     CrashlyticsReporter.recordException(TransactionException(message))
                 }
             }
         }
     }
 
-    private fun signRoomTransaction(device: Device) {
+    private fun signRoomTransaction(device: Device, signerId: String) {
         viewModelScope.launch {
-            signRoomTransactionUseCase.execute(initEventId = initEventId, device = device)
+            signRoomTransactionUseCase.execute(initEventId = initEventId, device = device, signerId)
                 .flowOn(IO)
                 .onException {
-                    val message = "${it.message.orEmpty()},walletId::$walletId,txId::$txId"
-                    event(TransactionDetailsError(message))
-                    CrashlyticsReporter.recordException(TransactionException(message))
+                    fireSignError(it)
                 }
-                .collect { event(SignTransactionSuccess(SessionHolder.getActiveRoomId())) }
+                .collect { setEvent(SignTransactionSuccess(SessionHolder.getActiveRoomId())) }
         }
     }
 
-    private fun signPersonalTransaction(device: Device) {
+    private fun signPersonalTransaction(device: Device, signerId: String) {
         viewModelScope.launch {
-            when (val result = signTransactionUseCase.execute(walletId, txId, device)) {
+            when (val result = signTransactionUseCase.execute(walletId, txId, device, signerId)) {
                 is Success -> {
                     updateTransaction(result.data)
-                    event(SignTransactionSuccess())
+                    setEvent(SignTransactionSuccess())
                 }
                 is Error -> {
-                    val message = "${result.exception.messageOrUnknownError()},walletId::$walletId,txId::$txId"
-                    event(TransactionDetailsError(message))
-                    CrashlyticsReporter.recordException(TransactionException(message))
+                    fireSignError(result.exception)
                 }
             }
         }
     }
 
+    fun handleSignByTapSigner(isoDep: IsoDep?, inputCvc: String) {
+        isoDep ?: return
+        if (isSharedTransaction()) {
+            signRoomTransactionTapSigner(isoDep, inputCvc)
+        } else {
+            signPersonTapSignerTransaction(isoDep, inputCvc)
+        }
+    }
+
+    private fun signRoomTransactionTapSigner(isoDep: IsoDep, inputCvc: String) {
+        viewModelScope.launch {
+            setEvent(NfcLoadingEvent)
+            val result = signRoomTransactionByTapSignerUseCase(SignRoomTransactionByTapSignerUseCase.Data(isoDep, inputCvc, initEventId))
+            if (result.isSuccess) {
+                setEvent(SignTransactionSuccess(SessionHolder.getActiveRoomId()))
+            } else {
+                fireSignError(result.exceptionOrNull())
+            }
+        }
+    }
+
+    private fun signPersonTapSignerTransaction(isoDep: IsoDep, inputCvc: String) {
+        viewModelScope.launch {
+            setEvent(NfcLoadingEvent)
+            val result = signTransactionByTapSignerUseCase(
+                SignTransactionByTapSignerUseCase.Data(
+                    isoDep = isoDep,
+                    cvc = inputCvc,
+                    walletId = walletId,
+                    txId = txId
+                )
+            )
+            if (result.isSuccess) {
+                updateTransaction(result.getOrThrow())
+                setEvent(SignTransactionSuccess())
+            } else {
+                fireSignError(result.exceptionOrNull())
+            }
+        }
+    }
+
+    private fun fireSignError(e: Throwable?) {
+        val message = "${e?.message.orEmpty()},walletId::$walletId,txId::$txId"
+        setEvent(TransactionDetailsError(message, e))
+        CrashlyticsReporter.recordException(TransactionException(message))
+    }
 }
 
 class TransactionException(message: String) : Exception(message)
 
 // why not use name but email?
-internal fun JoinKey.retrieveInfo(localSignedSigners: List<SignerModel>, contacts: List<Contact>) = retrieveByLocalKeys(localSignedSigners) ?: retrieveByContacts(contacts)
+internal fun JoinKey.retrieveInfo(localSignedSigners: List<SignerModel>, contacts: List<Contact>) =
+    retrieveByLocalKeys(localSignedSigners) ?: retrieveByContacts(contacts)
 
-internal fun JoinKey.retrieveByLocalKeys(localSignedSigners: List<SignerModel>) = localSignedSigners.firstOrNull { it.fingerPrint == masterFingerprint }
+internal fun JoinKey.retrieveByLocalKeys(localSignedSigners: List<SignerModel>) =
+    localSignedSigners.firstOrNull { it.fingerPrint == masterFingerprint }
 
-internal fun JoinKey.retrieveByContacts(contacts: List<Contact>) = copy(name = getDisplayName(contacts)).toSignerModel().copy(localKey = false)
+internal fun JoinKey.retrieveByContacts(contacts: List<Contact>) =
+    copy(name = getDisplayName(contacts)).toSignerModel().copy(localKey = false)
 
 internal fun JoinKey.getDisplayName(contacts: List<Contact>): String {
     contacts.firstOrNull { it.chatId == chatId }?.apply {

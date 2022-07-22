@@ -10,7 +10,6 @@ import com.nunchuk.android.core.matrix.UploadFileUseCase
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.profile.UpdateUseProfileUseCase
 import com.nunchuk.android.core.profile.UserProfileRepository
-import com.nunchuk.android.core.provider.AppInfoProvider
 import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,7 +21,6 @@ import javax.inject.Inject
 @HiltViewModel
 internal class AccountViewModel @Inject constructor(
     private val accountManager: AccountManager,
-    private val appInfoProvider: AppInfoProvider,
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val updateUseProfileUseCase: UpdateUseProfileUseCase,
     private val uploadFileUseCase: UploadFileUseCase,
@@ -35,7 +33,6 @@ internal class AccountViewModel @Inject constructor(
         updateState {
             copy(
                 account = accountManager.getAccount(),
-                appVersion = appInfoProvider.getAppVersion()
             )
         }
 
@@ -112,7 +109,9 @@ internal class AccountViewModel @Inject constructor(
         viewModelScope.launch {
             repository.signOut()
                 .flowOn(Dispatchers.IO)
-                .onException { }
+                .onException {
+                    event(AccountEvent.LoadingEvent(false))
+                }
                 .collect {}
         }
         accountManager.signOut(

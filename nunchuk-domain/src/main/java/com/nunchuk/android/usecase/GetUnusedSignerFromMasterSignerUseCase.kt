@@ -27,12 +27,16 @@ internal class GetUnusedSignerFromMasterSignerUseCaseImpl @Inject constructor(
         addressType: AddressType
     ) = flow {
         emit(
-            masterSigners.map {
+            masterSigners.map { masterSigner ->
                 nativeSdk.getUnusedSignerFromMasterSigner(
-                    it.id,
+                    masterSigner.id,
                     walletType,
                     addressType
-                )
+                ).also {
+                    if (masterSigner.device.needPassPhraseSent) {
+                        nativeSdk.clearSignerPassphrase(masterSigner.id)
+                    }
+                }
             }
         )
     }

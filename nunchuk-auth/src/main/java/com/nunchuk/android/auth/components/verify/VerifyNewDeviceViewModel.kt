@@ -5,6 +5,7 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.auth.components.verify.VerifyNewDeviceEvent.*
 import com.nunchuk.android.auth.domain.VerifyNewDeviceUseCase
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.utils.onException
@@ -18,7 +19,7 @@ import javax.inject.Inject
 internal class VerifyNewDeviceViewModel @Inject constructor(
     private val verifyNewDeviceUseCase: VerifyNewDeviceUseCase,
     private val initNunchukUseCase: InitNunchukUseCase,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
 ) : NunchukViewModel<Unit, VerifyNewDeviceEvent>() {
 
     override val initialState = Unit

@@ -136,14 +136,13 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
             is NetworkSettingEvent.LoadingEvent -> showLoading()
             NetworkSettingEvent.SignOutSuccessEvent -> {
                 hideLoading()
-                moveToSignInScreen()
+                restartApp()
             }
         }
     }
 
-    private fun moveToSignInScreen() {
-        finish()
-        navigator.openSignInScreen(this)
+    private fun restartApp() {
+        navigator.restartApp(this)
     }
 
     private fun handleUpdateAppSettingsSuccess() {

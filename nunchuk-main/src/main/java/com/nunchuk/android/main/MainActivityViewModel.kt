@@ -65,11 +65,10 @@ internal class MainActivityViewModel @Inject constructor(
     private val getDisplayUnitSettingUseCase: GetDisplayUnitSettingUseCase,
     private val notificationManager: PushNotificationManager,
     private val checkUpdateRecommendUseCase: CheckUpdateRecommendUseCase,
-    private val ncSharePreferences: NCSharePreferences,
     private val getSyncFileUseCase: GetSyncFileUseCase,
     private val createOrUpdateSyncFileUseCase: CreateOrUpdateSyncFileUseCase,
     private val deleteSyncFileUseCase: DeleteSyncFileUseCase,
-    private val saveCacheFileUseCase: SaveCacheFileUseCase
+    private val saveCacheFileUseCase: SaveCacheFileUseCase,
 ) : NunchukViewModel<Unit, MainAppEvent>() {
 
     override val initialState = Unit
@@ -390,17 +389,21 @@ internal class MainActivityViewModel @Inject constructor(
             getSyncSettingUseCase.execute()
                 .flatMapConcat {
                     if (it.enable) {
-                        registerAutoBackupUseCase.execute(syncRoomId, accessToken)
+                        registerAutoBackupUseCase.execute(syncRoomId, accessToken).map { true }
                     } else {
                         flow {
                             Timber.tag(TAG).v("can not registerAutoBackup due to disable")
-                            emit(Unit)
+                            emit(false)
                         }
                     }
                 }
                 .flowOn(IO)
                 .onException { }
-                .collect { Timber.tag(TAG).v("registerAutoBackup success") }
+                .collect { isRegister ->
+                    if (isRegister) {
+                        Timber.tag(TAG).v("registerAutoBackup success")
+                    }
+                }
         }
     }
 
@@ -453,19 +456,21 @@ internal class MainActivityViewModel @Inject constructor(
             getSyncSettingUseCase.execute()
                 .flatMapConcat {
                     if (it.enable) {
-                        consumerSyncEventUseCase.execute(sortedEvents)
+                        consumerSyncEventUseCase.execute(sortedEvents).map { true }
                     } else {
                         flow {
                             Timber.tag(TAG).v("can not consumerSyncEvent due to disable")
-                            emit(Unit)
+                            emit(false)
                         }
                     }
                 }
                 .flowOn(IO)
                 .onException { Timber.tag(TAG).v("consumerSyncEvent fail") }
-                .collect {
-                    Timber.tag(TAG).v("consumerSyncEvent success")
-                    event(ConsumeSyncEventCompleted)
+                .collect { consume ->
+                    if (consume) {
+                        Timber.tag(TAG).v("consumerSyncEvent success")
+                        event(ConsumeSyncEventCompleted)
+                    }
                 }
         }
     }
@@ -509,17 +514,6 @@ internal class MainActivityViewModel @Inject constructor(
                 .collect { it.retrieveTimelineEvents() }
         }
     }
-
-    fun checkCrossSigning(session: Session) {
-        if (ncSharePreferences.newDevice) {
-            if (hasMultipleDevices(session)) {
-                ncSharePreferences.newDevice = false
-                event(CrossSigningUnverified)
-            }
-        }
-    }
-
-    private fun hasMultipleDevices(session: Session) = session.cryptoService().getCryptoDeviceInfo(session.myUserId).size > 1
 
     private fun getDisplayUnitSetting() {
         viewModelScope.launch {

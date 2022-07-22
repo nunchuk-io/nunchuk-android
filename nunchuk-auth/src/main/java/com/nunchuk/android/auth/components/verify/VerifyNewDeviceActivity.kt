@@ -65,8 +65,9 @@ class VerifyNewDeviceActivity : BaseActivity<ActivityVerifyNewDeviceBinding>() {
 
     private fun openMainScreen(token: String, deviceId: String) {
         hideLoading()
+        setResult(RESULT_OK)
         finish()
-        navigator.openMainScreen(this, token, deviceId)
+        navigator.openMainScreen(activityContext = this, loginHalfToken = token, deviceId = deviceId, isNewDevice = true)
     }
 
     private fun setupViews() {
@@ -97,14 +98,19 @@ class VerifyNewDeviceActivity : BaseActivity<ActivityVerifyNewDeviceBinding>() {
         const val EXTRAS_DEVICE_ID = "EXTRAS_DEVICE_ID"
         const val EXTRAS_STAY_SIGNED_IN = "EXTRAS_STAY_SIGNED_IN"
 
-        fun start(activityContext: Context, email: String, loginHalfToken: String, deviceId: String, staySignedIn: Boolean) {
-            val intent = Intent(activityContext, VerifyNewDeviceActivity::class.java).apply {
+        fun buildIntent(
+            activityContext: Context,
+            email: String,
+            loginHalfToken: String,
+            deviceId: String,
+            staySignedIn: Boolean
+        ): Intent {
+            return Intent(activityContext, VerifyNewDeviceActivity::class.java).apply {
                 putExtra(EXTRAS_EMAIL, email)
                 putExtra(EXTRAS_LOGIN_HALF_TOKEN, loginHalfToken)
                 putExtra(EXTRAS_DEVICE_ID, deviceId)
                 putExtra(EXTRAS_STAY_SIGNED_IN, staySignedIn)
             }
-            activityContext.startActivity(intent)
         }
     }
 

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@id/changeNfcCvcFragment">
+
+    <fragment
+        android:id="@+id/changeNfcCvcFragment"
+        android:name="com.nunchuk.android.signer.nfc.ChangeNfcCvcFragment"
+        android:label="ChangeNfcCvcFragment"
+        tools:layout="@layout/fragment_nfc_change_cvc" />
+
+    <fragment
+        android:id="@+id/addNfcNameFragment"
+        android:name="com.nunchuk.android.signer.nfc.AddNfcNameFragment"
+        android:label="AddNfcNameFragment"
+        tools:layout="@layout/fragment_nfc_add_name_key" />
+
+    <fragment
+        android:id="@+id/setupChainCodeFragment"
+        android:name="com.nunchuk.android.signer.nfc.SetupChainCodeFragment"
+        android:label="SetupChainCodeFragment"
+        tools:layout="@layout/fragment_setup_chain_code" />
+
+    <fragment
+        android:id="@+id/nfcKeyRecoverInfoFragment"
+        android:name="com.nunchuk.android.signer.nfc.recover.NfcKeyRecoverInfoFragment"
+        android:label="NfcKeyRecoverInfoFragment"
+        tools:layout="@layout/fragment_nfc_key_recover_info" />
+
+    <fragment
+        android:id="@+id/recoverNfcKeyGuideFragment"
+        android:name="com.nunchuk.android.signer.nfc.recover.RecoverNfcKeyGuideFragment"
+        android:label="RecoverNfcKeyGuideFragment"
+        tools:layout="@layout/fragment_recover_nfc_key_guide" />
+
+    <fragment
+        android:id="@+id/nfcDecryptionKeyFragment"
+        android:name="com.nunchuk.android.signer.nfc.decryption.NfcDecryptionKeyFragment"
+        android:label="NfcDecryptionKeyFragment"
+        tools:layout="@layout/fragment_decryption_key" />
+
+</navigation>

@@ -17,7 +17,7 @@ data class Data<out T>(
                 if (code == ApiErrorCode.UNAUTHORIZED) {
                     UnauthorizedEventBus.instance().publish()
                 }
-                if (code != 0) {
+                if (code != CODE_SUCCESS) {
                     throw NunchukApiException(
                         code = code,
                         message = message ?: UNKNOWN_ERROR,
@@ -28,6 +28,9 @@ data class Data<out T>(
             }
             throw NunchukApiException()
         }
+
+    val isSuccess: Boolean
+        get() = _error?.code == CODE_SUCCESS
 
     fun getError(): NunchukApiException? {
         if (_error != null && _error.code != 0) {
@@ -43,7 +46,7 @@ data class Data<out T>(
 
 data class ErrorResponse(
     @SerializedName("code")
-    val code: Int = 0,
+    val code: Int = -1,
     @SerializedName("message")
     val message: String?,
     @SerializedName("details")
@@ -71,5 +74,6 @@ object ApiErrorCode {
 }
 
 const val UNKNOWN_ERROR = "Unknown error"
+const val CODE_SUCCESS = 0
 
 

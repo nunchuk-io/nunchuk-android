@@ -2,7 +2,9 @@ package com.nunchuk.android.wallet.shared.components.assign
 
 import android.content.Context
 import android.os.Bundle
+import android.view.View
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.signer.SignerModel
@@ -26,6 +28,8 @@ class AssignSignerSharedWalletActivity : BaseActivity<ActivityAssignSignerBindin
 
     private val viewModel: AssignSignerViewModel by viewModels()
 
+    private var emptyStateView: View? = null
+
     override fun initializeBinding() = ActivityAssignSignerBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,7 +40,15 @@ class AssignSignerSharedWalletActivity : BaseActivity<ActivityAssignSignerBindin
         setupViews()
         observeEvent()
 
-        viewModel.init()
+        if (args.signers.isNotEmpty()) {
+            args.signers.forEach { viewModel.filterSigners(it) }
+        } else {
+            viewModel.init()
+        }
+    }
+
+    private fun setEmptyState() {
+        emptyStateView = binding.viewStubEmptyState.inflate()
     }
 
     private fun observeEvent() {
@@ -57,7 +69,16 @@ class AssignSignerSharedWalletActivity : BaseActivity<ActivityAssignSignerBindin
     }
 
     private fun handleState(state: AssignSignerState) {
-        bindSigners(state.masterSigners.map(MasterSigner::toModel) + state.remoteSigners.map(SingleSigner::toModel), state.selectedPFXs)
+        val signers = if (args.signers.isNotEmpty()) {
+            state.masterSigners.map(MasterSigner::toModel) + state.filterRecSigners.map(SingleSigner::toModel)
+        } else {
+            state.masterSigners.map(MasterSigner::toModel) + state.remoteSigners.map(SingleSigner::toModel)
+        }
+
+        bindSigners(signers, state.selectedPFXs)
+
+        emptyStateView?.isVisible = signers.isEmpty()
+
         val slot = args.totalSigns - state.selectedPFXs.size
         binding.slot.text = getString(R.string.nc_wallet_slots_left_in_the_wallet, slot)
     }
@@ -84,6 +105,12 @@ class AssignSignerSharedWalletActivity : BaseActivity<ActivityAssignSignerBindin
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
+
+        setEmptyState()
+        emptyStateView?.findViewById<View>(R.id.btnExit)?.setOnClickListener {
+            navigator.returnRoomDetailScreen()
+        }
+        emptyStateView?.isVisible = true
     }
 
     companion object {
@@ -94,7 +121,8 @@ class AssignSignerSharedWalletActivity : BaseActivity<ActivityAssignSignerBindin
             walletType: WalletType,
             addressType: AddressType,
             totalSigns: Int,
-            requireSigns: Int
+            requireSigns: Int,
+            signers: List<SingleSigner>
         ) {
             activityContext.startActivity(
                 AssignSignerArgs(
@@ -102,7 +130,8 @@ class AssignSignerSharedWalletActivity : BaseActivity<ActivityAssignSignerBindin
                     walletType = walletType,
                     addressType = addressType,
                     totalSigns = totalSigns,
-                    requireSigns = requireSigns
+                    requireSigns = requireSigns,
+                    signers = signers
                 ).buildIntent(activityContext)
             )
         }

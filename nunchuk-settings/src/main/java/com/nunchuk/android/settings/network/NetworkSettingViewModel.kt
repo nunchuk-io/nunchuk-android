@@ -6,6 +6,7 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.InitAppSettingsUseCase
 import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
+import com.nunchuk.android.core.profile.UserProfileRepository
 import com.nunchuk.android.model.AppSettings
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +20,8 @@ internal class NetworkSettingViewModel @Inject constructor(
     private val initAppSettingsUseCase: InitAppSettingsUseCase,
     private val updateAppSettingUseCase: UpdateAppSettingUseCase,
     private val getAppSettingUseCase: GetAppSettingUseCase,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
+    private val repository: UserProfileRepository
 ) : NunchukViewModel<NetworkSettingState, NetworkSettingEvent>() {
 
     override val initialState = NetworkSettingState()
@@ -92,6 +94,12 @@ internal class NetworkSettingViewModel @Inject constructor(
     }
 
     fun signOut() {
+        viewModelScope.launch {
+            repository.signOut()
+                .flowOn(Dispatchers.IO)
+                .onException { }
+                .collect {}
+        }
         accountManager.signOut(
             onStartSignOut = {
                 event(NetworkSettingEvent.LoadingEvent(true))

@@ -11,7 +11,8 @@ interface HealthCheckMasterSignerUseCase {
         fingerprint: String,
         message: String,
         signature: String,
-        path: String
+        path: String,
+        masterSignerId: String?
     ): Flow<HealthStatus>
 }
 
@@ -23,11 +24,13 @@ internal class HealthCheckMasterSignerUseCaseImpl @Inject constructor(
         fingerprint: String,
         message: String,
         signature: String,
-        path: String
+        path: String,
+        masterSignerId: String?
     ) = flow {
         emit(
             nunchukNativeSdk.healthCheckMasterSigner(fingerprint, message, signature, path)
         )
+        if (masterSignerId.isNullOrEmpty().not()) nunchukNativeSdk.clearSignerPassphrase(masterSignerId.orEmpty())
     }
 
 }

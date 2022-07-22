@@ -91,4 +91,9 @@
         <attr name="useCurrencySymbolAsHint" format="boolean"/>
         <attr name="maxNumberOfDecimalDigits" format="integer"/>
     </declare-styleable>
+
+    <declare-styleable name="NCLabelWithNumber">
+        <attr name="text" format="reference|string"/>
+        <attr name="pos" format="integer"/>
+    </declare-styleable>
 </resources>

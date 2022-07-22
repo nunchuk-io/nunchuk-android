@@ -1,5 +1,7 @@
 package com.nunchuk.android.signer.software.components.passphrase
 
+import com.nunchuk.android.model.MasterSigner
+
 sealed class SetPassphraseEvent {
     data class LoadingEvent(val loading: Boolean) : SetPassphraseEvent()
     object PassPhraseRequiredEvent : SetPassphraseEvent()
@@ -7,8 +9,7 @@ sealed class SetPassphraseEvent {
     object ConfirmPassPhraseRequiredEvent : SetPassphraseEvent()
     object ConfirmPassPhraseNotMatchedEvent : SetPassphraseEvent()
     data class CreateSoftwareSignerCompletedEvent(
-        val id: String,
-        val name: String,
+        val masterSigner: MasterSigner,
         val skipPassphrase: Boolean
     ) : SetPassphraseEvent()
 

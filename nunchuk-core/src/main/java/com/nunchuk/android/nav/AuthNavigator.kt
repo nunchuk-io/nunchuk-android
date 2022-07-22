@@ -1,9 +1,11 @@
 package com.nunchuk.android.nav
 
 import android.content.Context
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 
 interface AuthNavigator {
-    fun openSignInScreen(activityContext: Context)
+    fun openSignInScreen(activityContext: Context, isNeedNewTask: Boolean = true, isAccountDeleted: Boolean = false)
 
     fun openSignUpScreen(activityContext: Context)
 
@@ -15,5 +17,8 @@ interface AuthNavigator {
 
     fun openForgotPasswordScreen(activityContext: Context)
 
-    fun openVerifyNewDeviceScreen(activityContext: Context, email: String, loginHalfToken: String, deviceId: String, staySignedIn: Boolean)
+    fun openVerifyNewDeviceScreen(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Context, email: String, loginHalfToken: String, deviceId: String, staySignedIn: Boolean
+    )
 }

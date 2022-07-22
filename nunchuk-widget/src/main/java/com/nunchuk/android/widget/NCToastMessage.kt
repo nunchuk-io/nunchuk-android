@@ -86,6 +86,7 @@ class NCToastMessage(activity: Activity) : Disposable {
 
     companion object {
         private const val TIME = 3000L
+        const val LONG_TIME = 5000L
     }
 
 }

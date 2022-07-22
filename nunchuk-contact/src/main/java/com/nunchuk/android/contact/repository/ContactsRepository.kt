@@ -117,8 +117,9 @@ internal class ContactsRepositoryImpl @Inject constructor(
 
     override fun invite(friendEmails: List<String>) = flow {
         val payload = InviteContactPayload(friendEmails)
+        val response = api.invite(payload)
         emit(
-            api.invite(payload).data
+            if (response.isSuccess) Unit else response.data
         )
     }
 

@@ -21,7 +21,7 @@ data class SignerModel(
 
 fun SingleSigner.toModel() = SignerModel(
     id = masterSignerId,
-    name = name,
+    name = name.ifEmpty { masterFingerprint },
     derivationPath = derivationPath,
     type = type,
     used = used,

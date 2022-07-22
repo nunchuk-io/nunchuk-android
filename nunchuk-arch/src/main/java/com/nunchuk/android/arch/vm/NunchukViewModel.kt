@@ -1,6 +1,7 @@
 package com.nunchuk.android.arch.vm
 
 import androidx.annotation.MainThread
+import androidx.annotation.WorkerThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -34,9 +35,13 @@ abstract class NunchukViewModel<State, Event> : ViewModel() {
         _state.value = updater(_state.value ?: initialState)
     }
 
-    @MainThread
+    @WorkerThread
     protected fun postState(updater: State.() -> State) {
         _state.postValue(updater(_state.value ?: initialState))
+    }
+
+    protected fun setEvent(event: Event) {
+        _event.value = event
     }
 
     protected fun event(event: Event) {

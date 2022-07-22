@@ -1,21 +1,47 @@
 package com.nunchuk.android.widget
 
-import android.app.Activity
 import android.app.Dialog
+import android.view.LayoutInflater
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.Window
-import javax.inject.Inject
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isGone
+import androidx.lifecycle.lifecycleScope
+import com.nunchuk.android.widget.databinding.NcInfoLoadingDialogBinding
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
 
-class NCLoadingDialogCreator @Inject constructor(val activity: Activity) {
+class NCLoadingDialogCreator(val activity: AppCompatActivity) {
+    val dialog = Dialog(activity)
+    val binding = NcInfoLoadingDialogBinding.inflate(LayoutInflater.from(activity))
+    var showJob: Job? = null
 
-    fun showDialog(cancelable: Boolean = true) = Dialog(activity).apply {
-        window?.setBackgroundDrawableResource(android.R.color.transparent)
-        requestWindowFeature(Window.FEATURE_NO_TITLE)
-        setCancelable(cancelable)
-        setContentView(R.layout.nc_loading_dialog)
-        window?.attributes?.windowAnimations = R.style.NCAnimatedDialog
-        show()
-        window?.setLayout(MATCH_PARENT, MATCH_PARENT)
+    init {
+        dialog.apply {
+            window?.setBackgroundDrawableResource(android.R.color.transparent)
+            requestWindowFeature(Window.FEATURE_NO_TITLE)
+            setContentView(binding.root)
+            window?.attributes?.windowAnimations = R.style.NCAnimatedDialog
+            window?.setLayout(MATCH_PARENT, MATCH_PARENT)
+        }
     }
 
+    fun showDialog(cancelable: Boolean = true, message: String? = null) {
+        showJob?.cancel()
+        showJob = activity.lifecycleScope.launch {
+            delay(150)
+            ensureActive()
+            binding.message.isGone = message.isNullOrEmpty()
+            binding.message.text = message
+            dialog.setCancelable(cancelable)
+            dialog.show()
+        }
+    }
+
+    fun cancel() {
+        showJob?.cancel()
+        dialog.cancel()
+    }
 }

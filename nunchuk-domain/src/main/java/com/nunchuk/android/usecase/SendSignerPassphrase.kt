@@ -13,8 +13,7 @@ internal class SendSignerPassphraseImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
 ) : SendSignerPassphrase {
 
-    override fun execute(signerId: String, passphrase: String) = flow {
+    override fun execute(signerId: String, passphrase: String): Flow<Unit> = flow {
         emit(nativeSdk.sendSignerPassphrase(signerId, passphrase))
     }
-
 }

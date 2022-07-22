@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -26,7 +27,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
-import com.nunchuk.android.utils.animateVisibility
+import com.nunchuk.android.wallet.components.details.WalletDetailsArgs
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -35,6 +36,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     private val walletsViewModel: WalletsViewModel by activityViewModels()
 
     private val mainActivityViewModel: MainActivityViewModel by activityViewModels()
+
+    private val signerAdapter = SignerAdapter(::openSignerInfoScreen)
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -49,6 +52,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun setupViews() {
+        binding.signerList.addItemDecoration(SimpleItemDecoration(requireContext()))
+        binding.signerList.adapter = signerAdapter
         binding.doLater.setOnClickListener { hideIntroContainerView() }
         binding.btnAdd.setOnClickListener { walletsViewModel.handleAddSignerOrWallet() }
         binding.btnAddSigner.setOnClickListener { walletsViewModel.handleAddSigner() }
@@ -92,7 +97,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun handleLoading(event: Loading) {
-        binding.walletLoading.root.animateVisibility(isVisible = event.loading, duration = 400)
+        binding.walletLoading.root.isVisible = event.loading
     }
 
     private fun openWalletIntroScreen() {
@@ -218,7 +223,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun openWalletDetailsScreen(walletId: String) {
-        navigator.openWalletDetailsScreen(requireActivity(), walletId)
+        findNavController().navigate(R.id.walletDetailsFragment, WalletDetailsArgs(walletId).buildBundle())
     }
 
     private fun showSigners(signers: List<SignerModel>) {
@@ -237,15 +242,17 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     private fun showSignersListView(signers: List<SignerModel>) {
         binding.signerEmpty.isVisible = false
         binding.signerList.isVisible = true
-        SignersViewBinder(binding.signerList, signers, ::openSignerInfoScreen).bindItems()
+        signerAdapter.submitList(signers)
     }
 
     private fun openSignerInfoScreen(signer: SignerModel) {
+        val isInWallet = walletsViewModel.isInWallet(signer)
         navigator.openSignerInfoScreen(
             activityContext = requireActivity(),
             id = signer.id,
             name = signer.name,
-            software = signer.software
+            type = signer.type,
+            isInWallet = isInWallet
         )
     }
 

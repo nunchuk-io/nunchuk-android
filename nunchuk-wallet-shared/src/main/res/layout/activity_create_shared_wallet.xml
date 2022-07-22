@@ -345,6 +345,17 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
         android:text="@string/nc_text_continue"
+        app:layout_constraintBottom_toTopOf="@+id/btnRecover"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btnRecover"
+        style="@style/NCPrimaryButton.Light"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/nc_padding_16"
+        android:text="@string/nc_txt_recover_collaborative_wallet"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 

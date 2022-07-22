@@ -1,14 +1,17 @@
 package com.nunchuk.android.transaction.components.details
 
 import android.app.Activity
-import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.Uri
+import android.nfc.NfcAdapter
+import android.nfc.tech.IsoDep
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import com.nunchuk.android.core.base.BaseActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.*
@@ -20,15 +23,19 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.imports.ImportTransactionActivity
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
+import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
-class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBinding>() {
+class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBinding>() {
+    private var shouldReload: Boolean = true
 
     private val args: TransactionDetailsArgs by lazy { TransactionDetailsArgs.deserializeFrom(intent) }
 
@@ -37,6 +44,13 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
     private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 
     override fun initializeBinding() = ActivityTransactionDetailsBinding.inflate(layoutInflater)
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        if (NfcAdapter.ACTION_NDEF_DISCOVERED == intent?.action) {
+            shouldReload = false
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,13 +74,24 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
 
     override fun onResume() {
         super.onResume()
-        showLoading()
-        viewModel.getTransactionInfo()
+        if (shouldReload) {
+            viewModel.getTransactionInfo()
+        }
+        shouldReload = true
     }
 
     private fun observeEvent() {
         viewModel.event.observe(this, ::handleEvent)
         viewModel.state.observe(this, ::handleState)
+        lifecycleScope.launchWhenCreated {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_SIGN_TRANSACTION }
+                    .collect {
+                        viewModel.handleSignByTapSigner(IsoDep.get(it.tag), nfcViewModel.inputCvc.orEmpty())
+                        nfcViewModel.clearScanInfo()
+                    }
+            }
+        }
     }
 
     private fun setupViews() {
@@ -122,11 +147,19 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
             container = binding.signerListView,
             signerMap = signerMap,
             signers = signers,
-            listener = viewModel::handleSignEvent
+            listener = { signer ->
+                if (signer.type == SignerType.NFC) {
+                    startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
+                } else {
+                    viewModel.handleSignEvent(signer)
+                }
+            }
         ).bindItems()
     }
 
     private fun bindTransaction(transaction: Transaction) {
+        binding.toolbar.menu.findItem(R.id.menu_more).isVisible =
+            transaction.status != TransactionStatus.CONFIRMED && transaction.status != TransactionStatus.PENDING_CONFIRMATION
         val output = if (transaction.isReceive) {
             transaction.receiveOutputs.firstOrNull()
         } else {
@@ -221,13 +254,19 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
             is BroadcastTransactionSuccess -> showBroadcastTransactionSuccess(event.roomId)
             DeleteTransactionSuccess -> showTransactionDeleteSuccess()
             is ViewBlockchainExplorer -> openExternalLink(event.url)
-            is TransactionDetailsError -> showError(event.message)
+            is TransactionDetailsError -> handleSignError(event)
             is PromptInputPassphrase -> requireInputPassphrase(event.func)
             is PromptTransactionOptions -> promptTransactionOptions(event.isPendingTransaction)
             LoadingEvent -> showLoading()
+            NfcLoadingEvent -> showLoading(message = getString(R.string.nc_keep_holding_nfc))
             is ExportToFileSuccess -> showExportToFileSuccess(event)
             is ExportTransactionError -> showExportToFileError(event)
         }
+    }
+
+    private fun handleSignError(event: TransactionDetailsError) {
+        hideLoading()
+        if (nfcViewModel.handleNfcError(event.e).not()) showError(event.message)
     }
 
     private fun showExportToFileError(event: ExportTransactionError) {
@@ -301,16 +340,6 @@ class TransactionDetailsActivity : BaseActivity<ActivityTransactionDetailsBindin
             finish()
         } else {
             returnActiveRoom()
-        }
-    }
-
-    private fun openExternalLink(url: String) {
-        val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        try {
-            startActivity(webIntent)
-        } catch (e: ActivityNotFoundException) {
-            CrashlyticsReporter.recordException(e)
-            NCToastMessage(this).showWarning(getString(R.string.nc_transaction_no_app_to_open_link))
         }
     }
 

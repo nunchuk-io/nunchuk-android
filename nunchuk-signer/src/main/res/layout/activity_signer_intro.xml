@@ -76,15 +76,15 @@
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
-                    android:padding="@dimen/nc_padding_16"
-                    android:layout_height="match_parent">
+                    android:layout_height="match_parent"
+                    android:padding="@dimen/nc_padding_16">
 
                     <ImageView
                         android:id="@+id/icSplit"
                         android:layout_width="wrap_content"
-                        android:padding="@dimen/nc_padding_12"
-                        android:background="@drawable/nc_circle_whisper_background"
                         android:layout_height="wrap_content"
+                        android:background="@drawable/nc_circle_whisper_background"
+                        android:padding="@dimen/nc_padding_12"
                         android:src="@drawable/ic_split"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
@@ -116,7 +116,7 @@
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
-                android:id="@+id/btnAddSSigner"
+                android:id="@+id/btnAddNFC"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/nc_padding_16"
@@ -126,6 +126,33 @@
                 app:cardUseCompatPadding="true"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/btnAddAirSigner">
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/title3"
+                    style="@style/NCText.Title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:drawableStart="@drawable/ic_circle_nfc_card"
+                    android:drawableEnd="@drawable/ic_arrow"
+                    android:drawablePadding="@dimen/nc_padding_16"
+                    android:gravity="center_vertical"
+                    android:padding="@dimen/nc_padding_16"
+                    android:text="@string/nc_add_nfc_key"
+                    app:fontTextStyle="semi_bold" />
+
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/btnAddSSigner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_16"
+                android:foreground="?android:attr/selectableItemBackground"
+                app:cardCornerRadius="@dimen/nc_padding_8"
+                app:cardUseCompatPadding="true"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/btnAddNFC">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
@@ -177,6 +204,7 @@
                         app:layout_constraintTop_toTopOf="parent" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </androidx.cardview.widget.CardView>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

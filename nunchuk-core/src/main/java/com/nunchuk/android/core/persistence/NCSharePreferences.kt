@@ -28,11 +28,7 @@ class NCSharePreferences @Inject constructor(context: Context) {
 
     var fcmToken: String?
         get() = prefs.getString(SP_KEY_FCM_TOKEN, "").orEmpty()
-        set(value) = prefs.edit().putString(SP_KEY_DEVICE_SHOW_BANNER_NEW_CHAT, value).apply()
-
-    var newDevice: Boolean
-        get() = prefs.getBoolean(SP_KEY_NEW_DEVICE, true)
-        set(value) = prefs.edit().putBoolean(SP_KEY_NEW_DEVICE, value).apply()
+        set(value) = prefs.edit().putString(SP_KEY_FCM_TOKEN, value).apply()
 
     var developerSetting: String
         get() = prefs.getString(SP_KEY_DEVELOPER_SETTING, "").orEmpty()
@@ -48,9 +44,8 @@ class NCSharePreferences @Inject constructor(context: Context) {
         private const val SP_KEY_DISPLAY_UNIT_SETTINGS = "${PACKAGE_PREFIX}.key.display.unit.settings"
         private const val SP_KEY_APP_SETTINGS = "${PACKAGE_PREFIX}.key.app.settings"
         private const val SP_KEY_DEVICE_ID = "${PACKAGE_PREFIX}.key.device.id"
-        private const val SP_KEY_DEVICE_SHOW_BANNER_NEW_CHAT = "${PACKAGE_PREFIX}.key.show.banner.new.chat"
+        private const val SP_KEY_DEVICE_SHOW_BANNER_NEW_CHAT = "${PACKAGE_PREFIX}.key.show.banner.new.chat.v2"
         private const val SP_KEY_FCM_TOKEN = "${PACKAGE_PREFIX}.key.fcm.token"
-        private const val SP_KEY_NEW_DEVICE = "${PACKAGE_PREFIX}.key.new.device"
         private const val SP_KEY_DEVELOPER_SETTING = "${PACKAGE_PREFIX}.key.developer.setting"
         private const val SP_SYNC_SETTING = "${PACKAGE_PREFIX}.key.sync.setting"
     }

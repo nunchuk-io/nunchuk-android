@@ -95,7 +95,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
                 transactions = state.transactions.map(TransactionExtended::transaction),
                 onClick = viewModel::viewConfig,
                 onClickViewTransactionDetail = { txId ->
-                    openTransactionDetails(walletId = it.walletId, txId = txId, initEventId = "")
+                    openTransactionDetails(walletId = it.walletId, txId = txId, initEventId = it.initEventId)
                 }
             )
         }

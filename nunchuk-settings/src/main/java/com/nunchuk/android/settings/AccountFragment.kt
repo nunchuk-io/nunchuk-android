@@ -2,7 +2,6 @@ package com.nunchuk.android.settings
 
 import android.Manifest.permission.CAMERA
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -14,8 +13,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
@@ -54,7 +51,6 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
     }
 
     private fun handleState(state: AccountState) {
-        binding.appVersion.text = state.appVersion
         binding.avatar.loadImage(
             imageUrl = state.account.avatarUrl.orEmpty().fromMxcUriToMatrixDownloadUrl(),
             circleCrop = true,
@@ -87,7 +83,7 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
     }
 
     private fun openAboutScreen() {
-        requireActivity().showComingSoonText()
+        navigator.openAboutScreen(requireActivity())
     }
 
     private fun changeNetworkSetting() {
@@ -153,9 +149,7 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
         when (event) {
             SignOutEvent -> {
                 hideLoading()
-                val activity = requireActivity()
-                navigator.openSignInScreen(activity)
-                activity.finish()
+                navigator.restartApp(requireActivity())
             }
             is AccountEvent.GetUserProfileSuccessEvent -> {
             }
@@ -183,10 +177,17 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
             imageUrl = getString(R.string.nc_txt_guest),
             circleCrop = true,
             cornerRadius = null,
-            errorHolder = ContextCompat.getDrawable(requireContext(), R.drawable.ic_account),
-            placeHolder = ContextCompat.getDrawable(requireContext(), R.drawable.ic_account)
+            errorHolder = ContextCompat.getDrawable(requireContext(), R.drawable.ic_avatar),
+            placeHolder = ContextCompat.getDrawable(requireContext(), R.drawable.ic_avatar)
         )
-        binding.name.text = getString(R.string.nc_txt_guest)
+        binding.takePicture.isVisible = false
+        binding.name.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            binding.name.setTextAppearance(R.style.NCText_Title)
+            binding.email.setTextAppearance(R.style.NCText_Body)
+        }
+        binding.name.text = getString(R.string.nc_do_more_with_nunchuk)
+        binding.email.text = getString(R.string.nc_create_account_to_take_advantage)
     }
 
     private fun openAlbum() {
@@ -300,7 +301,7 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
     private fun setupViews() {
         binding.btnSignOut.setOnClickListener { viewModel.handleSignOutEvent() }
         binding.signIn.setOnClickListener {
-            navigator.openSignInScreen(requireActivity())
+            navigator.openSignInScreen(requireActivity(), isNeedNewTask = false)
         }
         binding.signUp.setOnClickListener {
             navigator.openSignUpScreen(requireActivity())
@@ -336,8 +337,4 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
         private const val REQUEST_SELECT_PHOTO_CODE = 1250
     }
 
-}
-
-internal fun Activity.showComingSoonText() {
-    showToast("Coming soon")
 }

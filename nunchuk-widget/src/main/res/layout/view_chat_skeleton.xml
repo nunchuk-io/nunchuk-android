@@ -18,16 +18,4 @@
 
     <include layout="@layout/item_chat_skeleton" />
 
-    <include layout="@layout/item_chat_skeleton" />
-
-    <include layout="@layout/item_chat_skeleton" />
-
-    <include layout="@layout/item_chat_skeleton" />
-
-    <include layout="@layout/item_chat_skeleton" />
-
-    <include layout="@layout/item_chat_skeleton" />
-
-    <include layout="@layout/item_chat_skeleton" />
-
 </LinearLayout>

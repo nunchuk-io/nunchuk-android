@@ -1,6 +1,7 @@
 package com.nunchuk.android.messages.components.list
 
 import android.os.Bundle
+import android.util.SparseArray
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,7 +19,6 @@ import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
 import com.nunchuk.android.messages.databinding.FragmentMessagesBinding
 import com.nunchuk.android.messages.util.shouldShow
 import com.nunchuk.android.model.RoomWallet
-import com.nunchuk.android.utils.animateVisibility
 import dagger.hilt.android.AndroidEntryPoint
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import javax.inject.Inject
@@ -30,6 +30,9 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
     @Inject
     lateinit var accountManager: AccountManager
+
+    @Inject
+    lateinit var roomShareViewPool: RoomShareViewPool
 
     private lateinit var adapter: RoomAdapter
 
@@ -44,7 +47,6 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
         super.onViewCreated(view, savedInstanceState)
         setupViews()
         observeEvent()
-        viewModel.init()
     }
 
     override fun onDestroyView() {
@@ -54,6 +56,8 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
     private fun setupViews() {
         adapter = RoomAdapter(accountManager.getAccount().name, ::openRoomDetailScreen, viewModel::removeRoom)
+        binding.recyclerView.setRecycledViewPool(roomShareViewPool.recycledViewPool)
+        binding.recyclerView.setHasFixedSize(true)
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)
         binding.recyclerView.adapter = adapter
         binding.fab.setOnClickListener {
@@ -82,7 +86,10 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     }
 
     private fun handleState(state: RoomsState) {
-        adapter.roomWallets = state.roomWallets.map(RoomWallet::roomId)
+        adapter.roomWallets.apply {
+            clear()
+            addAll(state.roomWallets.map(RoomWallet::roomId))
+        }
         adapter.updateItems(state.rooms.filter(RoomSummary::shouldShow))
         emptyStateView?.isVisible = state.rooms.isEmpty()
 
@@ -92,7 +99,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     private fun handleEvent(event: RoomsEvent) {
         when (event) {
             is LoadingEvent -> {
-                binding.skeletonContainer.root.animateVisibility(isVisible = event.loading, duration = 250)
+                binding.skeletonContainer.root.isVisible = event.loading
             }
         }
     }

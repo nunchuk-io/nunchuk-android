@@ -1,15 +1,22 @@
 package com.nunchuk.android.main
 
 import android.app.Dialog
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.nfc.NfcAdapter
+import android.nfc.Tag
+import android.nfc.tech.IsoDep
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.IdRes
+import androidx.annotation.RequiresApi
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.data.model.AppUpdateResponse
@@ -17,14 +24,13 @@ import com.nunchuk.android.core.matrix.MatrixEvenBus
 import com.nunchuk.android.core.matrix.MatrixEvent
 import com.nunchuk.android.core.matrix.MatrixEventListener
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.util.AppEvenBus
-import com.nunchuk.android.core.util.AppEvent
-import com.nunchuk.android.core.util.AppEventListener
-import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.DownloadFileSyncSucceed
+import com.nunchuk.android.messages.components.list.RoomsState
 import com.nunchuk.android.messages.components.list.RoomsViewModel
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.notifications.PushNotificationHelper
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCInfoDialog
@@ -55,6 +61,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val bottomNavViewPosition: Int
         get() = intent.getIntExtra(EXTRAS_BOTTOM_NAV_VIEW_POSITION, 0)
 
+    private val messageBadge: BadgeDrawable
+        get() = binding.navView.getOrCreateBadge(R.id.navigation_messages)
+
     private val matrixEventListener: MatrixEventListener = {
         if (it is MatrixEvent.SignedInEvent) {
             roomViewModel.handleMatrixSignedIn(it.session)
@@ -70,6 +79,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun initializeBinding() = ActivityMainBinding.inflate(layoutInflater)
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -89,6 +99,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         MatrixEvenBus.instance.subscribe(matrixEventListener)
         AppEvenBus.instance.subscribe(appEventListener)
         viewModel.checkAppUpdateRecommend(false)
+        if (savedInstanceState == null && intent.getBooleanExtra(EXTRAS_IS_NEW_DEVICE, false)) {
+            showUnverifiedDeviceWarning()
+        }
     }
 
     override fun onDestroy() {
@@ -114,13 +127,22 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun subscribeEvents() {
         viewModel.event.observe(this, ::handleEvent)
         syncRoomViewModel.event.observe(this, ::handleEvent)
+        roomViewModel.state.observe(this, ::handleRoomState)
+    }
+
+    private fun handleRoomState(state: RoomsState) {
+        val count = state.rooms.sumOf { if (it.hasUnreadMessages) it.notificationCount else 0 }
+        messageBadge.apply {
+            isVisible = count > 0
+            number = count
+            maxCharacterCount = 3
+        }
     }
 
     private fun handleEvent(event: MainAppEvent) {
         when (event) {
             is DownloadFileSyncSucceed -> handleDownloadedSyncFile(event)
             is MainAppEvent.UpdateAppRecommendEvent -> handleAppUpdateEvent(event.data)
-            MainAppEvent.CrossSigningUnverified -> showUnverifiedDeviceWarning()
             MainAppEvent.ConsumeSyncEventCompleted -> syncRoomViewModel.findSyncRoom() // safe way to trigger sync data
             else -> {}
         }
@@ -131,7 +153,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             is SyncRoomEvent.FindSyncRoomSuccessEvent -> viewModel.syncData(event.syncRoomId)
             is SyncRoomEvent.CreateSyncRoomSucceedEvent -> viewModel.syncData(event.syncRoomId)
             is SyncRoomEvent.LoginMatrixSucceedEvent -> {
-                viewModel.checkCrossSigning(event.session)
                 syncRoomViewModel.findSyncRoom()
             }
             is SyncRoomEvent.FindSyncRoomFailedEvent -> if (event.syncRoomSize == 0) {
@@ -155,23 +176,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         )
     }
 
-    private val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
-        binding.toolbarTitle.text = destination.label
-    }
-
     private fun setupNavigationView() {
         val navView: BottomNavigationView = binding.navView
         navController = findNavController(R.id.nav_host_fragment_activity_main)
         navView.setupWithNavController(navController)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        navController.addOnDestinationChangedListener(listener)
+        navView.setOnNavigationItemReselectedListener {}
     }
 
     override fun onPause() {
-        navController.removeOnDestinationChangedListener(listener)
         super.onPause()
         if (!NotificationUtils.areNotificationsEnabled(this)) {
             NotificationUtils.openNotificationSettings(this)
@@ -217,19 +229,22 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         const val EXTRAS_LOGIN_HALF_TOKEN = "EXTRAS_LOGIN_HALF_TOKEN"
         const val EXTRAS_ENCRYPTED_DEVICE_ID = "EXTRAS_ENCRYPTED_DEVICE_ID"
         const val EXTRAS_BOTTOM_NAV_VIEW_POSITION = "EXTRAS_BOTTOM_NAV_VIEW_POSITION"
+        const val EXTRAS_IS_NEW_DEVICE = "EXTRAS_IS_NEW_DEVICE"
 
         fun start(
             activityContext: Context,
             loginHalfToken: String? = null,
             deviceId: String? = null,
-            position: Int? = null
+            position: Int? = null,
+            isNewDevice: Boolean = false
         ) {
             activityContext.startActivity(
                 createIntent(
                     activityContext = activityContext,
                     loginHalfToken = loginHalfToken,
                     deviceId = deviceId,
-                    bottomNavViewPosition = position
+                    bottomNavViewPosition = position,
+                    isNewDevice
                 )
             )
         }
@@ -239,13 +254,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             activityContext: Context,
             loginHalfToken: String? = null,
             deviceId: String? = null,
-            @IdRes bottomNavViewPosition: Int? = null
+            @IdRes bottomNavViewPosition: Int? = null,
+            isNewDevice: Boolean = false
         ): Intent {
             return Intent(activityContext, MainActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 putExtra(EXTRAS_LOGIN_HALF_TOKEN, loginHalfToken)
                 putExtra(EXTRAS_ENCRYPTED_DEVICE_ID, deviceId)
                 putExtra(EXTRAS_BOTTOM_NAV_VIEW_POSITION, bottomNavViewPosition)
+                putExtra(EXTRAS_IS_NEW_DEVICE, isNewDevice)
             }
         }
     }

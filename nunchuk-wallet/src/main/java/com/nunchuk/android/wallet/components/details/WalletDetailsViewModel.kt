@@ -30,10 +30,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val addressesUseCase: GetAddressesUseCase,
     private val newAddressUseCase: NewAddressUseCase,
     private val exportWalletUseCase: ExportWalletUseCase,
-    private val exportKeystoneWalletUseCase: ExportKeystoneWalletUseCase,
-    private val exportPassportWalletUseCase: ExportPassportWalletUseCase,
     private val getTransactionHistoryUseCase: GetTransactionHistoryUseCase,
-    private val deleteWalletUseCase: DeleteWalletUseCase,
     private val importTransactionUseCase: ImportTransactionUseCase,
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
 
@@ -136,15 +133,6 @@ internal class WalletDetailsViewModel @Inject constructor(
         }
     }
 
-    fun handleExportColdcard() {
-        viewModelScope.launch {
-            when (val event = createShareFileUseCase.execute(walletId + "_coldcard_export.txt")) {
-                is Success -> exportWalletToFile(walletId, event.data, ExportFormat.COLDCARD)
-                is Error -> showError(event)
-            }
-        }
-    }
-
     private fun exportWalletToFile(walletId: String, filePath: String, format: ExportFormat) {
         viewModelScope.launch {
             when (val event = exportWalletUseCase.execute(walletId, filePath, format)) {
@@ -154,41 +142,8 @@ internal class WalletDetailsViewModel @Inject constructor(
         }
     }
 
-    fun handleExportWalletQR() {
-        viewModelScope.launch {
-            exportKeystoneWalletUseCase.execute(walletId)
-                .flowOn(IO)
-                .onException { showError(it) }
-                .flowOn(Main)
-                .collect { event(OpenDynamicQRScreen(it)) }
-        }
-    }
-
-    fun handleExportPassport() {
-        viewModelScope.launch {
-            exportPassportWalletUseCase.execute(walletId)
-                .flowOn(IO)
-                .onException { showError(it) }
-                .flowOn(Main)
-                .collect { event(OpenDynamicQRScreen(it)) }
-        }
-    }
-
     private fun showError(event: Error) {
         WalletDetailsError(event.exception.messageOrUnknownError())
-    }
-
-    private fun showError(t: Throwable) {
-        event(WalletDetailsError(t.message.orUnknownError()))
-    }
-
-    fun handleDeleteWallet() {
-        viewModelScope.launch {
-            when (val event = deleteWalletUseCase.execute(walletId)) {
-                is Success -> event(DeleteWalletSuccess)
-                is Error -> showError(event)
-            }
-        }
     }
 
     fun handleImportPSBT(filePath: String) {

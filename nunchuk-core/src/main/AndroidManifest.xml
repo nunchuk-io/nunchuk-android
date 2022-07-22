@@ -10,5 +10,11 @@
         <activity
             android:name=".qr.ScannerActivity"
             android:screenOrientation="portrait" />
+
+        <activity
+            android:name="com.nunchuk.android.core.nfc.TurnOnNfcActivity"
+            android:label="Turn on nfc"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
     </application>
 </manifest>

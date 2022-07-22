@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.components.list
 
+import android.util.SparseArray
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isVisible
@@ -20,7 +21,7 @@ class RoomAdapter(
     comparator = RoomSummaryComparator
 ) {
 
-    var roomWallets: List<String> = ArrayList()
+    val roomWallets: MutableSet<String> = mutableSetOf()
 
     override fun getViewHolder(parent: ViewGroup, viewType: Int) = RoomViewHolder(
         ItemRoomBinding.inflate(LayoutInflater.from(parent.context), parent, false),
@@ -33,7 +34,7 @@ class RoomAdapter(
 
 class RoomViewHolder(
     binding: ItemRoomBinding,
-    private val roomWallets: List<String>,
+    private val roomWallets: MutableSet<String>,
     private val currentName: String,
     private val enterRoom: (RoomSummary) -> Unit,
     private val removeRoom: (RoomSummary) -> Unit

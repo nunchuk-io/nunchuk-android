@@ -57,7 +57,8 @@ class ConfigureSharedWalletActivity : BaseActivity<ActivityConfigureSharedWallet
             walletType = args.walletType,
             addressType = args.addressType,
             totalSigns = totalSigns,
-            requireSigns = requireSigns
+            requireSigns = requireSigns,
+            signers = emptyList()
         )
     }
 

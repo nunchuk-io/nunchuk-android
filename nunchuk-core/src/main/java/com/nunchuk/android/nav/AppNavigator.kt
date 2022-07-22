@@ -1,7 +1,7 @@
 package com.nunchuk.android.nav
 
-import android.app.Activity
+import android.content.Context
 
 interface AppNavigator {
-    fun restartApp(activity: Activity)
+    fun restartApp(activityContext: Context)
 }

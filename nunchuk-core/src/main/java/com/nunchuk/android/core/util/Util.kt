@@ -24,12 +24,25 @@ fun Exception.messageOrUnknownError() = message.orUnknownError()
 
 fun String?.orUnknownError() = this ?: UNKNOWN_ERROR
 
+fun String.isValidCvc() = length in MIN_CVC_LENGTH..MAX_CVC_LENGTH
+
+const val MAX_CVC_LENGTH = 32
+const val MIN_CVC_LENGTH = 6
+
+const val CHAIN_CODE_LENGTH = 64
+
 var BTC_USD_EXCHANGE_RATE = 45000.0
 
 var BLOCKCHAIN_STATUS: ConnectionStatus? = null
 
+const val TWITTER_LINK = "https://twitter.com/nunchuk_io"
+const val CONTACT_EMAIL = "contact@nunchuk.io"
+
 const val SATOSHI_BTC_EXCHANGE_RATE = 0.00000001
 const val BTC_SATOSHI_EXCHANGE_RATE = 100000000
+
+const val NFC_CARD_TIMEOUT = 5000
+const val NFC_DEFAULT_NAME = "NFC Key"
 
 fun Long.formatDate(): String = SimpleDateFormat("MM/dd/yyyy 'at' HH:mm aaa", Locale.US).format(Date(this * 1000))
 
