@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/nc_padding_16"
+    android:paddingVertical="@dimen/nc_padding_8">
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_wallet_name"
+        style="@style/NCText.Title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Checking account" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/config"
+        style="@style/NCText.Badges"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:background="@drawable/nc_rounded_tag_whisper_background"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_wallet_name"
+        tools:text="2/3 Multisig" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/share_icon"
+        style="@style/NCText.Badges"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_4"
+        android:layout_marginBottom="@dimen/nc_padding_4"
+        android:background="@drawable/nc_rounded_tag_whisper_background"
+        android:drawableStart="@drawable/ic_wallet_small"
+        android:drawablePadding="@dimen/nc_padding_4"
+        android:text="@string/nc_text_shared"
+        app:layout_constraintBaseline_toBaselineOf="@+id/config"
+        app:layout_constraintStart_toEndOf="@+id/config"
+        tools:text="Shared" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_balance"
+        style="@style/NCText.Body.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/config"
+        tools:text="1.00000001 BTC" />
+
+    <com.nunchuk.android.widget.NCFontRadioButton
+        android:id="@+id/radio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:buttonTint="@color/nc_primary_color"
+        android:duplicateParentState="true"
+        android:focusable="false"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

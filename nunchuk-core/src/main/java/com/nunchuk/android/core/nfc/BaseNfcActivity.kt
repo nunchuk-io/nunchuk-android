@@ -209,7 +209,6 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>(),
         const val REQUEST_NFC_HEALTH_CHECK = 7
         // SATSCARD
         const val REQUEST_SATSCARD_STATUS = 8
-        const val REQUEST_SATSCARD_UNSEAL_SWEEP_ACTIVE_SLOT = 9
-        const val REQUEST_SATSCARD_UNSEAL_SWEEP_SLOTS = 10
+        const val REQUEST_SATSCARD_SWEEP_SLOT = 9
     }
 }

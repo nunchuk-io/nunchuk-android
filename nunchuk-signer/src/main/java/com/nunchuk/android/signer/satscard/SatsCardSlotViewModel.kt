@@ -1,13 +1,9 @@
 package com.nunchuk.android.signer.satscard
 
-import android.nfc.tech.IsoDep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetSatsCardSlotBalanceUseCase
-import com.nunchuk.android.core.domain.GetSatsCardSlotKeyUseCase
-import com.nunchuk.android.core.domain.SweepSatsCardSlotUseCase
-import com.nunchuk.android.core.domain.UnsealSatsCardSlotUseCase
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.type.SatsCardSlotStatus
@@ -22,9 +18,6 @@ import javax.inject.Inject
 class SatsCardSlotViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val getSatsCardSlotBalanceUseCase: GetSatsCardSlotBalanceUseCase,
-    private val unsealSatsCardSlotUseCase: UnsealSatsCardSlotUseCase,
-    private val sweepSatsCardSlotUseCase: SweepSatsCardSlotUseCase,
-    private val getSatsCardSlotKeyUseCase: GetSatsCardSlotKeyUseCase
 ) : ViewModel() {
     private val _state = savedStateHandle.getStateFlow(SatsCardArgs.EXTRA_SATSCARD_STATUS, SatsCardStatus())
     private val _event = MutableStateFlow<SatsCardSlotEvent?>(null)
@@ -62,30 +55,12 @@ class SatsCardSlotViewModel @Inject constructor(
         }
     }
 
-    fun unsealSweepActiveSlot(isoDep: IsoDep, cvc: String) {
-        viewModelScope.launch {
-            val result = unsealSatsCardSlotUseCase(UnsealSatsCardSlotUseCase.Data(isoDep, cvc))
-            if (result.isSuccess) {
-                sweepUnsealSlots(listOf(result.getOrThrow()))
-            }
-        }
-    }
-
-    fun getSlotsKey(isoDep: IsoDep, cvc: String) {
-        val unsealSlots = _state.value.slots.filter { it.status == SatsCardSlotStatus.SEALED && it.balance.value > 0L }
-        viewModelScope.launch {
-            val result = getSatsCardSlotKeyUseCase(GetSatsCardSlotKeyUseCase.Data(isoDep, cvc, unsealSlots))
-            if (result.isSuccess) {
-                sweepUnsealSlots(result.getOrThrow())
-            }
-        }
-    }
-
-    private fun sweepUnsealSlots(slots: List<SatsCardSlot>) {
-        // TODO Hai
-    }
-
     fun getUnsealSlots() = _state.value.slots.filter { it.status == SatsCardSlotStatus.UNSEALED }
+
+    fun getActiveSlot(): SatsCardSlot? {
+        val status = _state.value
+        return status.slots.find { it.index == status.activeSlotIndex }
+    }
 }
 
 sealed class SatsCardSlotEvent {

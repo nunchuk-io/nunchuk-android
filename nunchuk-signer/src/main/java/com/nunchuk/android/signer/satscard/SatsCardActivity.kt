@@ -4,14 +4,14 @@ import android.app.Activity
 import android.os.Bundle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
-import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ActivitySatsCardBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class SatsCardActivity : BaseActivity<ActivitySatsCardBinding>() {
+class SatsCardActivity : BaseNfcActivity<ActivitySatsCardBinding>() {
     override fun initializeBinding(): ActivitySatsCardBinding {
         return ActivitySatsCardBinding.inflate(layoutInflater)
     }

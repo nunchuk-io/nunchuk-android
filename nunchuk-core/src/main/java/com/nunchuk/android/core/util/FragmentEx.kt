@@ -4,6 +4,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.nunchuk.android.widget.NCToastMessage
 import kotlinx.coroutines.CoroutineScope
 
 fun Fragment.flowObserver(block: suspend CoroutineScope.() -> Unit) {
@@ -11,5 +12,11 @@ fun Fragment.flowObserver(block: suspend CoroutineScope.() -> Unit) {
         lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             block()
         }
+    }
+}
+
+fun Fragment.showError(message: String?) {
+    if (message.isNullOrEmpty().not()) {
+        NCToastMessage(requireActivity()).showError(message.orEmpty())
     }
 }

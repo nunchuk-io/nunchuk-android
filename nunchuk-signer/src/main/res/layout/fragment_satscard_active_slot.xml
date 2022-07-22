@@ -50,7 +50,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:background="@drawable/nc_bg_whisper_color_radius"
+                        android:background="@drawable/nc_rounded_tag_whisper_background"
                         android:paddingHorizontal="@dimen/nc_padding_10"
                         android:paddingVertical="@dimen/nc_padding_4"
                         tools:text="Slot 2/10" />

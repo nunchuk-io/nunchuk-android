@@ -5,14 +5,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.constants.Constants
-import com.nunchuk.android.core.nfc.BaseNfcActivity
-import com.nunchuk.android.core.nfc.NfcActionListener
-import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.qr.convertToQRCode
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -23,11 +19,11 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.FragmentSatscardActiveSlotBinding
+import com.nunchuk.android.signer.satscard.wallets.SelectWalletFragment
 import com.nunchuk.android.type.SatsCardSlotStatus
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.filter
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -36,7 +32,6 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
     lateinit var textUtils: TextUtils
 
     private val viewModel by viewModels<SatsCardSlotViewModel>()
-    private val nfcViewModel by activityViewModels<NfcViewModel>()
     private val args: SatsCardArgs by lazy { SatsCardArgs.deserializeBundle(requireArguments()) }
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentSatscardActiveSlotBinding {
@@ -62,7 +57,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
     @SuppressLint("SetTextI18n")
     private fun initViews() {
         binding.toolbar.menu.findItem(R.id.menu_more).isVisible = viewModel.getUnsealSlots().isNotEmpty()
-        val activeSlot = args.status.slots.find { it.index == args.status.activeSlotIndex } ?: return
+        val activeSlot = viewModel.getActiveSlot() ?: return
         binding.tvSlot.text = "${getString(R.string.nc_slot)} ${args.status.activeSlotIndex.inc()}/${args.status.numberOfSlot}"
         binding.address.text = activeSlot.address
         binding.qrCode.setImageBitmap(activeSlot.address.orEmpty().convertToQRCode())
@@ -83,18 +78,28 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
             }
         }
         binding.btnCopy.setOnClickListener {
-            args.status.slots.find { it.index == args.status.activeSlotIndex }?.let { activeSlot ->
+            viewModel.getActiveSlot()?.let { activeSlot ->
                 copyAddress(activeSlot.address.orEmpty())
             }
         }
         binding.btnViewOnExplore.setOnClickListener {
-            args.status.slots.find { it.index == args.status.activeSlotIndex }?.let { activeSlot ->
+            viewModel.getActiveSlot()?.let { activeSlot ->
                 requireActivity().openExternalLink(Constants.BLOCKSTREAM_MAINNET_ADDRESS_TEMPLATE + activeSlot.address)
             }
         }
         binding.btnUnsealAndSweep.setOnClickListener {
-            (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_SATSCARD_UNSEAL_SWEEP_ACTIVE_SLOT)
+            viewModel.getActiveSlot()?.let { activeSlot ->
+                openSelectWallet(arrayOf(activeSlot), SelectWalletFragment.TYPE_SWEEP_UNSEAL_SLOT)
+            }
         }
+    }
+
+    private fun openSelectWallet(slots: Array<SatsCardSlot>, type: Int) {
+        val action = SatsCardSlotFragmentDirections.actionSatsCardSlotFragmentToSelectWalletFragment(
+            slots,
+            type
+        )
+        findNavController().navigate(action)
     }
 
     private fun showMore() {
@@ -117,18 +122,6 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
                 }
             }
         }
-        flowObserver {
-            nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_SATSCARD_UNSEAL_SWEEP_ACTIVE_SLOT }
-                .collect {
-                    viewModel.getUnsealSlots()
-                }
-        }
-        flowObserver {
-            nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_SATSCARD_UNSEAL_SWEEP_SLOTS }
-                .collect {
-
-                }
-        }
     }
 
     private fun handleShowError(it: SatsCardSlotEvent.ShowError) {
@@ -141,14 +134,14 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
     private fun handleCheckBalanceOtherSlots(slots: List<SatsCardSlot>) {
         val sum = slots.sumOf { it.balance.value }
         if (sum > 0) {
-            val labels = slots.filter { it.status == SatsCardSlotStatus.SEALED && it.balance.value > 0 }
-                .joinToString(separator = ", ") { "#${it.index.inc()}" }
+            val unsealSlowWithBalances = slots.filter { it.status == SatsCardSlotStatus.SEALED && it.balance.value > 0 }
+            val labels = unsealSlowWithBalances.joinToString(separator = ", ") { "#${it.index.inc()}" }
             NCWarningDialog(requireActivity()).showDialog(
                 title = getString(R.string.nc_text_info),
                 message = getString(R.string.nc_detect_unseal_has_balance, Amount(value = sum).getBTCAmount(), labels),
                 btnNo = getString(R.string.nc_not_now),
                 onYesClick = {
-                    (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_SATSCARD_UNSEAL_SWEEP_SLOTS)
+                    openSelectWallet(unsealSlowWithBalances.toTypedArray(), SelectWalletFragment.TYPE_UNSEAL_SWEEP_ACTIVE_SLOT)
                 }
             )
         }
