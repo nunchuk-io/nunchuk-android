@@ -249,7 +249,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(), Botto
         val options = listOf(
             SheetOption(SheetOptionType.TYPE_IMPORT_PSBT, R.drawable.ic_import, R.string.nc_wallet_import_psbt),
             SheetOption(SheetOptionType.TYPE_IMPORT_PSBT_QR, R.drawable.ic_import, R.string.nc_import_psbt_via_qr),
-            SheetOption(SheetOptionType.TYPE_IMPORT_PSBT, R.drawable.ic_backup, R.string.nc_wallet_save_wallet_configuration),
+            SheetOption(SheetOptionType.TYPE_SAVE_WALLET_CONFIG, R.drawable.ic_backup, R.string.nc_wallet_save_wallet_configuration),
         )
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(childFragmentManager, "BottomSheetOption")
@@ -258,7 +258,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(), Botto
     private fun showSubImportPsbtViaQr() {
         val options = listOf(
             SheetOption(SheetOptionType.TYPE_PSBT_QR_KEY_STONE, R.drawable.ic_import, R.string.nc_wallet_import_keystone_seed_signer),
-            SheetOption(SheetOptionType.TYPE_PSBT_QR_KEY_STONE, R.drawable.ic_import, R.string.nc_wallet_import_passport),
+            SheetOption(SheetOptionType.TYPE_PSBT_QR_PASSPORT, R.drawable.ic_import, R.string.nc_wallet_import_passport),
         )
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(childFragmentManager, "BottomSheetOption")
