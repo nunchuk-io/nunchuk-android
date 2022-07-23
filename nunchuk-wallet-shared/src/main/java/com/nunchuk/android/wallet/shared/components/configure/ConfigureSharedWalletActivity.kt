@@ -5,11 +5,11 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.bindEnableState
+import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.shared.components.configure.ConfigureSharedWalletEvent.ConfigureCompletedEvent
 import com.nunchuk.android.wallet.shared.databinding.ActivityConfigureSharedWalletBinding
-import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 

@@ -88,8 +88,12 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
             }
         }
         binding.btnUnsealAndSweep.setOnClickListener {
-            viewModel.getActiveSlot()?.let { activeSlot ->
-                openSelectWallet(arrayOf(activeSlot), SelectWalletFragment.TYPE_SWEEP_UNSEAL_SLOT)
+            if (args.hasWallet) {
+                viewModel.getActiveSlot()?.let { activeSlot ->
+                    openSelectWallet(arrayOf(activeSlot), SelectWalletFragment.TYPE_SWEEP_UNSEAL_SLOT)
+                }
+            } else {
+                navigator.openWalletIntermediaryScreen(requireActivity(), args.hasSigner)
             }
         }
     }

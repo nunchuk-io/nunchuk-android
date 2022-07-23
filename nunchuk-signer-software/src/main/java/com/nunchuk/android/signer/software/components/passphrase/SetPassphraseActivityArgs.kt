@@ -2,6 +2,7 @@ package com.nunchuk.android.signer.software.components.passphrase
 
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
 import com.nunchuk.android.arch.args.ActivityArgs
 
 data class SetPassphraseActivityArgs(
@@ -18,10 +19,9 @@ data class SetPassphraseActivityArgs(
         private const val EXTRA_MNEMONIC = "EXTRA_MNEMONIC"
         private const val EXTRA_SIGNER_NAME = "EXTRA_SIGNER_NAME"
 
-        fun deserializeFrom(intent: Intent) = SetPassphraseActivityArgs(
-            mnemonic = intent.extras?.getString(EXTRA_MNEMONIC, "").orEmpty(),
-            signerName = intent.extras?.getString(EXTRA_SIGNER_NAME, "").orEmpty()
+        fun deserializeFrom(bundle: Bundle) = SetPassphraseActivityArgs(
+            mnemonic = bundle.getString(EXTRA_MNEMONIC, "").orEmpty(),
+            signerName = bundle.getString(EXTRA_SIGNER_NAME, "").orEmpty()
         )
     }
-
 }

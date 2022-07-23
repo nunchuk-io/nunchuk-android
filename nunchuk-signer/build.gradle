@@ -12,7 +12,6 @@ dependencies {
     implementation project(':nunchuk-signer-airgap')
     implementation project(':nunchuk-signer-software')
     implementation project(':nunchuk-signer-core')
-    implementation project(':nunchuk-wallet-core')
     implementation nunchukDeps.nativeSdk
 
     implementation pluginsDeps.kotlinAndroidRuntime

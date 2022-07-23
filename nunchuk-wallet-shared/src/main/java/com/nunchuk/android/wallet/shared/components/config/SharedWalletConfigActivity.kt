@@ -12,12 +12,12 @@ import com.nunchuk.android.core.util.isReadyFinalize
 import com.nunchuk.android.messages.components.detail.bindWalletStatus
 import com.nunchuk.android.model.RoomWalletData
 import com.nunchuk.android.model.toSingleSigner
+import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.shared.R
 import com.nunchuk.android.wallet.shared.components.config.SharedWalletConfigEvent.CreateSharedWalletSuccess
 import com.nunchuk.android.wallet.shared.databinding.ActivitySharedWalletConfigBinding
-import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar

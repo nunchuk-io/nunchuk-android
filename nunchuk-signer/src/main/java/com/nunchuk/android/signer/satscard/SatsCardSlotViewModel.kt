@@ -8,9 +8,8 @@ import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.type.SatsCardSlotStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -20,13 +19,13 @@ class SatsCardSlotViewModel @Inject constructor(
     private val getSatsCardSlotBalanceUseCase: GetSatsCardSlotBalanceUseCase,
 ) : ViewModel() {
     private val _state = savedStateHandle.getStateFlow(SatsCardArgs.EXTRA_SATSCARD_STATUS, SatsCardStatus())
-    private val _event = MutableStateFlow<SatsCardSlotEvent?>(null)
-    val event = _event.asStateFlow().filterIsInstance<SatsCardSlotEvent>()
+    private val _event = Channel<SatsCardSlotEvent>(Channel.CONFLATED)
+    val event = _event.receiveAsFlow()
 
     init {
         val status: SatsCardStatus = savedStateHandle[SatsCardArgs.EXTRA_SATSCARD_STATUS]!!
         viewModelScope.launch {
-            _event.value = SatsCardSlotEvent.Loading
+            _event.send(SatsCardSlotEvent.Loading)
             val activeSlot = status.slots.find { it.index == status.activeSlotIndex } ?: return@launch
             val result = getSatsCardSlotBalanceUseCase(listOf(activeSlot))
             if (result.isSuccess) {
@@ -36,9 +35,9 @@ class SatsCardSlotViewModel @Inject constructor(
                     set(status.activeSlotIndex, newSlot)
                 }
                 savedStateHandle[SatsCardArgs.EXTRA_SATSCARD_STATUS] = previousStatus.copy(slots = newSlots)
-                _event.value = SatsCardSlotEvent.GetActiveSlotBalanceSuccess(newSlot)
+                _event.send(SatsCardSlotEvent.GetActiveSlotBalanceSuccess(newSlot))
             } else {
-                _event.value = SatsCardSlotEvent.ShowError(result.exceptionOrNull())
+                _event.send(SatsCardSlotEvent.ShowError(result.exceptionOrNull()))
             }
         }
         viewModelScope.launch {
@@ -48,9 +47,9 @@ class SatsCardSlotViewModel @Inject constructor(
                 val previousStatus = _state.value
                 val activeSlot = status.slots.find { it.index == status.activeSlotIndex } ?: return@launch
                 savedStateHandle[SatsCardArgs.EXTRA_SATSCARD_STATUS] = previousStatus.copy(slots = result.getOrThrow() + activeSlot)
-                _event.value = SatsCardSlotEvent.GetOtherSlotBalanceSuccess(result.getOrThrow())
+                _event.send(SatsCardSlotEvent.GetOtherSlotBalanceSuccess(result.getOrThrow()))
             } else {
-                _event.value = SatsCardSlotEvent.ShowError(result.exceptionOrNull())
+                _event.send(SatsCardSlotEvent.ShowError(result.exceptionOrNull()))
             }
         }
     }

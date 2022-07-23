@@ -8,7 +8,6 @@ import com.nunchuk.android.usecase.CreateSoftwareSignerUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
@@ -39,6 +38,7 @@ internal class SetPassphraseViewModel @Inject constructor(
     }
 
     fun skipPassphraseEvent() {
+        updatePassphrase("")
         createSoftwareSigner(true)
     }
 

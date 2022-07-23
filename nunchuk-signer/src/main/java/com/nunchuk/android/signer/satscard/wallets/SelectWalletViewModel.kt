@@ -10,6 +10,7 @@ import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,19 +23,19 @@ class SelectWalletViewModel @Inject constructor(
     private val getSatsCardSlotKeyUseCase: GetSatsCardSlotKeyUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(SelectWalletState())
-    private val _event = MutableStateFlow<SelectWalletEvent?>(null)
+    private val _event = Channel<SelectWalletEvent>(Channel.CONFLATED)
 
     val state = _state.asStateFlow()
-    val event = _event.asStateFlow().filterIsInstance<SelectWalletEvent>()
+    val event = _event.consumeAsFlow()
 
     init {
         viewModelScope.launch {
             getWalletsUseCase.execute()
-                .onStart { _event.value = SelectWalletEvent.Loading(true) }
+                .onStart { _event.send(SelectWalletEvent.Loading(true)) }
                 .onException {
-                    _event.value = SelectWalletEvent.ShowError(it.message)
+                    _event.send(SelectWalletEvent.ShowError(it.message))
                 }
-                .onCompletion { _event.value = SelectWalletEvent.Loading(false) }
+                .onCompletion { _event.send(SelectWalletEvent.Loading(false)) }
                 .collect { wallets ->
                     _state.value = _state.value.copy(selectWallets = wallets.map { SelectableWallet(it.wallet, it.isShared) })
                 }

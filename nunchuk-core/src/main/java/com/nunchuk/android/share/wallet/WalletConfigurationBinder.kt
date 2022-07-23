@@ -1,8 +1,8 @@
-package com.nunchuk.android.wallet.util
+package com.nunchuk.android.share.wallet
 
 import android.widget.TextView
+import com.nunchuk.android.core.R
 import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.wallet.core.R
 
 fun TextView.bindWalletConfiguration(wallet: Wallet) {
     bindWalletConfiguration(

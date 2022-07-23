@@ -101,6 +101,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_SATSCARD_STATUS }
                 .collectLatest {
                     walletsViewModel.getSatsCardStatus(IsoDep.get(it.tag))
+                    nfcViewModel.clearScanInfo()
                 }
         }
     }
@@ -111,12 +112,16 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             ShowSignerIntroEvent -> openSignerIntroScreen()
             WalletEmptySignerEvent -> openWalletIntroScreen()
             is ShowErrorEvent -> requireActivity().showToast(event.message)
-            is GoToSatsCardScreen -> SatsCardActivity.navigate(requireActivity(), event.status)
+            is GoToSatsCardScreen -> openSatsCardActiveSlotScreen(event)
             NeedSetupSatsCard -> handleNeedSetupSatsCard()
             is SatsCardUsedUp -> handleSatsCardUsedUp(event.numberOfSlot)
             is Loading -> handleLoading(event)
             is NfcLoading -> showOrHideLoading(event.loading, message = getString(com.nunchuk.android.signer.R.string.nc_keep_holding_nfc))
         }
+    }
+
+    private fun openSatsCardActiveSlotScreen(event: GoToSatsCardScreen) {
+        SatsCardActivity.navigate(requireActivity(), event.status, walletsViewModel.hasWallet(), walletsViewModel.hasSigner())
     }
 
     private fun handleNeedSetupSatsCard() {

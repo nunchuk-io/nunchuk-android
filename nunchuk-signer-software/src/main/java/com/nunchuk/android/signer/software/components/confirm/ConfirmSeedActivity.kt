@@ -2,66 +2,31 @@ package com.nunchuk.android.signer.software.components.confirm
 
 import android.content.Context
 import android.os.Bundle
-import androidx.activity.viewModels
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.fragment.app.commit
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.signer.software.R
-import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.ConfirmSeedCompletedEvent
-import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.SelectedIncorrectWordEvent
 import com.nunchuk.android.signer.software.databinding.ActivityConfirmSeedBinding
-import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class ConfirmSeedActivity : BaseActivity<ActivityConfirmSeedBinding>() {
 
-    private val viewModel: ConfirmSeedViewModel by viewModels()
-
-    override fun initializeBinding() = ActivityConfirmSeedBinding.inflate(layoutInflater)
-
-    private val args: ConfirmSeedArgs by lazy { ConfirmSeedArgs.deserializeFrom(intent) }
-
-    private lateinit var adapter: ConfirmSeedAdapter
+    override fun initializeBinding(): ActivityConfirmSeedBinding {
+        return ActivityConfirmSeedBinding.inflate(layoutInflater)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-        setupViews()
-        observeEvent()
-        viewModel.init(args.mnemonic)
-    }
-
-    private fun observeEvent() {
-        viewModel.event.observe(this, ::handleEvent)
-        viewModel.state.observe(this, ::handleState)
-    }
-
-    private fun handleState(state: ConfirmSeedState) {
-        adapter.items = state.groups
-    }
-
-    private fun handleEvent(event: ConfirmSeedEvent) {
-        when (event) {
-            ConfirmSeedCompletedEvent -> openSetNameScreen()
-            SelectedIncorrectWordEvent -> NCToastMessage(this).showError(getString(R.string.nc_ssigner_confirm_seed_error))
+        if (savedInstanceState == null) {
+            supportFragmentManager.commit {
+                replace(R.id.fragment_container, ConfirmSeedFragment().apply {
+                    arguments = intent.extras
+                })
+            }
         }
-    }
-
-    private fun openSetNameScreen() {
-        navigator.openAddSoftwareSignerNameScreen(this, args.mnemonic)
-    }
-
-    private fun setupViews() {
-        adapter = ConfirmSeedAdapter(viewModel::updatePhraseWordGroup)
-
-        binding.recyclerView.layoutManager = LinearLayoutManager(this)
-        binding.recyclerView.adapter = adapter
-        binding.toolbar.setNavigationOnClickListener {
-            finish()
-        }
-        binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }
     }
 
     companion object {

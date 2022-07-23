@@ -66,6 +66,7 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
             nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_SATSCARD_SWEEP_SLOT }
                 .collect {
                     viewModel.handleSweepBalance(IsoDep.get(it.tag), nfcViewModel.inputCvc.orEmpty(), args.slots.toList(), args.type)
+                    nfcViewModel.clearScanInfo()
                 }
         }
     }

@@ -92,6 +92,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_VIEW_BACKUP_KEY }.collect {
                     requestViewBackupKey(it)
+                    nfcViewModel.clearScanInfo()
                 }
             }
         }
@@ -101,6 +102,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
                 nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_HEALTH_CHECK }.collect {
                     val isoDep = IsoDep.get(it.tag) ?: return@collect
                     viewModel.healthCheckTapSigner(isoDep, nfcViewModel.inputCvc.orEmpty(), viewModel.state.value?.masterSigner ?: return@collect)
+                    nfcViewModel.clearScanInfo()
                 }
             }
         }
@@ -109,6 +111,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_TOPUP_XPUBS }.collect {
                     topUpXPubs(it)
+                    nfcViewModel.clearScanInfo()
                 }
             }
         }

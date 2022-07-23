@@ -7,8 +7,8 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.signer.databinding.ItemSelectWalletBinding
-import com.nunchuk.android.wallet.util.bindWalletConfiguration
 
 class SelectWalletAdapter(private val onItemSelect: (walletId: String) -> Unit) : ListAdapter<SelectableWallet, SelectWalletHolder>(ITEM_DIFF_UTIL) {
 

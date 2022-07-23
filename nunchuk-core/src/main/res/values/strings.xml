@@ -83,4 +83,7 @@
     <string name="nc_unconfirmed">Unconfirmed</string>
     <string name="nc_sweep_balance">Sweep balance</string>
     <string name="nc_which_wallet_do_you_want_to_deposit_into">Which wallet do you want to deposit into?</string>
+    <string name="nc_wallet_not_configured">Not configured</string>
+    <string name="nc_wallet_single_sig">Single-sig</string>
+    <string name="nc_wallet_multisig">Multisig</string>
 </resources>
