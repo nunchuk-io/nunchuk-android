@@ -13,7 +13,7 @@
 
     <uses-feature
         android:name="android.hardware.nfc"
-        android:required="true" />
+        android:required="false" />
 
     <uses-feature
         android:name="android.hardware.camera"
