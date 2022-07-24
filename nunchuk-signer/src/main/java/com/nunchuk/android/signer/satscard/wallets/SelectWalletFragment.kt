@@ -47,7 +47,7 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
         }
 
         binding.btnContinue.setOnClickListener {
-            if (viewModel.state.value.selectedWalletId.isNotEmpty()) {
+            if (viewModel.selectedWalletId.isNotEmpty()) {
                 (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_SATSCARD_SWEEP_SLOT)
             } else {
                 NCToastMessage(requireActivity()).showWarning(getString(R.string.nc_select_wallet_first))
@@ -75,6 +75,8 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
         when (event) {
             is SelectWalletEvent.ShowError -> showError(event.message)
             is SelectWalletEvent.Loading -> showOrHideLoading(event.isLoading)
+            is SelectWalletEvent.NfcLoading -> showOrHideLoading(event.isLoading, getString(R.string.nc_keep_holding_nfc))
+            SelectWalletEvent.SweepSuccess -> navigator.openWalletDetailsScreen(requireActivity(), viewModel.selectedWalletId)
         }
     }
 

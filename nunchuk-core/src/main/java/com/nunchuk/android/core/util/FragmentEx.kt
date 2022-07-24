@@ -20,3 +20,9 @@ fun Fragment.showError(message: String?) {
         NCToastMessage(requireActivity()).showError(message.orEmpty())
     }
 }
+
+fun Fragment.showWarning(message: String?) {
+    if (message.isNullOrEmpty().not()) {
+        NCToastMessage(requireActivity()).showWarning(message.orEmpty())
+    }
+}

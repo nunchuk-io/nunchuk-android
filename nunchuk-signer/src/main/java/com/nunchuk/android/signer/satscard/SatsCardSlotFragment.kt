@@ -88,10 +88,11 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
             }
         }
         binding.btnUnsealAndSweep.setOnClickListener {
-            if (args.hasWallet) {
-                viewModel.getActiveSlot()?.let { activeSlot ->
-                    openSelectWallet(arrayOf(activeSlot), SelectWalletFragment.TYPE_SWEEP_UNSEAL_SLOT)
-                }
+            val activeSlot = viewModel.getActiveSlot() ?: return@setOnClickListener
+            if (activeSlot.isConfirmed.not()) {
+                showWarning(getString(R.string.nc_please_wait_balance_confirmation))
+            } else if (args.hasWallet) {
+                openSelectWallet(arrayOf(activeSlot), SelectWalletFragment.TYPE_SWEEP_UNSEAL_SLOT)
             } else {
                 navigator.openWalletIntermediaryScreen(requireActivity(), args.hasSigner)
             }
@@ -124,6 +125,12 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
                     is SatsCardSlotEvent.GetOtherSlotBalanceSuccess -> handleCheckBalanceOtherSlots(it.slots)
                     is SatsCardSlotEvent.ShowError -> handleShowError(it)
                 }
+            }
+        }
+        flowObserver {
+            viewModel.state.collect {
+                val activeSlot = viewModel.getActiveSlot() ?: return@collect
+                handleShowBalanceActiveSlot(activeSlot)
             }
         }
     }

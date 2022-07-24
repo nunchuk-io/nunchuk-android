@@ -116,7 +116,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             NeedSetupSatsCard -> handleNeedSetupSatsCard()
             is SatsCardUsedUp -> handleSatsCardUsedUp(event.numberOfSlot)
             is Loading -> handleLoading(event)
-            is NfcLoading -> showOrHideLoading(event.loading, message = getString(com.nunchuk.android.signer.R.string.nc_keep_holding_nfc))
+            is NfcLoading -> showOrHideLoading(event.loading, message = getString(R.string.nc_keep_holding_nfc))
         }
     }
 

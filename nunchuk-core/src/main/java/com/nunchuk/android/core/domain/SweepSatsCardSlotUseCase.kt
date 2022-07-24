@@ -12,8 +12,8 @@ class SweepSatsCardSlotUseCase @Inject constructor(
     private val nunchukNativeSdk: NunchukNativeSdk,
 ) : UseCase<SweepSatsCardSlotUseCase.Data, Unit>(dispatcher) {
     override suspend fun execute(parameters: Data) {
-        return nunchukNativeSdk.sweepBalance(parameters.slots, parameters.walletId)
+        return nunchukNativeSdk.sweepBalance(parameters.slots, parameters.address)
     }
 
-    class Data(val walletId: String, val slots: List<SatsCardSlot>)
+    class Data(val address: String, val slots: List<SatsCardSlot>)
 }
