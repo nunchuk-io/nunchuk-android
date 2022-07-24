@@ -18,11 +18,3 @@ internal fun Activity.showSetupNfc(callback : () -> Unit) {
         onYesClick = callback
     ).show()
 }
-
-internal fun Activity.showAddNfcKey(callback : () -> Unit) {
-    NCWarningDialog(this).showDialog(
-        title = getString(R.string.nc_add_nfc_key),
-        message = getString(R.string.nc_add_nfc_key_desc),
-        onYesClick = callback
-    ).show()
-}
