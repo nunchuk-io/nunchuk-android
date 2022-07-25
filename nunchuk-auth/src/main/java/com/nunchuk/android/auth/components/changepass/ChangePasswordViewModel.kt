@@ -18,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class ChangePasswordViewModel @Inject constructor(
     private val changePasswordUseCase: ChangePasswordUseCase,
-    private val accountManager: AccountManager
+    accountManager: AccountManager
 ) : NunchukViewModel<Unit, ChangePasswordEvent>() {
 
     private val account = accountManager.getAccount()
@@ -49,9 +49,7 @@ internal class ChangePasswordViewModel @Inject constructor(
     }
 
     private fun onChangePasswordSuccess() {
-        accountManager.signOut {
-            event(ChangePasswordSuccessEvent)
-        }
+        setEvent(ChangePasswordSuccessEvent)
     }
 
     private fun validateConfirmPasswordMatched(newPassword: String, confirmPassword: String): Boolean {

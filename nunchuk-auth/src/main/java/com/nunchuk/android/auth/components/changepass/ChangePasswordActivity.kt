@@ -72,19 +72,13 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
 
     private fun handleChangePasswordSuccess() {
         hideLoading()
-        clearPassword()
-        NCToastMessage(this).showMessage(message = getString(R.string.nc_your_password_changed))
+        NCToastMessage(this).showMessage(message = getString(R.string.nc_your_password_changed), dismissTime = 5000L)
+        finish()
     }
 
     private fun showChangePasswordError(errorMessage: String) {
         hideLoading()
         NCToastMessage(this).showError(errorMessage)
-    }
-
-    private fun clearPassword() {
-        binding.oldPassword.getEditTextView().setText("")
-        binding.newPassword.getEditTextView().setText("")
-        binding.confirmPassword.getEditTextView().setText("")
     }
 
     private fun onChangePasswordClicked() {
