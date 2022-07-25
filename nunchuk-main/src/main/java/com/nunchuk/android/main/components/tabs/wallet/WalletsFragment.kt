@@ -121,7 +121,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun openSatsCardActiveSlotScreen(event: GoToSatsCardScreen) {
-        SatsCardActivity.navigate(requireActivity(), event.status, walletsViewModel.hasWallet(), walletsViewModel.hasSigner())
+        SatsCardActivity.navigate(requireActivity(), event.status, walletsViewModel.hasWallet())
     }
 
     private fun handleNeedSetupSatsCard() {
@@ -129,7 +129,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             title = getString(R.string.nc_setup_satscard),
             message = getString(R.string.nc_setup_satscard_msg),
             onYesClick = {
-                NfcSetupActivity.navigate(requireActivity(), NfcSetupActivity.SETUP_SATSCARD)
+                NfcSetupActivity.navigate(requireActivity(), NfcSetupActivity.SETUP_SATSCARD, hasWallet = walletsViewModel.hasWallet())
             }
         )
     }

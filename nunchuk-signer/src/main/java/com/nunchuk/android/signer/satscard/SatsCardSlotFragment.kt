@@ -94,7 +94,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
             } else if (args.hasWallet) {
                 openSelectWallet(arrayOf(activeSlot), SelectWalletFragment.TYPE_UNSEAL_SWEEP_ACTIVE_SLOT)
             } else {
-                navigator.openWalletIntermediaryScreen(requireActivity(), args.hasSigner)
+                // TODO Hai
             }
         }
     }

@@ -23,8 +23,8 @@ class SatsCardActivity : BaseNfcActivity<ActivitySatsCardBinding>() {
     }
 
     companion object {
-        fun navigate(activity: Activity, status: SatsCardStatus, hasWallet: Boolean, hasSigner: Boolean) {
-            activity.startActivity(SatsCardArgs(status, hasWallet, hasSigner).buildIntent(activity))
+        fun navigate(activity: Activity, status: SatsCardStatus, hasWallet: Boolean) {
+            activity.startActivity(SatsCardArgs(status, hasWallet).buildIntent(activity))
         }
     }
 }

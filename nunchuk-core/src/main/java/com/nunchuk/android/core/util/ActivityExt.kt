@@ -47,6 +47,10 @@ fun Fragment.hideLoading() {
     activity?.let(FragmentActivity::hideLoading)
 }
 
+fun Fragment.showOrHideNfcLoading(loading: Boolean) {
+    showOrHideLoading(loading, message = getString(R.string.nc_keep_holding_nfc))
+}
+
 fun Fragment.showOrHideLoading(loading: Boolean, message: String? = null) {
     activity?.showOrHideLoading(loading, message)
 }
