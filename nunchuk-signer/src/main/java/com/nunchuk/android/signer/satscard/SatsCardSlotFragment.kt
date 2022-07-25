@@ -92,7 +92,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
             if (activeSlot.isConfirmed.not()) {
                 showWarning(getString(R.string.nc_please_wait_balance_confirmation))
             } else if (args.hasWallet) {
-                openSelectWallet(arrayOf(activeSlot), SelectWalletFragment.TYPE_SWEEP_UNSEAL_SLOT)
+                openSelectWallet(arrayOf(activeSlot), SelectWalletFragment.TYPE_UNSEAL_SWEEP_ACTIVE_SLOT)
             } else {
                 navigator.openWalletIntermediaryScreen(requireActivity(), args.hasSigner)
             }
@@ -152,7 +152,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
                 message = getString(R.string.nc_detect_unseal_has_balance, Amount(value = sum).getBTCAmount(), labels),
                 btnNo = getString(R.string.nc_not_now),
                 onYesClick = {
-                    openSelectWallet(unsealSlowWithBalances.toTypedArray(), SelectWalletFragment.TYPE_UNSEAL_SWEEP_ACTIVE_SLOT)
+                    openSelectWallet(unsealSlowWithBalances.toTypedArray(), SelectWalletFragment.TYPE_SWEEP_UNSEAL_SLOT)
                 }
             )
         }
