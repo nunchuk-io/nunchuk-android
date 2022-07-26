@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.core.base.BaseFragment
@@ -16,6 +17,7 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.NcExceptionCode
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.FragmentSatscardActiveSlotBinding
@@ -88,13 +90,19 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
             }
         }
         binding.btnUnsealAndSweep.setOnClickListener {
+            if (viewModel.isBalanceLoaded().not()) {
+                showWarning(getString(R.string.nc_please_wait_to_load_balance))
+                return@setOnClickListener
+            }
             val activeSlot = viewModel.getActiveSlot() ?: return@setOnClickListener
             if (activeSlot.isConfirmed.not()) {
                 showWarning(getString(R.string.nc_please_wait_balance_confirmation))
+            } else if (activeSlot.balance.value <= 0L) {
+                showWarning(getString(R.string.nc_no_balance_to_sweep))
             } else if (args.hasWallet) {
                 openSelectWallet(arrayOf(activeSlot), SelectWalletFragment.TYPE_UNSEAL_SWEEP_ACTIVE_SLOT)
             } else {
-                // TODO Hai
+                navigator.openQuickWalletScreen(requireActivity())
             }
         }
     }
@@ -117,27 +125,27 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
     }
 
     private fun observer() {
-        flowObserver {
-            viewModel.event.collect {
-                when (it) {
-                    SatsCardSlotEvent.Loading -> handleLoading()
-                    is SatsCardSlotEvent.GetActiveSlotBalanceSuccess -> handleShowBalanceActiveSlot(it.slot)
-                    is SatsCardSlotEvent.GetOtherSlotBalanceSuccess -> handleCheckBalanceOtherSlots(it.slots)
-                    is SatsCardSlotEvent.ShowError -> handleShowError(it)
-                }
+        flowObserver(viewModel.event) {
+            when (it) {
+                SatsCardSlotEvent.Loading -> handleLoading()
+                is SatsCardSlotEvent.GetActiveSlotBalanceSuccess -> handleShowBalanceActiveSlot(it.slot)
+                is SatsCardSlotEvent.GetOtherSlotBalanceSuccess -> handleCheckBalanceOtherSlots(it.slots)
+                is SatsCardSlotEvent.ShowError -> handleShowError(it)
             }
         }
-        flowObserver {
-            viewModel.state.collect {
-                val activeSlot = viewModel.getActiveSlot() ?: return@collect
-                handleShowBalanceActiveSlot(activeSlot)
-            }
+        flowObserver(viewModel.activeSlot) {
+            handleShowBalanceActiveSlot(it)
         }
     }
 
     private fun handleShowError(it: SatsCardSlotEvent.ShowError) {
         val message = it.e?.message.orEmpty()
-        if (message.isNotEmpty()) {
+        if (message.contains(NcExceptionCode.NETWORK_ERROR.toString())) {
+            binding.tvBalanceUsd.apply {
+                text = getString(R.string.nc_no_internet_connection)
+                setTextColor(ContextCompat.getColor(requireActivity(), R.color.nc_orange_color))
+            }
+        } else if (message.isNotEmpty()) {
             NCToastMessage(requireActivity()).showError(it.e?.message.orEmpty())
         }
     }

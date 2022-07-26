@@ -12,6 +12,7 @@ import com.nunchuk.android.core.network.ApiConstant.HEADER_TOKEN_TYPE
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
+import timber.log.Timber
 import javax.inject.Inject
 
 class HeaderInterceptor @Inject constructor(
@@ -19,6 +20,7 @@ class HeaderInterceptor @Inject constructor(
 ) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
+        Timber.d(chain.request().url.toString())
         val request = chain.request().newBuilder()
             .validHeader(HEADER_DEVICE_ID, headerProvider.getDeviceId())
             .validHeader(HEADER_APP_VERSION, headerProvider.getAppVersion())

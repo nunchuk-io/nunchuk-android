@@ -19,8 +19,8 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.main.MainActivityViewModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
@@ -39,7 +39,6 @@ import com.nunchuk.android.wallet.components.details.WalletDetailsArgs
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
@@ -97,12 +96,10 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         walletsViewModel.state.observe(viewLifecycleOwner, ::showWalletState)
         walletsViewModel.event.observe(viewLifecycleOwner, ::handleEvent)
         mainActivityViewModel.event.observe(viewLifecycleOwner, ::handleMainActivityEvent)
-        flowObserver {
-            nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_SATSCARD_STATUS }
-                .collectLatest {
-                    walletsViewModel.getSatsCardStatus(IsoDep.get(it.tag))
-                    nfcViewModel.clearScanInfo()
-                }
+        flowObserver(
+            nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_SATSCARD_STATUS }) {
+            walletsViewModel.getSatsCardStatus(IsoDep.get(it.tag))
+            nfcViewModel.clearScanInfo()
         }
     }
 
@@ -111,7 +108,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             AddWalletEvent -> openAddWalletScreen()
             ShowSignerIntroEvent -> openSignerIntroScreen()
             WalletEmptySignerEvent -> openWalletIntroScreen()
-            is ShowErrorEvent -> requireActivity().showToast(event.message)
+            is ShowErrorEvent -> showError(event.message)
             is GoToSatsCardScreen -> openSatsCardActiveSlotScreen(event)
             NeedSetupSatsCard -> handleNeedSetupSatsCard()
             is SatsCardUsedUp -> handleSatsCardUsedUp(event.numberOfSlot)

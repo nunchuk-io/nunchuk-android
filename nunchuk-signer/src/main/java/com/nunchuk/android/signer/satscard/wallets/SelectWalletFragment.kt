@@ -60,14 +60,11 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
     }
 
     private fun observer() {
-        flowObserver { viewModel.event.collect(::handleEvent) }
-        flowObserver { viewModel.state.collect(::handleState) }
-        flowObserver {
-            nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_SATSCARD_SWEEP_SLOT }
-                .collect {
-                    viewModel.handleSweepBalance(IsoDep.get(it.tag), nfcViewModel.inputCvc.orEmpty(), args.slots.toList(), args.type)
-                    nfcViewModel.clearScanInfo()
-                }
+        flowObserver(viewModel.event, ::handleEvent)
+        flowObserver(viewModel.state, ::handleState)
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_SATSCARD_SWEEP_SLOT }) {
+            viewModel.handleSweepBalance(IsoDep.get(it.tag), nfcViewModel.inputCvc.orEmpty(), args.slots.toList(), args.type)
+            nfcViewModel.clearScanInfo()
         }
     }
 

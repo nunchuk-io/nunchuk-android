@@ -117,7 +117,10 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
     private fun handleEvent(event: SetupChainCodeEvent) {
         when(event) {
             is SetupChainCodeEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading, )
-            is SetupChainCodeEvent.SetupSatsCardSuccess -> SatsCardActivity.navigate(requireActivity(), event.status, (activity as NfcSetupActivity).hasWallet)
+            is SetupChainCodeEvent.SetupSatsCardSuccess -> {
+                SatsCardActivity.navigate(requireActivity(), event.status, (activity as NfcSetupActivity).hasWallet)
+                requireActivity().finish()
+            }
             is SetupChainCodeEvent.ShowError -> showError(event.e?.message)
         }
     }

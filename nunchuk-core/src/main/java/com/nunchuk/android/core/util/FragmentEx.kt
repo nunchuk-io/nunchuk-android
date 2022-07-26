@@ -2,16 +2,16 @@ package com.nunchuk.android.core.util
 
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.widget.NCToastMessage
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 
-fun Fragment.flowObserver(block: suspend CoroutineScope.() -> Unit) {
+fun <T> Fragment.flowObserver(flow: Flow<T>, collector: FlowCollector<T>) {
     lifecycleScope.launchWhenStarted {
-        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            block()
-        }
+        flow.flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .collect(collector)
     }
 }
 

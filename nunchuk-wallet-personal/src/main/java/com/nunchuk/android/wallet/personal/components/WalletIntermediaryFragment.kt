@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.RecoverWalletData
@@ -22,8 +23,10 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBinding>() {
+    private val args: WalletIntermediaryFragmentArgs by navArgs()
+
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentWalletIntermediaryBinding {
-       return FragmentWalletIntermediaryBinding.inflate(inflater, container, false)
+        return FragmentWalletIntermediaryBinding.inflate(inflater, container, false)
     }
 
     private val hasSigner
@@ -72,7 +75,9 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
 
     private fun setupViews() {
         binding.btnCreateNewWallet.setOnClickListener {
-            if (hasSigner) {
+            if (args.isQuickWallet) {
+                navigator.openCreateNewSeedScreen(this)
+            } else if (hasSigner) {
                 openCreateNewWalletScreen()
             } else {
                 openWalletEmptySignerScreen()
@@ -147,4 +152,6 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
             }
         )
     }
+
+
 }

@@ -1,6 +1,7 @@
 package com.nunchuk.android.nav
 
 import android.content.Context
+import androidx.fragment.app.Fragment
 import com.nunchuk.android.type.SignerType
 
 interface SignerNavigator {
@@ -23,6 +24,8 @@ interface SignerNavigator {
     fun openAddSoftwareSignerScreen(activityContext: Context)
 
     fun openCreateNewSeedScreen(activityContext: Context)
+
+    fun openCreateNewSeedScreen(fragment: Fragment)
 
     fun openRecoverSeedScreen(activityContext: Context)
 

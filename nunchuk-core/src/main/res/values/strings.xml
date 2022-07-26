@@ -86,4 +86,7 @@
     <string name="nc_wallet_not_configured">Not configured</string>
     <string name="nc_wallet_single_sig">Single-sig</string>
     <string name="nc_wallet_multisig">Multisig</string>
+    <string name="nc_please_wait_to_load_balance">Please wait to load balance</string>
+    <string name="nc_no_balance_to_sweep">No balance to sweep</string>
+    <string name="nc_no_internet_connection">No Internet connection</string>
 </resources>

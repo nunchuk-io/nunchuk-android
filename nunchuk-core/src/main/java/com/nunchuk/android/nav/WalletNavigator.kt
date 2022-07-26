@@ -87,7 +87,7 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
 
     fun openWalletConfigScreen(activityContext: Context, walletId: String)
 
-    fun openWalletConfigScreen(launcher: ActivityResultLauncher<Intent>,activityContext: Context, walletId: String)
+    fun openWalletConfigScreen(launcher: ActivityResultLauncher<Intent>, activityContext: Context, walletId: String)
 
     fun openDynamicQRScreen(activityContext: Context, values: List<String>)
 
@@ -101,4 +101,6 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         walletType: WalletType,
         addressType: AddressType
     )
+
+    fun openQuickWalletScreen(activityContext: Context)
 }
