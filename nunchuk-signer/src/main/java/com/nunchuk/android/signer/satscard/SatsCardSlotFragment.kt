@@ -94,7 +94,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
                 showWarning(getString(R.string.nc_please_wait_to_load_balance))
                 return@setOnClickListener
             }
-            val activeSlot = viewModel.getActiveSlot() ?: return@setOnClickListener
+            val activeSlot = viewModel.getActiveSlotWithBalance() ?: return@setOnClickListener
             if (activeSlot.isConfirmed.not()) {
                 showWarning(getString(R.string.nc_please_wait_balance_confirmation))
             } else if (activeSlot.balance.value <= 0L) {
@@ -125,16 +125,18 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
     }
 
     private fun observer() {
-        flowObserver(viewModel.event) {
-            when (it) {
-                SatsCardSlotEvent.Loading -> handleLoading()
-                is SatsCardSlotEvent.GetActiveSlotBalanceSuccess -> handleShowBalanceActiveSlot(it.slot)
-                is SatsCardSlotEvent.GetOtherSlotBalanceSuccess -> handleCheckBalanceOtherSlots(it.slots)
-                is SatsCardSlotEvent.ShowError -> handleShowError(it)
-            }
-        }
-        flowObserver(viewModel.activeSlot) {
+        sharedFlowObserver(viewModel.event, ::handleEvent)
+        stateFlowObserver(viewModel.activeSlot) {
             handleShowBalanceActiveSlot(it)
+        }
+    }
+
+    private fun handleEvent(it: SatsCardSlotEvent) {
+        when (it) {
+            SatsCardSlotEvent.Loading -> handleLoading()
+            is SatsCardSlotEvent.GetActiveSlotBalanceSuccess -> handleShowBalanceActiveSlot(it.slot)
+            is SatsCardSlotEvent.GetOtherSlotBalanceSuccess -> handleCheckBalanceOtherSlots(it.slots)
+            is SatsCardSlotEvent.ShowError -> handleShowError(it)
         }
     }
 
@@ -153,7 +155,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
     private fun handleCheckBalanceOtherSlots(slots: List<SatsCardSlot>) {
         val sum = slots.sumOf { it.balance.value }
         if (sum > 0) {
-            val unsealSlowWithBalances = slots.filter { it.status == SatsCardSlotStatus.SEALED && it.balance.value > 0 }
+            val unsealSlowWithBalances = slots.filter { it.status == SatsCardSlotStatus.UNSEALED && it.balance.value > 0 }
             val labels = unsealSlowWithBalances.joinToString(separator = ", ") { "#${it.index.inc()}" }
             NCWarningDialog(requireActivity()).showDialog(
                 title = getString(R.string.nc_text_info),

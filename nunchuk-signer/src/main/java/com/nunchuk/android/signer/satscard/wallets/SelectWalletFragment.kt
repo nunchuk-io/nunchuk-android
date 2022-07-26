@@ -12,9 +12,10 @@ import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
-import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.sharedFlowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.stateFlowObserver
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.FragmentSelectWalletSweepBinding
 import com.nunchuk.android.widget.NCToastMessage
@@ -60,9 +61,9 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
     }
 
     private fun observer() {
-        flowObserver(viewModel.event, ::handleEvent)
-        flowObserver(viewModel.state, ::handleState)
-        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_SATSCARD_SWEEP_SLOT }) {
+        sharedFlowObserver(viewModel.event, ::handleEvent)
+        stateFlowObserver(viewModel.state, ::handleState)
+        stateFlowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_SATSCARD_SWEEP_SLOT }) {
             viewModel.handleSweepBalance(IsoDep.get(it.tag), nfcViewModel.inputCvc.orEmpty(), args.slots.toList(), args.type)
             nfcViewModel.clearScanInfo()
         }

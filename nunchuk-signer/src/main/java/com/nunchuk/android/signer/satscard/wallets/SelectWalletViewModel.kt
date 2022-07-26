@@ -12,7 +12,6 @@ import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.NewAddressUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,19 +26,19 @@ class SelectWalletViewModel @Inject constructor(
     private val newAddressUseCase: NewAddressUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SelectWalletState())
-    private val _event = Channel<SelectWalletEvent>(Channel.CONFLATED)
+    private val _event = MutableSharedFlow<SelectWalletEvent>()
 
     val state = _state.asStateFlow()
-    val event = _event.consumeAsFlow()
+    val event = _event.asSharedFlow()
 
     init {
         viewModelScope.launch {
             getWalletsUseCase.execute()
-                .onStart { _event.send(SelectWalletEvent.Loading(true)) }
+                .onStart { _event.emit(SelectWalletEvent.Loading(true)) }
                 .onException {
-                    _event.send(SelectWalletEvent.ShowError(it.message))
+                    _event.emit(SelectWalletEvent.ShowError(it.message))
                 }
-                .onCompletion { _event.send(SelectWalletEvent.Loading(false)) }
+                .onCompletion { _event.emit(SelectWalletEvent.Loading(false)) }
                 .collect { wallets ->
                     _state.value = _state.value.copy(selectWallets = wallets.map { SelectableWallet(it.wallet, it.isShared) })
                 }
@@ -62,33 +61,33 @@ class SelectWalletViewModel @Inject constructor(
 
     private fun unsealSweepActiveSlot(isoDep: IsoDep, cvc: String) {
         viewModelScope.launch {
-            _event.send(SelectWalletEvent.NfcLoading(true))
+            _event.emit(SelectWalletEvent.NfcLoading(true))
             val result = unsealSatsCardSlotUseCase(UnsealSatsCardSlotUseCase.Data(isoDep, cvc))
-            _event.send(SelectWalletEvent.NfcLoading(false))
+            _event.emit(SelectWalletEvent.NfcLoading(false))
             if (result.isSuccess) {
                 getWalletAddress(listOf(result.getOrThrow()))
             } else {
-                _event.send(SelectWalletEvent.ShowError(result.exceptionOrNull()?.message))
+                _event.emit(SelectWalletEvent.ShowError(result.exceptionOrNull()?.message))
             }
         }
     }
 
     private fun getSlotsKey(isoDep: IsoDep, cvc: String, slots: List<SatsCardSlot>) {
         viewModelScope.launch {
-            _event.send(SelectWalletEvent.NfcLoading(true))
+            _event.emit(SelectWalletEvent.NfcLoading(true))
             val result = getSatsCardSlotKeyUseCase(GetSatsCardSlotKeyUseCase.Data(isoDep, cvc, slots))
-            _event.send(SelectWalletEvent.NfcLoading(false))
+            _event.emit(SelectWalletEvent.NfcLoading(false))
             if (result.isSuccess) {
                 getWalletAddress(result.getOrThrow())
-            }  else {
-                _event.send(SelectWalletEvent.ShowError(result.exceptionOrNull()?.message))
+            } else {
+                _event.emit(SelectWalletEvent.ShowError(result.exceptionOrNull()?.message))
             }
         }
     }
 
     private fun getWalletAddress(slots: List<SatsCardSlot>) {
         viewModelScope.launch {
-            _event.send(SelectWalletEvent.Loading(true))
+            _event.emit(SelectWalletEvent.Loading(true))
             getAddressesUseCase.execute(walletId = selectedWalletId)
                 .flatMapLatest {
                     if (it.isEmpty()) {
@@ -96,23 +95,22 @@ class SelectWalletViewModel @Inject constructor(
                     }
                     return@flatMapLatest flowOf(it)
                 }.onException {
-                    _event.send(SelectWalletEvent.Loading(false))
-                    _event.send(SelectWalletEvent.ShowError(it.message))
+                    _event.emit(SelectWalletEvent.Loading(false))
+                    _event.emit(SelectWalletEvent.ShowError(it.message))
                 }.collect {
                     sweepUnsealSlots(it.first(), slots)
                 }
-
         }
     }
 
     private fun sweepUnsealSlots(address: String, slots: List<SatsCardSlot>) {
         viewModelScope.launch {
             val result = sweepSatsCardSlotUseCase(SweepSatsCardSlotUseCase.Data(address, slots))
-            _event.send(SelectWalletEvent.Loading(false))
+            _event.emit(SelectWalletEvent.Loading(false))
             if (result.isSuccess) {
-                _event.send(SelectWalletEvent.SweepSuccess)
-            }  else {
-                _event.send(SelectWalletEvent.ShowError(result.exceptionOrNull()?.message))
+                _event.emit(SelectWalletEvent.SweepSuccess)
+            } else {
+                _event.emit(SelectWalletEvent.ShowError(result.exceptionOrNull()?.message))
             }
         }
     }

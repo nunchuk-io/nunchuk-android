@@ -9,10 +9,10 @@ import com.nunchuk.android.core.util.CHAIN_CODE_LENGTH
 import com.nunchuk.android.model.SatsCardStatus
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,9 +22,9 @@ class SetupChainCodeViewModel @Inject constructor(
     private val setupSatsCardUseCase: Lazy<SetupSatsCardUseCase>
 ) : ViewModel() {
     private val _state = MutableStateFlow<SetupChainCodeState?>(null)
-    private val _event = Channel<SetupChainCodeEvent>()
+    private val _event = MutableSharedFlow<SetupChainCodeEvent>()
     val state = _state.filterIsInstance<SetupChainCodeState>()
-    val event = _event.receiveAsFlow()
+    val event = _event.asSharedFlow()
 
     init {
         generateChainCode()
@@ -36,7 +36,7 @@ class SetupChainCodeViewModel @Inject constructor(
             if (result.isSuccess) {
                 _state.value = SetupChainCodeState(result.getOrThrow())
             } else {
-                _event.send(SetupChainCodeEvent.ShowError(result.exceptionOrNull()))
+                _event.emit(SetupChainCodeEvent.ShowError(result.exceptionOrNull()))
             }
         }
     }
@@ -44,13 +44,13 @@ class SetupChainCodeViewModel @Inject constructor(
     fun setUpSatsCard(isoDep: IsoDep?, cvc: String, chainCode: String) {
         isoDep ?: return
         viewModelScope.launch {
-            _event.send(SetupChainCodeEvent.NfcLoading(true))
+            _event.emit(SetupChainCodeEvent.NfcLoading(true))
             val result = setupSatsCardUseCase.get()(SetupSatsCardUseCase.Data(isoDep, cvc, chainCode))
-            _event.send(SetupChainCodeEvent.NfcLoading(false))
+            _event.emit(SetupChainCodeEvent.NfcLoading(false))
             if (result.isSuccess) {
-                _event.send(SetupChainCodeEvent.SetupSatsCardSuccess(result.getOrThrow()))
+                _event.emit(SetupChainCodeEvent.SetupSatsCardSuccess(result.getOrThrow()))
             } else {
-                _event.send(SetupChainCodeEvent.ShowError(result.exceptionOrNull()))
+                _event.emit(SetupChainCodeEvent.ShowError(result.exceptionOrNull()))
             }
         }
     }
