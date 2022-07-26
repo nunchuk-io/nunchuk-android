@@ -2,8 +2,8 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    app:startDestination=""
-    android:id="@+id/wallet_intermediary_navigation">
+    android:id="@+id/wallet_intermediary_navigation"
+    app:startDestination="@id/walletIntermediaryFragment">
     <fragment
         android:id="@+id/walletIntermediaryFragment"
         android:name="com.nunchuk.android.wallet.personal.components.WalletIntermediaryFragment"

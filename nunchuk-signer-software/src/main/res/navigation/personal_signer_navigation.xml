@@ -2,23 +2,12 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    app:startDestination=""
-    android:id="@+id/wallet_intermediary_navigation">
+    android:id="@+id/wallet_intermediary_navigation"
+    app:startDestination="@id/createNewSeedFragment">
 
     <fragment
         android:id="@+id/createNewSeedFragment"
         android:name="com.nunchuk.android.signer.software.components.create.CreateNewSeedFragment"
         android:label="CreateNewSeedFragment"
         tools:layout="@layout/fragment_create_seed" />
-    <fragment
-        android:id="@+id/walletIntermediaryFragment"
-        android:name="com.nunchuk.android.wallet.personal.components.WalletIntermediaryFragment"
-        android:label="WalletIntermediaryFragment"
-        tools:layout="@layout/fragment_wallet_intermediary">
-
-        <argument
-            android:name="is_quick_wallet"
-            android:defaultValue="false"
-            app:argType="boolean" />
-    </fragment>
 </navigation>
