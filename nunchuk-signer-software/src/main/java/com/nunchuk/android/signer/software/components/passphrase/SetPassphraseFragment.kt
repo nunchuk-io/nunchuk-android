@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showLoading
@@ -22,7 +23,7 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
 
     private val viewModel: SetPassphraseViewModel by viewModels()
 
-    private val args: SetPassphraseActivityArgs by lazy { SetPassphraseActivityArgs.deserializeFrom(requireArguments()) }
+    private val args: SetPassphraseFragmentArgs by navArgs()
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentSetPassphraseBinding {
         return FragmentSetPassphraseBinding.inflate(inflater, container, false)

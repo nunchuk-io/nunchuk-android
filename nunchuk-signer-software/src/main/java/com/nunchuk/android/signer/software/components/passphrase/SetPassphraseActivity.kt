@@ -1,6 +1,7 @@
 package com.nunchuk.android.signer.software.components.passphrase
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.commit
 import com.nunchuk.android.core.base.BaseActivity
@@ -29,10 +30,10 @@ class SetPassphraseActivity : BaseActivity<ActivitySetPassphraseBinding>() {
     companion object {
         fun start(activityContext: Context, mnemonic: String, signerName: String) {
             activityContext.startActivity(
-                SetPassphraseActivityArgs(
+                Intent(activityContext, SetPassphraseActivity::class.java).putExtras(SetPassphraseFragmentArgs(
                     mnemonic = mnemonic,
                     signerName = signerName
-                ).buildIntent(activityContext)
+                ).toBundle())
             )
         }
     }

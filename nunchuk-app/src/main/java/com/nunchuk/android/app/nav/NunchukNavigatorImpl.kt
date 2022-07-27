@@ -60,8 +60,8 @@ internal class NunchukNavigatorImpl @Inject constructor(
         QuickWalletActivity.start(activityContext)
     }
 
-    override fun openCreateNewSeedScreen(fragment: Fragment) {
-        fragment.findNavController().navigate(QuickWalletNavigationDirections.actionWalletIntermediaryFragmentToCreateNewSeedFragment())
+    override fun openCreateNewSeedScreen(fragment: Fragment, isQuickWallet: Boolean) {
+        fragment.findNavController().navigate(QuickWalletNavigationDirections.showCreateNewSeedFragment(isQuickWallet))
     }
 }
 

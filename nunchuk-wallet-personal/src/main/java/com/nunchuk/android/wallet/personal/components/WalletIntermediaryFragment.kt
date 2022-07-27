@@ -76,7 +76,7 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
     private fun setupViews() {
         binding.btnCreateNewWallet.setOnClickListener {
             if (args.isQuickWallet) {
-                navigator.openCreateNewSeedScreen(this)
+                navigator.openCreateNewSeedScreen(this, true)
             } else if (hasSigner) {
                 openCreateNewWalletScreen()
             } else {

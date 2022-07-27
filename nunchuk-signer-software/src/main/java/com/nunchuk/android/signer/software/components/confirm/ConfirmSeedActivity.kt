@@ -1,6 +1,7 @@
 package com.nunchuk.android.signer.software.components.confirm
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.commit
 import com.nunchuk.android.core.base.BaseActivity
@@ -32,7 +33,7 @@ class ConfirmSeedActivity : BaseActivity<ActivityConfirmSeedBinding>() {
     companion object {
 
         fun start(activityContext: Context, mnemonic: String) {
-            activityContext.startActivity(ConfirmSeedArgs(mnemonic = mnemonic).buildIntent(activityContext))
+            activityContext.startActivity(Intent(activityContext, ConfirmSeedActivity::class.java).putExtras(ConfirmSeedFragmentArgs(mnemonic = mnemonic).toBundle()))
         }
     }
 

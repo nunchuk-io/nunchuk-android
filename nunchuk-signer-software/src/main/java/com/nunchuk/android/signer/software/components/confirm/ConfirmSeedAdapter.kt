@@ -4,7 +4,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import com.nunchuk.android.core.base.BaseViewHolder
 import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.databinding.ItemConfirmSeedBinding
@@ -12,13 +13,7 @@ import com.nunchuk.android.widget.util.inflate
 
 internal class ConfirmSeedAdapter(
     private val onItemUpdatedListener: (PhraseWordGroup) -> Unit
-) : RecyclerView.Adapter<ConfirmSeedViewHolder>() {
-
-    internal var items: List<PhraseWordGroup> = ArrayList()
-        set(value) {
-            field = value
-            notifyDataSetChanged()
-        }
+) : ListAdapter<PhraseWordGroup, ConfirmSeedViewHolder>(ITEM_DIFF) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ConfirmSeedViewHolder(
         parent.inflate(R.layout.item_confirm_seed),
@@ -26,14 +21,20 @@ internal class ConfirmSeedAdapter(
     )
 
     override fun onBindViewHolder(holder: ConfirmSeedViewHolder, position: Int) {
-        val item = items[position]
-        holder.bind(item)
+        holder.bind(getItem(position))
     }
 
-    override fun getItemCount(): Int {
-        return items.size
-    }
+    companion object {
+        private val ITEM_DIFF = object: DiffUtil.ItemCallback<PhraseWordGroup>() {
+            override fun areItemsTheSame(oldItem: PhraseWordGroup, newItem: PhraseWordGroup): Boolean {
+                return oldItem.index == newItem.index
+            }
 
+            override fun areContentsTheSame(oldItem: PhraseWordGroup, newItem: PhraseWordGroup): Boolean {
+                return oldItem == newItem
+            }
+        }
+    }
 }
 
 internal class ConfirmSeedViewHolder(

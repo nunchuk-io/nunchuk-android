@@ -5,8 +5,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.util.sharedFlowObserver
+import com.nunchuk.android.core.util.stateFlowObserver
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.GenerateMnemonicCodeErrorEvent
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.OpenSelectPhraseEvent
 import com.nunchuk.android.signer.software.databinding.FragmentCreateSeedBinding
@@ -15,7 +19,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class CreateNewSeedFragment : BaseFragment<FragmentCreateSeedBinding>() {
-
+    private val args: CreateNewSeedFragmentArgs by navArgs()
     private val viewModel: CreateNewSeedViewModel by viewModels()
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentCreateSeedBinding {
@@ -33,8 +37,8 @@ class CreateNewSeedFragment : BaseFragment<FragmentCreateSeedBinding>() {
     }
 
     private fun observeEvent() {
-        viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
-        viewModel.state.observe(viewLifecycleOwner, ::handleState)
+        sharedFlowObserver(viewModel.event, ::handleEvent)
+        stateFlowObserver(viewModel.state, ::handleState)
     }
 
     private fun handleState(state: CreateNewSeedState) {
@@ -44,7 +48,18 @@ class CreateNewSeedFragment : BaseFragment<FragmentCreateSeedBinding>() {
     private fun handleEvent(event: CreateNewSeedEvent) {
         when (event) {
             is GenerateMnemonicCodeErrorEvent -> NCToastMessage(requireActivity()).showWarning(event.message)
-            is OpenSelectPhraseEvent -> navigator.openSelectPhraseScreen(requireActivity(), event.mnemonic)
+            is OpenSelectPhraseEvent -> {
+                if (args.isQuickWallet) {
+                    findNavController().navigate(
+                        CreateNewSeedFragmentDirections.actionCreateNewSeedFragmentToConfirmSeedFragment(
+                            mnemonic = event.mnemonic,
+                            isQuickWallet = args.isQuickWallet
+                        )
+                    )
+                } else {
+                    navigator.openSelectPhraseScreen(requireActivity(), event.mnemonic)
+                }
+            }
         }
     }
 

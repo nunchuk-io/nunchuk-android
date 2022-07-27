@@ -30,7 +30,7 @@ class SatsCardSlotViewModel @Inject constructor(
     init {
         val status: SatsCardStatus = savedStateHandle[SatsCardArgs.EXTRA_SATSCARD_STATUS]!!
         viewModelScope.launch {
-            delay(300L)
+            delay(150L)
             _event.emit(SatsCardSlotEvent.Loading)
             val activeSlot = status.slots.find { it.index == status.activeSlotIndex } ?: return@launch
             val result = getSatsCardSlotBalanceUseCase(listOf(activeSlot))

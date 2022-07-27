@@ -10,7 +10,9 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.databinding.ActivityQuickWalletBinding
 import com.nunchuk.android.wallet.personal.components.WalletIntermediaryFragmentArgs
 import com.nunchuk.android.widget.util.setLightStatusBar
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class QuickWalletActivity : BaseActivity<ActivityQuickWalletBinding>() {
     override fun initializeBinding(): ActivityQuickWalletBinding {
         return ActivityQuickWalletBinding.inflate(layoutInflater)
@@ -19,7 +21,6 @@ class QuickWalletActivity : BaseActivity<ActivityQuickWalletBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setLightStatusBar()
-        WalletIntermediaryFragmentArgs(isQuickWallet = true).toBundle()
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
         navHostFragment.findNavController().setGraph(R.navigation.quick_wallet_navigation, WalletIntermediaryFragmentArgs(isQuickWallet = true).toBundle())
     }

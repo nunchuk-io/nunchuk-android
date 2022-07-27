@@ -90,6 +90,8 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
             }
         }
         binding.btnUnsealAndSweep.setOnClickListener {
+            // TODO Hai
+//            navigator.openQuickWalletScreen(requireActivity())
             if (viewModel.isBalanceLoaded().not()) {
                 showWarning(getString(R.string.nc_please_wait_to_load_balance))
                 return@setOnClickListener

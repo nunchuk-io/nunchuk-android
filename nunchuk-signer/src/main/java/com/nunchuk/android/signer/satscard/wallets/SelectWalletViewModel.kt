@@ -54,15 +54,16 @@ class SelectWalletViewModel @Inject constructor(
     fun handleSweepBalance(isoDep: IsoDep?, cvc: String, slots: List<SatsCardSlot>, type: Int) {
         isoDep ?: return
         when (type) {
-            SelectWalletFragment.TYPE_UNSEAL_SWEEP_ACTIVE_SLOT -> unsealSweepActiveSlot(isoDep, cvc)
+            SelectWalletFragment.TYPE_UNSEAL_SWEEP_ACTIVE_SLOT -> unsealSweepActiveSlot(isoDep, cvc, slots)
             SelectWalletFragment.TYPE_SWEEP_UNSEAL_SLOT -> getSlotsKey(isoDep, cvc, slots)
         }
     }
 
-    private fun unsealSweepActiveSlot(isoDep: IsoDep, cvc: String) {
+    private fun unsealSweepActiveSlot(isoDep: IsoDep, cvc: String, slots: List<SatsCardSlot>) {
+        if (slots.isEmpty()) return
         viewModelScope.launch {
             _event.emit(SelectWalletEvent.NfcLoading(true))
-            val result = unsealSatsCardSlotUseCase(UnsealSatsCardSlotUseCase.Data(isoDep, cvc))
+            val result = unsealSatsCardSlotUseCase(UnsealSatsCardSlotUseCase.Data(isoDep, cvc, slots.first()))
             _event.emit(SelectWalletEvent.NfcLoading(false))
             if (result.isSuccess) {
                 getWalletAddress(listOf(result.getOrThrow()))

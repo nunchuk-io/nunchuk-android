@@ -2,12 +2,59 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/wallet_intermediary_navigation"
+    android:id="@+id/personal_signer_navigation"
     app:startDestination="@id/createNewSeedFragment">
 
     <fragment
         android:id="@+id/createNewSeedFragment"
         android:name="com.nunchuk.android.signer.software.components.create.CreateNewSeedFragment"
         android:label="CreateNewSeedFragment"
-        tools:layout="@layout/fragment_create_seed" />
+        tools:layout="@layout/fragment_create_seed">
+        <argument
+            android:name="is_quick_wallet"
+            app:argType="boolean" />
+        <action
+            android:id="@+id/action_createNewSeedFragment_to_confirmSeedFragment"
+            app:destination="@id/confirmSeedFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+    <fragment
+        android:id="@+id/confirmSeedFragment"
+        android:name="com.nunchuk.android.signer.software.components.confirm.ConfirmSeedFragment"
+        android:label="ConfirmSeedFragment"
+        tools:layout="@layout/fragment_confirm_seed">
+        <argument
+            android:name="is_quick_wallet"
+            android:defaultValue="false"
+            app:argType="boolean" />
+
+        <argument
+            android:name="mnemonic"
+            app:argType="string" />
+
+        <action
+            android:id="@+id/action_confirmSeedFragment_to_setPassphraseFragment"
+            app:destination="@id/setPassphraseFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+    <fragment
+        android:id="@+id/setPassphraseFragment"
+        android:name="com.nunchuk.android.signer.software.components.passphrase.SetPassphraseFragment"
+        android:label="SetPassphraseFragment"
+        tools:layout="@layout/fragment_set_passphrase">
+        <argument
+            android:name="mnemonic"
+            app:argType="string" />
+        <argument
+            android:name="signerName"
+            app:argType="string" />
+    </fragment>
+
+
 </navigation>

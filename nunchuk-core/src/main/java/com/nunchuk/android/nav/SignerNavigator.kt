@@ -25,7 +25,7 @@ interface SignerNavigator {
 
     fun openCreateNewSeedScreen(activityContext: Context)
 
-    fun openCreateNewSeedScreen(fragment: Fragment)
+    fun openCreateNewSeedScreen(fragment: Fragment, isQuickWallet: Boolean = false)
 
     fun openRecoverSeedScreen(activityContext: Context)
 

@@ -14,8 +14,8 @@ class UnsealSatsCardSlotUseCase @Inject constructor(
     waitTapSignerUseCase: WaitTapSignerUseCase
 ) : BaseNfcUseCase<UnsealSatsCardSlotUseCase.Data, SatsCardSlot>(dispatcher, waitTapSignerUseCase) {
     override suspend fun executeNfc(parameters: Data): SatsCardSlot {
-        return nunchukNativeSdk.unsealSatsCard(parameters.isoDep, parameters.cvc)
+        return nunchukNativeSdk.unsealSatsCard(parameters.isoDep, parameters.cvc, parameters.slot)
     }
 
-    class Data(isoDep: IsoDep, val cvc: String) : BaseNfcUseCase.Data(isoDep)
+    class Data(isoDep: IsoDep, val cvc: String, val slot: SatsCardSlot) : BaseNfcUseCase.Data(isoDep)
 }
