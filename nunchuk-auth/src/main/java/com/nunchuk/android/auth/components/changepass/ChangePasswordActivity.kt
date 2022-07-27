@@ -11,7 +11,6 @@ import com.nunchuk.android.auth.databinding.ActivityChangePasswordBinding
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.util.passwordEnabled
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -65,9 +64,9 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
 
     private fun setupViews() {
         showToolbarBackButton()
-        binding.oldPassword.passwordEnabled()
-        binding.newPassword.passwordEnabled()
-        binding.confirmPassword.passwordEnabled()
+        binding.oldPassword.makeMaskedInput()
+        binding.newPassword.makeMaskedInput()
+        binding.confirmPassword.makeMaskedInput()
         binding.changePassword.setOnClickListener { onChangePasswordClicked() }
     }
 

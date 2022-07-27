@@ -9,7 +9,6 @@ import com.nunchuk.android.auth.databinding.ActivityRecoverPasswordBinding
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showToast
-import com.nunchuk.android.widget.util.passwordEnabled
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -54,9 +53,9 @@ class RecoverPasswordActivity : BaseActivity<ActivityRecoverPasswordBinding>() {
     }
 
     private fun setupViews() {
-        binding.oldPassword.passwordEnabled()
-        binding.newPassword.passwordEnabled()
-        binding.confirmPassword.passwordEnabled()
+        binding.oldPassword.makeMaskedInput()
+        binding.newPassword.makeMaskedInput()
+        binding.confirmPassword.makeMaskedInput()
         binding.recoverPassword.setOnClickListener { onChangePasswordClicked() }
         binding.signIn.setOnClickListener { openLoginScreen() }
     }
