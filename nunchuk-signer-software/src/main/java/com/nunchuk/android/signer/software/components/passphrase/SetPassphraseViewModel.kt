@@ -74,7 +74,7 @@ internal class SetPassphraseViewModel @Inject constructor(
                     )
                 }
         }
-
+        // TODO Hai create quick wallet
     }
 
 }
