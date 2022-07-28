@@ -34,6 +34,16 @@ testDevelopment:
 
 deployDevelop:
   only:
+    - /^sandbox.android.v\d+.\d+.\d+$/
+  stage: deploy
+  script:
+    - ./gradlew assembleDevelopmentDebug appDistributionUploadDevelopmentDebug
+  artifacts:
+    paths:
+      - nunchuk-app/build/outputs/
+
+uatDevelop:
+  only:
     - /^release.android.v\d+.\d+.\d+$/
   stage: deploy
   script:

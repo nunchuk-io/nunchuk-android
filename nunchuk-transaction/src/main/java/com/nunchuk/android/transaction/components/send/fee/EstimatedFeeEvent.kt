@@ -4,6 +4,8 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.EstimateFeeRates
 
 sealed class EstimatedFeeEvent {
+    class Loading(val isLoading: Boolean) : EstimatedFeeEvent()
+    object InvalidManualFee : EstimatedFeeEvent()
     data class EstimatedFeeErrorEvent(val message: String) : EstimatedFeeEvent()
     data class EstimatedFeeCompletedEvent(
         val estimatedFee: Double,
@@ -17,6 +19,6 @@ data class EstimatedFeeState(
     val customizeFeeDetails: Boolean = false,
     val subtractFeeFromAmount: Boolean = false,
     val manualFeeDetails: Boolean = false,
-    val manualFeeRate: Int = 0,
-    val estimateFeeRates: EstimateFeeRates = EstimateFeeRates()
+    val estimateFeeRates: EstimateFeeRates = EstimateFeeRates(),
+    val manualFeeRate: Int = estimateFeeRates.standardRate
 )

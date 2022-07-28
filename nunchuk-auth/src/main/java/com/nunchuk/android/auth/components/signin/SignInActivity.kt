@@ -18,7 +18,6 @@ import com.nunchuk.android.core.network.ApiErrorCode.NEW_DEVICE
 import com.nunchuk.android.core.network.ErrorDetail
 import com.nunchuk.android.core.util.linkify
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.util.passwordEnabled
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -92,7 +91,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
     private fun setupViews() {
         binding.forgotPassword.setUnderlineText(getString(R.string.nc_text_forgot_password))
 
-        binding.password.passwordEnabled()
+        binding.password.makeMaskedInput()
 
         binding.staySignIn.setOnCheckedChangeListener { _, checked ->
             viewModel.storeStaySignedIn(

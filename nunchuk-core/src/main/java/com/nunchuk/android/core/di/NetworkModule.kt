@@ -1,6 +1,7 @@
 package com.nunchuk.android.core.di
 
 import com.nunchuk.android.core.data.api.PriceConverterAPI
+import com.nunchuk.android.core.data.api.TransactionApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,4 +18,8 @@ internal object NetworkModule {
     fun providePriceConverterAPI(retrofit: Retrofit): PriceConverterAPI = retrofit.create(
         PriceConverterAPI::class.java)
 
+    @Singleton
+    @Provides
+    fun provideTransactionAPI(retrofit: Retrofit): TransactionApi = retrofit.create(
+        TransactionApi::class.java)
 }

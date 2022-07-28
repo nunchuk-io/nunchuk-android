@@ -13,7 +13,6 @@ import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.signer.databinding.ActivitySignerIntroBinding
 import com.nunchuk.android.signer.nfc.NfcSetupActivity
 import com.nunchuk.android.signer.nfc.SetUpNfcOptionSheet
-import com.nunchuk.android.signer.util.showAddNfcKey
 import com.nunchuk.android.signer.util.showNfcAlreadyAdded
 import com.nunchuk.android.signer.util.showSetupNfc
 import com.nunchuk.android.widget.NCToastMessage
@@ -109,9 +108,7 @@ class SignerIntroActivity : BaseNfcActivity<ActivitySignerIntroBinding>(), SetUp
             if (status.isCreateSigner) {
                 showNfcAlreadyAdded()
             } else {
-                showAddNfcKey {
-                    navigateToAddNfcKeySigner()
-                }
+                navigateToAddNfcKeySigner()
             }
         } else {
             showSetupNfc {
