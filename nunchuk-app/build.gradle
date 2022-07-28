@@ -60,6 +60,7 @@ android {
             debuggable true
         }
         release {
+            defaultConfig.versionName androidConfig.versionName
             minifyEnabled true
             debuggable false
             multiDexKeepFile file('multidex-config.txt')
