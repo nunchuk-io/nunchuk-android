@@ -64,7 +64,7 @@ class AssignSignerSharedWalletActivity : BaseActivity<ActivityAssignSignerBindin
     }
 
     private fun openRoom(roomId: String) {
-        ActivityManager.instance.popUntilRoot()
+        ActivityManager.popUntilRoot()
         navigator.openRoomDetailActivity(this, roomId)
     }
 

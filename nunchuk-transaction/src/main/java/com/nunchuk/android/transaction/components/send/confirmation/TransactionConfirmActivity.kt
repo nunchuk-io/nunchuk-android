@@ -89,7 +89,7 @@ class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBindin
     private fun returnActiveRoom(roomId: String) {
         hideLoading()
         finish()
-        ActivityManager.instance.popUntil(InputAmountActivity::class.java, true)
+        ActivityManager.popUntil(InputAmountActivity::class.java, true)
         navigator.openRoomDetailActivity(this, roomId)
     }
 
@@ -110,7 +110,7 @@ class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBindin
 
     private fun openTransactionDetailScreen(txId: String) {
         hideLoading()
-        ActivityManager.instance.popUntil(InputAmountActivity::class.java, true)
+        ActivityManager.popUntil(InputAmountActivity::class.java, true)
         navigator.openTransactionDetailsScreen(
             activityContext = this,
             walletId = args.walletId,

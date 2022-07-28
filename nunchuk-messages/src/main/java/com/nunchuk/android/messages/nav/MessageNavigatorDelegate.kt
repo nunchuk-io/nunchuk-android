@@ -17,7 +17,7 @@ interface MessageNavigatorDelegate : MessageNavigator {
     }
 
     override fun returnRoomDetailScreen() {
-        ActivityManager.instance.popUntil(RoomDetailActivity::class.java)
+        ActivityManager.popUntil(RoomDetailActivity::class.java)
     }
 
     override fun openCreateRoomScreen(fragmentManager: FragmentManager) {

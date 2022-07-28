@@ -9,6 +9,7 @@ import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.*
 import com.nunchuk.android.auth.databinding.ActivityChangePasswordBinding
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
@@ -72,8 +73,8 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
 
     private fun handleChangePasswordSuccess() {
         hideLoading()
-        NCToastMessage(this).showMessage(message = getString(R.string.nc_your_password_changed), dismissTime = 5000L)
         finish()
+        NcToastManager.scheduleShowMessage(getString(R.string.nc_your_password_changed))
     }
 
     private fun showChangePasswordError(errorMessage: String) {
