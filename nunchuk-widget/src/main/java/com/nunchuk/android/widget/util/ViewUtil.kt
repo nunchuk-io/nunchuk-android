@@ -3,8 +3,6 @@ package com.nunchuk.android.widget.util
 import android.content.DialogInterface
 import android.text.InputFilter
 import android.text.InputType
-import android.text.method.HideReturnsTransformationMethod
-import android.text.method.PasswordTransformationMethod
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -22,19 +20,6 @@ import kotlinx.coroutines.*
 
 fun NCEditTextView.heightExtended(dimensionPixelSize: Int) {
     getEditTextView().heightExtended(dimensionPixelSize)
-}
-
-fun NCEditTextView.passwordEnabled() {
-    val editText = getEditTextView()
-    editText.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-    editText.transformationMethod = PasswordTransformationMethod.getInstance()
-    editText.setSelection(editText.length())
-}
-
-fun NCEditTextView.passwordDisabled() {
-    val editText = getEditTextView()
-    editText.transformationMethod = HideReturnsTransformationMethod.getInstance()
-    editText.setSelection(editText.length())
 }
 
 fun NCEditTextView.setMaxLength(maxLength: Int) {

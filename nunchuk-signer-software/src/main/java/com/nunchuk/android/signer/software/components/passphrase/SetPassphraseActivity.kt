@@ -11,7 +11,6 @@ import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEv
 import com.nunchuk.android.signer.software.databinding.ActivitySetPassphraseBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
-import com.nunchuk.android.widget.util.passwordEnabled
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -80,10 +79,10 @@ class SetPassphraseActivity : BaseActivity<ActivitySetPassphraseBinding>() {
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
-        binding.passphrase.passwordEnabled()
+        binding.passphrase.makeMaskedInput()
         binding.passphrase.addTextChangedCallback(viewModel::updatePassphrase)
 
-        binding.confirmPassphrase.passwordEnabled()
+        binding.confirmPassphrase.makeMaskedInput()
         binding.confirmPassphrase.addTextChangedCallback(viewModel::updateConfirmPassphrase)
         binding.btnNoPassphrase.setOnClickListener { viewModel.skipPassphraseEvent() }
         binding.btnSetPassphrase.setOnClickListener { viewModel.confirmPassphraseEvent() }

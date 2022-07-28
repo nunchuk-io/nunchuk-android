@@ -16,7 +16,7 @@ class NCInputDialog @Inject constructor(private val context: Context) {
         title: String,
         onConfirmed: (String) -> Unit = {},
         onCanceled: () -> Unit = {},
-        isMaskedInput: Boolean = false,
+        isMaskedInput: Boolean = true,
         errorMessage: String? = null,
         descMessage: String? = null,
         inputType: Int = TEXT_TYPE
