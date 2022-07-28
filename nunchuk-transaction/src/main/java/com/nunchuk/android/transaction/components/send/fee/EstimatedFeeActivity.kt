@@ -9,12 +9,11 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.core.util.pureBTC
-import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.EstimateFeeRates
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeCompletedEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeErrorEvent
 import com.nunchuk.android.transaction.databinding.ActivityTransactionEstimateFeeBinding
-import com.nunchuk.android.utils.isNoneEmpty
 import com.nunchuk.android.utils.safeManualFee
 import com.nunchuk.android.utils.textChanges
 import com.nunchuk.android.widget.NCToastMessage
@@ -73,7 +72,9 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             finish()
         }
         binding.btnContinue.setOnClickListener {
-            viewModel.handleContinueEvent()
+            if (binding.manualFeeCheckBox.isChecked.not() || viewModel.validateFeeRate(binding.feeRateInput.text.safeManualFee())) {
+                viewModel.handleContinueEvent()
+            }
         }
 
         bindSubtotal(args.outputAmount)
@@ -81,9 +82,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 
     private fun handleManualFeeSwitch(isChecked: Boolean) {
         viewModel.handleManualFeeSwitch(isChecked)
-        if (!isChecked && binding.feeRateInput.text.isNoneEmpty()) {
-            binding.feeRateInput.setText("")
-        }
+        binding.feeRateInput.setText("${viewModel.defaultRate / 1000}")
     }
 
     private fun handleCustomizeFeeSwitch(isChecked: Boolean) {
@@ -103,7 +102,6 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     }
 
     private fun handleState(state: EstimatedFeeState) {
-        hideLoading()
         binding.estimatedFeeBTC.text = state.estimatedFee.getBTCAmount()
         binding.estimatedFeeUSD.text = state.estimatedFee.getUSDAmount()
 
@@ -132,6 +130,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                 subtractFeeFromAmount = event.subtractFeeFromAmount,
                 manualFeeRate = event.manualFeeRate
             )
+            is EstimatedFeeEvent.Loading -> showOrHideLoading(event.isLoading)
+            is EstimatedFeeEvent.InvalidManualFee -> NCToastMessage(this).showError(getString(R.string.nc_input_fee_invalid_error))
         }
     }
 
@@ -180,4 +180,4 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 
 }
 
-internal fun Amount.toFeeRate() = (value.toDouble() / 1000).toString() + " sat/vB"
+internal fun Int.toFeeRate() = (this / 1000).toString() + " sat/vB"

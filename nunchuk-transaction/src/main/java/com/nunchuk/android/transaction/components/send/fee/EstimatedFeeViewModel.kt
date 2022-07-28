@@ -43,13 +43,14 @@ internal class EstimatedFeeViewModel @Inject constructor(
                 .flowOn(Dispatchers.IO)
                 .onException { updateState { copy(estimateFeeRates = EstimateFeeRates()) } }
                 .flowOn(Dispatchers.Main)
-                .collect { updateState { copy(estimateFeeRates = it) } }
+                .collect { updateState { copy(estimateFeeRates = it, manualFeeRate = it.standardRate) } }
         }
     }
 
     private fun draftTransaction() {
         val state = getState()
         viewModelScope.launch {
+            setEvent(EstimatedFeeEvent.Loading(true))
             when (val result = draftTransactionUseCase.execute(
                 walletId = walletId,
                 outputs = mapOf(address to sendAmount.toAmount()),
@@ -59,6 +60,7 @@ internal class EstimatedFeeViewModel @Inject constructor(
                 is Success -> updateState { copy(estimatedFee = result.data.fee) }
                 is Error -> event(EstimatedFeeErrorEvent(result.exception.message.orEmpty()))
             }
+            setEvent(EstimatedFeeEvent.Loading(false))
         }
     }
 
@@ -70,7 +72,7 @@ internal class EstimatedFeeViewModel @Inject constructor(
                 copy(
                     customizeFeeDetails = false,
                     manualFeeDetails = false,
-                    manualFeeRate = 0,
+                    manualFeeRate = defaultRate,
                     subtractFeeFromAmount = isSendingAll
                 )
             }
@@ -83,7 +85,7 @@ internal class EstimatedFeeViewModel @Inject constructor(
     }
 
     fun handleManualFeeSwitch(checked: Boolean) {
-        updateState { copy(manualFeeDetails = checked) }
+        updateState { copy(manualFeeDetails = checked, manualFeeRate = defaultRate) }
     }
 
     fun handleContinueEvent() {
@@ -99,8 +101,21 @@ internal class EstimatedFeeViewModel @Inject constructor(
     }
 
     fun updateFeeRate(feeRate: Int) {
-        updateState { copy(manualFeeRate = feeRate) }
-        draftTransaction()
+        val newFeeRate = feeRate.coerceAtLeast(getState().estimateFeeRates.economicRate)
+        if (newFeeRate != getState().manualFeeRate) {
+            updateState { copy(manualFeeRate = newFeeRate) }
+            draftTransaction()
+        }
     }
 
+    fun validateFeeRate(feeRate: Int): Boolean {
+        if (feeRate < getState().estimateFeeRates.economicRate) {
+            setEvent(EstimatedFeeEvent.InvalidManualFee)
+            return false
+        }
+        return true
+    }
+
+    val defaultRate: Int
+        get() = getState().estimateFeeRates.standardRate
 }
