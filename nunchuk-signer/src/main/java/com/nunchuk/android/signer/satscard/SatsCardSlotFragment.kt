@@ -131,8 +131,8 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
     }
 
     private fun observer() {
-        sharedFlowObserver(viewModel.event, ::handleEvent)
-        stateFlowObserver(viewModel.activeSlot) {
+        flowObserver(viewModel.event, ::handleEvent)
+        flowObserver(viewModel.activeSlot) {
             handleShowBalanceActiveSlot(it)
         }
     }

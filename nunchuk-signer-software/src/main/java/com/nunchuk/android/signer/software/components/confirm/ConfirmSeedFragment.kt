@@ -9,8 +9,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.util.sharedFlowObserver
-import com.nunchuk.android.core.util.stateFlowObserver
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.ConfirmSeedCompletedEvent
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.SelectedIncorrectWordEvent
@@ -37,8 +36,8 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
     }
 
     private fun observeEvent() {
-        sharedFlowObserver(viewModel.event, ::handleEvent)
-        stateFlowObserver(viewModel.state, ::handleState)
+        flowObserver(viewModel.event, ::handleEvent)
+        flowObserver(viewModel.state, ::handleState)
     }
 
     private fun handleState(state: ConfirmSeedState) {

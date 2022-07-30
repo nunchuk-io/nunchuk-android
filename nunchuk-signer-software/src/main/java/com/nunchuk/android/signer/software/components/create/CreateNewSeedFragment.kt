@@ -9,8 +9,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.util.sharedFlowObserver
-import com.nunchuk.android.core.util.stateFlowObserver
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.GenerateMnemonicCodeErrorEvent
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.OpenSelectPhraseEvent
 import com.nunchuk.android.signer.software.databinding.FragmentCreateSeedBinding
@@ -37,8 +36,8 @@ class CreateNewSeedFragment : BaseFragment<FragmentCreateSeedBinding>() {
     }
 
     private fun observeEvent() {
-        sharedFlowObserver(viewModel.event, ::handleEvent)
-        stateFlowObserver(viewModel.state, ::handleState)
+        flowObserver(viewModel.event, ::handleEvent)
+        flowObserver(viewModel.state, ::handleState)
     }
 
     private fun handleState(state: CreateNewSeedState) {

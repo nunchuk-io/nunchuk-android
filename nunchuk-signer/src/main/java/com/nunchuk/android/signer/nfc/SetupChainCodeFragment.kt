@@ -20,7 +20,7 @@ import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.util.CHAIN_CODE_LENGTH
-import com.nunchuk.android.core.util.sharedFlowObserver
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.signer.R
@@ -63,7 +63,7 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
                 .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
                 .collect(::handleSetupSatscard)
         }
-        sharedFlowObserver(viewModel.event, ::handleEvent)
+        flowObserver(viewModel.event, ::handleEvent)
     }
 
     private fun registerEvents() {
