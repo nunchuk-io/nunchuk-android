@@ -24,10 +24,19 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:orientation="vertical"
-        tools:itemCount="2"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:itemCount="2"
         tools:listitem="@layout/item_unsealed_slot" />
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btn_sweep"
+        style="@style/NCPrimaryButton.Dark"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/nc_padding_16"
+        android:text="@string/nc_sweep_balance" />
 
 </LinearLayout>

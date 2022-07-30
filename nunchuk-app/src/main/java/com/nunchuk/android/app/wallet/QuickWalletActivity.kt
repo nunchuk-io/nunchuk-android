@@ -3,6 +3,7 @@ package com.nunchuk.android.app.wallet
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.result.ActivityResultLauncher
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.R
@@ -26,8 +27,8 @@ class QuickWalletActivity : BaseActivity<ActivityQuickWalletBinding>() {
     }
 
     companion object {
-        fun start(activityContext: Context) {
-            activityContext.startActivity(Intent(activityContext, QuickWalletActivity::class.java))
+        fun start(launcher: ActivityResultLauncher<Intent>, activityContext: Context) {
+            launcher.launch(Intent(activityContext, QuickWalletActivity::class.java))
         }
     }
 }

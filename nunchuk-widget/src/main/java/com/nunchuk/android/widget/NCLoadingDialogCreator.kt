@@ -28,11 +28,12 @@ class NCLoadingDialogCreator(val activity: AppCompatActivity) {
         }
     }
 
-    fun showDialog(cancelable: Boolean = true, message: String? = null) {
+    fun showDialog(cancelable: Boolean = true, title: String?, message: String?) {
         showJob?.cancel()
         showJob = activity.lifecycleScope.launch {
             delay(150)
             ensureActive()
+            binding.title.text = title
             binding.message.isGone = message.isNullOrEmpty()
             binding.message.text = message
             dialog.setCancelable(cancelable)

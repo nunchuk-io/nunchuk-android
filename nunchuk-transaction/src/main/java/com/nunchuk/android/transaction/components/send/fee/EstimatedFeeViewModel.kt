@@ -12,7 +12,6 @@ import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.Est
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeErrorEvent
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
-import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -41,14 +40,13 @@ internal class EstimatedFeeViewModel @Inject constructor(
 
     private fun getEstimateFeeRates() {
         viewModelScope.launch {
-            estimateFeeUseCase.execute()
-                .flowOn(Dispatchers.IO)
-                .onException { updateState { copy(estimateFeeRates = EstimateFeeRates()) } }
-                .flowOn(Dispatchers.Main)
-                .collect {
-                    updateState { copy(estimateFeeRates = it, manualFeeRate = it.defaultRate) }
-                    draftTransaction()
-                }
+            val result = estimateFeeUseCase(Unit)
+            if (result.isSuccess) {
+                updateState { copy(estimateFeeRates = result.getOrThrow(), manualFeeRate = result.getOrThrow().defaultRate) }
+            } else {
+                updateState { copy(estimateFeeRates = EstimateFeeRates()) }
+            }
+            draftTransaction()
         }
     }
 

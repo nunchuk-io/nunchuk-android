@@ -81,7 +81,7 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         addressType: AddressType
     )
 
-    fun openBackupWalletScreen(activityContext: Context, walletId: String, totalRequireSigns: Int)
+    fun openBackupWalletScreen(activityContext: Context, walletId: String, totalRequireSigns: Int, isQuickWallet: Boolean = false)
 
     fun openUploadConfigurationScreen(activityContext: Context, walletId: String)
 
@@ -102,5 +102,5 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         addressType: AddressType
     )
 
-    fun openQuickWalletScreen(activityContext: Context)
+    fun openQuickWalletScreen(launcher: ActivityResultLauncher<Intent>, activityContext: Context)
 }

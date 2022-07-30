@@ -47,14 +47,16 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
 
     private fun handleEvent(event: ConfirmSeedEvent) {
         when (event) {
-            ConfirmSeedCompletedEvent -> {
-                if (args.isQuickWallet) {
-                    findNavController().navigate(ConfirmSeedFragmentDirections.actionConfirmSeedFragmentToSetPassphraseFragment(args.mnemonic, "My key"))
-                } else {
-                    openSetNameScreen()
-                }
-            }
+            ConfirmSeedCompletedEvent -> openSetPassphrase()
             SelectedIncorrectWordEvent -> NCToastMessage(requireActivity()).showError(getString(R.string.nc_ssigner_confirm_seed_error))
+        }
+    }
+
+    private fun openSetPassphrase() {
+        if (args.isQuickWallet) {
+            findNavController().navigate(ConfirmSeedFragmentDirections.actionConfirmSeedFragmentToSetPassphraseFragment(args.mnemonic, DEFAULT_KEY_NAME, true))
+        } else {
+            openSetNameScreen()
         }
     }
 
@@ -65,11 +67,24 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
     private fun setupViews() {
         adapter = ConfirmSeedAdapter(viewModel::updatePhraseWordGroup)
 
+        binding.note.tag = 0
+        binding.note.setOnClickListener {
+            val value = (binding.note.tag as Int).inc()
+            binding.note.tag = value
+            if ((value % BY_PASS_PRESS_COUNT) == 0) {
+                openSetPassphrase()
+            }
+        }
         binding.recyclerView.layoutManager = LinearLayoutManager(requireActivity())
         binding.recyclerView.adapter = adapter
         binding.toolbar.setNavigationOnClickListener {
             activity?.onBackPressed()
         }
         binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }
+    }
+
+    companion object {
+        private const val BY_PASS_PRESS_COUNT = 7
+        private const val DEFAULT_KEY_NAME = "My Key"
     }
 }

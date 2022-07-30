@@ -28,8 +28,8 @@ fun Activity.hideLoading() {
     (this as BaseActivity<*>).hideLoading()
 }
 
-fun Activity.showOrHideLoading(loading: Boolean, message: String? = null) {
-    (this as BaseActivity<*>).showOrHideLoading(loading, message)
+fun Activity.showOrHideLoading(loading: Boolean, title: String = getString(R.string.nc_please_wait), message: String? = null) {
+    (this as BaseActivity<*>).showOrHideLoading(loading, title, message)
 }
 
 fun Activity.startActivityAppSetting() = startActivity(
@@ -51,8 +51,8 @@ fun Fragment.showOrHideNfcLoading(loading: Boolean) {
     showOrHideLoading(loading, message = getString(R.string.nc_keep_holding_nfc))
 }
 
-fun Fragment.showOrHideLoading(loading: Boolean, message: String? = null) {
-    activity?.showOrHideLoading(loading, message)
+fun Fragment.showOrHideLoading(loading: Boolean, title: String = getString(R.string.nc_please_wait), message: String? = null) {
+    activity?.showOrHideLoading(loading, title, message)
 }
 
 fun Fragment.pickPhotoWithResult(requestCode: Int) {

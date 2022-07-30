@@ -255,11 +255,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     }
 
     private fun openMainScreen() {
-        if (args.justAdded) {
-            navigator.openMainScreen(this)
-        } else {
-            finish()
-        }
+        finish()
     }
 
     private fun onEditClicked() {

@@ -75,7 +75,7 @@
     <string name="nc_satscard">SATSCARD</string>
     <string name="nc_unseal_and_sweep_balance">Unseal and sweep balance</string>
     <string name="nc_view_on_explorer">View on explorer</string>
-    <string name="checking_balance">Checking balance...</string>
+    <string name="checking_balance">Checking balance…</string>
     <string name="nc_slot">Slot</string>
     <string name="nc_address_copy_to_clipboard">Address copied to clipboard</string>
     <string name="nc_view_unsealed_slots">View unsealed slots</string>
@@ -89,4 +89,7 @@
     <string name="nc_please_wait_to_load_balance">Please wait to load balance</string>
     <string name="nc_no_balance_to_sweep">No balance to sweep</string>
     <string name="nc_no_internet_connection">No Internet connection</string>
+    <string name="nc_please_wait">Please wait…</string>
+    <string name="nc_sweeping_is_progress">Sweeping is in progress</string>
+    <string name="nc_make_sure_internet">Please make sure that you are connected to the Internet</string>
 </resources>

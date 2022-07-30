@@ -22,7 +22,9 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
         setLightStatusBar()
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
-                replace(R.id.fragment_container, CreateNewSeedFragment())
+                replace(R.id.fragment_container, CreateNewSeedFragment().apply {
+                    arguments = CreateNewSeedFragmentArgs(false).toBundle()
+                })
             }
         }
     }

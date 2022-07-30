@@ -3,7 +3,7 @@ package com.nunchuk.android.core.base
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewbinding.ViewBinding
-import com.nunchuk.android.arch.R
+import com.nunchuk.android.core.R
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.network.UnauthorizedEventBus
 import com.nunchuk.android.core.network.UnauthorizedException
@@ -28,17 +28,17 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity() {
 
     abstract fun initializeBinding(): Binding
 
-    fun showLoading(cancelable: Boolean = true, message: String? = null) {
+    fun showLoading(cancelable: Boolean = true, title: String = getString(R.string.nc_please_wait), message: String? = null) {
         creator.cancel()
-        creator.showDialog(cancelable, message)
+        creator.showDialog(cancelable, title = title, message = message)
     }
 
     fun hideLoading() {
         creator.cancel()
     }
 
-    fun showOrHideLoading(loading: Boolean, message: String? = null) {
-        if (loading) showLoading(message = message) else hideLoading()
+    fun showOrHideLoading(loading: Boolean, title: String = getString(R.string.nc_please_wait), message: String? = null) {
+        if (loading) showLoading(title = title, message = message) else hideLoading()
     }
 
     override fun onResume() {

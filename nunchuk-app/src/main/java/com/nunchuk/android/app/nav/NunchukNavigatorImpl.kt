@@ -2,6 +2,7 @@ package com.nunchuk.android.app.nav
 
 import android.content.Context
 import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.jakewharton.processphoenix.ProcessPhoenix
@@ -56,8 +57,8 @@ internal class NunchukNavigatorImpl @Inject constructor(
         GuestModeMessageIntroActivity.start(activityContext)
     }
 
-    override fun openQuickWalletScreen(activityContext: Context) {
-        QuickWalletActivity.start(activityContext)
+    override fun openQuickWalletScreen(launcher: ActivityResultLauncher<Intent>, activityContext: Context) {
+        QuickWalletActivity.start(launcher, activityContext)
     }
 
     override fun openCreateNewSeedScreen(fragment: Fragment, isQuickWallet: Boolean) {

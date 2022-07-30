@@ -1,5 +1,6 @@
 package com.nunchuk.android.signer.software.components.passphrase
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -7,7 +8,9 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.signer.software.R
@@ -15,7 +18,6 @@ import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEv
 import com.nunchuk.android.signer.software.databinding.FragmentSetPassphraseBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
-import com.nunchuk.android.widget.util.passwordEnabled
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -50,6 +52,14 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
             is CreateSoftwareSignerErrorEvent -> onCreateSignerError(event)
             PassPhraseValidEvent -> removeValidationError()
             is LoadingEvent -> showLoading()
+            is CreateWalletErrorEvent -> showError(event.message)
+            is CreateWalletSuccessEvent -> {
+                navigator.openBackupWalletScreen(requireActivity(), event.walletId, 1, true)
+                requireActivity().apply {
+                    setResult(Activity.RESULT_OK)
+                    finish()
+                }
+            }
         }
     }
 
@@ -65,6 +75,7 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
 
     private fun onCreateSignerCompleted(masterSigner: MasterSigner, skipPassphrase: Boolean) {
         hideLoading()
+        ActivityManager.instance.popUntilRoot()
         navigator.openSignerInfoScreen(
             activityContext = requireActivity(),
             id = masterSigner.id,
@@ -79,10 +90,10 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
         binding.toolbar.setNavigationOnClickListener {
             activity?.onBackPressed()
         }
-        binding.passphrase.passwordEnabled()
+        binding.passphrase.makeMaskedInput()
         binding.passphrase.addTextChangedCallback(viewModel::updatePassphrase)
 
-        binding.confirmPassphrase.passwordEnabled()
+        binding.confirmPassphrase.makeMaskedInput()
         binding.confirmPassphrase.addTextChangedCallback(viewModel::updateConfirmPassphrase)
         binding.btnNoPassphrase.setOnClickListener { viewModel.skipPassphraseEvent() }
         binding.btnSetPassphrase.setOnClickListener { viewModel.confirmPassphraseEvent() }

@@ -55,7 +55,9 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
     }
 
     private fun navigateToNextScreen() {
-        if (args.totalRequireSigns > 1) {
+        if (args.isQuickWallet) {
+            finish()
+        } else if (args.totalRequireSigns > 1) {
             navigator.openUploadConfigurationScreen(this, args.walletId)
         } else {
             navigator.openMainScreen(this)
@@ -80,8 +82,8 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
 
     companion object {
 
-        fun start(activityContext: Context, walletId: String, totalRequireSigns: Int) {
-            activityContext.startActivity(BackupWalletArgs(walletId, totalRequireSigns).buildIntent(activityContext))
+        fun start(activityContext: Context, walletId: String, totalRequireSigns: Int, isQuickWallet: Boolean) {
+            activityContext.startActivity(BackupWalletArgs(walletId, totalRequireSigns, isQuickWallet).buildIntent(activityContext))
         }
     }
 

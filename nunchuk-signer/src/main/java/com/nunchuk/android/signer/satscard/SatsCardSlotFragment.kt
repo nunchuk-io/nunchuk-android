@@ -1,10 +1,12 @@
 package com.nunchuk.android.signer.satscard
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -20,9 +22,9 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.NcExceptionCode
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.SatscardNavigationDirections
 import com.nunchuk.android.signer.databinding.FragmentSatscardActiveSlotBinding
 import com.nunchuk.android.signer.satscard.wallets.SelectWalletFragment
-import com.nunchuk.android.type.SatsCardSlotStatus
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -35,6 +37,13 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
 
     private val viewModel by viewModels<SatsCardSlotViewModel>()
     private val args: SatsCardArgs by lazy { SatsCardArgs.deserializeBundle(requireArguments()) }
+
+    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            val activeSlot = viewModel.getActiveSlotWithBalance() ?: return@registerForActivityResult
+            openSelectWallet(arrayOf(activeSlot), SelectWalletFragment.TYPE_UNSEAL_SWEEP_ACTIVE_SLOT)
+        }
+    }
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentSatscardActiveSlotBinding {
         return FragmentSatscardActiveSlotBinding.inflate(inflater, container, false)
@@ -90,8 +99,6 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
             }
         }
         binding.btnUnsealAndSweep.setOnClickListener {
-            // TODO Hai
-//            navigator.openQuickWalletScreen(requireActivity())
             if (viewModel.isBalanceLoaded().not()) {
                 showWarning(getString(R.string.nc_please_wait_to_load_balance))
                 return@setOnClickListener
@@ -104,16 +111,13 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
             } else if (args.hasWallet) {
                 openSelectWallet(arrayOf(activeSlot), SelectWalletFragment.TYPE_UNSEAL_SWEEP_ACTIVE_SLOT)
             } else {
-                navigator.openQuickWalletScreen(requireActivity())
+                navigator.openQuickWalletScreen(launcher, requireActivity())
             }
         }
     }
 
     private fun openSelectWallet(slots: Array<SatsCardSlot>, type: Int) {
-        val action = SatsCardSlotFragmentDirections.actionSatsCardSlotFragmentToSelectWalletFragment(
-            slots,
-            type
-        )
+        val action = SatscardNavigationDirections.toSelectWalletFragment(slots, type)
         findNavController().navigate(action)
     }
 
@@ -155,16 +159,16 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
     }
 
     private fun handleCheckBalanceOtherSlots(slots: List<SatsCardSlot>) {
-        val sum = slots.sumOf { it.balance.value }
+        val balanceSlots = slots.unSealBalanceSlots()
+        val sum = balanceSlots.sumOf { it.balance.value }
         if (sum > 0) {
-            val unsealSlowWithBalances = slots.filter { it.status == SatsCardSlotStatus.UNSEALED && it.balance.value > 0 }
-            val labels = unsealSlowWithBalances.joinToString(separator = ", ") { "#${it.index.inc()}" }
+            val labels = balanceSlots.joinToString(separator = ", ") { "#${it.index.inc()}" }
             NCWarningDialog(requireActivity()).showDialog(
                 title = getString(R.string.nc_text_info),
                 message = getString(R.string.nc_detect_unseal_has_balance, Amount(value = sum).getBTCAmount(), labels),
                 btnNo = getString(R.string.nc_not_now),
                 onYesClick = {
-                    openSelectWallet(unsealSlowWithBalances.toTypedArray(), SelectWalletFragment.TYPE_SWEEP_UNSEAL_SLOT)
+                    openSelectWallet(balanceSlots.toTypedArray(), SelectWalletFragment.TYPE_SWEEP_UNSEAL_SLOT)
                 }
             )
         }

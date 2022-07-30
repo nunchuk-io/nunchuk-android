@@ -7,6 +7,7 @@ import com.nunchuk.android.core.domain.GetSatsCardSlotKeyUseCase
 import com.nunchuk.android.core.domain.SweepSatsCardSlotUseCase
 import com.nunchuk.android.core.domain.UnsealSatsCardSlotUseCase
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.usecase.GetAddressesUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.NewAddressUseCase
@@ -24,6 +25,7 @@ class SelectWalletViewModel @Inject constructor(
     private val getSatsCardSlotKeyUseCase: GetSatsCardSlotKeyUseCase,
     private val getAddressesUseCase: GetAddressesUseCase,
     private val newAddressUseCase: NewAddressUseCase,
+    private val getFeeUseCase: EstimateFeeUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SelectWalletState())
     private val _event = MutableSharedFlow<SelectWalletEvent>()
@@ -106,12 +108,18 @@ class SelectWalletViewModel @Inject constructor(
 
     private fun sweepUnsealSlots(address: String, slots: List<SatsCardSlot>) {
         viewModelScope.launch {
-            val result = sweepSatsCardSlotUseCase(SweepSatsCardSlotUseCase.Data(address, slots))
-            _event.emit(SelectWalletEvent.Loading(false))
-            if (result.isSuccess) {
-                _event.emit(SelectWalletEvent.SweepSuccess)
+            val estimateFeeResult = getFeeUseCase(Unit)
+            if (estimateFeeResult.isSuccess) {
+                val result = sweepSatsCardSlotUseCase(SweepSatsCardSlotUseCase.Data(address, slots, estimateFeeResult.getOrThrow().standardRate))
+                _event.emit(SelectWalletEvent.Loading(false))
+                if (result.isSuccess) {
+                    _event.emit(SelectWalletEvent.SweepSuccess)
+                } else {
+                    _event.emit(SelectWalletEvent.ShowError(result.exceptionOrNull()?.message))
+                }
             } else {
-                _event.emit(SelectWalletEvent.ShowError(result.exceptionOrNull()?.message))
+                _event.emit(SelectWalletEvent.Loading(false))
+                _event.emit(SelectWalletEvent.ShowError(estimateFeeResult.exceptionOrNull()?.message))
             }
         }
     }

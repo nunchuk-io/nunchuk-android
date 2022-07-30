@@ -48,7 +48,7 @@ class SatsCardSlotViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            val otherSlots = status.slots.filter { it.index != status.activeSlotIndex }
+            val otherSlots = status.slots.filter { it.index != status.activeSlotIndex && it.status == SatsCardSlotStatus.UNSEALED }
             val result = getSatsCardSlotBalanceUseCase(otherSlots)
             if (result.isSuccess) {
                 val previousStatus = _state.value

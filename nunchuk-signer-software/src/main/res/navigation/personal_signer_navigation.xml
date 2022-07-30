@@ -12,6 +12,7 @@
         tools:layout="@layout/fragment_create_seed">
         <argument
             android:name="is_quick_wallet"
+            android:defaultValue="false"
             app:argType="boolean" />
         <action
             android:id="@+id/action_createNewSeedFragment_to_confirmSeedFragment"
@@ -54,6 +55,10 @@
         <argument
             android:name="signerName"
             app:argType="string" />
+        <argument
+            android:name="is_quick_wallet"
+            android:defaultValue="false"
+            app:argType="boolean" />
     </fragment>
 
 
