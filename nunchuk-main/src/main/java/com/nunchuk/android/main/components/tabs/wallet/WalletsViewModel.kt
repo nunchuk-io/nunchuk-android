@@ -5,9 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.BaseNfcUseCase
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
-import com.nunchuk.android.core.domain.GetSatsCardStatusUseCase
+import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
+import com.nunchuk.android.model.SatsCardStatus
+import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.utils.onException
@@ -25,7 +27,7 @@ internal class WalletsViewModel @Inject constructor(
     private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     private val getWalletsUseCase: GetWalletsUseCase,
     private val getAppSettingUseCase: GetAppSettingUseCase,
-    private val getSatsCardStatusUseCase: GetSatsCardStatusUseCase
+    private val getNfcCardStatusUseCase: GetNfcCardStatusUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
 
     private var isRetrievingData = AtomicBoolean(false)
@@ -98,16 +100,20 @@ internal class WalletsViewModel @Inject constructor(
         isoDep ?: return
         viewModelScope.launch {
             setEvent(NfcLoading(true))
-            val result = getSatsCardStatusUseCase(BaseNfcUseCase.Data(isoDep))
+            val result = getNfcCardStatusUseCase(BaseNfcUseCase.Data(isoDep))
             setEvent(NfcLoading(false))
             if (result.isSuccess) {
                 val status = result.getOrThrow()
-                if (status.isNeedSetup) {
-                    setEvent(NeedSetupSatsCard)
-                } else if (status.isUsedUp) {
-                    setEvent(SatsCardUsedUp(status.numberOfSlot))
-                } else {
-                    setEvent(GoToSatsCardScreen(status))
+                if (status is TapSignerStatus) {
+                    setEvent(GoToTapSignerScreen(status))
+                } else if (status is SatsCardStatus) {
+                    if (status.isNeedSetup) {
+                        setEvent(NeedSetupSatsCard)
+                    } else if (status.isUsedUp) {
+                        setEvent(SatsCardUsedUp(status.numberOfSlot))
+                    } else {
+                        setEvent(GoToSatsCardScreen(status))
+                    }
                 }
             } else {
                 val message = result.exceptionOrNull()?.message.orEmpty()

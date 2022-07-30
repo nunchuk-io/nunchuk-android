@@ -73,7 +73,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         binding.ivAddWallet.setOnClickListener { walletsViewModel.handleAddWallet() }
         binding.toolbar.setOnMenuItemClickListener {
             if (it.itemId == R.id.menu_nfc) {
-                (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_SATSCARD_STATUS)
+                (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_AUTO_CARD_STATUS)
                 return@setOnMenuItemClickListener true
             }
             return@setOnMenuItemClickListener false
@@ -97,7 +97,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         walletsViewModel.event.observe(viewLifecycleOwner, ::handleEvent)
         mainActivityViewModel.event.observe(viewLifecycleOwner, ::handleMainActivityEvent)
         flowObserver(
-            nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_SATSCARD_STATUS }) {
+            nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_AUTO_CARD_STATUS }) {
             walletsViewModel.getSatsCardStatus(IsoDep.get(it.tag))
             nfcViewModel.clearScanInfo()
         }
@@ -110,6 +110,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             WalletEmptySignerEvent -> openWalletIntroScreen()
             is ShowErrorEvent -> showError(event.message)
             is GoToSatsCardScreen -> openSatsCardActiveSlotScreen(event)
+            is GoToTapSignerScreen -> openTapSignerScreen(event)
             NeedSetupSatsCard -> handleNeedSetupSatsCard()
             is SatsCardUsedUp -> handleSatsCardUsedUp(event.numberOfSlot)
             is Loading -> handleLoading(event)
@@ -119,6 +120,10 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun openSatsCardActiveSlotScreen(event: GoToSatsCardScreen) {
         SatsCardActivity.navigate(requireActivity(), event.status, walletsViewModel.hasWallet())
+    }
+
+    private fun openTapSignerScreen(event: GoToTapSignerScreen) {
+        navigator.openSignerIntroScreen(requireActivity(), event.status)
     }
 
     private fun handleNeedSetupSatsCard() {

@@ -143,7 +143,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>(),
 
     private fun shouldShowInputCvcFirst(requestCode: Int) = requestCode != REQUEST_NFC_STATUS
                 && requestCode != REQUEST_NFC_CHANGE_CVC
-                && requestCode != REQUEST_SATSCARD_STATUS
+                && requestCode != REQUEST_AUTO_CARD_STATUS
 
     private fun askToScan() {
         askScanNfcDialog.show()
@@ -208,7 +208,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>(),
         const val REQUEST_NFC_TOPUP_XPUBS = 6
         const val REQUEST_NFC_HEALTH_CHECK = 7
         // SATSCARD
-        const val REQUEST_SATSCARD_STATUS = 8
+        const val REQUEST_AUTO_CARD_STATUS = 8
         const val REQUEST_SATSCARD_SWEEP_SLOT = 9
         const val REQUEST_SATSCARD_SETUP = 10
     }

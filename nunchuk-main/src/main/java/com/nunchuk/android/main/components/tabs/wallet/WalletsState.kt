@@ -1,9 +1,6 @@
 package com.nunchuk.android.main.components.tabs.wallet
 
-import com.nunchuk.android.model.MasterSigner
-import com.nunchuk.android.model.SatsCardStatus
-import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.WalletExtended
+import com.nunchuk.android.model.*
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 
@@ -24,5 +21,6 @@ internal sealed class WalletsEvent {
     object NeedSetupSatsCard : WalletsEvent()
     class NfcLoading(val loading: Boolean) : WalletsEvent()
     class GoToSatsCardScreen(val status: SatsCardStatus) : WalletsEvent()
+    class GoToTapSignerScreen(val status: TapSignerStatus) : WalletsEvent()
     class SatsCardUsedUp(val numberOfSlot: Int) : WalletsEvent()
 }
