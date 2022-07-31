@@ -57,7 +57,7 @@ ext {
             minSdkVersion    : 21,
             buildToolsVersion: "31.0.0",
             versionName      : "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}",
-            versionNameDebug : "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}.${TASK_LABEL}",
+            taskLabel        : ".${TASK_LABEL}",
             versionCode      : VERSION_CODE
     ]
 
