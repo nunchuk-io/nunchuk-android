@@ -6,6 +6,7 @@ import com.nunchuk.android.repository.TransactionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import timber.log.Timber
 import javax.inject.Inject
 
 const val CONF_TARGET_PRIORITY = 2
@@ -26,6 +27,7 @@ internal class EstimateFeeUseCaseImpl @Inject constructor(
             repository.getFees()
         )
     }.catch {
+        Timber.e(it)
         emit(
             EstimateFeeRates(
                 priorityRate = nativeSdk.estimateFee(CONF_TARGET_PRIORITY).value.toInt(),

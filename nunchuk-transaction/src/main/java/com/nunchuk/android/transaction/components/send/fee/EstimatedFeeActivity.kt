@@ -64,7 +64,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         binding.subtractFeeCheckBox.setOnCheckedChangeListener { _, isChecked -> viewModel.handleSubtractFeeSwitch(isChecked) }
         binding.manualFeeCheckBox.setOnCheckedChangeListener { _, isChecked -> handleManualFeeSwitch(isChecked) }
         binding.feeRateInput.textChanges()
-            .debounce(500)
+            .debounce(1000)
             .onEach { viewModel.updateFeeRate(it.safeManualFee()) }
             .launchIn(lifecycleScope)
 

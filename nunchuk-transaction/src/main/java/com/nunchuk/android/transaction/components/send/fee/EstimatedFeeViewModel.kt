@@ -43,7 +43,9 @@ internal class EstimatedFeeViewModel @Inject constructor(
                 .flowOn(Dispatchers.IO)
                 .onException { updateState { copy(estimateFeeRates = EstimateFeeRates()) } }
                 .flowOn(Dispatchers.Main)
-                .collect { updateState { copy(estimateFeeRates = it, manualFeeRate = it.standardRate) } }
+                .collect {
+                    updateState { copy(estimateFeeRates = it, manualFeeRate = it.defaultRate) }
+                }
         }
     }
 
@@ -72,7 +74,7 @@ internal class EstimatedFeeViewModel @Inject constructor(
                 copy(
                     customizeFeeDetails = false,
                     manualFeeDetails = false,
-                    manualFeeRate = defaultRate,
+                    manualFeeRate = estimateFeeRates.defaultRate,
                     subtractFeeFromAmount = isSendingAll
                 )
             }
@@ -85,7 +87,7 @@ internal class EstimatedFeeViewModel @Inject constructor(
     }
 
     fun handleManualFeeSwitch(checked: Boolean) {
-        updateState { copy(manualFeeDetails = checked, manualFeeRate = defaultRate) }
+        updateState { copy(manualFeeDetails = checked, manualFeeRate = estimateFeeRates.defaultRate) }
     }
 
     fun handleContinueEvent() {
@@ -101,7 +103,7 @@ internal class EstimatedFeeViewModel @Inject constructor(
     }
 
     fun updateFeeRate(feeRate: Int) {
-        val newFeeRate = feeRate.coerceAtLeast(getState().estimateFeeRates.economicRate)
+        val newFeeRate = feeRate.coerceAtLeast(getState().estimateFeeRates.minimumFee)
         if (newFeeRate != getState().manualFeeRate) {
             updateState { copy(manualFeeRate = newFeeRate) }
             draftTransaction()
@@ -109,7 +111,7 @@ internal class EstimatedFeeViewModel @Inject constructor(
     }
 
     fun validateFeeRate(feeRate: Int): Boolean {
-        if (feeRate < getState().estimateFeeRates.economicRate) {
+        if (feeRate < getState().estimateFeeRates.minimumFee) {
             setEvent(EstimatedFeeEvent.InvalidManualFee)
             return false
         }
@@ -117,5 +119,8 @@ internal class EstimatedFeeViewModel @Inject constructor(
     }
 
     val defaultRate: Int
-        get() = getState().estimateFeeRates.standardRate
+        get() = getState().estimateFeeRates.defaultRate
 }
+
+val EstimateFeeRates.defaultRate: Int
+    get() = economicRate

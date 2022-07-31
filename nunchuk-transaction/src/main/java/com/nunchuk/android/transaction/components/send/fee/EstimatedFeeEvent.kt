@@ -20,5 +20,5 @@ data class EstimatedFeeState(
     val subtractFeeFromAmount: Boolean = false,
     val manualFeeDetails: Boolean = false,
     val estimateFeeRates: EstimateFeeRates = EstimateFeeRates(),
-    val manualFeeRate: Int = estimateFeeRates.standardRate
+    val manualFeeRate: Int = estimateFeeRates.defaultRate
 )
