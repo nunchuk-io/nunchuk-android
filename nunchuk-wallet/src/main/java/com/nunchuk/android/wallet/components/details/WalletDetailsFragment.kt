@@ -77,12 +77,19 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(), Botto
 
     private var job: Job? = null
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (args.isSweepBalance) {
+            NCToastMessage(requireActivity()).showWarning(getString(R.string.nc_satscard_sweeped))
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         setupViews()
         observeEvent()
-        viewModel.init(args.walletId, args.shouldReloadPendingTx)
+        viewModel.init(args.walletId, args.isSweepBalance)
     }
 
     override fun onResume() {

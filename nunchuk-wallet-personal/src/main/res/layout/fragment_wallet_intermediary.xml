@@ -29,30 +29,38 @@
         android:layout_height="@dimen/nc_height_96"
         android:layout_marginTop="@dimen/nc_padding_48"
         android:background="@drawable/nc_bg_primary_circle"
+        android:padding="@dimen/nc_padding_24"
+        android:src="@drawable/ic_wallet_info"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
-    <ImageView
-        android:layout_width="@dimen/nc_height_48"
-        android:layout_height="@dimen/nc_height_48"
-        android:src="@drawable/ic_wallet_info"
-        app:layout_constraintBottom_toBottomOf="@+id/ivBgCircle"
-        app:layout_constraintEnd_toEndOf="@+id/ivBgCircle"
-        app:layout_constraintStart_toStartOf="@+id/ivBgCircle"
-        app:layout_constraintTop_toTopOf="@+id/ivBgCircle" />
-
     <com.nunchuk.android.widget.NCFontTextView
-        style="@style/NCText.Body"
+        android:id="@+id/title"
+        style="@style/NCText.Heading"
         android:layout_width="0dp"
+        android:visibility="gone"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginVertical="@dimen/nc_padding_24"
         android:gravity="center"
-        android:text="@string/nc_text_recover_wallet_description"
+        android:text="@string/nc_you_dont_have_a_wallet_yet"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ivBgCircle" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/message"
+        style="@style/NCText.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginVertical="@dimen/nc_padding_12"
+        android:gravity="center"
+        android:text="@string/nc_text_recover_wallet_description"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title" />
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnCreateNewWallet"

@@ -10,6 +10,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.*
@@ -23,6 +25,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBinding>() {
+    private val viewModel : WalletIntermediaryViewModel by viewModels()
     private val args: WalletIntermediaryFragmentArgs by navArgs()
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentWalletIntermediaryBinding {
@@ -34,7 +37,17 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initUi()
         setupViews()
+    }
+
+    private fun initUi() {
+        if (args.isQuickWallet) {
+            binding.title.isVisible = true
+            binding.message.text = getString(R.string.nc_create_single_sig_for_sweep)
+            binding.btnCreateNewWallet.text = getString(R.string.nc_text_continue)
+            binding.btnRecoverWallet.text = getString(R.string.nc_create_my_own_wallet)
+        }
     }
 
     private fun openCreateNewWalletScreen() {
@@ -84,7 +97,12 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
             }
         }
         binding.btnRecoverWallet.setOnClickListener {
-            openRecoverWalletScreen()
+            if (args.isQuickWallet) {
+                navigator.openWalletIntermediaryScreen(requireActivity(), viewModel.hasSigner)
+                requireActivity().finish()
+            } else {
+                openRecoverWalletScreen()
+            }
         }
         binding.toolbar.setNavigationOnClickListener {
             activity?.onBackPressed()

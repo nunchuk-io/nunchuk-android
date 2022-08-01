@@ -92,4 +92,8 @@
     <string name="nc_please_wait">Please wait…</string>
     <string name="nc_sweeping_is_progress">Sweeping is in progress</string>
     <string name="nc_make_sure_internet">Please make sure that you are connected to the Internet</string>
+    <string name="nc_you_dont_have_a_wallet_yet">You don’t have a wallet yet</string>
+    <string name="nc_create_single_sig_for_sweep">We will create a single-sig wallet for you to sweep into.</string>
+    <string name="nc_create_my_own_wallet">I’ll create my own wallet</string>
+    <string name="nc_satscard_sweeped">Your SATSCARD has been sweeped</string>
 </resources>

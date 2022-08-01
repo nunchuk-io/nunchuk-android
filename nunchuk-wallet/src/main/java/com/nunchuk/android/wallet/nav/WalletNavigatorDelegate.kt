@@ -103,8 +103,8 @@ interface WalletNavigatorDelegate : WalletNavigator {
         DynamicQRCodeActivity.start(activityContext, values)
     }
 
-    override fun openWalletDetailsScreen(activityContext: Context, walletId: String, shouldReloadPendingTx: Boolean) {
-        WalletDetailsActivity.start(activityContext, walletId, shouldReloadPendingTx)
+    override fun openWalletDetailsScreen(activityContext: Context, walletId: String, isSweepBalance: Boolean) {
+        WalletDetailsActivity.start(activityContext, walletId, isSweepBalance)
     }
 
     override fun openWalletEmptySignerScreen(activityContext: Context) {

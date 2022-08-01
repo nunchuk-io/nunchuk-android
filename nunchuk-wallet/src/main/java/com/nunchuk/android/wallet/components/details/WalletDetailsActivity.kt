@@ -21,9 +21,9 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
     }
 
     companion object {
-        fun start(activityContext: Context, walletId: String, shouldReloadPendingTx: Boolean) {
+        fun start(activityContext: Context, walletId: String, isSweepBalance: Boolean) {
             activityContext.startActivity(
-                WalletDetailsArgs(walletId = walletId, shouldReloadPendingTx = shouldReloadPendingTx).buildIntent(
+                WalletDetailsArgs(walletId = walletId, isSweepBalance = isSweepBalance).buildIntent(
                     activityContext
                 )
             )
