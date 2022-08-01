@@ -64,14 +64,21 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         binding.subtractFeeCheckBox.setOnCheckedChangeListener { _, isChecked -> viewModel.handleSubtractFeeSwitch(isChecked) }
         binding.manualFeeCheckBox.setOnCheckedChangeListener { _, isChecked -> handleManualFeeSwitch(isChecked) }
         binding.feeRateInput.textChanges()
-            .debounce(1000)
+            .onEach { binding.btnContinue.tag = true }
+            .debounce(500)
             .onEach { viewModel.updateFeeRate(it.safeManualFee()) }
+            .onEach { binding.btnContinue.tag = false }
             .launchIn(lifecycleScope)
 
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
         binding.btnContinue.setOnClickListener {
+            val isCalculatingFee = it.tag
+            if (isCalculatingFee is Boolean && isCalculatingFee) {
+                NCToastMessage(this).showWarning(getString(R.string.nc_wait_to_estimate_fee))
+                return@setOnClickListener
+            }
             if (binding.manualFeeCheckBox.isChecked.not() || viewModel.validateFeeRate(binding.feeRateInput.text.safeManualFee())) {
                 viewModel.handleContinueEvent()
             }
