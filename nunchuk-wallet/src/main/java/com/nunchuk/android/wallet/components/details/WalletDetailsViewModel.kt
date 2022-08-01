@@ -18,6 +18,7 @@ import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
@@ -40,8 +41,11 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     override val initialState = WalletDetailsState()
 
-    fun init(walletId: String) {
+    fun init(walletId: String, shouldReloadPendingTx: Boolean) {
         this.walletId = walletId
+        if (shouldReloadPendingTx) {
+            handleLoadPendingTx()
+        }
     }
 
     // well, don't do this, you know why
@@ -50,6 +54,13 @@ internal class WalletDetailsViewModel @Inject constructor(
     fun syncData() {
         transactions = ArrayList()
         getWalletDetails()
+    }
+
+    private fun handleLoadPendingTx() {
+        viewModelScope.launch {
+            delay(2000)
+            syncData()
+        }
     }
 
     private fun getWalletDetails() {

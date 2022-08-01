@@ -82,7 +82,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(), Botto
 
         setupViews()
         observeEvent()
-        viewModel.init(args.walletId)
+        viewModel.init(args.walletId, args.shouldReloadPendingTx)
     }
 
     override fun onResume() {

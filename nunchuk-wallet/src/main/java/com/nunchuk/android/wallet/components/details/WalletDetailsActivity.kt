@@ -21,8 +21,12 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
     }
 
     companion object {
-        fun start(activityContext: Context, walletId: String) {
-            activityContext.startActivity(WalletDetailsArgs(walletId = walletId).buildIntent(activityContext))
+        fun start(activityContext: Context, walletId: String, shouldReloadPendingTx: Boolean) {
+            activityContext.startActivity(
+                WalletDetailsArgs(walletId = walletId, shouldReloadPendingTx = shouldReloadPendingTx).buildIntent(
+                    activityContext
+                )
+            )
         }
     }
 }

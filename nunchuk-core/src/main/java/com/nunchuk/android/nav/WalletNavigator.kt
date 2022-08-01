@@ -91,7 +91,7 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
 
     fun openDynamicQRScreen(activityContext: Context, values: List<String>)
 
-    fun openWalletDetailsScreen(activityContext: Context, walletId: String)
+    fun openWalletDetailsScreen(activityContext: Context, walletId: String, shouldReloadPendingTx: Boolean = false)
 
     fun openWalletEmptySignerScreen(activityContext: Context)
 

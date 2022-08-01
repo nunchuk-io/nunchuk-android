@@ -78,7 +78,7 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
             )
             is SelectWalletEvent.NfcLoading -> showOrHideLoading(event.isLoading, getString(R.string.nc_keep_holding_nfc))
             SelectWalletEvent.SweepSuccess -> {
-                navigator.openWalletDetailsScreen(requireActivity(), viewModel.selectedWalletId)
+                navigator.openWalletDetailsScreen(requireActivity(), viewModel.selectedWalletId, true)
                 requireActivity().finish()
             }
         }
