@@ -9,7 +9,6 @@ import com.nunchuk.android.core.data.model.SyncFileModel
 import com.nunchuk.android.core.domain.*
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.matrix.*
-import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.*
@@ -60,7 +59,7 @@ internal class MainActivityViewModel @Inject constructor(
     private val consumeSyncFileUseCase: ConsumeSyncFileUseCase,
     private val backupFileUseCase: BackupFileUseCase,
     private val consumerSyncEventUseCase: ConsumerSyncEventUseCase,
-    private val getPriceConvertBTCUseCase: GetPriceConvertBTCUseCase,
+    private val getRemotePriceConvertBTCUseCase: GetRemotePriceConvertBTCUseCase,
     private val scheduleGetPriceConvertBTCUseCase: ScheduleGetPriceConvertBTCUseCase,
     private val getDisplayUnitSettingUseCase: GetDisplayUnitSettingUseCase,
     private val notificationManager: PushNotificationManager,
@@ -69,6 +68,7 @@ internal class MainActivityViewModel @Inject constructor(
     private val createOrUpdateSyncFileUseCase: CreateOrUpdateSyncFileUseCase,
     private val deleteSyncFileUseCase: DeleteSyncFileUseCase,
     private val saveCacheFileUseCase: SaveCacheFileUseCase,
+    private val getLocalBtcPriceFlowUseCase: GetLocalBtcPriceFlowUseCase
 ) : NunchukViewModel<Unit, MainAppEvent>() {
 
     override val initialState = Unit
@@ -85,6 +85,17 @@ internal class MainActivityViewModel @Inject constructor(
         checkMissingSyncFile()
         observeInitialSync()
         enableAutoBackup()
+        listenBtcPrice()
+    }
+
+    private fun listenBtcPrice() {
+        viewModelScope.launch {
+            getLocalBtcPriceFlowUseCase(Unit).collect {
+                if (it.isSuccess) {
+                    BTC_USD_EXCHANGE_RATE = it.getOrThrow()
+                }
+            }
+        }
     }
 
     private fun observeInitialSync() {
@@ -191,10 +202,10 @@ internal class MainActivityViewModel @Inject constructor(
 
     private fun getBTCConvertPrice() {
         viewModelScope.launch {
-            getPriceConvertBTCUseCase.execute()
+            getRemotePriceConvertBTCUseCase.execute()
                 .flowOn(IO)
                 .onException {}
-                .collect { btcResponse -> btcResponse?.usd?.let { BTC_USD_EXCHANGE_RATE = it } }
+                .collect()
         }
     }
 

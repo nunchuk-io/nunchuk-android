@@ -13,6 +13,7 @@ dependencies {
     implementation project(':nunchuk-database')
 
     implementation nunchukDeps.nativeSdk
+    implementation dataStoreDeps.dataStore
     implementation matrixDeps.matrixSdk
 
     implementation androidxDeps.values()

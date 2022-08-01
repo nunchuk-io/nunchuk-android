@@ -12,8 +12,8 @@ import com.nunchuk.android.core.domain.GetDeveloperSettingUseCase
 import com.nunchuk.android.core.domain.GetDeveloperSettingUseCaseImpl
 import com.nunchuk.android.core.domain.GetDisplayUnitSettingUseCase
 import com.nunchuk.android.core.domain.GetDisplayUnitSettingUseCaseImpl
-import com.nunchuk.android.core.domain.GetPriceConvertBTCUseCase
-import com.nunchuk.android.core.domain.GetPriceConvertBTCUseCaseImpl
+import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
+import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCaseImpl
 import com.nunchuk.android.core.domain.GetSyncFileUseCase
 import com.nunchuk.android.core.domain.GetSyncFileUseCaseImpl
 import com.nunchuk.android.core.domain.GetSyncSettingUseCase
@@ -53,7 +53,7 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 internal interface DomainModule {
     @Binds
-    fun bindGetPriceConvertBTCUseCase(repository: GetPriceConvertBTCUseCaseImpl): GetPriceConvertBTCUseCase
+    fun bindGetPriceConvertBTCUseCase(repository: GetRemotePriceConvertBTCUseCaseImpl): GetRemotePriceConvertBTCUseCase
 
     @Binds
     fun bindScheduleGetPriceConvertBTCUseCase(repository: ScheduleGetPriceConvertBTCUseCaseImpl): ScheduleGetPriceConvertBTCUseCase

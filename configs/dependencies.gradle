@@ -121,8 +121,8 @@ ext {
     ]
 
     hiltDeps = [
-            processor       : "com.google.dagger:hilt-compiler:${hiltVersion}",
-            hilt            : "com.google.dagger:hilt-android:${hiltVersion}",
+            processor: "com.google.dagger:hilt-compiler:${hiltVersion}",
+            hilt     : "com.google.dagger:hilt-android:${hiltVersion}",
     ]
 
     imageLoaderDeps = [
@@ -165,6 +165,10 @@ ext {
             gson: "com.google.code.gson:gson:${gsonVersion}",
     ]
 
+    dataStoreDeps = [
+            dataStore: "androidx.datastore:datastore-preferences:1.0.0"
+    ]
+
     roomArch = [
             room        : "androidx.room:room-runtime:${roomVersion}",
             roomCompiler: "androidx.room:room-compiler:${roomVersion}",
@@ -188,10 +192,10 @@ ext {
     ]
 
     lifecycleDeps = [
-            lifeCycleProcess        : "androidx.lifecycle:lifecycle-process:${lifecycleVersion}",
-            lifecycleLivedata       : "androidx.lifecycle:lifecycle-livedata:${lifecycleVersion}",
-            lifecycleLivedataKtx    : "androidx.lifecycle:lifecycle-livedata-ktx:${lifecycleVersion}",
-            lifecycleViewModelKtx   : "androidx.lifecycle:lifecycle-viewmodel-ktx:${lifecycleVersion}"
+            lifeCycleProcess     : "androidx.lifecycle:lifecycle-process:${lifecycleVersion}",
+            lifecycleLivedata    : "androidx.lifecycle:lifecycle-livedata:${lifecycleVersion}",
+            lifecycleLivedataKtx : "androidx.lifecycle:lifecycle-livedata-ktx:${lifecycleVersion}",
+            lifecycleViewModelKtx: "androidx.lifecycle:lifecycle-viewmodel-ktx:${lifecycleVersion}"
     ]
 
     otherTestDeps = [
