@@ -87,7 +87,8 @@ internal class EstimatedFeeViewModel @Inject constructor(
     }
 
     fun handleManualFeeSwitch(checked: Boolean) {
-        updateState { copy(manualFeeDetails = checked, manualFeeRate = estimateFeeRates.defaultRate) }
+        updateState { copy(manualFeeDetails = checked) }
+        updateFeeRate(defaultRate)
     }
 
     fun handleContinueEvent() {
