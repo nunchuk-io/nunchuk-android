@@ -11,6 +11,8 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSignerModel
 import com.nunchuk.android.core.util.isPending
+import com.nunchuk.android.core.util.isPendingConfirm
+import com.nunchuk.android.core.util.isShowMoreMenu
 import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.Result.Error
@@ -197,11 +199,14 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun handleMenuMoreEvent() {
-        val pending = getState().transaction.status.isPending()
-        if (pending) {
-            setEvent(PromptTransactionOptions(pending))
+        val status = getState().transaction.status
+        val isShowMoreMenu = status.isShowMoreMenu()
+        if (isShowMoreMenu) {
+            setEvent(PromptTransactionOptions(status.isPending(), status.isPendingConfirm()))
         }
     }
+
+    fun getTransaction() = getState().transaction
 
     fun handleDeleteTransactionEvent() {
         viewModelScope.launch {
@@ -232,7 +237,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 }
             }
         } else {
-            setEvent(PromptTransactionOptions(true))
+            setEvent(PromptTransactionOptions(isPendingTransaction = true, isPendingConfirm = false))
         }
     }
 

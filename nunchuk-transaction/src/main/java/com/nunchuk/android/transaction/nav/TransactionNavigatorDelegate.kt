@@ -1,9 +1,13 @@
 package com.nunchuk.android.transaction.nav
 
 import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.nav.TransactionNavigator
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.transaction.components.details.TransactionDetailsActivity
+import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeActivity
 import com.nunchuk.android.transaction.components.imports.ImportTransactionActivity
 import com.nunchuk.android.transaction.components.receive.ReceiveTransactionActivity
 import com.nunchuk.android.transaction.components.receive.address.details.AddressDetailsActivity
@@ -73,7 +77,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         availableAmount: Double,
         address: String,
         privateNote: String,
-        subtractFeeFromAmount: Boolean
+        subtractFeeFromAmount: Boolean,
+        isReplaceFee: Boolean
     ) {
         EstimatedFeeActivity.start(
             activityContext = activityContext,
@@ -138,4 +143,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         )
     }
 
+    override fun openReplaceTransactionFee(launcher: ActivityResultLauncher<Intent>, context: Context, walletId: String, txId: String) {
+        ReplaceFeeActivity.start(launcher, context, walletId, txId)
+    }
 }

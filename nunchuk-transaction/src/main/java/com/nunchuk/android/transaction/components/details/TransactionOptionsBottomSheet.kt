@@ -69,6 +69,14 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
                 dismiss()
             }
         }
+
+        binding.btnReplaceFee.isVisible = args.isPendingConfirm
+        binding.btnReplaceFee.setOnClickListener {
+            if (requireActivity().checkCameraPermission()) {
+                listener(REPLACE_BY_FEE)
+                dismiss()
+            }
+        }
     }
 
     fun setListener(listener: (TransactionOption) -> Unit) {
@@ -78,29 +86,32 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
     companion object {
         private const val TAG = "TransactionOptionsBottomSheet"
 
-        private fun newInstance(isPending: Boolean) = TransactionOptionsBottomSheet().apply {
-            arguments = TransactionOptionsArgs(isPending).buildBundle()
+        private fun newInstance(isPending: Boolean, isPendingConfirm: Boolean) = TransactionOptionsBottomSheet().apply {
+            arguments = TransactionOptionsArgs(isPending, isPendingConfirm).buildBundle()
         }
 
 
-        fun show(fragmentManager: FragmentManager, isPending: Boolean): TransactionOptionsBottomSheet {
-            return newInstance(isPending).apply { show(fragmentManager, TAG) }
+        fun show(fragmentManager: FragmentManager, isPending: Boolean, isPendingConfirm: Boolean): TransactionOptionsBottomSheet {
+            return newInstance(isPending, isPendingConfirm).apply { show(fragmentManager, TAG) }
         }
     }
 
 }
 
-data class TransactionOptionsArgs(val isPending: Boolean) : FragmentArgs {
+data class TransactionOptionsArgs(val isPending: Boolean, val isPendingConfirm: Boolean) : FragmentArgs {
 
     override fun buildBundle() = Bundle().apply {
         putBoolean(EXTRA_IS_PENDING, isPending)
+        putBoolean(EXTRA_IS_PENDING_CONFIRM, isPendingConfirm)
     }
 
     companion object {
         private const val EXTRA_IS_PENDING = "EXTRA_IS_PENDING"
+        private const val EXTRA_IS_PENDING_CONFIRM = "EXTRA_IS_PENDING_CONFIRM"
 
         fun deserializeFrom(data: Bundle?) = TransactionOptionsArgs(
-            data?.getBooleanValue(EXTRA_IS_PENDING).orFalse()
+            data?.getBooleanValue(EXTRA_IS_PENDING).orFalse(),
+            data?.getBooleanValue(EXTRA_IS_PENDING_CONFIRM).orFalse(),
         )
     }
 }
