@@ -1,6 +1,8 @@
 package com.nunchuk.android.widget
 
 import android.app.Activity
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity.BOTTOM
 import android.view.Gravity.FILL_HORIZONTAL
 import android.view.View
@@ -8,22 +10,26 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
-import com.nunchuk.android.utils.Disposable
-import com.nunchuk.android.utils.DisposableManager
-import com.nunchuk.android.widget.util.NCCountdownTimer
-import java.lang.ref.WeakReference
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 
-class NCToastMessage(activity: Activity) : Disposable {
-
-    private val weakReference = WeakReference(activity)
-
-    private val timer = NCCountdownTimer()
+class NCToastMessage(private val activity: Activity) : DefaultLifecycleObserver {
+    init {
+        if (activity is AppCompatActivity) {
+            activity.lifecycle.addObserver(this)
+        }
+    }
 
     private val toast = Toast(activity.applicationContext)
+    private val handler = Handler(Looper.getMainLooper())
+    private val dismissRunnable = Runnable {
+        toast.cancel()
+    }
 
-    fun show(messageId: Int) = weakReference.get()?.getString(messageId)?.let(::showMessage)
+    fun show(messageId: Int) = activity.getString(messageId).let(::showMessage)
 
     fun show(message: String) = message.let(::showMessage)
 
@@ -38,32 +44,30 @@ class NCToastMessage(activity: Activity) : Disposable {
         offset: Int = R.dimen.nc_padding_16,
         dismissTime: Long = TIME
     ): NCToastMessage {
-        weakReference.get()?.apply {
-            val root: View = layoutInflater.inflate(
-                R.layout.nc_toast_message,
-                findViewById(R.id.custom_toast_container)
-            )
-            val textView: TextView = root.findViewById(R.id.text)
-            textView.text = message
-            textView.setTextColor(ContextCompat.getColor(this, textColor))
+        val root: View = activity.layoutInflater.inflate(
+            R.layout.nc_toast_message,
+            activity.findViewById(R.id.custom_toast_container)
+        )
+        val textView: TextView = root.findViewById(R.id.text)
+        textView.text = message
+        textView.setTextColor(ContextCompat.getColor(activity, textColor))
 
-            val containerView = root.findViewById<ViewGroup>(R.id.container)
-            containerView.background = ResourcesCompat.getDrawable(this.resources, background, null)
+        val containerView = root.findViewById<ViewGroup>(R.id.container)
+        containerView.background = ResourcesCompat.getDrawable(activity.resources, background, null)
 
-            val iconView = root.findViewById<ImageView>(R.id.icon)
-            iconView.setImageResource(icon)
+        val iconView = root.findViewById<ImageView>(R.id.icon)
+        iconView.setImageResource(icon)
 
-            val paddingVal = this.resources.getDimension(offset).toInt()
-            root.setPadding(paddingVal, paddingVal, paddingVal, paddingVal)
-            toast.also {
-                it.setGravity(gravity, 0, 0)
-                it.duration = duration
-                it.view = root
-                it.show()
-                timer.doAfter(it::cancel, dismissTime)
-            }
+        val paddingVal = activity.resources.getDimension(offset).toInt()
+        root.setPadding(paddingVal, paddingVal, paddingVal, paddingVal)
+        toast.also {
+            it.setGravity(gravity, 0, 0)
+            it.duration = duration
+            it.view = root
+            it.show()
+            handler.postDelayed(dismissRunnable, dismissTime)
         }
-        return also { DisposableManager.instance.add(this) }
+        return this
     }
 
     fun showWarning(message: String) = showMessage(
@@ -79,8 +83,9 @@ class NCToastMessage(activity: Activity) : Disposable {
         icon = R.drawable.ic_info_white
     )
 
-    override fun dispose() {
-        timer.dispose()
+    override fun onDestroy(owner: LifecycleOwner) {
+        super.onDestroy(owner)
+        handler.removeCallbacks(dismissRunnable)
         toast.cancel()
     }
 
