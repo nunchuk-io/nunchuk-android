@@ -1,5 +1,6 @@
 package com.nunchuk.android.transaction.components.details.fee
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -62,7 +63,10 @@ class ReplaceFeeActivity : BaseActivity<ActivityReplaceByFeeBinding>() {
                 .collect {
                     when (it) {
                         is ReplaceFeeEvent.Loading -> showOrHideLoading(it.isLoading)
-                        ReplaceFeeEvent.ReplaceTransactionSuccess -> finish()
+                        is ReplaceFeeEvent.ReplaceTransactionSuccess -> {
+                            setResult(Activity.RESULT_OK, ReplaceFeeArgs(args.walletId, it.newTxId).buildIntent(this@ReplaceFeeActivity))
+                            finish()
+                        }
                         is ReplaceFeeEvent.ShowError -> NCToastMessage(this@ReplaceFeeActivity).showError(it.e?.message.orUnknownError())
                     }
                 }

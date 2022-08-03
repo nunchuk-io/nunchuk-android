@@ -15,6 +15,7 @@ import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,6 +30,7 @@ internal class EstimatedFeeViewModel @Inject constructor(
     private var address: String = ""
     private var sendAmount: Double = 0.0
     override val initialState = EstimatedFeeState()
+    private var draftTranJob: Job? = null
 
     fun init(walletId: String, address: String, sendAmount: Double) {
         this.walletId = walletId
@@ -45,13 +47,15 @@ internal class EstimatedFeeViewModel @Inject constructor(
                 .flowOn(Dispatchers.Main)
                 .collect {
                     updateState { copy(estimateFeeRates = it, manualFeeRate = it.defaultRate) }
+                    draftTransaction()
                 }
         }
     }
 
     private fun draftTransaction() {
         val state = getState()
-        viewModelScope.launch {
+        draftTranJob?.cancel()
+        draftTranJob = viewModelScope.launch {
             setEvent(EstimatedFeeEvent.Loading(true))
             when (val result = draftTransactionUseCase.execute(
                 walletId = walletId,

@@ -206,8 +206,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    fun getTransaction() = getState().transaction
-
     fun handleDeleteTransactionEvent() {
         viewModelScope.launch {
             when (val result = deleteTransactionUseCase.execute(walletId, txId)) {

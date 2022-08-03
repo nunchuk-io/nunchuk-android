@@ -40,7 +40,7 @@ internal class ReplaceFeeViewModel @Inject constructor(
             val result = replaceTransactionUseCase(ReplaceTransactionUseCase.Data(walletId, txId, newFee))
             _event.emit(ReplaceFeeEvent.Loading(false))
             if (result.isSuccess) {
-                _event.emit(ReplaceFeeEvent.ReplaceTransactionSuccess)
+                _event.emit(ReplaceFeeEvent.ReplaceTransactionSuccess(result.getOrThrow().txId))
             } else {
                 _event.emit(ReplaceFeeEvent.ShowError(result.exceptionOrNull()))
             }

@@ -9,6 +9,6 @@ data class ReplaceFeeState(
 
 sealed class ReplaceFeeEvent {
     class Loading(val isLoading: Boolean) : ReplaceFeeEvent()
-    object ReplaceTransactionSuccess : ReplaceFeeEvent()
+    class ReplaceTransactionSuccess(val newTxId: String) : ReplaceFeeEvent()
     class ShowError(val e: Throwable?) : ReplaceFeeEvent()
 }

@@ -12,6 +12,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.signer.SignerModel
@@ -21,6 +22,7 @@ import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.model.TransactionOption.*
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
+import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeArgs
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.imports.ImportTransactionActivity
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
@@ -44,8 +46,12 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 
     private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        if (it.resultCode == Activity.RESULT_OK) {
-            NCToastMessage(this).show(getString(R.string.nc_replace_by_fee_success))
+        val data = it.data
+        if (it.resultCode == Activity.RESULT_OK && data != null) {
+            val result = ReplaceFeeArgs.deserializeFrom(data)
+            navigator.openTransactionDetailsScreen(this, result.walletId, result.txId, "", "")
+            NcToastManager.scheduleShowMessage(getString(R.string.nc_replace_by_fee_success))
+            finish()
         }
     }
 
