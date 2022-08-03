@@ -58,7 +58,7 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     private fun handleLoadPendingTx() {
         viewModelScope.launch {
-            delay(2000)
+            delay(TIMEOUT_TO_RELOAD)
             syncData()
         }
     }
@@ -168,5 +168,9 @@ internal class WalletDetailsViewModel @Inject constructor(
                     getTransactionHistory()
                 }
         }
+    }
+
+    companion object {
+        private const val TIMEOUT_TO_RELOAD = 5000L
     }
 }
