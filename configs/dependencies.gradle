@@ -35,7 +35,7 @@ ext {
     nativeSdkVersion = '1.1.46'
 
     // Matrix
-    matrixSdkVersion = '1.4.16'
+    matrixSdkVersion = '1.4.27'
     // https://user-images.githubusercontent.com/9841565/164481595-53564bf0-416c-469c-b251-71b0e59074c8.png
 
     // trigger restart

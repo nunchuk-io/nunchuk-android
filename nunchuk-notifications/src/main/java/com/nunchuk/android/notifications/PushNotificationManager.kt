@@ -4,7 +4,7 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.provider.AppInfoProvider
 import com.nunchuk.android.core.provider.LocaleProvider
 import com.nunchuk.android.core.provider.StringProvider
-import org.matrix.android.sdk.api.session.pushers.PushersService
+import org.matrix.android.sdk.api.session.pushers.HttpPusher
 import java.util.*
 import javax.inject.Inject
 import kotlin.math.abs
@@ -42,7 +42,7 @@ internal class PushNotificationManagerImpl @Inject constructor(
         getPushersService()?.addHttpPusher(createHttpPusher(pushKey))
     }
 
-    private fun createHttpPusher(pushKey: String) = PushersService.HttpPusher(
+    private fun createHttpPusher(pushKey: String) = HttpPusher(
         pushKey,
         stringProvider.getString(R.string.push_app_id),
         profileTag = "mobile" + "_" + abs(SessionHolder.activeSession?.myUserId.orEmpty().hashCode()),

@@ -38,11 +38,11 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupState
 import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
 import org.matrix.android.sdk.api.session.crypto.model.MXUsersDevicesMap
-import org.matrix.android.sdk.api.session.initsync.SyncStatusService
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
+import org.matrix.android.sdk.api.session.sync.SyncState
 import org.matrix.android.sdk.api.util.awaitCallback
 import timber.log.Timber
 import javax.inject.Inject
@@ -100,11 +100,11 @@ internal class MainActivityViewModel @Inject constructor(
 
     private fun observeInitialSync() {
         SessionHolder.activeSession?.let {
-            it.syncStatusService().getSyncStatusLive()
+            it.syncService().getSyncStateLive()
                 .asFlow()
                 .onEach { status ->
                     when (status) {
-                        is SyncStatusService.Status.Idle -> {
+                        is SyncState.Idle -> {
                             if (!checkBootstrap) {
                                 checkBootstrap = true
                                 downloadKeys(it)
@@ -495,7 +495,7 @@ internal class MainActivityViewModel @Inject constructor(
         if (timelineEvent.isEncrypted() && timelineEvent.root.mCryptoError != null) {
             val cryptoService = session.cryptoService()
             val keysBackupService = cryptoService.keysBackupService()
-            if (keysBackupService.state == KeysBackupState.NotTrusted || (keysBackupService.state == KeysBackupState.ReadyToBackUp && keysBackupService.canRestoreKeys())) {
+            if (keysBackupService.getState() == KeysBackupState.NotTrusted || (keysBackupService.getState() == KeysBackupState.ReadyToBackUp && keysBackupService.canRestoreKeys())) {
                 Timber.tag(TAG).d("Use backup key flow")
             }
             if (cryptoService.getCryptoDeviceInfo(session.myUserId).size > 1 || timelineEvent.senderInfo.userId != session.myUserId) {
