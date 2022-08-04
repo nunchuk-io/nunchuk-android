@@ -13,6 +13,7 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.signer.R
@@ -70,7 +71,11 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
 
     private fun handleEvent(event: SelectWalletEvent) {
         when (event) {
-            is SelectWalletEvent.ShowError -> showError(event.message)
+            is SelectWalletEvent.Error -> {
+                if (nfcViewModel.handleNfcError(event.e).not()) {
+                    showError(event.e?.message.orUnknownError())
+                }
+            }
             is SelectWalletEvent.Loading -> showOrHideLoading(
                 event.isLoading,
                 title = getString(R.string.nc_sweeping_is_progress),

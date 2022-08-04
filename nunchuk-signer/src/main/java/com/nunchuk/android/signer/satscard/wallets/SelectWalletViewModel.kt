@@ -38,7 +38,7 @@ class SelectWalletViewModel @Inject constructor(
             getWalletsUseCase.execute()
                 .onStart { _event.emit(SelectWalletEvent.Loading(true)) }
                 .onException {
-                    _event.emit(SelectWalletEvent.ShowError(it.message))
+                    _event.emit(SelectWalletEvent.Error(it))
                 }
                 .onCompletion { _event.emit(SelectWalletEvent.Loading(false)) }
                 .collect { wallets ->
@@ -70,7 +70,7 @@ class SelectWalletViewModel @Inject constructor(
             if (result.isSuccess) {
                 getWalletAddress(listOf(result.getOrThrow()))
             } else {
-                _event.emit(SelectWalletEvent.ShowError(result.exceptionOrNull()?.message))
+                _event.emit(SelectWalletEvent.Error(result.exceptionOrNull()))
             }
         }
     }
@@ -83,7 +83,7 @@ class SelectWalletViewModel @Inject constructor(
             if (result.isSuccess) {
                 getWalletAddress(result.getOrThrow())
             } else {
-                _event.emit(SelectWalletEvent.ShowError(result.exceptionOrNull()?.message))
+                _event.emit(SelectWalletEvent.Error(result.exceptionOrNull()))
             }
         }
     }
@@ -99,7 +99,7 @@ class SelectWalletViewModel @Inject constructor(
                     return@flatMapLatest flowOf(it)
                 }.onException {
                     _event.emit(SelectWalletEvent.Loading(false))
-                    _event.emit(SelectWalletEvent.ShowError(it.message))
+                    _event.emit(SelectWalletEvent.Error(it))
                 }.collect {
                     sweepUnsealSlots(it.first(), slots)
                 }
@@ -115,11 +115,11 @@ class SelectWalletViewModel @Inject constructor(
                 if (result.isSuccess) {
                     _event.emit(SelectWalletEvent.SweepSuccess)
                 } else {
-                    _event.emit(SelectWalletEvent.ShowError(result.exceptionOrNull()?.message))
+                    _event.emit(SelectWalletEvent.Error(result.exceptionOrNull()))
                 }
             } else {
                 _event.emit(SelectWalletEvent.Loading(false))
-                _event.emit(SelectWalletEvent.ShowError(estimateFeeResult.exceptionOrNull()?.message))
+                _event.emit(SelectWalletEvent.Error(estimateFeeResult.exceptionOrNull()))
             }
         }
     }
@@ -132,7 +132,7 @@ sealed class SelectWalletEvent {
     object SweepSuccess : SelectWalletEvent()
     data class Loading(val isLoading: Boolean) : SelectWalletEvent()
     data class NfcLoading(val isLoading: Boolean) : SelectWalletEvent()
-    data class ShowError(val message: String?) : SelectWalletEvent()
+    data class Error(val e: Throwable?) : SelectWalletEvent()
 }
 
 data class SelectWalletState(val selectWallets: List<SelectableWallet> = emptyList(), val selectedWalletId: String = "")
