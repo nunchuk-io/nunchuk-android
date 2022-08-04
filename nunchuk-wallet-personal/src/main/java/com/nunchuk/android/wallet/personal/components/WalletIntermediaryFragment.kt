@@ -25,7 +25,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBinding>() {
-    private val viewModel : WalletIntermediaryViewModel by viewModels()
+    private val viewModel: WalletIntermediaryViewModel by viewModels()
     private val args: WalletIntermediaryFragmentArgs by navArgs()
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentWalletIntermediaryBinding {
@@ -39,6 +39,27 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
         super.onViewCreated(view, savedInstanceState)
         initUi()
         setupViews()
+        observer()
+    }
+
+    private fun observer() {
+        flowObserver(viewModel.event) {
+            showOrHideNfcLoading(it is WalletIntermediaryEvent.Loading)
+            when (it) {
+                is WalletIntermediaryEvent.OnLoadFileSuccess -> handleLoadFilePath(it)
+            }
+        }
+    }
+
+    private fun handleLoadFilePath(it: WalletIntermediaryEvent.OnLoadFileSuccess) {
+        if (it.path.isNotEmpty()) {
+            navigator.openAddRecoverWalletScreen(
+                requireActivity(), RecoverWalletData(
+                    type = RecoverWalletType.FILE,
+                    filePath = it.path
+                )
+            )
+        }
     }
 
     private fun initUi() {
@@ -59,7 +80,7 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
         recoverWalletBottomSheet.listener = {
             when (it) {
                 RecoverWalletOption.QrCode -> handleOptionUsingQRCode()
-                RecoverWalletOption.BSMSFile -> requireActivity().openSelectFileChooser(WalletIntermediaryActivity.REQUEST_CODE)
+                RecoverWalletOption.BSMSFile -> openSelectFileChooser(WalletIntermediaryActivity.REQUEST_CODE)
             }
         }
     }
@@ -71,17 +92,8 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         super.onActivityResult(requestCode, resultCode, intent)
         if (requestCode == WalletIntermediaryActivity.REQUEST_CODE && resultCode == AppCompatActivity.RESULT_OK) {
-            val file = intent?.data?.let {
-                getFileFromUri(requireActivity().contentResolver, it, requireActivity().cacheDir)
-            }
-
-            file?.absolutePath?.let {
-                navigator.openAddRecoverWalletScreen(
-                    requireActivity(), RecoverWalletData(
-                        type = RecoverWalletType.FILE,
-                        filePath = it
-                    )
-                )
+            intent?.data?.let {
+                viewModel.extractFilePath(it)
             }
         }
     }

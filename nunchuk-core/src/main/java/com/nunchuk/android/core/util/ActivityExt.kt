@@ -75,6 +75,11 @@ fun Activity.openSelectFileChooser(requestCode: Int = CHOOSE_FILE_REQUEST_CODE) 
     startActivityForResult(Intent.createChooser(intent, getString(R.string.nc_text_select_file)), requestCode)
 }
 
+fun Fragment.openSelectFileChooser(requestCode: Int = CHOOSE_FILE_REQUEST_CODE) {
+    val intent = Intent().setType("*/*").setAction(Intent.ACTION_GET_CONTENT)
+    startActivityForResult(Intent.createChooser(intent, getString(R.string.nc_text_select_file)), requestCode)
+}
+
 fun Activity.openExternalLink(url: String) {
     if (url.isNotEmpty()) {
         val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
