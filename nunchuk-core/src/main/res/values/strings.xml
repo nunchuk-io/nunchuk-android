@@ -68,4 +68,6 @@
     <string name="nc_replace_by_fee">Replace-by-Fee</string>
     <string name="nc_new_fee_rate">New fee rate</string>
     <string name="nc_replace_by_fee_success">Replace-by-Fee successfully</string>
+    <string name="nc_none">None</string>
+    <string name="nc_private_note_updated">Private note has been updated</string>
 </resources>

@@ -13,6 +13,8 @@ sealed class TransactionDetailsEvent {
     data class PromptTransactionOptions(val isPendingTransaction: Boolean, val isPendingConfirm: Boolean) : TransactionDetailsEvent()
     data class ExportToFileSuccess(val filePath: String) : TransactionDetailsEvent()
     data class ExportTransactionError(val message: String) : TransactionDetailsEvent()
+    data class UpdateTransactionMemoSuccess(val newMemo: String) : TransactionDetailsEvent()
+    data class UpdateTransactionMemoFailed(val message: String) : TransactionDetailsEvent()
     object LoadingEvent : TransactionDetailsEvent()
     object NfcLoadingEvent : TransactionDetailsEvent()
 }
