@@ -8,6 +8,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -97,7 +98,7 @@ class WalletConfigActivity : BaseActivity<ActivityWalletConfigBinding>(), Bottom
     private fun walletDeleted() {
         NCToastMessage(this).showMessage(getString(R.string.nc_wallet_delete_wallet_success))
         setResult(Activity.RESULT_OK)
-        finish()
+        ActivityManager.popUntilRoot()
     }
 
     private fun handleState(walletExtended: WalletExtended) {
