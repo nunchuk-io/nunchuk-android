@@ -5,8 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.ReplaceTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,11 +24,10 @@ internal class ReplaceFeeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            estimateFeeUseCase.execute()
-                .flowOn(Dispatchers.IO)
-                .collect { rates ->
-                    _state.value = ReplaceFeeState(estimateFeeRates = rates)
-                }
+            val result = estimateFeeUseCase(Unit)
+            if (result.isSuccess) {
+                _state.value = ReplaceFeeState(estimateFeeRates = result.getOrThrow())
+            }
         }
     }
 

@@ -75,7 +75,7 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
 
     private fun onCreateSignerCompleted(masterSigner: MasterSigner, skipPassphrase: Boolean) {
         hideLoading()
-        ActivityManager.instance.popUntilRoot()
+        ActivityManager.popUntilRoot()
         navigator.openSignerInfoScreen(
             activityContext = requireActivity(),
             id = masterSigner.id,
