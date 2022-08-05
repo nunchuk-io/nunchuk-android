@@ -25,6 +25,7 @@ import com.nunchuk.android.wallet.databinding.ActivityWalletConfigBinding
 import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -53,8 +54,19 @@ class WalletConfigActivity : BaseActivity<ActivityWalletConfigBinding>(), Bottom
             SheetOptionType.TYPE_EXPORT_AS_QR -> showSubOptionsExportQr()
             SheetOptionType.TYPE_EXPORT_KEYSTONE_QR -> viewModel.handleExportWalletQR()
             SheetOptionType.TYPE_EXPORT_PASSPORT_QR -> viewModel.handleExportPassport()
-            SheetOptionType.TYPE_DELETE_WALLET -> viewModel.handleDeleteWallet()
+            SheetOptionType.TYPE_DELETE_WALLET -> handleDeleteWallet()
             SheetOptionType.TYPE_EXPORT_TO_COLD_CARD -> handleExportColdcard()
+        }
+    }
+
+    private fun handleDeleteWallet() {
+        if (viewModel.isSharedWallet()) {
+            NCWarningDialog(this).showDialog(
+                message = getString(R.string.nc_delete_collaborative_wallet),
+                onYesClick = { viewModel.handleDeleteWallet() }
+            )
+        } else {
+            viewModel.handleDeleteWallet()
         }
     }
 

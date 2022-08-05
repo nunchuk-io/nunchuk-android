@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.type.ExportFormat
@@ -14,6 +15,7 @@ import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateName
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,6 +29,7 @@ internal class WalletConfigViewModel @Inject constructor(
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val deleteWalletUseCase: DeleteWalletUseCase,
     private val exportWalletUseCase: ExportWalletUseCase,
+    private val leaveRoomUseCase: LeaveRoomUseCase
 ) : NunchukViewModel<WalletExtended, WalletConfigEvent>() {
 
     override val initialState = WalletExtended()
@@ -88,12 +91,20 @@ internal class WalletConfigViewModel @Inject constructor(
 
     fun handleDeleteWallet() {
         viewModelScope.launch {
+            getState().roomWallet?.roomId?.let {
+                leaveRoomUseCase.execute(it)
+                    .flowOn(Dispatchers.IO)
+                    .onException {  }
+                    .collect()
+            }
             when (val event = deleteWalletUseCase.execute(walletId)) {
                 is Result.Success -> event(WalletConfigEvent.DeleteWalletSuccess)
                 is Result.Error -> showError(event)
             }
         }
     }
+
+    fun isSharedWallet() = getState().isShared
 
     fun handleExportColdcard() {
         viewModelScope.launch {
