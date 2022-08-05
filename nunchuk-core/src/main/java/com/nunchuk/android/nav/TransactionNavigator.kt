@@ -1,6 +1,9 @@
 package com.nunchuk.android.nav
 
 import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.share.model.TransactionOption
 
 interface TransactionNavigator {
@@ -39,6 +42,7 @@ interface TransactionNavigator {
         address: String,
         privateNote: String,
         subtractFeeFromAmount: Boolean = false,
+        isReplaceFee: Boolean = false
     )
 
     fun openTransactionConfirmScreen(
@@ -67,4 +71,7 @@ interface TransactionNavigator {
         transactionOption: TransactionOption
     )
 
+    fun openReplaceTransactionFee(
+        launcher: ActivityResultLauncher<Intent>, context: Context, walletId: String, txId: String
+    )
 }

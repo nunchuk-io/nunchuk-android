@@ -10,6 +10,11 @@ class TransactionRepositoryImpl @Inject constructor(
 ) : TransactionRepository {
     override suspend fun getFees(): EstimateFeeRates {
         val data = transactionApi.getFees()
-        return EstimateFeeRates(data.priorityRate, data.standardRate, data.economicRate)
+        return EstimateFeeRates(
+            priorityRate = data.priorityRate,
+            standardRate = data.standardRate,
+            economicRate = data.economicRate,
+            minimumFee = data.minimumFee
+        )
     }
 }

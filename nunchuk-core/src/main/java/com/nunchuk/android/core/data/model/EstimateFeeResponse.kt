@@ -5,8 +5,10 @@ import com.google.gson.annotations.SerializedName
 data class EstimateFeeResponse(
     @SerializedName("fastestFee")
     val priorityRate: Int,
-    @SerializedName("hourFee")
+    @SerializedName("halfHourFee")
     val standardRate: Int,
-    @SerializedName("minimumFee")
+    @SerializedName("hourFee")
     val economicRate: Int,
+    @SerializedName("minimumFee")
+    val minimumFee: Int,
 )

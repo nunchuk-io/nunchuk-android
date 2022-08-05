@@ -65,4 +65,7 @@
     <string name="nc_hold_your_device_near_the_nfc">Hold the key near the device.</string>
     <string name="nc_keep_holding_nfc">Keep holding the key near the device until it\'s finished.</string>
     <string name="nc_your_password_changed">Your password has successfully been updated</string>
+    <string name="nc_replace_by_fee">Replace-by-Fee</string>
+    <string name="nc_new_fee_rate">New fee rate</string>
+    <string name="nc_replace_by_fee_success">Replace-by-Fee successfully</string>
 </resources>

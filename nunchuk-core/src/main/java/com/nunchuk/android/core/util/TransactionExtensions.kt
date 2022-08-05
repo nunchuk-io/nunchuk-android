@@ -10,6 +10,10 @@ fun TransactionStatus.hadBroadcast() = this == CONFIRMED || this == NETWORK_REJE
 
 fun TransactionStatus.isPending() = this == PENDING_SIGNATURES || this == READY_TO_BROADCAST
 
+fun TransactionStatus.isPendingConfirm() = this == PENDING_CONFIRMATION
+
+fun TransactionStatus.isShowMoreMenu() = isPending() || isPendingConfirm()
+
 fun TransactionStatus.isConfirmed() = this == CONFIRMED
 
 fun Transaction.getPendingSignatures() = 0.coerceAtLeast(m - signers.count(Map.Entry<String, Boolean>::value))
