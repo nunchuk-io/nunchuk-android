@@ -15,6 +15,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.core.sheet.input.InputBottomSheet
+import com.nunchuk.android.core.sheet.input.InputBottomSheetListener
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.Transaction
@@ -32,11 +34,12 @@ import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
-class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBinding>() {
+class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBinding>(), InputBottomSheetListener {
     private var shouldReload: Boolean = true
 
     private val args: TransactionDetailsArgs by lazy { TransactionDetailsArgs.deserializeFrom(intent) }
@@ -84,6 +87,10 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         viewModel.init(walletId = args.walletId, txId = args.txId, initEventId = args.initEventId, roomId = args.roomId)
     }
 
+    override fun onInputDone(newInput: String) {
+        viewModel.updateTransactionMemo(newInput)
+    }
+
     override fun onResume() {
         super.onResume()
         if (shouldReload) {
@@ -127,6 +134,13 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 }
                 else -> false
             }
+        }
+        binding.ivNote.setOnDebounceClickListener(coroutineScope = lifecycleScope) {
+            InputBottomSheet.show(
+                fragmentManager = supportFragmentManager,
+                currentInput = viewModel.getTransaction().memo,
+                title = getString(R.string.nc_transaction_private_note_off_chain_data)
+            )
         }
     }
 
@@ -176,6 +190,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         } else {
             transaction.outputs.firstOrNull()
         }
+        binding.noteContent.text = if (transaction.memo.isNotEmpty()) transaction.memo else getString(R.string.nc_none)
         binding.sendingTo.text = output?.first.orEmpty().truncatedAddress()
         binding.signatureStatus.isVisible = !transaction.status.hadBroadcast()
         val pendingSigners = transaction.getPendingSignatures()
@@ -272,7 +287,20 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             NfcLoadingEvent -> showLoading(message = getString(R.string.nc_keep_holding_nfc))
             is ExportToFileSuccess -> showExportToFileSuccess(event)
             is ExportTransactionError -> showExportToFileError(event)
+            is UpdateTransactionMemoFailed -> handleUpdateTransactionFailed(event)
+            is UpdateTransactionMemoSuccess -> handleUpdateTransactionSuccess(event)
         }
+    }
+
+    private fun handleUpdateTransactionFailed(event: UpdateTransactionMemoFailed) {
+        hideLoading()
+        NCToastMessage(this).showError(event.message)
+    }
+
+    private fun handleUpdateTransactionSuccess(event: UpdateTransactionMemoSuccess) {
+        hideLoading()
+        NCToastMessage(this).show(getString(R.string.nc_private_note_updated))
+        binding.noteContent.text = event.newMemo
     }
 
     private fun handleSignError(event: TransactionDetailsError) {

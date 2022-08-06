@@ -151,12 +151,12 @@ fun RecyclerView.isFirstItemVisible(): Boolean {
     return false
 }
 
-fun View.setOnDebounceClickListener(interval: Long = 500L, clickListener: (View) -> Unit) {
-    debounceClick(interval, clickListener)
+fun View.setOnDebounceClickListener(interval: Long = 500L, coroutineScope: CoroutineScope = MainScope(), clickListener: (View) -> Unit) {
+    debounceClick(interval, coroutineScope, clickListener)
 }
 
-internal fun View.debounceClick(interval: Long = 500L, clicked: (View) -> Unit) {
-    setOnClickListener(debounce(interval) { clicked(it) })
+internal fun View.debounceClick(interval: Long = 500L, coroutineScope: CoroutineScope = MainScope(), clicked: (View) -> Unit) {
+    setOnClickListener(debounce(interval, coroutineScope) { clicked(it) })
 }
 
 private fun <T> debounce(interval: Long = 500L, coroutineScope: CoroutineScope = MainScope(), func: (T) -> Unit): (T) -> Unit {
@@ -170,6 +170,8 @@ private fun <T> debounce(interval: Long = 500L, coroutineScope: CoroutineScope =
         }
     }
 }
+
+
 
 
 

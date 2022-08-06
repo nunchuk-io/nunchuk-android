@@ -14,6 +14,7 @@ import com.nunchuk.android.core.util.isPending
 import com.nunchuk.android.core.util.isPendingConfirm
 import com.nunchuk.android.core.util.isShowMoreMenu
 import com.nunchuk.android.core.util.messageOrUnknownError
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
@@ -48,7 +49,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getRoomWalletUseCase: GetRoomWalletUseCase,
     private val getContactsUseCase: GetContactsUseCase,
     private val signTransactionByTapSignerUseCase: SignTransactionByTapSignerUseCase,
-    private val signRoomTransactionByTapSignerUseCase: SignRoomTransactionByTapSignerUseCase
+    private val signRoomTransactionByTapSignerUseCase: SignRoomTransactionByTapSignerUseCase,
+    private val updateTransactionMemo: UpdateTransactionMemo
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
 
     private var walletId: String = ""
@@ -96,6 +98,20 @@ internal class TransactionDetailsViewModel @Inject constructor(
             getSharedTransaction()
         } else {
             getPersonalTransaction()
+        }
+    }
+
+    fun getTransaction() = getState().transaction
+
+    fun updateTransactionMemo(newMemo: String) {
+        viewModelScope.launch {
+            setEvent(LoadingEvent)
+            val result = updateTransactionMemo(UpdateTransactionMemo.Data(walletId, txId, newMemo))
+            if (result.isSuccess) {
+                setEvent(UpdateTransactionMemoSuccess(newMemo))
+            } else {
+                setEvent(UpdateTransactionMemoFailed(result.exceptionOrNull()?.message.orUnknownError()))
+            }
         }
     }
 
