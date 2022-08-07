@@ -22,10 +22,10 @@ class SatsCardSlotViewModel @Inject constructor(
     private val getSatsCardSlotBalanceUseCase: GetSatsCardSlotBalanceUseCase,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<SatsCardSlotEvent>()
-    private val _state = savedStateHandle.getStateFlow(SatsCardArgs.EXTRA_SATSCARD_STATUS, SatsCardStatus())
     private val _activeSlot = MutableStateFlow<SatsCardSlot?>(null)
     val activeSlot = _activeSlot.filterIsInstance<SatsCardSlot>()
     val event = _event.asSharedFlow()
+    val state = savedStateHandle.getStateFlow(SatsCardArgs.EXTRA_SATSCARD_STATUS, SatsCardStatus())
 
     init {
         val status: SatsCardStatus = savedStateHandle[SatsCardArgs.EXTRA_SATSCARD_STATUS]!!
@@ -35,7 +35,7 @@ class SatsCardSlotViewModel @Inject constructor(
             val activeSlot = status.slots.find { it.index == status.activeSlotIndex } ?: return@launch
             val result = getSatsCardSlotBalanceUseCase(listOf(activeSlot))
             if (result.isSuccess) {
-                val previousStatus = _state.value
+                val previousStatus = state.value
                 val newSlot = result.getOrThrow().first()
                 val newSlots = previousStatus.slots.toMutableList().apply {
                     set(status.activeSlotIndex, newSlot)
@@ -51,7 +51,7 @@ class SatsCardSlotViewModel @Inject constructor(
             val otherSlots = status.slots.filter { it.index != status.activeSlotIndex && it.status == SatsCardSlotStatus.UNSEALED }
             val result = getSatsCardSlotBalanceUseCase(otherSlots)
             if (result.isSuccess) {
-                val previousStatus = _state.value
+                val previousStatus = state.value
                 val activeSlot = status.slots.find { it.index == status.activeSlotIndex } ?: return@launch
                 savedStateHandle[SatsCardArgs.EXTRA_SATSCARD_STATUS] = previousStatus.copy(slots = result.getOrThrow() + activeSlot)
                 _event.emit(SatsCardSlotEvent.GetOtherSlotBalanceSuccess(result.getOrThrow()))
@@ -63,12 +63,12 @@ class SatsCardSlotViewModel @Inject constructor(
 
     fun isBalanceLoaded() = _activeSlot.value != null
 
-    fun getUnsealSlots() = _state.value.slots.filter { it.status == SatsCardSlotStatus.UNSEALED }
+    fun getUnsealSlots() = state.value.slots.filter { it.status == SatsCardSlotStatus.UNSEALED }
 
     fun getActiveSlotWithBalance() = _activeSlot.value
 
     fun getActiveSlot(): SatsCardSlot? {
-        val status = _state.value
+        val status = state.value
         return status.slots.find { it.index == status.activeSlotIndex }
     }
 }

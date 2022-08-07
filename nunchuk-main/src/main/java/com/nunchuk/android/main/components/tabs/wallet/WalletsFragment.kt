@@ -37,7 +37,7 @@ import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.wallet.components.details.WalletDetailsArgs
 import com.nunchuk.android.widget.NCInfoDialog
-import com.nunchuk.android.widget.NCWarningDialog
+import com.nunchuk.android.widget.NCWarningVerticalDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 
@@ -111,7 +111,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             is ShowErrorEvent -> showError(event.message)
             is GoToSatsCardScreen -> openSatsCardActiveSlotScreen(event)
             is GoToTapSignerScreen -> openTapSignerScreen(event)
-            NeedSetupSatsCard -> handleNeedSetupSatsCard()
+            is NeedSetupSatsCard -> handleNeedSetupSatsCard(event)
             is SatsCardUsedUp -> handleSatsCardUsedUp(event.numberOfSlot)
             is Loading -> handleLoading(event)
             is NfcLoading -> showOrHideLoading(event.loading, message = getString(R.string.nc_keep_holding_nfc))
@@ -126,12 +126,16 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         navigator.openSignerIntroScreen(requireActivity(), event.status)
     }
 
-    private fun handleNeedSetupSatsCard() {
-        NCWarningDialog(requireActivity()).showDialog(
+    private fun handleNeedSetupSatsCard(event: NeedSetupSatsCard) {
+        NCWarningVerticalDialog(requireActivity()).showDialog(
             title = getString(R.string.nc_setup_satscard),
             message = getString(R.string.nc_setup_satscard_msg),
+            btnNeutral = getString(R.string.nc_view_unsealed_slots),
             onYesClick = {
                 NfcSetupActivity.navigate(requireActivity(), NfcSetupActivity.SETUP_SATSCARD, hasWallet = walletsViewModel.hasWallet())
+            },
+            onNeutralClick =  {
+                SatsCardActivity.navigate(requireActivity(), event.status, walletsViewModel.hasWallet(), true)
             }
         )
     }

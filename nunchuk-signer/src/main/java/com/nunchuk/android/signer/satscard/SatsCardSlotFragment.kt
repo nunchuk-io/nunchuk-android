@@ -8,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.constants.Constants
@@ -35,7 +35,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
     @Inject
     lateinit var textUtils: TextUtils
 
-    private val viewModel by viewModels<SatsCardSlotViewModel>()
+    private val viewModel by activityViewModels<SatsCardSlotViewModel>()
     private val args: SatsCardArgs by lazy { SatsCardArgs.deserializeBundle(requireArguments()) }
 
     private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -58,9 +58,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
 
     override fun onOptionClicked(option: SheetOption) {
         if (option.type == SheetOptionType.TYPE_VIEW_SATSCARD_UNSEAL) {
-            val action = SatsCardSlotFragmentDirections.actionSatsCardSlotFragmentToSatsCardUnsealSlotFragment(
-                slots = viewModel.getUnsealSlots().toTypedArray()
-            )
+            val action = SatsCardSlotFragmentDirections.actionSatsCardSlotFragmentToSatsCardUnsealSlotFragment()
             findNavController().navigate(action)
         }
     }

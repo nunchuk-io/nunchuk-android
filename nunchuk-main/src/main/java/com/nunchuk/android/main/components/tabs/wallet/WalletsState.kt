@@ -18,7 +18,7 @@ internal sealed class WalletsEvent {
     object AddWalletEvent : WalletsEvent()
     object ShowSignerIntroEvent : WalletsEvent()
     object WalletEmptySignerEvent : WalletsEvent()
-    object NeedSetupSatsCard : WalletsEvent()
+    class NeedSetupSatsCard(val status: SatsCardStatus) : WalletsEvent()
     class NfcLoading(val loading: Boolean) : WalletsEvent()
     class GoToSatsCardScreen(val status: SatsCardStatus) : WalletsEvent()
     class GoToTapSignerScreen(val status: TapSignerStatus) : WalletsEvent()
