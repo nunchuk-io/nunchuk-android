@@ -10,7 +10,6 @@ import com.nunchuk.android.core.util.isCreated
 import com.nunchuk.android.core.util.isPendingKeys
 import com.nunchuk.android.core.util.isReadyFinalize
 import com.nunchuk.android.messages.components.detail.bindWalletStatus
-import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.RoomWalletData
 import com.nunchuk.android.model.toSingleSigner
 import com.nunchuk.android.type.AddressType
@@ -55,10 +54,11 @@ class SharedWalletConfigActivity : BaseActivity<ActivitySharedWalletConfigBindin
 
     private fun handleState(state: SharedWalletConfigState) {
         SignersViewBinder(binding.signersContainer, state.signerModels).bindItems()
-        state.roomWallet?.let(::bindRoomWallet)
+        bindRoomWallet(state)
     }
 
-    private fun bindRoomWallet(roomWallet: RoomWallet) {
+    private fun bindRoomWallet(state: SharedWalletConfigState) {
+        val roomWallet = state.roomWallet ?: return
         binding.status.bindWalletStatus(roomWallet)
         when {
             roomWallet.isCreated() -> {
@@ -74,7 +74,7 @@ class SharedWalletConfigActivity : BaseActivity<ActivitySharedWalletConfigBindin
             }
             roomWallet.isReadyFinalize() -> {
                 binding.btnDone.text = getString(R.string.nc_wallet_finalize_wallet)
-                binding.btnDone.isVisible = true
+                binding.btnDone.isVisible = state.isSender
                 binding.btnDone.setOnClickListener { viewModel.finalizeWallet() }
             }
             else -> {
