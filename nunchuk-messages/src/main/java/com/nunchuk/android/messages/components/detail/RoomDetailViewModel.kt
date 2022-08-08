@@ -98,7 +98,7 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun leaveRoom(room: Room) {
         viewModelScope.launch {
-            leaveRoomUseCase.execute(room)
+            leaveRoomUseCase.execute(room.roomId)
                 .flowOn(IO)
                 .onException { }
                 .collect { event(LeaveRoomEvent) }

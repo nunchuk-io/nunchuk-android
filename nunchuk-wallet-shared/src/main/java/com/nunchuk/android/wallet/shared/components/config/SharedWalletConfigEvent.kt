@@ -5,7 +5,8 @@ import com.nunchuk.android.model.RoomWallet
 
 data class SharedWalletConfigState(
     val signerModels: List<SignerModel> = emptyList(),
-    val roomWallet: RoomWallet? = null
+    val roomWallet: RoomWallet? = null,
+    val isSender: Boolean = false
 )
 
 sealed class SharedWalletConfigEvent {
