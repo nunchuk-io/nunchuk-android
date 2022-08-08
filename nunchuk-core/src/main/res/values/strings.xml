@@ -96,4 +96,6 @@
     <string name="nc_create_single_sig_for_sweep">We will create a single-sig wallet for you to sweep into.</string>
     <string name="nc_create_my_own_wallet">I’ll create my own wallet</string>
     <string name="nc_satscard_sweeped">Your SATSCARD has been sweeped</string>
+    <string name="nc_confirm_and_sweep">Confirm and sweep balance</string>
+    <string name="nc_sweep_to_a_wallet">Sweep to a wallet</string>
 </resources>

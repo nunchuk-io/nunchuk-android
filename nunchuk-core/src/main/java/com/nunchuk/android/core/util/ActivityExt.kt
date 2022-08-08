@@ -8,14 +8,20 @@ import android.net.Uri
 import android.provider.MediaStore
 import android.provider.Settings
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.widget.NCToastMessage
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import java.io.File
 
 fun Activity.showToast(message: String) = NCToastMessage(this).show(message)
@@ -115,6 +121,13 @@ fun getFileFromUri(contentResolver: ContentResolver, uri: Uri, directory: File) 
 } catch (t: Throwable) {
     CrashlyticsReporter.recordException(t)
     null
+}
+
+fun <T> AppCompatActivity.flowObserver(flow: Flow<T>, collector: FlowCollector<T>) {
+    lifecycleScope.launchWhenStarted {
+        flow.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .collect(collector)
+    }
 }
 
 const val CHOOSE_FILE_REQUEST_CODE = 1248

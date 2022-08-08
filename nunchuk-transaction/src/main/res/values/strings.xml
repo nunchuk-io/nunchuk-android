@@ -71,5 +71,6 @@
     <string name="nc_transaction_export_psbt">Export PSBT</string>
     <string name="nc_input_fee_invalid_error">Rate cannot be lower than the minimum fee rate</string>
     <string name="nc_wait_to_estimate_fee">Please wait to estimate fee</string>
+    <string name="nc_sweep_to_an_address">Sweep to an address</string>
 
 </resources>

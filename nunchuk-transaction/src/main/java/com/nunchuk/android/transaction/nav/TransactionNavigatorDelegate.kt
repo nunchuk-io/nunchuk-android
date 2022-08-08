@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.nfc.SweepType
+import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.nav.TransactionNavigator
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.transaction.components.details.TransactionDetailsActivity
@@ -78,7 +80,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         address: String,
         privateNote: String,
         subtractFeeFromAmount: Boolean,
-        isReplaceFee: Boolean
+        sweepType: SweepType,
+        slots: List<SatsCardSlot>
     ) {
         EstimatedFeeActivity.start(
             activityContext = activityContext,
@@ -87,7 +90,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             availableAmount = availableAmount,
             address = address,
             privateNote = privateNote,
-            subtractFeeFromAmount = subtractFeeFromAmount
+            subtractFeeFromAmount = subtractFeeFromAmount,
+            sweepType = sweepType,
+            slots = slots
         )
     }
 
@@ -100,7 +105,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         privateNote: String,
         estimatedFee: Double,
         subtractFeeFromAmount: Boolean,
-        manualFeeRate: Int
+        manualFeeRate: Int,
+        sweepType: SweepType,
+        slots: List<SatsCardSlot>
     ) {
         TransactionConfirmActivity.start(
             activityContext = activityContext,
@@ -111,7 +118,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             privateNote = privateNote,
             estimatedFee = estimatedFee,
             subtractFeeFromAmount = subtractFeeFromAmount,
-            manualFeeRate = manualFeeRate
+            manualFeeRate = manualFeeRate,
+            sweepType = sweepType,
+            slots = slots
         )
     }
 

@@ -2,39 +2,47 @@ package com.nunchuk.android.transaction.components.send.fee
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
+import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeCompletedEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeErrorEvent
+import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 internal class EstimatedFeeViewModel @Inject constructor(
     private val estimateFeeUseCase: EstimateFeeUseCase,
-    private val draftTransactionUseCase: DraftTransactionUseCase
+    private val draftTransactionUseCase: DraftTransactionUseCase,
+    private val draftSatsCardTransactionUseCase: DraftSatsCardTransactionUseCase
 ) : NunchukViewModel<EstimatedFeeState, EstimatedFeeEvent>() {
 
     private var walletId: String = ""
     private var address: String = ""
     private var sendAmount: Double = 0.0
-    override val initialState = EstimatedFeeState()
     private var draftTranJob: Job? = null
+    private var slots = mutableListOf<SatsCardSlot>()
 
-    fun init(walletId: String, address: String, sendAmount: Double) {
+    override val initialState = EstimatedFeeState()
+
+    fun init(walletId: String, address: String, sendAmount: Double, slots: List<SatsCardSlot>) {
         this.walletId = walletId
         this.address = address
         this.sendAmount = sendAmount
+        this.slots.apply {
+            clear()
+            addAll(slots)
+        }
         getEstimateFeeRates()
     }
 
@@ -51,20 +59,43 @@ internal class EstimatedFeeViewModel @Inject constructor(
     }
 
     private fun draftTransaction() {
-        val state = getState()
         draftTranJob?.cancel()
         draftTranJob = viewModelScope.launch {
-            setEvent(EstimatedFeeEvent.Loading(true))
-            when (val result = draftTransactionUseCase.execute(
-                walletId = walletId,
-                outputs = mapOf(address to sendAmount.toAmount()),
-                subtractFeeFromAmount = state.subtractFeeFromAmount,
-                feeRate = state.manualFeeRate.toManualFeeRate()
-            )) {
-                is Success -> updateState { copy(estimatedFee = result.data.fee) }
-                is Error -> event(EstimatedFeeErrorEvent(result.exception.message.orEmpty()))
+            if (walletId.isNotEmpty()) {
+                draftNormalTransaction()
+            } else {
+                draftSatsCardTransaction()
             }
-            setEvent(EstimatedFeeEvent.Loading(false))
+        }
+    }
+
+    private suspend fun draftNormalTransaction() {
+        val state = getState()
+        setEvent(EstimatedFeeEvent.Loading(true))
+        when (val result = draftTransactionUseCase.execute(
+            walletId = walletId,
+            outputs = mapOf(address to sendAmount.toAmount()),
+            subtractFeeFromAmount = state.subtractFeeFromAmount,
+            feeRate = state.manualFeeRate.toManualFeeRate()
+        )) {
+            is Success -> updateState { copy(estimatedFee = result.data.fee) }
+            is Error -> event(EstimatedFeeErrorEvent(result.exception.message.orEmpty()))
+        }
+        setEvent(EstimatedFeeEvent.Loading(false))
+    }
+
+    private suspend fun draftSatsCardTransaction() {
+        val result = draftSatsCardTransactionUseCase(
+            DraftSatsCardTransactionUseCase.Data(
+                address,
+                slots,
+                getState().manualFeeRate
+            )
+        )
+        if (result.isSuccess) {
+            updateState { copy(estimatedFee = result.getOrThrow().fee) }
+        } else {
+            setEvent(EstimatedFeeErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 

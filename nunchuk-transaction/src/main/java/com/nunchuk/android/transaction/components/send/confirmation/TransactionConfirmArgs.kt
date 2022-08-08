@@ -3,10 +3,12 @@ package com.nunchuk.android.transaction.components.send.confirmation
 import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
+import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.getDoubleValue
 import com.nunchuk.android.core.util.getIntValue
 import com.nunchuk.android.core.util.getStringValue
+import com.nunchuk.android.model.SatsCardSlot
 
 data class TransactionConfirmArgs(
     val walletId: String,
@@ -16,7 +18,9 @@ data class TransactionConfirmArgs(
     val privateNote: String,
     val estimatedFee: Double,
     val subtractFeeFromAmount: Boolean = false,
-    val manualFeeRate: Int = 0
+    val manualFeeRate: Int = 0,
+    val sweepType: SweepType,
+    val slots: List<SatsCardSlot>
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, TransactionConfirmActivity::class.java).apply {
@@ -28,6 +32,8 @@ data class TransactionConfirmArgs(
         putExtra(EXTRA_ESTIMATE_FEE, estimatedFee)
         putExtra(EXTRA_SUBTRACT_FEE_FROM_AMOUNT, subtractFeeFromAmount)
         putExtra(EXTRA_MANUAL_FEE_RATE, manualFeeRate)
+        putExtra(EXTRA_SWEEP_TYPE, sweepType)
+        putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
     }
 
     companion object {
@@ -39,6 +45,8 @@ data class TransactionConfirmArgs(
         private const val EXTRA_ESTIMATE_FEE = "EXTRA_ESTIMATE_FEE"
         private const val EXTRA_SUBTRACT_FEE_FROM_AMOUNT = "EXTRA_SUBTRACT_FEE_FROM_AMOUNT"
         private const val EXTRA_MANUAL_FEE_RATE = "EXTRA_MANUAL_FEE_RATE"
+        private const val EXTRA_SWEEP_TYPE = "EXTRA_MANUAL_FEE_RATE"
+        private const val EXTRA_SLOTS = "EXTRA_SLOTS"
 
         fun deserializeFrom(intent: Intent): TransactionConfirmArgs {
             val extras = intent.extras
@@ -50,7 +58,9 @@ data class TransactionConfirmArgs(
                 extras.getStringValue(EXTRA_PRIVATE_NOTE),
                 extras.getDoubleValue(EXTRA_ESTIMATE_FEE),
                 extras.getBooleanValue(EXTRA_SUBTRACT_FEE_FROM_AMOUNT),
-                extras.getIntValue(EXTRA_MANUAL_FEE_RATE)
+                extras.getIntValue(EXTRA_MANUAL_FEE_RATE),
+                extras!!.getSerializable(EXTRA_SWEEP_TYPE) as SweepType,
+                extras!!.getParcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty()
             )
         }
     }

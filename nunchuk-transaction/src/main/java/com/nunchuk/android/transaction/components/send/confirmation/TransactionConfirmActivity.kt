@@ -1,24 +1,31 @@
 package com.nunchuk.android.transaction.components.send.confirmation
 
 import android.app.Activity
+import android.nfc.tech.IsoDep
 import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
-import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.SweepType
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.amount.InputAmountActivity
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.*
+import com.nunchuk.android.transaction.components.utils.toTitle
 import com.nunchuk.android.transaction.databinding.ActivityTransactionConfirmBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
-class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBinding>() {
+class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBinding>() {
 
     private val args: TransactionConfirmArgs by lazy { TransactionConfirmArgs.deserializeFrom(intent) }
 
@@ -39,15 +46,25 @@ class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBindin
             estimateFee = args.estimatedFee,
             subtractFeeFromAmount = args.subtractFeeFromAmount,
             privateNote = args.privateNote,
-            manualFeeRate = args.manualFeeRate
+            manualFeeRate = args.manualFeeRate,
+            slots = args.slots
         )
     }
 
     private fun observeEvent() {
         viewModel.event.observe(this, ::handleEvent)
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_SATSCARD_SWEEP_SLOT }) {
+            viewModel.handleSweepBalance(IsoDep.get(it.tag), nfcViewModel.inputCvc.orEmpty(), args.slots.toList(), args.sweepType)
+            nfcViewModel.clearScanInfo()
+        }
     }
 
     private fun setupViews() {
+        binding.toolbarTitle.text = args.sweepType.toTitle(this)
+        binding.btnConfirm.text = when (args.sweepType) {
+            SweepType.NONE -> getString(R.string.nc_transaction_confirm_and_create_transaction)
+            else -> getString(R.string.nc_confirm_and_sweep)
+        }
         binding.sendAddressLabel.text = args.address
         binding.estimatedFeeBTC.text = args.estimatedFee.getBTCAmount()
         binding.estimatedFeeUSD.text = args.estimatedFee.getUSDAmount()
@@ -67,7 +84,11 @@ class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBindin
         binding.noteContent.text = args.privateNote
 
         binding.btnConfirm.setOnClickListener {
-            viewModel.handleConfirmEvent()
+            if (args.slots.isNotEmpty()) {
+                startNfcFlow(REQUEST_SATSCARD_SWEEP_SLOT)
+            } else {
+                viewModel.handleConfirmEvent()
+            }
         }
 
         binding.toolbar.setNavigationOnClickListener {
@@ -137,7 +158,9 @@ class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBindin
             privateNote: String,
             estimatedFee: Double,
             subtractFeeFromAmount: Boolean = false,
-            manualFeeRate: Int = 0
+            manualFeeRate: Int = 0,
+            sweepType: SweepType = SweepType.NONE,
+            slots: List<SatsCardSlot> = emptyList()
         ) {
             activityContext.startActivity(
                 TransactionConfirmArgs(
@@ -148,7 +171,9 @@ class TransactionConfirmActivity : BaseActivity<ActivityTransactionConfirmBindin
                     privateNote = privateNote,
                     estimatedFee = estimatedFee,
                     subtractFeeFromAmount = subtractFeeFromAmount,
-                    manualFeeRate = manualFeeRate
+                    manualFeeRate = manualFeeRate,
+                    sweepType = sweepType,
+                    slots = slots
                 ).buildIntent(activityContext)
             )
         }

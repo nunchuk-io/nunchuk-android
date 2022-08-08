@@ -1,6 +1,5 @@
 package com.nunchuk.android.signer.satscard.wallets
 
-import android.nfc.tech.IsoDep
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetSatsCardSlotKeyUseCase
@@ -53,42 +52,7 @@ class SelectWalletViewModel @Inject constructor(
         _state.value = SelectWalletState(selectWallets, walletId)
     }
 
-    fun handleSweepBalance(isoDep: IsoDep?, cvc: String, slots: List<SatsCardSlot>, type: Int) {
-        isoDep ?: return
-        when (type) {
-            SelectWalletFragment.TYPE_UNSEAL_SWEEP_ACTIVE_SLOT -> unsealSweepActiveSlot(isoDep, cvc, slots)
-            SelectWalletFragment.TYPE_SWEEP_UNSEAL_SLOT -> getSlotsKey(isoDep, cvc, slots)
-        }
-    }
-
-    private fun unsealSweepActiveSlot(isoDep: IsoDep, cvc: String, slots: List<SatsCardSlot>) {
-        if (slots.isEmpty()) return
-        viewModelScope.launch {
-            _event.emit(SelectWalletEvent.NfcLoading(true))
-            val result = unsealSatsCardSlotUseCase(UnsealSatsCardSlotUseCase.Data(isoDep, cvc, slots.first()))
-            _event.emit(SelectWalletEvent.NfcLoading(false))
-            if (result.isSuccess) {
-                getWalletAddress(listOf(result.getOrThrow()))
-            } else {
-                _event.emit(SelectWalletEvent.Error(result.exceptionOrNull()))
-            }
-        }
-    }
-
-    private fun getSlotsKey(isoDep: IsoDep, cvc: String, slots: List<SatsCardSlot>) {
-        viewModelScope.launch {
-            _event.emit(SelectWalletEvent.NfcLoading(true))
-            val result = getSatsCardSlotKeyUseCase(GetSatsCardSlotKeyUseCase.Data(isoDep, cvc, slots))
-            _event.emit(SelectWalletEvent.NfcLoading(false))
-            if (result.isSuccess) {
-                getWalletAddress(result.getOrThrow())
-            } else {
-                _event.emit(SelectWalletEvent.Error(result.exceptionOrNull()))
-            }
-        }
-    }
-
-    private fun getWalletAddress(slots: List<SatsCardSlot>) {
+    fun getWalletAddress() {
         viewModelScope.launch {
             _event.emit(SelectWalletEvent.Loading(true))
             getAddressesUseCase.execute(walletId = selectedWalletId)
@@ -100,8 +64,10 @@ class SelectWalletViewModel @Inject constructor(
                 }.onException {
                     _event.emit(SelectWalletEvent.Loading(false))
                     _event.emit(SelectWalletEvent.Error(it))
-                }.collect {
-                    sweepUnsealSlots(it.first(), slots)
+                }
+                .collect {
+                    _event.emit(SelectWalletEvent.Loading(false))
+                    _event.emit(SelectWalletEvent.GetAddressSuccess(it.first()))
                 }
         }
     }
@@ -130,6 +96,7 @@ class SelectWalletViewModel @Inject constructor(
 
 sealed class SelectWalletEvent {
     object SweepSuccess : SelectWalletEvent()
+    data class GetAddressSuccess(val address: String) : SelectWalletEvent()
     data class Loading(val isLoading: Boolean) : SelectWalletEvent()
     data class NfcLoading(val isLoading: Boolean) : SelectWalletEvent()
     data class Error(val e: Throwable?) : SelectWalletEvent()

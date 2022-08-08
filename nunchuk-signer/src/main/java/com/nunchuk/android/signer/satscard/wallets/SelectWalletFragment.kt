@@ -1,6 +1,5 @@
 package com.nunchuk.android.signer.satscard.wallets
 
-import android.nfc.tech.IsoDep
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,18 +8,15 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.nfc.BaseNfcActivity
-import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
-import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.nfc.SweepType
+import com.nunchuk.android.core.util.*
+import com.nunchuk.android.model.Amount
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.FragmentSelectWalletSweepBinding
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
 class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
@@ -47,9 +43,9 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
             activity?.onBackPressed()
         }
 
-        binding.btnContinue.setOnClickListener {
+        binding.btnContinue.setOnDebounceClickListener {
             if (viewModel.selectedWalletId.isNotEmpty()) {
-                (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_SATSCARD_SWEEP_SLOT)
+                viewModel.getWalletAddress()
             } else {
                 NCToastMessage(requireActivity()).showWarning(getString(R.string.nc_select_wallet_first))
             }
@@ -63,10 +59,6 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
     private fun observer() {
         flowObserver(viewModel.event, ::handleEvent)
         flowObserver(viewModel.state, ::handleState)
-        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_SATSCARD_SWEEP_SLOT }) {
-            viewModel.handleSweepBalance(IsoDep.get(it.tag), nfcViewModel.inputCvc.orEmpty(), args.slots.toList(), args.type)
-            nfcViewModel.clearScanInfo()
-        }
     }
 
     private fun handleEvent(event: SelectWalletEvent) {
@@ -86,7 +78,29 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
                 navigator.openWalletDetailsScreen(requireActivity(), viewModel.selectedWalletId, true)
                 requireActivity().finish()
             }
+            is SelectWalletEvent.GetAddressSuccess -> navigateToEstimateFee(event.address)
         }
+    }
+
+    private fun navigateToEstimateFee(address: String) {
+        val totalBalance = args.slots.sumOf { it.balance.value }
+        val totalInBtc = Amount(value = totalBalance).pureBTC()
+        val type = if (args.type == TYPE_UNSEAL_SWEEP_ACTIVE_SLOT) {
+            SweepType.UNSEAL_SWEEP_TO_NUNCHUK_WALLET
+        } else {
+            SweepType.SWEEP_TO_NUNCHUK_WALLET
+        }
+        navigator.openEstimatedFeeScreen(
+            activityContext = requireActivity(),
+            walletId = "",
+            outputAmount = totalInBtc,
+            availableAmount = totalInBtc,
+            address = address,
+            "",
+            subtractFeeFromAmount = true,
+            sweepType = type,
+            slots = args.slots.toList()
+        )
     }
 
     private fun handleState(state: SelectWalletState) {
