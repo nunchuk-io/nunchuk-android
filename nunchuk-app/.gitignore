@@ -1,5 +1,3 @@
 /build
 .gradle
 /.cxx
-/mapping.txt
-/seeds.txt
