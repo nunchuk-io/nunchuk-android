@@ -80,7 +80,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(), Botto
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (args.isSweepBalance) {
-            NCToastMessage(requireActivity()).showWarning(getString(R.string.nc_satscard_sweeped))
+            NCToastMessage(requireActivity()).show(getString(R.string.nc_satscard_sweeped))
         }
     }
 

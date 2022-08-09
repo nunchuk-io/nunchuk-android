@@ -27,7 +27,12 @@
     <fragment
         android:id="@+id/satsCardUnsealSlotFragment"
         android:name="com.nunchuk.android.signer.satscard.unseal.SatsCardUnsealSlotFragment"
-        android:label="SatsCardUnsealSlotFragment"/>
+        android:label="SatsCardUnsealSlotFragment">
+
+        <argument
+            android:name="hasWallet"
+            app:argType="boolean" />
+    </fragment>
 
     <fragment
         android:id="@+id/selectWalletFragment"

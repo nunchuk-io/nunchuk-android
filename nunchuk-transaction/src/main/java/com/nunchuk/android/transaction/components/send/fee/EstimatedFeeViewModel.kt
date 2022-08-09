@@ -16,6 +16,7 @@ import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -61,7 +62,7 @@ internal class EstimatedFeeViewModel @Inject constructor(
     private fun draftTransaction() {
         draftTranJob?.cancel()
         draftTranJob = viewModelScope.launch {
-            if (walletId.isNotEmpty()) {
+            if (slots.isEmpty()) {
                 draftNormalTransaction()
             } else {
                 draftSatsCardTransaction()
@@ -79,12 +80,17 @@ internal class EstimatedFeeViewModel @Inject constructor(
             feeRate = state.manualFeeRate.toManualFeeRate()
         )) {
             is Success -> updateState { copy(estimatedFee = result.data.fee) }
-            is Error -> event(EstimatedFeeErrorEvent(result.exception.message.orEmpty()))
+            is Error -> {
+                if (result.exception !is CancellationException) {
+                    setEvent(EstimatedFeeErrorEvent(result.exception.message.orEmpty()))
+                }
+            }
         }
         setEvent(EstimatedFeeEvent.Loading(false))
     }
 
     private suspend fun draftSatsCardTransaction() {
+        setEvent(EstimatedFeeEvent.Loading(true))
         val result = draftSatsCardTransactionUseCase(
             DraftSatsCardTransactionUseCase.Data(
                 address,
@@ -92,10 +98,13 @@ internal class EstimatedFeeViewModel @Inject constructor(
                 getState().manualFeeRate
             )
         )
+        setEvent(EstimatedFeeEvent.Loading(false))
         if (result.isSuccess) {
             updateState { copy(estimatedFee = result.getOrThrow().fee) }
         } else {
-            setEvent(EstimatedFeeErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+            if (result.exceptionOrNull() !is CancellationException) {
+                setEvent(EstimatedFeeErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+            }
         }
     }
 

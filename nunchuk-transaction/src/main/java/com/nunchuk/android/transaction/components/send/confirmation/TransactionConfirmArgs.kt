@@ -11,7 +11,7 @@ import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.SatsCardSlot
 
 data class TransactionConfirmArgs(
-    val walletId: String,
+    val walletId: String, // in case sweep it's target wallet id, other cases it's source wallet id
     val outputAmount: Double,
     val availableAmount: Double,
     val address: String,
@@ -45,7 +45,7 @@ data class TransactionConfirmArgs(
         private const val EXTRA_ESTIMATE_FEE = "EXTRA_ESTIMATE_FEE"
         private const val EXTRA_SUBTRACT_FEE_FROM_AMOUNT = "EXTRA_SUBTRACT_FEE_FROM_AMOUNT"
         private const val EXTRA_MANUAL_FEE_RATE = "EXTRA_MANUAL_FEE_RATE"
-        private const val EXTRA_SWEEP_TYPE = "EXTRA_MANUAL_FEE_RATE"
+        private const val EXTRA_SWEEP_TYPE = "EXTRA_SWEEP_TYPE"
         private const val EXTRA_SLOTS = "EXTRA_SLOTS"
 
         fun deserializeFrom(intent: Intent): TransactionConfirmArgs {
@@ -60,7 +60,7 @@ data class TransactionConfirmArgs(
                 extras.getBooleanValue(EXTRA_SUBTRACT_FEE_FROM_AMOUNT),
                 extras.getIntValue(EXTRA_MANUAL_FEE_RATE),
                 extras!!.getSerializable(EXTRA_SWEEP_TYPE) as SweepType,
-                extras!!.getParcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty()
+                extras.getParcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty()
             )
         }
     }

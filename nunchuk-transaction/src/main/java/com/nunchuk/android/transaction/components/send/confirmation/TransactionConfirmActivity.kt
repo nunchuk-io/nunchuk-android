@@ -12,6 +12,7 @@ import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.transaction.R
@@ -104,6 +105,25 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             LoadingEvent -> showLoading()
             is InitRoomTransactionError -> showCreateTransactionError(event.message)
             is InitRoomTransactionSuccess -> returnActiveRoom(event.roomId)
+            is Error -> {
+                if (nfcViewModel.handleNfcError(event.e).not()) {
+                    NCToastMessage(this).showError(event.e?.message.orUnknownError())
+                }
+            }
+            is NfcLoading -> showOrHideLoading(event.isLoading, getString(R.string.nc_keep_holding_nfc))
+            is SweepSuccess -> {
+                ActivityManager.popUntilRoot()
+                if (args.walletId.isNotEmpty()) {
+                    navigator.openWalletDetailsScreen(this, args.walletId, true)
+                } else {
+                    navigator.openTransactionDetailsScreen(this, "", event.transaction.txId, "", "", event.transaction)
+                }
+            }
+            is SweepLoadingEvent -> showOrHideLoading(
+                event.isLoading,
+                title = getString(R.string.nc_sweeping_is_progress),
+                message = getString(R.string.nc_make_sure_internet)
+            )
         }
     }
 

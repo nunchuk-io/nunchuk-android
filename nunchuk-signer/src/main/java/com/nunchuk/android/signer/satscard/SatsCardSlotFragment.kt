@@ -25,6 +25,7 @@ import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.SatscardNavigationDirections
 import com.nunchuk.android.signer.databinding.FragmentSatscardActiveSlotBinding
 import com.nunchuk.android.signer.satscard.wallets.SelectWalletFragment
+import com.nunchuk.android.signer.util.openSweepRecipeScreen
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -38,15 +39,22 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
     private val viewModel by activityViewModels<SatsCardSlotViewModel>()
     private val args: SatsCardArgs by lazy { SatsCardArgs.deserializeBundle(requireArguments()) }
 
+    private var isSweepActiveSlot: Boolean = true
+
     private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         if (it.resultCode == Activity.RESULT_OK) {
             val activeSlot = viewModel.getActiveSlotWithBalance() ?: return@registerForActivityResult
-            openSelectWallet(arrayOf(activeSlot), SelectWalletFragment.TYPE_UNSEAL_SWEEP_ACTIVE_SLOT)
+            openSelectWallet(arrayOf(activeSlot))
         }
     }
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentSatscardActiveSlotBinding {
         return FragmentSatscardActiveSlotBinding.inflate(inflater, container, false)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        isSweepActiveSlot = savedInstanceState?.getBoolean(EXTRA_IS_SWEEP_ACTIVE_SLOT, true) ?: true
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -56,10 +64,23 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
         initViews()
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean(EXTRA_IS_SWEEP_ACTIVE_SLOT, isSweepActiveSlot)
+        super.onSaveInstanceState(outState)
+    }
+
     override fun onOptionClicked(option: SheetOption) {
         if (option.type == SheetOptionType.TYPE_VIEW_SATSCARD_UNSEAL) {
-            val action = SatsCardSlotFragmentDirections.actionSatsCardSlotFragmentToSatsCardUnsealSlotFragment()
+            val action = SatsCardSlotFragmentDirections.actionSatsCardSlotFragmentToSatsCardUnsealSlotFragment(args.hasWallet)
             findNavController().navigate(action)
+        } else if (option.type == SheetOptionType.TYPE_SWEEP_TO_WALLET) {
+            if (args.hasWallet) {
+                openSelectWallet(getInteractSlots().toTypedArray())
+            } else {
+                navigator.openQuickWalletScreen(launcher, requireActivity())
+            }
+        } else if (option.type == SheetOptionType.TYPE_SWEEP_TO_EXTERNAL_ADDRESS) {
+            openSweepRecipeScreen(navigator, getInteractSlots(), isSweepActiveSlot)
         }
     }
 
@@ -97,6 +118,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
             }
         }
         binding.btnUnsealAndSweep.setOnClickListener {
+            isSweepActiveSlot = true
             if (viewModel.isBalanceLoaded().not()) {
                 showWarning(getString(R.string.nc_please_wait_to_load_balance))
                 return@setOnClickListener
@@ -106,15 +128,24 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
                 showWarning(getString(R.string.nc_please_wait_balance_confirmation))
             } else if (activeSlot.balance.value <= 0L) {
                 showWarning(getString(R.string.nc_no_balance_to_sweep))
-            } else if (args.hasWallet) {
-                openSelectWallet(arrayOf(activeSlot), SelectWalletFragment.TYPE_UNSEAL_SWEEP_ACTIVE_SLOT)
             } else {
-                navigator.openQuickWalletScreen(launcher, requireActivity())
+                showSweepOptions()
             }
         }
     }
 
-    private fun openSelectWallet(slots: Array<SatsCardSlot>, type: Int) {
+    private fun showSweepOptions() {
+        val dialog = BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(SheetOptionType.TYPE_SWEEP_TO_WALLET, R.drawable.ic_wallet_info, R.string.nc_sweep_to_a_wallet),
+                SheetOption(SheetOptionType.TYPE_SWEEP_TO_EXTERNAL_ADDRESS, R.drawable.ic_sending_bitcoin, R.string.nc_sweep_to_an_address),
+            )
+        )
+        dialog.show(childFragmentManager, "BottomSheetOption")
+    }
+
+    private fun openSelectWallet(slots: Array<SatsCardSlot>) {
+        val type = if (isSweepActiveSlot) SelectWalletFragment.TYPE_UNSEAL_SWEEP_ACTIVE_SLOT else SelectWalletFragment.TYPE_SWEEP_UNSEAL_SLOT
         val action = SatscardNavigationDirections.toSelectWalletFragment(slots, type)
         findNavController().navigate(action)
     }
@@ -166,9 +197,18 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
                 message = getString(R.string.nc_detect_unseal_has_balance, Amount(value = sum).getBTCAmount(), labels),
                 btnNo = getString(R.string.nc_not_now),
                 onYesClick = {
-                    openSelectWallet(balanceSlots.toTypedArray(), SelectWalletFragment.TYPE_SWEEP_UNSEAL_SLOT)
+                    isSweepActiveSlot = false
+                    showSweepOptions()
                 }
             )
+        }
+    }
+
+    private fun getInteractSlots(): List<SatsCardSlot> {
+        return if (isSweepActiveSlot) {
+            listOf(viewModel.getActiveSlot() ?: SatsCardSlot())
+        } else {
+            viewModel.getUnsealSlots().unSealBalanceSlots()
         }
     }
 
@@ -189,5 +229,9 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
     private fun handleLoading() {
         binding.tvBalanceBtc.text = getString(R.string.checking_balance)
         binding.tvBalanceUsd.text = getString(R.string.nc_please_wait)
+    }
+
+    companion object {
+        private const val EXTRA_IS_SWEEP_ACTIVE_SLOT = "_a"
     }
 }

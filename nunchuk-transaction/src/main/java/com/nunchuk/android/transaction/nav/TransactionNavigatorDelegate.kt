@@ -6,6 +6,7 @@ import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nav.TransactionNavigator
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.transaction.components.details.TransactionDetailsActivity
@@ -62,6 +63,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         outputAmount: Double,
         availableAmount: Double,
         subtractFeeFromAmount: Boolean,
+        slots: List<SatsCardSlot>,
+        sweepType: SweepType,
     ) {
         AddReceiptActivity.start(
             activityContext = activityContext,
@@ -69,6 +72,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             outputAmount = outputAmount,
             availableAmount = availableAmount,
             subtractFeeFromAmount = subtractFeeFromAmount,
+            slots = slots,
+            sweepType = sweepType
         )
     }
 
@@ -129,14 +134,16 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         walletId: String,
         txId: String,
         initEventId: String,
-        roomId: String
+        roomId: String,
+        transaction: Transaction?
     ) {
         TransactionDetailsActivity.start(
             activityContext = activityContext,
             walletId = walletId,
             txId = txId,
             initEventId = initEventId,
-            roomId = roomId
+            roomId = roomId,
+            transaction = transaction
         )
     }
 

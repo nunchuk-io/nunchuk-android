@@ -6,6 +6,7 @@ import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.share.model.TransactionOption
 
 interface TransactionNavigator {
@@ -34,6 +35,8 @@ interface TransactionNavigator {
         outputAmount: Double,
         availableAmount: Double,
         subtractFeeFromAmount: Boolean = false,
+        slots: List<SatsCardSlot> = emptyList(),
+        sweepType: SweepType = SweepType.NONE
     )
 
     fun openEstimatedFeeScreen(
@@ -67,7 +70,8 @@ interface TransactionNavigator {
         walletId: String,
         txId: String,
         initEventId: String,
-        roomId: String
+        roomId: String,
+        transaction: Transaction? = null
     )
 
     fun openImportTransactionScreen(

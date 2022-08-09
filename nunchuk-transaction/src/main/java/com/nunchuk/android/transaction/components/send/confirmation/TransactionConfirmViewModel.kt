@@ -27,7 +27,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -96,7 +95,7 @@ internal class TransactionConfirmViewModel @Inject constructor(
     }
 
     private fun draftTransaction() {
-        if (walletId.isNotEmpty()) {
+        if (slots.isEmpty()) {
             draftNormalTransaction()
         } else {
             draftSatsCardTransaction()
@@ -210,15 +209,11 @@ internal class TransactionConfirmViewModel @Inject constructor(
 
     private fun sweepUnsealSlots(address: String, slots: List<SatsCardSlot>) {
         viewModelScope.launch {
-            // TODO Hai
-//            val result = sweepSatsCardSlotUseCase(SweepSatsCardSlotUseCase.Data(address, slots, manualFeeRate))
-            val result = withContext(Dispatchers.IO) {
-                delay(2000)
-                Result.success(Unit)
-            }
-            setEvent(SweepLoadingEvent)
+            setEvent(SweepLoadingEvent(true))
+            val result = sweepSatsCardSlotUseCase(SweepSatsCardSlotUseCase.Data(address, slots, manualFeeRate))
+            setEvent(SweepLoadingEvent(false))
             if (result.isSuccess) {
-                setEvent(SweepSuccess)
+                setEvent(SweepSuccess(result.getOrThrow()))
             } else {
                 setEvent(Error(result.exceptionOrNull()))
             }

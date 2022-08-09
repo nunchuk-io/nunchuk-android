@@ -2,11 +2,6 @@ package com.nunchuk.android.signer.satscard.wallets
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.GetSatsCardSlotKeyUseCase
-import com.nunchuk.android.core.domain.SweepSatsCardSlotUseCase
-import com.nunchuk.android.core.domain.UnsealSatsCardSlotUseCase
-import com.nunchuk.android.model.SatsCardSlot
-import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.usecase.GetAddressesUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.NewAddressUseCase
@@ -19,12 +14,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SelectWalletViewModel @Inject constructor(
     private val getWalletsUseCase: GetWalletsUseCase,
-    private val unsealSatsCardSlotUseCase: UnsealSatsCardSlotUseCase,
-    private val sweepSatsCardSlotUseCase: SweepSatsCardSlotUseCase,
-    private val getSatsCardSlotKeyUseCase: GetSatsCardSlotKeyUseCase,
     private val getAddressesUseCase: GetAddressesUseCase,
     private val newAddressUseCase: NewAddressUseCase,
-    private val getFeeUseCase: EstimateFeeUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SelectWalletState())
     private val _event = MutableSharedFlow<SelectWalletEvent>()
@@ -72,33 +63,13 @@ class SelectWalletViewModel @Inject constructor(
         }
     }
 
-    private fun sweepUnsealSlots(address: String, slots: List<SatsCardSlot>) {
-        viewModelScope.launch {
-            val estimateFeeResult = getFeeUseCase(Unit)
-            if (estimateFeeResult.isSuccess) {
-                val result = sweepSatsCardSlotUseCase(SweepSatsCardSlotUseCase.Data(address, slots, estimateFeeResult.getOrThrow().standardRate))
-                _event.emit(SelectWalletEvent.Loading(false))
-                if (result.isSuccess) {
-                    _event.emit(SelectWalletEvent.SweepSuccess)
-                } else {
-                    _event.emit(SelectWalletEvent.Error(result.exceptionOrNull()))
-                }
-            } else {
-                _event.emit(SelectWalletEvent.Loading(false))
-                _event.emit(SelectWalletEvent.Error(estimateFeeResult.exceptionOrNull()))
-            }
-        }
-    }
-
     val selectedWalletId: String
         get() = _state.value.selectedWalletId
 }
 
 sealed class SelectWalletEvent {
-    object SweepSuccess : SelectWalletEvent()
     data class GetAddressSuccess(val address: String) : SelectWalletEvent()
     data class Loading(val isLoading: Boolean) : SelectWalletEvent()
-    data class NfcLoading(val isLoading: Boolean) : SelectWalletEvent()
     data class Error(val e: Throwable?) : SelectWalletEvent()
 }
 

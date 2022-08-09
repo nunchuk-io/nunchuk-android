@@ -148,7 +148,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     }
 
     private fun onEstimatedFeeError(event: EstimatedFeeErrorEvent) {
-        NCToastMessage(this).show(event.message)
+        NCToastMessage(this).showError(event.message)
     }
 
     private fun openTransactionConfirmScreen(estimatedFee: Double, subtractFeeFromAmount: Boolean, manualFeeRate: Int) {

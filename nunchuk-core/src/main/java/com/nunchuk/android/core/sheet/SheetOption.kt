@@ -23,4 +23,7 @@ object SheetOptionType {
     const val TYPE_DELETE_WALLET = 10
     // Sats card
     const val TYPE_VIEW_SATSCARD_UNSEAL = 11
+    // Sweep option
+    const val TYPE_SWEEP_TO_WALLET = 12
+    const val TYPE_SWEEP_TO_EXTERNAL_ADDRESS = 13
 }
