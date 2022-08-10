@@ -206,7 +206,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
 
     private fun getInteractSlots(): List<SatsCardSlot> {
         return if (isSweepActiveSlot) {
-            listOf(viewModel.getActiveSlot() ?: SatsCardSlot())
+            listOf(viewModel.getActiveSlotWithBalance() ?: SatsCardSlot())
         } else {
             viewModel.getUnsealSlots().unSealBalanceSlots()
         }
