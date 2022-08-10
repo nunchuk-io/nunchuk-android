@@ -103,6 +103,8 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>(),
                 descMessage = getString(R.string.nc_cvc_incorrect_3_times)
             )
             nfcViewModel.clearEvent()
+        } else {
+            NCInfoDialog(this).showDialog(message = getString(R.string.nc_cvc_incorrect_3_times))
         }
     }
 
@@ -142,8 +144,8 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>(),
     }
 
     private fun shouldShowInputCvcFirst(requestCode: Int) = requestCode != REQUEST_NFC_STATUS
-                && requestCode != REQUEST_NFC_CHANGE_CVC
-                && requestCode != REQUEST_AUTO_CARD_STATUS
+            && requestCode != REQUEST_NFC_CHANGE_CVC
+            && requestCode != REQUEST_AUTO_CARD_STATUS
 
     private fun askToScan() {
         askScanNfcDialog.show()
@@ -199,6 +201,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>(),
 
     companion object {
         private const val EXTRA_REQUEST_NFC_CODE = "EXTRA_REQUEST_NFC_CODE"
+
         // NFC
         const val REQUEST_NFC_STATUS = 1
         const val REQUEST_NFC_CHANGE_CVC = 2
@@ -207,6 +210,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>(),
         const val REQUEST_NFC_VIEW_BACKUP_KEY = 5
         const val REQUEST_NFC_TOPUP_XPUBS = 6
         const val REQUEST_NFC_HEALTH_CHECK = 7
+
         // SATSCARD
         const val REQUEST_AUTO_CARD_STATUS = 8
         const val REQUEST_SATSCARD_SWEEP_SLOT = 9
