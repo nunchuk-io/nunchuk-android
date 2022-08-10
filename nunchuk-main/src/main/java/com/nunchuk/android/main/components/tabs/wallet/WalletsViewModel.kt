@@ -116,10 +116,7 @@ internal class WalletsViewModel @Inject constructor(
                     }
                 }
             } else {
-                val message = result.exceptionOrNull()?.message.orEmpty()
-                if (message.isNotEmpty()) {
-                    setEvent(ShowErrorEvent(message))
-                }
+                setEvent(ShowErrorEvent(result.exceptionOrNull()))
             }
         }
     }

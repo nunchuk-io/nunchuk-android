@@ -17,10 +17,7 @@ import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
-import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.MainActivityViewModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
@@ -108,7 +105,11 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             AddWalletEvent -> openAddWalletScreen()
             ShowSignerIntroEvent -> openSignerIntroScreen()
             WalletEmptySignerEvent -> openWalletIntroScreen()
-            is ShowErrorEvent -> showError(event.message)
+            is ShowErrorEvent -> {
+                if (nfcViewModel.handleNfcError(event.e).not()) {
+                    showError(event.e?.message.orUnknownError())
+                }
+            }
             is GoToSatsCardScreen -> openSatsCardActiveSlotScreen(event)
             is GoToTapSignerScreen -> openTapSignerScreen(event)
             is NeedSetupSatsCard -> handleNeedSetupSatsCard(event)
@@ -134,7 +135,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             onYesClick = {
                 NfcSetupActivity.navigate(requireActivity(), NfcSetupActivity.SETUP_SATSCARD, hasWallet = walletsViewModel.hasWallet())
             },
-            onNeutralClick =  {
+            onNeutralClick = {
                 SatsCardActivity.navigate(requireActivity(), event.status, walletsViewModel.hasWallet(), true)
             }
         )

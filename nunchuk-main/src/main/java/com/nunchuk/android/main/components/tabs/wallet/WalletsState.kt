@@ -14,7 +14,7 @@ internal data class WalletsState(
 
 internal sealed class WalletsEvent {
     data class Loading(val loading: Boolean) : WalletsEvent()
-    data class ShowErrorEvent(val message: String) : WalletsEvent()
+    data class ShowErrorEvent(val e: Throwable?) : WalletsEvent()
     object AddWalletEvent : WalletsEvent()
     object ShowSignerIntroEvent : WalletsEvent()
     object WalletEmptySignerEvent : WalletsEvent()

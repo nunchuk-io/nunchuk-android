@@ -31,6 +31,7 @@
 
         <argument
             android:name="hasWallet"
+            android:defaultValue="true"
             app:argType="boolean" />
     </fragment>
 
