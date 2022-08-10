@@ -51,7 +51,7 @@
     <string name="nc_text_n_a">N/A</string>
     <string name="nc_transaction_signed">Signed</string>
     <string name="nc_transaction_sign">Sign</string>
-    <string name="nc_transaction_view_blockchain">View on blockchain Explorer</string>
+    <string name="nc_transaction_view_blockchain">View on blockchain explorer</string>
     <string name="nc_transaction_enter_passphrase">Enter your passphrase</string>
     <string name="nc_transaction_export_transaction">Export to Keystone/SeedSigner</string>
     <string name="nc_transaction_export_passport_transaction">Export to Passport</string>
