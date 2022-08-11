@@ -18,7 +18,7 @@ internal class NunchukBannerNewChatHolder(
         binding.btnCreateSharedWallet.setOnClickListener { createSharedWalletListener() }
         binding.introSubtitle.linkify(
             binding.root.context.getString(R.string.nc_text_read_our_guide_linkify),
-            "https://nunchuk.medium.com" // put it in remote config later
+            "https://resources.nunchuk.io/getting-started" // put it in remote config later
         )
     }
 
