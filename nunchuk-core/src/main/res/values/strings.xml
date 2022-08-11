@@ -99,4 +99,5 @@
     <string name="nc_confirm_and_sweep">Confirm and sweep balance</string>
     <string name="nc_sweep_to_a_wallet">Sweep to a wallet</string>
     <string name="nc_sweep_to_an_address">Sweep to an address</string>
+    <string name="nc_transaction_view_blockchain">View on blockchain explorer</string>
 </resources>

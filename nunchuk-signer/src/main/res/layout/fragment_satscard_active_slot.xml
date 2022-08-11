@@ -152,7 +152,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/nc_padding_16"
-                android:text="@string/nc_view_on_explorer" />
+                android:text="@string/nc_transaction_view_blockchain" />
         </LinearLayout>
 
     </ScrollView>
