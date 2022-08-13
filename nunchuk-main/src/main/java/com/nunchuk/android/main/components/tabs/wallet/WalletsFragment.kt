@@ -32,6 +32,7 @@ import com.nunchuk.android.signer.nfc.NfcSetupActivity
 import com.nunchuk.android.signer.satscard.SatsCardActivity
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.wallet.components.details.WalletDetailsArgs
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningVerticalDialog
@@ -112,6 +113,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             }
             is GoToSatsCardScreen -> openSatsCardActiveSlotScreen(event)
             is GoToTapSignerScreen -> openTapSignerScreen(event)
+            is GoToSignerInfoScreen-> openSignerInfoScreen(id = event.status.masterSignerId.orEmpty(), name = NFC_DEFAULT_NAME, type = SignerType.NFC)
             is NeedSetupSatsCard -> handleNeedSetupSatsCard(event)
             is SatsCardUsedUp -> handleSatsCardUsedUp(event.numberOfSlot)
             is Loading -> handleLoading(event)
@@ -302,13 +304,13 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         signerAdapter.submitList(signers)
     }
 
-    private fun openSignerInfoScreen(signer: SignerModel) {
-        val isInWallet = walletsViewModel.isInWallet(signer)
+    private fun openSignerInfoScreen(id: String, name: String, type: SignerType) {
+        val isInWallet = walletsViewModel.isInWallet(id)
         navigator.openSignerInfoScreen(
             activityContext = requireActivity(),
-            id = signer.id,
-            name = signer.name,
-            type = signer.type,
+            id = id,
+            name = name,
+            type = type,
             isInWallet = isInWallet
         )
     }

@@ -6,7 +6,6 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.BaseNfcUseCase
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
-import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.TapSignerStatus
@@ -85,10 +84,10 @@ internal class WalletsViewModel @Inject constructor(
         event(AddWalletEvent)
     }
 
-    fun isInWallet(signer: SignerModel): Boolean {
+    fun isInWallet(signerId: String): Boolean {
         return getState().wallets
             .any {
-                it.wallet.signers.any { singleSigner -> singleSigner.masterSignerId == signer.id }
+                it.wallet.signers.any { singleSigner -> singleSigner.masterSignerId == signerId }
             }
     }
 
@@ -105,7 +104,11 @@ internal class WalletsViewModel @Inject constructor(
             if (result.isSuccess) {
                 val status = result.getOrThrow()
                 if (status is TapSignerStatus) {
-                    setEvent(GoToTapSignerScreen(status))
+                    if (status.isNeedSetup.not() && status.isCreateSigner) {
+                        setEvent(GoToSignerInfoScreen(status))
+                    } else {
+                        setEvent(GoToTapSignerScreen(status))
+                    }
                 } else if (status is SatsCardStatus) {
                     if (status.isNeedSetup) {
                         setEvent(NeedSetupSatsCard(status))
