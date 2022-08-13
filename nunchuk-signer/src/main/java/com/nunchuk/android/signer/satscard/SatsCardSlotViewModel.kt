@@ -43,7 +43,7 @@ class SatsCardSlotViewModel @Inject constructor(
                 val previousStatus = state.value.status
                 val newSlot = result.getOrThrow().first()
                 val newSlots = previousStatus.slots.toMutableList().apply {
-                    set(status.activeSlotIndex, newSlot)
+                    set(previousStatus.activeSlotIndex, newSlot)
                 }
                 _state.value = _state.value.copy(status = previousStatus.copy(slots = newSlots), isLoading = false, isSuccess = true)
             } else {
@@ -55,7 +55,7 @@ class SatsCardSlotViewModel @Inject constructor(
             val result = getSatsCardSlotBalanceUseCase(otherSlots)
             if (result.isSuccess) {
                 val previousStatus = state.value.status
-                val activeSlot = status.slots.find { it.index == status.activeSlotIndex } ?: return@launch
+                val activeSlot = previousStatus.slots.find { it.index == previousStatus.activeSlotIndex } ?: return@launch
                 _state.value = _state.value.copy(status = previousStatus.copy(slots = result.getOrThrow() + activeSlot), isLoading = false)
                 _event.emit(SatsCardSlotEvent.GetOtherSlotBalanceSuccess(result.getOrThrow()))
             } else {
