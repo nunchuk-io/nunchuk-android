@@ -6,13 +6,16 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.model.EstimateFeeRates
+import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeCompletedEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeErrorEvent
+import com.nunchuk.android.transaction.components.utils.toTitle
 import com.nunchuk.android.transaction.databinding.ActivityTransactionEstimateFeeBinding
 import com.nunchuk.android.utils.safeManualFee
 import com.nunchuk.android.utils.textChanges
@@ -42,7 +45,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         viewModel.init(
             walletId = args.walletId,
             address = args.address,
-            sendAmount = args.outputAmount
+            sendAmount = args.outputAmount,
+            slots = args.slots
         )
         setupViews()
         observeEvent()
@@ -55,6 +59,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     private fun setupViews() {
+        binding.toolbarTitle.text = args.sweepType.toTitle(this)
         val subtractFeeFromAmount = args.subtractFeeFromAmount
         binding.subtractFeeCheckBox.isChecked = subtractFeeFromAmount
         binding.subtractFeeCheckBox.isEnabled = !subtractFeeFromAmount
@@ -143,7 +148,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     }
 
     private fun onEstimatedFeeError(event: EstimatedFeeErrorEvent) {
-        NCToastMessage(this).show(event.message)
+        NCToastMessage(this).showError(event.message)
     }
 
     private fun openTransactionConfirmScreen(estimatedFee: Double, subtractFeeFromAmount: Boolean, manualFeeRate: Int) {
@@ -156,7 +161,9 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             privateNote = args.privateNote,
             estimatedFee = estimatedFee,
             subtractFeeFromAmount = subtractFeeFromAmount,
-            manualFeeRate = manualFeeRate
+            manualFeeRate = manualFeeRate,
+            sweepType = args.sweepType,
+            slots = args.slots
         )
     }
 
@@ -169,7 +176,9 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             availableAmount: Double,
             address: String,
             privateNote: String,
-            subtractFeeFromAmount: Boolean = false
+            subtractFeeFromAmount: Boolean = false,
+            sweepType: SweepType = SweepType.NONE,
+            slots: List<SatsCardSlot>
         ) {
             activityContext.startActivity(
                 EstimatedFeeArgs(
@@ -178,7 +187,9 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                     availableAmount = availableAmount,
                     address = address,
                     privateNote = privateNote,
-                    subtractFeeFromAmount = subtractFeeFromAmount
+                    subtractFeeFromAmount = subtractFeeFromAmount,
+                    sweepType = sweepType,
+                    slots = slots
                 ).buildIntent(activityContext)
             )
         }

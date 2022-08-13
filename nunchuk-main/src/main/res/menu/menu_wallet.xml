@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menu_nfc"
+        android:icon="@drawable/ic_nfc_card"
+        android:title="@string/nc_nfc"
+        app:iconTint="@color/nc_white_color"
+        app:showAsAction="always" />
+
+</menu>

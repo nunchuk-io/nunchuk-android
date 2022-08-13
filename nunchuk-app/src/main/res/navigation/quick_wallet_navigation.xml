@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/quick_wallet_navigation"
+    app:startDestination="@id/wallet_intermediary_navigation">
+
+    <include app:graph="@navigation/wallet_intermediary_navigation"/>
+
+    <include app:graph="@navigation/personal_signer_navigation" />
+
+    <action
+        android:id="@+id/showCreateNewSeedFragment"
+        app:destination="@id/personal_signer_navigation"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim" >
+        <argument
+            android:name="is_quick_wallet"
+            app:argType="boolean" />
+    </action>
+</navigation>

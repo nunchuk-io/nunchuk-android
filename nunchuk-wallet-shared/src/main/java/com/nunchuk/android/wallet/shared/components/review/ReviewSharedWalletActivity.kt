@@ -5,10 +5,10 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.shared.databinding.ActivityReviewSharedWalletBinding
-import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar

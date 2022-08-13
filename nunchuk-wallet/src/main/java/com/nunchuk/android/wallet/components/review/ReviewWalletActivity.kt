@@ -7,12 +7,12 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.components.config.SignersViewBinder
 import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.*
 import com.nunchuk.android.wallet.databinding.ActivityReviewWalletBinding
-import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.wallet.util.isWalletExisted
 import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCToastMessage

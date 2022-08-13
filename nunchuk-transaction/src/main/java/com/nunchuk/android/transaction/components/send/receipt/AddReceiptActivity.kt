@@ -6,10 +6,13 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.qr.QRCodeParser
 import com.nunchuk.android.core.qr.startQRCodeScan
+import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.*
+import com.nunchuk.android.transaction.components.utils.toTitle
 import com.nunchuk.android.transaction.databinding.ActivityTransactionAddReceiptBinding
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -40,7 +43,9 @@ class AddReceiptActivity : BaseActivity<ActivityTransactionAddReceiptBinding>() 
     }
 
     private fun setupViews() {
+        binding.toolbarTitle.text = args.sweepType.toTitle(this)
         binding.receiptInput.addTextChangedCallback(viewModel::handleReceiptChanged)
+        binding.containerPrivateNote.isVisible = args.slots.isEmpty()
         binding.privateNoteInput.setMaxLength(MAX_NOTE_LENGTH)
         binding.privateNoteInput.addTextChangedCallback(viewModel::handlePrivateNoteChanged)
 
@@ -101,20 +106,32 @@ class AddReceiptActivity : BaseActivity<ActivityTransactionAddReceiptBinding>() 
             availableAmount = args.availableAmount,
             address = address,
             privateNote = privateNote,
-            subtractFeeFromAmount = args.subtractFeeFromAmount
+            subtractFeeFromAmount = args.subtractFeeFromAmount,
+            slots = args.slots,
+            sweepType = args.sweepType
         )
     }
 
     companion object {
         private const val MAX_NOTE_LENGTH = 80
 
-        fun start(activityContext: Context, walletId: String, outputAmount: Double, availableAmount: Double, subtractFeeFromAmount: Boolean = false) {
+        fun start(
+            activityContext: Context,
+            walletId: String,
+            outputAmount: Double,
+            availableAmount: Double,
+            subtractFeeFromAmount: Boolean = false,
+            slots: List<SatsCardSlot> = emptyList(),
+            sweepType: SweepType = SweepType.NONE
+        ) {
             activityContext.startActivity(
                 AddReceiptArgs(
                     walletId = walletId,
                     outputAmount = outputAmount,
                     availableAmount = availableAmount,
-                    subtractFeeFromAmount = subtractFeeFromAmount
+                    subtractFeeFromAmount = subtractFeeFromAmount,
+                    slots = slots,
+                    sweepType = sweepType
                 ).buildIntent(activityContext)
             )
         }

@@ -18,12 +18,12 @@ import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.checkReadExternalPermission
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
+import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameSuccessEvent
 import com.nunchuk.android.wallet.databinding.ActivityWalletConfigBinding
-import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog

@@ -1,10 +1,12 @@
 package com.nunchuk.android.nav
 
 import android.content.Context
+import androidx.fragment.app.Fragment
+import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.type.SignerType
 
 interface SignerNavigator {
-    fun openSignerIntroScreen(activityContext: Context)
+    fun openSignerIntroScreen(activityContext: Context, tapSignerStatus: TapSignerStatus? = null)
 
     fun openSignerInfoScreen(
         activityContext: Context,
@@ -23,6 +25,8 @@ interface SignerNavigator {
     fun openAddSoftwareSignerScreen(activityContext: Context)
 
     fun openCreateNewSeedScreen(activityContext: Context)
+
+    fun openCreateNewSeedScreen(fragment: Fragment, isQuickWallet: Boolean = false)
 
     fun openRecoverSeedScreen(activityContext: Context)
 

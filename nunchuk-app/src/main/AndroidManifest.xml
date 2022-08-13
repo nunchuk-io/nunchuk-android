@@ -66,6 +66,11 @@
             android:name=".app.intro.GuestModeMessageIntroActivity"
             android:screenOrientation="fullSensor" />
 
+        <activity android:name="com.nunchuk.android.app.wallet.QuickWalletActivity"
+            android:label="@string/nc_wallet_add_wallet_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"/>
+
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

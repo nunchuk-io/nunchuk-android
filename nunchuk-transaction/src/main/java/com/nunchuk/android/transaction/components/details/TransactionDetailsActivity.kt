@@ -73,18 +73,18 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         setLightStatusBar()
         setupViews()
         observeEvent()
-        if (args.walletId.isEmpty()) {
+        if (args.walletId.isEmpty() && args.transaction == null) {
             CrashlyticsReporter.recordException(Exception("Wallet id is empty"))
             finish()
             return
         }
 
-        if (args.txId.isEmpty()) {
+        if (args.txId.isEmpty() && args.transaction == null) {
             CrashlyticsReporter.recordException(Exception("Tx id is empty"))
             finish()
             return
         }
-        viewModel.init(walletId = args.walletId, txId = args.txId, initEventId = args.initEventId, roomId = args.roomId)
+        viewModel.init(walletId = args.walletId, txId = args.txId, initEventId = args.initEventId, roomId = args.roomId, transaction = args.transaction)
     }
 
     override fun onInputDone(newInput: String) {
@@ -184,13 +184,13 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     private fun bindTransaction(transaction: Transaction) {
-        binding.toolbar.menu.findItem(R.id.menu_more).isVisible = transaction.status.isShowMoreMenu()
+        binding.toolbar.menu.findItem(R.id.menu_more).isVisible = transaction.status.isShowMoreMenu() && args.walletId.isNotEmpty()
         val output = if (transaction.isReceive) {
             transaction.receiveOutputs.firstOrNull()
         } else {
             transaction.outputs.firstOrNull()
         }
-        binding.noteContent.text = if (transaction.memo.isNotEmpty()) transaction.memo else getString(R.string.nc_none)
+        binding.noteContent.text = transaction.memo.ifEmpty { getString(R.string.nc_none) }
         binding.sendingTo.text = output?.first.orEmpty().truncatedAddress()
         binding.signatureStatus.isVisible = !transaction.status.hadBroadcast()
         val pendingSigners = transaction.getPendingSignatures()
@@ -402,9 +402,22 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     companion object {
-        fun start(activityContext: Activity, walletId: String, txId: String, initEventId: String = "", roomId: String = "") {
+        fun start(
+            activityContext: Activity,
+            walletId: String,
+            txId: String,
+            initEventId: String = "",
+            roomId: String = "",
+            transaction: Transaction? = null
+        ) {
             activityContext.startActivity(
-                TransactionDetailsArgs(walletId = walletId, txId = txId, initEventId = initEventId, roomId = roomId).buildIntent(activityContext)
+                TransactionDetailsArgs(
+                    walletId = walletId,
+                    txId = txId,
+                    initEventId = initEventId,
+                    roomId = roomId,
+                    transaction = transaction
+                ).buildIntent(activityContext)
             )
         }
     }

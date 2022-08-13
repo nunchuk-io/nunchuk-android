@@ -1,6 +1,7 @@
 package com.nunchuk.android.signer.nav
 
 import android.content.Context
+import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.nav.SignerNavigator
 import com.nunchuk.android.signer.AirSignerIntroActivity
 import com.nunchuk.android.signer.SignerIntroActivity
@@ -16,8 +17,8 @@ import com.nunchuk.android.type.SignerType
 
 interface SignerNavigatorDelegate : SignerNavigator {
 
-    override fun openSignerIntroScreen(activityContext: Context) {
-        SignerIntroActivity.start(activityContext)
+    override fun openSignerIntroScreen(activityContext: Context, tapSignerStatus: TapSignerStatus?) {
+        SignerIntroActivity.start(activityContext, tapSignerStatus)
     }
 
     override fun openSignerInfoScreen(

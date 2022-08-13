@@ -1,10 +1,14 @@
 package com.nunchuk.android.main.components.tabs.wallet
 
+import android.nfc.tech.IsoDep
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.BaseNfcUseCase
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
-import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
+import com.nunchuk.android.model.SatsCardStatus
+import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.utils.onException
@@ -21,7 +25,8 @@ import javax.inject.Inject
 internal class WalletsViewModel @Inject constructor(
     private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     private val getWalletsUseCase: GetWalletsUseCase,
-    private val getAppSettingUseCase: GetAppSettingUseCase
+    private val getAppSettingUseCase: GetAppSettingUseCase,
+    private val getNfcCardStatusUseCase: GetNfcCardStatusUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
 
     private var isRetrievingData = AtomicBoolean(false)
@@ -79,13 +84,43 @@ internal class WalletsViewModel @Inject constructor(
         event(AddWalletEvent)
     }
 
-    fun isInWallet(signer: SignerModel): Boolean {
+    fun isInWallet(signerId: String): Boolean {
         return getState().wallets
             .any {
-                it.wallet.signers.any { singleSigner -> singleSigner.masterSignerId == signer.id }
+                it.wallet.signers.any { singleSigner -> singleSigner.masterSignerId == signerId }
             }
     }
 
     fun hasSigner() = getState().signers.isNotEmpty() || getState().masterSigners.isNotEmpty()
 
+    fun hasWallet() = getState().wallets.isNotEmpty()
+
+    fun getSatsCardStatus(isoDep: IsoDep?) {
+        isoDep ?: return
+        viewModelScope.launch {
+            setEvent(NfcLoading(true))
+            val result = getNfcCardStatusUseCase(BaseNfcUseCase.Data(isoDep))
+            setEvent(NfcLoading(false))
+            if (result.isSuccess) {
+                val status = result.getOrThrow()
+                if (status is TapSignerStatus) {
+                    if (status.isNeedSetup.not() && status.isCreateSigner) {
+                        setEvent(GoToSignerInfoScreen(status))
+                    } else {
+                        setEvent(GoToTapSignerScreen(status))
+                    }
+                } else if (status is SatsCardStatus) {
+                    if (status.isUsedUp) {
+                        setEvent(SatsCardUsedUp(status.numberOfSlot))
+                    } else if (status.isNeedSetup) {
+                        setEvent(NeedSetupSatsCard(status))
+                    } else {
+                        setEvent(GoToSatsCardScreen(status))
+                    }
+                }
+            } else {
+                setEvent(ShowErrorEvent(result.exceptionOrNull()))
+            }
+        }
+    }
 }

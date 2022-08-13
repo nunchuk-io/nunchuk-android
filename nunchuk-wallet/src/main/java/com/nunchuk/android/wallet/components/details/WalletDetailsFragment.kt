@@ -26,10 +26,10 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.share.model.TransactionOption
+import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import com.nunchuk.android.wallet.databinding.FragmentWalletDetailBinding
-import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -77,12 +77,19 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(), Botto
 
     private var job: Job? = null
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (args.isSweepBalance) {
+            NCToastMessage(requireActivity()).show(getString(R.string.nc_satscard_sweeped))
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         setupViews()
         observeEvent()
-        viewModel.init(args.walletId)
+        viewModel.init(args.walletId, args.isSweepBalance)
     }
 
     override fun onResume() {

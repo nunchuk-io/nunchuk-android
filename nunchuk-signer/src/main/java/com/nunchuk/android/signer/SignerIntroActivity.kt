@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.filter
 @AndroidEntryPoint
 class SignerIntroActivity : BaseNfcActivity<ActivitySignerIntroBinding>(), SetUpNfcOptionSheet.OptionClickListener {
     private val viewModel : SignerIntroViewModel by viewModels()
+    private val tapSignerStatus : TapSignerStatus? by lazy { intent.getParcelableExtra(EXTRA_TAP_SIGNER_STATUS) }
 
     override fun initializeBinding() = ActivitySignerIntroBinding.inflate(layoutInflater)
 
@@ -32,6 +33,7 @@ class SignerIntroActivity : BaseNfcActivity<ActivitySignerIntroBinding>(), SetUp
         setLightStatusBar()
         setupViews()
         observer()
+        handleTapSignerStatus(tapSignerStatus)
     }
 
     override fun onOptionClickListener(option: SetUpNfcOptionSheet.SetUpNfcOption) {
@@ -103,8 +105,9 @@ class SignerIntroActivity : BaseNfcActivity<ActivitySignerIntroBinding>(), SetUp
         NfcSetupActivity.navigate(this, NfcSetupActivity.ADD_KEY)
     }
 
-    private fun handleTapSignerStatus(status: TapSignerStatus) {
-        if (status.isSetup) {
+    private fun handleTapSignerStatus(status: TapSignerStatus?) {
+        status ?: return
+        if (status.isNeedSetup.not()) {
             if (status.isCreateSigner) {
                 showNfcAlreadyAdded()
             } else {
@@ -118,8 +121,11 @@ class SignerIntroActivity : BaseNfcActivity<ActivitySignerIntroBinding>(), SetUp
     }
 
     companion object {
-        fun start(activityContext: Context) {
-            activityContext.startActivity(Intent(activityContext, SignerIntroActivity::class.java))
+        private const val EXTRA_TAP_SIGNER_STATUS = "EXTRA_TAP_SIGNER_STATUS"
+        fun start(activityContext: Context, tapSignerStatus: TapSignerStatus? = null) {
+            activityContext.startActivity(Intent(activityContext, SignerIntroActivity::class.java).apply {
+                putExtra(EXTRA_TAP_SIGNER_STATUS, tapSignerStatus)
+            })
         }
     }
 }
