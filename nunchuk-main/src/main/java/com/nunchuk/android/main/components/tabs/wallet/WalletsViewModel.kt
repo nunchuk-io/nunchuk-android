@@ -110,10 +110,10 @@ internal class WalletsViewModel @Inject constructor(
                         setEvent(GoToTapSignerScreen(status))
                     }
                 } else if (status is SatsCardStatus) {
-                    if (status.isNeedSetup) {
-                        setEvent(NeedSetupSatsCard(status))
-                    } else if (status.isUsedUp) {
+                    if (status.isUsedUp) {
                         setEvent(SatsCardUsedUp(status.numberOfSlot))
+                    } else if (status.isNeedSetup) {
+                        setEvent(NeedSetupSatsCard(status))
                     } else {
                         setEvent(GoToSatsCardScreen(status))
                     }

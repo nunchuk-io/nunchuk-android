@@ -4,78 +4,86 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetSatsCardSlotBalanceUseCase
+import com.nunchuk.android.model.NcExceptionCode
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.type.SatsCardSlotStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SatsCardSlotViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val getSatsCardSlotBalanceUseCase: GetSatsCardSlotBalanceUseCase,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<SatsCardSlotEvent>()
-    private val _activeSlot = MutableStateFlow<SatsCardSlot?>(null)
-    val activeSlot = _activeSlot.filterIsInstance<SatsCardSlot>()
+    private val _state = MutableStateFlow(
+        SatsCardSlotState(
+            savedStateHandle.get<SatsCardStatus>(SatsCardArgs.EXTRA_SATSCARD_STATUS)!!,
+            isLoading = false,
+            isSuccess = false,
+            isNetworkError = false
+        )
+    )
     val event = _event.asSharedFlow()
-    val state = savedStateHandle.getStateFlow(SatsCardArgs.EXTRA_SATSCARD_STATUS, SatsCardStatus())
+    val state = _state.asStateFlow()
 
     init {
-        val status: SatsCardStatus = savedStateHandle[SatsCardArgs.EXTRA_SATSCARD_STATUS]!!
+        val status: SatsCardStatus = state.value.status
         viewModelScope.launch {
-            delay(150L)
-            _event.emit(SatsCardSlotEvent.Loading)
+            _state.value = _state.value.copy(isLoading = true)
             val activeSlot = status.slots.find { it.index == status.activeSlotIndex } ?: return@launch
             val result = getSatsCardSlotBalanceUseCase(listOf(activeSlot))
             if (result.isSuccess) {
-                val previousStatus = state.value
+                val previousStatus = state.value.status
                 val newSlot = result.getOrThrow().first()
                 val newSlots = previousStatus.slots.toMutableList().apply {
                     set(status.activeSlotIndex, newSlot)
                 }
-                savedStateHandle[SatsCardArgs.EXTRA_SATSCARD_STATUS] = previousStatus.copy(slots = newSlots)
-                _activeSlot.value = newSlot
-                _event.emit(SatsCardSlotEvent.GetActiveSlotBalanceSuccess(newSlot))
+                _state.value = _state.value.copy(status = previousStatus.copy(slots = newSlots), isLoading = false, isSuccess = true)
             } else {
-                _event.emit(SatsCardSlotEvent.ShowError(result.exceptionOrNull()))
+                handleError(result.exceptionOrNull())
             }
         }
         viewModelScope.launch {
             val otherSlots = status.slots.filter { it.index != status.activeSlotIndex && it.status == SatsCardSlotStatus.UNSEALED }
             val result = getSatsCardSlotBalanceUseCase(otherSlots)
             if (result.isSuccess) {
-                val previousStatus = state.value
+                val previousStatus = state.value.status
                 val activeSlot = status.slots.find { it.index == status.activeSlotIndex } ?: return@launch
-                savedStateHandle[SatsCardArgs.EXTRA_SATSCARD_STATUS] = previousStatus.copy(slots = result.getOrThrow() + activeSlot)
+                _state.value = _state.value.copy(status = previousStatus.copy(slots = result.getOrThrow() + activeSlot), isLoading = false)
                 _event.emit(SatsCardSlotEvent.GetOtherSlotBalanceSuccess(result.getOrThrow()))
             } else {
-                _event.emit(SatsCardSlotEvent.ShowError(result.exceptionOrNull()))
+                handleError(result.exceptionOrNull())
             }
         }
     }
 
-    fun isBalanceLoaded() = _activeSlot.value != null
-
-    fun getUnsealSlots() = state.value.slots.filter { it.status == SatsCardSlotStatus.UNSEALED }
-
-    fun getActiveSlotWithBalance() = _activeSlot.value
-
-    fun getActiveSlot(): SatsCardSlot? {
-        val status = state.value
-        return status.slots.find { it.index == status.activeSlotIndex }
+    private suspend fun handleError(e: Throwable?) {
+        val isNetworkError = e?.message?.contains(NcExceptionCode.NETWORK_ERROR.toString()) == true
+        _state.value = _state.value.copy(isLoading = false, isNetworkError = isNetworkError)
+        if (isNetworkError.not()) {
+            _event.emit(SatsCardSlotEvent.ShowError(e))
+        }
     }
+
+    fun isBalanceLoaded() = _state.value.isSuccess
+
+    fun getUnsealSlots() = state.value.status.slots.filter { it.status == SatsCardSlotStatus.UNSEALED }
+
+    fun isHasUnsealSlotBalance() = state.value.status.slots.any { it.status == SatsCardSlotStatus.UNSEALED && it.balance.value > 0 }
+
+    fun getActiveSlot() = state.value.status.slots.find { it.index == state.value.status.activeSlotIndex }
 }
 
+data class SatsCardSlotState(val status: SatsCardStatus, val isLoading: Boolean, val isSuccess: Boolean, val isNetworkError: Boolean)
+
 sealed class SatsCardSlotEvent {
-    class GetActiveSlotBalanceSuccess(val slot: SatsCardSlot) : SatsCardSlotEvent()
     class GetOtherSlotBalanceSuccess(val slots: List<SatsCardSlot>) : SatsCardSlotEvent()
     class ShowError(val e: Throwable?) : SatsCardSlotEvent()
-    object Loading : SatsCardSlotEvent()
 }

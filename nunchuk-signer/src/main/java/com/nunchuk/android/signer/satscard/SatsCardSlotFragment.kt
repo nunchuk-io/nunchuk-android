@@ -19,7 +19,6 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.NcExceptionCode
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.SatscardNavigationDirections
@@ -43,7 +42,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
 
     private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         if (it.resultCode == Activity.RESULT_OK) {
-            val activeSlot = viewModel.getActiveSlotWithBalance() ?: return@registerForActivityResult
+            val activeSlot = viewModel.getActiveSlot() ?: return@registerForActivityResult
             openSelectWallet(arrayOf(activeSlot))
         }
     }
@@ -123,7 +122,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
                 showWarning(getString(R.string.nc_please_wait_to_load_balance))
                 return@setOnClickListener
             }
-            val activeSlot = viewModel.getActiveSlotWithBalance() ?: return@setOnClickListener
+            val activeSlot = viewModel.getActiveSlot() ?: return@setOnClickListener
             if (activeSlot.isConfirmed.not()) {
                 showWarning(getString(R.string.nc_please_wait_balance_confirmation))
             } else if (activeSlot.balance.value <= 0L) {
@@ -161,15 +160,19 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
 
     private fun observer() {
         flowObserver(viewModel.event, ::handleEvent)
-        flowObserver(viewModel.activeSlot) {
-            handleShowBalanceActiveSlot(it)
+        flowObserver(viewModel.state) {
+            if (it.isLoading) {
+                handleLoading()
+            } else if (it.isNetworkError) {
+                handleNetworkError()
+            } else if (it.isSuccess) {
+                handleShowBalanceActiveSlot(viewModel.getActiveSlot() ?: return@flowObserver)
+            }
         }
     }
 
     private fun handleEvent(it: SatsCardSlotEvent) {
         when (it) {
-            SatsCardSlotEvent.Loading -> handleLoading()
-            is SatsCardSlotEvent.GetActiveSlotBalanceSuccess -> handleShowBalanceActiveSlot(it.slot)
             is SatsCardSlotEvent.GetOtherSlotBalanceSuccess -> handleCheckBalanceOtherSlots(it.slots)
             is SatsCardSlotEvent.ShowError -> handleShowError(it)
         }
@@ -177,13 +180,16 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
 
     private fun handleShowError(it: SatsCardSlotEvent.ShowError) {
         val message = it.e?.message.orEmpty()
-        if (message.contains(NcExceptionCode.NETWORK_ERROR.toString())) {
-            binding.tvBalanceUsd.apply {
-                text = getString(R.string.nc_no_internet_connection)
-                setTextColor(ContextCompat.getColor(requireActivity(), R.color.nc_orange_color))
-            }
-        } else if (message.isNotEmpty()) {
+        if (message.isNotEmpty()) {
             NCToastMessage(requireActivity()).showError(it.e?.message.orEmpty())
+        }
+    }
+
+    private fun handleNetworkError() {
+        binding.tvBalanceBtc.text = getString(R.string.checking_balance)
+        binding.tvBalanceUsd.apply {
+            text = getString(R.string.nc_no_internet_connection)
+            setTextColor(ContextCompat.getColor(requireActivity(), R.color.nc_orange_color))
         }
     }
 
@@ -206,7 +212,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
 
     private fun getInteractSlots(): List<SatsCardSlot> {
         return if (isSweepActiveSlot) {
-            listOf(viewModel.getActiveSlotWithBalance() ?: SatsCardSlot())
+            listOf(viewModel.getActiveSlot() ?: SatsCardSlot())
         } else {
             viewModel.getUnsealSlots().unSealBalanceSlots()
         }

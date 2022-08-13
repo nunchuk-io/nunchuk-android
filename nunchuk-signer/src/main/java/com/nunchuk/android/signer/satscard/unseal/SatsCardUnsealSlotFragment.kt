@@ -21,7 +21,6 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.SatscardNavigationDirections
 import com.nunchuk.android.signer.databinding.FragmentUnsealSlotBinding
-import com.nunchuk.android.signer.satscard.SatsCardSlotEvent
 import com.nunchuk.android.signer.satscard.SatsCardSlotViewModel
 import com.nunchuk.android.signer.satscard.unSealBalanceSlots
 import com.nunchuk.android.signer.satscard.wallets.SelectWalletFragment
@@ -68,10 +67,8 @@ class SatsCardUnsealSlotFragment : BaseFragment<FragmentUnsealSlotBinding>(), Bo
         flowObserver(viewModel.state) {
             val unsealSlots = viewModel.getUnsealSlots()
             adapter.submitList(unsealSlots)
-            binding.btnSweep.isVisible = unsealSlots.any { it.isConfirmed && it.balance.value > 0L }
-        }
-        flowObserver(viewModel.event) {
-            showOrHideLoading(it is SatsCardSlotEvent.Loading)
+            binding.btnSweep.isVisible = viewModel.isHasUnsealSlotBalance()
+            showOrHideLoading(it.isLoading)
         }
     }
 
