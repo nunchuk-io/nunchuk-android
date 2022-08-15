@@ -15,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcScanInfo
@@ -117,6 +118,7 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
             is SetupChainCodeEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
             is SetupChainCodeEvent.SetupSatsCardSuccess -> {
                 SatsCardActivity.navigate(requireActivity(), event.status, (activity as NfcSetupActivity).hasWallet)
+                NcToastManager.scheduleShowMessage(getString(R.string.nc_slot_ready_deposit))
                 requireActivity().finish()
             }
             is SetupChainCodeEvent.ShowError -> {

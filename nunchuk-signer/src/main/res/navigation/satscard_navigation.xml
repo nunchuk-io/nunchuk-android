@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/satscard_navigation">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/satscard_navigation"
+    app:startDestination="@id/satsCardSlotQrFragment">
 
     <action
         android:id="@+id/to_selectWalletFragment"
@@ -33,6 +35,9 @@
             android:name="hasWallet"
             android:defaultValue="true"
             app:argType="boolean" />
+        <action
+            android:id="@+id/action_satsCardUnsealSlotFragment_to_satsCardSlotQrFragment"
+            app:destination="@id/satsCardSlotQrFragment" />
     </fragment>
 
     <fragment
@@ -46,5 +51,15 @@
         <argument
             android:name="type"
             app:argType="integer" />
+    </fragment>
+    <fragment
+        android:id="@+id/satsCardSlotQrFragment"
+        android:name="com.nunchuk.android.signer.satscard.qr.SatsCardSlotQrFragment"
+        android:label="SatsCardSlotQrFragment"
+        tools:layout="@layout/fragment_satscard_slot_qr" >
+
+        <argument
+            android:name="slot"
+            app:argType="com.nunchuk.android.model.SatsCardSlot" />
     </fragment>
 </navigation>

@@ -30,7 +30,12 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class SatsCardUnsealSlotFragment : BaseFragment<FragmentUnsealSlotBinding>(), BottomSheetOptionListener {
-    private val adapter by lazy(LazyThreadSafetyMode.NONE) { SatsCardUnsealSlotAdapter() }
+    private val adapter by lazy(LazyThreadSafetyMode.NONE) {
+        SatsCardUnsealSlotAdapter {
+            val action = SatsCardUnsealSlotFragmentDirections.actionSatsCardUnsealSlotFragmentToSatsCardSlotQrFragment(it)
+            findNavController().navigate(action)
+        }
+    }
     private val args by navArgs<SatsCardUnsealSlotFragmentArgs>()
     private val viewModel by activityViewModels<SatsCardSlotViewModel>()
 
@@ -91,10 +96,12 @@ class SatsCardUnsealSlotFragment : BaseFragment<FragmentUnsealSlotBinding>(), Bo
     }
 
     private fun showSweepOptions() {
-        val dialog = BottomSheetOption.newInstance(listOf(
-            SheetOption(SheetOptionType.TYPE_SWEEP_TO_WALLET, R.drawable.ic_wallet_info, R.string.nc_sweep_to_a_wallet),
-            SheetOption(SheetOptionType.TYPE_SWEEP_TO_EXTERNAL_ADDRESS, R.drawable.ic_sending_bitcoin, R.string.nc_sweep_to_an_address),
-        ))
+        val dialog = BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(SheetOptionType.TYPE_SWEEP_TO_WALLET, R.drawable.ic_wallet_info, R.string.nc_sweep_to_a_wallet),
+                SheetOption(SheetOptionType.TYPE_SWEEP_TO_EXTERNAL_ADDRESS, R.drawable.ic_sending_bitcoin, R.string.nc_sweep_to_an_address),
+            )
+        )
         dialog.show(childFragmentManager, "BottomSheetOption")
     }
 }

@@ -10,11 +10,17 @@ import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ItemUnsealedSlotBinding
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 
-class SatsCardUnsealSlotAdapter : ListAdapter<SatsCardSlot, SatsCardUnsealSlotHolder>(DIFF_ITEM) {
+class SatsCardUnsealSlotAdapter(private val viewSlotAddress: (slot: SatsCardSlot) -> Unit) :
+    ListAdapter<SatsCardSlot, SatsCardUnsealSlotHolder>(DIFF_ITEM) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SatsCardUnsealSlotHolder {
-        return SatsCardUnsealSlotHolder(ItemUnsealedSlotBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        return SatsCardUnsealSlotHolder(ItemUnsealedSlotBinding.inflate(LayoutInflater.from(parent.context), parent, false)).apply {
+            itemView.setOnDebounceClickListener {
+                viewSlotAddress(getItem(bindingAdapterPosition))
+            }
+        }
     }
 
     override fun onBindViewHolder(holder: SatsCardUnsealSlotHolder, position: Int) {
@@ -36,6 +42,7 @@ class SatsCardUnsealSlotAdapter : ListAdapter<SatsCardSlot, SatsCardUnsealSlotHo
 
 class SatsCardUnsealSlotHolder(private val binding: ItemUnsealedSlotBinding) : RecyclerView.ViewHolder(binding.root) {
     private val qrCodeSize = binding.root.context.resources.getDimensionPixelSize(R.dimen.nc_padding_36)
+
 
     fun bind(slot: SatsCardSlot) {
         binding.qrCode.setImageBitmap(slot.address.orEmpty().convertToQRCode(qrCodeSize, qrCodeSize))
