@@ -31,8 +31,8 @@ fun Amount.pureBTC() = value.toDouble().fromSATtoBTC()
 
 fun Double.getBTCAmount() = when (CURRENT_DISPLAY_UNIT_TYPE) {
     SAT -> "${((this * BTC_SATOSHI_EXCHANGE_RATE).roundToLong()).beautifySATFormat()} sat"
-    BTC -> "${toLong().numberFormat()} BTC"
-    else -> " ${formatDecimal()} BTC"
+    BTC -> "${formatDecimal()} BTC"
+    else -> "${formatDecimal(minFractionDigits = MAX_FRACTION_DIGITS)} BTC"
 }
 
 fun Double.getUSDAmount() = "$${fromBTCToUSD().formatDecimal(USD_FRACTION_DIGITS)}"
