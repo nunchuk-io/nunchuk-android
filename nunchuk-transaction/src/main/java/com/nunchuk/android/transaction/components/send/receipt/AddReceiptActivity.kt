@@ -44,6 +44,9 @@ class AddReceiptActivity : BaseActivity<ActivityTransactionAddReceiptBinding>() 
 
     private fun setupViews() {
         binding.toolbarTitle.text = args.sweepType.toTitle(this)
+        if (args.sweepType != SweepType.NONE) {
+            binding.receiptLabel.text = getString(R.string.nc_enter_recipient_address)
+        }
         binding.receiptInput.addTextChangedCallback(viewModel::handleReceiptChanged)
         binding.containerPrivateNote.isVisible = args.slots.isEmpty()
         binding.privateNoteInput.setMaxLength(MAX_NOTE_LENGTH)

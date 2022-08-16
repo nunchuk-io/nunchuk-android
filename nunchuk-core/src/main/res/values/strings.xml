@@ -100,4 +100,6 @@
     <string name="nc_sweep_to_a_wallet">Sweep to a wallet</string>
     <string name="nc_sweep_to_an_address">Sweep to an address</string>
     <string name="nc_transaction_view_blockchain">View on blockchain explorer</string>
+    <string name="nc_enter_recipient_address">Enter recipient’s address</string>
+    <string name="nc_slot_ready_deposit">Your slot is ready for deposit</string>
 </resources>

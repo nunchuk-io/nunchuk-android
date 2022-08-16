@@ -15,5 +15,5 @@
     <string name="nc_text_home_wallet_chain_testnet">(Testnet)</string>
     <string name="nc_text_home_wallet_chain_signet">(Signet)</string>
     <string name="nc_text_home_wallet_connection">%s %s</string>
-    <string name="nc_setup_satscard_msg">No active slot is detected. Do you want to setup a new slot?</string>
+    <string name="nc_setup_satscard_msg">No active slot is detected. Do you want to set up a new slot?</string>
 </resources>
