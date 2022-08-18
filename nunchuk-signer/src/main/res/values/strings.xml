@@ -81,7 +81,7 @@
     <string name="nc_backup_key_failed">Backup key failed</string>
     <string name="nc_topup_xpub_failed">Topup Xpub failed</string>
     <string name="nc_not_now">Not now</string>
-    <string name="nc_detect_unseal_has_balance">We detect that there is %1$s in unsealed slot %2$s. Unsealed slots are unsafe. Do you want to transfer the balance to a new wallet?</string>
+    <string name="nc_detect_unseal_has_balance">We detect that there is %1$s in unsealed slots %2$s. Unsealed slots are unsafe. Would you like to sweep it?</string>
     <string name="nc_select_wallet_first">Select wallet first</string>
     <string name="nc_please_wait_balance_confirmation">Please wait balance confirmation</string>
 </resources>

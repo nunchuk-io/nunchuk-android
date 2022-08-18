@@ -86,8 +86,6 @@
     <string name="nc_wallet_not_configured">Not configured</string>
     <string name="nc_wallet_single_sig">Single-sig</string>
     <string name="nc_wallet_multisig">Multisig</string>
-    <string name="nc_please_wait_to_load_balance">Please wait to load balance</string>
-    <string name="nc_no_balance_to_sweep">No balance to sweep</string>
     <string name="nc_no_internet_connection">No Internet connection</string>
     <string name="nc_please_wait">Please wait…</string>
     <string name="nc_sweeping_is_progress">Sweeping is in progress</string>
@@ -95,7 +93,7 @@
     <string name="nc_you_dont_have_a_wallet_yet">You don’t have a wallet yet</string>
     <string name="nc_create_single_sig_for_sweep">We will create a single-sig wallet for you to sweep into.</string>
     <string name="nc_create_my_own_wallet">I’ll create my own wallet</string>
-    <string name="nc_satscard_sweeped">Your SATSCARD has been sweeped</string>
+    <string name="nc_satscard_sweeped">Your SATSCARD has been swept</string>
     <string name="nc_confirm_and_sweep">Confirm and sweep balance</string>
     <string name="nc_sweep_to_a_wallet">Sweep to a wallet</string>
     <string name="nc_sweep_to_an_address">Sweep to an address</string>

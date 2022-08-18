@@ -72,8 +72,6 @@ class SatsCardSlotViewModel @Inject constructor(
         }
     }
 
-    fun isBalanceLoaded() = _state.value.isSuccess
-
     fun getUnsealSlots() = state.value.status.slots.filter { it.status == SatsCardSlotStatus.UNSEALED }
 
     fun isHasUnsealSlotBalance() = state.value.status.slots.any { it.status == SatsCardSlotStatus.UNSEALED && it.balance.value > 0 }

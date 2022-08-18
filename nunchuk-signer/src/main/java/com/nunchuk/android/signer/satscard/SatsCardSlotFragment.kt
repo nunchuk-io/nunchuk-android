@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.core.base.BaseFragment
@@ -118,15 +119,9 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
         }
         binding.btnUnsealAndSweep.setOnClickListener {
             isSweepActiveSlot = true
-            if (viewModel.isBalanceLoaded().not()) {
-                showWarning(getString(R.string.nc_please_wait_to_load_balance))
-                return@setOnClickListener
-            }
             val activeSlot = viewModel.getActiveSlot() ?: return@setOnClickListener
             if (activeSlot.isConfirmed.not()) {
                 showWarning(getString(R.string.nc_please_wait_balance_confirmation))
-            } else if (activeSlot.balance.value <= 0L) {
-                showWarning(getString(R.string.nc_no_balance_to_sweep))
             } else {
                 showSweepOptions()
             }
@@ -134,6 +129,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
     }
 
     private fun showSweepOptions() {
+        (childFragmentManager.findFragmentByTag("BottomSheetOption") as? DialogFragment)?.dismiss()
         val dialog = BottomSheetOption.newInstance(
             listOf(
                 SheetOption(SheetOptionType.TYPE_SWEEP_TO_WALLET, R.drawable.ic_wallet_info, R.string.nc_sweep_to_a_wallet),
@@ -224,6 +220,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
     }
 
     private fun handleShowBalanceActiveSlot(slot: SatsCardSlot) {
+        binding.btnUnsealAndSweep.isEnabled = slot.balance.value > 0L
         binding.tvBalanceBtc.text = slot.balance.getBTCAmount()
         if (slot.isConfirmed) {
             binding.tvBalanceUsd.text = slot.balance.getUSDAmount()

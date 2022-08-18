@@ -127,6 +127,7 @@
         style="@style/NCPrimaryButton.Dark"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:enabled="false"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:text="@string/nc_unseal_and_sweep_balance" />
 
