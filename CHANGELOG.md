@@ -13,6 +13,7 @@
 - [NUN-1721](https://nunchuck.atlassian.net/browse/NUN-1721) Get fee rate from API
 - [NUN-231](https://nunchuck.atlassian.net/browse/NUN-231) Support off-chain note
 - [NUN-1673](https://nunchuck.atlassian.net/browse/NUN-1673) Allow user to delete collab wallet
+- Migrate new Matrix library version
 
 ### Fixed
 
