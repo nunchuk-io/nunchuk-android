@@ -194,9 +194,14 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
         val sum = balanceSlots.sumOf { it.balance.value }
         if (sum > 0) {
             val labels = balanceSlots.joinToString(separator = ", ") { "#${it.index.inc()}" }
+            val message = if (balanceSlots.size > 1) {
+                getString(R.string.nc_detect_unseal_slots_has_balance, Amount(value = sum).getBTCAmount(), labels)
+            } else {
+                getString(R.string.nc_detect_unseal_slot_has_balance, Amount(value = sum).getBTCAmount(), labels)
+            }
             NCWarningDialog(requireActivity()).showDialog(
                 title = getString(R.string.nc_text_info),
-                message = getString(R.string.nc_detect_unseal_has_balance, Amount(value = sum).getBTCAmount(), labels),
+                message = message,
                 btnNo = getString(R.string.nc_not_now),
                 onYesClick = {
                     isSweepActiveSlot = false
