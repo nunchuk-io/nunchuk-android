@@ -18,4 +18,5 @@
 
 - [NUN-1276](https://nunchuck.atlassian.net/browse/NUN-1276) Display message when change password success
 - [NUN-1673](https://nunchuck.atlassian.net/browse/NUN-1673) When create collab wallet, recipient can finalize wallet
+- [NUN-1782](https://nunchuck.atlassian.net/browse/NUN-1782) Logged in devices: text is overlap
 - Cache BTC price
