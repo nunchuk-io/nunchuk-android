@@ -78,8 +78,13 @@ interface WalletNavigatorDelegate : WalletNavigator {
         )
     }
 
-    override fun openBackupWalletScreen(activityContext: Context, walletId: String, totalRequireSigns: Int) {
-        BackupWalletActivity.start(activityContext = activityContext, walletId = walletId, totalRequireSigns = totalRequireSigns)
+    override fun openBackupWalletScreen(activityContext: Context, walletId: String, totalRequireSigns: Int, isQuickWallet: Boolean) {
+        BackupWalletActivity.start(
+            activityContext = activityContext,
+            walletId = walletId,
+            totalRequireSigns = totalRequireSigns,
+            isQuickWallet = isQuickWallet
+        )
     }
 
     override fun openUploadConfigurationScreen(activityContext: Context, walletId: String) {
@@ -98,8 +103,8 @@ interface WalletNavigatorDelegate : WalletNavigator {
         DynamicQRCodeActivity.start(activityContext, values)
     }
 
-    override fun openWalletDetailsScreen(activityContext: Context, walletId: String) {
-        WalletDetailsActivity.start(activityContext, walletId)
+    override fun openWalletDetailsScreen(activityContext: Context, walletId: String, isSweepBalance: Boolean) {
+        WalletDetailsActivity.start(activityContext, walletId, isSweepBalance)
     }
 
     override fun openWalletEmptySignerScreen(activityContext: Context) {

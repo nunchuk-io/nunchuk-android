@@ -2,9 +2,11 @@ package com.nunchuk.android.wallet.shared.components.config
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.usecase.CreateSharedWalletUseCase
+import com.nunchuk.android.usecase.GetMatrixEventUseCase
 import com.nunchuk.android.usecase.GetRoomWalletUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.shared.components.config.SharedWalletConfigEvent.CreateSharedWalletSuccess
@@ -19,7 +21,9 @@ import javax.inject.Inject
 @HiltViewModel
 internal class SharedWalletConfigViewModel @Inject constructor(
     private val createSharedWalletUseCase: CreateSharedWalletUseCase,
-    private val getRoomWalletUseCase: GetRoomWalletUseCase
+    private val getRoomWalletUseCase: GetRoomWalletUseCase,
+    private val getMatrixEventUseCase: GetMatrixEventUseCase,
+    private val accountManager: AccountManager
 ) : NunchukViewModel<SharedWalletConfigState, SharedWalletConfigEvent>() {
 
     override val initialState = SharedWalletConfigState()
@@ -39,7 +43,21 @@ internal class SharedWalletConfigViewModel @Inject constructor(
                 .flowOn(Dispatchers.IO)
                 .onException { }
                 .flowOn(Dispatchers.Main)
-                .collect { updateState { copy(roomWallet = it) } }
+                .collect {
+                    updateState { copy(roomWallet = it) }
+                    getMatrixEvent(it?.initEventId)
+                }
+        }
+    }
+
+    private fun getMatrixEvent(eventId: String?) {
+        eventId ?: return
+        viewModelScope.launch {
+            val result = getMatrixEventUseCase(eventId)
+            if (result.isSuccess) {
+                val isSender = result.getOrThrow().sender == accountManager.getAccount().chatId
+                updateState { copy(isSender = isSender) }
+            }
         }
     }
 

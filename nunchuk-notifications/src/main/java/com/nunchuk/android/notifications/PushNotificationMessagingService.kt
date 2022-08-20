@@ -72,7 +72,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
             if (session == null) {
                 CrashlyticsReporter.recordException(Exception(getString(R.string.notification_cant_sync_push)))
             } else if (!isEventAlreadyKnown(session, data[EVENT_ID], data[ROOM_ID])) {
-                session.requireBackgroundSync()
+                session.syncService().requireBackgroundSync()
             }
         } catch (e: Exception) {
             CrashlyticsReporter.recordException(e)

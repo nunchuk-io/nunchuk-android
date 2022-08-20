@@ -48,9 +48,9 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
 
     private fun handleEvent(event: RecoverWalletEvent) {
         when (event) {
-            is RecoverWalletEvent.ImportWalletErrorEvent -> NCToastMessage(this).show(event.message)
+            is RecoverWalletEvent.ImportWalletErrorEvent -> NCToastMessage(this).showError(event.message)
             is RecoverWalletEvent.ImportWalletSuccessEvent -> handleSuccessRecoverEvent(walletName = event.walletName, walletId = event.walletId)
-            is RecoverWalletEvent.UpdateWalletErrorEvent -> NCToastMessage(this).show(event.message)
+            is RecoverWalletEvent.UpdateWalletErrorEvent -> NCToastMessage(this).showError(event.message)
             is RecoverWalletEvent.UpdateWalletSuccessEvent -> handleSuccessRecoverEvent(walletName = event.walletName, walletId = event.walletId)
             is RecoverWalletEvent.WalletSetupDoneEvent -> handleWalletSetupDoneEvent()
             RecoverWalletEvent.WalletNameRequiredEvent -> binding.walletName.setError(getString(R.string.nc_text_required))

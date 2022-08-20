@@ -5,4 +5,4 @@ sealed class CreateNewSeedEvent {
     data class OpenSelectPhraseEvent(val mnemonic: String) : CreateNewSeedEvent()
 }
 
-data class CreateNewSeedState(val seeds: List<String> = emptyList())
+data class CreateNewSeedState(val seeds: List<String> = emptyList(), val mnemonic: String = "")

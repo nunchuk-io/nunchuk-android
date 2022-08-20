@@ -53,9 +53,6 @@ internal interface TransactionDomainModule {
     fun bindValueFromAmountUseCase(useCase: ValueFromAmountUseCaseImpl): ValueFromAmountUseCase
 
     @Binds
-    fun bindEstimateFeeUseCase(useCase: EstimateFeeUseCaseImpl): EstimateFeeUseCase
-
-    @Binds
     fun bindCheckAddressValidUseCase(useCase: CheckAddressValidUseCaseImpl): CheckAddressValidUseCase
 
     @Binds

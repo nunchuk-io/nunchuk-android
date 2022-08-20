@@ -16,7 +16,10 @@ import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
@@ -93,7 +96,6 @@ internal class SyncRoomViewModel @Inject constructor(
 
     fun setupMatrix(token: String, encryptedDeviceId: String) {
         fileLog("Start setup matrix")
-
         viewModelScope.launch {
             getUserProfileUseCase.execute()
                 .flowOn(IO)

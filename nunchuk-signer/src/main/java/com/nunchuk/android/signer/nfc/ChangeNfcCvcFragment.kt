@@ -14,6 +14,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcState
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.share.IntentSharingController
@@ -99,7 +100,7 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
                             IntentSharingController.from(requireActivity()).shareFile(state.backupKeyPath)
                             nfcViewModel.updateMasterSigner(state.masterSigner)
                             findNavController().apply {
-                                popBackStack(findNavController().graph.startDestination, true)
+                                popBackStack(findNavController().graph.startDestinationId, true)
                                 navigate(R.id.nfcKeyRecoverInfoFragment)
                             }
                         }
@@ -165,11 +166,11 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
                     message = getString(R.string.nc_set_up_nfc_hint),
                     cancelable = false,
                     onYesClick = {
-                        (requireActivity() as BaseNfcActivity<*>).startNfcFlow(BaseNfcActivity.REQUEST_NFC_CHANGE_CVC)
+                        (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_NFC_CHANGE_CVC)
                     }
                 ).show()
             } else {
-                (requireActivity() as BaseNfcActivity<*>).startNfcFlow(BaseNfcActivity.REQUEST_NFC_CHANGE_CVC)
+                (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_NFC_CHANGE_CVC)
             }
         }
     }

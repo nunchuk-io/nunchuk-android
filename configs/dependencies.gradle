@@ -2,7 +2,7 @@ ext {
     // Library Version
     androidxVersion = '1.0.0'
     mutlidexVersion = '2.0.1'
-    constraintLayoutVersion = '1.1.3'
+    constraintLayoutVersion = '2.1.4'
     playServiceVersion = '16.0.0'
     daggerVersion = '2.40.5'
     powerMockVersion = '1.6.6'
@@ -16,7 +16,7 @@ ext {
     roomVersion = '2.4.2'
     archLifecycleVersion = '1.1.1'
     workMangerVersion = '2.0.0'
-    lifecycleVersion = '2.4.0'
+    lifecycleVersion = '2.5.0'
 
     retrofitVersion = '2.9.0'
     okhttpVersion = '4.7.2'
@@ -32,30 +32,32 @@ ext {
     hiltVersion = "2.42"
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.1.46'
+    nativeSdkVersion = '1.1.47'
 
     // Matrix
-    matrixSdkVersion = '1.4.16'
+    matrixSdkVersion = '1.4.27'
     // https://user-images.githubusercontent.com/9841565/164481595-53564bf0-416c-469c-b251-71b0e59074c8.png
 
     // trigger restart
     triggerRestartVersion = '2.1.2'
 
+    navVersion = "2.5.0"
+
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
-    PATCH_VERSION = 17
+    PATCH_VERSION = 18
     TASK_LABEL = "UAT"
 
-    VERSION_CODE = 178
+    VERSION_CODE = 179
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
-            compileSdkVersion: 31,
+            compileSdkVersion: 32,
             targetSdkVersion : 31,
             minSdkVersion    : 21,
             buildToolsVersion: "31.0.0",
             versionName      : "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}",
-            versionNameDebug : "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}.${TASK_LABEL}",
+            taskLabel        : ".${TASK_LABEL}",
             versionCode      : VERSION_CODE
     ]
 
@@ -67,6 +69,7 @@ ext {
             kotlinAndroidRuntime: "org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.30",
             appdistribution     : "com.google.firebase:firebase-appdistribution-gradle:2.1.3",
             hilt                : "com.google.dagger:hilt-android-gradle-plugin:${hiltVersion}",
+            safeArgs            : "androidx.navigation:navigation-safe-args-gradle-plugin:${navVersion}",
     ]
 
     kotlinDeps = [
@@ -81,9 +84,9 @@ ext {
 
     androidxDeps = [
             design           : "com.google.android.material:material:1.3.0",
-            recyclerView     : "androidx.recyclerview:recyclerview:${androidxVersion}",
+            recyclerView     : "androidx.recyclerview:recyclerview:1.2.1",
             cardView         : "androidx.cardview:cardview:${androidxVersion}",
-            appCompat        : "androidx.appcompat:appcompat:${androidxVersion}",
+            appCompat        : "androidx.appcompat:appcompat:1.5.0",
             supportAnnotation: "androidx.annotation:annotation:${androidxVersion}",
             coreUtils        : "androidx.legacy:legacy-support-core-utils:${androidxVersion}",
             constraintLayout : "androidx.constraintlayout:constraintlayout:${constraintLayoutVersion}",
@@ -121,8 +124,8 @@ ext {
     ]
 
     hiltDeps = [
-            processor       : "com.google.dagger:hilt-compiler:${hiltVersion}",
-            hilt            : "com.google.dagger:hilt-android:${hiltVersion}",
+            processor: "com.google.dagger:hilt-compiler:${hiltVersion}",
+            hilt     : "com.google.dagger:hilt-android:${hiltVersion}",
     ]
 
     imageLoaderDeps = [
@@ -165,6 +168,10 @@ ext {
             gson: "com.google.code.gson:gson:${gsonVersion}",
     ]
 
+    dataStoreDeps = [
+            dataStore: "androidx.datastore:datastore-preferences:1.0.0"
+    ]
+
     roomArch = [
             room        : "androidx.room:room-runtime:${roomVersion}",
             roomCompiler: "androidx.room:room-compiler:${roomVersion}",
@@ -188,10 +195,10 @@ ext {
     ]
 
     lifecycleDeps = [
-            lifeCycleProcess        : "androidx.lifecycle:lifecycle-process:${lifecycleVersion}",
-            lifecycleLivedata       : "androidx.lifecycle:lifecycle-livedata:${lifecycleVersion}",
-            lifecycleLivedataKtx    : "androidx.lifecycle:lifecycle-livedata-ktx:${lifecycleVersion}",
-            lifecycleViewModelKtx   : "androidx.lifecycle:lifecycle-viewmodel-ktx:${lifecycleVersion}"
+            lifeCycleProcess     : "androidx.lifecycle:lifecycle-process:${lifecycleVersion}",
+            lifecycleLivedata    : "androidx.lifecycle:lifecycle-livedata:${lifecycleVersion}",
+            lifecycleLivedataKtx : "androidx.lifecycle:lifecycle-livedata-ktx:${lifecycleVersion}",
+            lifecycleViewModelKtx: "androidx.lifecycle:lifecycle-viewmodel-ktx:${lifecycleVersion}"
     ]
 
     otherTestDeps = [

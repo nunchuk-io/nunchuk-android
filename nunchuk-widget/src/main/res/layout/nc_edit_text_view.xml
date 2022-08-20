@@ -19,6 +19,7 @@
 
     <com.nunchuk.android.widget.NCFontEditText
         android:id="@+id/editText"
+        style="@style/NCText.Body"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@drawable/nc_edit_text_bg"

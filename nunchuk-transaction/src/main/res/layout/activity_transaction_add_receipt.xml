@@ -146,6 +146,12 @@
         app:layout_constraintTop_toBottomOf="@+id/nameTitle"
         tools:text="tb1qgu4hrgq6elva2px86xefkkhsjkeh8a5sellrygtb1qgu4hrgq6elva2px86xefkkhsjkeh8a5sellryg" />
 
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/container_private_note"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="optional, nameTitle, privateNoteCounter, privateNoteInput" />
+
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnContinue"
         style="@style/NCPrimaryButton.Dark"

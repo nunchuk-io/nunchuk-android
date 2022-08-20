@@ -5,14 +5,18 @@ import android.content.Intent
 import android.nfc.NfcAdapter
 import android.nfc.tech.IsoDep
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.core.sheet.input.InputBottomSheet
+import com.nunchuk.android.core.sheet.input.InputBottomSheetListener
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.Transaction
@@ -20,21 +24,22 @@ import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.model.TransactionOption.*
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
+import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeArgs
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.imports.ImportTransactionActivity
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
-class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBinding>() {
+class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBinding>(), InputBottomSheetListener {
     private var shouldReload: Boolean = true
 
     private val args: TransactionDetailsArgs by lazy { TransactionDetailsArgs.deserializeFrom(intent) }
@@ -42,6 +47,16 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     private val viewModel: TransactionDetailsViewModel by viewModels()
 
     private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
+
+    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        val data = it.data
+        if (it.resultCode == Activity.RESULT_OK && data != null) {
+            val result = ReplaceFeeArgs.deserializeFrom(data)
+            navigator.openTransactionDetailsScreen(this, result.walletId, result.txId, "", "")
+            NcToastManager.scheduleShowMessage(getString(R.string.nc_replace_by_fee_success))
+            finish()
+        }
+    }
 
     override fun initializeBinding() = ActivityTransactionDetailsBinding.inflate(layoutInflater)
 
@@ -58,18 +73,22 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         setLightStatusBar()
         setupViews()
         observeEvent()
-        if (args.walletId.isEmpty()) {
+        if (args.walletId.isEmpty() && args.transaction == null) {
             CrashlyticsReporter.recordException(Exception("Wallet id is empty"))
             finish()
             return
         }
 
-        if (args.txId.isEmpty()) {
+        if (args.txId.isEmpty() && args.transaction == null) {
             CrashlyticsReporter.recordException(Exception("Tx id is empty"))
             finish()
             return
         }
-        viewModel.init(walletId = args.walletId, txId = args.txId, initEventId = args.initEventId, roomId = args.roomId)
+        viewModel.init(walletId = args.walletId, txId = args.txId, initEventId = args.initEventId, roomId = args.roomId, transaction = args.transaction)
+    }
+
+    override fun onInputDone(newInput: String) {
+        viewModel.updateTransactionMemo(newInput)
     }
 
     override fun onResume() {
@@ -116,6 +135,13 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 else -> false
             }
         }
+        binding.ivNote.setOnDebounceClickListener(coroutineScope = lifecycleScope) {
+            InputBottomSheet.show(
+                fragmentManager = supportFragmentManager,
+                currentInput = viewModel.getTransaction().memo,
+                title = getString(R.string.nc_transaction_private_note_off_chain_data)
+            )
+        }
     }
 
     private fun handleMenuMore() {
@@ -158,13 +184,13 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     private fun bindTransaction(transaction: Transaction) {
-        binding.toolbar.menu.findItem(R.id.menu_more).isVisible =
-            transaction.status != TransactionStatus.CONFIRMED && transaction.status != TransactionStatus.PENDING_CONFIRMATION
+        binding.toolbar.menu.findItem(R.id.menu_more).isVisible = transaction.status.isShowMoreMenu() && args.walletId.isNotEmpty()
         val output = if (transaction.isReceive) {
             transaction.receiveOutputs.firstOrNull()
         } else {
             transaction.outputs.firstOrNull()
         }
+        binding.noteContent.text = transaction.memo.ifEmpty { getString(R.string.nc_none) }
         binding.sendingTo.text = output?.first.orEmpty().truncatedAddress()
         binding.signatureStatus.isVisible = !transaction.status.hadBroadcast()
         val pendingSigners = transaction.getPendingSignatures()
@@ -256,12 +282,25 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             is ViewBlockchainExplorer -> openExternalLink(event.url)
             is TransactionDetailsError -> handleSignError(event)
             is PromptInputPassphrase -> requireInputPassphrase(event.func)
-            is PromptTransactionOptions -> promptTransactionOptions(event.isPendingTransaction)
+            is PromptTransactionOptions -> promptTransactionOptions(event)
             LoadingEvent -> showLoading()
             NfcLoadingEvent -> showLoading(message = getString(R.string.nc_keep_holding_nfc))
             is ExportToFileSuccess -> showExportToFileSuccess(event)
             is ExportTransactionError -> showExportToFileError(event)
+            is UpdateTransactionMemoFailed -> handleUpdateTransactionFailed(event)
+            is UpdateTransactionMemoSuccess -> handleUpdateTransactionSuccess(event)
         }
+    }
+
+    private fun handleUpdateTransactionFailed(event: UpdateTransactionMemoFailed) {
+        hideLoading()
+        NCToastMessage(this).showError(event.message)
+    }
+
+    private fun handleUpdateTransactionSuccess(event: UpdateTransactionMemoSuccess) {
+        hideLoading()
+        NCToastMessage(this).show(getString(R.string.nc_private_note_updated))
+        binding.noteContent.text = event.newMemo
     }
 
     private fun handleSignError(event: TransactionDetailsError) {
@@ -287,8 +326,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         )
     }
 
-    private fun promptTransactionOptions(isPending: Boolean) {
-        TransactionOptionsBottomSheet.show(supportFragmentManager, isPending)
+    private fun promptTransactionOptions(event: PromptTransactionOptions) {
+        TransactionOptionsBottomSheet.show(supportFragmentManager, event.isPendingTransaction, event.isPendingConfirm)
             .setListener {
                 when (it) {
                     CANCEL -> promptCancelTransactionConfirmation()
@@ -297,8 +336,13 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                     EXPORT_PASSPORT -> openExportTransactionScreen(EXPORT_PASSPORT)
                     IMPORT_PASSPORT -> openImportTransactionScreen(IMPORT_PASSPORT)
                     EXPORT_PSBT -> viewModel.exportTransactionToFile()
+                    REPLACE_BY_FEE -> handleOpenEditFee()
                 }
             }
+    }
+
+    private fun handleOpenEditFee() {
+        navigator.openReplaceTransactionFee(launcher, this, args.walletId, args.txId)
     }
 
     private fun openExportTransactionScreen(transactionOption: TransactionOption) {
@@ -358,13 +402,23 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     companion object {
-
-        fun start(activityContext: Activity, walletId: String, txId: String, initEventId: String = "", roomId: String = "") {
+        fun start(
+            activityContext: Activity,
+            walletId: String,
+            txId: String,
+            initEventId: String = "",
+            roomId: String = "",
+            transaction: Transaction? = null
+        ) {
             activityContext.startActivity(
-                TransactionDetailsArgs(walletId = walletId, txId = txId, initEventId = initEventId, roomId = roomId).buildIntent(activityContext)
+                TransactionDetailsArgs(
+                    walletId = walletId,
+                    txId = txId,
+                    initEventId = initEventId,
+                    roomId = roomId,
+                    transaction = transaction
+                ).buildIntent(activityContext)
             )
         }
-
     }
-
 }

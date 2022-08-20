@@ -5,6 +5,8 @@ import androidx.multidex.MultiDexApplication
 import androidx.work.Configuration
 import com.nunchuk.android.BuildConfig
 import com.nunchuk.android.core.base.ForegroundAppBackgroundListener
+import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.matrix.MatrixInitializer
 import com.nunchuk.android.core.util.AppEvenBus
 import com.nunchuk.android.core.util.AppEvent
@@ -37,6 +39,7 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
         }
         fileHelper.getOrCreateNunchukRootDir()
         initializer.initialize()
+        registerActivityLifecycleCallbacks(ActivityManager)
         registerAppForegroundListener()
     }
 
@@ -44,6 +47,7 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
         foregroundAppBackgroundListener = ForegroundAppBackgroundListener(
             onResumeAppCallback = { AppEvenBus.instance.publish(AppEvent.AppResumedEvent) }
         )
+        ProcessLifecycleOwner.get().lifecycle.addObserver(NcToastManager)
         foregroundAppBackgroundListener?.let {
             ProcessLifecycleOwner.get()
                 .lifecycle

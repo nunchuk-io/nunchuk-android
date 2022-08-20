@@ -1,7 +1,7 @@
 package com.nunchuk.android.core.di
 
-import com.nunchuk.android.core.repository.PriceConverterAPIRepository
-import com.nunchuk.android.core.repository.PriceConverterAPIRepositoryImpl
+import com.nunchuk.android.core.repository.BtcPriceRepository
+import com.nunchuk.android.core.repository.BtcPriceRepositoryImpl
 import com.nunchuk.android.core.repository.TransactionRepositoryImpl
 import com.nunchuk.android.repository.TransactionRepository
 import dagger.Binds
@@ -15,7 +15,7 @@ import javax.inject.Singleton
 internal interface DataModule {
     @Binds
     @Singleton
-    fun bindPriceConverterAPIRepository(repository: PriceConverterAPIRepositoryImpl): PriceConverterAPIRepository
+    fun bindPriceConverterAPIRepository(repository: BtcPriceRepositoryImpl): BtcPriceRepository
 
     @Binds
     @Singleton

@@ -34,12 +34,12 @@
 
     <style name="NCPrimaryButton.Dark" parent="NCPrimaryButton">
         <item name="android:background">@drawable/nc_rounded_dark_background</item>
-        <item name="android:textColor">@color/nc_white_color</item>
+        <item name="android:textColor">@color/text_button_primary_dark</item>
     </style>
 
     <style name="NCPrimaryButton.Dark.Small" parent="NCPrimaryButton.Small">
         <item name="android:background">@drawable/nc_rounded_dark_background</item>
-        <item name="android:textColor">@color/nc_white_color</item>
+        <item name="android:textColor">@color/text_button_primary_dark</item>
     </style>
 
     <style name="NCPrimaryButton.Disabled" parent="NCPrimaryButton">

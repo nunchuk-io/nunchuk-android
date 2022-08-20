@@ -23,10 +23,10 @@ object SessionHolder {
             cryptoService().setWarnOnUnknownDevices(false)
             try {
                 open()
-                if (!hasAlreadySynced()) {
-                    startSync(false)
+                if (!syncService().hasAlreadySynced()) {
+                    syncService().startSync(false)
                 } else {
-                    startSync(ProcessLifecycleOwner.get().isAtLeastStarted())
+                    syncService().startSync(ProcessLifecycleOwner.get().isAtLeastStarted())
                 }
             } catch (e: Throwable) {
                 CrashlyticsReporter.recordException(e)

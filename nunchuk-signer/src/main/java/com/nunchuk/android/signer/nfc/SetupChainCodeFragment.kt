@@ -1,28 +1,41 @@
 package com.nunchuk.android.signer.nfc
 
+import android.nfc.tech.IsoDep
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
 import android.widget.CompoundButton
 import androidx.core.view.isVisible
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.manager.NcToastManager
+import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.NfcActionListener
+import com.nunchuk.android.core.nfc.NfcScanInfo
+import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.util.CHAIN_CODE_LENGTH
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.FragmentSetupChainCodeBinding
+import com.nunchuk.android.signer.satscard.SatsCardActivity
 import com.nunchuk.android.widget.util.heightExtended
 import com.nunchuk.android.widget.util.setMaxLength
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
 class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
     private val viewModel by viewModels<SetupChainCodeViewModel>()
+    private val nfcViewModel by activityViewModels<NfcViewModel>()
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentSetupChainCodeBinding {
         return FragmentSetupChainCodeBinding.inflate(inflater, container, false)
@@ -42,10 +55,16 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
 
     private fun observer() {
         lifecycleScope.launchWhenStarted {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect(::handleState)
             }
         }
+        lifecycleScope.launchWhenStarted {
+            nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_SATSCARD_SETUP }
+                .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+                .collect(::handleSetupSatscard)
+        }
+        flowObserver(viewModel.event, ::handleEvent)
     }
 
     private fun registerEvents() {
@@ -77,12 +96,34 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
                 }
             }
 
-            findNavController().navigate(R.id.changeNfcCvcFragment, ChangeNfcCvcFragment.buildArguments(binding.etChainCode.getEditText()))
+            if ((activity as NfcSetupActivity).setUpAction == NfcSetupActivity.SETUP_SATSCARD) {
+                (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_SATSCARD_SETUP)
+            } else {
+                findNavController().navigate(R.id.changeNfcCvcFragment, ChangeNfcCvcFragment.buildArguments(binding.etChainCode.getEditText()))
+            }
         }
+    }
+
+    private fun handleSetupSatscard(info: NfcScanInfo) {
+        viewModel.setUpSatsCard(IsoDep.get(info.tag), nfcViewModel.inputCvc.orEmpty(), binding.etChainCode.getEditText())
     }
 
     private fun handleState(state: SetupChainCodeState) {
         binding.etChainCode.getEditTextView().setText(state.chainCode)
         binding.etChainCode.hideError()
+    }
+
+    private fun handleEvent(event: SetupChainCodeEvent) {
+        when (event) {
+            is SetupChainCodeEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
+            is SetupChainCodeEvent.SetupSatsCardSuccess -> {
+                SatsCardActivity.navigate(requireActivity(), event.status, (activity as NfcSetupActivity).hasWallet)
+                NcToastManager.scheduleShowMessage(getString(R.string.nc_slot_ready_deposit))
+                requireActivity().finish()
+            }
+            is SetupChainCodeEvent.ShowError -> {
+                if (nfcViewModel.handleNfcError(event.e).not()) showError(event.e?.message)
+            }
+        }
     }
 }

@@ -10,8 +10,7 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSignerModel
-import com.nunchuk.android.core.util.isPending
-import com.nunchuk.android.core.util.messageOrUnknownError
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
@@ -46,7 +45,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getRoomWalletUseCase: GetRoomWalletUseCase,
     private val getContactsUseCase: GetContactsUseCase,
     private val signTransactionByTapSignerUseCase: SignTransactionByTapSignerUseCase,
-    private val signRoomTransactionByTapSignerUseCase: SignRoomTransactionByTapSignerUseCase
+    private val signRoomTransactionByTapSignerUseCase: SignRoomTransactionByTapSignerUseCase,
+    private val updateTransactionMemo: UpdateTransactionMemo
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
 
     private var walletId: String = ""
@@ -54,6 +54,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private var initEventId: String = ""
     private var roomId: String = ""
     private var roomWallet: RoomWallet? = null
+    private var initTransaction: Transaction? = null
 
     private var remoteSigners: List<SingleSigner> = emptyList()
 
@@ -65,14 +66,18 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     override val initialState = TransactionDetailsState()
 
-    fun init(walletId: String, txId: String, initEventId: String, roomId: String) {
+    fun init(walletId: String, txId: String, initEventId: String, roomId: String, transaction: Transaction?) {
         this.walletId = walletId
         this.txId = txId
         this.initEventId = initEventId
         this.roomId = roomId
+        this.initTransaction = transaction
 
         if (isSharedTransaction()) {
             getContacts()
+        }
+        initTransaction?.let {
+            updateState { copy(transaction = it) }
         }
     }
 
@@ -81,7 +86,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             .defaultSchedulers()
             .subscribe({
                 contacts = it
-                getSharedTransaction()
+                updateTransaction(getTransaction())
             }, {
                 contacts = emptyList()
             })
@@ -89,11 +94,26 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun getTransactionInfo() {
+        if (initTransaction != null) return
         setEvent(LoadingEvent)
         if (isSharedTransaction()) {
             getSharedTransaction()
         } else {
             getPersonalTransaction()
+        }
+    }
+
+    fun getTransaction() = getState().transaction
+
+    fun updateTransactionMemo(newMemo: String) {
+        viewModelScope.launch {
+            setEvent(LoadingEvent)
+            val result = updateTransactionMemo(UpdateTransactionMemo.Data(walletId, txId, newMemo))
+            if (result.isSuccess) {
+                setEvent(UpdateTransactionMemoSuccess(newMemo))
+            } else {
+                setEvent(UpdateTransactionMemoFailed(result.exceptionOrNull()?.message.orUnknownError()))
+            }
         }
     }
 
@@ -197,9 +217,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun handleMenuMoreEvent() {
-        val pending = getState().transaction.status.isPending()
-        if (pending) {
-            setEvent(PromptTransactionOptions(pending))
+        val status = getState().transaction.status
+        val isShowMoreMenu = status.isShowMoreMenu()
+        if (isShowMoreMenu) {
+            setEvent(PromptTransactionOptions(status.isPending(), status.isPendingConfirm()))
         }
     }
 
@@ -232,7 +253,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 }
             }
         } else {
-            setEvent(PromptTransactionOptions(true))
+            setEvent(PromptTransactionOptions(isPendingTransaction = true, isPendingConfirm = false))
         }
     }
 

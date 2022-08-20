@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.util.NFC_DEFAULT_NAME
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -109,7 +110,7 @@ class AddNfcNameFragment : BaseFragment<FragmentNfcAddNameKeyBinding>() {
     }
 
     private fun startNfcAddKeyFlow() {
-        (requireActivity() as BaseNfcActivity<*>).startNfcFlow(BaseNfcActivity.REQUEST_NFC_ADD_KEY)
+        (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_NFC_ADD_KEY)
     }
 
     companion object {

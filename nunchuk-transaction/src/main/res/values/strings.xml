@@ -5,7 +5,6 @@
     <string name="nc_transaction_unused">Unused address</string>
     <string name="nc_transaction_used">Used address</string>
 
-    <string name="nc_address_copy_to_clipboard">Address copied to clipboard</string>
     <string name="nc_address_used_introduction">An address is marked as used as soon as money is deposited into it. For better privacy, reusing addresses is not recommended.</string>
     <string name="nc_address_generate_address">Generate a new address</string>
 
@@ -51,7 +50,7 @@
     <string name="nc_text_n_a">N/A</string>
     <string name="nc_transaction_signed">Signed</string>
     <string name="nc_transaction_sign">Sign</string>
-    <string name="nc_transaction_view_blockchain">View on Blockstream Explorer</string>
+    <string name="nc_transaction_view_blockchain">View on blockchain explorer</string>
     <string name="nc_transaction_enter_passphrase">Enter your passphrase</string>
     <string name="nc_transaction_export_transaction">Export to Keystone/SeedSigner</string>
     <string name="nc_transaction_export_passport_transaction">Export to Passport</string>
@@ -71,5 +70,5 @@
     <string name="nc_transaction_imported_failed">Import failed :</string>
     <string name="nc_transaction_export_psbt">Export PSBT</string>
     <string name="nc_input_fee_invalid_error">Rate cannot be lower than the minimum fee rate</string>
-
+    <string name="nc_wait_to_estimate_fee">Please wait to estimate fee</string>
 </resources>

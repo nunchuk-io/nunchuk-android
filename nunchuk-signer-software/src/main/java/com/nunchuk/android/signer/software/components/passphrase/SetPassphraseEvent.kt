@@ -14,6 +14,8 @@ sealed class SetPassphraseEvent {
     ) : SetPassphraseEvent()
 
     data class CreateSoftwareSignerErrorEvent(val message: String) : SetPassphraseEvent()
+    data class CreateWalletSuccessEvent(val walletId: String) : SetPassphraseEvent()
+    data class CreateWalletErrorEvent(val message: String) : SetPassphraseEvent()
 }
 
 data class SetPassphraseState(

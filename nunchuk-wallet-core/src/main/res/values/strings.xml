@@ -7,7 +7,6 @@
     <string name="nc_wallet_default">Default</string>
     <string name="nc_wallet_new">New</string>
     <string name="nc_wallet_your_current_config">Current wallet config</string>
-    <string name="nc_wallet_multisig">Multisig</string>
     <string name="nc_wallet_assign_signer_desc">Assign at least 1 key to the wallet</string>
     <string name="nc_wallet_required_signer_desc">Number of signatures \nrequired to unlock funds</string>
     <string name="nc_wallet_required_signers">Required keys</string>
@@ -35,8 +34,6 @@
 
     <string name="nc_signer_air_gapped">Air-gapped</string>
     <string name="nc_wallet_save_wallet_configuration">Save wallet configuration</string>
-    <string name="nc_wallet_not_configured">Not configured</string>
-    <string name="nc_wallet_single_sig">Single-sig</string>
 
     <string name="nc_text_change_wallet_success">The wallet has been changed successfully</string>
     <string name="nc_text_wallet_name">Wallet name</string>

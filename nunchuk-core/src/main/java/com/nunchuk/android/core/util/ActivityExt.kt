@@ -8,18 +8,23 @@ import android.net.Uri
 import android.provider.MediaStore
 import android.provider.Settings
 import android.view.View
-import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.widget.NCToastMessage
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import java.io.File
 
-fun Activity.showToast(message: String) = Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+fun Activity.showToast(message: String) = NCToastMessage(this).show(message)
 
 fun Activity.showLoading() {
     (this as BaseActivity<*>).showLoading()
@@ -29,8 +34,8 @@ fun Activity.hideLoading() {
     (this as BaseActivity<*>).hideLoading()
 }
 
-fun Activity.showOrHideLoading(loading: Boolean, message: String? = null) {
-    (this as BaseActivity<*>).showOrHideLoading(loading, message)
+fun Activity.showOrHideLoading(loading: Boolean, title: String = getString(R.string.nc_please_wait), message: String? = null) {
+    (this as BaseActivity<*>).showOrHideLoading(loading, title, message)
 }
 
 fun Activity.startActivityAppSetting() = startActivity(
@@ -48,8 +53,12 @@ fun Fragment.hideLoading() {
     activity?.let(FragmentActivity::hideLoading)
 }
 
-fun Fragment.showOrHideLoading(loading: Boolean, message: String? = null) {
-    activity?.showOrHideLoading(loading, message)
+fun Fragment.showOrHideNfcLoading(loading: Boolean) {
+    showOrHideLoading(loading, message = getString(R.string.nc_keep_holding_nfc))
+}
+
+fun Fragment.showOrHideLoading(loading: Boolean, title: String = getString(R.string.nc_please_wait), message: String? = null) {
+    activity?.showOrHideLoading(loading, title, message)
 }
 
 fun Fragment.pickPhotoWithResult(requestCode: Int) {
@@ -68,6 +77,11 @@ fun Fragment.takePhotoWithResult(requestCode: Int) {
 fun View.hideKeyboard() = ViewCompat.getWindowInsetsController(this)?.hide(WindowInsetsCompat.Type.ime())
 
 fun Activity.openSelectFileChooser(requestCode: Int = CHOOSE_FILE_REQUEST_CODE) {
+    val intent = Intent().setType("*/*").setAction(Intent.ACTION_GET_CONTENT)
+    startActivityForResult(Intent.createChooser(intent, getString(R.string.nc_text_select_file)), requestCode)
+}
+
+fun Fragment.openSelectFileChooser(requestCode: Int = CHOOSE_FILE_REQUEST_CODE) {
     val intent = Intent().setType("*/*").setAction(Intent.ACTION_GET_CONTENT)
     startActivityForResult(Intent.createChooser(intent, getString(R.string.nc_text_select_file)), requestCode)
 }
@@ -107,6 +121,13 @@ fun getFileFromUri(contentResolver: ContentResolver, uri: Uri, directory: File) 
 } catch (t: Throwable) {
     CrashlyticsReporter.recordException(t)
     null
+}
+
+fun <T> AppCompatActivity.flowObserver(flow: Flow<T>, collector: FlowCollector<T>) {
+    lifecycleScope.launchWhenStarted {
+        flow.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .collect(collector)
+    }
 }
 
 const val CHOOSE_FILE_REQUEST_CODE = 1248

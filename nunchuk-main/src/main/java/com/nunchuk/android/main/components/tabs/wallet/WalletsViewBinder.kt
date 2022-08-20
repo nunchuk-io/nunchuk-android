@@ -7,7 +7,7 @@ import com.nunchuk.android.core.databinding.ItemWalletBinding
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.model.WalletExtended
-import com.nunchuk.android.wallet.util.bindWalletConfiguration
+import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.widget.util.AbsViewBinder
 
 internal class WalletsViewBinder(

@@ -43,7 +43,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         observeEvent()
 
         if (savedInstanceState == null && intent.getBooleanExtra(EXTRA_IS_DELETED, false)) {
-            NCToastMessage(this).showMessage(getString(R.string.nc_account_deleted_message), dismissTime = NCToastMessage.LONG_TIME)
+            NCToastMessage(this).showMessage(getString(R.string.nc_account_deleted_message))
         }
     }
 

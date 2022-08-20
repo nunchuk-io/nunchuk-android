@@ -10,9 +10,11 @@ sealed class TransactionDetailsEvent {
     data class PromptInputPassphrase(val func: (String) -> Unit) : TransactionDetailsEvent()
     data class TransactionDetailsError(val message: String, val e: Throwable? = null) : TransactionDetailsEvent()
     data class ViewBlockchainExplorer(val url: String) : TransactionDetailsEvent()
-    data class PromptTransactionOptions(val isPendingTransaction: Boolean) : TransactionDetailsEvent()
+    data class PromptTransactionOptions(val isPendingTransaction: Boolean, val isPendingConfirm: Boolean) : TransactionDetailsEvent()
     data class ExportToFileSuccess(val filePath: String) : TransactionDetailsEvent()
     data class ExportTransactionError(val message: String) : TransactionDetailsEvent()
+    data class UpdateTransactionMemoSuccess(val newMemo: String) : TransactionDetailsEvent()
+    data class UpdateTransactionMemoFailed(val message: String) : TransactionDetailsEvent()
     object LoadingEvent : TransactionDetailsEvent()
     object NfcLoadingEvent : TransactionDetailsEvent()
 }

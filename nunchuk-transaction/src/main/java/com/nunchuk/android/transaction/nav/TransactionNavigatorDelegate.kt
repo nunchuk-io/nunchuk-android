@@ -1,9 +1,16 @@
 package com.nunchuk.android.transaction.nav
 
 import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.nfc.SweepType
+import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nav.TransactionNavigator
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.transaction.components.details.TransactionDetailsActivity
+import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeActivity
 import com.nunchuk.android.transaction.components.imports.ImportTransactionActivity
 import com.nunchuk.android.transaction.components.receive.ReceiveTransactionActivity
 import com.nunchuk.android.transaction.components.receive.address.details.AddressDetailsActivity
@@ -56,6 +63,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         outputAmount: Double,
         availableAmount: Double,
         subtractFeeFromAmount: Boolean,
+        slots: List<SatsCardSlot>,
+        sweepType: SweepType,
     ) {
         AddReceiptActivity.start(
             activityContext = activityContext,
@@ -63,6 +72,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             outputAmount = outputAmount,
             availableAmount = availableAmount,
             subtractFeeFromAmount = subtractFeeFromAmount,
+            slots = slots,
+            sweepType = sweepType
         )
     }
 
@@ -73,7 +84,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         availableAmount: Double,
         address: String,
         privateNote: String,
-        subtractFeeFromAmount: Boolean
+        subtractFeeFromAmount: Boolean,
+        sweepType: SweepType,
+        slots: List<SatsCardSlot>
     ) {
         EstimatedFeeActivity.start(
             activityContext = activityContext,
@@ -82,7 +95,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             availableAmount = availableAmount,
             address = address,
             privateNote = privateNote,
-            subtractFeeFromAmount = subtractFeeFromAmount
+            subtractFeeFromAmount = subtractFeeFromAmount,
+            sweepType = sweepType,
+            slots = slots
         )
     }
 
@@ -95,7 +110,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         privateNote: String,
         estimatedFee: Double,
         subtractFeeFromAmount: Boolean,
-        manualFeeRate: Int
+        manualFeeRate: Int,
+        sweepType: SweepType,
+        slots: List<SatsCardSlot>
     ) {
         TransactionConfirmActivity.start(
             activityContext = activityContext,
@@ -106,7 +123,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             privateNote = privateNote,
             estimatedFee = estimatedFee,
             subtractFeeFromAmount = subtractFeeFromAmount,
-            manualFeeRate = manualFeeRate
+            manualFeeRate = manualFeeRate,
+            sweepType = sweepType,
+            slots = slots
         )
     }
 
@@ -115,14 +134,16 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         walletId: String,
         txId: String,
         initEventId: String,
-        roomId: String
+        roomId: String,
+        transaction: Transaction?
     ) {
         TransactionDetailsActivity.start(
             activityContext = activityContext,
             walletId = walletId,
             txId = txId,
             initEventId = initEventId,
-            roomId = roomId
+            roomId = roomId,
+            transaction = transaction
         )
     }
 
@@ -138,4 +159,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         )
     }
 
+    override fun openReplaceTransactionFee(launcher: ActivityResultLauncher<Intent>, context: Context, walletId: String, txId: String) {
+        ReplaceFeeActivity.start(launcher, context, walletId, txId)
+    }
 }

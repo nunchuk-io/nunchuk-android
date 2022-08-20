@@ -147,6 +147,7 @@
                 android:layout_height="wrap_content"
                 android:background="@color/nc_white_color"
                 android:visibility="gone"
+                tools:visibility="visible"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/transactionInfoContainer">
 
@@ -372,6 +373,16 @@
                     android:textSize="@dimen/nc_text_size_14"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/changeAddressBarrier" />
+
+                <ImageView
+                    android:id="@+id/iv_note"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toTopOf="@id/privateNote"
+                    app:layout_constraintBottom_toBottomOf="@id/privateNote"
+                    app:layout_constraintEnd_toEndOf="@id/privateNote"
+                    android:padding="@dimen/nc_padding_16"
+                    android:src="@drawable/ic_edit"/>
 
                 <com.nunchuk.android.widget.NCFontTextView
                     android:id="@+id/noteContent"

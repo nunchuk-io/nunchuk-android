@@ -8,6 +8,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -17,14 +18,15 @@ import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.checkReadExternalPermission
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
+import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameSuccessEvent
 import com.nunchuk.android.wallet.databinding.ActivityWalletConfigBinding
-import com.nunchuk.android.wallet.util.bindWalletConfiguration
 import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -53,8 +55,19 @@ class WalletConfigActivity : BaseActivity<ActivityWalletConfigBinding>(), Bottom
             SheetOptionType.TYPE_EXPORT_AS_QR -> showSubOptionsExportQr()
             SheetOptionType.TYPE_EXPORT_KEYSTONE_QR -> viewModel.handleExportWalletQR()
             SheetOptionType.TYPE_EXPORT_PASSPORT_QR -> viewModel.handleExportPassport()
-            SheetOptionType.TYPE_DELETE_WALLET -> viewModel.handleDeleteWallet()
+            SheetOptionType.TYPE_DELETE_WALLET -> handleDeleteWallet()
             SheetOptionType.TYPE_EXPORT_TO_COLD_CARD -> handleExportColdcard()
+        }
+    }
+
+    private fun handleDeleteWallet() {
+        if (viewModel.isSharedWallet()) {
+            NCWarningDialog(this).showDialog(
+                message = getString(R.string.nc_delete_collaborative_wallet),
+                onYesClick = { viewModel.handleDeleteWallet() }
+            )
+        } else {
+            viewModel.handleDeleteWallet()
         }
     }
 
@@ -85,7 +98,7 @@ class WalletConfigActivity : BaseActivity<ActivityWalletConfigBinding>(), Bottom
     private fun walletDeleted() {
         NCToastMessage(this).showMessage(getString(R.string.nc_wallet_delete_wallet_success))
         setResult(Activity.RESULT_OK)
-        finish()
+        ActivityManager.popUntilRoot()
     }
 
     private fun handleState(walletExtended: WalletExtended) {

@@ -90,7 +90,10 @@ class RoomsViewModel @Inject constructor(
                 it.displayName == TAG_SYNC && it.tags.isEmpty()
             }
             draftSyncRooms.forEach {
-                getRoom(it)?.let(leaveRoomUseCase::execute)
+                leaveRoomUseCase.execute(it.roomId)
+                    .flowOn(Dispatchers.IO)
+                    .onException {  }
+                    .collect()
             }
         }
     }
@@ -149,7 +152,7 @@ class RoomsViewModel @Inject constructor(
 
     private fun handleRemoveRoom(room: Room) {
         viewModelScope.launch {
-            leaveRoomUseCase.execute(room)
+            leaveRoomUseCase.execute(room.roomId)
                 .flowOn(Dispatchers.IO)
                 .onException { RoomsEvent.LoadingEvent(false) }
                 .collect { awaitAndRetrieveMessages() }
