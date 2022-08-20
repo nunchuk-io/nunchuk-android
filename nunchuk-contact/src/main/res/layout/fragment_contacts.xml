@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:paddingTop="@dimen/nc_padding_24"
     android:paddingHorizontal="@dimen/nc_padding_16">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -21,7 +22,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
-            android:text="@string/nc_contact_request"
+            android:text="@string/nc_contact_requests"
             app:fontTextStyle="semi_bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -44,7 +45,9 @@
             android:id="@+id/contactDetails"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/nc_padding_8"
+            android:layout_marginTop="@dimen/nc_padding_12"
+            android:padding="@dimen/nc_padding_12"
+            android:background="@drawable/nc_rounded_8dp_white_background"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/pendingContactsLabel">
 
