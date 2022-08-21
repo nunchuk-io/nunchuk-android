@@ -97,8 +97,9 @@ internal class SetPassphraseViewModel @Inject constructor(
     }
 
     private fun createQuickWallet(masterSigner: MasterSigner) {
+        val addressType = AddressType.NATIVE_SEGWIT
         viewModelScope.launch {
-            getUnusedSignerUseCase.execute(listOf(masterSigner), WalletType.SINGLE_SIG, AddressType.NESTED_SEGWIT)
+            getUnusedSignerUseCase.execute(listOf(masterSigner), WalletType.SINGLE_SIG, addressType)
                 .flowOn(Dispatchers.IO)
                 .onStart { event(LoadingEvent(true)) }
                 .map {
@@ -106,7 +107,7 @@ internal class SetPassphraseViewModel @Inject constructor(
                         name = DEFAULT_WALLET_NAME,
                         totalRequireSigns = 1,
                         signers = it,
-                        addressType = AddressType.NESTED_SEGWIT,
+                        addressType = addressType,
                         isEscrow = false
                     )
                     it
@@ -117,7 +118,7 @@ internal class SetPassphraseViewModel @Inject constructor(
                         name = DEFAULT_WALLET_NAME,
                         totalRequireSigns = 1,
                         signers = it,
-                        addressType = AddressType.NESTED_SEGWIT,
+                        addressType = addressType,
                         isEscrow = false
                     )
                 }
