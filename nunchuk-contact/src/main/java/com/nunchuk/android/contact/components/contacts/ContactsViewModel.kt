@@ -40,7 +40,8 @@ class ContactsViewModel @Inject constructor(
         })?.find {
             it.hasTag(STATE_ROOM_SERVER_NOTICE)
         }?.let {
-            SessionHolder.activeSession?.roomService()?.getRoom(it.roomId)?.let(::retrieveTimelineEvents)
+            SessionHolder.activeSession?.roomService()?.getRoom(it.roomId)
+                ?.let(::retrieveTimelineEvents)
         }
     }
 
@@ -57,10 +58,17 @@ class ContactsViewModel @Inject constructor(
         Single.zip(
             getSentContactsUseCase.execute(),
             getReceivedContactsUseCase.execute()
-        ) { sent, receive -> sent.map(SentContact::contact) + receive.map(ReceiveContact::contact) }
+        ) { sent, receive ->
+            onUpdateReceivedContactRequestCount(receive.size)
+            sent.map(SentContact::contact) + receive.map(ReceiveContact::contact)
+        }
             .defaultSchedulers()
             .subscribe(::onPendingContactSuccess) { onPendingContactError() }
             .addToDisposables()
+    }
+
+    private fun onUpdateReceivedContactRequestCount(count: Int) = postState {
+        copy(receivedContactRequestCount = count)
     }
 
     private fun onPendingContactError() {
@@ -72,7 +80,8 @@ class ContactsViewModel @Inject constructor(
     }
 
     private fun retrieveTimelineEvents(room: Room) {
-        timeline = room.timelineService().createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
+        timeline = room.timelineService()
+            .createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
             removeAllListeners()
             addListener(TimelineListenerAdapter(::handleTimelineEvents))
             start()
