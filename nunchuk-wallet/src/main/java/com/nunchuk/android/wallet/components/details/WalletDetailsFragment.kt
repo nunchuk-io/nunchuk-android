@@ -242,8 +242,8 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(), Botto
             }
         }
 
-        binding.btnCopy.setOnClickListener { copyAddress(binding.addressText.text.toString()) }
-        binding.btnShare.setOnClickListener { controller.shareText(binding.addressText.text.toString()) }
+        binding.copyAddressLayout.setOnClickListener { copyAddress(binding.addressText.text.toString()) }
+        binding.shareLayout.setOnClickListener { controller.shareText(binding.addressText.text.toString()) }
 
         setupPaginationAdapter()
     }
