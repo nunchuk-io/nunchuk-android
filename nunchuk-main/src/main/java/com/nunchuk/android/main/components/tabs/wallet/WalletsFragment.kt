@@ -30,6 +30,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.signer.nfc.NfcSetupActivity
 import com.nunchuk.android.signer.satscard.SatsCardActivity
+import com.nunchuk.android.signer.util.handleTapSignerStatus
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.type.SignerType
@@ -111,9 +112,12 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     showError(event.e?.message.orUnknownError())
                 }
             }
+            is GetTapSignerStatusSuccess -> requireActivity().handleTapSignerStatus(
+                event.status,
+                onCreateSigner = { NfcSetupActivity.navigate(requireActivity(), NfcSetupActivity.ADD_KEY) },
+                onSetupNfc = { NfcSetupActivity.navigate(requireActivity(), NfcSetupActivity.SETUP_NFC) }
+            )
             is GoToSatsCardScreen -> openSatsCardActiveSlotScreen(event)
-            is GoToTapSignerScreen -> openTapSignerScreen(event)
-            is GoToSignerInfoScreen-> openSignerInfoScreen(id = event.status.masterSignerId.orEmpty(), name = NFC_DEFAULT_NAME, type = SignerType.NFC)
             is NeedSetupSatsCard -> handleNeedSetupSatsCard(event)
             is SatsCardUsedUp -> handleSatsCardUsedUp(event.numberOfSlot)
             is Loading -> handleLoading(event)
@@ -123,10 +127,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun openSatsCardActiveSlotScreen(event: GoToSatsCardScreen) {
         SatsCardActivity.navigate(requireActivity(), event.status, walletsViewModel.hasWallet())
-    }
-
-    private fun openTapSignerScreen(event: GoToTapSignerScreen) {
-        navigator.openSignerIntroScreen(requireActivity(), event.status)
     }
 
     private fun handleNeedSetupSatsCard(event: NeedSetupSatsCard) {

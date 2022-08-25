@@ -67,6 +67,14 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     override val initialState = TransactionDetailsState()
 
+    init {
+        viewModelScope.launch {
+            BlockListener.getBlockChainFlow().collect {
+
+            }
+        }
+    }
+
     fun init(walletId: String, txId: String, initEventId: String, roomId: String, transaction: Transaction?) {
         this.walletId = walletId
         this.txId = txId

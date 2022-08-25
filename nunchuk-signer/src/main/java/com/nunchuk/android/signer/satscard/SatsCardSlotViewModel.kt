@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetSatsCardSlotBalanceUseCase
+import com.nunchuk.android.model.BlockListener
 import com.nunchuk.android.model.NcExceptionCode
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SatsCardStatus
@@ -34,6 +35,28 @@ class SatsCardSlotViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            BlockListener.getBlockChainFlow().collect {
+                loadActiveSlotBalance()
+            }
+        }
+        loadActiveSlotBalance()
+        val status: SatsCardStatus = state.value.status
+        viewModelScope.launch {
+            val otherSlots = status.slots.filter { it.index != status.activeSlotIndex && it.status == SatsCardSlotStatus.UNSEALED }
+            val result = getSatsCardSlotBalanceUseCase(otherSlots)
+            if (result.isSuccess) {
+                val previousStatus = state.value.status
+                val activeSlot = previousStatus.slots.find { it.index == previousStatus.activeSlotIndex } ?: return@launch
+                _state.value = _state.value.copy(status = previousStatus.copy(slots = result.getOrThrow() + activeSlot), isLoading = false)
+                _event.emit(SatsCardSlotEvent.GetOtherSlotBalanceSuccess(result.getOrThrow()))
+            } else {
+                handleError(result.exceptionOrNull())
+            }
+        }
+    }
+
+    private fun loadActiveSlotBalance() {
         val status: SatsCardStatus = state.value.status
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
@@ -46,18 +69,6 @@ class SatsCardSlotViewModel @Inject constructor(
                     set(previousStatus.activeSlotIndex, newSlot)
                 }
                 _state.value = _state.value.copy(status = previousStatus.copy(slots = newSlots), isLoading = false, isSuccess = true)
-            } else {
-                handleError(result.exceptionOrNull())
-            }
-        }
-        viewModelScope.launch {
-            val otherSlots = status.slots.filter { it.index != status.activeSlotIndex && it.status == SatsCardSlotStatus.UNSEALED }
-            val result = getSatsCardSlotBalanceUseCase(otherSlots)
-            if (result.isSuccess) {
-                val previousStatus = state.value.status
-                val activeSlot = previousStatus.slots.find { it.index == previousStatus.activeSlotIndex } ?: return@launch
-                _state.value = _state.value.copy(status = previousStatus.copy(slots = result.getOrThrow() + activeSlot), isLoading = false)
-                _event.emit(SatsCardSlotEvent.GetOtherSlotBalanceSuccess(result.getOrThrow()))
             } else {
                 handleError(result.exceptionOrNull())
             }
