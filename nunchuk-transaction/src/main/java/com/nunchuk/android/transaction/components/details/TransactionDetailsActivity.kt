@@ -52,7 +52,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         val data = it.data
         if (it.resultCode == Activity.RESULT_OK && data != null) {
             val result = ReplaceFeeArgs.deserializeFrom(data)
-            navigator.openTransactionDetailsScreen(this, result.walletId, result.txId, "", "")
+            navigator.openTransactionDetailsScreen(this, result.walletId, result.transaction.txId, "", "")
             NcToastManager.scheduleShowMessage(getString(R.string.nc_replace_by_fee_success))
             finish()
         }
@@ -184,6 +184,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     private fun bindTransaction(transaction: Transaction) {
+        binding.tvReplaceByFee.isVisible = transaction.replacedTxid.isNotEmpty()
         binding.toolbar.menu.findItem(R.id.menu_more).isVisible = transaction.status.isShowMoreMenu() && args.walletId.isNotEmpty()
         val output = if (transaction.isReceive) {
             transaction.receiveOutputs.firstOrNull()
@@ -342,7 +343,11 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     private fun handleOpenEditFee() {
-        navigator.openReplaceTransactionFee(launcher, this, args.walletId, args.txId)
+        navigator.openReplaceTransactionFee(
+            launcher, this,
+            walletId = args.walletId,
+            transaction = viewModel.getTransaction()
+        )
     }
 
     private fun openExportTransactionScreen(transactionOption: TransactionOption) {

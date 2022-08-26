@@ -4,9 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:background="@color/nc_white_color"
-    android:animateLayoutChanges="true"
     android:fitsSystemWindows="true">
 
     <androidx.appcompat.widget.Toolbar
@@ -66,6 +65,23 @@
                     android:textSize="@dimen/nc_text_size_12"
                     app:fontTextStyle="semi_bold"
                     app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/tv_replace_by_fee"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/nc_rounded_tag_fill_background"
+                    android:paddingHorizontal="@dimen/nc_padding_10"
+                    android:paddingVertical="@dimen/nc_padding_4"
+                    android:text="@string/nc_replace_by_fee"
+                    android:visibility="gone"
+                    tools:visibility="visible"
+                    android:textColor="@color/nc_primary_dark_color"
+                    android:textSize="@dimen/nc_text_size_12"
+                    app:fontTextStyle="semi_bold"
+                    android:layout_marginStart="@dimen/nc_padding_4"
+                    app:layout_constraintStart_toEndOf="@+id/status"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <com.nunchuk.android.widget.NCFontTextView

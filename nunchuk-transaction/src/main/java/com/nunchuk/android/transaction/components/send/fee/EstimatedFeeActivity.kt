@@ -10,6 +10,7 @@ import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.transaction.R
@@ -199,3 +200,4 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 }
 
 internal fun Int.toFeeRate() = (this / 1000).toString() + " sat/vB"
+internal fun Int.toFeeRateInBtc() = (this / 1000).toAmount().getBTCAmount() + "/vB"

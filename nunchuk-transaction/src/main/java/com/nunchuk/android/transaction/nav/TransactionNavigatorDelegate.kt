@@ -159,7 +159,12 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         )
     }
 
-    override fun openReplaceTransactionFee(launcher: ActivityResultLauncher<Intent>, context: Context, walletId: String, txId: String) {
-        ReplaceFeeActivity.start(launcher, context, walletId, txId)
+    override fun openReplaceTransactionFee(
+        launcher: ActivityResultLauncher<Intent>,
+        context: Context,
+        walletId: String,
+        transaction: Transaction
+    ) {
+        ReplaceFeeActivity.start(launcher, context, walletId, transaction)
     }
 }

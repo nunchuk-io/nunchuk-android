@@ -81,6 +81,6 @@ interface TransactionNavigator {
     )
 
     fun openReplaceTransactionFee(
-        launcher: ActivityResultLauncher<Intent>, context: Context, walletId: String, txId: String
+        launcher: ActivityResultLauncher<Intent>, context: Context, walletId: String, transaction: Transaction
     )
 }

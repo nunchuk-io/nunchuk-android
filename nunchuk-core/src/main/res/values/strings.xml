@@ -100,4 +100,7 @@
     <string name="nc_transaction_view_blockchain">View on blockchain explorer</string>
     <string name="nc_enter_recipient_address">Enter recipient’s address</string>
     <string name="nc_slot_ready_deposit">Your slot is ready for deposit</string>
+    <string name="nc_new_fee_must_high_than_old_fee">Your new fee rate must be higher than your old fee rate.</string>
+    <string name="nc_your_old_fee_rate">Your old fee rate</string>
+    <string name="nc_new_fee_rate_must_higher">New fee rate must be higher</string>
 </resources>
