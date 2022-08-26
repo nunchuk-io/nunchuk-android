@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigation_replace_fee"
+    app:startDestination="@id/replaceFeeFragment">
+
+    <fragment
+        android:id="@+id/confirmReplaceTransactionFragment"
+        android:name="com.nunchuk.android.transaction.components.details.fee.ConfirmReplaceTransactionFragment"
+        android:label="ConfirmReplaceTransactionFragment"
+        tools:layout="@layout/fragment_transaction_confirm">
+
+        <argument
+            android:name="newFee"
+            app:argType="integer" />
+    </fragment>
+    <fragment
+        android:id="@+id/replaceFeeFragment"
+        android:name="com.nunchuk.android.transaction.components.details.fee.ReplaceFeeFragment"
+        android:label="ReplaceFeeFragment"
+        tools:layout="@layout/fragment_replace_by_fee">
+        <action
+            android:id="@+id/action_replaceFeeFragment_to_confirmReplaceTransactionFragment"
+            app:destination="@id/confirmReplaceTransactionFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+</navigation>
