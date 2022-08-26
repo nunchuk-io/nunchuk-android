@@ -4,21 +4,37 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceFlow
+import com.nunchuk.android.core.signer.PrimaryKeyFlow.isSignInFlow
 import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.components.name.AddSoftwareSignerNameEvent.SignerNameInputCompletedEvent
 import com.nunchuk.android.signer.software.components.name.AddSoftwareSignerNameEvent.SignerNameRequiredEvent
 import com.nunchuk.android.signer.software.databinding.ActivityAddNameBinding
+import com.nunchuk.android.utils.NotificationUtils
+import com.nunchuk.android.utils.viewModelProviderFactoryOf
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setMaxLength
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
 
-    private val viewModel: AddSoftwareSignerNameViewModel by viewModels()
+    @Inject
+    internal lateinit var vmFactory: AddSoftwareSignerNameViewModel.Factory
 
-    private val args: AddSoftwareSignerNameArgs by lazy { AddSoftwareSignerNameArgs.deserializeFrom(intent) }
+    private val args: AddSoftwareSignerNameArgs by lazy {
+        AddSoftwareSignerNameArgs.deserializeFrom(
+            intent
+        )
+    }
+    private val viewModel: AddSoftwareSignerNameViewModel by viewModels {
+        viewModelProviderFactoryOf {
+            vmFactory.create(args)
+        }
+    }
 
     override fun initializeBinding() = ActivityAddNameBinding.inflate(layoutInflater)
 
@@ -43,13 +59,58 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
 
     private fun handleEvent(event: AddSoftwareSignerNameEvent) {
         when (event) {
-            is SignerNameInputCompletedEvent -> openSetPassphraseScreen(event.signerName)
-            SignerNameRequiredEvent -> binding.signerName.setError(getString(R.string.nc_text_required))
+            is SignerNameInputCompletedEvent -> {
+                if (args.primaryKeyFlow.isSignInFlow()) {
+                    viewModel.getTurnOnNotification()
+                } else if (args.primaryKeyFlow.isReplaceFlow()) {
+                    openSetPassphraseScreen(event.signerName, args.passphrase)
+                } else {
+                    openSetPassphraseScreen(event.signerName, "")
+                }
+            }
+            is SignerNameRequiredEvent -> binding.signerName.setError(getString(R.string.nc_text_required))
+            is AddSoftwareSignerNameEvent.ImportPrimaryKeyErrorEvent -> NCToastMessage(this).showError(message = event.message)
+            is AddSoftwareSignerNameEvent.LoadingEvent -> showOrHideLoading(event.loading)
+            is AddSoftwareSignerNameEvent.InitFailure -> {
+                NCToastMessage(this).showError(message = event.message)
+                finish()
+            }
+            is AddSoftwareSignerNameEvent.GetTurnOnNotificationSuccess -> openNextScreen(event.isTurnOn)
         }
     }
 
-    private fun openSetPassphraseScreen(signerName: String) {
-        navigator.openSetPassphraseScreen(this, args.mnemonic, signerName)
+    private fun openNextScreen(turnOn: Boolean) {
+        val isEnabledNotification = NotificationUtils.areNotificationsEnabled(this)
+        val messages = ArrayList<String>()
+        messages.add(String.format(getString(R.string.nc_text_signed_in_with_data), args.username))
+        messages.add(String.format(getString(R.string.nc_text_key_has_been_added_data), viewModel.getSignerName()))
+        if (turnOn && isEnabledNotification) {
+            navigator.openPrimaryKeyNotificationScreen(
+                this,
+                messages = messages,
+                primaryKeyFlow = args.primaryKeyFlow
+            )
+        } else {
+            navigator.openMainScreen(
+                this,
+                accountManager.getAccount().token,
+                accountManager.getAccount().deviceId,
+                messages = messages,
+                isClearTask = true
+            )
+        }
+        viewModel.updateTurnOnNotification()
+        finish()
+    }
+
+    private fun openSetPassphraseScreen(signerName: String, passphrase: String) {
+        navigator.openSetPassphraseScreen(
+            this,
+            mnemonic = args.mnemonic,
+            signerName = signerName,
+            passphrase = passphrase,
+            primaryKeyFlow = args.primaryKeyFlow
+        )
     }
 
     private fun setupViews() {
@@ -64,8 +125,25 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
     companion object {
         private const val MAX_LENGTH = 20
 
-        fun start(activityContext: Context, mnemonic: String) {
-            activityContext.startActivity(AddSoftwareSignerNameArgs(mnemonic = mnemonic).buildIntent(activityContext))
+        fun start(
+            activityContext: Context,
+            mnemonic: String,
+            primaryKeyFlow: Int,
+            username: String?,
+            passphrase: String,
+            address: String?
+        ) {
+            activityContext.startActivity(
+                AddSoftwareSignerNameArgs(
+                    mnemonic = mnemonic,
+                    primaryKeyFlow = primaryKeyFlow,
+                    username = username,
+                    passphrase = passphrase,
+                    address = address
+                ).buildIntent(
+                    activityContext
+                )
+            )
         }
     }
 

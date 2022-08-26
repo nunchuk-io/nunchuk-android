@@ -54,6 +54,7 @@
     <dimen name="nc_height_60">60dp</dimen>
     <dimen name="nc_height_96">96dp</dimen>
     <dimen name="nc_height_120">120dp</dimen>
+    <dimen name="nc_height_140">140dp</dimen>
     <dimen name="nc_height_180">180dp</dimen>
     <dimen name="nc_height_240">240dp</dimen>
     <dimen name="nc_bottom_navigation_height">@dimen/design_bottom_navigation_height</dimen>

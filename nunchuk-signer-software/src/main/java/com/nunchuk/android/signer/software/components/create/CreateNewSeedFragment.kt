@@ -21,7 +21,10 @@ class CreateNewSeedFragment : BaseFragment<FragmentCreateSeedBinding>() {
     private val args: CreateNewSeedFragmentArgs by navArgs()
     private val viewModel: CreateNewSeedViewModel by viewModels()
 
-    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentCreateSeedBinding {
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentCreateSeedBinding {
         return FragmentCreateSeedBinding.inflate(inflater, container, false)
     }
 
@@ -52,11 +55,18 @@ class CreateNewSeedFragment : BaseFragment<FragmentCreateSeedBinding>() {
                     findNavController().navigate(
                         CreateNewSeedFragmentDirections.actionCreateNewSeedFragmentToConfirmSeedFragment(
                             mnemonic = event.mnemonic,
-                            isQuickWallet = args.isQuickWallet
+                            isQuickWallet = args.isQuickWallet,
+                            primaryKeyFlow = args.primaryKeyFlow,
+                            passphrase = ""
                         )
                     )
                 } else {
-                    navigator.openSelectPhraseScreen(requireActivity(), event.mnemonic)
+                    navigator.openSelectPhraseScreen(
+                        requireActivity(),
+                        mnemonic = event.mnemonic,
+                        primaryKeyFlow = args.primaryKeyFlow,
+                        passphrase = args.passphrase
+                    )
                 }
             }
         }

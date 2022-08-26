@@ -30,5 +30,11 @@ data class ContactEntity(
     val chatId: String,
 
     @ColumnInfo(name = "account_id")
-    val accountId: String
+    val accountId: String,
+
+    @ColumnInfo(name = "login_type")
+    val loginType: String?,
+
+    @ColumnInfo(name = "username")
+    val username: String?
 )

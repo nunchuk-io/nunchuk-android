@@ -12,8 +12,6 @@ import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.WalletType
@@ -133,10 +131,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             (if (wallet.escrow) WalletType.ESCROW else WalletType.MULTI_SIG).toReadableString(this)
         binding.addressType.text = wallet.addressType.toReadableString(this)
         binding.shareIcon.isVisible = walletExtended.isShared
-        SignersViewBinder(
-            binding.signersContainer,
-            wallet.signers.map(SingleSigner::toModel)
-        ).bindItems()
+        SignersViewBinder(binding.signersContainer, viewModel.mapSigners(wallet.signers)).bindItems()
     }
 
     private fun setupViews() {

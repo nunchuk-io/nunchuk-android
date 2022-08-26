@@ -32,8 +32,24 @@ class ConfirmSeedActivity : BaseActivity<ActivityConfirmSeedBinding>() {
 
     companion object {
 
-        fun start(activityContext: Context, mnemonic: String) {
-            activityContext.startActivity(Intent(activityContext, ConfirmSeedActivity::class.java).putExtras(ConfirmSeedFragmentArgs(mnemonic = mnemonic).toBundle()))
+        fun start(
+            activityContext: Context,
+            mnemonic: String,
+            passphrase: String,
+            primaryKeyFlow: Int
+        ) {
+            activityContext.startActivity(
+                Intent(
+                    activityContext,
+                    ConfirmSeedActivity::class.java
+                ).putExtras(
+                    ConfirmSeedFragmentArgs(
+                        mnemonic = mnemonic,
+                        primaryKeyFlow = primaryKeyFlow,
+                        passphrase = passphrase
+                    ).toBundle()
+                )
+            )
         }
     }
 

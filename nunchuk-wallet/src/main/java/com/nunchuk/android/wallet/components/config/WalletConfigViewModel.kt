@@ -2,11 +2,18 @@ package com.nunchuk.android.wallet.components.config
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.model.Result
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
-import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.DeleteWalletUseCase
+import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameSuccessEvent
@@ -21,7 +28,8 @@ internal class WalletConfigViewModel @Inject constructor(
     private val getWalletUseCase: GetWalletUseCase,
     private val updateWalletUseCase: UpdateWalletUseCase,
     private val deleteWalletUseCase: DeleteWalletUseCase,
-    private val leaveRoomUseCase: LeaveRoomUseCase
+    private val leaveRoomUseCase: LeaveRoomUseCase,
+    private val accountManager: AccountManager
 ) : NunchukViewModel<WalletExtended, WalletConfigEvent>() {
 
     override val initialState = WalletExtended()
@@ -86,4 +94,10 @@ internal class WalletConfigViewModel @Inject constructor(
     }
 
     fun isSharedWallet() = getState().isShared
+
+    fun mapSigners(singleSigners: List<SingleSigner>): List<SignerModel> {
+        return singleSigners.map { it.toModel(isPrimaryKey = isPrimaryKey(it.masterSignerId)) }
+    }
+
+    private fun isPrimaryKey(id: String) = accountManager.loginType() == SignInMode.PRIMARY_KEY.value && accountManager.getPrimaryKeyInfo()?.xfp == id
 }

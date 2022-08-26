@@ -61,6 +61,17 @@
         app:layout_constraintTop_toBottomOf="@+id/email" />
 
     <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/signUpPrimaryKey"
+        style="@style/NCPrimaryButton.Light"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:text="@string/nc_text_signup_primary_key"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/signUp" />
+
+    <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/signIn"
         style="@style/NCPrimaryButton.Light"
         android:layout_width="match_parent"
@@ -69,7 +80,7 @@
         android:layout_marginTop="@dimen/nc_padding_16"
         android:text="@string/nc_text_sign_in"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/signUp" />
+        app:layout_constraintTop_toBottomOf="@id/signUpPrimaryKey" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/tvTermAndPolicy"

@@ -42,5 +42,67 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
+        <activity
+            android:name=".components.primarykey.intro.PKeySignUpIntroActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".components.primarykey.PKeyAddSignerActivity"
+            android:label="@string/nc_add_primary_key_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".components.primarykey.chooseusername.PKeyChooseUsernameActivity"
+            android:label="@string/nc_ssigner_primary_key_choose_username_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".components.primarykey.intro.PKeySignInIntroActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".components.primarykey.intro.replace.PKeyReplaceKeyIntroActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".components.primarykey.account.PKeyAccountActivity"
+            android:label="@string/nc_primary_key_account_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".components.primarykey.signin.PKeySignInActivity"
+            android:label="@string/nc_primary_key_signin_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".components.primarykey.passphrase.PKeyEnterPassphraseActivity"
+            android:label="@string/nc_primary_key_enter_passphrase_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".components.primarykey.manuallyusername.PKeyManuallyUsernameActivity"
+            android:label="@string/nc_primary_key_signin_manually_username_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".components.primarykey.manuallysignature.PKeyManuallySignatureActivity"
+            android:label="@string/nc_primary_key_signin_manually_username_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".components.primarykey.notification.PKeyNotificationActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
     </application>
 </manifest>

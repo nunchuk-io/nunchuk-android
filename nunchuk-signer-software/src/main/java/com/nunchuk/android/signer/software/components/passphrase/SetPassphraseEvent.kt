@@ -9,7 +9,7 @@ sealed class SetPassphraseEvent {
     object ConfirmPassPhraseRequiredEvent : SetPassphraseEvent()
     object ConfirmPassPhraseNotMatchedEvent : SetPassphraseEvent()
     data class CreateSoftwareSignerCompletedEvent(
-        val masterSigner: MasterSigner,
+        val masterSigner: MasterSigner? = null,
         val skipPassphrase: Boolean
     ) : SetPassphraseEvent()
 

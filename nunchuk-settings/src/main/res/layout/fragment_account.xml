@@ -105,18 +105,42 @@
                 app:layout_constraintTop_toBottomOf="@+id/take_picture"
                 tools:text="Hung Tran Long text text text " />
 
-            <com.nunchuk.android.widget.NCFontTextView
-                android:id="@+id/email"
-                style="@style/NCText.Body.Small"
+            <LinearLayout
+                android:id="@+id/subContentLayout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_4"
                 android:gravity="center"
-                android:textColor="@color/nc_grey_dark_color"
+                android:orientation="horizontal"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/name"
-                tools:text="hung.tran@nunchuk.io" />
+                app:layout_constraintTop_toBottomOf="@+id/name">
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/primaryTag"
+                    style="@style/NCText.Badges"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/nc_padding_8"
+                    android:background="@drawable/nc_rounded_tag_primary_key_background"
+                    android:text="@string/nc_signer_type_primary_key"
+                    android:visibility="gone"
+                    app:layout_constraintBaseline_toBaselineOf="@+id/email"
+                    app:layout_constraintEnd_toStartOf="@+id/email"
+                    tools:visibility="visible" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/subContent"
+                    style="@style/NCText.Body.Small"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/nc_padding_6"
+                    android:gravity="center"
+                    android:textColor="@color/nc_grey_dark_color"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    tools:text="hung.tran@nunchuk.io" />
+            </LinearLayout>
 
             <com.nunchuk.android.widget.NCFontButton
                 android:id="@+id/signUp"
@@ -127,7 +151,7 @@
                 android:layout_marginTop="@dimen/nc_padding_16"
                 android:text="@string/nc_text_create_an_account"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/email" />
+                app:layout_constraintTop_toBottomOf="@+id/subContentLayout" />
 
             <com.nunchuk.android.widget.NCFontButton
                 android:id="@+id/signIn"

@@ -4,8 +4,13 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.domain.SendErrorEventUseCase
+import com.nunchuk.android.core.mapper.MasterSignerMapper
+import com.nunchuk.android.core.mapper.toListMapper
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.readableMessage
+import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
@@ -14,6 +19,9 @@ import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.JoinWalletUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.shared.components.assign.AssignSignerEvent.AssignSignerErrorEvent
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
@@ -22,14 +30,15 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@HiltViewModel
-internal class AssignSignerViewModel @Inject constructor(
+internal class AssignSignerViewModel @AssistedInject constructor(
+    @Assisted private val args: AssignSignerArgs,
     private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     private val getUnusedSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
     private val joinWalletUseCase: JoinWalletUseCase,
     private val sendErrorEventUseCase: SendErrorEventUseCase,
     private val hasSignerUseCase: HasSignerUseCase,
-    private val sessionHolder: SessionHolder
+    private val sessionHolder: SessionHolder,
+    private val masterSignerMapper: MasterSignerMapper
 ) : NunchukViewModel<AssignSignerState, AssignSignerEvent>() {
 
     override val initialState = AssignSignerState()
@@ -83,7 +92,6 @@ internal class AssignSignerViewModel @Inject constructor(
     fun handleContinueEvent(walletType: WalletType, addressType: AddressType) {
         val state = getState()
         val masterSigners = state.masterSigners.filter { it.device.masterFingerprint in state.selectedPFXs }
-        //
         val remoteSigners = if (state.filterRecSigners.isNotEmpty()) state.filterRecSigners.filter { it.masterFingerprint in state.selectedPFXs } else state.remoteSigners.filter { it.masterFingerprint in state.selectedPFXs }
 
         if (masterSigners.isEmpty() && remoteSigners.isEmpty()) {
@@ -117,4 +125,18 @@ internal class AssignSignerViewModel @Inject constructor(
         }
     }
 
+    fun mapSigners(): List<SignerModel> {
+        val state = getState()
+        val signers = if (args.signers.isNotEmpty()) {
+            masterSignerMapper.toListMapper()(state.masterSigners) + state.filterRecSigners.map(SingleSigner::toModel)
+        } else {
+            masterSignerMapper.toListMapper()(state.masterSigners) + state.remoteSigners.map(SingleSigner::toModel)
+        }
+        return signers
+    }
+
+    @AssistedFactory
+    internal interface Factory {
+        fun create(args: AssignSignerArgs): AssignSignerViewModel
+    }
 }

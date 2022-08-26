@@ -17,6 +17,7 @@ class MatrixInitializerUseCase @Inject constructor(
 
     override suspend fun execute(parameters: Unit) {
         if (!accountManager.getAccount().staySignedIn) return
+        if (sessionHolder.hasActiveSession()) return
         val authenticationService = instance.authenticationService()
         if (authenticationService.hasAuthenticatedSessions()) {
             authenticationService

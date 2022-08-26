@@ -18,6 +18,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.nunchuk.android.widget.NCEditTextView
 import kotlinx.coroutines.*
 
+
 fun NCEditTextView.heightExtended(dimensionPixelSize: Int) {
     getEditTextView().heightExtended(dimensionPixelSize)
 }
@@ -167,6 +168,12 @@ private fun <T> debounce(interval: Long = 500L, coroutineScope: CoroutineScope =
             }
         }
     }
+}
+
+fun NCEditTextView.preventWhitespaceInput() {
+    getEditTextView().filters = arrayOf(InputFilter { source, _, _, _, _, _ ->
+        source.toString().filterNot { it.isWhitespace() }
+    })
 }
 
 

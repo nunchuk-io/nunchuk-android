@@ -7,19 +7,30 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface CreateSoftwareSignerUseCase {
-    fun execute(name: String, mnemonic: String, passphrase: String): Flow<MasterSigner>
+    fun execute(
+        name: String,
+        mnemonic: String,
+        passphrase: String,
+        isPrimaryKey: Boolean
+    ): Flow<MasterSigner>
 }
 
 internal class CreateSoftwareSignerUseCaseImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
 ) : CreateSoftwareSignerUseCase {
 
-    override fun execute(name: String, mnemonic: String, passphrase: String) = flow {
+    override fun execute(
+        name: String,
+        mnemonic: String,
+        passphrase: String,
+        isPrimaryKey: Boolean
+    ) = flow {
         emit(
             nativeSdk.createSoftwareSigner(
                 name = name,
                 mnemonic = mnemonic,
-                passphrase = passphrase
+                passphrase = passphrase,
+                isPrimary = isPrimaryKey
             )
         )
     }

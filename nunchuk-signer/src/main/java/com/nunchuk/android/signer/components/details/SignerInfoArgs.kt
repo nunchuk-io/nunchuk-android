@@ -16,7 +16,8 @@ data class SignerInfoArgs(
     val justAdded: Boolean = false,
     val isNfc: Boolean = false,
     val setPassphrase: Boolean = false,
-    val isInWallet: Boolean = false
+    val isInWallet: Boolean = false,
+    val isReplacePrimaryKey: Boolean = false
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, SignerInfoActivity::class.java).apply {
@@ -28,6 +29,7 @@ data class SignerInfoArgs(
         putExtra(EXTRA_IS_IN_WALLET, isInWallet)
         putExtra(EXTRA_DERIVATION_PATH, derivationPath)
         putExtra(EXTRA_MASTER_FINGERPRINT, masterFingerprint)
+        putExtra(EXTRA_IS_REPLACE_PRIMARY_KEY, isReplacePrimaryKey)
     }
 
     companion object {
@@ -39,6 +41,7 @@ data class SignerInfoArgs(
         private const val EXTRA_IS_IN_WALLET = "EXTRA_IS_IN_WALLET"
         private const val EXTRA_DERIVATION_PATH = "EXTRA_DERIVATION_PATH"
         private const val EXTRA_MASTER_FINGERPRINT = "EXTRA_MASTER_FINGERPRINT"
+        private const val EXTRA_IS_REPLACE_PRIMARY_KEY = "EXTRA_IS_REPLACE_PRIMARY_KEY"
 
         fun deserializeFrom(intent: Intent): SignerInfoArgs {
             val bundle = intent.extras
@@ -50,7 +53,8 @@ data class SignerInfoArgs(
                 setPassphrase = bundle.getBooleanValue(EXTRA_SIGNER_SET_PASS_PHRASE),
                 isInWallet = bundle.getBooleanValue(EXTRA_IS_IN_WALLET),
                 derivationPath = bundle.getStringValue(EXTRA_DERIVATION_PATH),
-                masterFingerprint = bundle.getStringValue(EXTRA_MASTER_FINGERPRINT)
+                masterFingerprint = bundle.getStringValue(EXTRA_MASTER_FINGERPRINT),
+                isReplacePrimaryKey = bundle.getBooleanValue(EXTRA_IS_REPLACE_PRIMARY_KEY)
             )
         }
     }

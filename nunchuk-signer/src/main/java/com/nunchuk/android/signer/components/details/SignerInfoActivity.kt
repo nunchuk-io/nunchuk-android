@@ -9,6 +9,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcScanInfo
@@ -21,7 +22,17 @@ import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.toSpec
 import com.nunchuk.android.signer.R
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.*
+import com.nunchuk.android.signer.components.details.SignerInfoEvent.GetTapSignerBackupKeyError
+import com.nunchuk.android.signer.components.details.SignerInfoEvent.GetTapSignerBackupKeyEvent
+import com.nunchuk.android.signer.components.details.SignerInfoEvent.HealthCheckErrorEvent
+import com.nunchuk.android.signer.components.details.SignerInfoEvent.HealthCheckSuccessEvent
+import com.nunchuk.android.signer.components.details.SignerInfoEvent.NfcLoading
+import com.nunchuk.android.signer.components.details.SignerInfoEvent.RemoveSignerCompletedEvent
+import com.nunchuk.android.signer.components.details.SignerInfoEvent.RemoveSignerErrorEvent
+import com.nunchuk.android.signer.components.details.SignerInfoEvent.TopUpXpubFailed
+import com.nunchuk.android.signer.components.details.SignerInfoEvent.TopUpXpubSuccess
+import com.nunchuk.android.signer.components.details.SignerInfoEvent.UpdateNameErrorEvent
+import com.nunchuk.android.signer.components.details.SignerInfoEvent.UpdateNameSuccessEvent
 import com.nunchuk.android.signer.components.details.model.SingerOption
 import com.nunchuk.android.signer.databinding.ActivitySignerInfoBinding
 import com.nunchuk.android.signer.nfc.NfcSetupActivity
@@ -156,12 +167,14 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     }
 
     private fun bindMasterSigner(signer: MasterSigner) {
+        val isPrimaryKey = isPrimaryKey(signer.device.masterFingerprint)
         binding.signerName.text = signer.name
-        binding.signerTypeIcon.setImageDrawable(signer.type.toReadableDrawable(this))
+        binding.signerTypeIcon.setImageDrawable(signer.type.toReadableDrawable(this, isPrimaryKey))
         binding.fingerprint.isVisible = true
         binding.fingerprint.text = signer.device.masterFingerprint
         binding.signerSpec.isVisible = false
-        binding.signerType.text = signer.type.toReadableString(this)
+        binding.signerType.text = signer.type.toReadableString(this, false)
+        binding.signerPrimaryKeyType.isVisible = isPrimaryKey
     }
 
     private fun bindRemoteSigner(signer: SingleSigner) {
@@ -175,7 +188,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
         binding.signerSpec.isVisible = true
         binding.signerSpec.text = signer.toSpec()
         binding.fingerprint.isVisible = false
-        binding.signerType.text = signer.type.toReadableString(this)
+        binding.signerType.text = signer.type.toReadableString(this, isPrimaryKey(signer.masterSignerId))
     }
 
     private fun handleEvent(event: SignerInfoEvent) {
@@ -237,7 +250,12 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     private fun setupViews() {
         binding.btnHealthCheck.isVisible = args.signerType != SignerType.COLDCARD_NFC
         binding.signerName.text = args.name
-        if (args.justAdded) {
+        if (args.isReplacePrimaryKey) {
+            NCToastMessage(this).showMessage(
+                message = getString(R.string.nc_replace_primary_key_success),
+                icon = R.drawable.ic_check_circle_outline
+            )
+        } else if (args.justAdded) {
             NCToastMessage(this).showMessage(
                 message = getString(R.string.nc_text_add_signer_success, args.name),
                 icon = R.drawable.ic_check_circle_outline
@@ -251,7 +269,6 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
             }
         }
         binding.btnDone.isVisible = args.justAdded
-        binding.signerType.text = args.signerType.toReadableString(this)
         binding.toolbar.setNavigationOnClickListener { openMainScreen() }
         binding.toolbar.setOnMenuItemClickListener {
             if (it.itemId == R.id.menu_more) {
@@ -308,6 +325,11 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
         }
     }
 
+    private fun isPrimaryKey(xfp: String): Boolean {
+        val accountInfo = accountManager.getAccount()
+        return accountInfo.loginType == SignInMode.PRIMARY_KEY.value && accountInfo.primaryKeyInfo?.xfp == xfp
+    }
+
     companion object {
 
         fun start(
@@ -319,7 +341,8 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
             derivationPath: String,
             justAdded: Boolean = false,
             setPassphrase: Boolean = false,
-            isInWallet: Boolean
+            isInWallet: Boolean,
+            isReplacePrimaryKey: Boolean = false
         ) {
             activityContext.startActivity(
                 SignerInfoArgs(
@@ -330,7 +353,8 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
                     signerType = type,
                     setPassphrase = setPassphrase,
                     masterFingerprint = masterFingerprint,
-                    isInWallet = isInWallet
+                    isInWallet = isInWallet,
+                    isReplacePrimaryKey = isReplacePrimaryKey
                 ).buildIntent(activityContext)
             )
         }

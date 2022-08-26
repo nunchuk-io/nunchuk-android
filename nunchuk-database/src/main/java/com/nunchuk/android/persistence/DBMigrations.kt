@@ -19,4 +19,13 @@ object DBMigrations {
         }
     }
 
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE `contact` ADD COLUMN `login_type` TEXT")
+            database.execSQL("ALTER TABLE `contact` ADD COLUMN `username` TEXT")
+        }
+
+    }
+
 }

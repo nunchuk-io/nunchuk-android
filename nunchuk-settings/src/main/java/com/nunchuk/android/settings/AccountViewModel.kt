@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.callbacks.SyncFileCallBack
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.matrix.SessionHolder
@@ -26,8 +27,9 @@ internal class AccountViewModel @Inject constructor(
     private val updateUseProfileUseCase: UpdateUseProfileUseCase,
     private val uploadFileUseCase: UploadFileUseCase,
     private val repository: UserProfileRepository,
-    private val sessionHolder: SessionHolder,
     private val appScope: CoroutineScope,
+    private val signInModeHolder: SignInModeHolder,
+    private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
     @IoDispatcher private val dispatcher: CoroutineDispatcher
 ) : NunchukViewModel<AccountState, AccountEvent>() {
 
@@ -36,7 +38,7 @@ internal class AccountViewModel @Inject constructor(
     init {
         updateState {
             copy(
-                account = accountManager.getAccount(),
+                account = accountManager.getAccount()
             )
         }
 
@@ -54,7 +56,7 @@ internal class AccountViewModel @Inject constructor(
     fun getCurrentAccountInfo() = accountManager.getAccount()
 
     fun getCurrentUser() {
-        if (SignInModeHolder.currentMode.isGuestMode()) {
+        if (signInModeHolder.getCurrentMode().isGuestMode()) {
             event(AccountEvent.GetUserProfileGuestEvent)
         } else {
             viewModelScope.launch {
@@ -121,8 +123,7 @@ internal class AccountViewModel @Inject constructor(
         appScope.launch {
             event(AccountEvent.LoadingEvent(true))
             withContext(dispatcher) {
-                sessionHolder.clearActiveSession()
-                accountManager.signOut()
+                clearInfoSessionUseCase.invoke(Unit)
             }
             event(AccountEvent.SignOutEvent)
         }

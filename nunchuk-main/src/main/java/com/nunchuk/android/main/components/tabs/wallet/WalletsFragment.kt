@@ -11,6 +11,7 @@ import androidx.core.view.isVisible
 import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
@@ -38,9 +39,13 @@ import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningVerticalDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import javax.inject.Inject
 
 @AndroidEntryPoint
 internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
+
+    @Inject
+    lateinit var accountManager: AccountManager
 
     private val walletsViewModel: WalletsViewModel by activityViewModels()
 
@@ -164,7 +169,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun showWalletState(state: WalletsState) {
         val wallets = state.wallets
-        val signers = state.masterSigners.map(MasterSigner::toModel) + state.signers.map(SingleSigner::toModel)
+        val signers = walletsViewModel.mapSigners()
         showWallets(wallets)
         showSigners(signers)
         showConnectionBlockchainStatus(state)
