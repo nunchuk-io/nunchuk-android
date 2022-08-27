@@ -9,9 +9,6 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.IdRes
 import androidx.annotation.RequiresApi
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.flowWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
@@ -33,12 +30,10 @@ import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.DownloadFileSyncSucceed
 import com.nunchuk.android.messages.components.list.RoomsState
 import com.nunchuk.android.messages.components.list.RoomsViewModel
-import com.nunchuk.android.model.BlockListener
 import com.nunchuk.android.notifications.PushNotificationHelper
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -111,13 +106,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         viewModel.checkAppUpdateRecommend(false)
         if (savedInstanceState == null && intent.getBooleanExtra(EXTRAS_IS_NEW_DEVICE, false)) {
             showUnverifiedDeviceWarning()
-        }
-
-        lifecycleScope.launchWhenStarted {
-            BlockListener.getBlockChainFlow().flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                .collect {
-                    Timber.d("Blockchain mine $it")
-                }
         }
     }
 
