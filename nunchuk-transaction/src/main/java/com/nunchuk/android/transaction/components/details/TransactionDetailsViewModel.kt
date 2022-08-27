@@ -47,7 +47,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val signTransactionByTapSignerUseCase: SignTransactionByTapSignerUseCase,
     private val signRoomTransactionByTapSignerUseCase: SignRoomTransactionByTapSignerUseCase,
     private val updateTransactionMemo: UpdateTransactionMemo,
-    private val sessionHolder: SessionHolder
+    private val sessionHolder: SessionHolder,
+    private val getTransactionFromNetworkUseCase: GetTransactionFromNetworkUseCase
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
 
     private var walletId: String = ""
@@ -70,7 +71,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             BlockListener.getBlockChainFlow().collect {
-
+                getTransactionInfo()
             }
         }
     }
@@ -103,9 +104,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun getTransactionInfo() {
-        if (initTransaction != null) return
         setEvent(LoadingEvent)
-        if (isSharedTransaction()) {
+        if (initTransaction != null) {
+            getTransactionFromNetwork()
+        } else if (isSharedTransaction()) {
             getSharedTransaction()
         } else {
             getPersonalTransaction()
@@ -122,6 +124,15 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 setEvent(UpdateTransactionMemoSuccess(newMemo))
             } else {
                 setEvent(UpdateTransactionMemoFailed(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
+    private fun getTransactionFromNetwork() {
+        viewModelScope.launch {
+            val result = getTransactionFromNetworkUseCase(txId)
+            if (result.isSuccess) {
+                updateState { copy(transaction = result.getOrThrow()) }
             }
         }
     }
