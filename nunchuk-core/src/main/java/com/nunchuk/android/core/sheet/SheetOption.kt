@@ -6,7 +6,7 @@ import androidx.annotation.StringRes
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-data class SheetOption(val type: Int, @DrawableRes val resId: Int = 0, @StringRes val stringId: Int) : Parcelable
+data class SheetOption(val type: Int, @DrawableRes val resId: Int = 0, @StringRes val stringId: Int, val isDeleted: Boolean = false) : Parcelable
 
 object SheetOptionType {
     // wallet detail
