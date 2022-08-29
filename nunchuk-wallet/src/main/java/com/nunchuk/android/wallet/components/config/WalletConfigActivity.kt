@@ -25,6 +25,7 @@ import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateName
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameSuccessEvent
 import com.nunchuk.android.wallet.databinding.ActivityWalletConfigBinding
 import com.nunchuk.android.wallet.util.toReadableString
+import com.nunchuk.android.widget.NCDeleteConfirmationDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -67,7 +68,16 @@ class WalletConfigActivity : BaseActivity<ActivityWalletConfigBinding>(), Bottom
                 onYesClick = { viewModel.handleDeleteWallet() }
             )
         } else {
-            viewModel.handleDeleteWallet()
+            NCDeleteConfirmationDialog(this).showDialog(
+                message = getString(R.string.nc_are_you_sure_to_delete_wallet),
+                onConfirmed = {
+                    if (it.trim() == CONFIRMATION_TEXT) {
+                        viewModel.handleDeleteWallet()
+                    } else {
+                        NCToastMessage(this).showWarning(getString(R.string.nc_incorrect))
+                    }
+                }
+            )
         }
     }
 
@@ -131,7 +141,7 @@ class WalletConfigActivity : BaseActivity<ActivityWalletConfigBinding>(), Bottom
         val options = listOf(
             SheetOption(SheetOptionType.TYPE_EXPORT_AS_QR, R.drawable.ic_qr, R.string.nc_show_as_qr_code),
             SheetOption(SheetOptionType.TYPE_EXPORT_TO_COLD_CARD, R.drawable.ic_export, R.string.nc_wallet_export_coldcard),
-            SheetOption(SheetOptionType.TYPE_DELETE_WALLET, R.drawable.ic_delete, R.string.nc_wallet_delete_wallet),
+            SheetOption(SheetOptionType.TYPE_DELETE_WALLET, R.drawable.ic_delete_red, R.string.nc_wallet_delete_wallet, isDeleted = true),
         )
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(supportFragmentManager, "BottomSheetOption")
@@ -166,6 +176,7 @@ class WalletConfigActivity : BaseActivity<ActivityWalletConfigBinding>(), Bottom
     }
 
     companion object {
+        private const val CONFIRMATION_TEXT = "DELETE"
 
         fun start(activityContext: Context, walletId: String) {
             activityContext.startActivity(WalletConfigArgs(walletId = walletId).buildIntent(activityContext))
