@@ -15,6 +15,7 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.util.NFC_DEFAULT_NAME
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.FragmentNfcAddNameKeyBinding
@@ -73,7 +74,7 @@ class AddNfcNameFragment : BaseFragment<FragmentNfcAddNameKeyBinding>() {
                         requireActivity().finish()
                     } else if (state is AddNfcNameState.Error) {
                         if (nfcViewModel.handleNfcError(state.e).not()) {
-                            NCToastMessage(requireActivity()).showError(getString(R.string.nc_create_signer_failed))
+                            NCToastMessage(requireActivity()).showError(state.e?.message?.orUnknownError().orEmpty())
                         }
                     } else if (state is AddNfcNameState.UpdateError) {
                         NCToastMessage(requireActivity()).showError(state.e?.message.orEmpty())
