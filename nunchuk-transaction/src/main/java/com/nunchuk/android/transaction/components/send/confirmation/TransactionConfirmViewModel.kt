@@ -37,7 +37,8 @@ internal class TransactionConfirmViewModel @Inject constructor(
     private val unsealSatsCardSlotUseCase: UnsealSatsCardSlotUseCase,
     private val sweepSatsCardSlotUseCase: SweepSatsCardSlotUseCase,
     private val getSatsCardSlotKeyUseCase: GetSatsCardSlotKeyUseCase,
-    private val draftSatsCardTransactionUseCase: DraftSatsCardTransactionUseCase
+    private val draftSatsCardTransactionUseCase: DraftSatsCardTransactionUseCase,
+    private val sessionHolder: SessionHolder
 ) : NunchukViewModel<Unit, TransactionConfirmEvent>() {
 
     private var manualFeeRate: Int = -1
@@ -78,7 +79,7 @@ internal class TransactionConfirmViewModel @Inject constructor(
     private fun initRoomTransaction() {
         event(LoadingEvent)
         viewModelScope.launch {
-            val roomId = SessionHolder.getActiveRoomId()
+            val roomId = sessionHolder.getActiveRoomId()
             initRoomTransactionUseCase.execute(
                 roomId = roomId,
                 outputs = mapOf(address to sendAmount.toAmount()),
@@ -146,7 +147,7 @@ internal class TransactionConfirmViewModel @Inject constructor(
     }
 
     fun handleConfirmEvent() {
-        if (SessionHolder.hasActiveRoom()) {
+        if (sessionHolder.hasActiveRoom()) {
             initRoomTransaction()
         } else {
             createNewTransaction()

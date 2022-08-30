@@ -9,26 +9,38 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
+import java.util.concurrent.atomic.AtomicReference
+import javax.inject.Inject
+import javax.inject.Singleton
 
-object SessionHolder {
-    var activeSession: Session? = null
+@Singleton
+class SessionHolder @Inject constructor(
+    private val sessionListener: SessionListener
+) {
+    private var activeSessionReference: AtomicReference<Session?> = AtomicReference()
 
     var currentRoom: Room? = null
 
     // isOpen state is hidden inside matrix sdk, there is no way to know exactly variable value
     fun storeActiveSession(session: Session) {
         fileLog(message = "storeActiveSession of ${session.myUserId}")
+        getSafeActiveSession()?.apply {
+            removeListener(sessionListener)
+            close()
+        }
         session.apply {
-            activeSession = this
+            activeSessionReference.set(this)
+            addListener(sessionListener)
             cryptoService().setWarnOnUnknownDevices(false)
             try {
                 open()
                 if (!syncService().hasAlreadySynced()) {
-                    syncService().startSync(false)
+                    syncService().startSync(true)
                 } else {
                     syncService().startSync(ProcessLifecycleOwner.get().isAtLeastStarted())
                 }
-            } catch (e: Throwable) {
+                pushersService().refreshPushers()
+            } catch (e: Exception) {
                 CrashlyticsReporter.recordException(e)
             }
         }
@@ -36,15 +48,22 @@ object SessionHolder {
 
     fun clearActiveSession() {
         try {
-            activeSession?.close()
+            getSafeActiveSession()?.apply {
+                removeListener(sessionListener)
+                close()
+            }
         } catch (e: Error) {
             CrashlyticsReporter.recordException(e)
         }
-        activeSession = null
+        activeSessionReference.set(null)
         currentRoom = null
     }
 
-    fun hasActiveSession() = activeSession != null
+    fun getSafeActiveSession(): Session? {
+        return activeSessionReference.get()
+    }
+
+    fun hasActiveSession() = activeSessionReference.get() != null
 
     fun hasActiveRoom() = currentRoom != null
 

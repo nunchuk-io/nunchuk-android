@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.session.Session
+import timber.log.Timber
 import javax.inject.Inject
 
 interface MatrixInterceptor {
@@ -14,7 +15,8 @@ interface MatrixInterceptor {
 internal class MatrixInterceptorImpl @Inject constructor(
     matrix: Matrix,
     private val matrixProvider: MatrixProvider,
-    private val headerProvider: HeaderProvider
+    private val headerProvider: HeaderProvider,
+    private val sessionHolder: SessionHolder
 ) : MatrixInterceptor {
 
     private var authenticationService = matrix.authenticationService()
@@ -30,7 +32,7 @@ internal class MatrixInterceptorImpl @Inject constructor(
                     deviceId = encryptedDeviceId
                 ).apply {
                     authenticationService.reset()
-                    SessionHolder.storeActiveSession(this)
+                    sessionHolder.storeActiveSession(this)
                     MatrixEvenBus.instance.publish(MatrixEvent.SignedInEvent(this))
                 })
     }

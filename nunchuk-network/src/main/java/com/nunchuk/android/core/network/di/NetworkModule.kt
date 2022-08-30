@@ -77,21 +77,15 @@ class NetworkModule @Inject constructor() {
 
     @Singleton
     @Provides
-    fun provideBaseOkHttpClient() : OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(HTTP_CONNECT_TIMEOUT, TimeUnit.SECONDS)
-        .readTimeout(HTTP_READ_TIMEOUT, TimeUnit.SECONDS)
-        .writeTimeout(HTTP_WRITE_TIMEOUT, TimeUnit.SECONDS)
-        .build()
-
-    @Singleton
-    @Provides
     @Named(APP_HTTP_CLIENT)
     fun provideNunchukOkHttpClient(
-        baseOkHttpClient: OkHttpClient,
         loggingInterceptor: HttpLoggingInterceptor,
         headerInterceptor: HeaderInterceptor,
         connectionSpecs: List<ConnectionSpec>
-    ): OkHttpClient = baseOkHttpClient.newBuilder()
+    ): OkHttpClient = OkHttpClient.Builder()
+        .connectTimeout(HTTP_CONNECT_TIMEOUT, TimeUnit.SECONDS)
+        .readTimeout(HTTP_READ_TIMEOUT, TimeUnit.SECONDS)
+        .writeTimeout(HTTP_WRITE_TIMEOUT, TimeUnit.SECONDS)
         .protocols(listOf(Protocol.HTTP_1_1))
         .addInterceptor(loggingInterceptor)
         .addInterceptor(headerInterceptor)
@@ -102,10 +96,12 @@ class NetworkModule @Inject constructor() {
     @Provides
     @Named(MATRIX_HTTP_CLIENT)
     fun provideMatrixOkHttpClient(
-        baseOkHttpClient: OkHttpClient,
         @Named(MATRIX_LOGGING_INTERCEPTOR)
         loggingInterceptor: HttpLoggingInterceptor
-    ): OkHttpClient = baseOkHttpClient.newBuilder()
+    ): OkHttpClient = OkHttpClient.Builder()
+        .connectTimeout(HTTP_CONNECT_TIMEOUT, TimeUnit.SECONDS)
+        .readTimeout(HTTP_READ_TIMEOUT, TimeUnit.SECONDS)
+        .writeTimeout(HTTP_WRITE_TIMEOUT, TimeUnit.SECONDS)
         .addInterceptor(loggingInterceptor)
         .build()
 

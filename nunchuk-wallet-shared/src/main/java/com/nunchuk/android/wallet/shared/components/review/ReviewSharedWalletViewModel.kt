@@ -17,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class ReviewSharedWalletViewModel @Inject constructor(
-    private val initWalletUseCase: InitWalletUseCase
+    private val initWalletUseCase: InitWalletUseCase,
+    private val sessionHolder: SessionHolder
 ) : NunchukViewModel<ReviewSharedWalletState, ReviewSharedWalletEvent>() {
 
     override val initialState = ReviewSharedWalletState()
@@ -34,7 +35,7 @@ internal class ReviewSharedWalletViewModel @Inject constructor(
         requireSigns: Int,
         signers: List<SingleSigner>
     ) {
-        SessionHolder.currentRoom?.roomId?.let {
+        sessionHolder.currentRoom?.roomId?.let {
             initWallet(
                 roomId = it,
                 walletName = walletName,

@@ -27,7 +27,8 @@ interface MatrixAPIRepository {
 }
 
 internal class MatrixAPIRepositoryImpl @Inject constructor(
-    private val matrixAPI: MatrixAPI
+    private val matrixAPI: MatrixAPI,
+    private val sessionHolder: SessionHolder
 ) : MatrixAPIRepository {
 
     override fun upload(
@@ -38,7 +39,7 @@ internal class MatrixAPIRepositoryImpl @Inject constructor(
         emit(
             matrixAPI.upload(
                 contentType = fileType,
-                token = "Bearer ${SessionHolder.activeSession?.sessionParams?.credentials?.accessToken.orEmpty()}",
+                token = "Bearer ${sessionHolder.getSafeActiveSession()?.sessionParams?.credentials?.accessToken.orEmpty()}",
                 fileName = fileName,
                 body = fileData.toRequestBody(contentType = fileType.toMediaType())
             )
@@ -54,7 +55,7 @@ internal class MatrixAPIRepositoryImpl @Inject constructor(
     override fun syncState() = flow {
         emit(
             matrixAPI.syncState(
-                token = "Bearer ${SessionHolder.activeSession?.sessionParams?.credentials?.accessToken.orEmpty()}"
+                token = "Bearer ${sessionHolder.getSafeActiveSession()?.sessionParams?.credentials?.accessToken.orEmpty()}"
             )
         )
     }

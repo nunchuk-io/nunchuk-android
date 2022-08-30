@@ -14,12 +14,12 @@ import com.nunchuk.android.utils.CrashlyticsReporter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
-import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
 class AddMembersViewModel @Inject constructor(
-    private val getContactsUseCase: GetContactsUseCase
+    private val getContactsUseCase: GetContactsUseCase,
+    private val sessionHolder: SessionHolder
 ) : NunchukViewModel<AddMembersState, AddMembersEvent>() {
 
     private var contacts: List<Contact> = ArrayList()
@@ -33,7 +33,7 @@ class AddMembersViewModel @Inject constructor(
     override val initialState = AddMembersState()
 
     fun initRoom(roomId: String) {
-        room = SessionHolder.activeSession?.roomService()?.getRoom(roomId)!!
+        room = sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomId)!!
     }
 
     private fun getContacts() {

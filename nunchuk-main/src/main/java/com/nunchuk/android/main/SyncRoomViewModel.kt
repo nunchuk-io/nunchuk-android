@@ -31,7 +31,8 @@ internal class SyncRoomViewModel @Inject constructor(
     private val syncStateMatrixUseCase: SyncStateMatrixUseCase,
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val loginWithMatrixUseCase: LoginWithMatrixUseCase,
-    private val syncStateHolder: SyncStateHolder
+    private val syncStateHolder: SyncStateHolder,
+    private val sessionHolder: SessionHolder
 ) : NunchukViewModel<Unit, SyncRoomEvent>() {
 
     override val initialState = Unit
@@ -41,7 +42,7 @@ internal class SyncRoomViewModel @Inject constructor(
             syncStateHolder.lockStateSyncRoom.withLock {
                 createRoomWithTagUseCase.execute(
                     STATE_NUNCHUK_SYNC,
-                    listOf(SessionHolder.activeSession?.sessionParams?.userId.orEmpty()),
+                    listOf(sessionHolder.getSafeActiveSession()?.sessionParams?.userId.orEmpty()),
                     STATE_NUNCHUK_SYNC
                 )
                     .flowOn(IO)
@@ -99,6 +100,7 @@ internal class SyncRoomViewModel @Inject constructor(
         viewModelScope.launch {
             getUserProfileUseCase.execute()
                 .flowOn(IO)
+                .onException {  }
                 .flatMapConcat {
                     loginWithMatrix(
                         userName = it,
@@ -110,7 +112,6 @@ internal class SyncRoomViewModel @Inject constructor(
                         fileLog("end login matrix")
                     }
                 }
-                .flowOn(Main)
                 .collect {
                     event(SyncRoomEvent.LoginMatrixSucceedEvent(it))
                 }

@@ -29,9 +29,6 @@ internal interface RoomWalletDomainModule {
     fun bindGetAllRoomWalletsUseCase(useCase: GetAllRoomWalletsUseCaseImpl): GetAllRoomWalletsUseCase
 
     @Binds
-    fun bindConsumeEventUseCase(useCase: ConsumeEventUseCaseImpl): ConsumeEventUseCase
-
-    @Binds
     fun bindEnableAutoBackupUseCase(useCase: EnableAutoBackupUseCaseImpl): EnableAutoBackupUseCase
 
     @Binds

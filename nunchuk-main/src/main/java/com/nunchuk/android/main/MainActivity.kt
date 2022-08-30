@@ -14,6 +14,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.nunchuk.android.contact.components.contacts.ContactsViewModel
 import com.nunchuk.android.core.data.model.AppUpdateResponse
 import com.nunchuk.android.core.matrix.MatrixEvenBus
 import com.nunchuk.android.core.matrix.MatrixEvent
@@ -42,11 +43,16 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
     @Inject
     lateinit var pushNotificationHelper: PushNotificationHelper
 
+    @Inject
+    lateinit var sessionHolder: SessionHolder
+
     private lateinit var navController: NavController
 
     private val viewModel: MainActivityViewModel by viewModels()
 
     private val roomViewModel: RoomsViewModel by viewModels()
+
+    private val contactsViewModel: ContactsViewModel by viewModels()
 
     private val syncRoomViewModel: SyncRoomViewModel by viewModels()
 
@@ -64,7 +70,8 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
 
     private val matrixEventListener: MatrixEventListener = {
         if (it is MatrixEvent.SignedInEvent) {
-            roomViewModel.handleMatrixSignedIn(it.session)
+            roomViewModel.handleMatrixSignedIn()
+            contactsViewModel.handleMatrixSignedIn()
         }
     }
 
@@ -116,7 +123,7 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         if (loginHalfToken.isNotEmpty() && deviceId.isNotEmpty()) {
             syncRoomViewModel.setupMatrix(loginHalfToken, deviceId)
         }
-        if (SessionHolder.activeSession != null) {
+        if (sessionHolder.getSafeActiveSession() != null) {
             syncRoomViewModel.findSyncRoom()
         }
         viewModel.scheduleGetBTCConvertPrice()

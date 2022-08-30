@@ -6,7 +6,10 @@ import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -39,6 +42,7 @@ interface AccountManager {
 @Singleton
 internal class AccountManagerImpl @Inject constructor(
     private val accountSharedPref: AccountSharedPref,
+    private val sessionHolder: SessionHolder
 ) : AccountManager {
 
     val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -51,7 +55,7 @@ internal class AccountManagerImpl @Inject constructor(
 
     override fun isStaySignedIn() = accountSharedPref.getAccountInfo().staySignedIn
 
-    override fun isLinkedWithMatrix() = SessionHolder.hasActiveSession() && accountSharedPref.getAccountInfo().chatId.isNotEmpty()
+    override fun isLinkedWithMatrix() = sessionHolder.hasActiveSession() && accountSharedPref.getAccountInfo().chatId.isNotEmpty()
 
     override fun getAccount() = accountSharedPref.getAccountInfo()
 
@@ -79,8 +83,6 @@ internal class AccountManagerImpl @Inject constructor(
     override fun clearUserData() {
         AppUpdateStateHolder.reset()
         accountSharedPref.clearAccountInfo()
-        SessionHolder.activeSession = null
-        SessionHolder.currentRoom = null
     }
 
     override fun isFreshInstall(): Boolean {
@@ -92,7 +94,6 @@ internal class AccountManagerImpl @Inject constructor(
     }
 
     private fun signOutMatrix() = flow {
-        emit(SessionHolder.clearActiveSession())
+        emit(sessionHolder.clearActiveSession())
     }
-
 }

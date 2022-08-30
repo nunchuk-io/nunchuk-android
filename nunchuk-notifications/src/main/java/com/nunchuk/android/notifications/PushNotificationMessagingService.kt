@@ -32,6 +32,9 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
     @Inject
     lateinit var matrix: Matrix
 
+    @Inject
+    lateinit var sessionHolder: SessionHolder
+
     private val mUIHandler by lazy {
         Handler(Looper.getMainLooper())
     }
@@ -55,7 +58,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
     override fun onNewToken(refreshedToken: String) {
         try {
             notificationHelper.storeFcmToken(refreshedToken)
-            if (NotificationUtils.areNotificationsEnabled(context = this) && SessionHolder.hasActiveSession()) {
+            if (NotificationUtils.areNotificationsEnabled(context = this) && sessionHolder.hasActiveSession()) {
                 notificationManager.enqueueRegisterPusherWithFcmKey(refreshedToken)
             }
         } catch (t: Throwable) {
@@ -83,7 +86,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         val roomId = data[ROOM_ID]
         val eventId = data[EVENT_ID]
         if (null == eventId || null == roomId) return defaultNotificationData()
-        if (roomId == SessionHolder.getActiveRoomIdSafe()) return null
+        if (roomId == sessionHolder.getActiveRoomIdSafe()) return null
 
         val session = getActiveSession() ?: return defaultNotificationData()
         val room = session.roomService().getRoom(roomId) ?: return defaultNotificationData()
@@ -129,8 +132,8 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         else -> defaultNotificationData()
     }
 
-    private fun getActiveSession() = if (SessionHolder.hasActiveSession()) {
-        SessionHolder.activeSession
+    private fun getActiveSession() = if (sessionHolder.hasActiveSession()) {
+        sessionHolder.getSafeActiveSession()
     } else {
         getLastSession()
     }

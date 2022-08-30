@@ -23,14 +23,15 @@ internal class SharedWalletConfigViewModel @Inject constructor(
     private val createSharedWalletUseCase: CreateSharedWalletUseCase,
     private val getRoomWalletUseCase: GetRoomWalletUseCase,
     private val getMatrixEventUseCase: GetMatrixEventUseCase,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
+    private val sessionHolder: SessionHolder
 ) : NunchukViewModel<SharedWalletConfigState, SharedWalletConfigEvent>() {
 
     override val initialState = SharedWalletConfigState()
 
     init {
-        if (SessionHolder.hasActiveRoom()) {
-            val currentRoom = SessionHolder.currentRoom!!
+        if (sessionHolder.hasActiveRoom()) {
+            val currentRoom = sessionHolder.currentRoom!!
             val roomMembers = currentRoom.membershipService().getRoomMembers(RoomMemberQueryParams.Builder().build())
             updateState { copy(signerModels = roomMembers.toSignerModels()) }
             getRoomWallet(currentRoom.roomId)
@@ -63,7 +64,7 @@ internal class SharedWalletConfigViewModel @Inject constructor(
 
     fun finalizeWallet() {
         viewModelScope.launch {
-            val roomId = SessionHolder.currentRoom!!.roomId
+            val roomId = sessionHolder.currentRoom!!.roomId
             createSharedWalletUseCase.execute(roomId)
                 .flowOn(Dispatchers.IO)
                 .onException { }

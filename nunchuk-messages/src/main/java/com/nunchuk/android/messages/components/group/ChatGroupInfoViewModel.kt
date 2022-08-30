@@ -27,7 +27,8 @@ import javax.inject.Inject
 class ChatGroupInfoViewModel @Inject constructor(
     private val getRoomWalletUseCase: GetRoomWalletUseCase,
     private val getWalletUseCase: GetWalletUseCase,
-    private val sendErrorEventUseCase: SendErrorEventUseCase
+    private val sendErrorEventUseCase: SendErrorEventUseCase,
+    private val sessionHolder: SessionHolder
 ) : NunchukViewModel<ChatGroupInfoState, ChatGroupInfoEvent>() {
 
     private lateinit var room: Room
@@ -35,7 +36,7 @@ class ChatGroupInfoViewModel @Inject constructor(
     override val initialState = ChatGroupInfoState()
 
     fun initialize(roomId: String) {
-        SessionHolder.activeSession?.roomService()?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
+        sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
     }
 
     private fun onRetrievedRoom(room: Room) {
@@ -89,7 +90,7 @@ class ChatGroupInfoViewModel @Inject constructor(
     fun handleLeaveGroup() {
         viewModelScope.launch {
             try {
-                SessionHolder.activeSession?.roomService()?.leaveRoom(room.roomId)
+                sessionHolder.getSafeActiveSession()?.roomService()?.leaveRoom(room.roomId)
                 event(LeaveRoomSuccess)
             } catch (e: Throwable) {
                 CrashlyticsReporter.recordException(e)

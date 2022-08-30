@@ -27,7 +27,8 @@ class ChatInfoViewModel @Inject constructor(
     accountManager: AccountManager,
     private val getContactsUseCase: GetContactsUseCase,
     private val getRoomWalletUseCase: GetRoomWalletUseCase,
-    private val getWalletUseCase: GetWalletUseCase
+    private val getWalletUseCase: GetWalletUseCase,
+    private val sessionHolder: SessionHolder
 ) : NunchukViewModel<ChatInfoState, ChatInfoEvent>() {
 
     private val currentId = accountManager.getAccount().chatId
@@ -37,7 +38,7 @@ class ChatInfoViewModel @Inject constructor(
     override val initialState = ChatInfoState()
 
     fun initialize(roomId: String) {
-        SessionHolder.activeSession?.roomService()?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(ChatInfoEvent.RoomNotFoundEvent)
+        sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(ChatInfoEvent.RoomNotFoundEvent)
     }
 
     private fun onRetrievedRoom(room: Room) {

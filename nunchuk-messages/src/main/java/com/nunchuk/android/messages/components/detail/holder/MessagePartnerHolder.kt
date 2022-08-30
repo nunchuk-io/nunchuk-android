@@ -15,11 +15,11 @@ internal class MessagePartnerHolder(
     val binding: ItemMessagePartnerBinding,
     private val isGroupChat: Boolean,
     private val longPressListener: (message: MatrixMessage, position: Int) -> Unit,
-    private val checkedChangeListener: (checked: Boolean, position: Int) -> Unit,
+    private val checkedChangeListener: (position: Int) -> Unit,
     private val onMessageRead: (eventId: String) -> Unit
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(messageData: MatrixMessage, position: Int, selectMode: Boolean) {
+    fun bind(messageData: MatrixMessage, position: Int) {
         binding.message.movementMethod = LinkMovementMethod.getInstance()
         val userName = messageData.sender.displayNameOrId()
         binding.avatar.displayAvatar(imageLoader, messageData.sender.avatarUrl, userName.shorten())
@@ -27,11 +27,11 @@ internal class MessagePartnerHolder(
         binding.sender.isVisible = isGroupChat
         binding.message.text = messageData.content
 
-        binding.cbSelect.setOnCheckedChangeListener { _, checked ->
-            checkedChangeListener.invoke(checked, position)
+        binding.cbSelect.setOnClickListener {
+            checkedChangeListener.invoke(position)
         }
-        binding.cbSelect.isChecked = messageData.selected
-        if (selectMode) {
+        binding.cbSelect.isChecked = messageData.selected && messageData.isSelectEnable
+        if (messageData.isSelectEnable) {
             // don't allow long press when already in select mode
             binding.root.setOnLongClickListener(null)
             binding.message.setOnLongClickListener(null)
@@ -47,7 +47,7 @@ internal class MessagePartnerHolder(
                 true
             }
         }
-        binding.cbSelect.isVisible = selectMode
+        binding.cbSelect.isVisible = messageData.isSelectEnable
         onMessageRead(messageData.timelineEvent.eventId)
     }
 

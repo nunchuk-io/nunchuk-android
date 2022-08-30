@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.usecase.message
 
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.messages.model.RoomNotFoundException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -10,7 +11,8 @@ interface AddTagRoomUseCase {
 }
 
 internal class AddTagRoomUseCaseImpl @Inject constructor(
-) : BaseMessageUseCase(), AddTagRoomUseCase {
+    sessionHolder: SessionHolder
+) : BaseMessageUseCase(sessionHolder), AddTagRoomUseCase {
 
     override fun execute(tagName: String, roomId: String) = flow {
         emit(

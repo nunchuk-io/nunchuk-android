@@ -22,7 +22,8 @@ interface PushNotificationManager {
 internal class PushNotificationManagerImpl @Inject constructor(
     private val localeProvider: LocaleProvider,
     private val stringProvider: StringProvider,
-    private val appInfoProvider: AppInfoProvider
+    private val appInfoProvider: AppInfoProvider,
+    private val sessionHolder: SessionHolder
 ) : PushNotificationManager {
 
     override suspend fun testPush(pushKey: String) {
@@ -45,10 +46,10 @@ internal class PushNotificationManagerImpl @Inject constructor(
     private fun createHttpPusher(pushKey: String) = HttpPusher(
         pushKey,
         stringProvider.getString(R.string.push_app_id),
-        profileTag = "mobile" + "_" + abs(SessionHolder.activeSession?.myUserId.orEmpty().hashCode()),
+        profileTag = "mobile" + "_" + abs(sessionHolder.getSafeActiveSession()?.myUserId.orEmpty().hashCode()),
         localeProvider.current().language,
         appInfoProvider.getAppName(),
-        SessionHolder.activeSession?.sessionParams?.deviceId ?: "MOBILE",
+        sessionHolder.getSafeActiveSession()?.sessionParams?.deviceId ?: "MOBILE",
         stringProvider.getString(R.string.push_http_url),
         append = false,
         withEventIdOnly = true
@@ -58,7 +59,7 @@ internal class PushNotificationManagerImpl @Inject constructor(
         getPushersService()?.removeHttpPusher(pushKey, stringProvider.getString(R.string.push_app_id))
     }
 
-    private fun getPushersService() = SessionHolder.activeSession?.pushersService()
+    private fun getPushersService() = sessionHolder.getSafeActiveSession()?.pushersService()
 
     companion object {
         private const val TEST_EVENT_ID = "TEST_EVENT_ID"

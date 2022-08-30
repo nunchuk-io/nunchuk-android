@@ -7,7 +7,6 @@ import com.nunchuk.android.BuildConfig
 import com.nunchuk.android.core.base.ForegroundAppBackgroundListener
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.manager.NcToastManager
-import com.nunchuk.android.core.matrix.MatrixInitializer
 import com.nunchuk.android.core.util.AppEvenBus
 import com.nunchuk.android.core.util.AppEvent
 import com.nunchuk.android.log.FileLogTree
@@ -25,12 +24,11 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
     lateinit var fileHelper: FileHelper
 
     @Inject
-    lateinit var initializer: MatrixInitializer
-
-    @Inject
     lateinit var matrix: Matrix
 
-    private var foregroundAppBackgroundListener: ForegroundAppBackgroundListener? = null
+    private val foregroundAppBackgroundListener = ForegroundAppBackgroundListener(
+        onResumeAppCallback = { AppEvenBus.instance.publish(AppEvent.AppResumedEvent) }
+    )
 
     override fun onCreate() {
         super.onCreate()
@@ -38,40 +36,19 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
             Timber.plant(FileLogTree(this))
         }
         fileHelper.getOrCreateNunchukRootDir()
-        initializer.initialize()
         registerActivityLifecycleCallbacks(ActivityManager)
         registerAppForegroundListener()
     }
 
     private fun registerAppForegroundListener() {
-        foregroundAppBackgroundListener = ForegroundAppBackgroundListener(
-            onResumeAppCallback = { AppEvenBus.instance.publish(AppEvent.AppResumedEvent) }
-        )
         ProcessLifecycleOwner.get().lifecycle.addObserver(NcToastManager)
-        foregroundAppBackgroundListener?.let {
-            ProcessLifecycleOwner.get()
-                .lifecycle
-                .addObserver(it)
-        }
-    }
-
-    private fun removeAppForegroundListener() {
-        foregroundAppBackgroundListener?.let {
-            ProcessLifecycleOwner.get()
-                .lifecycle
-                .removeObserver(it)
-        }
-        foregroundAppBackgroundListener = null
+        ProcessLifecycleOwner.get()
+            .lifecycle
+            .addObserver(foregroundAppBackgroundListener)
     }
 
     override fun getWorkManagerConfiguration() = Configuration.Builder()
         .setWorkerFactory(matrix.getWorkerFactory())
         .setExecutor(Executors.newCachedThreadPool())
         .build()
-
-    override fun onTerminate() {
-        super.onTerminate()
-        initializer.terminate()
-        removeAppForegroundListener()
-    }
 }

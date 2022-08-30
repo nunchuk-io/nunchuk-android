@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.usecase.message
 
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.messages.model.RoomWithTagCreationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -16,7 +17,8 @@ interface CreateRoomWithTagUseCase {
 }
 
 internal class CreateRoomWithTagUseCaseImpl @Inject constructor(
-) : BaseMessageUseCase(), CreateRoomWithTagUseCase {
+    sessionHolder: SessionHolder
+) : BaseMessageUseCase(sessionHolder), CreateRoomWithTagUseCase {
 
     override fun execute(displayName: String, invitedUserIds: List<String>, tag: String) = flow {
         val params = CreateRoomParams().apply {
