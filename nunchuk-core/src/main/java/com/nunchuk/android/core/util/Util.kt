@@ -81,6 +81,10 @@ inline fun <T> observable(
     initialValue: T,
     crossinline onChange: (newValue: T) -> Unit
 ): ReadWriteProperty<Any?, T> = object : ObservableProperty<T>(initialValue) {
+    override fun beforeChange(property: KProperty<*>, oldValue: T, newValue: T): Boolean {
+        return oldValue != newValue
+    }
+
     override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) = onChange(newValue)
 }
 

@@ -46,7 +46,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getContactsUseCase: GetContactsUseCase,
     private val signTransactionByTapSignerUseCase: SignTransactionByTapSignerUseCase,
     private val signRoomTransactionByTapSignerUseCase: SignRoomTransactionByTapSignerUseCase,
-    private val updateTransactionMemo: UpdateTransactionMemo
+    private val updateTransactionMemo: UpdateTransactionMemo,
+    private val sessionHolder: SessionHolder
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
 
     private var walletId: String = ""
@@ -203,7 +204,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             broadcastRoomTransactionUseCase.execute(initEventId)
                 .flowOn(IO)
                 .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }
-                .collect { setEvent(BroadcastTransactionSuccess(SessionHolder.getActiveRoomId())) }
+                .collect { setEvent(BroadcastTransactionSuccess(sessionHolder.getActiveRoomId())) }
         }
     }
 
@@ -303,7 +304,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 .onException {
                     fireSignError(it)
                 }
-                .collect { setEvent(SignTransactionSuccess(SessionHolder.getActiveRoomId())) }
+                .collect { setEvent(SignTransactionSuccess(sessionHolder.getActiveRoomId())) }
         }
     }
 
@@ -335,7 +336,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             setEvent(NfcLoadingEvent)
             val result = signRoomTransactionByTapSignerUseCase(SignRoomTransactionByTapSignerUseCase.Data(isoDep, inputCvc, initEventId))
             if (result.isSuccess) {
-                setEvent(SignTransactionSuccess(SessionHolder.getActiveRoomId()))
+                setEvent(SignTransactionSuccess(sessionHolder.getActiveRoomId()))
             } else {
                 fireSignError(result.exceptionOrNull())
             }

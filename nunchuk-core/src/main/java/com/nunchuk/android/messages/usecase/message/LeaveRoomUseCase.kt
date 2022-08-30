@@ -10,12 +10,13 @@ interface LeaveRoomUseCase {
 }
 
 internal class LeaveRoomUseCaseImpl @Inject constructor(
+    private val sessionHolder: SessionHolder
 ) : LeaveRoomUseCase {
 
     override fun execute(roomId: String, reason: String?) = flow {
         emit(
-            if (SessionHolder.hasActiveSession()) {
-                SessionHolder.activeSession!!.roomService().leaveRoom(roomId = roomId, reason = reason)
+            if (sessionHolder.hasActiveSession()) {
+                sessionHolder.getSafeActiveSession()!!.roomService().leaveRoom(roomId = roomId, reason = reason)
             } else Unit
         )
     }

@@ -68,7 +68,8 @@ internal class MainActivityViewModel @Inject constructor(
     private val createOrUpdateSyncFileUseCase: CreateOrUpdateSyncFileUseCase,
     private val deleteSyncFileUseCase: DeleteSyncFileUseCase,
     private val saveCacheFileUseCase: SaveCacheFileUseCase,
-    private val getLocalBtcPriceFlowUseCase: GetLocalBtcPriceFlowUseCase
+    private val getLocalBtcPriceFlowUseCase: GetLocalBtcPriceFlowUseCase,
+    private val sessionHolder: SessionHolder
 ) : NunchukViewModel<Unit, MainAppEvent>() {
 
     override val initialState = Unit
@@ -76,6 +77,14 @@ internal class MainActivityViewModel @Inject constructor(
     private var timeline: Timeline? = null
 
     private var checkBootstrap: Boolean = false
+
+    private val timelineListenerAdapter = TimelineListenerAdapter()
+
+    init {
+        viewModelScope.launch {
+            timelineListenerAdapter.data.debounce(500L).collect(::handleTimelineEvents)
+        }
+    }
 
     init {
         initSyncEventExecutor()
@@ -99,7 +108,7 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     private fun observeInitialSync() {
-        SessionHolder.activeSession?.let {
+        sessionHolder.getSafeActiveSession()?.let {
             it.syncService().getSyncStateLive()
                 .asFlow()
                 .onEach { status ->
@@ -128,7 +137,7 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     private fun checkMissingSyncFile() {
-        val userId = SessionHolder.activeSession?.sessionParams?.userId
+        val userId = sessionHolder.getSafeActiveSession()?.sessionParams?.userId
         if (userId.isNullOrEmpty()) {
             return
         }
@@ -262,7 +271,7 @@ internal class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             createOrUpdateSyncFileUseCase.execute(
                 SyncFileModel(
-                    userId = SessionHolder.activeSession?.sessionParams?.userId.orEmpty(),
+                    userId = sessionHolder.getSafeActiveSession()?.sessionParams?.userId.orEmpty(),
                     action = "UPLOAD",
                     fileName = fileName,
                     fileJsonInfo = fileJsonInfo,
@@ -283,7 +292,7 @@ internal class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             createOrUpdateSyncFileUseCase.execute(
                 SyncFileModel(
-                    userId = SessionHolder.activeSession?.sessionParams?.userId.orEmpty(),
+                    userId = sessionHolder.getSafeActiveSession()?.sessionParams?.userId.orEmpty(),
                     action = "DOWNLOAD",
                     fileJsonInfo = fileJsonInfo,
                     fileUrl = fileUrl
@@ -302,7 +311,7 @@ internal class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             deleteSyncFileUseCase.execute(
                 SyncFileModel(
-                    userId = SessionHolder.activeSession?.sessionParams?.userId.orEmpty(),
+                    userId = sessionHolder.getSafeActiveSession()?.sessionParams?.userId.orEmpty(),
                     action = "DOWNLOAD",
                     fileJsonInfo = fileJsonInfo,
                     fileUrl = fileUrl
@@ -323,7 +332,7 @@ internal class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             deleteSyncFileUseCase.execute(
                 SyncFileModel(
-                    userId = SessionHolder.activeSession?.sessionParams?.userId.orEmpty(),
+                    userId = sessionHolder.getSafeActiveSession()?.sessionParams?.userId.orEmpty(),
                     action = "UPLOAD",
                     fileName = fileName,
                     fileJsonInfo = fileJsonInfo,
@@ -450,7 +459,7 @@ internal class MainActivityViewModel @Inject constructor(
         Timber.tag(TAG).v("retrieveTimelineEvents")
         timeline = timelineService().createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
             removeAllListeners()
-            addListener(TimelineListenerAdapter(::handleTimelineEvents))
+            addListener(timelineListenerAdapter)
             start()
         }
     }
@@ -491,7 +500,7 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     private fun reRequestKeys(timelineEvent: TimelineEvent) {
-        val session = SessionHolder.activeSession ?: return
+        val session = sessionHolder.getSafeActiveSession() ?: return
         if (timelineEvent.isEncrypted() && timelineEvent.root.mCryptoError != null) {
             val cryptoService = session.cryptoService()
             val keysBackupService = cryptoService.keysBackupService()
@@ -508,7 +517,7 @@ internal class MainActivityViewModel @Inject constructor(
         Timber.tag(TAG).d("syncData::$roomId")
         registerAutoBackup(
             syncRoomId = roomId,
-            accessToken = SessionHolder.activeSession?.sessionParams?.credentials?.accessToken.orEmpty()
+            accessToken = sessionHolder.getSafeActiveSession()?.sessionParams?.credentials?.accessToken.orEmpty()
         )
         retrieveTimelines(roomId)
     }
@@ -516,7 +525,7 @@ internal class MainActivityViewModel @Inject constructor(
     private fun retrieveTimelines(roomId: String) {
         viewModelScope.launch {
             flow {
-                val activeSession = SessionHolder.activeSession ?: throw SessionLostException()
+                val activeSession = sessionHolder.getSafeActiveSession() ?: throw SessionLostException()
                 val room = activeSession.roomService().getRoom(roomId) ?: throw RoomNotFoundException(roomId)
                 emit(room)
             }.flowOn(IO)

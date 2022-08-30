@@ -1,7 +1,6 @@
 package com.nunchuk.android.messages.components.list
 
 import android.os.Bundle
-import android.util.SparseArray
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -65,7 +64,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
         }
         setEmptyState()
         emptyStateView?.findViewById<View>(R.id.btnAddContacts)?.setOnClickListener {
-            navigator.openAddContactsScreen(childFragmentManager, viewModel::retrieveMessages)
+            navigator.openAddContactsScreen(childFragmentManager, viewModel::listenRoomSummaries)
         }
         emptyStateView?.isVisible = false
     }
@@ -90,7 +89,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
             clear()
             addAll(state.roomWallets.map(RoomWallet::roomId))
         }
-        adapter.updateItems(state.rooms.filter(RoomSummary::shouldShow))
+        adapter.submitList(state.rooms.filter(RoomSummary::shouldShow))
         emptyStateView?.isVisible = state.rooms.isEmpty()
 
         hideLoading()

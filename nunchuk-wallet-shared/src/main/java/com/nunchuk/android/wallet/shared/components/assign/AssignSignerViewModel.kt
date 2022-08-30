@@ -16,7 +16,9 @@ import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.shared.components.assign.AssignSignerEvent.AssignSignerErrorEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -26,7 +28,8 @@ internal class AssignSignerViewModel @Inject constructor(
     private val getUnusedSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
     private val joinWalletUseCase: JoinWalletUseCase,
     private val sendErrorEventUseCase: SendErrorEventUseCase,
-    private val hasSignerUseCase: HasSignerUseCase
+    private val hasSignerUseCase: HasSignerUseCase,
+    private val sessionHolder: SessionHolder
 ) : NunchukViewModel<AssignSignerState, AssignSignerEvent>() {
 
     override val initialState = AssignSignerState()
@@ -95,7 +98,7 @@ internal class AssignSignerViewModel @Inject constructor(
                 .onException {}
                 .collect { unusedSignerSigners.addAll(it) }
 
-            SessionHolder.currentRoom?.let { room ->
+            sessionHolder.currentRoom?.let { room ->
                 joinWalletUseCase.execute(room.roomId, if (state.filterRecSigners.isNotEmpty()) remoteSigners else remoteSigners + unusedSignerSigners)
                     .flowOn(Dispatchers.IO)
                     .onException {

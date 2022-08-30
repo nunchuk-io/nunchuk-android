@@ -117,14 +117,12 @@ fun EditText.setOnEnterListener(callback: () -> Unit) {
     })
 }
 
-fun RecyclerView.smoothScrollToLastItem(delay: Long = DELAY) {
-    postDelayed({
-        adapter?.itemCount?.let {
-            if (it > 0) {
-                smoothScrollToPosition(it - 1)
-            }
+fun RecyclerView.smoothScrollToLastItem() {
+    adapter?.itemCount?.let {
+        if (it > 0) {
+            smoothScrollToPosition(it - 1)
         }
-    }, delay)
+    }
 }
 
 const val DELAY = 100L

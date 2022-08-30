@@ -26,7 +26,10 @@ interface ImageLoader {
 }
 
 @Singleton
-class ImageLoaderImpl @Inject constructor(context: Context) : ImageLoader {
+class ImageLoaderImpl @Inject constructor(
+    context: Context,
+    private val sessionHolder: SessionHolder
+) : ImageLoader {
 
     private val glideRequests: RequestManager = Glide.with(context)
 
@@ -68,7 +71,7 @@ class ImageLoaderImpl @Inject constructor(context: Context) : ImageLoader {
         }).into(imageView)
     }
 
-    private fun resolvedUrl(avatarUrl: String?) = SessionHolder.activeSession?.contentUrlResolver()?.resolveThumbnail(
+    private fun resolvedUrl(avatarUrl: String?) = sessionHolder.getSafeActiveSession()?.contentUrlResolver()?.resolveThumbnail(
         avatarUrl,
         THUMBNAIL_SIZE,
         THUMBNAIL_SIZE,

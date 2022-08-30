@@ -1,15 +1,18 @@
 package com.nunchuk.android.core.util
 
 import com.nunchuk.android.utils.CrashlyticsReporter
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import timber.log.Timber
 
 const val PAGINATION = 20
 
-open class TimelineListenerAdapter(val callback: (List<TimelineEvent>) -> Unit = {}) : Timeline.Listener {
+class TimelineListenerAdapter : Timeline.Listener {
 
-    private var lastSnapshot: List<TimelineEvent> = ArrayList()
+    private val _data = MutableStateFlow<List<TimelineEvent>>(emptyList())
+    val data = _data.asStateFlow()
 
     override fun onNewTimelineEvents(eventIds: List<String>) {
         Timber.d("onNewTimelineEvents($eventIds)")
@@ -20,10 +23,8 @@ open class TimelineListenerAdapter(val callback: (List<TimelineEvent>) -> Unit =
     }
 
     override fun onTimelineUpdated(snapshot: List<TimelineEvent>) {
-        if (lastSnapshot != snapshot) {
-            lastSnapshot = snapshot
-            callback(snapshot)
-        }
+        _data.value = snapshot
     }
 
+    fun getLastTimeEvents() = _data.value
 }

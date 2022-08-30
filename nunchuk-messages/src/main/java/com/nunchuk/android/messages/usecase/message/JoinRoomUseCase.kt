@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.usecase.message
 
+import com.nunchuk.android.core.matrix.SessionHolder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -13,7 +14,8 @@ interface JoinRoomUseCase {
 }
 
 internal class JoinRoomUseCaseImpl @Inject constructor(
-) : BaseMessageUseCase(), JoinRoomUseCase {
+    sessionHolder: SessionHolder
+) : BaseMessageUseCase(sessionHolder), JoinRoomUseCase {
 
     override fun execute(
         roomIdOrAlias: String,

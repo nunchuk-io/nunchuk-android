@@ -14,7 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class GroupMembersViewModel @Inject constructor(
-    private val getContactsUseCase: GetContactsUseCase
+    private val getContactsUseCase: GetContactsUseCase,
+    private val sessionHolder: SessionHolder
 ) : NunchukViewModel<GroupMembersState, GroupMembersEvent>() {
 
     private lateinit var room: Room
@@ -22,7 +23,7 @@ class GroupMembersViewModel @Inject constructor(
     override val initialState = GroupMembersState()
 
     fun initialize(roomId: String) {
-        SessionHolder.activeSession?.roomService()?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
+        sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
     }
 
     private fun onRetrievedRoom(room: Room) {

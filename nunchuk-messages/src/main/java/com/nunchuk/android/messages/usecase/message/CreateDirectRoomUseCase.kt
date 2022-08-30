@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.usecase.message
 
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.messages.model.RoomCreationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -12,7 +13,8 @@ interface CreateDirectRoomUseCase {
 }
 
 internal class CreateDirectRoomUseCaseImpl @Inject constructor(
-) : BaseMessageUseCase(), CreateDirectRoomUseCase {
+    sessionHolder: SessionHolder
+) : BaseMessageUseCase(sessionHolder), CreateDirectRoomUseCase {
 
     override fun execute(userId: String) = flow {
         val roomService = session.roomService()

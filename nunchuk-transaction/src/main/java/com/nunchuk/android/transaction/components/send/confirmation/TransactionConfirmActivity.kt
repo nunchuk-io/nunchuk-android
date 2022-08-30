@@ -23,10 +23,14 @@ import com.nunchuk.android.transaction.databinding.ActivityTransactionConfirmBin
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
 class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBinding>() {
+
+    @Inject
+    lateinit var sessionHolder: SessionHolder
 
     private val args: TransactionConfirmArgs by lazy { TransactionConfirmArgs.deserializeFrom(intent) }
 
@@ -157,7 +161,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             walletId = args.walletId,
             txId = txId,
             initEventId = "",
-            roomId = SessionHolder.getActiveRoomIdSafe()
+            roomId = sessionHolder.getActiveRoomIdSafe()
         )
         NCToastMessage(this).showMessage("Transaction created::$txId")
     }

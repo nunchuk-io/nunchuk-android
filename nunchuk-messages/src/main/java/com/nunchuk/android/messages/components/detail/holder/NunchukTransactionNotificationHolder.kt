@@ -12,10 +12,8 @@ import com.nunchuk.android.messages.databinding.ItemNunchukNotificationBinding
 import com.nunchuk.android.messages.util.TransactionEventType.*
 import com.nunchuk.android.messages.util.displayNameOrId
 import com.nunchuk.android.messages.util.getBodyElementValueByKey
-import com.nunchuk.android.messages.util.getNunchukInitEventId
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.model.TransactionExtended
 import com.nunchuk.android.model.toRoomWalletData
 
 internal class NunchukTransactionNotificationHolder(
@@ -23,7 +21,7 @@ internal class NunchukTransactionNotificationHolder(
     val viewTransaction: (walletId: String, txId: String, initEventId: String) -> Unit
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(roomWallet: RoomWallet?, transactions: List<TransactionExtended>, model: NunchukTransactionMessage) {
+    fun bind(model: NunchukTransactionMessage) {
         binding.root.minLines = 1
         val context = itemView.context
         binding.notification.apply {
@@ -39,7 +37,7 @@ internal class NunchukTransactionNotificationHolder(
             }
             RECEIVE -> {
                 binding.root.minLines = 2
-                bindReceiveTransaction(roomWallet = roomWallet, transactions = transactions, model = model)
+                bindReceiveTransaction(roomWallet = model.roomWallet, model = model)
             }
             CANCEL -> {
                 binding.notification.text = context.getString(R.string.nc_message_transaction_canceled)
@@ -48,7 +46,7 @@ internal class NunchukTransactionNotificationHolder(
                 binding.notification.text = context.getString(R.string.nc_message_transaction_ready)
             }
             BROADCAST -> {
-                bindBroadcastOrConfirmedTransaction(transactions = transactions, model = model)
+                bindBroadcastOrConfirmedTransaction(model = model)
             }
             else -> {
                 binding.notification.text = "${model.msgType}"
@@ -57,13 +55,10 @@ internal class NunchukTransactionNotificationHolder(
     }
 
     private fun bindBroadcastOrConfirmedTransaction(
-        transactions: List<TransactionExtended>,
         model: NunchukTransactionMessage
     ) {
-        val initEventId = model.timelineEvent.getNunchukInitEventId()
-        val tx = transactions.firstOrNull { it.initEventId == initEventId }
-        if (tx != null) {
-            val confirmed = tx.transaction.status.isConfirmed()
+        if (model.transaction != null) {
+            val confirmed = model.transaction.status.isConfirmed()
             if (confirmed) {
                 bindConfirmedTransaction()
             } else {
@@ -102,12 +97,10 @@ internal class NunchukTransactionNotificationHolder(
 
     private fun bindReceiveTransaction(
         roomWallet: RoomWallet?,
-        transactions: List<TransactionExtended>,
         model: NunchukTransactionMessage
     ) {
-        val initEventId = model.timelineEvent.eventId
-        transactions.firstOrNull { it.initEventId == initEventId }?.let {
-            bindReceiveTransactionDetails(roomWallet = roomWallet, transaction = it.transaction)
+        model.transaction?.let {
+            bindReceiveTransactionDetails(roomWallet = roomWallet, transaction = it)
         } ?: run {
             binding.notification.text = getString(R.string.nc_transaction_not_found)
         }

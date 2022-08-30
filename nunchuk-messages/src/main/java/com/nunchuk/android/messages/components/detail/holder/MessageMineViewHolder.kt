@@ -11,10 +11,10 @@ import com.nunchuk.android.messages.databinding.ItemMessageMeBinding
 internal class MessageMineViewHolder(
     val binding: ItemMessageMeBinding,
     private val longPressListener: (message: MatrixMessage, position: Int) -> Unit,
-    private val checkedChangeListener: (checked: Boolean, position: Int) -> Unit
+    private val checkedChangeListener: (position: Int) -> Unit
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(messageData: MatrixMessage, position: Int, selectMode: Boolean) {
+    fun bind(messageData: MatrixMessage, position: Int) {
         binding.message.movementMethod = LinkMovementMethod.getInstance()
         binding.message.text = messageData.content
         val state = messageData.state
@@ -28,11 +28,11 @@ internal class MessageMineViewHolder(
             binding.status.text = getString(R.string.nc_message_status_unknown)
         }
 
-        binding.cbSelect.setOnCheckedChangeListener { _, checked ->
-            checkedChangeListener.invoke(checked, position)
+        binding.cbSelect.setOnClickListener {
+            checkedChangeListener.invoke(position)
         }
-        binding.cbSelect.isChecked = messageData.selected
-        if (selectMode) {
+        binding.cbSelect.isChecked = messageData.selected && messageData.isSelectEnable
+        if (messageData.isSelectEnable) {
             // don't allow long press when already in select mode
             binding.root.setOnLongClickListener(null)
             binding.message.setOnLongClickListener(null)
@@ -48,7 +48,7 @@ internal class MessageMineViewHolder(
                 true
             }
         }
-        binding.cbSelect.isVisible = selectMode
+        binding.cbSelect.isVisible = messageData.isSelectEnable
     }
 
 }
