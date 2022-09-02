@@ -3,7 +3,7 @@
 
     <item
         android:id="@+id/menu_nfc"
-        android:icon="@drawable/ic_nfc_card"
+        android:icon="@drawable/ic_nfc_signal"
         android:title="@string/nc_nfc"
         app:iconTint="@color/nc_white_color"
         app:showAsAction="always" />
