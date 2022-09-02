@@ -1,9 +1,23 @@
 package com.nunchuk.android.signer.util
 
 import android.app.Activity
+import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningDialog
+
+fun Activity.handleTapSignerStatus(status: TapSignerStatus?, onCreateSigner: () -> Unit, onSetupNfc: () -> Unit) {
+    status ?: return
+    if (status.isNeedSetup.not()) {
+        if (status.isCreateSigner) {
+            showNfcAlreadyAdded()
+        } else {
+            onCreateSigner()
+        }
+    } else {
+        showSetupNfc(onSetupNfc)
+    }
+}
 
 internal fun Activity.showNfcAlreadyAdded() {
     NCInfoDialog(this).showDialog(

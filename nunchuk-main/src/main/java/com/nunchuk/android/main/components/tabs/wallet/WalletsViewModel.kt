@@ -104,11 +104,7 @@ internal class WalletsViewModel @Inject constructor(
             if (result.isSuccess) {
                 val status = result.getOrThrow()
                 if (status is TapSignerStatus) {
-                    if (status.isNeedSetup.not() && status.isCreateSigner) {
-                        setEvent(GoToSignerInfoScreen(status))
-                    } else {
-                        setEvent(GoToTapSignerScreen(status))
-                    }
+                    setEvent(GetTapSignerStatusSuccess(status))
                 } else if (status is SatsCardStatus) {
                     if (status.isUsedUp) {
                         setEvent(SatsCardUsedUp(status.numberOfSlot))

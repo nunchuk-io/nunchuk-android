@@ -115,20 +115,21 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                 }
             }
             is NfcLoading -> showOrHideLoading(event.isLoading, getString(R.string.nc_keep_holding_nfc))
-            is SweepSuccess -> {
-                ActivityManager.popUntilRoot()
-                if (args.walletId.isNotEmpty()) {
-                    navigator.openWalletDetailsScreen(this, args.walletId, true)
-                } else {
-                    navigator.openTransactionDetailsScreen(this, "", event.transaction.txId, "", "", event.transaction)
-                }
-            }
+            is SweepSuccess -> handleSweepSuccess(event)
             is SweepLoadingEvent -> showOrHideLoading(
                 event.isLoading,
                 title = getString(R.string.nc_sweeping_is_progress),
                 message = getString(R.string.nc_make_sure_internet)
             )
         }
+    }
+
+    private fun handleSweepSuccess(event: SweepSuccess) {
+        ActivityManager.popUntilRoot()
+        if (args.walletId.isNotEmpty()) {
+            navigator.openWalletDetailsScreen(this, args.walletId, true)
+        }
+        navigator.openTransactionDetailsScreen(this, args.walletId, event.transaction.txId, "", "", event.transaction)
     }
 
     private fun returnActiveRoom(roomId: String) {
