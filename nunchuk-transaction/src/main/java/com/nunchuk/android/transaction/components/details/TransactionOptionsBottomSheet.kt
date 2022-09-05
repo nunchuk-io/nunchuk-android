@@ -14,6 +14,7 @@ import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.model.TransactionOption.*
 import com.nunchuk.android.transaction.databinding.DialogTransactionSignBottomSheetBinding
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 
 class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBottomSheetBinding>() {
 
@@ -76,6 +77,11 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
                 listener(REPLACE_BY_FEE)
                 dismiss()
             }
+        }
+
+        binding.btnCopyTxId.setOnDebounceClickListener {
+            listener(COPY_TRANSACTION_ID)
+            dismiss()
         }
     }
 

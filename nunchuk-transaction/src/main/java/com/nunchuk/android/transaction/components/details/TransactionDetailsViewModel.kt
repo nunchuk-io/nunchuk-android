@@ -10,7 +10,10 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSignerModel
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.isPending
+import com.nunchuk.android.core.util.isPendingConfirm
+import com.nunchuk.android.core.util.messageOrUnknownError
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
@@ -238,10 +241,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun handleMenuMoreEvent() {
         val status = getState().transaction.status
-        val isShowMoreMenu = status.isShowMoreMenu()
-        if (isShowMoreMenu) {
-            setEvent(PromptTransactionOptions(status.isPending(), status.isPendingConfirm()))
-        }
+        setEvent(PromptTransactionOptions(status.isPending(), status.isPendingConfirm()))
     }
 
     fun handleDeleteTransactionEvent() {
