@@ -12,8 +12,6 @@ fun TransactionStatus.isPending() = this == PENDING_SIGNATURES || this == READY_
 
 fun TransactionStatus.isPendingConfirm() = this == PENDING_CONFIRMATION
 
-fun TransactionStatus.isShowMoreMenu() = isPending() || isPendingConfirm()
-
 fun TransactionStatus.isConfirmed() = this == CONFIRMED
 
 fun Transaction.getPendingSignatures() = 0.coerceAtLeast(m - signers.count(Map.Entry<String, Boolean>::value))

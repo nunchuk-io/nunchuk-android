@@ -5,6 +5,10 @@ import android.content.Intent
 import android.nfc.NfcAdapter
 import android.nfc.tech.IsoDep
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ImageSpan
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
@@ -37,6 +41,7 @@ import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+
 
 @AndroidEntryPoint
 class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBinding>(), InputBottomSheetListener {
@@ -84,7 +89,13 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             finish()
             return
         }
-        viewModel.init(walletId = args.walletId, txId = args.txId, initEventId = args.initEventId, roomId = args.roomId, transaction = args.transaction)
+        viewModel.init(
+            walletId = args.walletId,
+            txId = args.txId,
+            initEventId = args.initEventId,
+            roomId = args.roomId,
+            transaction = args.transaction
+        )
     }
 
     override fun onInputDone(newInput: String) {
@@ -185,7 +196,6 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private fun bindTransaction(transaction: Transaction) {
         binding.tvReplaceByFee.isVisible = transaction.replacedTxid.isNotEmpty()
-        binding.toolbar.menu.findItem(R.id.menu_more).isVisible = transaction.status.isShowMoreMenu() && args.walletId.isNotEmpty()
         val output = if (transaction.isReceive) {
             transaction.receiveOutputs.firstOrNull()
         } else {
@@ -235,7 +245,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         } else {
             transaction.outputs.firstOrNull()
         }
-        binding.sendAddressLabel.text = output?.first.orEmpty()
+        makeAddress(binding.sendAddressLabel, output?.first.orEmpty())
         binding.sendAddressBTC.text = output?.second?.getBTCAmount().orEmpty()
         binding.sendAddressUSD.text = output?.second?.getUSDAmount().orEmpty()
 
@@ -266,7 +276,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         val hasChange: Boolean = transaction.hasChangeIndex()
         if (hasChange) {
             val txOutput = transaction.outputs[transaction.changeIndex]
-            binding.changeAddressLabel.text = txOutput.first
+            makeAddress(binding.changeAddressLabel, txOutput.first)
             binding.changeAddressBTC.text = txOutput.second.getBTCAmount()
             binding.changeAddressUSD.text = txOutput.second.getUSDAmount()
         }
@@ -338,6 +348,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                     IMPORT_PASSPORT -> openImportTransactionScreen(IMPORT_PASSPORT)
                     EXPORT_PSBT -> viewModel.exportTransactionToFile()
                     REPLACE_BY_FEE -> handleOpenEditFee()
+                    COPY_TRANSACTION_ID -> handleCopyContent(args.txId)
                 }
             }
     }
@@ -404,6 +415,26 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private fun returnActiveRoom() {
         finish()
+    }
+
+    private fun makeAddress(textView: TextView, address: String) {
+        val spannable = SpannableString("$address  ")
+        if (address.isNotEmpty()) {
+            val image = ContextCompat.getDrawable(this, R.drawable.ic_copy)!!
+            val size = resources.getDimensionPixelSize(R.dimen.nc_padding_16)
+            image.setBounds(0, 0, size, size)
+            val imageSpan = ImageSpan(image, ImageSpan.ALIGN_BASELINE)
+            spannable.setSpan(imageSpan, address.lastIndex, address.length, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
+            textView.setOnDebounceClickListener {
+                handleCopyContent(address)
+            }
+        }
+        textView.text = spannable
+    }
+
+    private fun handleCopyContent(content: String) {
+        copyToClipboard(label = "Nunchuk", text = content)
+        NCToastMessage(this).showMessage(getString(R.string.nc_copied_to_clipboard))
     }
 
     companion object {

@@ -105,4 +105,6 @@
     <string name="nc_new_fee_rate_must_higher">New fee rate must be higher</string>
     <string name="nc_are_you_sure_to_delete_wallet">Are you sure you want to delete this wallet? Please type DELETE to confirm.</string>
     <string name="nc_incorrect">Incorrect</string>
+    <string name="nc_copied_to_clipboard">Copied to your clipboard</string>
+    <string name="nc_copy_transaction_id">Copy transaction ID</string>
 </resources>
