@@ -24,12 +24,6 @@ internal interface ContactUseCaseModule {
     fun bindAutoCompleteSearchUseCase(useCase: AutoCompleteSearchUseCaseImpl): AutoCompleteSearchUseCase
 
     @Binds
-    fun bindGetReceivedContactsUseCase(useCase: GetReceivedContactsUseCaseImpl): GetReceivedContactsUseCase
-
-    @Binds
-    fun bindGetSentContactsUseCase(useCase: GetSentContactsUseCaseImpl): GetSentContactsUseCase
-
-    @Binds
     fun bindGetContactsUseCase(useCase: GetContactsUseCaseImpl): GetContactsUseCase
 
     @Binds

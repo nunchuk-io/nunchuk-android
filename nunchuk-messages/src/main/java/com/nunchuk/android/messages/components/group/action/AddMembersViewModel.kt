@@ -1,7 +1,6 @@
 package com.nunchuk.android.messages.components.group.action
 
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.messages.components.create.isContains
@@ -12,6 +11,7 @@ import com.nunchuk.android.model.Contact
 import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import javax.inject.Inject
@@ -37,13 +37,13 @@ class AddMembersViewModel @Inject constructor(
     }
 
     private fun getContacts() {
-        getContactsUseCase.execute()
-            .defaultSchedulers()
-            .subscribe({
-                contacts = it
-            }, {
-            })
-            .addToDisposables()
+        viewModelScope.launch {
+            getContactsUseCase.execute()
+                .catch { }
+                .collect {
+                    contacts = it
+                }
+        }
     }
 
     fun handleInput(word: String) {

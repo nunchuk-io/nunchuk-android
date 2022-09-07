@@ -1,7 +1,6 @@
 package com.nunchuk.android.contact.components.contacts
 
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.contact.usecase.GetReceivedContactsUseCase
 import com.nunchuk.android.contact.usecase.GetSentContactsUseCase
@@ -15,7 +14,8 @@ import com.nunchuk.android.model.ReceiveContact
 import com.nunchuk.android.model.SentContact
 import com.nunchuk.android.share.GetContactsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.reactivex.Single
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
@@ -59,31 +59,34 @@ class ContactsViewModel @Inject constructor(
                 roomSummary.hasTag(STATE_ROOM_SERVER_NOTICE)
             }?.let {
                 session.roomService().getRoom(it.roomId)
-                ?.let(::retrieveTimelineEvents)
+                    ?.let(::retrieveTimelineEvents)
             }
         }
     }
 
     fun retrieveContacts() {
-        getContactsUseCase.execute()
-            .defaultSchedulers()
-            .subscribe({
-                updateState { copy(contacts = it) }
-            }, {
-                updateState { copy(contacts = emptyList()) }
-            })
-            .addToDisposables()
-
-        Single.zip(
-            getSentContactsUseCase.execute(),
-            getReceivedContactsUseCase.execute()
-        ) { sent, receive ->
-            onUpdateReceivedContactRequestCount(receive.size)
-            sent.map(SentContact::contact) + receive.map(ReceiveContact::contact)
+        viewModelScope.launch {
+            getContactsUseCase.execute()
+                .catch { updateState { copy(contacts = emptyList()) } }
+                .collect {
+                    updateState { copy(contacts = it) }
+                }
         }
-            .defaultSchedulers()
-            .subscribe(::onPendingContactSuccess) { onPendingContactError() }
-            .addToDisposables()
+
+        viewModelScope.launch {
+            val sendResultDeferred = async { getSentContactsUseCase(Unit) }
+            val receivedResultDeferred = async { getReceivedContactsUseCase(Unit) }
+            val sendResult = sendResultDeferred.await()
+            val receivedResult = receivedResultDeferred.await()
+            if (sendResult.isSuccess && receivedResult.isSuccess) {
+                val sent = sendResult.getOrThrow()
+                val receive = receivedResult.getOrThrow()
+                onUpdateReceivedContactRequestCount(receive.size)
+                onPendingContactSuccess(sent.map(SentContact::contact) + receive.map(ReceiveContact::contact))
+            } else {
+                onPendingContactError()
+            }
+        }
     }
 
     private fun onUpdateReceivedContactRequestCount(count: Int) = postState {
@@ -101,10 +104,10 @@ class ContactsViewModel @Inject constructor(
     private fun retrieveTimelineEvents(room: Room) {
         timeline = room.timelineService()
             .createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
-            removeAllListeners()
-            addListener(timelineListenerAdapter)
-            start()
-        }
+                removeAllListeners()
+                addListener(timelineListenerAdapter)
+                start()
+            }
     }
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {

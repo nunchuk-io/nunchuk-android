@@ -1,18 +1,18 @@
 package com.nunchuk.android.contact.usecase
 
 import com.nunchuk.android.contact.repository.ContactsRepository
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.SentContact
-import io.reactivex.Single
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface GetSentContactsUseCase {
-    fun execute(): Single<List<SentContact>>
-}
+class GetSentContactsUseCase @Inject constructor(
+    private val contactsRepository: ContactsRepository,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher
+) : UseCase<Unit, List<SentContact>>(dispatcher) {
 
-internal class GetSentContactsUseCaseImpl @Inject constructor(
-    private val contactsRepository: ContactsRepository
-) : GetSentContactsUseCase {
-
-    override fun execute() = contactsRepository.getPendingSentContacts()
-
+    override suspend fun execute(parameters: Unit): List<SentContact> {
+        return contactsRepository.getPendingSentContacts()
+    }
 }

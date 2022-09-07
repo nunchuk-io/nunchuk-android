@@ -13,7 +13,7 @@ ext {
     gsonVersion = '2.8.2'
     androidTestVersion = '1.1.0'
 
-    roomVersion = '2.4.2'
+    roomVersion = '2.4.3'
     archLifecycleVersion = '1.1.1'
     workMangerVersion = '2.0.0'
     lifecycleVersion = '2.5.0'
@@ -149,7 +149,6 @@ ext {
             okhttp3       : "com.squareup.okhttp3:okhttp:${okhttpVersion}",
             gsonConverter : "com.squareup.retrofit2:converter-gson:${retrofitVersion}",
             logging       : "com.squareup.okhttp3:logging-interceptor:${okhttpVersion}",
-            rxJava2Adapter: "com.squareup.retrofit2:adapter-rxjava2:${retrofitVersion}"
     ]
 
     robolectricDeps = [
@@ -173,9 +172,9 @@ ext {
     ]
 
     roomArch = [
+            roomKtx     : "androidx.room:room-ktx:${roomVersion}",
             room        : "androidx.room:room-runtime:${roomVersion}",
             roomCompiler: "androidx.room:room-compiler:${roomVersion}",
-            roomRxJava2 : "androidx.room:room-rxjava2:${roomVersion}",
             roomTest    : "androidx.room:room-testing:${roomVersion}"
     ]
 
@@ -183,10 +182,6 @@ ext {
             workManger   : "androidx.work:work-runtime:${workMangerVersion}",
             workMangerKtx: "androidx.work:work-runtime-ktx:${workMangerVersion}",
             testing      : "androidx.work:work-testing:${workMangerVersion}"
-    ]
-
-    reactiveDeps = [
-            rxAndroid2: "io.reactivex.rxjava2:rxandroid:2.1.1",
     ]
 
     zxingDeps = [

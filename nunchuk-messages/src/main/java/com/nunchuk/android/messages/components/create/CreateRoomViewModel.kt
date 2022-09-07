@@ -1,7 +1,6 @@
 package com.nunchuk.android.messages.components.create
 
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.messages.components.create.CreateRoomEvent.CreateRoomErrorEvent
@@ -10,7 +9,6 @@ import com.nunchuk.android.messages.usecase.message.CreateRoomUseCase
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.share.GetCurrentUserAsContactUseCase
-import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -38,10 +36,11 @@ class CreateRoomViewModel @Inject constructor(
     override val initialState = CreateRoomState.empty()
 
     private fun getContacts() {
-        getContactsUseCase.execute()
-            .defaultSchedulers()
-            .subscribe(::addCurrentUserAsContact, CrashlyticsReporter::recordException)
-            .addToDisposables()
+        viewModelScope.launch {
+            getContactsUseCase.execute()
+                .onException {  }
+                .collect(::addCurrentUserAsContact)
+        }
     }
 
     private fun addCurrentUserAsContact(otherContacts: List<Contact>) {

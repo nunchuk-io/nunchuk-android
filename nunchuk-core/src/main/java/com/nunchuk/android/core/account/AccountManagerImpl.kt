@@ -5,7 +5,6 @@ import com.nunchuk.android.core.util.AppUpdateStateHolder
 import com.nunchuk.android.utils.onException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
@@ -42,10 +41,9 @@ interface AccountManager {
 @Singleton
 internal class AccountManagerImpl @Inject constructor(
     private val accountSharedPref: AccountSharedPref,
-    private val sessionHolder: SessionHolder
+    private val sessionHolder: SessionHolder,
+    private val appScope: CoroutineScope
 ) : AccountManager {
-
-    val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun isHasAccountBefore(): Boolean = accountSharedPref.isHasAccountBefore()
 
@@ -65,7 +63,7 @@ internal class AccountManagerImpl @Inject constructor(
 
     override fun signOut(onStartSignOut: () -> Unit, onSignedOut: () -> Unit) {
         // TODO call Nunchuk SignOut Api
-        scope.launch {
+        this.appScope.launch {
             signOutMatrix()
                 .flowOn(Dispatchers.IO)
                 .onStart { onStartSignOut() }

@@ -5,11 +5,13 @@ import com.nunchuk.android.core.data.model.toEntity
 import com.nunchuk.android.core.data.model.toModel
 import com.nunchuk.android.persistence.dao.SyncFileDao
 import com.nunchuk.android.persistence.updateOrInsert
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 interface SyncFileRepository {
 
-    fun getSyncFiles(userId: String): List<SyncFileModel>
+    fun getSyncFiles(userId: String): Flow<List<SyncFileModel>>
     fun createOrUpdateSyncFile(model: SyncFileModel)
     fun deleteSyncFile(model: SyncFileModel)
     fun createSyncFile(model: SyncFileModel)
@@ -20,7 +22,8 @@ internal class SyncFileRepositoryImpl @Inject constructor(
     private val syncFileDao: SyncFileDao
 ) : SyncFileRepository {
 
-    override fun getSyncFiles(userId: String) = syncFileDao.getSyncFiles(userId).blockingFirst().map { entity -> entity.toModel()}
+    override fun getSyncFiles(userId: String) =
+        syncFileDao.getSyncFiles(userId).map { entities -> entities.map { entity -> entity.toModel() } }
 
     override fun createOrUpdateSyncFile(model: SyncFileModel) {
         syncFileDao.updateOrInsert(model.toEntity())

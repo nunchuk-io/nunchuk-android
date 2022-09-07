@@ -7,17 +7,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.utils.onException
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 
 abstract class NunchukViewModel<State, Event> : ViewModel() {
-
-    private val disposables = CompositeDisposable()
 
     private val _state = MutableLiveData<State>()
 
@@ -50,15 +45,6 @@ abstract class NunchukViewModel<State, Event> : ViewModel() {
 
     protected fun getState() = _state.value ?: initialState
 
-    override fun onCleared() {
-        disposables.dispose()
-        super.onCleared()
-    }
-
-    protected fun Disposable.addToDisposables() {
-        disposables.add(this)
-    }
-
     protected fun sendErrorEvent(roomId: String, t: Throwable, executable: (String, Throwable) -> Flow<Unit>) {
         viewModelScope.launch {
             executable(roomId, t)
@@ -67,5 +53,4 @@ abstract class NunchukViewModel<State, Event> : ViewModel() {
                 .collect { }
         }
     }
-
 }
