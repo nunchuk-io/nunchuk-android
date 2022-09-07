@@ -24,7 +24,6 @@ import okhttp3.Protocol
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.logging.HttpLoggingInterceptor.Level
 import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -57,7 +56,6 @@ class NetworkModule @Inject constructor() {
         @Named(APP_HTTP_CLIENT) client: OkHttpClient
     ): Retrofit = Retrofit.Builder()
         .addConverterFactory(gsonConverterFactory)
-        .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
         .baseUrl(BASE_URL)
         .client(client)
         .build()

@@ -13,6 +13,5 @@ dependencies {
     implementation androidxDeps.values()
     // Room
     kapt roomArch.roomCompiler
-    implementation roomArch.room
-    implementation roomArch.roomRxJava2
+    implementation roomArch.roomKtx
 }

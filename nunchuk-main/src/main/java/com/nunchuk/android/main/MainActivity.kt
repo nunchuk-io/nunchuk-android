@@ -187,7 +187,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_main) as NavHostFragment
         navController = navHostFragment.navController
         navView.setupWithNavController(navController)
-        navView.setOnNavigationItemReselectedListener {}
     }
 
     override fun onPause() {

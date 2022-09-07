@@ -1,7 +1,6 @@
 package com.nunchuk.android.messages.components.detail
 
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetDeveloperSettingUseCase
@@ -95,14 +94,15 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     private fun checkInviteUser(room: Room) {
-        getContactsUseCase.execute()
-            .defaultSchedulers()
-            .subscribe({
-                if (it.isNotEmpty() && (currentId in it.map(Contact::chatId))) {
-                    leaveRoom(room)
+        viewModelScope.launch {
+            getContactsUseCase.execute()
+                .catch { }
+                .collect {
+                    if (it.isNotEmpty() && (currentId in it.map(Contact::chatId))) {
+                        leaveRoom(room)
+                    }
                 }
-            }, {})
-            .addToDisposables()
+        }
     }
 
     private fun leaveRoom(room: Room) {

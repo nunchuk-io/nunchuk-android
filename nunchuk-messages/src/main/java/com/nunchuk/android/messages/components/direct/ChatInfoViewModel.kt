@@ -1,7 +1,6 @@
 package com.nunchuk.android.messages.components.direct
 
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.matrix.SessionHolder
@@ -17,8 +16,10 @@ import com.nunchuk.android.usecase.GetRoomWalletUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import javax.inject.Inject
 
@@ -43,10 +44,11 @@ class ChatInfoViewModel @Inject constructor(
 
     private fun onRetrievedRoom(room: Room) {
         this.room = room
-        getContactsUseCase.execute()
-            .defaultSchedulers()
-            .subscribe(::onRetrievedContacts) {}
-            .addToDisposables()
+        viewModelScope.launch {
+            getContactsUseCase.execute()
+                .catch {  }
+                .collect(::onRetrievedContacts)
+        }
         getRoomWallet()
     }
 

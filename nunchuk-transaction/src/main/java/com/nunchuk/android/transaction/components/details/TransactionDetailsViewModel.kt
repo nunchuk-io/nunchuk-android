@@ -4,7 +4,6 @@ import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.ExportPsbtToMk4UseCase
 import com.nunchuk.android.core.domain.ImportTransactionFromMk4UseCase
@@ -113,15 +112,14 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     private fun getContacts() {
-        getContactsUseCase.execute()
-            .defaultSchedulers()
-            .subscribe({
-                contacts = it
-                updateTransaction(getTransaction())
-            }, {
-                contacts = emptyList()
-            })
-            .addToDisposables()
+        viewModelScope.launch {
+            getContactsUseCase.execute()
+                .catch { contacts = emptyList() }
+                .collect {
+                    contacts = it
+                    updateTransaction(getTransaction())
+                }
+        }
     }
 
     fun getTransactionInfo() {
