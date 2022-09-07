@@ -46,7 +46,7 @@ ext {
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
     PATCH_VERSION = 19
-    TASK_LABEL = "Mk4"
+    TASK_LABEL = "UAT"
 
     VERSION_CODE = 180
 
