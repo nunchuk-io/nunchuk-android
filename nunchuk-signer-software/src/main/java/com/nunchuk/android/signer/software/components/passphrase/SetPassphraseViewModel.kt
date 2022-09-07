@@ -22,8 +22,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-private val s = "My Wallet"
-
 @HiltViewModel
 internal class SetPassphraseViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,

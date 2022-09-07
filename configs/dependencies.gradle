@@ -32,7 +32,7 @@ ext {
     hiltVersion = "2.42"
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.1.47'
+    nativeSdkVersion = '1.1.48'
 
     // Matrix
     matrixSdkVersion = '1.4.27'
@@ -46,7 +46,7 @@ ext {
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
     PATCH_VERSION = 19
-    TASK_LABEL = "MATRIX"
+    TASK_LABEL = "Mk4"
 
     VERSION_CODE = 180
 

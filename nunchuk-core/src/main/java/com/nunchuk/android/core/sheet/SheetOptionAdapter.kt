@@ -39,7 +39,11 @@ class SheetOptionHolder(private val binding: ItemSheetOptionBinding) : RecyclerV
         if (option.resId > 0) {
             binding.tvLabel.setCompoundDrawablesRelativeWithIntrinsicBounds(option.resId, 0, 0, 0)
         }
-        binding.tvLabel.setText(option.stringId)
+        option.label?.let {
+            binding.tvLabel.text = it
+        } ?: run {
+            binding.tvLabel.setText(option.stringId)
+        }
         if (option.isDeleted) {
             binding.tvLabel.setTextColor(ContextCompat.getColor(binding.root.context, R.color.nc_orange_color))
         } else {

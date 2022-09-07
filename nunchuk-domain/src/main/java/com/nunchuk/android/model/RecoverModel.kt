@@ -4,7 +4,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 enum class RecoverWalletType {
-    QR_CODE, FILE;
+    QR_CODE, FILE, COLDCARD;
 }
 
 @Parcelize

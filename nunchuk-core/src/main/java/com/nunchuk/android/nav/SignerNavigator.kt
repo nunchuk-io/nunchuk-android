@@ -12,6 +12,7 @@ interface SignerNavigator {
         id: String,
         name: String,
         type: SignerType,
+        derivationPath: String = "",
         justAdded: Boolean = false,
         setPassphrase: Boolean = false,
         isInWallet: Boolean = false

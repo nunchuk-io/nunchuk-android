@@ -2,7 +2,6 @@ package com.nunchuk.android.auth.api
 
 import com.nunchuk.android.core.network.Data
 import retrofit2.http.Body
-import retrofit2.http.GET
 import retrofit2.http.POST
 
 interface AuthApi {
@@ -36,8 +35,4 @@ interface AuthApi {
     suspend fun forgotPassword(
         @Body forgotPasswordPayload: ForgotPasswordPayload
     ): Data<Unit>
-
-    @GET("user/me")
-    suspend fun me(): Data<UserResponseWrapper>
-
 }

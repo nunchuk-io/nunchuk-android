@@ -9,4 +9,5 @@ interface NunchukNavigator :
     SignerNavigator,
     WalletNavigator,
     TransactionNavigator,
-    SettingNavigator
+    SettingNavigator,
+    NfcNavigator

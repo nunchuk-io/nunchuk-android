@@ -22,6 +22,7 @@ import com.nunchuk.android.settings.nav.SettingNavigatorDelegate
 import com.nunchuk.android.signer.nav.SignerNavigatorDelegate
 import com.nunchuk.android.transaction.nav.TransactionNavigatorDelegate
 import com.nunchuk.android.wallet.nav.WalletNavigatorDelegate
+import com.nunchuk.android.signer.nav.NfcNavigatorDelegate
 import javax.inject.Inject
 
 internal class NunchukNavigatorImpl @Inject constructor(
@@ -33,7 +34,8 @@ internal class NunchukNavigatorImpl @Inject constructor(
     TransactionNavigatorDelegate,
     ContactNavigatorDelegate,
     MessageNavigatorDelegate,
-    SettingNavigatorDelegate {
+    SettingNavigatorDelegate,
+    NfcNavigatorDelegate {
 
     override fun openIntroScreen(activityContext: Context) {
         IntroActivity.start(activityContext)

@@ -4,14 +4,14 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.commit
-import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.databinding.ActivityWalletIntermediaryBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class WalletIntermediaryActivity : BaseActivity<ActivityWalletIntermediaryBinding>() {
+class WalletIntermediaryActivity : BaseNfcActivity<ActivityWalletIntermediaryBinding>() {
     override fun initializeBinding(): ActivityWalletIntermediaryBinding {
         return ActivityWalletIntermediaryBinding.inflate(layoutInflater)
     }

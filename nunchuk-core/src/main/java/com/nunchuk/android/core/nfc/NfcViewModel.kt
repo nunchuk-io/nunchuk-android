@@ -1,5 +1,8 @@
 package com.nunchuk.android.core.nfc
 
+import android.content.Intent
+import android.nfc.NdefMessage
+import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.IsoDep
 import androidx.lifecycle.SavedStateHandle
@@ -14,6 +17,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -52,11 +56,20 @@ class NfcViewModel @Inject constructor(
 
     fun updateMasterSigner(masterSigner: MasterSigner) {
         this.masterSigner = masterSigner
-        savedStateHandle.set(EXTRA_MASTER_SIGNER_ID, masterSigner.id)
+        savedStateHandle[EXTRA_MASTER_SIGNER_ID] = masterSigner.id
     }
 
-    fun updateNfcScanInfo(requestCode: Int, tag: Tag) {
-        _nfcScanInfo.value = NfcScanInfo(requestCode, tag)
+    fun updateNfcScanInfo(intent: Intent) {
+        val tag: Tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG) as? Tag ?: return
+        val requestCode = intent.getIntExtra(BaseNfcActivity.EXTRA_REQUEST_NFC_CODE, 0)
+        Timber.d("requestCode: $requestCode")
+        if (requestCode == 0) return
+        val records = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)
+            .orEmpty()
+            .filterIsInstance<NdefMessage>().map { rawMessage ->
+                rawMessage.records.toList()
+            }.flatten()
+        _nfcScanInfo.value = NfcScanInfo(requestCode, tag, records)
     }
 
     fun clearScanInfo() {

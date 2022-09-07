@@ -2,9 +2,11 @@ package com.nunchuk.android.wallet.personal.components
 
 import android.app.Application
 import android.net.Uri
+import android.nfc.NdefRecord
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.ImportWalletFromMk4UseCase
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
@@ -23,7 +25,8 @@ class WalletIntermediaryViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getCompoundSignersUseCase: Lazy<GetCompoundSignersUseCase>,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val application: Application
+    private val application: Application,
+    private val importWalletFromMk4UseCase: ImportWalletFromMk4UseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletIntermediaryState())
     private val _event = MutableSharedFlow<WalletIntermediaryEvent>()
@@ -50,6 +53,16 @@ class WalletIntermediaryViewModel @Inject constructor(
         }
     }
 
+    fun importWalletFromMk4(records: List<NdefRecord>) {
+        viewModelScope.launch {
+            _event.emit(WalletIntermediaryEvent.Loading)
+            val result = importWalletFromMk4UseCase(records)
+            if (result.isSuccess && result.getOrThrow() != null) {
+                _event.emit(WalletIntermediaryEvent.ImportWalletFromMk4Success(result.getOrThrow()!!.id))
+            }
+        }
+    }
+
     val hasSigner: Boolean
         get() = _state.value.isHasSigner
 }
@@ -57,6 +70,7 @@ class WalletIntermediaryViewModel @Inject constructor(
 sealed class WalletIntermediaryEvent {
     object Loading : WalletIntermediaryEvent()
     class OnLoadFileSuccess(val path: String) : WalletIntermediaryEvent()
+    class ImportWalletFromMk4Success(val walletId: String) : WalletIntermediaryEvent()
 }
 
 data class WalletIntermediaryState(val isHasSigner: Boolean = false)

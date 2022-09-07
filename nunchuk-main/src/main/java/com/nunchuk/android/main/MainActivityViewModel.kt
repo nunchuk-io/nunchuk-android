@@ -34,16 +34,14 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
+import org.matrix.android.sdk.api.NoOpMatrixCallback
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupState
-import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
-import org.matrix.android.sdk.api.session.crypto.model.MXUsersDevicesMap
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
 import org.matrix.android.sdk.api.session.sync.SyncState
-import org.matrix.android.sdk.api.util.awaitCallback
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -122,18 +120,14 @@ internal class MainActivityViewModel @Inject constructor(
                         else -> {}
                     }
                 }
+                .onException { e -> Timber.e(e) }
                 .launchIn(viewModelScope)
         }
 
     }
 
     private fun downloadKeys(session: Session) {
-        viewModelScope.launch {
-            awaitCallback<MXUsersDevicesMap<CryptoDeviceInfo>> {
-                session.cryptoService().downloadKeys(listOf(session.myUserId), true, it)
-                Timber.tag(TAG).d("download keys for user ${session.myUserId}")
-            }
-        }
+        session.cryptoService().downloadKeys(listOf(session.myUserId), true, NoOpMatrixCallback())
     }
 
     private fun checkMissingSyncFile() {

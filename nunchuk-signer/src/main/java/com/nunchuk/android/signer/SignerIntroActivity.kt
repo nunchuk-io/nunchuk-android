@@ -36,6 +36,10 @@ class SignerIntroActivity : BaseNfcActivity<ActivitySignerIntroBinding>(), SetUp
         when (option) {
             SetUpNfcOptionSheet.SetUpNfcOption.ADD_NEW -> startNfcFlow(REQUEST_NFC_STATUS)
             SetUpNfcOptionSheet.SetUpNfcOption.RECOVER -> NfcSetupActivity.navigate(this, NfcSetupActivity.RECOVER_NFC)
+            SetUpNfcOptionSheet.SetUpNfcOption.Mk4 -> {
+                navigator.openSetupMk4(this)
+                finish()
+            }
         }
     }
 

@@ -9,6 +9,11 @@
         <item name="android:fontFamily">@font/montserrat_medium</item>
     </style>
 
+    <style name="NCText.Bold" parent="NCText">
+        <item name="fontTextStyle">semi_bold</item>
+        <item name="android:fontFamily">@font/lato_semibold</item>
+    </style>
+
     <style name="NCText.Title" parent="NCText">
         <item name="android:textSize">@dimen/nc_text_size_16</item>
         <item name="fontTextStyle">semi_bold</item>

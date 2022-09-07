@@ -6,6 +6,7 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.widget.LinearLayout
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.widget.TextViewCompat
 import com.nunchuk.android.widget.databinding.LayoutLabelWithNumberBinding
 
 class NCLabelWithNumber @JvmOverloads constructor(
@@ -25,6 +26,12 @@ class NCLabelWithNumber @JvmOverloads constructor(
             binding.tvContent.text = typedArray.getString(R.styleable.NCLabelWithNumber_text)
         } else {
             binding.tvContent.setText(textId)
+        }
+        val bold = typedArray.getBoolean(R.styleable.NCLabelWithNumber_bold, false)
+        if (bold) {
+            TextViewCompat.setTextAppearance(binding.tvNumber, R.style.NCText_Bold)
+            TextViewCompat.setTextAppearance(binding.tvContent, R.style.NCText_Bold)
+            binding.tvNumber.setBackgroundResource(R.drawable.nc_bg_black_stroke_circle_bold)
         }
         typedArray.recycle()
     }

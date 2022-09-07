@@ -7,14 +7,14 @@ import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcViewModel.Companion.EXTRA_MASTER_SIGNER_ID
 import com.nunchuk.android.signer.R
-import com.nunchuk.android.signer.databinding.ActivityNfcSetupBinding
+import com.nunchuk.android.signer.databinding.ActivityNavigationBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class NfcSetupActivity : BaseNfcActivity<ActivityNfcSetupBinding>() {
-    override fun initializeBinding(): ActivityNfcSetupBinding =
-        ActivityNfcSetupBinding.inflate(layoutInflater)
+class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
+    override fun initializeBinding(): ActivityNavigationBinding =
+        ActivityNavigationBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

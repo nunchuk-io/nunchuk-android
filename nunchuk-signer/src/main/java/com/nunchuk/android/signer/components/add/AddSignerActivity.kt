@@ -65,7 +65,7 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>() {
     private fun openSignerInfo(singleSigner: SingleSigner) {
         hideLoading()
         finish()
-        navigator.openSignerInfoScreen(this, id = singleSigner.masterSignerId, name = singleSigner.name, type = singleSigner.type, justAdded = true)
+        navigator.openSignerInfoScreen(this, id = singleSigner.masterSignerId, name = singleSigner.name, type = singleSigner.type, derivationPath = singleSigner.derivationPath, justAdded = true)
     }
 
     private fun setupViews() {

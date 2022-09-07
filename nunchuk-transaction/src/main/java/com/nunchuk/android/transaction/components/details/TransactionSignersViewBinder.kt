@@ -8,6 +8,7 @@ import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.transaction.databinding.ItemTransactionSignerBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 
 internal class TransactionSignersViewBinder(
     container: ViewGroup,
@@ -25,7 +26,7 @@ internal class TransactionSignersViewBinder(
         binding.signerName.text = model.name
         binding.xpf.text = xfpValue
         binding.signerType.text = model.toReadableSignerType(context)
-        binding.btnSign.setOnClickListener { listener(model) }
+        binding.btnSign.setOnDebounceClickListener { listener(model) }
         val isSigned = model.isSigned()
         if (isSigned) {
             binding.btnSign.isVisible = false

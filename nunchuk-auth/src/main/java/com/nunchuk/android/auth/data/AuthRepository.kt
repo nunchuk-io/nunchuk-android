@@ -27,9 +27,6 @@ interface AuthRepository {
     suspend fun recoverPassword(email: String, oldPassword: String, newPassword: String)
 
     suspend fun forgotPassword(email: String)
-
-    fun me(): Flow<UserResponse>
-
 }
 
 internal class AuthRepositoryImpl @Inject constructor(
@@ -85,9 +82,4 @@ internal class AuthRepositoryImpl @Inject constructor(
             CrashlyticsReporter.recordException(e)
         }
     }
-
-    override fun me() = flow {
-        emit(authApi.me().data.user)
-    }.flowOn(Dispatchers.IO)
-
 }

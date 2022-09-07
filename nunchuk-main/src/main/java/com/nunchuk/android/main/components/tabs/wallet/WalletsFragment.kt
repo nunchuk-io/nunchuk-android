@@ -33,7 +33,6 @@ import com.nunchuk.android.signer.satscard.SatsCardActivity
 import com.nunchuk.android.signer.util.handleTapSignerStatus
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
-import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.wallet.components.details.WalletDetailsArgs
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningVerticalDialog
@@ -304,13 +303,14 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         signerAdapter.submitList(signers)
     }
 
-    private fun openSignerInfoScreen(id: String, name: String, type: SignerType) {
-        val isInWallet = walletsViewModel.isInWallet(id)
+    private fun openSignerInfoScreen(signer: SignerModel) {
+        val isInWallet = walletsViewModel.isInWallet(signer.id)
         navigator.openSignerInfoScreen(
             activityContext = requireActivity(),
-            id = id,
-            name = name,
-            type = type,
+            id = signer.id,
+            name = signer.name,
+            type = signer.type,
+            derivationPath = signer.derivationPath,
             isInWallet = isInWallet
         )
     }

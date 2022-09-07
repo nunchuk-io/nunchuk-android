@@ -69,7 +69,7 @@ interface TransactionNavigator {
         activityContext: Activity,
         walletId: String,
         txId: String,
-        initEventId: String,
+        initEventId: String = "",
         roomId: String,
         transaction: Transaction? = null
     )
