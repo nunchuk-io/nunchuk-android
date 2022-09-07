@@ -6,7 +6,7 @@ import androidx.annotation.StringRes
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-data class SheetOption(val type: Int, @DrawableRes val resId: Int = 0, @StringRes val stringId: Int, val isDeleted: Boolean = false) : Parcelable
+data class SheetOption(val type: Int, @DrawableRes val resId: Int = 0, @StringRes val stringId: Int = 0, val isDeleted: Boolean = false, val label: String? = null) : Parcelable
 
 object SheetOptionType {
     // wallet detail
@@ -26,4 +26,9 @@ object SheetOptionType {
     // Sweep option
     const val TYPE_SWEEP_TO_WALLET = 12
     const val TYPE_SWEEP_TO_EXTERNAL_ADDRESS = 13
+    // Mk4
+    const val EXPORT_COLDCARD_VIA_NFC = 14
+    const val EXPORT_COLDCARD_VIA_FILE = 15
+    const val EXPORT_TX_TO_Mk4 = 16
+    const val IMPORT_TX_FROM_Mk4 = 17
 }

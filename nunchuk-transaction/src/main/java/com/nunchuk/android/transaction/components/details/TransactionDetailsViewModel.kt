@@ -1,12 +1,15 @@
 package com.nunchuk.android.transaction.components.details
 
+import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
+import android.nfc.tech.Ndef
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.ExportPsbtToMk4UseCase
+import com.nunchuk.android.core.domain.ImportTransactionFromMk4UseCase
 import com.nunchuk.android.core.domain.SignRoomTransactionByTapSignerUseCase
 import com.nunchuk.android.core.domain.SignTransactionByTapSignerUseCase
-import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSignerModel
@@ -22,6 +25,7 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
+import com.nunchuk.android.usecase.room.transaction.GetPendingTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.SignRoomTransactionUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
@@ -50,7 +54,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val signTransactionByTapSignerUseCase: SignTransactionByTapSignerUseCase,
     private val signRoomTransactionByTapSignerUseCase: SignRoomTransactionByTapSignerUseCase,
     private val updateTransactionMemo: UpdateTransactionMemo,
-    private val sessionHolder: SessionHolder,
+    private val exportPsbtToMk4UseCase: ExportPsbtToMk4UseCase,
+    private val importTransactionFromMk4UseCase: ImportTransactionFromMk4UseCase,
+    private val getPendingTransactionUseCase: GetPendingTransactionUseCase,
     private val getTransactionFromNetworkUseCase: GetTransactionFromNetworkUseCase
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
 
@@ -89,8 +95,20 @@ internal class TransactionDetailsViewModel @Inject constructor(
         if (isSharedTransaction()) {
             getContacts()
         }
+        loadInitEventIdIfNeed()
         initTransaction?.let {
             updateState { copy(transaction = it) }
+        }
+    }
+
+    private fun loadInitEventIdIfNeed() {
+        if (initEventId.isEmpty() && roomId.isNotEmpty()) {
+            viewModelScope.launch {
+                val result = getPendingTransactionUseCase(GetPendingTransactionUseCase.Data(roomId, txId))
+                if (result.isSuccess) {
+                    initEventId = result.getOrThrow().initEventId
+                }
+            }
         }
     }
 
@@ -226,7 +244,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             broadcastRoomTransactionUseCase.execute(initEventId)
                 .flowOn(IO)
                 .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }
-                .collect { setEvent(BroadcastTransactionSuccess(sessionHolder.getActiveRoomId())) }
+                .collect { setEvent(BroadcastTransactionSuccess(roomId)) }
         }
     }
 
@@ -323,7 +341,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 .onException {
                     fireSignError(it)
                 }
-                .collect { setEvent(SignTransactionSuccess(sessionHolder.getActiveRoomId())) }
+                .collect { setEvent(SignTransactionSuccess(roomId)) }
         }
     }
 
@@ -350,12 +368,38 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
+    fun handleExportTransactionToMk4(ndef: Ndef) {
+        viewModelScope.launch {
+            setEvent(NfcLoadingEvent)
+            val result = exportPsbtToMk4UseCase(ExportPsbtToMk4UseCase.Data(walletId, txId, ndef))
+            if (result.isSuccess) {
+                setEvent(ExportTransactionToMk4Success)
+            } else {
+                fireSignError(result.exceptionOrNull())
+            }
+        }
+    }
+
+    fun handleImportTransactionFromMk4(records: List<NdefRecord>) {
+        viewModelScope.launch {
+            setEvent(LoadingEvent)
+            val result = importTransactionFromMk4UseCase(ImportTransactionFromMk4UseCase.Data(walletId, records))
+            val transaction = result.getOrThrow()
+            if (result.isSuccess && transaction != null) {
+                updateState { copy(transaction = transaction) }
+                setEvent(ImportTransactionFromMk4Success)
+            } else {
+                fireSignError(result.exceptionOrNull())
+            }
+        }
+    }
+
     private fun signRoomTransactionTapSigner(isoDep: IsoDep, inputCvc: String) {
         viewModelScope.launch {
             setEvent(NfcLoadingEvent)
             val result = signRoomTransactionByTapSignerUseCase(SignRoomTransactionByTapSignerUseCase.Data(isoDep, inputCvc, initEventId))
             if (result.isSuccess) {
-                setEvent(SignTransactionSuccess(sessionHolder.getActiveRoomId()))
+                setEvent(SignTransactionSuccess(roomId))
             } else {
                 fireSignError(result.exceptionOrNull())
             }

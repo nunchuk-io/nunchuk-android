@@ -9,9 +9,8 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.core.util.toReadableSignerTypeDrawable
 import com.nunchuk.android.signer.databinding.ItemSignerBinding
-import com.nunchuk.android.type.SignerType
 
-class SignerAdapter(private val callback: (id: String, name: String, type: SignerType) -> Unit) : ListAdapter<SignerModel, SingerViewHolder>(ITEM_CALLBACK) {
+class SignerAdapter(private val callback: (signer: SignerModel) -> Unit) : ListAdapter<SignerModel, SingerViewHolder>(ITEM_CALLBACK) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SingerViewHolder {
         return SingerViewHolder(callback, ItemSignerBinding.inflate(LayoutInflater.from(parent.context), parent, false))
     }
@@ -34,7 +33,7 @@ class SignerAdapter(private val callback: (id: String, name: String, type: Signe
 }
 
 class SingerViewHolder(
-    private val callback: (id: String, name: String, type: SignerType) -> Unit,
+    private val callback: (signer: SignerModel) -> Unit,
     private val binding: ItemSignerBinding
 ) : RecyclerView.ViewHolder(binding.root) {
 
@@ -45,6 +44,6 @@ class SingerViewHolder(
         binding.xpf.text = xfpValue
         binding.signerType.text = model.toReadableSignerType(binding.root.context)
         binding.icPin.setImageDrawable(model.toReadableSignerTypeDrawable(binding.root.context))
-        binding.root.setOnClickListener { callback(model.id, model.name, model.type) }
+        binding.root.setOnClickListener { callback(model) }
     }
 }

@@ -107,4 +107,25 @@
     <string name="nc_incorrect">Incorrect</string>
     <string name="nc_copied_to_clipboard">Copied to your clipboard</string>
     <string name="nc_copy_transaction_id">Copy transaction ID</string>
+    <string name="nc_before_you_start">Before you start</string>
+    <string name="nc_ensure_to_following_step">Please ensure to do the following on your COLDCARD before proceeding.</string>
+    <string name="nc_init_coldcard">Initialize COLDCARD</string>
+    <string name="nc_unlock_coldcard">Unlock COLDCARD</string>
+    <string name="nc_add_coldcard_mk4">Add COLDCARD</string>
+    <string name="nc_add_key">Add key</string>
+    <string name="nc_export_via_nfc">Export via NFC</string>
+    <string name="nc_export_via_file">Export via file</string>
+    <string name="nc_transaction_exported">Transaction has been exported</string>
+    <string name="nc_export_transaction">Export transaction</string>
+    <string name="nc_import_signature">Import signature</string>
+    <string name="nc_signed_transaction">You’ve signed this transaction</string>
+    <string name="nc_my_coldcard">My COLDCARD</string>
+    <string name="nc_hold_device_near_the_coldcard">Hold your device near the COLDCARD.</string>
+    <string name="nc_hint_add_mk4">On COLDCARD, go to Advanced/Tools → Export Wallet → Generic JSON → OK→ Press 3.</string>
+    <string name="nc_hint_export_wallet_mk4">On COLDCARD, go to Settings → Multisig Wallets → Import from File → Press 3</string>
+    <string name="nc_hint_export_trans_to_mk4">On COLDCARD, go to Ready To Sign → Press 3</string>
+    <string name="nc_hint_import_trans_from_mk4">Ready to import transaction</string>
+    <string name="nc_enable_nfc">Enable NFC</string>
+    <string name="nc_refer_to">Refer to</string>
+    <string name="nc_hint_import_wallet_from_mk4">On COLDCARD, go to Settings → Multisig Wallets → Select wallet → Coldcard Export → Press 3.</string>
 </resources>

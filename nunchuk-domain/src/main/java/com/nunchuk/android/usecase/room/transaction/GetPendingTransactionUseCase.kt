@@ -1,23 +1,24 @@
 package com.nunchuk.android.usecase.room.transaction
 
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.RoomTransaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
-interface GetPendingTransactionsUseCase {
-    fun execute(roomId: String): Flow<List<RoomTransaction>>
-}
-
-internal class GetPendingTransactionsUseCaseImpl @Inject constructor(
+class GetPendingTransactionUseCase @Inject constructor(
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val nativeSdk: NunchukNativeSdk
-) : GetPendingTransactionsUseCase {
+) : UseCase<GetPendingTransactionUseCase.Data, RoomTransaction>(dispatcher) {
 
-    override fun execute(roomId: String) = flow {
-        emit(nativeSdk.getPendingTransactions(roomId))
+    override suspend fun execute(parameters: Data): RoomTransaction {
+        return nativeSdk.getPendingTransactions(parameters.roomId).first { it.txId == parameters.txId }
     }
 
+    data class Data(val roomId: String, val txId: String)
 }
 
 interface GetRoomTransactionUseCase {

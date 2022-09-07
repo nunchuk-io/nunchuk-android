@@ -10,6 +10,17 @@
     app:behavior_peekHeight="90dp">
 
     <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btn_add_mk4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:background="?attr/selectableItemBackground"
+        android:paddingVertical="@dimen/nc_padding_16"
+        android:text="@string/nc_add_coldcard_mk4"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16" />
+
+    <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btn_add_new_nfc"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

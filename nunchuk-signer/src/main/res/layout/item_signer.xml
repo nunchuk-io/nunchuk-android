@@ -21,7 +21,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_4"
             android:contentDescription="@string/nc_text_signer_spec"
-            android:src="@drawable/ic_pin"
+            android:src="@drawable/ic_air_signer_small"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

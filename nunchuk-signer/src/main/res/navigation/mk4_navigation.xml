@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mk4_navigation"
+    app:startDestination="@id/mk4InfoFragment">
+
+    <fragment
+        android:id="@+id/mk4InfoFragment"
+        android:name="com.nunchuk.android.signer.mk4.info.Mk4InfoFragment"
+        android:label="Mk4InfoFragment"
+        tools:layout="@layout/fragment_mk4_info">
+        <action
+            android:id="@+id/action_mk4InfoFragment_to_addMk4NameFragment"
+            app:destination="@id/addMk4NameFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/addMk4NameFragment"
+        android:name="com.nunchuk.android.signer.mk4.name.AddMk4NameFragment"
+        android:label="AddMk4NameFragment"
+        tools:layout="@layout/fragment_add_name_key">
+
+        <argument
+            android:name="signer"
+            app:argType="com.nunchuk.android.model.SingleSigner" />
+    </fragment>
+</navigation>

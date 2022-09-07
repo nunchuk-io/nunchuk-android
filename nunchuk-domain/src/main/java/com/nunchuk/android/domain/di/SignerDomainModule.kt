@@ -14,9 +14,6 @@ internal interface SignerDomainModule {
     fun bindCreateSignerUseCase(useCase: CreateSignerUseCaseImpl): CreateSignerUseCase
 
     @Binds
-    fun bindGetRemoteSignerUseCase(useCase: GetRemoteSignerUseCaseImpl): GetRemoteSignerUseCase
-
-    @Binds
     fun bindGetOrCreateRootDirUseCase(useCase: GetOrCreateRootDirUseCaseImpl): GetOrCreateRootDirUseCase
 
     @Binds

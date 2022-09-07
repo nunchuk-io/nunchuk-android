@@ -23,8 +23,8 @@ data class ReviewWalletArgs(
         putExtra(EXTRA_WALLET_TYPE, walletType)
         putExtra(EXTRA_ADDRESS_TYPE, addressType)
         putExtra(EXTRA_TOTAL_REQUIRED_SIGNS, totalRequireSigns)
-        putParcelableArrayListExtra(EXTRA_MASTER_SIGNERS, masterSigners.parcelize())
-        putParcelableArrayListExtra(EXTRA_REMOTE_SIGNERS, remoteSigners.parcelize())
+        putParcelableArrayListExtra(EXTRA_MASTER_SIGNERS, ArrayList(masterSigners))
+        putParcelableArrayListExtra(EXTRA_REMOTE_SIGNERS, ArrayList(remoteSigners))
     }
 
     companion object {
@@ -40,8 +40,8 @@ data class ReviewWalletArgs(
             intent.getSerializableExtra(EXTRA_WALLET_TYPE) as WalletType,
             intent.getSerializableExtra(EXTRA_ADDRESS_TYPE) as AddressType,
             intent.getIntExtra(EXTRA_TOTAL_REQUIRED_SIGNS, 0),
-            (intent.getParcelableArrayListExtra<ParcelizeMasterSigner>(EXTRA_MASTER_SIGNERS) as ArrayList<ParcelizeMasterSigner>).deparcelize(),
-            (intent.getParcelableArrayListExtra<ParcelizeSingleSigner>(EXTRA_REMOTE_SIGNERS) as ArrayList<ParcelizeSingleSigner>).deparcelize()
+            intent.getParcelableArrayListExtra<MasterSigner>(EXTRA_MASTER_SIGNERS).orEmpty(),
+            intent.getParcelableArrayListExtra<SingleSigner>(EXTRA_REMOTE_SIGNERS).orEmpty()
         )
     }
 

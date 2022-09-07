@@ -15,6 +15,8 @@ sealed class TransactionDetailsEvent {
     data class ExportTransactionError(val message: String) : TransactionDetailsEvent()
     data class UpdateTransactionMemoSuccess(val newMemo: String) : TransactionDetailsEvent()
     data class UpdateTransactionMemoFailed(val message: String) : TransactionDetailsEvent()
+    object ImportTransactionFromMk4Success : TransactionDetailsEvent()
+    object ExportTransactionToMk4Success : TransactionDetailsEvent()
     object LoadingEvent : TransactionDetailsEvent()
     object NfcLoadingEvent : TransactionDetailsEvent()
 }

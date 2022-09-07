@@ -11,6 +11,7 @@ data class SignerInfoArgs(
     val id: String,
     val name: String,
     val signerType: SignerType,
+    val derivationPath: String,
     val justAdded: Boolean = false,
     val isNfc: Boolean = false,
     val setPassphrase: Boolean = false,
@@ -24,6 +25,7 @@ data class SignerInfoArgs(
         putExtra(EXTRA_SIGNER_TYPE, signerType)
         putExtra(EXTRA_SIGNER_SET_PASS_PHRASE, setPassphrase)
         putExtra(EXTRA_IS_IN_WALLET, isInWallet)
+        putExtra(EXTRA_DERIVATION_PATH, derivationPath)
     }
 
     companion object {
@@ -33,6 +35,7 @@ data class SignerInfoArgs(
         private const val EXTRA_SIGNER_TYPE = "EXTRA_SIGNER_SOFTWARE"
         private const val EXTRA_SIGNER_SET_PASS_PHRASE = "EXTRA_SIGNER_SET_PASS_PHRASE"
         private const val EXTRA_IS_IN_WALLET = "EXTRA_IS_IN_WALLET"
+        private const val EXTRA_DERIVATION_PATH = "EXTRA_DERIVATION_PATH"
 
         fun deserializeFrom(intent: Intent): SignerInfoArgs {
             val bundle = intent.extras
@@ -42,7 +45,8 @@ data class SignerInfoArgs(
                 justAdded = bundle.getBooleanValue(EXTRA_SIGNER_ADDED),
                 signerType = intent.getSerializableExtra(EXTRA_SIGNER_TYPE) as SignerType,
                 setPassphrase = bundle.getBooleanValue(EXTRA_SIGNER_SET_PASS_PHRASE),
-                isInWallet = bundle.getBooleanValue(EXTRA_IS_IN_WALLET)
+                isInWallet = bundle.getBooleanValue(EXTRA_IS_IN_WALLET),
+                derivationPath = bundle.getStringValue(EXTRA_DERIVATION_PATH)
             )
         }
     }

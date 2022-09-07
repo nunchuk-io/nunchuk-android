@@ -11,9 +11,13 @@ import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.NfcActionListener
+import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
@@ -22,10 +26,12 @@ import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletActio
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletOption
 import com.nunchuk.android.wallet.personal.databinding.FragmentWalletIntermediaryBinding
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
 class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBinding>() {
     private val viewModel: WalletIntermediaryViewModel by viewModels()
+    private val nfcViewModel: NfcViewModel by activityViewModels()
     private val args: WalletIntermediaryFragmentArgs by navArgs()
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentWalletIntermediaryBinding {
@@ -47,7 +53,12 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
             showOrHideNfcLoading(it is WalletIntermediaryEvent.Loading)
             when (it) {
                 is WalletIntermediaryEvent.OnLoadFileSuccess -> handleLoadFilePath(it)
+                is WalletIntermediaryEvent.ImportWalletFromMk4Success -> openRecoverWalletName(it.walletId)
+                else -> {}
             }
+        }
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_IMPORT_WALLET_FROM_MK4 }) {
+            viewModel.importWalletFromMk4(it.records)
         }
     }
 
@@ -59,7 +70,18 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
                     filePath = it.path
                 )
             )
+            requireActivity().finish()
         }
+    }
+
+    private fun openRecoverWalletName(walletId: String) {
+        navigator.openAddRecoverWalletScreen(
+            requireActivity(), RecoverWalletData(
+                type = RecoverWalletType.COLDCARD,
+                walletId = walletId
+            )
+        )
+        requireActivity().finish()
     }
 
     private fun initUi() {
@@ -81,6 +103,7 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
             when (it) {
                 RecoverWalletOption.QrCode -> handleOptionUsingQRCode()
                 RecoverWalletOption.BSMSFile -> openSelectFileChooser(WalletIntermediaryActivity.REQUEST_CODE)
+                RecoverWalletOption.ColdCard -> handleImportWalletFromColdCard()
             }
         }
     }
@@ -183,5 +206,7 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
         )
     }
 
-
+    private fun handleImportWalletFromColdCard() {
+        (activity as? NfcActionListener)?.startNfcFlow(BaseNfcActivity.REQUEST_IMPORT_WALLET_FROM_MK4)
+    }
 }

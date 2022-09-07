@@ -63,7 +63,6 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(), Botto
                 activityContext = requireActivity(),
                 walletId = args.walletId,
                 txId = it.txId,
-                initEventId = viewModel.getRoomWallet()?.initEventId.orEmpty(),
                 roomId = viewModel.getRoomWallet()?.roomId.orEmpty()
             )
         }

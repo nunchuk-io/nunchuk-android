@@ -25,6 +25,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         id: String,
         name: String,
         type: SignerType,
+        derivationPath: String,
         justAdded: Boolean,
         setPassphrase: Boolean,
         isInWallet: Boolean
@@ -36,7 +37,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
             justAdded = justAdded,
             type = type,
             setPassphrase = setPassphrase,
-            isInWallet = isInWallet
+            isInWallet = isInWallet,
+            derivationPath = derivationPath
         )
     }
 
@@ -71,5 +73,4 @@ interface SignerNavigatorDelegate : SignerNavigator {
     override fun openSetPassphraseScreen(activityContext: Context, mnemonic: String, signerName: String) {
         SetPassphraseActivity.start(activityContext, mnemonic, signerName)
     }
-
 }

@@ -18,7 +18,7 @@ import com.nunchuk.android.core.util.NFC_DEFAULT_NAME
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.signer.R
-import com.nunchuk.android.signer.databinding.FragmentNfcAddNameKeyBinding
+import com.nunchuk.android.signer.databinding.FragmentAddNameKeyBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setMaxLength
@@ -26,15 +26,15 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
-class AddNfcNameFragment : BaseFragment<FragmentNfcAddNameKeyBinding>() {
+class AddNfcNameFragment : BaseFragment<FragmentAddNameKeyBinding>() {
     private val nfcViewModel by activityViewModels<NfcViewModel>()
     private val viewModel by viewModels<AddNfcNameViewModel>()
 
     override fun initializeBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
-    ): FragmentNfcAddNameKeyBinding {
-        return FragmentNfcAddNameKeyBinding.inflate(inflater, container, false)
+    ): FragmentAddNameKeyBinding {
+        return FragmentAddNameKeyBinding.inflate(inflater, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -67,9 +67,9 @@ class AddNfcNameFragment : BaseFragment<FragmentNfcAddNameKeyBinding>() {
                         navigator.openSignerInfoScreen(
                             activityContext = requireActivity(),
                             id = state.masterSigner.id,
-                            justAdded = true,
                             name = state.masterSigner.name,
-                            type = state.masterSigner.type
+                            type = state.masterSigner.type,
+                            justAdded = true
                         )
                         requireActivity().finish()
                     } else if (state is AddNfcNameState.Error) {

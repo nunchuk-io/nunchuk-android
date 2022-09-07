@@ -46,7 +46,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
 
         setupViews()
         observeEvent()
-        viewModel.init(args.id, args.signerType)
+        viewModel.init(args)
     }
 
     override fun onOptionClickListener(option: SingerOption) {
@@ -205,6 +205,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     }
 
     private fun setupViews() {
+        binding.btnHealthCheck.isVisible = args.signerType != SignerType.COLDCARD_NFC
         binding.signerName.text = args.name
         if (args.justAdded) {
             NCToastMessage(this).showMessage(
@@ -284,6 +285,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
             id: String,
             name: String,
             type: SignerType,
+            derivationPath: String,
             justAdded: Boolean = false,
             setPassphrase: Boolean = false,
             isInWallet: Boolean
@@ -292,6 +294,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
                 SignerInfoArgs(
                     id = id,
                     name = name,
+                    derivationPath = derivationPath,
                     justAdded = justAdded,
                     signerType = type,
                     setPassphrase = setPassphrase,

@@ -10,7 +10,6 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.SimpleItemAnimator
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.core.loader.ImageLoader
@@ -112,7 +111,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
                 transactions = state.transactions.map(TransactionExtended::transaction),
                 onClick = viewModel::viewConfig,
                 onClickViewTransactionDetail = { txId ->
-                    openTransactionDetails(walletId = it.walletId, txId = txId, initEventId = it.initEventId)
+                    openTransactionDetails(walletId = it.walletId, txId = txId, initEventId = "")
                 }
             )
         }

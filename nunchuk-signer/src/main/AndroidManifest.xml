@@ -55,6 +55,11 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
+        <activity android:name=".mk4.Mk4Activity"
+            android:label="Mk4 Activity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"/>
+
     </application>
 
 </manifest>

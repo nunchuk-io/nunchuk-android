@@ -57,6 +57,10 @@ fun Fragment.showOrHideNfcLoading(loading: Boolean) {
     showOrHideLoading(loading, message = getString(R.string.nc_keep_holding_nfc))
 }
 
+fun Activity.showOrHideNfcLoading(loading: Boolean) {
+    showOrHideLoading(loading, message = getString(R.string.nc_keep_holding_nfc))
+}
+
 fun Fragment.showOrHideLoading(loading: Boolean, title: String = getString(R.string.nc_please_wait), message: String? = null) {
     activity?.showOrHideLoading(loading, title, message)
 }

@@ -1,18 +1,19 @@
 package com.nunchuk.android.usecase
 
-import com.nunchuk.android.model.Result
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface GetRemoteSignerUseCase {
-    suspend fun execute(id: String): Result<SingleSigner>
-}
-
-internal class GetRemoteSignerUseCaseImpl @Inject constructor(
+class GetRemoteSignerUseCase @Inject constructor(
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val nativeSdk: NunchukNativeSdk
-) : BaseUseCase(), GetRemoteSignerUseCase {
+) : UseCase<GetRemoteSignerUseCase.Data, SingleSigner>(dispatcher) {
 
-    override suspend fun execute(id: String) = exe { nativeSdk.getRemoteSigner(id) }
+    class Data(val id: String, val derivationPath: String)
 
+    override suspend fun execute(parameters: Data): SingleSigner {
+        return nativeSdk.getRemoteSigner(parameters.id, parameters.derivationPath)
+    }
 }
