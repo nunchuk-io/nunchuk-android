@@ -243,7 +243,7 @@
                     android:layout_marginTop="@dimen/nc_padding_32">
 
                     <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/shareLayout"
+                        android:id="@+id/copyAddressLayout"
                         android:layout_width="wrap_content"
                         android:layout_height="@dimen/nc_padding_36"
                         android:background="@drawable/nc_rounded_light_background"
@@ -252,23 +252,23 @@
                         android:paddingVertical="@dimen/nc_padding_8"
                         android:paddingStart="@dimen/nc_padding_30"
                         android:paddingEnd="@dimen/nc_padding_32"
-                        app:layout_constraintEnd_toStartOf="@+id/copyAddressLayout"
+                        app:layout_constraintEnd_toStartOf="@+id/shareLayout"
                         app:layout_constraintHorizontal_bias="0.5"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent">
 
                         <ImageView
-                            android:id="@+id/ivShare"
+                            android:id="@+id/ivCopy"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:padding="2dp"
                             android:src="@drawable/ic_copy"
                             app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toStartOf="@+id/btnShare"
+                            app:layout_constraintEnd_toStartOf="@+id/btnCopyAddress"
                             app:layout_constraintTop_toTopOf="parent" />
 
                         <com.nunchuk.android.widget.NCFontTextView
-                            android:id="@+id/btnShare"
+                            android:id="@+id/btnCopyAddress"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/nc_address_copy"
@@ -276,13 +276,13 @@
                             android:textSize="@dimen/nc_text_size_12"
                             app:fontTextStyle="semi_bold"
                             app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toEndOf="@+id/ivShare"
+                            app:layout_constraintStart_toEndOf="@+id/ivCopy"
                             app:layout_constraintTop_toTopOf="parent" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/copyAddressLayout"
+                        android:id="@+id/shareLayout"
                         android:layout_width="wrap_content"
                         android:layout_height="@dimen/nc_padding_36"
                         android:background="@drawable/nc_rounded_dark_background"
@@ -293,21 +293,21 @@
                         android:paddingEnd="@dimen/nc_padding_32"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintHorizontal_bias="0.5"
-                        app:layout_constraintStart_toEndOf="@+id/shareLayout"
+                        app:layout_constraintStart_toEndOf="@+id/copyAddressLayout"
                         app:layout_constraintTop_toTopOf="parent">
 
                         <ImageView
-                            android:id="@+id/ivCopy"
+                            android:id="@+id/ivShare"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:padding="2dp"
                             android:src="@drawable/ic_share"
                             app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toStartOf="@+id/btnCopyAddress"
+                            app:layout_constraintEnd_toStartOf="@+id/btnShare"
                             app:layout_constraintTop_toTopOf="parent" />
 
                         <com.nunchuk.android.widget.NCFontTextView
-                            android:id="@+id/btnCopyAddress"
+                            android:id="@+id/btnShare"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/nc_padding_6"
@@ -316,7 +316,7 @@
                             android:textSize="@dimen/nc_text_size_12"
                             app:fontTextStyle="semi_bold"
                             app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toEndOf="@+id/ivCopy"
+                            app:layout_constraintStart_toEndOf="@+id/ivShare"
                             app:layout_constraintTop_toTopOf="parent" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
