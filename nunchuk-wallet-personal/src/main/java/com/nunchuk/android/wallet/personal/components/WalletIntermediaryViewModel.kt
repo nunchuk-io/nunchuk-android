@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.ImportWalletFromMk4UseCase
 import com.nunchuk.android.core.util.getFileFromUri
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import dagger.Lazy
@@ -59,6 +60,8 @@ class WalletIntermediaryViewModel @Inject constructor(
             val result = importWalletFromMk4UseCase(records)
             if (result.isSuccess && result.getOrThrow() != null) {
                 _event.emit(WalletIntermediaryEvent.ImportWalletFromMk4Success(result.getOrThrow()!!.id))
+            } else {
+                _event.emit(WalletIntermediaryEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
             }
         }
     }
@@ -71,6 +74,7 @@ sealed class WalletIntermediaryEvent {
     object Loading : WalletIntermediaryEvent()
     class OnLoadFileSuccess(val path: String) : WalletIntermediaryEvent()
     class ImportWalletFromMk4Success(val walletId: String) : WalletIntermediaryEvent()
+    class ShowError(val msg: String) : WalletIntermediaryEvent()
 }
 
 data class WalletIntermediaryState(val isHasSigner: Boolean = false)

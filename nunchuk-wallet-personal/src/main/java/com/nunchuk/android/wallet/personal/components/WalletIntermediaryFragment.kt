@@ -54,6 +54,7 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
             when (it) {
                 is WalletIntermediaryEvent.OnLoadFileSuccess -> handleLoadFilePath(it)
                 is WalletIntermediaryEvent.ImportWalletFromMk4Success -> openRecoverWalletName(it.walletId)
+                is WalletIntermediaryEvent.ShowError -> showError(it.msg)
                 else -> {}
             }
         }
