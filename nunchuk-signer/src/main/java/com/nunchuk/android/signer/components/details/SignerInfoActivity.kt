@@ -185,6 +185,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
                 val message = event.e?.message ?: getString(R.string.nc_topup_xpub_failed)
                 NCToastMessage(this).showError(message)
             }
+            else -> {}
         }
     }
 

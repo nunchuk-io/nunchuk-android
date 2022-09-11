@@ -25,8 +25,8 @@ ext {
     // Plugins versions
     gradleVersion = '7.2.2'
     googleServiceVersion = '4.3.4'
-    kotlinGradlePluginVersion = '1.6.21'
-    kotlinStdlibVersion = '1.6.21'
+    kotlinGradlePluginVersion = '1.7.10'
+    kotlinStdlibVersion = '1.7.10'
     pagingVersion = "3.1.1"
 
     hiltVersion = "2.42"
@@ -42,6 +42,8 @@ ext {
     triggerRestartVersion = '2.1.2'
 
     navVersion = "2.5.0"
+
+    compose = "1.2.1"
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
@@ -94,8 +96,8 @@ ext {
     ]
 
     navigationDeps = [
-            navigationUi      : 'androidx.navigation:navigation-ui-ktx:2.3.4',
-            navigationFragment: 'androidx.navigation:navigation-fragment-ktx:2.3.4'
+            navigationUi      : "androidx.navigation:navigation-ui-ktx:$navVersion",
+            navigationFragment: "androidx.navigation:navigation-fragment-ktx:$navVersion"
     ]
 
     espressoDeps = [
@@ -145,10 +147,10 @@ ext {
     ]
 
     networkDeps = [
-            retrofit      : "com.squareup.retrofit2:retrofit:${retrofitVersion}",
-            okhttp3       : "com.squareup.okhttp3:okhttp:${okhttpVersion}",
-            gsonConverter : "com.squareup.retrofit2:converter-gson:${retrofitVersion}",
-            logging       : "com.squareup.okhttp3:logging-interceptor:${okhttpVersion}",
+            retrofit     : "com.squareup.retrofit2:retrofit:${retrofitVersion}",
+            okhttp3      : "com.squareup.okhttp3:okhttp:${okhttpVersion}",
+            gsonConverter: "com.squareup.retrofit2:converter-gson:${retrofitVersion}",
+            logging      : "com.squareup.okhttp3:logging-interceptor:${okhttpVersion}",
     ]
 
     robolectricDeps = [
@@ -191,6 +193,7 @@ ext {
 
     lifecycleDeps = [
             lifeCycleProcess     : "androidx.lifecycle:lifecycle-process:${lifecycleVersion}",
+            lifeCycleRuntime     : "androidx.lifecycle:lifecycle-runtime-ktx:${lifecycleVersion}",
             lifecycleLivedata    : "androidx.lifecycle:lifecycle-livedata:${lifecycleVersion}",
             lifecycleLivedataKtx : "androidx.lifecycle:lifecycle-livedata-ktx:${lifecycleVersion}",
             lifecycleViewModelKtx: "androidx.lifecycle:lifecycle-viewmodel-ktx:${lifecycleVersion}"
@@ -229,5 +232,14 @@ ext {
 
     triggerRestartDeps = [
             core: "com.jakewharton:process-phoenix:$triggerRestartVersion"
+    ]
+
+    composeDeps = [
+            'composeUi'        : "androidx.compose.ui:ui:$compose",
+            'composeUiTool'    : "androidx.compose.ui:ui-tooling:$compose",
+            'composeFoundation': "androidx.compose.foundation:foundation:$compose",
+            'composeMaterial'  : "androidx.compose.material:material:$compose",
+            'composeActivity'  : "androidx.activity:activity-compose:1.5.1",
+            'composeViewModel' : "androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1",
     ]
 }
