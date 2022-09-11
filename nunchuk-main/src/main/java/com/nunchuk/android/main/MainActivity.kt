@@ -120,7 +120,7 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
     }
 
     private fun setupData() {
-        if (loginHalfToken.isNotEmpty() && deviceId.isNotEmpty()) {
+        if (loginHalfToken.isNotEmpty() && deviceId.isNotEmpty() && sessionHolder.hasActiveSession().not()) {
             syncRoomViewModel.setupMatrix(loginHalfToken, deviceId)
         }
         if (sessionHolder.getSafeActiveSession() != null) {

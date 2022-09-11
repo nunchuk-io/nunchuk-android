@@ -10,6 +10,7 @@ import com.nunchuk.android.core.domain.*
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.matrix.*
 import com.nunchuk.android.core.util.*
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.*
 import com.nunchuk.android.messages.model.RoomNotFoundException
@@ -28,6 +29,7 @@ import com.nunchuk.android.usecase.EnableAutoBackupUseCase
 import com.nunchuk.android.usecase.RegisterAutoBackupUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
@@ -67,7 +69,8 @@ internal class MainActivityViewModel @Inject constructor(
     private val deleteSyncFileUseCase: DeleteSyncFileUseCase,
     private val saveCacheFileUseCase: SaveCacheFileUseCase,
     private val getLocalBtcPriceFlowUseCase: GetLocalBtcPriceFlowUseCase,
-    private val sessionHolder: SessionHolder
+    private val sessionHolder: SessionHolder,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher
 ) : NunchukViewModel<Unit, MainAppEvent>() {
 
     override val initialState = Unit
@@ -127,7 +130,9 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     private fun downloadKeys(session: Session) {
-        session.cryptoService().downloadKeys(listOf(session.myUserId), true, NoOpMatrixCallback())
+        viewModelScope.launch(dispatcher) {
+            session.cryptoService().downloadKeys(listOf(session.myUserId), true, NoOpMatrixCallback())
+        }
     }
 
     private fun checkMissingSyncFile() {

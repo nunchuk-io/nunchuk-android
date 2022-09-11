@@ -23,7 +23,7 @@ ext {
     coroutinesVersion = '1.6.2'
 
     // Plugins versions
-    gradleVersion = '7.0.4'
+    gradleVersion = '7.2.2'
     googleServiceVersion = '4.3.4'
     kotlinGradlePluginVersion = '1.6.21'
     kotlinStdlibVersion = '1.6.21'
