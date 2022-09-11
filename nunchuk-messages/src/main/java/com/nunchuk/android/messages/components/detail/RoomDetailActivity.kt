@@ -142,7 +142,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
     private fun scrollToLastItem() {
         lifecycleScope.launch {
-            delay(300L)
+            delay(500L)
             val itemCount = adapter.itemCount
             if (itemCount > 0) {
                 binding.recyclerView.smoothScrollToLastItem()

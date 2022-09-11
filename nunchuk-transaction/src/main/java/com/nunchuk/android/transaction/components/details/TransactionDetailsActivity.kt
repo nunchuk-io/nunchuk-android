@@ -35,6 +35,7 @@ import com.nunchuk.android.transaction.components.export.ExportTransactionActivi
 import com.nunchuk.android.transaction.components.imports.ImportTransactionActivity
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
@@ -187,15 +188,16 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         binding.transactionDetailsContainer.isVisible = state.viewMore
 
         bindTransaction(state.transaction)
-        bindSigners(state.transaction.signers, state.signers.sortedByDescending(SignerModel::localKey))
+        bindSigners(state.transaction.signers, state.signers.sortedByDescending(SignerModel::localKey), state.transaction.status)
         hideLoading()
     }
 
-    private fun bindSigners(signerMap: Map<String, Boolean>, signers: List<SignerModel>) {
+    private fun bindSigners(signerMap: Map<String, Boolean>, signers: List<SignerModel>, status: TransactionStatus) {
         TransactionSignersViewBinder(
             container = binding.signerListView,
             signerMap = signerMap,
             signers = signers,
+            txStatus = status,
             listener = { signer ->
                 when (signer.type) {
                     SignerType.COLDCARD_NFC -> {

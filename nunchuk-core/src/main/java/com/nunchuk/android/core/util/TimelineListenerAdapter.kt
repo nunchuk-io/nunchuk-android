@@ -1,5 +1,7 @@
 package com.nunchuk.android.core.util
 
+import com.nunchuk.android.messages.util.isNunchukErrorEvent
+import com.nunchuk.android.messages.util.isNunchukEvent
 import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,4 +29,6 @@ class TimelineListenerAdapter : Timeline.Listener {
     }
 
     fun getLastTimeEvents() = _data.value
+
+    fun getNunchukEvents() = _data.value.filter(TimelineEvent::isNunchukEvent).filterNot(TimelineEvent::isNunchukErrorEvent)
 }
