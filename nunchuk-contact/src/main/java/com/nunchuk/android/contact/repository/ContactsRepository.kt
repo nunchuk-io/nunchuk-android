@@ -2,47 +2,25 @@ package com.nunchuk.android.contact.repository
 
 import com.nunchuk.android.contact.api.*
 import com.nunchuk.android.contact.mapper.*
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.ReceiveContact
 import com.nunchuk.android.model.SentContact
+import com.nunchuk.android.model.UserResponse
 import com.nunchuk.android.persistence.dao.ContactDao
 import com.nunchuk.android.persistence.entity.ContactEntity
 import com.nunchuk.android.persistence.updateOrInsert
+import com.nunchuk.android.repository.ContactsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-interface ContactsRepository {
-
-    fun getLocalContacts(accountId: String): Flow<List<Contact>>
-
-    suspend fun getRemoteContacts(accountId: String)
-
-    fun addContacts(emails: List<String>): Flow<List<String>>
-
-    suspend fun getPendingSentContacts(): List<SentContact>
-
-    suspend fun getPendingApprovalContacts(): List<ReceiveContact>
-
-    suspend fun acceptContact(contactId: String)
-
-    suspend fun cancelContact(contactId: String)
-
-    fun searchContact(email: String): Flow<UserResponse>
-
-    fun autoCompleteSearch(keyword: String): Flow<List<UserResponse>>
-
-    fun updateContact(imageUrl: String): Flow<UserResponse>
-
-    fun invite(friendEmails: List<String>): Flow<Unit>
-
-}
-
 internal class ContactsRepositoryImpl @Inject constructor(
     private val api: ContactApi,
-    private val contactDao: ContactDao
+    private val contactDao: ContactDao,
+    private val accountManager: AccountManager
 ) : ContactsRepository {
 
     override fun getLocalContacts(accountId: String) = contactDao.getContacts(accountId).map(List<ContactEntity>::toModels)
@@ -117,6 +95,10 @@ internal class ContactsRepositoryImpl @Inject constructor(
         emit(
             api.updateContact(payload).data.user
         )
+    }
+
+    override suspend fun getContact(chatId: String) : Contact? {
+        return contactDao.getContact(accountManager.getAccount().email, chatId)?.toModel()
     }
 
     override fun invite(friendEmails: List<String>) = flow {
