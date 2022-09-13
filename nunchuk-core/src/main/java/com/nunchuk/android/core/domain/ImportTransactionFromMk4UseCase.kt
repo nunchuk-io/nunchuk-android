@@ -13,8 +13,12 @@ class ImportTransactionFromMk4UseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
 ) : UseCase<ImportTransactionFromMk4UseCase.Data, Transaction?>(dispatcher) {
     override suspend fun execute(parameters: Data): Transaction? {
-        return nativeSdk.importTransactionFromMk4(parameters.walletId, parameters.records.toTypedArray())
+        val result = nativeSdk.importTransactionFromMk4(parameters.walletId, parameters.records.toTypedArray())
+        if (parameters.initEventId.isNotEmpty() && parameters.masterFingerPrint.isNotEmpty()) {
+            nativeSdk.signAirgapTransaction(parameters.initEventId, parameters.masterFingerPrint)
+        }
+        return result
     }
 
-    data class Data(val walletId: String, val records: List<NdefRecord>)
+    data class Data(val walletId: String, val records: List<NdefRecord>, val initEventId: String, val masterFingerPrint: String)
 }

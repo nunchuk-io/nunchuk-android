@@ -74,6 +74,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private var contacts: List<Contact> = emptyList()
 
+    private var currentSigner: SignerModel? = null
+
     override val initialState = TransactionDetailsState()
 
     init {
@@ -98,6 +100,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
         initTransaction?.let {
             updateState { copy(transaction = it) }
         }
+    }
+
+    fun setCurrentSigner(signer: SignerModel) {
+        currentSigner = signer
     }
 
     private fun loadInitEventIdIfNeed() {
@@ -379,9 +385,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun handleImportTransactionFromMk4(records: List<NdefRecord>) {
+        val signer = currentSigner ?: return
         viewModelScope.launch {
             setEvent(LoadingEvent)
-            val result = importTransactionFromMk4UseCase(ImportTransactionFromMk4UseCase.Data(walletId, records))
+            val result = importTransactionFromMk4UseCase(ImportTransactionFromMk4UseCase.Data(walletId, records, initEventId, signer.fingerPrint))
             val transaction = result.getOrThrow()
             if (result.isSuccess && transaction != null) {
                 updateState { copy(transaction = transaction) }

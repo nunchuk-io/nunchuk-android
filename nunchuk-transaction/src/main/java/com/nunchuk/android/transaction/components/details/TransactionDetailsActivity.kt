@@ -199,6 +199,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             signers = signers,
             txStatus = status,
             listener = { signer ->
+                viewModel.setCurrentSigner(signer)
                 when (signer.type) {
                     SignerType.COLDCARD_NFC -> {
                         showSignByMk4Options()
