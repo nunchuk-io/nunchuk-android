@@ -137,13 +137,36 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         roomId: String,
         transaction: Transaction?
     ) {
-        TransactionDetailsActivity.start(
-            activityContext = activityContext,
-            walletId = walletId,
-            txId = txId,
-            initEventId = initEventId,
-            roomId = roomId,
-            transaction = transaction
+        activityContext.startActivity(
+            TransactionDetailsActivity.buildIntent(
+                activityContext = activityContext,
+                walletId = walletId,
+                txId = txId,
+                initEventId = initEventId,
+                roomId = roomId,
+                transaction = transaction
+            )
+        )
+    }
+
+    override fun openTransactionDetailsScreen(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Activity,
+        walletId: String,
+        txId: String,
+        initEventId: String,
+        roomId: String,
+        transaction: Transaction?
+    ) {
+        launcher.launch(
+            TransactionDetailsActivity.buildIntent(
+                activityContext = activityContext,
+                walletId = walletId,
+                txId = txId,
+                initEventId = initEventId,
+                roomId = roomId,
+                transaction = transaction
+            )
         )
     }
 

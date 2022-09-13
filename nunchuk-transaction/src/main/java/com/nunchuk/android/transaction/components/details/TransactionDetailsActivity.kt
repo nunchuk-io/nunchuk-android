@@ -437,6 +437,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     private fun showTransactionDeleteSuccess() {
+        setResult(Activity.RESULT_OK)
         finish()
         NCToastMessage(this).show(getString(R.string.nc_transaction_deleted))
     }
@@ -480,23 +481,21 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     companion object {
-        fun start(
+        fun buildIntent(
             activityContext: Activity,
             walletId: String,
             txId: String,
             initEventId: String = "",
             roomId: String = "",
             transaction: Transaction? = null
-        ) {
-            activityContext.startActivity(
-                TransactionDetailsArgs(
-                    walletId = walletId,
-                    txId = txId,
-                    initEventId = initEventId,
-                    roomId = roomId,
-                    transaction = transaction
-                ).buildIntent(activityContext)
-            )
+        ): Intent {
+            return TransactionDetailsArgs(
+                walletId = walletId,
+                txId = txId,
+                initEventId = initEventId,
+                roomId = roomId,
+                transaction = transaction
+            ).buildIntent(activityContext)
         }
     }
 }
