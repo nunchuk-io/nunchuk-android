@@ -102,6 +102,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private fun loadInitEventIdIfNeed() {
         if (initEventId.isEmpty() && roomId.isNotEmpty()) {
+            setEvent(LoadingEvent)
             viewModelScope.launch {
                 val result = getPendingTransactionUseCase(GetPendingTransactionUseCase.Data(roomId, txId))
                 if (result.isSuccess) {
@@ -109,6 +110,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun getInitEventId(): String {
+        return initEventId
     }
 
     private fun getContacts() {
@@ -289,7 +294,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 }
             }
         } else {
-            setEvent(PromptTransactionOptions(isPendingTransaction = true, isPendingConfirm = false))
+            setEvent(PromptTransactionOptions(isPendingTransaction = true, isPendingConfirm = false, masterFingerPrint = signer.fingerPrint))
         }
     }
 
@@ -301,7 +306,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun isSharedTransaction() = roomId.isNotEmpty()
+    fun isSharedTransaction() = roomId.isNotEmpty()
 
     fun exportTransactionToFile() {
         viewModelScope.launch {

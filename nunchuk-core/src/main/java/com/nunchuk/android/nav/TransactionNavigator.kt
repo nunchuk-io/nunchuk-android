@@ -77,7 +77,9 @@ interface TransactionNavigator {
     fun openImportTransactionScreen(
         activityContext: Activity,
         walletId: String,
-        transactionOption: TransactionOption
+        transactionOption: TransactionOption,
+        masterFingerPrint: String = "",
+        initEventId: String = ""
     )
 
     fun openReplaceTransactionFee(

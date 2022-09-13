@@ -150,12 +150,16 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
     override fun openImportTransactionScreen(
         activityContext: Activity,
         walletId: String,
-        transactionOption: TransactionOption
+        transactionOption: TransactionOption,
+        masterFingerPrint: String,
+        initEventId: String
     ) {
         ImportTransactionActivity.start(
             activityContext = activityContext,
             walletId = walletId,
-            transactionOption = transactionOption
+            transactionOption = transactionOption,
+            masterFingerPrint = masterFingerPrint,
+            initEventId = initEventId
         )
     }
 

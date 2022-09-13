@@ -31,7 +31,12 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-        viewModel.init(walletId = args.walletId, transactionOption = args.transactionOption)
+        viewModel.init(
+            walletId = args.walletId,
+            transactionOption = args.transactionOption,
+            masterFingerPrint = args.masterFingerPrint,
+            initEventId = args.initEventId
+        )
         setupViews()
         observeEvent()
     }
@@ -88,9 +93,14 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
 
     companion object {
 
-        fun start(activityContext: Activity, walletId: String, transactionOption: TransactionOption) {
+        fun start(activityContext: Activity, walletId: String, transactionOption: TransactionOption, masterFingerPrint: String, initEventId: String) {
             activityContext.startActivity(
-                ImportTransactionArgs(walletId = walletId, transactionOption = transactionOption).buildIntent(activityContext)
+                ImportTransactionArgs(
+                    walletId = walletId,
+                    transactionOption = transactionOption,
+                    masterFingerPrint = masterFingerPrint,
+                    initEventId = initEventId
+                ).buildIntent(activityContext)
             )
         }
 
