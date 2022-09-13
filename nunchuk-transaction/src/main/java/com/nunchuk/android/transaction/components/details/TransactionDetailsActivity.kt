@@ -32,7 +32,6 @@ import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
 import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeArgs
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
-import com.nunchuk.android.transaction.components.imports.ImportTransactionActivity
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
@@ -376,9 +375,9 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 when (it) {
                     CANCEL -> promptCancelTransactionConfirmation()
                     EXPORT -> openExportTransactionScreen(EXPORT)
-                    IMPORT_KEYSTONE -> openImportTransactionScreen(IMPORT_KEYSTONE)
+                    IMPORT_KEYSTONE -> openImportTransactionScreen(IMPORT_KEYSTONE, event.masterFingerPrint)
                     EXPORT_PASSPORT -> openExportTransactionScreen(EXPORT_PASSPORT)
-                    IMPORT_PASSPORT -> openImportTransactionScreen(IMPORT_PASSPORT)
+                    IMPORT_PASSPORT -> openImportTransactionScreen(IMPORT_PASSPORT, event.masterFingerPrint)
                     EXPORT_PSBT -> viewModel.exportTransactionToFile()
                     REPLACE_BY_FEE -> handleOpenEditFee()
                     COPY_TRANSACTION_ID -> handleCopyContent(args.txId)
@@ -403,11 +402,13 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         )
     }
 
-    private fun openImportTransactionScreen(transactionOption: TransactionOption) {
-        ImportTransactionActivity.start(
+    private fun openImportTransactionScreen(transactionOption: TransactionOption, masterFingerPrint: String) {
+        navigator.openImportTransactionScreen(
             activityContext = this,
             walletId = args.walletId,
-            transactionOption = transactionOption
+            transactionOption = transactionOption,
+            masterFingerPrint = if (viewModel.isSharedTransaction()) masterFingerPrint else "",
+            initEventId = viewModel.getInitEventId()
         )
     }
 

@@ -2,6 +2,7 @@ package com.nunchuk.android.transaction.components.imports
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionError
@@ -29,15 +30,19 @@ internal class ImportTransactionViewModel @Inject constructor(
 
     private lateinit var walletId: String
     private lateinit var transactionOption: TransactionOption
+    private lateinit var masterFingerPrint: String
+    private lateinit var initEventId: String
     private var isProcessing = false
 
     private val qrDataList = HashSet<String>()
 
     override val initialState = Unit
 
-    fun init(walletId: String, transactionOption: TransactionOption) {
+    fun init(walletId: String, transactionOption: TransactionOption, masterFingerPrint: String, initEventId: String) {
         this.walletId = walletId
         this.transactionOption = transactionOption
+        this.masterFingerPrint = masterFingerPrint
+        this.initEventId = initEventId
     }
 
     fun importTransactionViaFile(filePath: String) {
@@ -58,13 +63,13 @@ internal class ImportTransactionViewModel @Inject constructor(
             viewModelScope.launch {
                 Timber.d("[ImportTransaction]execute($walletId, $qrDataList)")
                 if (transactionOption == TransactionOption.IMPORT_PASSPORT) {
-                    importPassportTransactionUseCase.execute(walletId = walletId, qrData = qrDataList.toList())
+                    importPassportTransactionUseCase.execute(walletId = walletId, qrData = qrDataList.toList(), initEventId = initEventId, masterFingerPrint = masterFingerPrint)
                 } else {
-                    importKeystoneTransactionUseCase.execute(walletId = walletId, qrData = qrDataList.toList())
+                    importKeystoneTransactionUseCase.execute(walletId = walletId, qrData = qrDataList.toList(), initEventId = initEventId, masterFingerPrint = masterFingerPrint)
                 }
                     .onStart { isProcessing = true }
                     .flowOn(IO)
-                    .onException { }
+                    .onException { setEvent(ImportTransactionError(it.message.orUnknownError())) }
                     .flowOn(Main)
                     .onCompletion { isProcessing = false }
                     .collect { event(ImportTransactionSuccess) }
