@@ -222,6 +222,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     )
                 )
             }
+            else -> {}
         }
     }
 

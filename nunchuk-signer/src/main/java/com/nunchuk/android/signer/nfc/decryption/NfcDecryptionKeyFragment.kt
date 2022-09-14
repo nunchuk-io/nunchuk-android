@@ -46,6 +46,7 @@ class NfcDecryptionKeyFragment : BaseFragment<FragmentDecryptionKeyBinding>() {
                     when (it) {
                         is NfcDecryptionKeyEvent.ImportTapSignerFailed -> showError(it.e)
                         is NfcDecryptionKeyEvent.ImportTapSignerSuccess -> handleImportSuccess(it.masterSigner)
+                        else -> {}
                     }
                 }
             }

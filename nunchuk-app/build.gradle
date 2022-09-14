@@ -15,6 +15,7 @@ android {
 
     buildFeatures {
         viewBinding true
+        compose true
     }
 
     defaultConfig {
@@ -104,6 +105,10 @@ android {
         jvmTarget = '11'
     }
 
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.3.0'
+    }
+
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/LICENSE'
@@ -160,18 +165,14 @@ dependencies {
     implementation hiltDeps.hilt
 
     implementation networkDeps.values()
+    implementation composeDeps.values()
 
     implementation androidxDeps.values()
     implementation googleDeps.values()
 
-    // FIXME ci disable
-    // debugImplementation "com.squareup.leakcanary:leakcanary-android:2.9.1"
-
-    // FIXME
     // Kotlin
-    implementation "androidx.navigation:navigation-fragment-ktx:2.3.5"
-    implementation "androidx.navigation:navigation-ui-ktx:2.3.5"
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0'
+    implementation navigationDeps.values()
+    implementation coroutineDeps.values()
 
     implementation 'com.google.android.gms:play-services-base:18.0.1'
     implementation 'com.google.firebase:firebase-messaging-ktx:23.0.0'
