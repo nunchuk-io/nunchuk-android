@@ -1,18 +1,35 @@
 package com.nunchuk.android.wallet.shared.components.configure
 
+import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.wallet.shared.components.configure.ConfigureSharedWalletEvent.ConfigureCompletedEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
 import javax.inject.Inject
 
 @HiltViewModel
 internal class ConfigureSharedWalletViewModel @Inject constructor(
+    private val sessionHolder: SessionHolder,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher
 ) : NunchukViewModel<ConfigureSharedWalletState, ConfigureSharedWalletEvent>() {
 
     override val initialState = ConfigureSharedWalletState()
 
     fun init() {
-        updateState { initialState }
+        viewModelScope.launch {
+            updateState { initialState }
+            val result = withContext(dispatcher) {
+                sessionHolder.currentRoom?.membershipService()?.getRoomMembers(roomMemberQueryParams())
+            }
+            result?.let {
+                updateState { copy(minTotalSigner = it.size, totalSigns = it.size) }
+            }
+        }
     }
 
     fun handleIncreaseTotalSigners() {
@@ -25,7 +42,7 @@ internal class ConfigureSharedWalletViewModel @Inject constructor(
         val state = getState()
         val totalSigns = state.totalSigns
         val minus = totalSigns - 1
-        val newVal = if (minus >= TOTAL_SIGNS_MIN && minus >= state.requireSigns) minus else totalSigns
+        val newVal = if (minus >= state.minTotalSigner && minus >= state.requireSigns) minus else totalSigns
         updateState { copy(totalSigns = newVal) }
         getState().validate()
     }
@@ -53,7 +70,7 @@ internal class ConfigureSharedWalletViewModel @Inject constructor(
 
     private fun ConfigureSharedWalletState.validate() {
         val isConfigured = (requireSigns > 0) && (requireSigns <= totalSigns)
-        val canDecreaseTotal = totalSigns > TOTAL_SIGNS_MIN
+        val canDecreaseTotal = totalSigns > getState().minTotalSigner
         updateState { copy(isConfigured = isConfigured, canDecreaseTotal = canDecreaseTotal) }
     }
 }
