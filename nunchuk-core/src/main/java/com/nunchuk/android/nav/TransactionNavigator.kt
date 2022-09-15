@@ -76,6 +76,16 @@ interface TransactionNavigator {
         transaction: Transaction? = null
     )
 
+    fun openTransactionDetailsScreen(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Activity,
+        walletId: String,
+        txId: String,
+        initEventId: String = "",
+        roomId: String,
+        transaction: Transaction? = null
+    )
+
     fun openImportTransactionScreen(
         activityContext: Activity,
         walletId: String,

@@ -1,9 +1,11 @@
 package com.nunchuk.android.messages.components.detail
 
+import android.app.Activity
 import android.content.Context
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -13,9 +15,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.core.loader.ImageLoader
-import com.nunchuk.android.core.matrix.MatrixEvenBus
-import com.nunchuk.android.core.matrix.MatrixEvent
-import com.nunchuk.android.core.matrix.MatrixEventListener
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.hideKeyboard
 import com.nunchuk.android.messages.R
@@ -56,15 +55,15 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         )
     }
 
+    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            viewModel.getTransactions()
+        }
+    }
+
     private lateinit var stickyBinding: ViewWalletStickyBinding
 
     private var selectMessageActionView: View? = null
-
-    private val matrixEventListener: MatrixEventListener = {
-        if (it === MatrixEvent.RoomTransactionCreated) {
-            viewModel.handleRoomTransactionCreated()
-        }
-    }
 
     override fun initializeBinding() = ActivityRoomDetailBinding.inflate(layoutInflater)
 
@@ -76,12 +75,6 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         observeEvent()
         viewModel.initialize(args.roomId)
         viewModel.checkShowBannerNewChat()
-        MatrixEvenBus.instance.subscribe(matrixEventListener)
-    }
-
-    override fun onDestroy() {
-        MatrixEvenBus.instance.unsubscribe(matrixEventListener)
-        super.onDestroy()
     }
 
     private fun observeEvent() {
@@ -289,6 +282,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
     private fun openTransactionDetails(walletId: String, txId: String, initEventId: String) {
         navigator.openTransactionDetailsScreen(
+            launcher,
             activityContext = this,
             walletId = walletId,
             txId = txId,

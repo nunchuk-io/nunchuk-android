@@ -234,7 +234,7 @@ class RoomDetailViewModel @Inject constructor(
         }
     }
 
-    private fun getTransactions() {
+    fun getTransactions() {
         if (getState().roomWallet != null) {
             getState().roomWallet?.walletId?.let {
                 getTransactions(it)
@@ -422,17 +422,6 @@ class RoomDetailViewModel @Inject constructor(
         sessionHolder.currentRoom = null
         consumedEventIds.clear()
         super.onCleared()
-    }
-
-    fun handleRoomTransactionCreated() {
-        // TODO
-//        timeline?.apply {
-//            dispose()
-//            removeAllListeners()
-//            timelineListenerAdapter = TimelineListenerAdapter(::handleTimelineEvents)
-//        }
-//        updateState { RoomDetailState.empty() }
-//        retrieveTimelineEvents()
     }
 
     companion object {
