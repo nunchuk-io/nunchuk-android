@@ -9,7 +9,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-@ExperimentalCoroutinesApi
 @CheckResult
 fun EditText.textChanges(): Flow<CharSequence?> = callbackFlow {
     val listener = object : TextWatcher {

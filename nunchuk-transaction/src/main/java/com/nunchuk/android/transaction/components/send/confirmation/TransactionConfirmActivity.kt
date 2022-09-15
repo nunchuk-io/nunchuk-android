@@ -5,22 +5,23 @@ import android.nfc.tech.IsoDep
 import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
-import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
-import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.share.satscard.SweepSatscardViewModel
+import com.nunchuk.android.share.satscard.observerSweepSatscard
 import com.nunchuk.android.transaction.R
-import com.nunchuk.android.transaction.components.send.amount.InputAmountActivity
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.*
+import com.nunchuk.android.transaction.components.utils.openTransactionDetailScreen
+import com.nunchuk.android.transaction.components.utils.returnActiveRoom
+import com.nunchuk.android.transaction.components.utils.showCreateTransactionError
 import com.nunchuk.android.transaction.components.utils.toTitle
 import com.nunchuk.android.transaction.databinding.ActivityTransactionConfirmBinding
-import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
@@ -36,6 +37,8 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
 
     private val viewModel: TransactionConfirmViewModel by viewModels()
 
+    private val sweepSatscardViewModel: SweepSatscardViewModel by viewModels()
+
     override fun initializeBinding() = ActivityTransactionConfirmBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,7 +51,6 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             walletId = args.walletId,
             address = args.address,
             sendAmount = args.outputAmount,
-            estimateFee = args.estimatedFee,
             subtractFeeFromAmount = args.subtractFeeFromAmount,
             privateNote = args.privateNote,
             manualFeeRate = args.manualFeeRate,
@@ -58,8 +60,10 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
 
     private fun observeEvent() {
         viewModel.event.observe(this, ::handleEvent)
+        observerSweepSatscard(sweepSatscardViewModel, nfcViewModel) { args.walletId }
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_SATSCARD_SWEEP_SLOT }) {
-            viewModel.handleSweepBalance(IsoDep.get(it.tag), nfcViewModel.inputCvc.orEmpty(), args.slots.toList(), args.sweepType)
+            sweepSatscardViewModel.init(args.address, args.manualFeeRate)
+            sweepSatscardViewModel.handleSweepBalance(IsoDep.get(it.tag), nfcViewModel.inputCvc.orEmpty(), args.slots.toList(), args.sweepType)
             nfcViewModel.clearScanInfo()
         }
     }
@@ -104,39 +108,12 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
     private fun handleEvent(event: TransactionConfirmEvent) {
         when (event) {
             is CreateTxErrorEvent -> showCreateTransactionError(event.message)
-            is CreateTxSuccessEvent -> openTransactionDetailScreen(event.txId)
+            is CreateTxSuccessEvent -> openTransactionDetailScreen(event.txId, args.walletId, sessionHolder.getActiveRoomIdSafe())
             is UpdateChangeAddress -> bindChangAddress(event.address, event.amount)
             LoadingEvent -> showLoading()
             is InitRoomTransactionError -> showCreateTransactionError(event.message)
             is InitRoomTransactionSuccess -> returnActiveRoom(event.roomId)
-            is Error -> {
-                if (nfcViewModel.handleNfcError(event.e).not()) {
-                    NCToastMessage(this).showError(event.e?.message.orUnknownError())
-                }
-            }
-            is NfcLoading -> showOrHideLoading(event.isLoading, getString(R.string.nc_keep_holding_nfc))
-            is SweepSuccess -> handleSweepSuccess(event)
-            is SweepLoadingEvent -> showOrHideLoading(
-                event.isLoading,
-                title = getString(R.string.nc_sweeping_is_progress),
-                message = getString(R.string.nc_make_sure_internet)
-            )
         }
-    }
-
-    private fun handleSweepSuccess(event: SweepSuccess) {
-        ActivityManager.popUntilRoot()
-        if (args.walletId.isNotEmpty()) {
-            navigator.openWalletDetailsScreen(this, args.walletId, true)
-        }
-        navigator.openTransactionDetailsScreen(this, args.walletId, event.transaction.txId, "", "", event.transaction)
-    }
-
-    private fun returnActiveRoom(roomId: String) {
-        hideLoading()
-        finish()
-        ActivityManager.popUntil(InputAmountActivity::class.java, true)
-        navigator.openRoomDetailActivity(this, roomId)
     }
 
     private fun bindChangAddress(changeAddress: String, amount: Amount) {
@@ -152,23 +129,6 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             binding.changeAddressBTC.visibility = View.GONE
             binding.changeAddressUSD.visibility = View.GONE
         }
-    }
-
-    private fun openTransactionDetailScreen(txId: String) {
-        hideLoading()
-        ActivityManager.popUntil(InputAmountActivity::class.java, true)
-        navigator.openTransactionDetailsScreen(
-            activityContext = this,
-            walletId = args.walletId,
-            txId = txId,
-            roomId = sessionHolder.getActiveRoomIdSafe()
-        )
-        NCToastMessage(this).showMessage("Transaction created::$txId")
-    }
-
-    private fun showCreateTransactionError(message: String) {
-        hideLoading()
-        NCToastMessage(this).showError("Create transaction error due to $message")
     }
 
     companion object {

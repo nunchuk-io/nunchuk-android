@@ -3,9 +3,11 @@ package com.nunchuk.android.transaction.components.send.amount
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
+import com.journeyapps.barcodescanner.ScanContract
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
+import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.*
@@ -13,6 +15,7 @@ import com.nunchuk.android.transaction.databinding.ActivityTransactionInputAmoun
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -21,6 +24,12 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
     private val args: InputAmountArgs by lazy { InputAmountArgs.deserializeFrom(intent) }
 
     private val viewModel: InputAmountViewModel by viewModels()
+
+    private val launcher = registerForActivityResult(ScanContract()) { result ->
+        result.contents?.let { content ->
+            viewModel.parseBtcUri(content)
+        }
+    }
 
     override fun initializeBinding() = ActivityTransactionInputAmountBinding.inflate(layoutInflater)
 
@@ -44,12 +53,16 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
+        binding.toolbar.setOnMenuItemClickListener {
+            startQRCodeScan(launcher)
+            true
+        }
         binding.mainCurrency.setText("")
         binding.mainCurrency.addTextChangedCallback(viewModel::handleAmountChanged)
         binding.mainCurrency.requestFocus()
         binding.btnSendAll.setOnClickListener { openAddReceiptScreen(args.availableAmount, true) }
         binding.btnSwitch.setOnClickListener { viewModel.switchCurrency() }
-        binding.btnContinue.setOnClickListener {
+        binding.btnContinue.setOnDebounceClickListener {
             viewModel.handleContinueEvent()
         }
         binding.amountBTC.text = args.availableAmount.getBTCAmount()
@@ -68,6 +81,8 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             walletId = args.walletId,
             outputAmount = outputAmount,
             availableAmount = args.availableAmount,
+            address = viewModel.getAddress(),
+            privateNote = viewModel.getPrivateNote(),
             subtractFeeFromAmount = subtractFeeFromAmount
         )
     }
@@ -93,6 +108,14 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             is SwapCurrencyEvent -> binding.mainCurrency.setText(if (event.amount > 0) event.amount.formatCurrencyDecimal() else "")
             is AcceptAmountEvent -> openAddReceiptScreen(event.amount)
             InsufficientFundsEvent -> NCToastMessage(this).showError(getString(R.string.nc_transaction_insufficient_funds))
+            is ParseBtcUriSuccess -> {
+                if (event.btcUri.amount.value > 0 || viewModel.getAmountBtc() > 0.0) {
+                    viewModel.handleContinueEvent()
+                } else {
+                    NCToastMessage(this).show(getString(R.string.nc_address_detected_please_enter_amount))
+                }
+            }
+            is ShowError -> NCToastMessage(this).showError(event.message)
         }
     }
 
