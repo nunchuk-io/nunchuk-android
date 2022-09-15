@@ -34,6 +34,8 @@ interface TransactionNavigator {
         walletId: String,
         outputAmount: Double,
         availableAmount: Double,
+        address: String = "",
+        privateNote: String = "",
         subtractFeeFromAmount: Boolean = false,
         slots: List<SatsCardSlot> = emptyList(),
         sweepType: SweepType = SweepType.NONE

@@ -36,14 +36,23 @@
         android:orientation="vertical"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:itemCount="2"
-        tools:listitem="@layout/item_unsealed_slot" />
+        tools:listitem="@layout/item_select_wallet" />
+
 
     <com.nunchuk.android.widget.NCFontButton
-        android:id="@+id/btn_continue"
+        android:id="@+id/btn_continue_sweep"
         style="@style/NCPrimaryButton.Dark"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:text="@string/nc_continue_to_sweep" />
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btn_custom_fee"
+        style="@style/NCOutlineButton.Light"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
-        android:text="@string/nc_text_continue" />
+        android:text="@string/nc_customize_fee_settings" />
 
 </LinearLayout>

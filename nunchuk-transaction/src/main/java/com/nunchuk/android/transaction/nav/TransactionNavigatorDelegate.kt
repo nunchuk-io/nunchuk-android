@@ -62,9 +62,11 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         walletId: String,
         outputAmount: Double,
         availableAmount: Double,
+        address: String,
+        privateNote: String,
         subtractFeeFromAmount: Boolean,
         slots: List<SatsCardSlot>,
-        sweepType: SweepType,
+        sweepType: SweepType
     ) {
         AddReceiptActivity.start(
             activityContext = activityContext,
@@ -72,6 +74,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             outputAmount = outputAmount,
             availableAmount = availableAmount,
             subtractFeeFromAmount = subtractFeeFromAmount,
+            address = address,
+            privateNote = privateNote,
             slots = slots,
             sweepType = sweepType
         )

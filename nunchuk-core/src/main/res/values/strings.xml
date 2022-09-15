@@ -128,4 +128,8 @@
     <string name="nc_enable_nfc">Enable NFC</string>
     <string name="nc_refer_to">Refer to</string>
     <string name="nc_hint_import_wallet_from_mk4">On COLDCARD, go to Settings → Multisig Wallets → Select wallet → Coldcard Export → Press 3.</string>
+    <string name="nc_create_transaction">Create transaction</string>
+    <string name="nc_customize_fee_settings">Customize fee settings</string>
+    <string name="nc_scan_qr">Scan Qr</string>
+    <string name="nc_continue_to_sweep">Continue to sweep</string>
 </resources>
