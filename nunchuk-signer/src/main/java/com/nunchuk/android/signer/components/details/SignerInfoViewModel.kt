@@ -40,6 +40,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -68,9 +69,12 @@ internal class SignerInfoViewModel @Inject constructor(
         this.args = args
         viewModelScope.launch {
             if (shouldLoadMasterSigner(args.signerType)) {
-                when (val result = getMasterSignerUseCase.execute(args.id)) {
-                    is Success -> updateState { copy(masterSigner = result.data) }
-                    is Error -> Log.e(TAG, "get software signer error", result.exception)
+                val result = getMasterSignerUseCase(args.id)
+                if (result.isSuccess) {
+
+                   updateState { copy(masterSigner = result.getOrThrow()) }
+                } else {
+                    Timber.e("Get software signer error")
                 }
             } else {
                 val result = getRemoteSignerUseCase(GetRemoteSignerUseCase.Data(args.masterFingerprint, args.derivationPath))

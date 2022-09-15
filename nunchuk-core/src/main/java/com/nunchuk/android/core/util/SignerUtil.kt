@@ -36,6 +36,7 @@ fun SignerType.toReadableString(context: Context, isPrimaryKey: Boolean): String
         FOREIGN_SOFTWARE -> context.getString(R.string.nc_signer_type_foreign_software)
         NFC, COLDCARD_NFC -> context.getString(R.string.nc_nfc)
         UNKNOWN -> context.getString(R.string.nc_unknown)
+        SERVER -> context.getString(R.string.nc_server_key)
     }
 }
 
@@ -51,6 +52,7 @@ fun SignerType.toReadableDrawable(context: Context, isPrimaryKey: Boolean = fals
         FOREIGN_SOFTWARE -> ContextCompat.getDrawable(context, R.drawable.ic_logo_dark_small)
         NFC -> ContextCompat.getDrawable(context, R.drawable.ic_nfc_card)
         UNKNOWN -> ContextCompat.getDrawable(context, R.drawable.ic_air_signer_small)
+        SERVER -> ContextCompat.getDrawable(context, R.drawable.ic_server_key_dark)
     }
 }
 

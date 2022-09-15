@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.qr.DynamicQRCodeActivity
+import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RoomWalletData
 import com.nunchuk.android.model.SingleSigner
@@ -109,12 +110,21 @@ interface WalletNavigatorDelegate : WalletNavigator {
         UploadConfigurationActivity.start(activityContext, walletId)
     }
 
-    override fun openWalletConfigScreen(activityContext: Context, walletId: String) {
-        WalletConfigActivity.start(activityContext, walletId)
+    override fun openWalletConfigScreen(
+        activityContext: Context,
+        walletId: String,
+        keyPolicy: KeyPolicy?
+    ) {
+        activityContext.startActivity(WalletConfigActivity.buildIntent(activityContext, walletId, keyPolicy))
     }
 
-    override fun openWalletConfigScreen(launcher: ActivityResultLauncher<Intent>, activityContext: Context, walletId: String) {
-        WalletConfigActivity.start(launcher, activityContext, walletId)
+    override fun openWalletConfigScreen(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Context,
+        walletId: String,
+        keyPolicy: KeyPolicy?
+    ) {
+        launcher.launch(WalletConfigActivity.buildIntent(activityContext, walletId, keyPolicy))
     }
 
     override fun openDynamicQRScreen(activityContext: Context, values: List<String>) {

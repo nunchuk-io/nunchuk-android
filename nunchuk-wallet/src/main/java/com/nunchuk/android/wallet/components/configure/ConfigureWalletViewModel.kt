@@ -198,7 +198,7 @@ internal class ConfigureWalletViewModel @Inject constructor(
 
     fun handleContinueEvent() {
         val state = getState()
-        val hasSigners = state.remoteSigners.isNotEmpty() || state.masterSigners.isNotEmpty()
+        val hasSigners = state.selectedSigners.isNotEmpty()
         val isValidRequireSigns = state.totalRequireSigns > 0
         val signerMap = getSignerModelMap()
         if (isValidRequireSigns && hasSigners) {
@@ -237,9 +237,12 @@ internal class ConfigureWalletViewModel @Inject constructor(
         val state = getState()
         val signerMap = getSignerModelMap()
         return state.masterSigners.mapNotNull { masterSigner ->
-            signerMap[masterSigner.id]?.let { singleSigner ->
+            val singleSigner = signerMap[masterSigner.id]
+            if (masterSigner.type == SignerType.NFC) {
+                masterSignerMapper(masterSigner, singleSigner?.derivationPath.orEmpty())
+            } else if (singleSigner != null) {
                 masterSignerMapper(masterSigner, singleSigner.derivationPath)
-            }
+            } else null
         } + state.remoteSigners.map(SingleSigner::toModel)
     }
 

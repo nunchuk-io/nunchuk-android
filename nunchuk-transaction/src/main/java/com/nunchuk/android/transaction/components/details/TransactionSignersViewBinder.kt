@@ -27,6 +27,7 @@ import com.nunchuk.android.core.util.hadBroadcast
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.transaction.databinding.ItemTransactionSignerBinding
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.widget.util.AbsViewBinder
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
@@ -43,10 +44,13 @@ internal class TransactionSignersViewBinder(
 
     override fun bindItem(position: Int, model: SignerModel) {
         val binding = ItemTransactionSignerBinding.bind(container[position])
-        val xfpValue = "XFP: ${model.fingerPrint}"
         binding.avatar.text = model.name.shorten()
         binding.signerName.text = model.name
-        binding.xpf.text = xfpValue
+        if (model.type == SignerType.NFC) {
+            binding.xpf.text = "CardID: ...${model.cardIdShorten()}"
+        } else {
+            binding.xpf.text = "XFP: ${model.fingerPrint}"
+        }
         binding.signerType.text = model.toReadableSignerType(context)
         binding.btnSign.setOnDebounceClickListener { listener(model) }
         val isSigned = model.isSigned()

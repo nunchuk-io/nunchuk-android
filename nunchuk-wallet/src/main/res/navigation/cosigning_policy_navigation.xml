@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cosigning_policy_navigation"
+    app:startDestination="@id/cosigningPolicyFragment">
+
+    <fragment
+        android:id="@+id/cosigningPolicyFragment"
+        android:name="com.nunchuk.android.wallet.components.cosigning.CosigningPolicyFragment"
+        android:label="CosigningPolicyFragment">
+        <argument
+            android:name="key_policy"
+            app:argType="com.nunchuk.android.model.KeyPolicy"
+            app:nullable="true" />
+
+        <argument
+            android:name="xfp"
+            app:argType="string" />
+    </fragment>
+</navigation>

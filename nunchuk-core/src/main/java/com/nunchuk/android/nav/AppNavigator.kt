@@ -19,8 +19,28 @@
 
 package com.nunchuk.android.nav
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.model.KeyPolicy
+import com.nunchuk.android.model.MembershipStage
 
 interface AppNavigator {
     fun restartApp(activityContext: Context)
+
+    fun openMembershipActivity(
+        activityContext: Activity,
+        groupStep: MembershipStage,
+        keyPolicy: KeyPolicy? = null,
+        xfp: String? = null
+    )
+
+    fun openMembershipActivity(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Activity,
+        groupStep: MembershipStage,
+        keyPolicy: KeyPolicy? = null,
+        xfp: String? = null
+    )
 }

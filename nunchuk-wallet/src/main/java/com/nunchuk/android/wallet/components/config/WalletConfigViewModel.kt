@@ -21,11 +21,13 @@ package com.nunchuk.android.wallet.components.config
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.auth.domain.SignInUseCase
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SingleSigner
@@ -39,6 +41,8 @@ import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateName
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -49,10 +53,11 @@ internal class WalletConfigViewModel @Inject constructor(
     private val deleteWalletUseCase: DeleteWalletUseCase,
     private val leaveRoomUseCase: LeaveRoomUseCase,
     private val accountManager: AccountManager,
+    private val signInUseCase: SignInUseCase,
+    private val assistedWalletManager: AssistedWalletManager
 ) : NunchukViewModel<WalletExtended, WalletConfigEvent>() {
 
     override val initialState = WalletExtended()
-
     lateinit var walletId: String
 
     fun init(walletId: String) {
@@ -70,9 +75,26 @@ internal class WalletConfigViewModel @Inject constructor(
         }
     }
 
+    fun signIn(password: String, xfp: String) {
+        val account = accountManager.getAccount()
+        viewModelScope.launch {
+            signInUseCase.execute(
+                email = account.email,
+                password = password,
+                staySignedIn = account.staySignedIn
+            ).onStart { setEvent(WalletConfigEvent.Loading(true)) }
+                .onCompletion { setEvent(WalletConfigEvent.Loading(false)) }
+                .onException {
+                    setEvent(WalletConfigEvent.WalletDetailsError(it.message.orUnknownError()))
+                }.collect {
+                    setEvent(WalletConfigEvent.VerifyPasswordSuccess(xfp))
+                }
+        }
+    }
+
     fun handleEditCompleteEvent(walletName: String) {
         viewModelScope.launch {
-            updateWalletUseCase.execute(getState().wallet.copy(name = walletName))
+            updateWalletUseCase.execute(getState().wallet.copy(name = walletName), assistedWalletManager.isAssistedWallet(walletId))
                 .flowOn(Dispatchers.IO)
                 .onException { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
@@ -118,5 +140,6 @@ internal class WalletConfigViewModel @Inject constructor(
         return singleSigners.map { it.toModel(isPrimaryKey = isPrimaryKey(it.masterSignerId)) }
     }
 
-    private fun isPrimaryKey(id: String) = accountManager.loginType() == SignInMode.PRIMARY_KEY.value && accountManager.getPrimaryKeyInfo()?.xfp == id
+    private fun isPrimaryKey(id: String) =
+        accountManager.loginType() == SignInMode.PRIMARY_KEY.value && accountManager.getPrimaryKeyInfo()?.xfp == id
 }

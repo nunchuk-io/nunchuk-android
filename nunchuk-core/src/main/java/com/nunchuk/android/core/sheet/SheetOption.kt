@@ -65,4 +65,7 @@ object SheetOptionType {
     const val IMPORT_SINGLE_SIG_COLD_CARD = 18
     const val IMPORT_MULTI_SIG_COLD_CARD = 19
 
+    // Membership
+    const val TYPE_RESTART_WIZARD = 20
+    const val TYPE_EXIT_WIZARD = 21
 }

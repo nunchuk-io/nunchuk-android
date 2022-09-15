@@ -27,6 +27,7 @@ import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.share.model.TransactionOption
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.*
 import com.nunchuk.android.transaction.databinding.ActivityExportTransactionBinding
 import com.nunchuk.android.widget.NCToastMessage
@@ -77,6 +78,11 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
     }
 
     private fun setupViews() {
+        if (args.transactionOption == TransactionOption.EXPORT_PASSPORT) {
+            binding.toolbarTitle.text = getText(R.string.nc_transaction_export_passport_transaction)
+        } else {
+            binding.toolbarTitle.text = getText(R.string.nc_transaction_export_transaction)
+        }
         binding.btnExportAsFile.setOnClickListener {
             viewModel.exportTransactionToFile()
         }

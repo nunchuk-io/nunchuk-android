@@ -38,10 +38,15 @@ import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
 
 @Composable
-fun NcPrimaryButton(modifier: Modifier = Modifier.fillMaxWidth(), onClick: () -> Unit, content: @Composable RowScope.() -> Unit) {
+fun NcPrimaryButton(
+    modifier: Modifier = Modifier.fillMaxWidth(),
+    onClick: () -> Unit,
+    content: @Composable RowScope.() -> Unit
+) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val color = if (isPressed) colorResource(id = R.color.nc_button_press_state_color) else colorResource(id = R.color.nc_white_color)
+    val color =
+        if (isPressed) colorResource(id = R.color.nc_button_press_state_color) else colorResource(id = R.color.nc_white_color)
     Button(
         modifier = modifier.height(48.dp),
         onClick = onClick,
@@ -50,5 +55,31 @@ fun NcPrimaryButton(modifier: Modifier = Modifier.fillMaxWidth(), onClick: () ->
         border = BorderStroke(2.dp, MaterialTheme.colors.primary),
         shape = RoundedCornerShape(48.dp),
         colors = ButtonDefaults.buttonColors(backgroundColor = color)
+    )
+}
+
+@Composable
+fun NcPrimaryDarkButton(
+    modifier: Modifier = Modifier.fillMaxWidth(),
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    content: @Composable RowScope.() -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val color =
+        if (isPressed) colorResource(id = R.color.nc_button_press_state_color) else colorResource(id = R.color.nc_primary_color)
+    Button(
+        enabled = enabled,
+        modifier = modifier.height(48.dp),
+        onClick = onClick,
+        interactionSource = interactionSource,
+        content = content,
+        border = if (enabled) BorderStroke(2.dp, MaterialTheme.colors.primary) else null,
+        shape = RoundedCornerShape(48.dp),
+        colors = ButtonDefaults.buttonColors(
+            backgroundColor = color,
+            disabledBackgroundColor = colorResource(id = R.color.nc_grey_dark_color)
+        )
     )
 }

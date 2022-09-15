@@ -21,13 +21,8 @@ package com.nunchuk.android.core.persistence
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.doublePreferencesKey
-import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
-import com.google.gson.Gson
-import com.nunchuk.android.core.domain.data.SyncSetting
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -42,8 +37,10 @@ class NcDataStore @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
     private val btcPriceKey = doublePreferencesKey("btc_price")
-    private val turnOnNotification = booleanPreferencesKey("turn_on_notification")
+    private val turnOnNotificationKey = booleanPreferencesKey("turn_on_notification")
     private val syncEnableKey = booleanPreferencesKey("sync_enable")
+    private val isShowNfcUniversalKey = booleanPreferencesKey("show_nfc_universal")
+    private val assistedWalletLocalIdKey = stringSetPreferencesKey("assisted_wallet_id")
 
     val btcPriceFlow: Flow<Double>
         get() = context.dataStore.data.map { it[btcPriceKey] ?: 45000.0 }
@@ -53,14 +50,24 @@ class NcDataStore @Inject constructor(
             it[syncEnableKey] ?: false
         }
 
+    val isShowNfcUniversal: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[isShowNfcUniversalKey] ?: true
+        }
+
     val turnOnNotificationFlow: Flow<Boolean>
         get() = context.dataStore.data.map {
-            it[turnOnNotification] ?: true
+            it[turnOnNotificationKey] ?: true
+        }
+
+    val assistedWalletIds: Flow<Set<String>>
+        get() = context.dataStore.data.map {
+            it[assistedWalletLocalIdKey].orEmpty()
         }
 
     suspend fun updateTurnOnNotification(turnOn: Boolean) {
         context.dataStore.edit { settings ->
-            settings[turnOnNotification] = turnOn
+            settings[turnOnNotificationKey] = turnOn
         }
     }
 
@@ -76,10 +83,23 @@ class NcDataStore @Inject constructor(
         }
     }
 
+    suspend fun markIsShowNfcUniversal() {
+        context.dataStore.edit { settings ->
+            settings[isShowNfcUniversalKey] = false
+        }
+    }
+
+    suspend fun setAssistedWalletIds(ids: Set<String>) {
+        context.dataStore.edit { settings ->
+            settings[assistedWalletLocalIdKey] = ids
+        }
+    }
+
     suspend fun clear() {
         context.dataStore.edit {
             it.remove(syncEnableKey)
-            it.remove(turnOnNotification)
+            it.remove(turnOnNotificationKey)
+            it.remove(assistedWalletLocalIdKey)
         }
     }
 }

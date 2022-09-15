@@ -21,23 +21,40 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.type.TransactionStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface GetTransactionUseCase {
-    fun execute(walletId: String, txId: String): Flow<Transaction>
+    fun execute(walletId: String, txId: String, isAssistedWallet: Boolean): Flow<Transaction>
 }
 
 internal class GetTransactionUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
+    private val nativeSdk: NunchukNativeSdk,
+    private val repository: PremiumWalletRepository,
 ) : GetTransactionUseCase {
 
-    override fun execute(walletId: String, txId: String) = flow {
+    override fun execute(
+        walletId: String,
+        txId: String,
+        isAssistedWallet: Boolean
+    ): Flow<Transaction> = flow {
         val chainTip = nativeSdk.getChainTip()
         val tx = nativeSdk.getTransaction(walletId = walletId, txId = txId)
         emit(tx.copy(height = tx.getConfirmations(chainTip)))
+        if (isAssistedWallet && tx.signers.any { it.value } && tx.status.isPending() ) {
+            repository.getServerTransaction(walletId, txId)?.let { transaction ->
+                emit(
+                    transaction.copy(
+                        height = transaction.getConfirmations(chainTip)
+                    )
+                )
+            }
+        }
     }
 
+    private fun TransactionStatus.isPending() = this == TransactionStatus.PENDING_SIGNATURES || this == TransactionStatus.READY_TO_BROADCAST
 }
 

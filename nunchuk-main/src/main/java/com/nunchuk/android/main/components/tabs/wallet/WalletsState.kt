@@ -28,7 +28,11 @@ internal data class WalletsState(
     val signers: List<SingleSigner> = emptyList(),
     val masterSigners: List<MasterSigner> = emptyList(),
     val connectionStatus: ConnectionStatus? = null,
-    val chain: Chain = Chain.MAIN
+    val chain: Chain = Chain.MAIN,
+    val isPremiumUser: Boolean? = null,
+    val remainingTime: Int = 0,
+    val hasCreatedWallet: Boolean = false,
+    val assistedWalletIds: Set<String> = emptySet(),
 )
 
 internal sealed class WalletsEvent {

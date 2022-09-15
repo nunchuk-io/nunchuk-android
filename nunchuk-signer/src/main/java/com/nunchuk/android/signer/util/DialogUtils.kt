@@ -25,11 +25,16 @@ import com.nunchuk.android.signer.R
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningDialog
 
-fun Activity.handleTapSignerStatus(status: TapSignerStatus?, onCreateSigner: () -> Unit, onSetupNfc: () -> Unit) {
+fun Activity.handleTapSignerStatus(
+    status: TapSignerStatus?,
+    onSignerExisted: () -> Unit = ::showNfcAlreadyAdded,
+    onCreateSigner: () -> Unit,
+    onSetupNfc: () -> Unit
+) {
     status ?: return
     if (status.isNeedSetup.not()) {
         if (status.isCreateSigner) {
-            showNfcAlreadyAdded()
+            onSignerExisted()
         } else {
             onCreateSigner()
         }
@@ -44,7 +49,7 @@ internal fun Activity.showNfcAlreadyAdded() {
     ).show()
 }
 
-internal fun Activity.showSetupNfc(callback : () -> Unit) {
+internal fun Activity.showSetupNfc(callback: () -> Unit) {
     NCWarningDialog(this).showDialog(
         title = getString(R.string.nc_set_up_nfc_key),
         message = getString(R.string.nc_setup_nfc_key_desc),

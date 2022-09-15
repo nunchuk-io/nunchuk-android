@@ -16,4 +16,12 @@
     <string name="nc_text_home_wallet_chain_signet">(Signet)</string>
     <string name="nc_text_home_wallet_connection">%s %s</string>
     <string name="nc_setup_satscard_msg">No active slot is detected. Do you want to set up a new slot?</string>
+    <string name="nc_assisted_wallet_intro_desc">This wizard will walk you through creating an assisted wallet step by step.</string>
+    <string name="nc_you_almost_done">You’re almost done!</string>
+    <string name="nc_continue_setting_your_wallet">Continue setting up your wallet</string>
+    <string name="nc_error_co_signing_delay_empty">Please input co-signing delay</string>
+    <string name="nc_inheritance_plan_title">Thinking about setting up an inheritance plan?</string>
+    <string name="nc_restart_wizard">Restart wizard</string>
+    <string name="nc_exit_wizard">Exit wizard</string>
+    <string name="nc_resume_wizard_desc">You can resume the wizard anytime from the Wallets tab.</string>
 </resources>

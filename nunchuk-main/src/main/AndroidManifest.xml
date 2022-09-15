@@ -8,6 +8,10 @@
             android:label="@string/nc_title_message"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Dark" />
+
+        <activity android:name=".intro.UniversalNfcIntroActivity"
+            android:label="Universal NFC intro"
+            android:screenOrientation="portrait"/>
     </application>
 
 </manifest>

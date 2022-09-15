@@ -19,12 +19,14 @@
 
 package com.nunchuk.android.main.components.tabs.wallet
 
+import android.app.Activity
 import android.content.res.ColorStateList
 import android.nfc.tech.IsoDep
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.TextViewCompat
@@ -44,15 +46,17 @@ import com.nunchuk.android.main.databinding.FragmentWalletsBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
 import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
+import com.nunchuk.android.main.intro.UniversalNfcIntroActivity
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.WalletExtended
-import com.nunchuk.android.signer.nfc.NfcSetupActivity
 import com.nunchuk.android.signer.satscard.SatsCardActivity
+import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.signer.util.handleTapSignerStatus
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
-import com.nunchuk.android.wallet.components.details.WalletDetailsFragmentArgs
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningVerticalDialog
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import javax.inject.Inject
@@ -71,6 +75,13 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private val nfcViewModel: NfcViewModel by activityViewModels()
 
+    private val launcher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_AUTO_CARD_STATUS)
+            }
+        }
+
     override fun initializeBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
@@ -86,16 +97,21 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     private fun setupViews() {
         binding.signerList.addItemDecoration(SimpleItemDecoration(requireContext()))
         binding.signerList.adapter = signerAdapter
-        binding.doLater.setOnClickListener { hideIntroContainerView() }
-        binding.btnAdd.setOnClickListener { walletsViewModel.handleAddSignerOrWallet() }
         binding.btnAddSigner.setOnClickListener { walletsViewModel.handleAddSigner() }
         binding.ivAddWallet.setOnClickListener { walletsViewModel.handleAddWallet() }
         binding.toolbar.setOnMenuItemClickListener {
             if (it.itemId == R.id.menu_nfc) {
-                (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_AUTO_CARD_STATUS)
+                if (walletsViewModel.isShownNfcUniversal.value) {
+                    UniversalNfcIntroActivity.navigate(launcher, requireActivity())
+                } else {
+                    (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_AUTO_CARD_STATUS)
+                }
                 return@setOnMenuItemClickListener true
             }
             return@setOnMenuItemClickListener false
+        }
+        binding.tvIntroAction.setOnDebounceClickListener {
+            navigator.openMembershipActivity(requireActivity(), walletsViewModel.getGroupStage())
         }
     }
 
@@ -107,8 +123,25 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         navigator.openSignerIntroScreen(requireActivity())
     }
 
-    private fun hideIntroContainerView() {
-        binding.introContainer.isVisible = false
+    private fun showAssistedWalletStart(remainingTime: Int, hasCreatedWallet: Boolean) {
+        val stage = walletsViewModel.getGroupStage()
+        val isVisible = stage != MembershipStage.DONE && hasCreatedWallet.not()
+        binding.introContainer.isVisible = isVisible
+        if (isVisible.not()) return
+        binding.introContainer.setBackgroundResource(R.drawable.nc_rounded_denim_background)
+        binding.ivIntro.setImageResource(R.drawable.ic_assisted_wallet_intro)
+        if (stage == MembershipStage.NONE) {
+            binding.tvIntroTitle.text = getString(R.string.nc_let_s_get_you_started)
+            binding.tvIntroDesc.text =
+                getString(R.string.nc_assisted_wallet_intro_desc, remainingTime)
+            binding.tvIntroAction.text = getString(R.string.nc_start_wizard)
+        } else if (stage != MembershipStage.DONE) {
+            binding.tvIntroTitle.text = getString(R.string.nc_you_almost_done)
+            binding.tvIntroDesc.text =
+                getString(R.string.nc_estimate_remain_time, remainingTime)
+            binding.tvIntroAction.text =
+                getString(R.string.nc_continue_setting_your_wallet)
+        }
     }
 
     private fun observeEvent() {
@@ -134,8 +167,18 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             }
             is GetTapSignerStatusSuccess -> requireActivity().handleTapSignerStatus(
                 event.status,
-                onCreateSigner = { NfcSetupActivity.navigate(requireActivity(), NfcSetupActivity.ADD_KEY) },
-                onSetupNfc = { NfcSetupActivity.navigate(requireActivity(), NfcSetupActivity.SETUP_NFC) }
+                onCreateSigner = {
+                    NfcSetupActivity.navigate(
+                        requireActivity(),
+                        NfcSetupActivity.ADD_KEY
+                    )
+                },
+                onSetupNfc = {
+                    NfcSetupActivity.navigate(
+                        requireActivity(),
+                        NfcSetupActivity.SETUP_TAP_SIGNER
+                    )
+                }
             )
             is GoToSatsCardScreen -> openSatsCardActiveSlotScreen(event)
             is NeedSetupSatsCard -> handleNeedSetupSatsCard(event)
@@ -155,16 +198,30 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             message = getString(R.string.nc_setup_satscard_msg),
             btnNeutral = getString(R.string.nc_view_unsealed_slots),
             onYesClick = {
-                NfcSetupActivity.navigate(requireActivity(), NfcSetupActivity.SETUP_SATSCARD, hasWallet = walletsViewModel.hasWallet())
+                NfcSetupActivity.navigate(
+                    requireActivity(),
+                    NfcSetupActivity.SETUP_SATSCARD,
+                    hasWallet = walletsViewModel.hasWallet()
+                )
             },
             onNeutralClick = {
-                SatsCardActivity.navigate(requireActivity(), event.status, walletsViewModel.hasWallet(), true)
+                SatsCardActivity.navigate(
+                    requireActivity(),
+                    event.status,
+                    walletsViewModel.hasWallet(),
+                    true
+                )
             }
         )
     }
 
     private fun handleSatsCardUsedUp(numberOfSlot: Int) {
-        NCInfoDialog(requireActivity()).showDialog(message = getString(R.string.nc_all_slot_used_up, numberOfSlot))
+        NCInfoDialog(requireActivity()).showDialog(
+            message = getString(
+                R.string.nc_all_slot_used_up,
+                numberOfSlot
+            )
+        )
     }
 
     private fun handleMainActivityEvent(event: MainAppEvent) {
@@ -185,11 +242,12 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun showWalletState(state: WalletsState) {
         val wallets = state.wallets
-        val signers = walletsViewModel.mapSigners()
-        showWallets(wallets)
+        val signers =
+            walletsViewModel.mapSigners()
+        showWallets(wallets, state.assistedWalletIds)
         showSigners(signers)
         showConnectionBlockchainStatus(state)
-        showIntro(signers, wallets)
+        showIntro(state)
     }
 
     private fun showConnectionBlockchainStatus(state: WalletsState) {
@@ -255,35 +313,32 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         }
     }
 
-    private fun showIntro(signers: List<SignerModel>, wallets: List<WalletExtended>) {
-        when {
-            signers.isEmpty() -> showAddSignerIntro()
-            wallets.isEmpty() -> showAddWalletIntro()
-            else -> hideIntroContainerView()
+    private fun showIntro(state: WalletsState) {
+        binding.introContainer.isVisible = state.isPremiumUser != null
+        if (state.isPremiumUser != null) {
+            when {
+                state.isPremiumUser -> showAssistedWalletStart(
+                    state.remainingTime,
+                    state.hasCreatedWallet
+                )
+                else -> showNonSubscriberIntro()
+            }
         }
     }
 
-    private fun showAddWalletIntro() {
-        binding.introContainer.isVisible = true
-        binding.introTitle.text = getString(R.string.nc_wallet_intro_title)
-        binding.introSubtitle.text = getString(R.string.nc_wallet_intro_subtitle)
-        binding.btnAdd.text = getString(R.string.nc_text_add_a_wallet)
-        binding.iconInfo.setImageResource(R.drawable.ic_wallet_info)
+    private fun showNonSubscriberIntro() {
+        binding.introContainer.setBackgroundResource(R.drawable.nc_rounded_beeswax_tint_radius_small)
+        binding.ivIntro.setImageResource(R.drawable.ic_protect_bitcoin)
+        binding.tvIntroTitle.text = getString(R.string.nc_inheritance_plan_title)
+        binding.tvIntroDesc.text = "" // TODO Hai
+        binding.tvIntroAction.text = getString(R.string.nc_check_out_assisted_wallet)
     }
 
-    private fun showAddSignerIntro() {
-        binding.introContainer.isVisible = true
-        binding.introTitle.text = getString(R.string.nc_signer_intro_title)
-        binding.introSubtitle.text = getString(R.string.nc_signer_intro_subtitle)
-        binding.btnAdd.text = getString(R.string.nc_text_add_signer)
-        binding.iconInfo.setImageResource(R.drawable.ic_key_info)
-    }
-
-    private fun showWallets(wallets: List<WalletExtended>) {
+    private fun showWallets(wallets: List<WalletExtended>, assistedWalletIds: Set<String>) {
         if (wallets.isEmpty()) {
             showWalletsEmptyView()
         } else {
-            showWalletsListView(wallets)
+            showWalletsListView(wallets, assistedWalletIds)
         }
     }
 
@@ -292,18 +347,24 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         binding.walletList.isVisible = false
     }
 
-    private fun showWalletsListView(wallets: List<WalletExtended>) {
+    private fun showWalletsListView(wallets: List<WalletExtended>, assistedWalletIds: Set<String>) {
         binding.walletEmpty.isVisible = false
         binding.walletList.isVisible = true
         WalletsViewBinder(
             container = binding.walletList,
             wallets = wallets,
+            assistedWalletIds = assistedWalletIds,
             callback = ::openWalletDetailsScreen
         ).bindItems()
     }
 
     private fun openWalletDetailsScreen(walletId: String) {
-        findNavController().navigate(R.id.walletDetailsFragment, WalletDetailsFragmentArgs(walletId).toBundle())
+        findNavController().navigate(
+            WalletsFragmentDirections.actionNavigationWalletsToWalletDetailsFragment(
+                walletId = walletId,
+                keyPolicy = walletsViewModel.getKeyPolicy(walletId)
+            )
+        )
     }
 
     private fun showSigners(signers: List<SignerModel>) {

@@ -88,4 +88,23 @@
     <string name="nc_this_starter_guide">this starter guide</string>
     <string name="nc_mk4_signer_title">We found these keys from the device.\nWhich key do you want to use?</string>
     <string name="nc_enable_mk4_nfc_desc">Go to Settings → Hardware On/Off → NFC Sharing → Enable NFC.</string>
+    <string name="nc_back_up_tap_signer_hint">We highly recommend that you keep a second copy of the decryption key and store it somewhere safe.</string>
+    <string name="nc_estimate_remain_time">Est. time remaining: %1$d minutes</string>
+    <string name="nc_verify_back_up_desc">We recommend that you verify the backup to ensure that it works.\n\nPlease select how you want to proceed.</string>
+    <string name="nc_verify_backup_via_the_app">I’ll verify the backup via the app</string>
+    <string name="nc_verify_backup_myself">I’ll verify the backup myself</string>
+    <string name="nc_verify_backup_via_the_app_title">Verify backup via the app</string>
+    <string name="nc_verify_back_up_failed_too_much_desc">It looks like your decryption key is invalid or the backup file has been corrupted. What would you like to do?</string>
+    <string name="nc_reupload_backup_file">Reupload backup file</string>
+    <string name="nc_verify_backup_yourself_desc">Please follow the steps below to verify the backup yourself</string>
+    <string name="nc_verify_backup_yourself_step_one">Download the encrypted backup file.</string>
+    <string name="nc_verify_backup_yourself_step_two">Use any TAPSIGNER-compatible tool to ensure that you can decrypt the backup via the decryption key printed on the back of the TAPSIGNER.</string>
+    <string name="nc_verify_backup_yourself_step_three">Remove the backup file after you have verified it.</string>
+    <string name="nc_existing_card_id">Existing card ID</string>
+    <string name="nc_scan_your_card_again_desc">If you have more than one TAPSIGNERs, please make sure that you scan the correct one. You can find the card ID on the back of the card.</string>
+    <string name="nc_scan_your_card_title">Please scan your card again</string>
+    <string name="nc_tap_signer_already_existed">TAPSIGNER already existed</string>
+    <string name="nc_tap_signer_existed_desc">It looks like you have already added this TAPSIGNER. Are you sure you want to use it in the wallet?</string>
+    <string name="nc_yes_use_this_tapsigner">Yes, use this TAPSIGNER</string>
+    <string name="nc_no_add_a_new_one">No, I want to add a new one</string>
 </resources>

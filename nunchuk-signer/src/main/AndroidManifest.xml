@@ -44,7 +44,7 @@
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
-            android:name=".nfc.NfcSetupActivity"
+            android:name=".tapsigner.NfcSetupActivity"
             android:label="Nfc set up"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light"

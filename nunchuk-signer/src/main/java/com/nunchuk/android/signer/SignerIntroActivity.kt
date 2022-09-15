@@ -27,19 +27,18 @@ import androidx.activity.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_STATUS
 import com.nunchuk.android.signer.databinding.ActivitySignerIntroBinding
-import com.nunchuk.android.signer.nfc.NfcSetupActivity
-import com.nunchuk.android.signer.nfc.SetUpNfcOptionSheet
-import com.nunchuk.android.signer.util.handleTapSignerStatus
-import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
+import com.nunchuk.android.signer.tapsigner.SetUpNfcOptionSheet
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
-class SignerIntroActivity : BaseNfcActivity<ActivitySignerIntroBinding>(), SetUpNfcOptionSheet.OptionClickListener {
-    private val viewModel: SignerIntroViewModel by viewModels()
+class SignerIntroActivity : BaseActivity<ActivitySignerIntroBinding>(), SetUpNfcOptionSheet.OptionClickListener {
 
     override fun initializeBinding() = ActivitySignerIntroBinding.inflate(layoutInflater)
 
@@ -48,12 +47,11 @@ class SignerIntroActivity : BaseNfcActivity<ActivitySignerIntroBinding>(), SetUp
 
         setLightStatusBar()
         setupViews()
-        observer()
     }
 
     override fun onOptionClickListener(option: SetUpNfcOptionSheet.SetUpNfcOption) {
         when (option) {
-            SetUpNfcOptionSheet.SetUpNfcOption.ADD_NEW -> startNfcFlow(REQUEST_NFC_STATUS)
+            SetUpNfcOptionSheet.SetUpNfcOption.ADD_NEW -> navigateToSetupTapSigner()
             SetUpNfcOptionSheet.SetUpNfcOption.RECOVER -> NfcSetupActivity.navigate(this, NfcSetupActivity.RECOVER_NFC)
             SetUpNfcOptionSheet.SetUpNfcOption.Mk4 -> {
                 navigator.openSetupMk4(this)
@@ -73,41 +71,6 @@ class SignerIntroActivity : BaseNfcActivity<ActivitySignerIntroBinding>(), SetUp
         }
     }
 
-    private fun observer() {
-        lifecycleScope.launchWhenCreated {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_STATUS }
-                    .collect {
-                        viewModel.getTapSignerStatus(IsoDep.get(it.tag))
-                        nfcViewModel.clearScanInfo()
-                    }
-            }
-        }
-
-        lifecycleScope.launchWhenCreated {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.event.collect {
-                    showOrHideLoading(it is SignerIntroState.Loading, message = getString(R.string.nc_keep_holding_nfc))
-                    when (it) {
-                        is SignerIntroState.GetTapSignerStatusSuccess -> handleTapSignerStatus(
-                            it.status,
-                            onCreateSigner = ::navigateToAddNfcKeySigner,
-                            onSetupNfc = ::navigateToSetupNfc
-                        )
-                        is SignerIntroState.GetTapSignerStatusError -> {
-                            val message = it.e?.message.orEmpty()
-                            if (message.isNotEmpty()) {
-                                NCToastMessage(this@SignerIntroActivity).showError(message)
-                            }
-                        }
-                        else -> {}
-                    }
-                    viewModel.clearTapSignerStatus()
-                }
-            }
-        }
-    }
-
     private fun openAddAirSignerIntroScreen() {
         finish()
         navigator.openAddAirSignerIntroScreen(this)
@@ -118,14 +81,9 @@ class SignerIntroActivity : BaseNfcActivity<ActivitySignerIntroBinding>(), SetUp
         navigator.openAddSoftwareSignerScreen(this)
     }
 
-    private fun navigateToSetupNfc() {
+    private fun navigateToSetupTapSigner() {
+        NfcSetupActivity.navigate(this, NfcSetupActivity.SETUP_TAP_SIGNER)
         finish()
-        NfcSetupActivity.navigate(this, NfcSetupActivity.SETUP_NFC)
-    }
-
-    private fun navigateToAddNfcKeySigner() {
-        finish()
-        NfcSetupActivity.navigate(this, NfcSetupActivity.ADD_KEY)
     }
 
     companion object {

@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.app.nav
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
@@ -28,6 +29,7 @@ import com.jakewharton.processphoenix.ProcessPhoenix
 import com.nunchuk.android.QuickWalletNavigationDirections
 import com.nunchuk.android.app.intro.GuestModeIntroActivity
 import com.nunchuk.android.app.intro.GuestModeMessageIntroActivity
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.app.splash.SplashActivity
 import com.nunchuk.android.app.wallet.QuickWalletActivity
 import com.nunchuk.android.auth.nav.AuthNavigatorDelegate
@@ -35,6 +37,8 @@ import com.nunchuk.android.contact.nav.ContactNavigatorDelegate
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.main.MainActivity
 import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
+import com.nunchuk.android.model.KeyPolicy
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.nav.AppNavigator
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.nav.SettingNavigatorDelegate
@@ -102,6 +106,39 @@ interface AppNavigatorDelegate : AppNavigator {
         ProcessPhoenix.triggerRebirth(
             activityContext,
             Intent(activityContext, SplashActivity::class.java)
+        )
+    }
+
+    override fun openMembershipActivity(
+        activityContext: Activity,
+        groupStep: MembershipStage,
+        keyPolicy: KeyPolicy?,
+        xfp: String?
+    ) {
+        activityContext.startActivity(
+            MembershipActivity.buildIntent(
+                activity = activityContext,
+                groupStep = groupStep,
+                keyPolicy = keyPolicy,
+                xfp = xfp
+            )
+        )
+    }
+
+    override fun openMembershipActivity(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Activity,
+        groupStep: MembershipStage,
+        keyPolicy: KeyPolicy?,
+        xfp: String?
+    ) {
+        launcher.launch(
+            MembershipActivity.buildIntent(
+                activity = activityContext,
+                groupStep = groupStep,
+                keyPolicy = keyPolicy,
+                xfp = xfp
+            )
         )
     }
 }

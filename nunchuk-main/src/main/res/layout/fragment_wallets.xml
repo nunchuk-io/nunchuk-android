@@ -15,8 +15,8 @@
         android:layout_gravity="center"
         android:background="@color/nc_primary_color"
         android:gravity="center"
-        app:menu="@menu/menu_wallet"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:menu="@menu/menu_wallet">
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/toolbarTitle"
@@ -43,79 +43,60 @@
             android:padding="@dimen/nc_padding_16">
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/introContainer"
+                android:id="@+id/intro_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/nc_rounded_whisper_background"
+                android:background="@drawable/nc_rounded_denim_background"
                 android:padding="@dimen/nc_padding_16"
                 android:visibility="gone"
+                tools:visibility="visible"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:visibility="visible">
+                app:layout_constraintTop_toTopOf="parent">
 
                 <ImageView
-                    android:id="@+id/iconInfo"
+                    android:id="@+id/iv_intro"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:contentDescription="@string/nc_title_wallets"
-                    app:layout_constraintBottom_toBottomOf="@id/introSubtitle"
+                    android:src="@drawable/ic_assisted_wallet_intro"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="@id/introTitle"
-                    tools:src="@drawable/ic_key_info" />
-
-                <com.nunchuk.android.widget.NCFontTextView
-                    android:id="@+id/introTitle"
-                    style="@style/NCText.Title.Small"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/nc_padding_16"
-                    android:text="@string/nc_signer_intro_title"
-                    app:fontTextStyle="semi_bold"
-                    app:layout_constraintStart_toEndOf="@+id/iconInfo"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <com.nunchuk.android.widget.NCFontTextView
-                    android:id="@+id/introSubtitle"
+                <TextView
+                    android:id="@+id/tv_intro_title"
                     style="@style/NCText.Title.Small"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginVertical="@dimen/nc_padding_8"
-                    android:layout_marginStart="@dimen/nc_padding_16"
-                    android:text="@string/nc_signer_intro_subtitle"
+                    android:layout_marginStart="@dimen/nc_padding_12"
+                    android:text="@string/nc_let_s_get_you_started"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/iconInfo"
-                    app:layout_constraintTop_toBottomOf="@+id/introTitle" />
+                    app:layout_constraintStart_toEndOf="@+id/iv_intro"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-                <com.nunchuk.android.widget.NCFontTextView
-                    android:id="@+id/btnAdd"
-                    style="@style/NCOutlineButton.Light.Small"
+                <TextView
+                    android:id="@+id/tv_intro_desc"
+                    style="@style/NCText.Title.Small"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/nc_padding_12"
+                    android:layout_marginTop="@dimen/nc_padding_4"
+                    android:text="@string/nc_assisted_wallet_intro_desc"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/iv_intro"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_intro_title" />
+
+                <TextView
+                    android:id="@+id/tv_intro_action"
+                    style="@style/NCText.Title.Small"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/nc_padding_16"
-                    android:layout_marginTop="@dimen/nc_padding_8"
-                    android:background="@drawable/nc_rounded_light_transparent_background"
-                    android:paddingHorizontal="@dimen/nc_padding_24"
-                    android:text="@string/nc_text_add_a_signer"
-                    app:fontTextStyle="semi_bold"
+                    android:layout_marginStart="@dimen/nc_padding_12"
+                    android:drawablePadding="@dimen/nc_padding_6"
+                    android:gravity="center_vertical"
+                    android:text="@string/nc_start_wizard"
+                    app:drawableEndCompat="@drawable/ic_arrow"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/introSubtitle" />
+                    app:layout_constraintStart_toEndOf="@+id/iv_intro" />
 
-                <com.nunchuk.android.widget.NCFontTextView
-                    android:id="@+id/doLater"
-                    style="@style/NCText.Title.Small"
-                    android:layout_width="0dp"
-                    android:layout_height="@dimen/nc_height_36"
-                    android:layout_marginStart="@dimen/nc_padding_16"
-                    android:layout_marginEnd="@dimen/nc_padding_8"
-                    android:foreground="?android:attr/selectableItemBackground"
-                    android:gravity="center"
-                    android:paddingHorizontal="@dimen/nc_padding_16"
-                    android:text="@string/nc_text_do_this_later"
-                    app:fontTextStyle="semi_bold"
-                    app:layout_constraintBottom_toBottomOf="@id/btnAdd"
-                    app:layout_constraintEnd_toStartOf="@id/btnAdd"
-                    app:layout_constraintTop_toTopOf="@id/btnAdd" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <androidx.constraintlayout.widget.ConstraintLayout

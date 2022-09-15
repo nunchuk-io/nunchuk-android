@@ -23,7 +23,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.manager.ActivityManager
@@ -31,6 +30,7 @@ import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.WalletType
@@ -38,6 +38,7 @@ import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameSuccessEvent
+import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent
 import com.nunchuk.android.wallet.databinding.ActivityWalletConfigBinding
 import com.nunchuk.android.wallet.util.toReadableString
@@ -121,7 +122,17 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             is UpdateNameErrorEvent -> NCToastMessage(this).showWarning(event.message)
             WalletConfigEvent.DeleteWalletSuccess -> walletDeleted()
             is WalletConfigEvent.WalletDetailsError -> onGetWalletError(event)
+            is WalletConfigEvent.VerifyPasswordSuccess -> openServerKeyDetail(event.xfp)
+            is WalletConfigEvent.Loading -> showOrHideLoading(event.isLoading)
         }
+    }
+
+    private fun openServerKeyDetail(xfp: String) {
+        CosigningPolicyActivity.start(
+            activity = this,
+            keyPolicy = args.keyPolicy,
+            xfp = xfp
+        )
     }
 
     private fun onGetWalletError(event: WalletConfigEvent.WalletDetailsError) {
@@ -150,7 +161,9 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             (if (wallet.escrow) WalletType.ESCROW else WalletType.MULTI_SIG).toReadableString(this)
         binding.addressType.text = wallet.addressType.toReadableString(this)
         binding.shareIcon.isVisible = walletExtended.isShared
-        SignersViewBinder(binding.signersContainer, viewModel.mapSigners(wallet.signers)).bindItems()
+        SignersViewBinder(binding.signersContainer, viewModel.mapSigners(wallet.signers)) {
+            showReEnterPassword(it.fingerPrint)
+        }.bindItems()
     }
 
     private fun setupViews() {
@@ -208,27 +221,26 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         }
     }
 
+    private fun showReEnterPassword(fingerPrint: String) {
+        NCDeleteConfirmationDialog(this).showDialog(
+            title = getString(R.string.nc_re_enter_password),
+            isMaskInput = true,
+            message = getString(R.string.nc_enter_your_password_desc),
+            onConfirmed = { password ->
+                viewModel.signIn(password, fingerPrint)
+            }
+        )
+    }
+
     companion object {
         private const val CONFIRMATION_TEXT = "DELETE"
         const val EXTRA_WALLET_ACTION = "action"
 
-        fun start(activityContext: Context, walletId: String) {
-            activityContext.startActivity(
-                WalletConfigArgs(walletId = walletId).buildIntent(
-                    activityContext
-                )
+        fun buildIntent(activityContext: Context, walletId: String, keyPolicy: KeyPolicy?) =
+            WalletConfigArgs(walletId = walletId, keyPolicy).buildIntent(
+                activityContext
             )
-        }
-
-        fun start(
-            launcher: ActivityResultLauncher<Intent>,
-            activityContext: Context,
-            walletId: String
-        ) {
-            launcher.launch(WalletConfigArgs(walletId = walletId).buildIntent(activityContext))
-        }
     }
-
 }
 
 enum class WalletConfigAction {

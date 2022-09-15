@@ -73,18 +73,22 @@ internal class AddSignerViewModel @Inject constructor(
 
     private fun doAfterValidate(signerName: String, signerInput: SignerInput) {
         viewModelScope.launch {
-            createSignerUseCase.execute(
-                name = signerName,
-                xpub = signerInput.xpub,
-                derivationPath = signerInput.derivationPath,
-                masterFingerprint = signerInput.fingerPrint.lowercase(),
-                publicKey = ""
-            ).flowOn(IO)
-                .onStart { setEvent(LoadingEvent(true)) }
-                .onCompletion { setEvent(LoadingEvent(false)) }
-                .onException { event(AddSignerErrorEvent(it.message.orUnknownError())) }
-                .flowOn(Main)
-                .collect { event(AddSignerSuccessEvent(it)) }
+            setEvent(LoadingEvent(true))
+            val result = createSignerUseCase(
+                CreateSignerUseCase.Params(
+                    name = signerName,
+                    xpub = signerInput.xpub,
+                    derivationPath = signerInput.derivationPath,
+                    masterFingerprint = signerInput.fingerPrint.lowercase(),
+                    type = SignerType.AIRGAP
+                )
+            )
+            setEvent(LoadingEvent(false))
+            if (result.isSuccess) {
+                setEvent(AddSignerSuccessEvent(result.getOrThrow()))
+            } else {
+                setEvent(AddSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+            }
         }
     }
 

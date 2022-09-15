@@ -25,6 +25,7 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.toAmount
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
@@ -49,7 +50,8 @@ class TransactionConfirmViewModel @Inject constructor(
     private val createTransactionUseCase: CreateTransactionUseCase,
     private val initRoomTransactionUseCase: InitRoomTransactionUseCase,
     private val draftSatsCardTransactionUseCase: DraftSatsCardTransactionUseCase,
-    private val sessionHolder: SessionHolder
+    private val sessionHolder: SessionHolder,
+    private val assistedWalletManager: AssistedWalletManager
 ) : NunchukViewModel<Unit, TransactionConfirmEvent>() {
 
     private var manualFeeRate: Int = -1
@@ -165,15 +167,20 @@ class TransactionConfirmViewModel @Inject constructor(
     private fun createNewTransaction() {
         viewModelScope.launch {
             event(LoadingEvent)
-            when (val result = createTransactionUseCase.execute(
-                walletId = walletId,
-                outputs = mapOf(address to sendAmount.toAmount()),
-                subtractFeeFromAmount = subtractFeeFromAmount,
-                feeRate = manualFeeRate.toManualFeeRate(),
-                memo = privateNote
-            )) {
-                is Success -> event(CreateTxSuccessEvent(result.data.txId))
-                is Error -> event(CreateTxErrorEvent(result.exception.message.orEmpty()))
+            val result = createTransactionUseCase(
+                CreateTransactionUseCase.Param(
+                    walletId = walletId,
+                    outputs = mapOf(address to sendAmount.toAmount()),
+                    subtractFeeFromAmount = subtractFeeFromAmount,
+                    feeRate = manualFeeRate.toManualFeeRate(),
+                    memo = privateNote,
+                    isAssistedWallet = assistedWalletManager.isAssistedWallet(walletId),
+                )
+            )
+            if (result.isSuccess) {
+                setEvent(CreateTxSuccessEvent(result.getOrThrow().txId))
+            } else {
+                event(CreateTxErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
             }
         }
     }

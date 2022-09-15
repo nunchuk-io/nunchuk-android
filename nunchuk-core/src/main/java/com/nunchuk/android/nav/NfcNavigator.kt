@@ -20,7 +20,27 @@
 package com.nunchuk.android.nav
 
 import android.app.Activity
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 
 interface NfcNavigator {
     fun openSetupMk4(activity: Activity)
+
+    fun openSetupTapSigner(
+        activity: Activity,
+        fromMembershipFlow: Boolean,
+    )
+
+    fun openVerifyBackupTapSigner(
+        activity: Activity,
+        fromMembershipFlow: Boolean,
+        backUpFilePath: String,
+        masterSignerId: String
+    )
+
+    fun openCreateBackUpTapSigner(
+        activity: Activity,
+        fromMembershipFlow: Boolean,
+        masterSignerId: String
+    )
 }

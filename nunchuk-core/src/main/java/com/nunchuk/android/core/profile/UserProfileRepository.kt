@@ -57,9 +57,12 @@ internal class UserProfileRepositoryImpl @Inject constructor(
     }.flowOn(Dispatchers.IO)
 
     override fun confirmDeleteAccount(confirmationCode: String) = flow {
-        val error = userProfileApi.confirmDeleteAccount(DeleteConfirmationPayload(confirmationCode)).getError()
-        if (error != null) throw error
-        emit(Unit)
+        val result = userProfileApi.confirmDeleteAccount(DeleteConfirmationPayload(confirmationCode))
+        if (result.isSuccess) {
+            emit(Unit)
+        } else {
+            throw result.error
+        }
     }
 
     override fun requestDeleteAccount() = flow {

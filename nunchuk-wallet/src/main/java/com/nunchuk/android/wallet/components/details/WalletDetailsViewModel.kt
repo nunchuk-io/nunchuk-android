@@ -26,6 +26,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.GetAssistedWalletIdsFlowUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
@@ -65,7 +66,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val sessionHolder: SessionHolder,
     private val accountManager: AccountManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val selectedWalletUseCase: SetSelectedWalletUseCase
+    private val selectedWalletUseCase: SetSelectedWalletUseCase,
+    private val getAssistedWalletIdsFlowUseCase: GetAssistedWalletIdsFlowUseCase
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -85,15 +87,14 @@ internal class WalletDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             selectedWalletUseCase(args.walletId)
         }
-        syncData()
-    }
-
-    fun init(walletId: String, shouldReloadPendingTx: Boolean) {
-        if (shouldReloadPendingTx) {
-            handleLoadPendingTx()
-        }
         viewModelScope.launch {
-            selectedWalletUseCase(walletId)
+            getAssistedWalletIdsFlowUseCase(Unit).collect {
+                updateState {
+                    copy(
+                        isAssistedWallet = it.getOrDefault(emptySet()).contains(args.walletId)
+                    )
+                }
+            }
         }
     }
 
@@ -103,13 +104,6 @@ internal class WalletDetailsViewModel @Inject constructor(
     fun syncData() {
         transactions = ArrayList()
         getWalletDetails()
-    }
-
-    private fun handleLoadPendingTx() {
-        viewModelScope.launch {
-            delay(TIMEOUT_TO_RELOAD)
-            syncData()
-        }
     }
 
     fun getWalletDetails(shouldRefreshTransaction: Boolean = true) {

@@ -37,6 +37,7 @@ data class SignerModel(
     val software: Boolean = false,
     val localKey: Boolean = true,
     val isPrimaryKey: Boolean = false,
+    val cardId: String = "",
 ) : Parcelable {
     val isEditablePath: Boolean
         get() = type == SignerType.HARDWARE || type == SignerType.SOFTWARE
@@ -58,6 +59,8 @@ data class SignerModel(
         result = 31 * result + fingerPrint.hashCode()
         return result
     }
+
+    fun cardIdShorten() = cardId.takeLast(5)
 }
 
 fun SingleSigner.toModel(isPrimaryKey: Boolean = false) = SignerModel(

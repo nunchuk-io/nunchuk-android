@@ -23,23 +23,43 @@ import android.nfc.tech.IsoDep
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.repository.PremiumWalletRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
 class SignTransactionByTapSignerUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val nunchukNativeSdk: NunchukNativeSdk,
+    private val repository: PremiumWalletRepository,
     waitAutoCardUseCase: WaitAutoCardUseCase
-) : BaseNfcUseCase<SignTransactionByTapSignerUseCase.Data, Transaction>(dispatcher, waitAutoCardUseCase) {
+) : BaseNfcUseCase<SignTransactionByTapSignerUseCase.Data, Transaction>(
+    dispatcher,
+    waitAutoCardUseCase
+) {
 
     override suspend fun executeNfc(parameters: Data): Transaction {
-        return nunchukNativeSdk.signTransactionByTapSigner(
+        val transaction = nunchukNativeSdk.signTransactionByTapSigner(
             isoDep = parameters.isoDep,
             cvc = parameters.cvc,
             walletId = parameters.walletId,
             txId = parameters.txId
         )
+
+        return takeIf { parameters.isAssistedWallet }
+            ?.let {
+                repository.signServerTransaction(
+                    walletId = parameters.walletId,
+                    txId = parameters.txId,
+                    psbt = transaction.psbt
+                )
+            } ?: transaction
     }
 
-    class Data(isoDep: IsoDep, val cvc: String, val walletId: String, val txId: String) : BaseNfcUseCase.Data(isoDep)
+    class Data(
+        isoDep: IsoDep,
+        val cvc: String,
+        val walletId: String,
+        val txId: String,
+        val isAssistedWallet: Boolean
+    ) : BaseNfcUseCase.Data(isoDep)
 }

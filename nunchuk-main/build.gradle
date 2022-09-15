@@ -1,6 +1,8 @@
 apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 apply plugin: 'dagger.hilt.android.plugin'
+apply plugin: 'androidx.navigation.safeargs.kotlin'
+apply plugin: 'kotlin-parcelize'
 
 dependencies {
 
@@ -15,6 +17,8 @@ dependencies {
     implementation project(':nunchuk-messages')
     implementation project(':nunchuk-settings')
     implementation project(':nunchuk-notifications')
+    implementation project(':nunchuk-database')
+    implementation project(':nunchuk-network')
     implementation nunchukDeps.nativeSdk
     implementation matrixDeps.matrixSdk
     implementation pluginsDeps.kotlinAndroidRuntime

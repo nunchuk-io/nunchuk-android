@@ -22,6 +22,7 @@ package com.nunchuk.android.nav
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RoomWalletData
 import com.nunchuk.android.model.SingleSigner
@@ -53,7 +54,12 @@ interface SharedWalletNavigator {
 
     fun openCreateSharedWalletScreen(activityContext: Context)
 
-    fun openConfigureSharedWalletScreen(activityContext: Context, walletName: String, walletType: WalletType, addressType: AddressType)
+    fun openConfigureSharedWalletScreen(
+        activityContext: Context,
+        walletName: String,
+        walletType: WalletType,
+        addressType: AddressType
+    )
 
     fun openReviewSharedWalletScreen(
         activityContext: Context,
@@ -99,13 +105,27 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         addressType: AddressType
     )
 
-    fun openBackupWalletScreen(activityContext: Context, walletId: String, numberOfSignKey: Int, isQuickWallet: Boolean = false)
+    fun openBackupWalletScreen(
+        activityContext: Context,
+        walletId: String,
+        numberOfSignKey: Int,
+        isQuickWallet: Boolean = false
+    )
 
     fun openUploadConfigurationScreen(activityContext: Context, walletId: String)
 
-    fun openWalletConfigScreen(activityContext: Context, walletId: String)
+    fun openWalletConfigScreen(
+        activityContext: Context,
+        walletId: String,
+        keyPolicy: KeyPolicy? = null
+    )
 
-    fun openWalletConfigScreen(launcher: ActivityResultLauncher<Intent>, activityContext: Context, walletId: String)
+    fun openWalletConfigScreen(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Context,
+        walletId: String,
+        keyPolicy: KeyPolicy? = null
+    )
 
     fun openDynamicQRScreen(activityContext: Context, values: List<String>)
 

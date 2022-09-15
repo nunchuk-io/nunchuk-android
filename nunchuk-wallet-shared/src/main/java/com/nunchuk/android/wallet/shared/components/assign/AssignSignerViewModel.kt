@@ -94,17 +94,17 @@ internal class AssignSignerViewModel @AssistedInject constructor(
             if (result.isSuccess) {
                 val signerResult = getDefaultSignerFromMasterSignerUseCase(
                     GetDefaultSignerFromMasterSignerUseCase.Params(
-                        signer.id,
+                        listOf(signer.id),
                         WalletType.MULTI_SIG,
                         args.addressType
                     )
                 )
                 if (signerResult.isSuccess) {
                     val newSigner = signerResult.getOrThrow()
-                    handleSelected(newSigner.toModel(), true)
+                    handleSelected(newSigner.first().toModel(), true)
                     updateState {
                         copy(masterSignerMap = masterSignerMap.toMutableMap().apply {
-                            set(signer.id, newSigner)
+                            set(signer.id, newSigner.first())
                         })
                     }
                 } else {

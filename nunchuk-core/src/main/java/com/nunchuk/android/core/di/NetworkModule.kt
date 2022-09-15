@@ -21,6 +21,7 @@ package com.nunchuk.android.core.di
 
 import com.nunchuk.android.core.data.api.PriceConverterAPI
 import com.nunchuk.android.core.data.api.TransactionApi
+import com.nunchuk.android.core.data.api.UserWalletsApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -41,4 +42,8 @@ internal object NetworkModule {
     @Provides
     fun provideTransactionAPI(retrofit: Retrofit): TransactionApi = retrofit.create(
         TransactionApi::class.java)
+
+    @Singleton
+    @Provides
+    fun provideUserWalletsApi(retrofit: Retrofit): UserWalletsApi = retrofit.create(UserWalletsApi::class.java)
 }

@@ -24,6 +24,7 @@ import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.share.model.TransactionOption
+import com.nunchuk.android.utils.serializable
 
 data class ExportTransactionArgs(
     val walletId: String,
@@ -47,7 +48,7 @@ data class ExportTransactionArgs(
             return ExportTransactionArgs(
                 walletId = extras.getStringValue(EXTRA_WALLET_ID),
                 txId = extras.getStringValue(EXTRA_TRANSACTION_ID),
-                transactionOption = extras?.getSerializable(EXTRA_TRANSACTION_OPTION) as TransactionOption? ?: TransactionOption.EXPORT
+                transactionOption = extras?.serializable(EXTRA_TRANSACTION_OPTION) ?: TransactionOption.EXPORT
             )
         }
     }

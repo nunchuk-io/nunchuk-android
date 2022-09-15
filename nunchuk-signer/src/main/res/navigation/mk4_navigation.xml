@@ -11,8 +11,8 @@
         android:label="Mk4InfoFragment"
         tools:layout="@layout/fragment_mk4_info">
         <action
-            android:id="@+id/action_mk4InfoFragment_to_addMk4NameFragment"
-            app:destination="@id/addMk4NameFragment"
+            android:id="@+id/action_mk4InfoFragment_to_mk4IntroFragment"
+            app:destination="@id/mk4IntroFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -28,5 +28,17 @@
         <argument
             android:name="signer"
             app:argType="com.nunchuk.android.model.SingleSigner" />
+    </fragment>
+    <fragment
+        android:id="@+id/mk4IntroFragment"
+        android:name="com.nunchuk.android.signer.mk4.intro.Mk4IntroFragment"
+        android:label="Mk4IntroFragment">
+        <action
+            android:id="@+id/action_mk4IntroFragment_to_addMk4NameFragment"
+            app:destination="@id/addMk4NameFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 </navigation>

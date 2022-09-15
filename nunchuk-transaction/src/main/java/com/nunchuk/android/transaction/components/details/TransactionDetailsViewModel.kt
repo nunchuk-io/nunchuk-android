@@ -25,21 +25,20 @@ import android.nfc.tech.Ndef
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.domain.ExportPsbtToMk4UseCase
-import com.nunchuk.android.core.domain.ImportTransactionFromMk4UseCase
-import com.nunchuk.android.core.domain.SignRoomTransactionByTapSignerUseCase
-import com.nunchuk.android.core.domain.SignTransactionByTapSignerUseCase
+import com.nunchuk.android.core.domain.*
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.signer.toSignerModel
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.listener.BlockListener
+import com.nunchuk.android.listener.TransactionListener
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
 import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.GetPendingTransactionUseCase
@@ -49,10 +48,7 @@ import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -78,7 +74,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getPendingTransactionUseCase: GetPendingTransactionUseCase,
     private val getTransactionFromNetworkUseCase: GetTransactionFromNetworkUseCase,
     private val getWalletUseCase: GetWalletUseCase,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
+    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
+    private val assistedWalletManager: AssistedWalletManager
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
 
     private var walletId: String = ""
@@ -99,6 +97,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             BlockListener.getBlockChainFlow().collect {
                 getTransactionInfo()
+            }
+        }
+        viewModelScope.launch {
+            TransactionListener.transactionUpdateFlow.collect {
+                if (it.txId == txId) {
+                    getTransactionInfo()
+                }
             }
         }
     }
@@ -141,7 +146,14 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             getWalletUseCase.execute(walletId).collect {
                 val account = accountManager.getAccount()
-                val signers = it.wallet.signers.map { signer -> signer.toModel() }
+                val signers = it.wallet.signers.map { signer ->
+                    if (signer.type == SignerType.NFC) {
+                        signer.toModel()
+                            .copy(cardId = getTapSignerStatusByIdUseCase(signer.masterSignerId).getOrNull()?.ident.orEmpty())
+                    } else {
+                        signer.toModel()
+                    }
+                }
                 if (it.roomWallet != null) {
                     updateState {
                         copy(signers = it.roomWallet?.joinKeys().orEmpty().map { key ->
@@ -183,7 +195,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
             getContactsUseCase.execute().catch { contacts = emptyList() }.collect {
                 contacts = it
                 loadWallet()
-                updateTransaction(getTransaction())
             }
         }
     }
@@ -224,8 +235,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private fun getPersonalTransaction() {
         viewModelScope.launch {
-            getTransactionUseCase.execute(walletId, txId).flowOn(IO)
-                .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }.collect {
+            getTransactionUseCase.execute(
+                walletId,
+                txId,
+                assistedWalletManager.isAssistedWallet(walletId)
+            ).flowOn(IO)
+                .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }
+                .collect {
                     updateTransaction(it)
                 }
         }
@@ -233,7 +249,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private fun getSharedTransaction() {
         viewModelScope.launch {
-            getTransactionUseCase.execute(walletId, txId).flowOn(IO)
+            getTransactionUseCase.execute(walletId, txId, false)
+                .flowOn(IO)
                 .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }.collect {
                     updateTransaction(it)
                 }
@@ -295,9 +312,17 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun handleDeleteTransactionEvent(isCancel: Boolean = true) {
         viewModelScope.launch {
-            when (val result = deleteTransactionUseCase.execute(walletId, txId)) {
-                is Success -> setEvent(DeleteTransactionSuccess(isCancel))
-                is Error -> setEvent(TransactionDetailsError("${result.exception.message.orEmpty()},walletId::$walletId,txId::$txId"))
+            val result = deleteTransactionUseCase(
+                DeleteTransactionUseCase.Param(
+                    walletId = walletId,
+                    txId = txId,
+                    isAssistedWallet = assistedWalletManager.isAssistedWallet(walletId)
+                )
+            )
+            if (result.isSuccess) {
+                setEvent(DeleteTransactionSuccess(isCancel))
+            } else {
+                setEvent(TransactionDetailsError("${result.exceptionOrNull()?.message.orUnknownError()}, walletId::$walletId, txId::$txId"))
             }
         }
     }
@@ -325,7 +350,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 PromptTransactionOptions(
                     isPendingTransaction = true,
                     isPendingConfirm = false,
-                   isRejected = false, masterFingerPrint = signer.fingerPrint
+                    isRejected = false, masterFingerPrint = signer.fingerPrint
                 )
             )
         }
@@ -381,14 +406,20 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private fun signPersonalTransaction(device: Device, signerId: String) {
         viewModelScope.launch {
-            when (val result = signTransactionUseCase.execute(walletId, txId, device, signerId)) {
-                is Success -> {
-                    updateTransaction(result.data)
-                    setEvent(SignTransactionSuccess())
-                }
-                is Error -> {
-                    fireSignError(result.exception)
-                }
+            val result = signTransactionUseCase(
+                SignTransactionUseCase.Param(
+                    walletId = walletId,
+                    txId = txId,
+                    device = device,
+                    signerId = signerId,
+                    isAssistedWallet = assistedWalletManager.isAssistedWallet(walletId)
+                )
+            )
+            if (result.isSuccess) {
+                updateTransaction(result.getOrThrow())
+                setEvent(SignTransactionSuccess())
+            } else {
+                fireSignError(result.exceptionOrNull())
             }
         }
     }
@@ -459,7 +490,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
             setEvent(NfcLoadingEvent())
             val result = signTransactionByTapSignerUseCase(
                 SignTransactionByTapSignerUseCase.Data(
-                    isoDep = isoDep, cvc = inputCvc, walletId = walletId, txId = txId
+                    isoDep = isoDep,
+                    cvc = inputCvc,
+                    walletId = walletId,
+                    txId = txId,
+                    isAssistedWallet = assistedWalletManager.isAssistedWallet(walletId)
                 )
             )
             if (result.isSuccess) {
@@ -476,32 +511,4 @@ internal class TransactionDetailsViewModel @Inject constructor(
         setEvent(TransactionDetailsError(message, e))
         CrashlyticsReporter.recordException(TransactionException(message))
     }
-}
-
-class TransactionException(message: String) : Exception(message)
-
-// why not use name but email?
-internal fun JoinKey.retrieveInfo(
-    isUserKey: Boolean, walletSingers: List<SignerModel>, contacts: List<Contact>
-) = if (isUserKey) retrieveByLocalKeys(walletSingers, contacts) else retrieveByContacts(contacts)
-
-internal fun JoinKey.retrieveByLocalKeys(
-    localSignedSigners: List<SignerModel>, contacts: List<Contact>
-) = localSignedSigners.firstOrNull { it.fingerPrint == masterFingerprint } ?: retrieveByContacts(
-    contacts
-)
-
-internal fun JoinKey.retrieveByContacts(contacts: List<Contact>) =
-    copy(name = getDisplayName(contacts)).toSignerModel().copy(localKey = false)
-
-internal fun JoinKey.getDisplayName(contacts: List<Contact>): String {
-    contacts.firstOrNull { it.chatId == chatId }?.apply {
-        if (email.isNotEmpty()) {
-            return@getDisplayName email
-        }
-        if (name.isNotEmpty()) {
-            return@getDisplayName chatId
-        }
-    }
-    return chatId
 }

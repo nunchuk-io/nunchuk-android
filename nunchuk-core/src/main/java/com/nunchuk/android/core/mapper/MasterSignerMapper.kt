@@ -29,7 +29,7 @@ import javax.inject.Singleton
 @Singleton
 class MasterSignerMapper @Inject constructor(private val accountManager: AccountManager) {
 
-    operator fun invoke(from: MasterSigner, derivationPath: String = ""): SignerModel {
+    operator fun invoke(from: MasterSigner, derivationPath: String = "", cardId: String = ""): SignerModel {
         val accountInfo = accountManager.getAccount()
         val isPrimaryKey =
             accountInfo.loginType == SignInMode.PRIMARY_KEY.value && accountInfo.primaryKeyInfo?.xfp == from.device.masterFingerprint
@@ -41,6 +41,7 @@ class MasterSignerMapper @Inject constructor(private val accountManager: Account
             type = from.type,
             software = from.software,
             isPrimaryKey = isPrimaryKey,
+            cardId = cardId
         )
     }
 }

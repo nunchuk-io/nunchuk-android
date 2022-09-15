@@ -20,7 +20,7 @@ ext {
 
     retrofitVersion = '2.9.0'
     okhttpVersion = '4.7.2'
-    coroutinesVersion = '1.6.2'
+    coroutinesVersion = '1.6.4'
 
     // Plugins versions
     gradleVersion = '7.3.1'
@@ -47,14 +47,14 @@ ext {
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
-    PATCH_VERSION = 22
-    TASK_LABEL = "UAT"
+    PATCH_VERSION = 20
+    TASK_LABEL = "MEMBER_SHIP"
 
-    VERSION_CODE = 192
+    VERSION_CODE = 189
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
-            compileSdkVersion: 32,
+            compileSdkVersion: 33,
             targetSdkVersion : 31,
             minSdkVersion    : 21,
             buildToolsVersion: "31.0.0",
@@ -241,5 +241,9 @@ ext {
             'composeMaterial'  : "androidx.compose.material:material:$compose",
             'composeActivity'  : "androidx.activity:activity-compose:1.5.1",
             'composeViewModel' : "androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1",
+            'composeSystemUi'  : "com.google.accompanist:accompanist-systemuicontroller:0.17.0",
+            'composeInsets'    : "com.google.accompanist:accompanist-insets:0.25.1",
+            'composelifecycle' : "androidx.lifecycle:lifecycle-runtime-compose:2.6.0-alpha02",
+            "composeConstraintLayout": "androidx.constraintlayout:constraintlayout-compose:1.0.1"
     ]
 }
