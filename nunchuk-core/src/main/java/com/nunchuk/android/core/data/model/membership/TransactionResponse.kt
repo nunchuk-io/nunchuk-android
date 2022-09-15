@@ -12,7 +12,6 @@ data class TransactionServer(
     @SerializedName("transaction_id") val transactionId: String? = null,
     @SerializedName("psbt") val psbt: String? = null,
     @SerializedName("hex") val hex: String? = null,
-    @SerializedName("reject_msg") val rejectMsg: String? = null,
     @SerializedName("status") val status: String? = null,
     @SerializedName("note") val note: String? = null,
     @SerializedName("created_time_milis") val createdTimeMilis: Long = 0,

@@ -1,22 +1,3 @@
-/**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
- * Copyright (C) 2022 Nunchuk								              *
- *                                                                        *
- * This program is free software; you can redistribute it and/or          *
- * modify it under the terms of the GNU General Public License            *
- * as published by the Free Software Foundation; either version 3         *
- * of the License, or (at your option) any later version.                 *
- *                                                                        *
- * This program is distributed in the hope that it will be useful,        *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of         *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          *
- * GNU General Public License for more details.                           *
- *                                                                        *
- * You should have received a copy of the GNU General Public License      *
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.  *
- *                                                                        *
- **************************************************************************/
-
 package com.nunchuk.android.transaction.components.details
 
 import android.nfc.NdefRecord
@@ -406,19 +387,18 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private fun signPersonalTransaction(device: Device, signerId: String) {
         viewModelScope.launch {
-            val isAssistedWallet = assistedWalletManager.isAssistedWallet(walletId)
             val result = signTransactionUseCase(
                 SignTransactionUseCase.Param(
                     walletId = walletId,
                     txId = txId,
                     device = device,
                     signerId = signerId,
-                    isAssistedWallet = isAssistedWallet
+                    isAssistedWallet = assistedWalletManager.isAssistedWallet(walletId)
                 )
             )
             if (result.isSuccess) {
                 updateTransaction(result.getOrThrow())
-                setEvent(SignTransactionSuccess(isAssistedWallet = isAssistedWallet, status = result.getOrThrow().status))
+                setEvent(SignTransactionSuccess())
             } else {
                 fireSignError(result.exceptionOrNull())
             }
@@ -489,19 +469,18 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private fun signPersonTapSignerTransaction(isoDep: IsoDep, inputCvc: String) {
         viewModelScope.launch {
             setEvent(NfcLoadingEvent())
-            val isAssistedWallet = assistedWalletManager.isAssistedWallet(walletId)
             val result = signTransactionByTapSignerUseCase(
                 SignTransactionByTapSignerUseCase.Data(
                     isoDep = isoDep,
                     cvc = inputCvc,
                     walletId = walletId,
                     txId = txId,
-                    isAssistedWallet = isAssistedWallet
+                    isAssistedWallet = assistedWalletManager.isAssistedWallet(walletId)
                 )
             )
             if (result.isSuccess) {
                 updateTransaction(result.getOrThrow())
-                setEvent(SignTransactionSuccess(isAssistedWallet = isAssistedWallet, status = result.getOrThrow().status))
+                setEvent(SignTransactionSuccess())
             } else {
                 fireSignError(result.exceptionOrNull())
             }

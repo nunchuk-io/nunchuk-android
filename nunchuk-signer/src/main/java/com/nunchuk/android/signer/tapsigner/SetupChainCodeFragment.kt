@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
-import androidx.core.view.WindowCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -49,7 +48,6 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(requireActivity().window, true)
         membershipStepManager.updateStep(true)
         registerEvents()
         initViews()
@@ -58,7 +56,6 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
 
     override fun onDestroyView() {
         membershipStepManager.updateStep(false)
-        WindowCompat.setDecorFitsSystemWindows(requireActivity().window, false)
         super.onDestroyView()
     }
 

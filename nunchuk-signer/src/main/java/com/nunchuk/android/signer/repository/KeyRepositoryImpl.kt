@@ -36,8 +36,7 @@ class KeyRepositoryImpl @Inject constructor(
         keyName: String,
         keyType: String,
         xfp: String,
-        filePath: String,
-        isAddNewKey: Boolean
+        filePath: String
     ): Flow<KeyUpload> {
         return callbackFlow {
             val file = File(filePath)
@@ -67,8 +66,7 @@ class KeyRepositoryImpl @Inject constructor(
                     step = step,
                     masterSignerId = xfp,
                     keyIdInServer = result.data.keyId,
-                    checkSum = result.data.keyCheckSum,
-                    extraJson = isAddNewKey.toString()
+                    checkSum = result.data.keyCheckSum
                 )
                 membershipDao.updateOrInsert(info)
                 val serverKeyFilePath = nfcFileManager.storeServerBackupKeyToFile(

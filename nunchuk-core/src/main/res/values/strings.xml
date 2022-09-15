@@ -254,5 +254,4 @@
     <string name="nc_view_policies">View policies</string>
     <string name="nc_check_out_assisted_wallet">Check out our assisted wallet</string>
     <string name="nc_confirm_restart_wizard">Are you sure you want to restart the wizard? All wizard data will be cleared.</string>
-    <string name="nc_assisted">Assisted</string>
 </resources>

@@ -10,8 +10,7 @@ interface KeyRepository {
         keyName: String,
         keyType: String,
         xfp: String,
-        filePath: String,
-        isAddNewKey: Boolean
+        filePath: String
     ): Flow<KeyUpload>
 
     suspend fun setKeyVerified(

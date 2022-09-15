@@ -1,22 +1,3 @@
-/**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
- * Copyright (C) 2022 Nunchuk								              *
- *                                                                        *
- * This program is free software; you can redistribute it and/or          *
- * modify it under the terms of the GNU General Public License            *
- * as published by the Free Software Foundation; either version 3         *
- * of the License, or (at your option) any later version.                 *
- *                                                                        *
- * This program is distributed in the hope that it will be useful,        *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of         *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          *
- * GNU General Public License for more details.                           *
- *                                                                        *
- * You should have received a copy of the GNU General Public License      *
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.  *
- *                                                                        *
- **************************************************************************/
-
 package com.nunchuk.android.wallet.components.details
 
 import android.app.Activity
@@ -257,18 +238,14 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         binding.cashAmount.text = wallet.getUSDAmount()
         binding.btnSend.isClickable = wallet.balance.value > 0
 
-        binding.shareIcon.isVisible = state.walletExtended.isShared || state.isAssistedWallet
+        binding.shareIcon.isVisible = state.walletExtended.isShared
         if (state.isAssistedWallet) {
             binding.container.setBackgroundResource(R.drawable.nc_header_membership_gradient_background)
             requireActivity().window.statusBarColor =  ContextCompat.getColor(requireContext(), R.color.nc_wallet_premium_bg)
-            binding.shareIcon.text = getString(R.string.nc_assisted)
-        } else {
-            binding.shareIcon.text = getString(R.string.nc_text_shared)
         }
     }
 
     private fun setupViews() {
-
         binding.transactionList.layoutManager =
             LinearLayoutManager(context, RecyclerView.VERTICAL, false)
         binding.transactionList.isNestedScrollingEnabled = false

@@ -18,16 +18,8 @@ class UploadBackupFileKeyUseCase @Inject constructor(
             keyName = parameters.keyName,
             keyType = parameters.keyType,
             xfp = parameters.xfp,
-            filePath = parameters.filePath,
-            isAddNewKey = parameters.isAddNewKey
+            filePath = parameters.filePath
         )
 
-    data class Param(
-        val step: MembershipStep,
-        val keyName: String,
-        val keyType: String,
-        val xfp: String,
-        val filePath: String,
-        val isAddNewKey: Boolean
-    )
+    data class Param(val step: MembershipStep, val keyName: String, val keyType: String, val xfp: String, val filePath: String)
 }

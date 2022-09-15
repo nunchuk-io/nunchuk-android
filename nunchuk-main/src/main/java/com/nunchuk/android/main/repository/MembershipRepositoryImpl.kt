@@ -59,9 +59,7 @@ class MembershipRepositoryImpl @Inject constructor(
     override suspend fun restart() {
         val steps = getSteps().first()
         steps.filter { it.masterSignerId.isNotEmpty() }.forEach {
-            if (it.extraData.toBooleanStrictOrNull() == true) {
-                nativeSdk.deleteMasterSigner(it.masterSignerId)
-            }
+            nativeSdk.deleteMasterSigner(it.masterSignerId)
         }
         membershipStepDao.deleteStepByEmail(accountManager.getAccount().email)
     }
