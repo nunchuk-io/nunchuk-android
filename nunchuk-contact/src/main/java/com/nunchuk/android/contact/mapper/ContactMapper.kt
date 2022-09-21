@@ -1,7 +1,7 @@
 package com.nunchuk.android.contact.mapper
 
-import com.nunchuk.android.contact.api.UserResponse
 import com.nunchuk.android.model.Contact
+import com.nunchuk.android.model.UserResponse
 import com.nunchuk.android.persistence.entity.ContactEntity
 
 internal fun ContactEntity.toModel() = Contact(

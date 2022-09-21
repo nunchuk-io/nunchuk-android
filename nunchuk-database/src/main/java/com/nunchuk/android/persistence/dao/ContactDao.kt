@@ -16,4 +16,6 @@ interface ContactDao : BaseDao<ContactEntity> {
     @Query("DELETE FROM $TABLE_CONTACT WHERE id IN (:contactIds) AND account_id = :accountId")
     fun deleteItems(accountId: String, contactIds: List<String>)
 
+    @Query("SELECT * FROM $TABLE_CONTACT WHERE account_id = :accountId AND chat_id = :chatId")
+    suspend fun getContact(accountId: String, chatId: String): ContactEntity?
 }

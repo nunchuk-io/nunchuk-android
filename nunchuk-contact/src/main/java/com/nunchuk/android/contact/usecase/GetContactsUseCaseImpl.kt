@@ -1,10 +1,10 @@
 package com.nunchuk.android.contact.usecase
 
 import android.annotation.SuppressLint
-import com.nunchuk.android.contact.repository.ContactsRepository
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Contact
+import com.nunchuk.android.repository.ContactsRepository
 import com.nunchuk.android.share.GetContactsUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope

@@ -6,16 +6,17 @@ import com.nunchuk.android.callbacks.SyncFileCallBack
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.matrix.UploadFileUseCase
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.profile.UpdateUseProfileUseCase
 import com.nunchuk.android.core.profile.UserProfileRepository
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,7 +25,10 @@ internal class AccountViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val updateUseProfileUseCase: UpdateUseProfileUseCase,
     private val uploadFileUseCase: UploadFileUseCase,
-    private val repository: UserProfileRepository
+    private val repository: UserProfileRepository,
+    private val sessionHolder: SessionHolder,
+    private val appScope: CoroutineScope,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher
 ) : NunchukViewModel<AccountState, AccountEvent>() {
 
     override val initialState = AccountState()
@@ -114,14 +118,14 @@ internal class AccountViewModel @Inject constructor(
                 }
                 .collect {}
         }
-        accountManager.signOut(
-            onStartSignOut = {
-                event(AccountEvent.LoadingEvent(true))
-            },
-            onSignedOut = {
-                event(AccountEvent.SignOutEvent)
+        appScope.launch {
+            event(AccountEvent.LoadingEvent(true))
+            withContext(dispatcher) {
+                sessionHolder.clearActiveSession()
+                accountManager.signOut()
             }
-        )
+            event(AccountEvent.SignOutEvent)
+        }
     }
 
     override fun onCleared() {

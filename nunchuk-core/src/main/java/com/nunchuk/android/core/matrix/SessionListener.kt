@@ -1,6 +1,9 @@
 package com.nunchuk.android.core.matrix
 
 import com.nunchuk.android.core.network.UnauthorizedEventBus
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.usecase.contact.GetContactByChatIdUseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.failure.GlobalError
@@ -11,6 +14,8 @@ import javax.inject.Singleton
 
 @Singleton
 class SessionListener @Inject constructor(
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+    private val getContactByChatIdUseCase: GetContactByChatIdUseCase,
 ) : Session.Listener {
     override fun onGlobalError(session: Session, globalError: GlobalError) {
         if (globalError is GlobalError.InvalidToken || globalError === GlobalError.ExpiredAccount) {
@@ -19,8 +24,13 @@ class SessionListener @Inject constructor(
     }
 
     override fun onNewInvitedRoom(session: Session, roomId: String) {
-        session.coroutineScope.launch {
-            session.roomService().joinRoom(roomId)
+        session.coroutineScope.launch(dispatcher) {
+            val summary = session.roomService().getRoom(roomId) ?: return@launch
+            val chatId = summary.roomSummary()?.inviterId ?: return@launch
+            val result = getContactByChatIdUseCase(chatId)
+            if (result.isSuccess && result.getOrThrow() != null) {
+                session.roomService().joinRoom(roomId)
+            }
         }
     }
 

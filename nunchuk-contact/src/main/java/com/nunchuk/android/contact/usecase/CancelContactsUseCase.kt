@@ -1,7 +1,7 @@
 package com.nunchuk.android.contact.usecase
 
-import com.nunchuk.android.contact.repository.ContactsRepository
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.ContactsRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
