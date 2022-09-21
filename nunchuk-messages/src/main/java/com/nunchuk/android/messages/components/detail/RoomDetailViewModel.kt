@@ -235,11 +235,14 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     fun getTransactions() {
-        if (getState().roomWallet != null) {
+        val roomWallet = getState().roomWallet
+        if (roomWallet != null && roomWallet.isCreated()) {
             getState().roomWallet?.walletId?.let {
                 getTransactions(it)
                 setEvent(GetRoomWalletSuccessEvent)
             }
+        } else {
+            getRoomWallet()
         }
     }
 
