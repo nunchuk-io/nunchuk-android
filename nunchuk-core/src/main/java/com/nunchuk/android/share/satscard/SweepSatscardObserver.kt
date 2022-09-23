@@ -6,6 +6,7 @@ import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.widget.NCToastMessage
 
 fun BaseActivity<*>.observerSweepSatscard(sweepSatscardViewModel: SweepSatscardViewModel, nfcViewModel: NfcViewModel, getWalletId: () -> String) {
@@ -14,7 +15,7 @@ fun BaseActivity<*>.observerSweepSatscard(sweepSatscardViewModel: SweepSatscardV
             is SweepEvent.Error -> if (nfcViewModel.handleNfcError(event.e).not()) {
                 NCToastMessage(this).showError(event.e?.message.orUnknownError())
             }
-            is SweepEvent.NfcLoading -> showOrHideLoading(event.isLoading, getString(R.string.nc_keep_holding_nfc))
+            is SweepEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
             is SweepEvent.SweepLoadingEvent -> showOrHideLoading(
                 event.isLoading,
                 title = getString(R.string.nc_sweeping_is_progress),

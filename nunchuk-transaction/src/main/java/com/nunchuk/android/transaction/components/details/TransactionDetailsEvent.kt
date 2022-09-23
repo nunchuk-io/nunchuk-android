@@ -18,7 +18,7 @@ sealed class TransactionDetailsEvent {
     object ImportTransactionFromMk4Success : TransactionDetailsEvent()
     object ExportTransactionToMk4Success : TransactionDetailsEvent()
     object LoadingEvent : TransactionDetailsEvent()
-    object NfcLoadingEvent : TransactionDetailsEvent()
+    data class NfcLoadingEvent(val isColdcard: Boolean = false) : TransactionDetailsEvent()
 }
 
 data class TransactionDetailsState(

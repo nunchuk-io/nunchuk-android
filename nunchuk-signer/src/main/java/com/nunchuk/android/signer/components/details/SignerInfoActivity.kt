@@ -12,6 +12,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.core.util.toReadableDrawable
 import com.nunchuk.android.core.util.toReadableString
@@ -154,7 +155,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     }
 
     private fun handleEvent(event: SignerInfoEvent) {
-        showOrHideLoading(event is NfcLoading, getString(R.string.nc_keep_holding_nfc))
+        showOrHideNfcLoading(event is NfcLoading)
         when (event) {
             is UpdateNameSuccessEvent -> {
                 binding.signerName.text = event.signerName

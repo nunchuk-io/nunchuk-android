@@ -120,7 +120,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             is NeedSetupSatsCard -> handleNeedSetupSatsCard(event)
             is SatsCardUsedUp -> handleSatsCardUsedUp(event.numberOfSlot)
             is Loading -> handleLoading(event)
-            is NfcLoading -> showOrHideLoading(event.loading, message = getString(R.string.nc_keep_holding_nfc))
+            is NfcLoading -> showOrHideNfcLoading(event.loading)
         }
     }
 

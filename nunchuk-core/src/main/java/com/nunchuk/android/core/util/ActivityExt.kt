@@ -34,7 +34,9 @@ fun Activity.hideLoading() {
     (this as BaseActivity<*>).hideLoading()
 }
 
-fun Activity.showOrHideLoading(loading: Boolean, title: String = getString(R.string.nc_please_wait), message: String? = null) {
+fun Activity.showOrHideLoading(
+    loading: Boolean, title: String = getString(R.string.nc_please_wait), message: String? = null
+) {
     (this as BaseActivity<*>).showOrHideLoading(loading, title, message)
 }
 
@@ -57,11 +59,21 @@ fun Fragment.showOrHideNfcLoading(loading: Boolean) {
     showOrHideLoading(loading, message = getString(R.string.nc_keep_holding_nfc))
 }
 
-fun Activity.showOrHideNfcLoading(loading: Boolean) {
-    showOrHideLoading(loading, message = getString(R.string.nc_keep_holding_nfc))
+fun Activity.showOrHideNfcLoading(loading: Boolean, isColdCard: Boolean = false) {
+    if (isColdCard) {
+        showOrHideLoading(
+            loading,
+            title = getString(R.string.nc_data_transfer_in_progress),
+            message = getString(R.string.nc_keep_hold_coldcard_until_finish),
+        )
+    } else {
+        showOrHideLoading(loading, message = getString(R.string.nc_keep_holding_nfc))
+    }
 }
 
-fun Fragment.showOrHideLoading(loading: Boolean, title: String = getString(R.string.nc_please_wait), message: String? = null) {
+fun Fragment.showOrHideLoading(
+    loading: Boolean, title: String = getString(R.string.nc_please_wait), message: String? = null
+) {
     activity?.showOrHideLoading(loading, title, message)
 }
 
@@ -78,16 +90,21 @@ fun Fragment.takePhotoWithResult(requestCode: Int) {
     startActivityForResult(takePictureIntent, requestCode)
 }
 
-fun View.hideKeyboard() = ViewCompat.getWindowInsetsController(this)?.hide(WindowInsetsCompat.Type.ime())
+fun View.hideKeyboard() =
+    ViewCompat.getWindowInsetsController(this)?.hide(WindowInsetsCompat.Type.ime())
 
 fun Activity.openSelectFileChooser(requestCode: Int = CHOOSE_FILE_REQUEST_CODE) {
     val intent = Intent().setType("*/*").setAction(Intent.ACTION_GET_CONTENT)
-    startActivityForResult(Intent.createChooser(intent, getString(R.string.nc_text_select_file)), requestCode)
+    startActivityForResult(
+        Intent.createChooser(intent, getString(R.string.nc_text_select_file)), requestCode
+    )
 }
 
 fun Fragment.openSelectFileChooser(requestCode: Int = CHOOSE_FILE_REQUEST_CODE) {
     val intent = Intent().setType("*/*").setAction(Intent.ACTION_GET_CONTENT)
-    startActivityForResult(Intent.createChooser(intent, getString(R.string.nc_text_select_file)), requestCode)
+    startActivityForResult(
+        Intent.createChooser(intent, getString(R.string.nc_text_select_file)), requestCode
+    )
 }
 
 fun Activity.openExternalLink(url: String) {
@@ -106,10 +123,8 @@ fun Activity.sendEmail(email: String, subject: String = "", text: String = ""): 
     val intent = Intent(Intent.ACTION_SENDTO)
     intent.data = Uri.parse("mailto:")
     intent.putExtra(Intent.EXTRA_EMAIL, arrayOf(email))
-    if (subject.isNotEmpty())
-        intent.putExtra(Intent.EXTRA_SUBJECT, subject)
-    if (text.isNotEmpty())
-        intent.putExtra(Intent.EXTRA_TEXT, text)
+    if (subject.isNotEmpty()) intent.putExtra(Intent.EXTRA_SUBJECT, subject)
+    if (text.isNotEmpty()) intent.putExtra(Intent.EXTRA_TEXT, text)
     val result = runCatching {
         startActivity(intent)
     }
@@ -129,8 +144,7 @@ fun getFileFromUri(contentResolver: ContentResolver, uri: Uri, directory: File) 
 
 fun <T> AppCompatActivity.flowObserver(flow: Flow<T>, collector: FlowCollector<T>) {
     lifecycleScope.launchWhenStarted {
-        flow.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-            .collect(collector)
+        flow.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).collect(collector)
     }
 }
 

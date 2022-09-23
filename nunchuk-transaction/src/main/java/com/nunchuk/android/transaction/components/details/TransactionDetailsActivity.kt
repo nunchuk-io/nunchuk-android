@@ -315,7 +315,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             is PromptInputPassphrase -> requireInputPassphrase(event.func)
             is PromptTransactionOptions -> promptTransactionOptions(event)
             LoadingEvent -> showLoading()
-            NfcLoadingEvent -> showOrHideNfcLoading(true)
+            is NfcLoadingEvent -> showOrHideNfcLoading(true, event.isColdcard)
             is ExportToFileSuccess -> showExportToFileSuccess(event)
             is ExportTransactionError -> showExportToFileError(event)
             is UpdateTransactionMemoFailed -> handleUpdateTransactionFailed(event)

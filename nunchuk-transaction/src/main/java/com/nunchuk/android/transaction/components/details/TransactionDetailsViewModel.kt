@@ -379,7 +379,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun handleExportTransactionToMk4(ndef: Ndef) {
         viewModelScope.launch {
-            setEvent(NfcLoadingEvent)
+            setEvent(NfcLoadingEvent(true))
             val result = exportPsbtToMk4UseCase(ExportPsbtToMk4UseCase.Data(walletId, txId, ndef))
             if (result.isSuccess) {
                 setEvent(ExportTransactionToMk4Success)
@@ -406,7 +406,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private fun signRoomTransactionTapSigner(isoDep: IsoDep, inputCvc: String) {
         viewModelScope.launch {
-            setEvent(NfcLoadingEvent)
+            setEvent(NfcLoadingEvent())
             val result = signRoomTransactionByTapSignerUseCase(SignRoomTransactionByTapSignerUseCase.Data(isoDep, inputCvc, initEventId))
             if (result.isSuccess) {
                 setEvent(SignTransactionSuccess(roomId))
@@ -418,7 +418,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private fun signPersonTapSignerTransaction(isoDep: IsoDep, inputCvc: String) {
         viewModelScope.launch {
-            setEvent(NfcLoadingEvent)
+            setEvent(NfcLoadingEvent())
             val result = signTransactionByTapSignerUseCase(
                 SignTransactionByTapSignerUseCase.Data(
                     isoDep = isoDep,

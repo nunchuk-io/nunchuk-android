@@ -48,7 +48,7 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
         when (event) {
             is UploadConfigurationEvent.ShowError -> showError(event)
             is UploadConfigurationEvent.OpenDynamicQRScreen -> openDynamicQRScreen(event)
-            is UploadConfigurationEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
+            is UploadConfigurationEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading, true)
             else -> {}
         }
     }
