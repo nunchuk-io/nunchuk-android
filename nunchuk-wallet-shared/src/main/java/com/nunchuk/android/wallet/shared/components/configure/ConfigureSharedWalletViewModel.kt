@@ -24,7 +24,7 @@ internal class ConfigureSharedWalletViewModel @Inject constructor(
         viewModelScope.launch {
             updateState { initialState }
             val result = withContext(dispatcher) {
-                sessionHolder.currentRoom?.membershipService()?.getRoomMembers(roomMemberQueryParams())
+                sessionHolder.getCurrentRoom()?.membershipService()?.getRoomMembers(roomMemberQueryParams())
             }
             result?.let {
                 updateState { copy(minTotalSigner = it.size, totalSigns = it.size) }

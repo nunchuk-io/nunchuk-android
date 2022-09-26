@@ -98,16 +98,21 @@ internal class AssignSignerViewModel @Inject constructor(
                 .onException {}
                 .collect { unusedSignerSigners.addAll(it) }
 
-            sessionHolder.currentRoom?.let { room ->
-                joinWalletUseCase.execute(room.roomId, if (state.filterRecSigners.isNotEmpty()) remoteSigners else remoteSigners + unusedSignerSigners)
-                    .flowOn(Dispatchers.IO)
-                    .onException {
-                        event(AssignSignerErrorEvent(it.readableMessage()))
-                        sendErrorEvent(room.roomId, it, sendErrorEventUseCase::execute)
-                    }
-                    .onEach { event(AssignSignerEvent.AssignSignerCompletedEvent(room.roomId)) }
-                    .flowOn(Dispatchers.Main)
-                    .launchIn(viewModelScope)
+            if (sessionHolder.hasActiveRoom()) {
+                sessionHolder.getActiveRoomId().let { roomId ->
+                    joinWalletUseCase.execute(
+                        roomId,
+                        if (state.filterRecSigners.isNotEmpty()) remoteSigners else remoteSigners + unusedSignerSigners
+                    )
+                        .flowOn(Dispatchers.IO)
+                        .onException {
+                            event(AssignSignerErrorEvent(it.readableMessage()))
+                            sendErrorEvent(roomId, it, sendErrorEventUseCase::execute)
+                        }
+                        .onEach { event(AssignSignerEvent.AssignSignerCompletedEvent(roomId)) }
+                        .flowOn(Dispatchers.Main)
+                        .launchIn(viewModelScope)
+                }
             }
         }
     }

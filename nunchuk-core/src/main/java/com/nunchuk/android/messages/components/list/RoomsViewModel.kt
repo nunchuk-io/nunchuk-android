@@ -45,13 +45,13 @@ class RoomsViewModel @Inject constructor(
         listenJob = session.roomSummariesFlow()
             .flowOn(Dispatchers.IO)
             .distinctUntilChanged()
-            .onStart { event(RoomsEvent.LoadingEvent(true)) }
+            .onStart { setEvent(RoomsEvent.LoadingEvent(true)) }
             .onEach {
                 fileLog("listenRoomSummaries($it)")
                 leaveDraftSyncRoom(it)
                 retrieveMessages(it)
             }
-            .onCompletion { event(RoomsEvent.LoadingEvent(false)) }
+            .onCompletion { setEvent(RoomsEvent.LoadingEvent(false)) }
             .flowOn(Dispatchers.Main)
             .launchIn(viewModelScope)
     }
@@ -79,20 +79,20 @@ class RoomsViewModel @Inject constructor(
             draftSyncRooms.forEach {
                 leaveRoomUseCase.execute(it.roomId)
                     .flowOn(Dispatchers.IO)
-                    .onException {  }
+                    .onException { }
                     .collect()
             }
         }
     }
 
     private fun onRetrieveMessageError(t: Throwable) {
-        event(RoomsEvent.LoadingEvent(false))
+        setEvent(RoomsEvent.LoadingEvent(false))
         updateState { copy(rooms = emptyList()) }
         CrashlyticsReporter.recordException(t)
     }
 
     private fun onRetrieveMessageSuccess(p: Pair<List<RoomSummary>, List<RoomWallet>>) {
-        event(RoomsEvent.LoadingEvent(false))
+        setEvent(RoomsEvent.LoadingEvent(false))
         updateState {
             copy(
                 rooms = p.first.sortByLastMessage(p.second),
@@ -103,12 +103,12 @@ class RoomsViewModel @Inject constructor(
 
     fun removeRoom(roomSummary: RoomSummary) {
         viewModelScope.launch {
-            event(RoomsEvent.LoadingEvent(true))
+            setEvent(RoomsEvent.LoadingEvent(true))
             val room = getRoom(roomSummary)
             if (room != null) {
                 handleRemoveRoom(room)
             } else {
-                event(RoomsEvent.LoadingEvent(false))
+                setEvent(RoomsEvent.LoadingEvent(false))
             }
         }
     }
@@ -124,6 +124,8 @@ class RoomsViewModel @Inject constructor(
                 }
         }
     }
+
+    fun getVisibleRooms() = getState().rooms.filter{ it.shouldShow() }
 
     private fun getRoom(roomSummary: RoomSummary) = sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomSummary.roomId)
 

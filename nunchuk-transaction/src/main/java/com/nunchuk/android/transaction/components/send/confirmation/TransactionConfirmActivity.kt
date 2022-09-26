@@ -5,6 +5,7 @@ import android.nfc.tech.IsoDep
 import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.SweepType
@@ -16,9 +17,9 @@ import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.share.satscard.SweepSatscardViewModel
 import com.nunchuk.android.share.satscard.observerSweepSatscard
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.transaction.components.send.amount.InputAmountActivity
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.*
 import com.nunchuk.android.transaction.components.utils.openTransactionDetailScreen
-import com.nunchuk.android.transaction.components.utils.returnActiveRoom
 import com.nunchuk.android.transaction.components.utils.showCreateTransactionError
 import com.nunchuk.android.transaction.components.utils.toTitle
 import com.nunchuk.android.transaction.databinding.ActivityTransactionConfirmBinding
@@ -113,6 +114,14 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             LoadingEvent -> showLoading()
             is InitRoomTransactionError -> showCreateTransactionError(event.message)
             is InitRoomTransactionSuccess -> returnActiveRoom(event.roomId)
+        }
+    }
+
+    private fun returnActiveRoom(roomId: String) {
+        hideLoading()
+        ActivityManager.popUntil(InputAmountActivity::class.java, true)
+        if (sessionHolder.isLeaveRoom().not()) {
+            navigator.openRoomDetailActivity(this, roomId)
         }
     }
 

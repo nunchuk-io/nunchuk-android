@@ -152,7 +152,7 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun storeRoom(room: Room) {
         this.room = room
-        sessionHolder.currentRoom = room
+        sessionHolder.setActiveRoom(room.roomId, false)
     }
 
     private fun initSendEventExecutor() {
@@ -422,7 +422,7 @@ class RoomDetailViewModel @Inject constructor(
             dispose()
             removeAllListeners()
         }
-        sessionHolder.currentRoom = null
+        sessionHolder.clearActiveRoom()
         consumedEventIds.clear()
         super.onCleared()
     }

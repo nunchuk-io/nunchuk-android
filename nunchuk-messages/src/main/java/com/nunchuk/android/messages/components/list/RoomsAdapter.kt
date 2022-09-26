@@ -16,7 +16,7 @@ import java.util.*
 class RoomAdapter(
     private val currentName: String,
     private val enterRoom: (RoomSummary) -> Unit,
-    private val removeRoom: (RoomSummary) -> Unit
+    private val removeRoom: (RoomSummary, hasSharedWallet: Boolean) -> Unit
 ) : ListAdapter<RoomSummary, RoomViewHolder>(
     RoomSummaryComparator
 ) {
@@ -43,7 +43,7 @@ class RoomViewHolder(
     private val roomWallets: MutableSet<String>,
     private val currentName: String,
     private val enterRoom: (RoomSummary) -> Unit,
-    private val removeRoom: (RoomSummary) -> Unit
+    private val removeRoom: (RoomSummary, hasSharedWallet: Boolean) -> Unit
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(data: RoomSummary) {
@@ -70,7 +70,7 @@ class RoomViewHolder(
         binding.encryptedIcon.isVisible = data.isEncrypted
 
         binding.itemLayout.setOnClickListener { enterRoom(data) }
-        binding.delete.setOnClickListener { removeRoom(data) }
+        binding.delete.setOnClickListener { removeRoom(data, binding.shareIcon.isVisible) }
 
         binding.swipeLayout.showMode = SwipeLayout.ShowMode.LayDown
         binding.swipeLayout.addDrag(SwipeLayout.DragEdge.Left, binding.actionLayout)
