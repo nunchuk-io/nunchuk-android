@@ -5,10 +5,6 @@ import android.content.Intent
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
 import android.os.Bundle
-import android.text.SpannableString
-import android.text.Spanned
-import android.text.style.ImageSpan
-import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
@@ -158,6 +154,14 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 else -> false
             }
         }
+        binding.sendAddressLabel.setOnLongClickListener {
+            handleCopyContent(binding.sendAddressLabel.text.toString())
+            true
+        }
+        binding.changeAddressLabel.setOnLongClickListener {
+            handleCopyContent(binding.changeAddressLabel.text.toString())
+            true
+        }
         binding.ivNote.setOnDebounceClickListener(coroutineScope = lifecycleScope) {
             InputBottomSheet.show(
                 fragmentManager = supportFragmentManager,
@@ -265,7 +269,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         } else {
             transaction.outputs.firstOrNull()
         }
-        makeAddress(binding.sendAddressLabel, output?.first.orEmpty())
+        binding.sendAddressLabel.text = output?.first.orEmpty()
         binding.sendAddressBTC.text = output?.second?.getBTCAmount().orEmpty()
         binding.sendAddressUSD.text = output?.second?.getUSDAmount().orEmpty()
 
@@ -296,7 +300,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         val hasChange: Boolean = transaction.hasChangeIndex()
         if (hasChange) {
             val txOutput = transaction.outputs[transaction.changeIndex]
-            makeAddress(binding.changeAddressLabel, txOutput.first)
+            binding.changeAddressLabel.text = txOutput.first
             binding.changeAddressBTC.text = txOutput.second.getBTCAmount()
             binding.changeAddressUSD.text = txOutput.second.getUSDAmount()
         }
@@ -451,21 +455,6 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private fun returnActiveRoom() {
         finish()
-    }
-
-    private fun makeAddress(textView: TextView, address: String) {
-        val spannable = SpannableString("$address  ")
-        if (address.isNotEmpty()) {
-            val image = ContextCompat.getDrawable(this, R.drawable.ic_copy)!!
-            val size = resources.getDimensionPixelSize(R.dimen.nc_padding_16)
-            image.setBounds(0, 0, size, size)
-            val imageSpan = ImageSpan(image, ImageSpan.ALIGN_BASELINE)
-            spannable.setSpan(imageSpan, address.lastIndex, address.length, Spanned.SPAN_INCLUSIVE_EXCLUSIVE)
-            textView.setOnDebounceClickListener {
-                handleCopyContent(address)
-            }
-        }
-        textView.text = spannable
     }
 
     private fun handleCopyContent(content: String) {
