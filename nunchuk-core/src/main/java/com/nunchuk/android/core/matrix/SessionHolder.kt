@@ -6,7 +6,7 @@ import com.nunchuk.android.core.util.isAtLeastStarted
 import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.utils.CrashlyticsReporter
 import org.matrix.android.sdk.api.session.Session
-import org.matrix.android.sdk.api.session.room.Room
+import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import java.util.concurrent.atomic.AtomicReference
@@ -19,7 +19,8 @@ class SessionHolder @Inject constructor(
 ) {
     private var activeSessionReference: AtomicReference<Session?> = AtomicReference()
 
-    var currentRoom: Room? = null
+    private var currentRoomId: String? = null
+    private var isLeaveRoom: Boolean = false
 
     // isOpen state is hidden inside matrix sdk, there is no way to know exactly variable value
     fun storeActiveSession(session: Session) {
@@ -45,6 +46,15 @@ class SessionHolder @Inject constructor(
         }
     }
 
+    fun clearActiveRoom() {
+        currentRoomId = null
+    }
+
+    fun setActiveRoom(roomId: String, isLeaveRoom: Boolean) {
+        this.currentRoomId = roomId
+        this.isLeaveRoom = isLeaveRoom
+    }
+
     fun clearActiveSession() {
         try {
             getSafeActiveSession()?.apply {
@@ -55,7 +65,7 @@ class SessionHolder @Inject constructor(
             CrashlyticsReporter.recordException(e)
         }
         activeSessionReference.set(null)
-        currentRoom = null
+        currentRoomId = null
     }
 
     fun getSafeActiveSession(): Session? {
@@ -64,11 +74,15 @@ class SessionHolder @Inject constructor(
 
     fun hasActiveSession() = activeSessionReference.get() != null
 
-    fun hasActiveRoom() = currentRoom != null
+    fun hasActiveRoom() = currentRoomId != null
 
-    fun getActiveRoomId() = currentRoom?.roomId!!
+    fun getActiveRoomId() = currentRoomId.orEmpty()
 
-    fun getActiveRoomIdSafe() = currentRoom?.roomId.orEmpty()
+    fun getActiveRoomIdSafe() = currentRoomId.orEmpty()
+
+    fun isLeaveRoom() : Boolean = isLeaveRoom
+
+    fun getCurrentRoom() = activeSessionReference.get()?.getRoom(getActiveRoomId())
 }
 
 fun Session.roomSummariesFlow() = roomService().getRoomSummariesLive(roomSummaryQueryParams {

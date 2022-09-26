@@ -13,11 +13,12 @@ import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
 import com.nunchuk.android.messages.databinding.FragmentMessagesBinding
-import com.nunchuk.android.messages.util.shouldShow
 import com.nunchuk.android.model.RoomWallet
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import javax.inject.Inject
@@ -54,7 +55,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     }
 
     private fun setupViews() {
-        adapter = RoomAdapter(accountManager.getAccount().name, ::openRoomDetailScreen, viewModel::removeRoom)
+        adapter = RoomAdapter(accountManager.getAccount().name, ::openRoomDetailScreen, ::handleRemoveRoom)
         binding.recyclerView.setRecycledViewPool(roomShareViewPool.recycledViewPool)
         binding.recyclerView.setHasFixedSize(true)
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)
@@ -98,9 +99,47 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     private fun handleEvent(event: RoomsEvent) {
         when (event) {
             is LoadingEvent -> {
-                binding.skeletonContainer.root.isVisible = event.loading
+                if (event.loading) {
+                    if (viewModel.getVisibleRooms().isNotEmpty()) {
+                        showLoading()
+                    } else {
+                        binding.skeletonContainer.root.isVisible = true
+                    }
+                } else {
+                    binding.skeletonContainer.root.isVisible = false
+                    hideLoading()
+                }
             }
         }
+    }
+
+    private fun handleRemoveRoom(roomSummary: RoomSummary, hasSharedWallet: Boolean) {
+        if (hasSharedWallet) {
+            NCWarningDialog(requireActivity())
+                .showDialog(
+                    message = getString(R.string.nc_warning_delete_shared_wallet),
+                    onYesClick = {
+                        viewModel.removeRoom(roomSummary)
+                        deleteRoom(roomSummary)
+                    },
+                    onNoClick = {
+                        val position = viewModel.getVisibleRooms().indexOfFirst { it.roomId == roomSummary.roomId }
+                        if (position in 0 until adapter.itemCount) {
+                            adapter.notifyItemChanged(position)
+                        }
+                    }
+                )
+        } else {
+            viewModel.removeRoom(roomSummary)
+            deleteRoom(roomSummary)
+        }
+    }
+
+    private fun deleteRoom(roomSummary: RoomSummary) {
+        val newList = viewModel.getVisibleRooms().toMutableList().apply {
+            remove(roomSummary)
+        }
+        adapter.submitList(newList)
     }
 
     companion object {

@@ -35,17 +35,15 @@ internal class ReviewSharedWalletViewModel @Inject constructor(
         requireSigns: Int,
         signers: List<SingleSigner>
     ) {
-        sessionHolder.currentRoom?.roomId?.let {
-            initWallet(
-                roomId = it,
-                walletName = walletName,
-                walletType = walletType,
-                addressType = addressType,
-                totalSigns = totalSigns,
-                requireSigns = requireSigns,
-                signers = signers
-            )
-        }
+        initWallet(
+            roomId = sessionHolder.getActiveRoomId(),
+            walletName = walletName,
+            walletType = walletType,
+            addressType = addressType,
+            totalSigns = totalSigns,
+            requireSigns = requireSigns,
+            signers = signers
+        )
     }
 
     private fun initWallet(

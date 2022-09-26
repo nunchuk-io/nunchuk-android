@@ -1,6 +1,7 @@
-package com.nunchuk.android.messages.util
+package com.nunchuk.android.messages.components.list
 
-import com.nunchuk.android.messages.BuildConfig
+import com.nunchuk.android.core.BuildConfig
+import com.nunchuk.android.messages.util.STATE_NUNCHUK_SYNC
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 
 fun RoomSummary.getRoomName(currentName: String): String {

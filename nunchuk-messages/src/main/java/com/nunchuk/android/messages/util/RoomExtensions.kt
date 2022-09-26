@@ -1,6 +1,8 @@
 package com.nunchuk.android.messages.util
 
 import com.nunchuk.android.messages.components.detail.RoomInfo
+import com.nunchuk.android.messages.components.list.DIRECT_CHAT_MEMBERS_COUNT
+import com.nunchuk.android.messages.components.list.getRoomName
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.members.RoomMemberQueryParams

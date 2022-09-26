@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.constants.RoomAction
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.qr.convertToQRCode
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
@@ -42,18 +43,27 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(), BottomSheetOptionListener {
+class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
+    BottomSheetOptionListener {
 
     @Inject
     lateinit var textUtils: TextUtils
 
-    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        if (it.resultCode == Activity.RESULT_OK) {
-            activity?.onBackPressed()
-        }
-    }
+    @Inject
+    lateinit var sessionHolder: SessionHolder
 
-    private val controller: IntentSharingController by lazy { IntentSharingController.from(requireActivity()) }
+    private val launcher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                activity?.onBackPressed()
+            }
+        }
+
+    private val controller: IntentSharingController by lazy {
+        IntentSharingController.from(
+            requireActivity()
+        )
+    }
 
     private val viewModel: WalletDetailsViewModel by viewModels()
 
@@ -70,7 +80,9 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(), Botto
 
     private val args: WalletDetailsArgs by lazy { WalletDetailsArgs.deserializeFrom(requireArguments()) }
 
-    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentWalletDetailBinding {
+    override fun initializeBinding(
+        inflater: LayoutInflater, container: ViewGroup?
+    ): FragmentWalletDetailBinding {
         return FragmentWalletDetailBinding.inflate(inflater, container, false)
     }
 
@@ -127,8 +139,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(), Botto
         adapter.submitData(lifecycle, PagingData.empty())
         job?.cancel()
         job = lifecycleScope.launch(Dispatchers.IO) {
-            viewModel.paginateTransactions()
-                .catch { hideLoading() }
+            viewModel.paginateTransactions().catch { hideLoading() }
                 .collectLatest(adapter::submitData)
         }
     }
@@ -173,11 +184,22 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(), Botto
 
     private fun openInputAmountScreen(event: SendMoneyEvent) {
         if (event.walletExtended.isShared) {
-            navigator.openRoomDetailActivity(
-                activityContext = requireActivity(),
-                roomId = event.walletExtended.roomWallet!!.roomId,
-                roomAction = RoomAction.SEND
-            )
+            val roomWallet = event.walletExtended.roomWallet!!
+            if (viewModel.isLeaveRoom) {
+                sessionHolder.setActiveRoom(roomWallet.roomId, true)
+                navigator.openInputAmountScreen(
+                    activityContext = requireActivity(),
+                    roomId = roomWallet.roomId,
+                    walletId = roomWallet.walletId,
+                    availableAmount = event.walletExtended.wallet.balance.pureBTC()
+                )
+            } else {
+                navigator.openRoomDetailActivity(
+                    activityContext = requireActivity(),
+                    roomId = event.walletExtended.roomWallet!!.roomId,
+                    roomAction = RoomAction.SEND
+                )
+            }
         } else {
             navigator.openInputAmountScreen(
                 activityContext = requireActivity(),
@@ -212,7 +234,8 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(), Botto
     }
 
     private fun setupViews() {
-        binding.transactionList.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
+        binding.transactionList.layoutManager =
+            LinearLayoutManager(context, RecyclerView.VERTICAL, false)
         binding.transactionList.isNestedScrollingEnabled = false
         binding.transactionList.setHasFixedSize(false)
         binding.transactionList.adapter = adapter
@@ -221,7 +244,11 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(), Botto
         binding.viewWalletConfig.setOnClickListener {
             navigator.openWalletConfigScreen(launcher, requireActivity(), args.walletId)
         }
-        binding.btnReceive.setOnClickListener { navigator.openReceiveTransactionScreen(requireActivity(), args.walletId) }
+        binding.btnReceive.setOnClickListener {
+            navigator.openReceiveTransactionScreen(
+                requireActivity(), args.walletId
+            )
+        }
         binding.btnSend.setOnClickListener { viewModel.handleSendMoneyEvent() }
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressed()
@@ -253,9 +280,21 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(), Botto
 
     private fun onMoreClicked() {
         val options = listOf(
-            SheetOption(SheetOptionType.TYPE_IMPORT_PSBT, R.drawable.ic_import, R.string.nc_wallet_import_psbt),
-            SheetOption(SheetOptionType.TYPE_IMPORT_PSBT_QR, R.drawable.ic_import, R.string.nc_import_psbt_via_qr),
-            SheetOption(SheetOptionType.TYPE_SAVE_WALLET_CONFIG, R.drawable.ic_backup, R.string.nc_wallet_save_wallet_configuration),
+            SheetOption(
+                SheetOptionType.TYPE_IMPORT_PSBT,
+                R.drawable.ic_import,
+                R.string.nc_wallet_import_psbt
+            ),
+            SheetOption(
+                SheetOptionType.TYPE_IMPORT_PSBT_QR,
+                R.drawable.ic_import,
+                R.string.nc_import_psbt_via_qr
+            ),
+            SheetOption(
+                SheetOptionType.TYPE_SAVE_WALLET_CONFIG,
+                R.drawable.ic_backup,
+                R.string.nc_wallet_save_wallet_configuration
+            ),
         )
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(childFragmentManager, "BottomSheetOption")
@@ -263,8 +302,16 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(), Botto
 
     private fun showSubImportPsbtViaQr() {
         val options = listOf(
-            SheetOption(SheetOptionType.TYPE_PSBT_QR_KEY_STONE, R.drawable.ic_import, R.string.nc_wallet_import_keystone_seed_signer),
-            SheetOption(SheetOptionType.TYPE_PSBT_QR_PASSPORT, R.drawable.ic_import, R.string.nc_wallet_import_passport),
+            SheetOption(
+                SheetOptionType.TYPE_PSBT_QR_KEY_STONE,
+                R.drawable.ic_import,
+                R.string.nc_wallet_import_keystone_seed_signer
+            ),
+            SheetOption(
+                SheetOptionType.TYPE_PSBT_QR_PASSPORT,
+                R.drawable.ic_import,
+                R.string.nc_wallet_import_passport
+            ),
         )
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(childFragmentManager, "BottomSheetOption")
