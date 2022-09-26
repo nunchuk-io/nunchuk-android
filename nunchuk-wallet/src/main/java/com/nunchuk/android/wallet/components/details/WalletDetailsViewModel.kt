@@ -43,6 +43,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val sessionHolder: SessionHolder,
     private val accountManager: AccountManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val selectedWalletUseCase: SetSelectedWalletUseCase
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
 
     lateinit var walletId: String
@@ -55,6 +56,9 @@ internal class WalletDetailsViewModel @Inject constructor(
         this.walletId = walletId
         if (shouldReloadPendingTx) {
             handleLoadPendingTx()
+        }
+        viewModelScope.launch {
+            selectedWalletUseCase(walletId)
         }
     }
 
