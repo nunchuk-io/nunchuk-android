@@ -10,6 +10,7 @@ import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.transaction.R
@@ -22,7 +23,6 @@ import com.nunchuk.android.utils.textChanges
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.launchIn
@@ -57,7 +57,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         viewModel.state.observe(this, ::handleState)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+    @OptIn(FlowPreview::class)
     private fun setupViews() {
         binding.toolbarTitle.text = args.sweepType.toTitle(this)
         val subtractFeeFromAmount = args.subtractFeeFromAmount
@@ -65,7 +65,6 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         binding.subtractFeeCheckBox.isEnabled = !subtractFeeFromAmount
         viewModel.handleSubtractFeeSwitch(subtractFeeFromAmount)
 
-        binding.customizeFeeSwitch.setOnCheckedChangeListener { _, isChecked -> handleCustomizeFeeSwitch(isChecked) }
         binding.subtractFeeCheckBox.setOnCheckedChangeListener { _, isChecked -> viewModel.handleSubtractFeeSwitch(isChecked) }
         binding.manualFeeCheckBox.setOnCheckedChangeListener { _, isChecked -> handleManualFeeSwitch(isChecked) }
         binding.feeRateInput.textChanges()
@@ -97,17 +96,6 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         binding.feeRateInput.setText("${viewModel.defaultRate / 1000}")
     }
 
-    private fun handleCustomizeFeeSwitch(isChecked: Boolean) {
-        val isSendingAll = args.subtractFeeFromAmount
-        viewModel.handleCustomizeFeeSwitch(isChecked, isSendingAll)
-        if (!isChecked) {
-            if (!isSendingAll) {
-                binding.subtractFeeCheckBox.isChecked = false
-            }
-            binding.manualFeeCheckBox.isChecked = false
-        }
-    }
-
     private fun bindSubtotal(subtotal: Double) {
         binding.totalAmountBTC.text = subtotal.getBTCAmount()
         binding.totalAmountUSD.text = subtotal.getUSDAmount()
@@ -123,7 +111,6 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             bindSubtotal((args.outputAmount + state.estimatedFee.pureBTC()).coerceAtMost(args.availableAmount))
         }
 
-        binding.customizeFeeDetails.isVisible = state.customizeFeeDetails
         binding.manualFeeDetails.isVisible = state.manualFeeDetails
         bindEstimateFeeRates(state.estimateFeeRates)
     }
@@ -144,6 +131,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             )
             is EstimatedFeeEvent.Loading -> showOrHideLoading(event.isLoading)
             is EstimatedFeeEvent.InvalidManualFee -> NCToastMessage(this).showError(getString(R.string.nc_input_fee_invalid_error))
+            is EstimatedFeeEvent.GetFeeRateSuccess -> {}
         }
     }
 
@@ -199,3 +187,4 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 }
 
 internal fun Int.toFeeRate() = (this / 1000).toString() + " sat/vB"
+internal fun Int.toFeeRateInBtc() = (this / 1000).toAmount().getBTCAmount() + "/vB"

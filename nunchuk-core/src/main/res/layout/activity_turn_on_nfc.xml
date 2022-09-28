@@ -44,12 +44,11 @@
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/title"
-                style="@style/NCText.Title"
+                style="@style/NCText.Heading"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/nc_padding_16"
                 android:layout_marginTop="@dimen/nc_padding_16"
-                app:fontTextStyle="semi_bold"
                 android:text="@string/nc_please_turn_on_nfc"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/introImg" />

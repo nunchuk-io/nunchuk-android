@@ -1,6 +1,6 @@
 package com.nunchuk.android.contact.components.contacts
 
-import com.nunchuk.android.arch.ext.defaultSchedulers
+import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.contact.usecase.GetReceivedContactsUseCase
 import com.nunchuk.android.contact.usecase.GetSentContactsUseCase
@@ -14,7 +14,10 @@ import com.nunchuk.android.model.ReceiveContact
 import com.nunchuk.android.model.SentContact
 import com.nunchuk.android.share.GetContactsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.reactivex.Single
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
@@ -27,40 +30,67 @@ import javax.inject.Inject
 class ContactsViewModel @Inject constructor(
     private val getContactsUseCase: GetContactsUseCase,
     private val getSentContactsUseCase: GetSentContactsUseCase,
-    private val getReceivedContactsUseCase: GetReceivedContactsUseCase
+    private val getReceivedContactsUseCase: GetReceivedContactsUseCase,
+    private val sessionHolder: SessionHolder
 ) : NunchukViewModel<ContactsState, Unit>() {
 
     override val initialState = ContactsState.empty()
 
     private var timeline: Timeline? = null
 
+    private val timelineListenerAdapter = TimelineListenerAdapter()
+
     init {
-        SessionHolder.activeSession?.roomService()?.getRoomSummaries(roomSummaryQueryParams {
-            memberships = Membership.activeMemberships()
-        })?.find {
-            it.hasTag(STATE_ROOM_SERVER_NOTICE)
-        }?.let {
-            SessionHolder.activeSession?.roomService()?.getRoom(it.roomId)?.let(::retrieveTimelineEvents)
+        loadActiveSession()
+        viewModelScope.launch {
+            timelineListenerAdapter.data.debounce(500L).collect(::handleTimelineEvents)
+        }
+    }
+
+    fun handleMatrixSignedIn() {
+        loadActiveSession()
+    }
+
+    private fun loadActiveSession() {
+        sessionHolder.getSafeActiveSession()?.let { session ->
+            session.roomService().getRoomSummaries(roomSummaryQueryParams {
+                memberships = Membership.activeMemberships()
+            }).find { roomSummary ->
+                roomSummary.hasTag(STATE_ROOM_SERVER_NOTICE)
+            }?.let {
+                session.roomService().getRoom(it.roomId)
+                    ?.let(::retrieveTimelineEvents)
+            }
         }
     }
 
     fun retrieveContacts() {
-        getContactsUseCase.execute()
-            .defaultSchedulers()
-            .subscribe({
-                updateState { copy(contacts = it) }
-            }, {
-                updateState { copy(contacts = emptyList()) }
-            })
-            .addToDisposables()
+        viewModelScope.launch {
+            getContactsUseCase.execute()
+                .catch { updateState { copy(contacts = emptyList()) } }
+                .collect {
+                    updateState { copy(contacts = it) }
+                }
+        }
 
-        Single.zip(
-            getSentContactsUseCase.execute(),
-            getReceivedContactsUseCase.execute()
-        ) { sent, receive -> sent.map(SentContact::contact) + receive.map(ReceiveContact::contact) }
-            .defaultSchedulers()
-            .subscribe(::onPendingContactSuccess) { onPendingContactError() }
-            .addToDisposables()
+        viewModelScope.launch {
+            val sendResultDeferred = async { getSentContactsUseCase(Unit) }
+            val receivedResultDeferred = async { getReceivedContactsUseCase(Unit) }
+            val sendResult = sendResultDeferred.await()
+            val receivedResult = receivedResultDeferred.await()
+            if (sendResult.isSuccess && receivedResult.isSuccess) {
+                val sent = sendResult.getOrThrow()
+                val receive = receivedResult.getOrThrow()
+                onUpdateReceivedContactRequestCount(receive.size)
+                onPendingContactSuccess(sent.map(SentContact::contact) + receive.map(ReceiveContact::contact))
+            } else {
+                onPendingContactError()
+            }
+        }
+    }
+
+    private fun onUpdateReceivedContactRequestCount(count: Int) = postState {
+        copy(receivedContactRequestCount = count)
     }
 
     private fun onPendingContactError() {
@@ -72,11 +102,12 @@ class ContactsViewModel @Inject constructor(
     }
 
     private fun retrieveTimelineEvents(room: Room) {
-        timeline = room.timelineService().createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
-            removeAllListeners()
-            addListener(TimelineListenerAdapter(::handleTimelineEvents))
-            start()
-        }
+        timeline = room.timelineService()
+            .createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
+                removeAllListeners()
+                addListener(timelineListenerAdapter)
+                start()
+            }
     }
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {

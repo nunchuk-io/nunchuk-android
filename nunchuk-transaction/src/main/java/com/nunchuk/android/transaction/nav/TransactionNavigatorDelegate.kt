@@ -62,9 +62,11 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         walletId: String,
         outputAmount: Double,
         availableAmount: Double,
+        address: String,
+        privateNote: String,
         subtractFeeFromAmount: Boolean,
         slots: List<SatsCardSlot>,
-        sweepType: SweepType,
+        sweepType: SweepType
     ) {
         AddReceiptActivity.start(
             activityContext = activityContext,
@@ -72,6 +74,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             outputAmount = outputAmount,
             availableAmount = availableAmount,
             subtractFeeFromAmount = subtractFeeFromAmount,
+            address = address,
+            privateNote = privateNote,
             slots = slots,
             sweepType = sweepType
         )
@@ -137,29 +141,61 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         roomId: String,
         transaction: Transaction?
     ) {
-        TransactionDetailsActivity.start(
-            activityContext = activityContext,
-            walletId = walletId,
-            txId = txId,
-            initEventId = initEventId,
-            roomId = roomId,
-            transaction = transaction
+        activityContext.startActivity(
+            TransactionDetailsActivity.buildIntent(
+                activityContext = activityContext,
+                walletId = walletId,
+                txId = txId,
+                initEventId = initEventId,
+                roomId = roomId,
+                transaction = transaction
+            )
+        )
+    }
+
+    override fun openTransactionDetailsScreen(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Activity,
+        walletId: String,
+        txId: String,
+        initEventId: String,
+        roomId: String,
+        transaction: Transaction?
+    ) {
+        launcher.launch(
+            TransactionDetailsActivity.buildIntent(
+                activityContext = activityContext,
+                walletId = walletId,
+                txId = txId,
+                initEventId = initEventId,
+                roomId = roomId,
+                transaction = transaction
+            )
         )
     }
 
     override fun openImportTransactionScreen(
         activityContext: Activity,
         walletId: String,
-        transactionOption: TransactionOption
+        transactionOption: TransactionOption,
+        masterFingerPrint: String,
+        initEventId: String
     ) {
         ImportTransactionActivity.start(
             activityContext = activityContext,
             walletId = walletId,
-            transactionOption = transactionOption
+            transactionOption = transactionOption,
+            masterFingerPrint = masterFingerPrint,
+            initEventId = initEventId
         )
     }
 
-    override fun openReplaceTransactionFee(launcher: ActivityResultLauncher<Intent>, context: Context, walletId: String, txId: String) {
-        ReplaceFeeActivity.start(launcher, context, walletId, txId)
+    override fun openReplaceTransactionFee(
+        launcher: ActivityResultLauncher<Intent>,
+        context: Context,
+        walletId: String,
+        transaction: Transaction
+    ) {
+        ReplaceFeeActivity.start(launcher, context, walletId, transaction)
     }
 }

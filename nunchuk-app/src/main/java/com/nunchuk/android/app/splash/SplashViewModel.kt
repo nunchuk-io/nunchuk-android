@@ -6,6 +6,7 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
+import com.nunchuk.android.core.matrix.MatrixInitializerUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.utils.onException
@@ -18,7 +19,8 @@ import javax.inject.Inject
 @HiltViewModel
 internal class SplashViewModel @Inject constructor(
     private val initNunchukUseCase: InitNunchukUseCase,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
+    private val matrixInitializerUseCase: MatrixInitializerUseCase
 ) : NunchukViewModel<Unit, SplashEvent>() {
 
     override val initialState = Unit
@@ -34,6 +36,7 @@ internal class SplashViewModel @Inject constructor(
     private fun initFlow() {
         val account = accountManager.getAccount()
         viewModelScope.launch {
+            matrixInitializerUseCase(Unit)
             initNunchukUseCase.execute(accountId = account.email)
                 .flowOn(Dispatchers.IO)
                 .onException { event(InitErrorEvent(it.message.orUnknownError())) }

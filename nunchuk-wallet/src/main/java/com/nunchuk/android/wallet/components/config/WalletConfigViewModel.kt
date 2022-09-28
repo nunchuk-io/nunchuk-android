@@ -6,7 +6,6 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.WalletExtended
-import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
@@ -21,11 +20,7 @@ import javax.inject.Inject
 internal class WalletConfigViewModel @Inject constructor(
     private val getWalletUseCase: GetWalletUseCase,
     private val updateWalletUseCase: UpdateWalletUseCase,
-    private val exportKeystoneWalletUseCase: ExportKeystoneWalletUseCase,
-    private val exportPassportWalletUseCase: ExportPassportWalletUseCase,
-    private val createShareFileUseCase: CreateShareFileUseCase,
     private val deleteWalletUseCase: DeleteWalletUseCase,
-    private val exportWalletUseCase: ExportWalletUseCase,
     private val leaveRoomUseCase: LeaveRoomUseCase
 ) : NunchukViewModel<WalletExtended, WalletConfigEvent>() {
 
@@ -61,27 +56,6 @@ internal class WalletConfigViewModel @Inject constructor(
         }
     }
 
-
-    fun handleExportWalletQR() {
-        viewModelScope.launch {
-            exportKeystoneWalletUseCase.execute(walletId)
-                .flowOn(Dispatchers.IO)
-                .onException { showError(it) }
-                .flowOn(Dispatchers.Main)
-                .collect { event(WalletConfigEvent.OpenDynamicQRScreen(it)) }
-        }
-    }
-
-    fun handleExportPassport() {
-        viewModelScope.launch {
-            exportPassportWalletUseCase.execute(walletId)
-                .flowOn(Dispatchers.IO)
-                .onException { showError(it) }
-                .flowOn(Dispatchers.Main)
-                .collect { event(WalletConfigEvent.OpenDynamicQRScreen(it)) }
-        }
-    }
-
     private fun showError(t: Throwable) {
         event(WalletConfigEvent.WalletDetailsError(t.message.orUnknownError()))
     }
@@ -112,23 +86,4 @@ internal class WalletConfigViewModel @Inject constructor(
     }
 
     fun isSharedWallet() = getState().isShared
-
-    fun handleExportColdcard() {
-        viewModelScope.launch {
-            when (val event = createShareFileUseCase.execute(walletId + "_coldcard_export.txt")) {
-                is Result.Success -> exportWalletToFile(walletId, event.data, ExportFormat.COLDCARD)
-                is Result.Error -> showError(event.exception)
-            }
-        }
-    }
-
-    private fun exportWalletToFile(walletId: String, filePath: String, format: ExportFormat) {
-        viewModelScope.launch {
-            when (val event = exportWalletUseCase.execute(walletId, filePath, format)) {
-                is Result.Success -> event(WalletConfigEvent.UploadWalletConfigEvent(filePath))
-                is Result.Error -> showError(event.exception)
-            }
-        }
-    }
-
 }

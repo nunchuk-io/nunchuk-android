@@ -26,9 +26,6 @@ internal interface AuthDomainModule {
     fun bindForgotPasswordUseCase(useCase: ForgotPasswordUseCaseImpl): ForgotPasswordUseCase
 
     @Binds
-    fun bindGetCurrentUserUseCase(useCase: GetCurrentUserUseCaseImpl): GetCurrentUserUseCase
-
-    @Binds
     fun bindVerifyNewDeviceUseCase(useCase: VerifyNewDeviceUseCaseImpl): VerifyNewDeviceUseCase
 
 }

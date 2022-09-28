@@ -2,61 +2,37 @@ package com.nunchuk.android.contact.repository
 
 import com.nunchuk.android.contact.api.*
 import com.nunchuk.android.contact.mapper.*
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.ReceiveContact
 import com.nunchuk.android.model.SentContact
+import com.nunchuk.android.model.UserResponse
 import com.nunchuk.android.persistence.dao.ContactDao
 import com.nunchuk.android.persistence.entity.ContactEntity
 import com.nunchuk.android.persistence.updateOrInsert
-import io.reactivex.Completable
-import io.reactivex.Flowable
-import io.reactivex.Single
+import com.nunchuk.android.repository.ContactsRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-interface ContactsRepository {
-
-    fun getLocalContacts(accountId: String): Flowable<List<Contact>>
-
-    fun getRemoteContacts(accountId: String): Completable
-
-    fun addContacts(emails: List<String>): Flow<List<String>>
-
-    fun getPendingSentContacts(): Single<List<SentContact>>
-
-    fun getPendingApprovalContacts(): Single<List<ReceiveContact>>
-
-    fun acceptContact(contactId: String): Completable
-
-    fun cancelContact(contactId: String): Completable
-
-    fun searchContact(email: String): Flow<UserResponse>
-
-    fun autoCompleteSearch(keyword: String): Flow<List<UserResponse>>
-
-    fun updateContact(imageUrl: String): Flow<UserResponse>
-
-    fun invite(friendEmails: List<String>): Flow<Unit>
-
-}
-
 internal class ContactsRepositoryImpl @Inject constructor(
     private val api: ContactApi,
-    private val contactDao: ContactDao
+    private val contactDao: ContactDao,
+    private val accountManager: AccountManager
 ) : ContactsRepository {
 
     override fun getLocalContacts(accountId: String) = contactDao.getContacts(accountId).map(List<ContactEntity>::toModels)
 
-    override fun getRemoteContacts(accountId: String) = Completable.fromCallable {
-        val response = api.getContacts().blockingGet()
+    override suspend fun getRemoteContacts(accountId: String) {
+        val response = api.getContacts()
         saveDatabase(accountId, response.data.users)
     }
 
-    private fun saveDatabase(accountId: String, remoteContacts: List<UserResponse>) {
+    private suspend fun saveDatabase(accountId: String, remoteContacts: List<UserResponse>) {
         val remoteContactIds = remoteContacts.map(UserResponse::id)
-        val localContacts = contactDao.getContacts(accountId).blockingFirst()
+        val localContacts = contactDao.getContacts(accountId).first()
         val localContactIds = localContacts.map(ContactEntity::id)
         val oldContactIds = localContacts.filterNot { remoteContactIds.contains(it.id) }.map(ContactEntity::id)
         val newContacts = remoteContacts.filterNot { localContactIds.contains(it.id) }
@@ -81,16 +57,22 @@ internal class ContactsRepositoryImpl @Inject constructor(
         emit(api.addContacts(payload))
     }.map { it.data.failedEmails ?: emptyList() }
 
-    override fun getPendingSentContacts() = api.getPendingSentContacts().map { it.data.users.toSentContacts() }
+    override suspend fun getPendingSentContacts(): List<SentContact> {
+        val result = api.getPendingSentContacts()
+        return result.data.users.toSentContacts()
+    }
 
-    override fun getPendingApprovalContacts() = api.getPendingApprovalContacts().map { it.data.users.toReceiveContacts() }
+    override suspend fun getPendingApprovalContacts(): List<ReceiveContact> {
+        val result = api.getPendingApprovalContacts()
+        return result.data.users.toReceiveContacts()
+    }
 
-    override fun acceptContact(contactId: String): Completable {
+    override suspend fun acceptContact(contactId: String) {
         val payload = AcceptRequestPayload(contactId)
         return api.acceptContact(payload)
     }
 
-    override fun cancelContact(contactId: String): Completable {
+    override suspend fun cancelContact(contactId: String) {
         val payload = CancelRequestPayload(contactId)
         return api.cancelRequest(payload)
     }
@@ -113,6 +95,10 @@ internal class ContactsRepositoryImpl @Inject constructor(
         emit(
             api.updateContact(payload).data.user
         )
+    }
+
+    override suspend fun getContact(chatId: String) : Contact? {
+        return contactDao.getContact(accountManager.getAccount().email, chatId)?.toModel()
     }
 
     override fun invite(friendEmails: List<String>) = flow {

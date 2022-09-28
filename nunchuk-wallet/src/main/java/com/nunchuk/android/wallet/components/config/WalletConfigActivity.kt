@@ -7,31 +7,31 @@ import android.os.Bundle
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
-import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
-import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.checkReadExternalPermission
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameSuccessEvent
+import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent
 import com.nunchuk.android.wallet.databinding.ActivityWalletConfigBinding
 import com.nunchuk.android.wallet.util.toReadableString
+import com.nunchuk.android.widget.NCDeleteConfirmationDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class WalletConfigActivity : BaseActivity<ActivityWalletConfigBinding>(), BottomSheetOptionListener {
+class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBinding>() {
 
     private val viewModel: WalletConfigViewModel by viewModels()
 
@@ -48,15 +48,15 @@ class WalletConfigActivity : BaseActivity<ActivityWalletConfigBinding>(), Bottom
         setupViews()
         observeEvent()
         viewModel.init(args.walletId)
+        sharedViewModel.init(args.walletId)
     }
 
     override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
         when (option.type) {
             SheetOptionType.TYPE_EXPORT_AS_QR -> showSubOptionsExportQr()
-            SheetOptionType.TYPE_EXPORT_KEYSTONE_QR -> viewModel.handleExportWalletQR()
-            SheetOptionType.TYPE_EXPORT_PASSPORT_QR -> viewModel.handleExportPassport()
             SheetOptionType.TYPE_DELETE_WALLET -> handleDeleteWallet()
-            SheetOptionType.TYPE_EXPORT_TO_COLD_CARD -> handleExportColdcard()
+            SheetOptionType.TYPE_EXPORT_TO_COLD_CARD -> showExportColdcardOptions()
         }
     }
 
@@ -67,7 +67,16 @@ class WalletConfigActivity : BaseActivity<ActivityWalletConfigBinding>(), Bottom
                 onYesClick = { viewModel.handleDeleteWallet() }
             )
         } else {
-            viewModel.handleDeleteWallet()
+            NCDeleteConfirmationDialog(this).showDialog(
+                message = getString(R.string.nc_are_you_sure_to_delete_wallet),
+                onConfirmed = {
+                    if (it.trim() == CONFIRMATION_TEXT) {
+                        viewModel.handleDeleteWallet()
+                    } else {
+                        NCToastMessage(this).showWarning(getString(R.string.nc_incorrect))
+                    }
+                }
+            )
         }
     }
 
@@ -76,13 +85,18 @@ class WalletConfigActivity : BaseActivity<ActivityWalletConfigBinding>(), Bottom
         viewModel.event.observe(this, ::handleEvent)
     }
 
+    override fun handleSharedEvent(event: UploadConfigurationEvent) {
+        super.handleSharedEvent(event)
+        if (event is UploadConfigurationEvent.ExportColdcardSuccess && event.filePath.isNullOrEmpty().not()) {
+            shareConfigurationFile(event.filePath.orEmpty())
+        }
+    }
+
     private fun handleEvent(event: WalletConfigEvent) {
         when (event) {
             UpdateNameSuccessEvent -> showEditWalletSuccess()
             is UpdateNameErrorEvent -> NCToastMessage(this).showWarning(event.message)
-            is WalletConfigEvent.OpenDynamicQRScreen -> navigator.openDynamicQRScreen(this, event.descriptors)
             WalletConfigEvent.DeleteWalletSuccess -> walletDeleted()
-            is WalletConfigEvent.UploadWalletConfigEvent -> shareConfigurationFile(event.filePath)
             is WalletConfigEvent.WalletDetailsError -> onGetWalletError(event)
         }
     }
@@ -122,7 +136,7 @@ class WalletConfigActivity : BaseActivity<ActivityWalletConfigBinding>(), Bottom
         }
         binding.walletName.setOnClickListener { onEditClicked() }
         binding.btnDone.setOnClickListener {
-            navigator.openMainScreen(this)
+            finish()
         }
         binding.toolbar.setNavigationOnClickListener { finish() }
     }
@@ -131,16 +145,7 @@ class WalletConfigActivity : BaseActivity<ActivityWalletConfigBinding>(), Bottom
         val options = listOf(
             SheetOption(SheetOptionType.TYPE_EXPORT_AS_QR, R.drawable.ic_qr, R.string.nc_show_as_qr_code),
             SheetOption(SheetOptionType.TYPE_EXPORT_TO_COLD_CARD, R.drawable.ic_export, R.string.nc_wallet_export_coldcard),
-            SheetOption(SheetOptionType.TYPE_DELETE_WALLET, R.drawable.ic_delete, R.string.nc_wallet_delete_wallet),
-        )
-        val bottomSheet = BottomSheetOption.newInstance(options)
-        bottomSheet.show(supportFragmentManager, "BottomSheetOption")
-    }
-
-    private fun showSubOptionsExportQr() {
-        val options = listOf(
-            SheetOption(SheetOptionType.TYPE_EXPORT_KEYSTONE_QR, R.drawable.ic_qr, R.string.nc_export_as_qr_keystone),
-            SheetOption(SheetOptionType.TYPE_EXPORT_PASSPORT_QR, R.drawable.ic_qr, R.string.nc_export_as_passport),
+            SheetOption(SheetOptionType.TYPE_DELETE_WALLET, R.drawable.ic_delete_red, R.string.nc_wallet_delete_wallet, isDeleted = true),
         )
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(supportFragmentManager, "BottomSheetOption")
@@ -159,13 +164,8 @@ class WalletConfigActivity : BaseActivity<ActivityWalletConfigBinding>(), Bottom
         binding.root.post { NCToastMessage(this).show(R.string.nc_text_change_wallet_success) }
     }
 
-    private fun handleExportColdcard() {
-        if (checkReadExternalPermission()) {
-            viewModel.handleExportColdcard()
-        }
-    }
-
     companion object {
+        private const val CONFIRMATION_TEXT = "DELETE"
 
         fun start(activityContext: Context, walletId: String) {
             activityContext.startActivity(WalletConfigArgs(walletId = walletId).buildIntent(activityContext))

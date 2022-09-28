@@ -15,6 +15,8 @@ data class AddReceiptArgs(
     val availableAmount: Double,
     val subtractFeeFromAmount: Boolean = false,
     val slots: List<SatsCardSlot>,
+    val address: String = "",
+    val privateNote: String = "",
     val sweepType: SweepType
 ) : ActivityArgs {
 
@@ -24,6 +26,8 @@ data class AddReceiptArgs(
         putExtra(EXTRA_AVAILABLE_AMOUNT, availableAmount)
         putExtra(EXTRA_SUBTRACT_FEE, subtractFeeFromAmount)
         putExtra(EXTRA_SWEEP_TYPE, sweepType)
+        putExtra(EXTRA_ADDRESS, address)
+        putExtra(EXTRA_PRIVATE_NOTE, privateNote)
         putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
     }
 
@@ -34,6 +38,8 @@ data class AddReceiptArgs(
         private const val EXTRA_SUBTRACT_FEE = "EXTRA_SUBTRACT_FEE"
         private const val EXTRA_SLOTS = "EXTRA_SLOTS"
         private const val EXTRA_SWEEP_TYPE = "EXTRA_SWEEP_TYPE"
+        private const val EXTRA_ADDRESS = "EXTRA_ADDRESS"
+        private const val EXTRA_PRIVATE_NOTE = "EXTRA_PRIVATE_NOTE"
 
         fun deserializeFrom(intent: Intent) = AddReceiptArgs(
             intent.extras.getStringValue(EXTRA_WALLET_ID),
@@ -41,6 +47,8 @@ data class AddReceiptArgs(
             intent.extras.getDoubleValue(EXTRA_AVAILABLE_AMOUNT),
             intent.extras.getBooleanValue(EXTRA_SUBTRACT_FEE),
             intent.extras!!.getParcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
+            intent.extras.getStringValue(EXTRA_ADDRESS),
+            intent.extras.getStringValue(EXTRA_PRIVATE_NOTE),
             intent.extras!!.getSerializable(EXTRA_SWEEP_TYPE) as SweepType
         )
     }

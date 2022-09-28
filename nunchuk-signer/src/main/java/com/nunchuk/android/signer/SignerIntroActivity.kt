@@ -9,12 +9,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.core.nfc.BaseNfcActivity
-import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.signer.databinding.ActivitySignerIntroBinding
 import com.nunchuk.android.signer.nfc.NfcSetupActivity
 import com.nunchuk.android.signer.nfc.SetUpNfcOptionSheet
-import com.nunchuk.android.signer.util.showNfcAlreadyAdded
-import com.nunchuk.android.signer.util.showSetupNfc
+import com.nunchuk.android.signer.util.handleTapSignerStatus
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
@@ -22,8 +20,7 @@ import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
 class SignerIntroActivity : BaseNfcActivity<ActivitySignerIntroBinding>(), SetUpNfcOptionSheet.OptionClickListener {
-    private val viewModel : SignerIntroViewModel by viewModels()
-    private val tapSignerStatus : TapSignerStatus? by lazy { intent.getParcelableExtra(EXTRA_TAP_SIGNER_STATUS) }
+    private val viewModel: SignerIntroViewModel by viewModels()
 
     override fun initializeBinding() = ActivitySignerIntroBinding.inflate(layoutInflater)
 
@@ -33,13 +30,16 @@ class SignerIntroActivity : BaseNfcActivity<ActivitySignerIntroBinding>(), SetUp
         setLightStatusBar()
         setupViews()
         observer()
-        handleTapSignerStatus(tapSignerStatus)
     }
 
     override fun onOptionClickListener(option: SetUpNfcOptionSheet.SetUpNfcOption) {
-        when(option) {
+        when (option) {
             SetUpNfcOptionSheet.SetUpNfcOption.ADD_NEW -> startNfcFlow(REQUEST_NFC_STATUS)
             SetUpNfcOptionSheet.SetUpNfcOption.RECOVER -> NfcSetupActivity.navigate(this, NfcSetupActivity.RECOVER_NFC)
+            SetUpNfcOptionSheet.SetUpNfcOption.Mk4 -> {
+                navigator.openSetupMk4(this)
+                finish()
+            }
         }
     }
 
@@ -69,8 +69,12 @@ class SignerIntroActivity : BaseNfcActivity<ActivitySignerIntroBinding>(), SetUp
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.event.collect {
                     showOrHideLoading(it is SignerIntroState.Loading, message = getString(R.string.nc_keep_holding_nfc))
-                    when(it) {
-                        is SignerIntroState.GetTapSignerStatusSuccess -> handleTapSignerStatus(it.status)
+                    when (it) {
+                        is SignerIntroState.GetTapSignerStatusSuccess -> handleTapSignerStatus(
+                            it.status,
+                            onCreateSigner = ::navigateToAddNfcKeySigner,
+                            onSetupNfc = ::navigateToSetupNfc
+                        )
                         is SignerIntroState.GetTapSignerStatusError -> {
                             val message = it.e?.message.orEmpty()
                             if (message.isNotEmpty()) {
@@ -105,27 +109,9 @@ class SignerIntroActivity : BaseNfcActivity<ActivitySignerIntroBinding>(), SetUp
         NfcSetupActivity.navigate(this, NfcSetupActivity.ADD_KEY)
     }
 
-    private fun handleTapSignerStatus(status: TapSignerStatus?) {
-        status ?: return
-        if (status.isNeedSetup.not()) {
-            if (status.isCreateSigner) {
-                showNfcAlreadyAdded()
-            } else {
-                navigateToAddNfcKeySigner()
-            }
-        } else {
-            showSetupNfc {
-                navigateToSetupNfc()
-            }
-        }
-    }
-
     companion object {
-        private const val EXTRA_TAP_SIGNER_STATUS = "EXTRA_TAP_SIGNER_STATUS"
-        fun start(activityContext: Context, tapSignerStatus: TapSignerStatus? = null) {
-            activityContext.startActivity(Intent(activityContext, SignerIntroActivity::class.java).apply {
-                putExtra(EXTRA_TAP_SIGNER_STATUS, tapSignerStatus)
-            })
+        fun start(activityContext: Context) {
+            activityContext.startActivity(Intent(activityContext, SignerIntroActivity::class.java))
         }
     }
 }

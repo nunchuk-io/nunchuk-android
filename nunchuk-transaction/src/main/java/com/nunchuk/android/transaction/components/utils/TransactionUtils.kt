@@ -2,6 +2,7 @@ package com.nunchuk.android.transaction.components.utils
 
 import android.content.Context
 import com.nunchuk.android.core.nfc.SweepType
+import com.nunchuk.android.model.BtcUri
 import com.nunchuk.android.transaction.R
 
 fun SweepType.toTitle(context: Context) = when (this) {
@@ -11,3 +12,6 @@ fun SweepType.toTitle(context: Context) = when (this) {
     SweepType.SWEEP_TO_EXTERNAL_ADDRESS,
     SweepType.UNSEAL_SWEEP_TO_EXTERNAL_ADDRESS -> context.getString(R.string.nc_sweep_to_an_address)
 }
+
+val BtcUri.privateNote: String
+    get() = message.ifEmpty { label }

@@ -1,8 +1,8 @@
 package com.nunchuk.android.share
 
 import com.nunchuk.android.model.Contact
-import io.reactivex.Flowable
+import kotlinx.coroutines.flow.Flow
 
 interface GetContactsUseCase {
-    fun execute(): Flowable<List<Contact>>
+    fun execute(): Flow<List<Contact>>
 }

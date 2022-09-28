@@ -78,11 +78,11 @@ interface WalletNavigatorDelegate : WalletNavigator {
         )
     }
 
-    override fun openBackupWalletScreen(activityContext: Context, walletId: String, totalRequireSigns: Int, isQuickWallet: Boolean) {
+    override fun openBackupWalletScreen(activityContext: Context, walletId: String, numberOfSignKey: Int, isQuickWallet: Boolean) {
         BackupWalletActivity.start(
             activityContext = activityContext,
             walletId = walletId,
-            totalRequireSigns = totalRequireSigns,
+            totalRequireSigns = numberOfSignKey,
             isQuickWallet = isQuickWallet
         )
     }

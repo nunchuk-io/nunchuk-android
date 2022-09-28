@@ -1,3 +1,39 @@
+## [1.9.19]
+
+### Feature
+
+- [NUN-1192](https://nunchuck.atlassian.net/browse/NUN-1192)
+- Minimum number of Total Keys in a collab wallet should be max(2, number of members in room)
+- [NUN-1882](https://nunchuck.atlassian.net/browse/NUN-1882)
+- Call NunchukMatrixImpl::SignAirgapTransaction for MK4 NFC
+- [NUN-1869](https://nunchuck.atlassian.net/browse/NUN-1869)
+- Updated send flow
+- [NUN-1764](https://nunchuck.atlassian.net/browse/NUN-1764)
+- Sign airgap transaction
+- Implement integration with Mk4
+- [NUN-1866](https://nunchuck.atlassian.net/browse/NUN-1866)
+- Make address and tx id copyable
+- [NUN-1854](https://nunchuck.atlassian.net/browse/NUN-1854)
+- NFC new icon
+- [NUN-398](https://nunchuck.atlassian.net/browse/NUN-398)
+- Wallet config styling fix + functionality
+- [NUN-1774](https://nunchuck.atlassian.net/browse/NUN-1774)
+- Replace by fee new UI
+
+### Fixed
+
+- Rewrite matrix flow
+- [NUN-70](https://nunchuck.atlassian.net/browse/NUN-70)
+- Only accept (auto-join) room requests from our Contacts
+- [NUN-661](https://nunchuck.atlassian.net/browse/NUN-661)
+- Transaction canceled in chat is not removed in wallet
+- [NUN-1408](https://nunchuck.atlassian.net/browse/NUN-1408)
+- Large psbt: can not create transaction
+- [NUN-803](https://nunchuck.atlassian.net/browse/NUN-803)
+- Wallet empty state missing copied address and share address button
+- [NUN-1600](https://nunchuck.atlassian.net/browse/NUN-1600)
+- Contacts tab: Request does not count received request
+
 ## [1.9.18]
 
 ### Feature

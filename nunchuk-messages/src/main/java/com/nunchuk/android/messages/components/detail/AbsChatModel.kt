@@ -4,11 +4,11 @@ sealed class AbsChatModel {
     abstract fun getType(): Int
 }
 
-class DateModel(val date: String) : AbsChatModel() {
+data class DateModel(val date: String) : AbsChatModel() {
     override fun getType() = MessageType.TYPE_DATE.index
 }
 
-class MessageModel(val message: Message) : AbsChatModel() {
+data class MessageModel(val message: Message) : AbsChatModel() {
     override fun getType() = message.type
 }
 

@@ -34,6 +34,8 @@ interface TransactionNavigator {
         walletId: String,
         outputAmount: Double,
         availableAmount: Double,
+        address: String = "",
+        privateNote: String = "",
         subtractFeeFromAmount: Boolean = false,
         slots: List<SatsCardSlot> = emptyList(),
         sweepType: SweepType = SweepType.NONE
@@ -69,7 +71,17 @@ interface TransactionNavigator {
         activityContext: Activity,
         walletId: String,
         txId: String,
-        initEventId: String,
+        initEventId: String = "",
+        roomId: String,
+        transaction: Transaction? = null
+    )
+
+    fun openTransactionDetailsScreen(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Activity,
+        walletId: String,
+        txId: String,
+        initEventId: String = "",
         roomId: String,
         transaction: Transaction? = null
     )
@@ -77,10 +89,12 @@ interface TransactionNavigator {
     fun openImportTransactionScreen(
         activityContext: Activity,
         walletId: String,
-        transactionOption: TransactionOption
+        transactionOption: TransactionOption,
+        masterFingerPrint: String = "",
+        initEventId: String = ""
     )
 
     fun openReplaceTransactionFee(
-        launcher: ActivityResultLauncher<Intent>, context: Context, walletId: String, txId: String
+        launcher: ActivityResultLauncher<Intent>, context: Context, walletId: String, transaction: Transaction
     )
 }

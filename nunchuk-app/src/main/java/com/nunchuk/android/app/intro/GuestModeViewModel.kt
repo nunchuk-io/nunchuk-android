@@ -23,12 +23,14 @@ internal class GuestModeViewModel @Inject constructor(
     fun initGuestModeNunchuk() {
         viewModelScope.launch {
             initNunchukUseCase.execute(accountId = "")
-                .onStart { event(GuestModeEvent.LoadingEvent(true)) }
                 .flowOn(Dispatchers.IO)
+                .onStart { setEvent(GuestModeEvent.LoadingEvent(true)) }
                 .onException { event(GuestModeEvent.InitErrorEvent(it.message.orUnknownError())) }
-                .flowOn(Dispatchers.Main)
-                .collect { event(GuestModeEvent.InitSuccessEvent) }
+                .collect { setEvent(GuestModeEvent.InitSuccessEvent) }
         }
     }
 
+    fun openSignInScreen() {
+        setEvent(GuestModeEvent.OpenSignInScreen)
+    }
 }

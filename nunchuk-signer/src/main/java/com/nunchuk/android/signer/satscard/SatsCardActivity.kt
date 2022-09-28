@@ -3,16 +3,16 @@ package com.nunchuk.android.signer.satscard
 import android.app.Activity
 import android.os.Bundle
 import androidx.navigation.fragment.NavHostFragment
-import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.signer.R
-import com.nunchuk.android.signer.databinding.ActivitySatsCardBinding
+import com.nunchuk.android.signer.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class SatsCardActivity : BaseActivity<ActivitySatsCardBinding>() {
-    override fun initializeBinding(): ActivitySatsCardBinding {
-        return ActivitySatsCardBinding.inflate(layoutInflater)
+class SatsCardActivity : BaseNfcActivity<ActivityNavigationBinding>() {
+    override fun initializeBinding(): ActivityNavigationBinding {
+        return ActivityNavigationBinding.inflate(layoutInflater)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

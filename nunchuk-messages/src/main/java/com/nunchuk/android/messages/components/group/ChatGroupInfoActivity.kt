@@ -13,8 +13,8 @@ import com.nunchuk.android.messages.components.group.ChatGroupInfoOption.*
 import com.nunchuk.android.messages.components.group.action.AddMembersBottomSheet
 import com.nunchuk.android.messages.components.group.action.EditGroupNameBottomSheet
 import com.nunchuk.android.messages.components.group.members.GroupMembersActivity
+import com.nunchuk.android.messages.components.list.getMembersCount
 import com.nunchuk.android.messages.databinding.ActivityGroupChatInfoBinding
-import com.nunchuk.android.messages.util.getMembersCount
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint

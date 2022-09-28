@@ -1,6 +1,7 @@
 package com.nunchuk.android.messages.usecase.message
 
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.messages.model.RoomCreationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -16,8 +17,9 @@ interface CreateRoomUseCase {
 }
 
 internal class CreateRoomUseCaseImpl @Inject constructor(
-    private val accountManager: AccountManager
-) : BaseMessageUseCase(), CreateRoomUseCase {
+    private val accountManager: AccountManager,
+    sessionHolder: SessionHolder
+) : BaseMessageUseCase(sessionHolder), CreateRoomUseCase {
 
     override fun execute(displayName: String, invitedUserIds: List<String>, enableEncryption: Boolean) = flow {
         val params = CreateRoomParams().apply {

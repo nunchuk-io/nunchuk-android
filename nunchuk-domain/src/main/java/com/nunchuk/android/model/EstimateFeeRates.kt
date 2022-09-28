@@ -6,3 +6,6 @@ data class EstimateFeeRates(
     val economicRate: Int = 1000,
     val minimumFee: Int = 1000,
 )
+
+val EstimateFeeRates.defaultRate: Int
+    get() = economicRate

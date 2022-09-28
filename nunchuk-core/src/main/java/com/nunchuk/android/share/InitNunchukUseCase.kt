@@ -24,7 +24,8 @@ interface InitNunchukUseCase {
 internal class InitNunchukUseCaseImpl @Inject constructor(
     private val getAppSettingUseCase: GetAppSettingUseCase,
     private val nativeSdk: NunchukNativeSdk,
-    private val deviceManager: DeviceManager
+    private val deviceManager: DeviceManager,
+    private val sessionHolder: SessionHolder
 ) : InitNunchukUseCase {
 
     override fun execute(
@@ -46,8 +47,8 @@ internal class InitNunchukUseCaseImpl @Inject constructor(
     private fun initReceiver() {
         SendEventHelper.executor = object : SendEventExecutor {
             override fun execute(roomId: String, type: String, content: String, ignoreError: Boolean): String {
-                if (SessionHolder.hasActiveSession()) {
-                    SessionHolder.activeSession?.roomService()?.getRoom(roomId)?.apply {
+                if (sessionHolder.hasActiveSession()) {
+                    sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomId)?.apply {
                         trySafe { sendService().sendEvent(eventType = type, content = content.toMatrixContent()) }
                     }
                 }

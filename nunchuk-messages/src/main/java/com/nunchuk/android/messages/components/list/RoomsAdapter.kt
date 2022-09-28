@@ -1,11 +1,11 @@
 package com.nunchuk.android.messages.components.list
 
-import android.util.SparseArray
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isVisible
-import com.nunchuk.android.core.base.ItemComparator
-import com.nunchuk.android.core.base.RecyclerAdapter
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.messages.databinding.ItemRoomBinding
 import com.nunchuk.android.messages.util.*
@@ -16,31 +16,37 @@ import java.util.*
 class RoomAdapter(
     private val currentName: String,
     private val enterRoom: (RoomSummary) -> Unit,
-    private val removeRoom: (RoomSummary) -> Unit
-) : RecyclerAdapter<RoomViewHolder, RoomSummary>(
-    comparator = RoomSummaryComparator
+    private val removeRoom: (RoomSummary, hasSharedWallet: Boolean) -> Unit
+) : ListAdapter<RoomSummary, RoomViewHolder>(
+    RoomSummaryComparator
 ) {
 
     val roomWallets: MutableSet<String> = mutableSetOf()
 
-    override fun getViewHolder(parent: ViewGroup, viewType: Int) = RoomViewHolder(
-        ItemRoomBinding.inflate(LayoutInflater.from(parent.context), parent, false),
-        roomWallets,
-        currentName,
-        enterRoom,
-        removeRoom
-    )
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RoomViewHolder {
+        return RoomViewHolder(
+            ItemRoomBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+            roomWallets,
+            currentName,
+            enterRoom,
+            removeRoom
+        )
+    }
+
+    override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
+        holder.bind(getItem(position))
+    }
 }
 
 class RoomViewHolder(
-    binding: ItemRoomBinding,
+    private val binding: ItemRoomBinding,
     private val roomWallets: MutableSet<String>,
     private val currentName: String,
     private val enterRoom: (RoomSummary) -> Unit,
-    private val removeRoom: (RoomSummary) -> Unit
-) : RecyclerAdapter.BaseViewHolder<ItemRoomBinding, RoomSummary>(binding) {
+    private val removeRoom: (RoomSummary, hasSharedWallet: Boolean) -> Unit
+) : RecyclerView.ViewHolder(binding.root) {
 
-    override fun bind(data: RoomSummary) {
+    fun bind(data: RoomSummary) {
         val roomName = data.getRoomName(currentName)
         binding.name.text = roomName
         data.latestPreviewableEvent?.let {
@@ -64,7 +70,7 @@ class RoomViewHolder(
         binding.encryptedIcon.isVisible = data.isEncrypted
 
         binding.itemLayout.setOnClickListener { enterRoom(data) }
-        binding.delete.setOnClickListener { removeRoom(data) }
+        binding.delete.setOnClickListener { removeRoom(data, binding.shareIcon.isVisible) }
 
         binding.swipeLayout.showMode = SwipeLayout.ShowMode.LayDown
         binding.swipeLayout.addDrag(SwipeLayout.DragEdge.Left, binding.actionLayout)
@@ -79,10 +85,9 @@ class RoomViewHolder(
             binding.count.text = "99+"
         }
     }
-
 }
 
-object RoomSummaryComparator : ItemComparator<RoomSummary> {
+object RoomSummaryComparator : DiffUtil.ItemCallback<RoomSummary>() {
 
     override fun areItemsTheSame(
         item1: RoomSummary,
@@ -90,11 +95,6 @@ object RoomSummaryComparator : ItemComparator<RoomSummary> {
     ) = (item1.roomId == item2.roomId)
 
     override fun areContentsTheSame(item1: RoomSummary, item2: RoomSummary): Boolean {
-        return item1.roomId == item2.roomId
-                && item1.roomType == item2.roomType
-                && item1.hasUnreadMessages == item2.hasUnreadMessages
-                && item1.hasNewMessages == item2.hasNewMessages
-                && item1.notificationCount == item2.notificationCount
-                && item1.latestPreviewableEvent?.root?.originServerTs == item2.latestPreviewableEvent?.root?.originServerTs
+        return item1 == item2
     }
 }

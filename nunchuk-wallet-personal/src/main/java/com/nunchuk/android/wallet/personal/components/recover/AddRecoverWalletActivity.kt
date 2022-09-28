@@ -15,14 +15,13 @@ import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
-// TODO: merge with AddWalletActivity later to avoid duplicate code
 @AndroidEntryPoint
 class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>() {
 
     private val viewModel: RecoverWalletViewModel by viewModels()
 
-    private val recoverWalletData: RecoverWalletData?
-        get() = intent.getParcelableExtra(EXTRAS_DATA)
+    private val recoverWalletData: RecoverWalletData
+        get() = intent.getParcelableExtra(EXTRAS_DATA)!!
 
     override fun initializeBinding() = ActivityAddRecoverWalletBinding.inflate(layoutInflater)
 
@@ -59,13 +58,13 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
 
     private fun handleWalletSetupDoneEvent() {
         val walletName = viewModel.walletName
-        if (recoverWalletData?.type == RecoverWalletType.FILE) {
-            val filePath = recoverWalletData?.filePath
+        if (recoverWalletData.type == RecoverWalletType.FILE) {
+            val filePath = recoverWalletData.filePath
             if (walletName != null && filePath != null) {
                 importWallet(walletName, filePath)
             }
         } else {
-            val walletId = recoverWalletData?.walletId
+            val walletId = recoverWalletData.walletId
             if (walletName != null && walletId != null) {
                 updateWallet(walletName, walletId)
             }
@@ -105,16 +104,13 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
 
     private fun setupViews() {
         binding.walletName.getEditTextView().filters = arrayOf(LengthFilter(MAX_LENGTH))
-        binding.walletName.addTextChangedCallback(viewModel::updateWalletName)
+        if (recoverWalletData.type == RecoverWalletType.COLDCARD) {
+            binding.walletName.getEditTextView().setText("${getString(R.string.nc_my_coldcard)} wallet")
+        }
         binding.walletName.addTextChangedCallback(viewModel::updateWalletName)
 
         binding.toolbar.setNavigationOnClickListener {
-            if (recoverWalletData?.type == RecoverWalletType.QR_CODE ) {
-                recoverWalletData?.walletId?.let {
-                    openWalletConfigScreen(it)
-                }
-            }
-            finish()
+            onBackPressed()
         }
 
         binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }
@@ -126,8 +122,8 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
     }
 
     override fun onBackPressed() {
-        if (recoverWalletData?.type == RecoverWalletType.QR_CODE ) {
-            recoverWalletData?.walletId?.let {
+        if (recoverWalletData.walletId.isNullOrEmpty().not()) {
+            recoverWalletData.walletId?.let {
                 openWalletConfigScreen(it)
             }
         }

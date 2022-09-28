@@ -1,23 +1,22 @@
 package com.nunchuk.android.messages.components.detail
 
+import android.app.Activity
 import android.content.Context
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.core.loader.ImageLoader
-import com.nunchuk.android.core.matrix.MatrixEvenBus
-import com.nunchuk.android.core.matrix.MatrixEvent
-import com.nunchuk.android.core.matrix.MatrixEventListener
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.hideKeyboard
-import com.nunchuk.android.core.util.observable
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.databinding.ActivityRoomDetailBinding
@@ -26,6 +25,8 @@ import com.nunchuk.android.model.TransactionExtended
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.*
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -38,19 +39,31 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
     private val args: RoomDetailArgs by lazy { RoomDetailArgs.deserializeFrom(intent) }
 
-    private var adapter: MessagesAdapter? = null
+    private val adapter: MessagesAdapter by lazy(LazyThreadSafetyMode.NONE) {
+        MessagesAdapter(
+            imageLoader = imageLoader,
+            cancelWallet = viewModel::cancelWallet,
+            denyWallet = viewModel::denyWallet,
+            viewWalletConfig = viewModel::viewConfig,
+            finalizeWallet = viewModel::finalizeWallet,
+            viewTransaction = ::openTransactionDetails,
+            dismissBannerNewChatListener = viewModel::hideBannerNewChat,
+            createSharedWalletListener = ::sendBTCAction,
+            senderLongPressListener = ::showSelectMessageBottomSheet,
+            onMessageRead = viewModel::markMessageRead,
+            toggleSelected = viewModel::toggleSelected
+        )
+    }
+
+    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            viewModel.getTransactions()
+        }
+    }
 
     private lateinit var stickyBinding: ViewWalletStickyBinding
 
     private var selectMessageActionView: View? = null
-
-    private var selectMode: Boolean by observable(false, ::setupViewForSelectMode)
-
-    private val matrixEventListener: MatrixEventListener = {
-        if (it === MatrixEvent.RoomTransactionCreated) {
-            viewModel.handleRoomTransactionCreated()
-        }
-    }
 
     override fun initializeBinding() = ActivityRoomDetailBinding.inflate(layoutInflater)
 
@@ -62,12 +75,6 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         observeEvent()
         viewModel.initialize(args.roomId)
         viewModel.checkShowBannerNewChat()
-        MatrixEvenBus.instance.subscribe(matrixEventListener)
-    }
-
-    override fun onDestroy() {
-        MatrixEvenBus.instance.unsubscribe(matrixEventListener)
-        super.onDestroy()
     }
 
     private fun observeEvent() {
@@ -76,12 +83,14 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 
     private fun handleState(state: RoomDetailState) {
+        setupViewForSelectMode(state.isSelectEnable)
         binding.toolbarTitle.text = state.roomInfo.roomName
+        binding.tvSelectedMessageCount.text = getString(R.string.nc_text_count_selected_message, state.selectedEventIds.size)
         val count = state.roomInfo.memberCount
         val membersCount = resources.getQuantityString(R.plurals.nc_message_members, count, count)
         binding.memberCount.text = membersCount
 
-        adapter?.update(state.messages.groupByDate(), state.transactions.filterNot { it.initEventId.startsWith("\$local.") }, state.roomWallet, count)
+        adapter.update(state.messages.groupByDate(), state.roomWallet, count)
         val hasRoomWallet = state.roomWallet != null
         stickyBinding.root.isVisible = hasRoomWallet
         binding.add.isVisible = !hasRoomWallet
@@ -95,7 +104,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
                 transactions = state.transactions.map(TransactionExtended::transaction),
                 onClick = viewModel::viewConfig,
                 onClickViewTransactionDetail = { txId ->
-                    openTransactionDetails(walletId = it.walletId, txId = txId, initEventId = it.initEventId)
+                    openTransactionDetails(walletId = it.walletId, txId = txId, initEventId = "")
                 }
             )
         }
@@ -115,7 +124,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             OpenChatGroupInfoEvent -> navigator.openChatGroupInfoScreen(this, args.roomId)
             OpenChatInfoEvent -> navigator.openChatInfoScreen(this, args.roomId)
             RoomWalletCreatedEvent -> NCToastMessage(this).show(R.string.nc_message_wallet_created)
-            HideBannerNewChatEvent -> adapter?.removeBannerNewChat()
+            HideBannerNewChatEvent -> adapter.removeBannerNewChat()
             is ViewWalletConfigEvent -> navigator.openSharedWalletConfigScreen(this, event.roomWalletData)
             is ReceiveBTCEvent -> navigator.openReceiveTransactionScreen(this, event.walletId)
             HasUpdatedEvent -> scrollToLastItem()
@@ -125,9 +134,12 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 
     private fun scrollToLastItem() {
-        val itemCount = adapter?.itemCount ?: 0
-        if (itemCount > 0) {
-            binding.recyclerView.smoothScrollToLastItem()
+        lifecycleScope.launch {
+            delay(500L)
+            val itemCount = adapter.itemCount
+            if (itemCount > 0) {
+                binding.recyclerView.smoothScrollToLastItem()
+            }
         }
     }
 
@@ -139,10 +151,9 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     private fun setupViews() {
         selectMessageActionView = binding.viewStubSelectMessageAction.inflate()
         selectMessageActionView?.findViewById<ImageView>(R.id.btnCopy)?.setOnClickListener {
-            copyMessageText(adapter?.getSelectedMessage()?.joinToString("\n", transform = MatrixMessage::content).orEmpty())
-            selectMode = false
+            copyMessageText(adapter.getSelectedMessage().joinToString("\n", transform = MatrixMessage::content))
+            viewModel.applySelected(false)
         }
-        selectMode = false
         stickyBinding = ViewWalletStickyBinding.bind(binding.walletStickyContainer.root)
 
         binding.send.setOnClickListener { sendMessage() }
@@ -151,28 +162,15 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             collapseChatBar()
             enableButton(it.isNotEmpty())
         }
-
-        adapter = MessagesAdapter(
-            context = this,
-            imageLoader = imageLoader,
-            cancelWallet = viewModel::cancelWallet,
-            denyWallet = viewModel::denyWallet,
-            viewWalletConfig = viewModel::viewConfig,
-            finalizeWallet = viewModel::finalizeWallet,
-            viewTransaction = ::openTransactionDetails,
-            dismissBannerNewChatListener = viewModel::hideBannerNewChat,
-            createSharedWalletListener = ::sendBTCAction,
-            senderLongPressListener = ::showSelectMessageBottomSheet,
-            countCheckedChangeListener = { binding.tvSelectedMessageCount.text = getString(R.string.nc_text_count_selected_message, it) },
-            onMessageRead = viewModel::markMessageRead
-        )
         binding.recyclerView.adapter = adapter
+
         val layoutManager = LinearLayoutManager(this)
+        binding.recyclerView.setHasFixedSize(true)
         binding.recyclerView.layoutManager = layoutManager
 
         binding.toolbar.setNavigationOnClickListener {
-            if (selectMode) {
-                selectMode = false
+            if (viewModel.isSelectedEnable()) {
+                viewModel.applySelected(false)
             } else {
                 finish()
             }
@@ -184,7 +182,6 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
             sendBTCAction()
         }
 
-        binding.recyclerView.smoothScrollToLastItem()
         binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
 
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -245,21 +242,19 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         bottomSheet.listener = {
             when (it) {
                 SelectMessageOption.Select -> {
-                    selectMode = true
-                    adapter?.updateSelectedPosition(
+                    viewModel.applySelected(true)
+                    adapter.updateSelectedPosition(
                         selectedPosition = position,
-                        checked = true,
-                        refreshList = false
                     )
                 }
 
                 SelectMessageOption.Copy -> {
                     copyMessageText(message.content)
-                    selectMode = false
+                    viewModel.applySelected(true)
                 }
 
                 SelectMessageOption.Dismiss -> {
-                    selectMode = false
+                    viewModel.applySelected(true)
                 }
             }
         }
@@ -271,7 +266,6 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 
     private fun setupViewForSelectMode(selectMode: Boolean) {
-        adapter?.selectMode = selectMode
         selectMessageActionView?.isVisible = selectMode
         binding.tvSelectedMessageCount.isVisible = selectMode
         binding.editText.isVisible = !selectMode
@@ -288,6 +282,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
     private fun openTransactionDetails(walletId: String, txId: String, initEventId: String) {
         navigator.openTransactionDetailsScreen(
+            launcher,
             activityContext = this,
             walletId = walletId,
             txId = txId,

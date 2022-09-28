@@ -1,7 +1,6 @@
 package com.nunchuk.android.signer.nav
 
 import android.content.Context
-import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.nav.SignerNavigator
 import com.nunchuk.android.signer.AirSignerIntroActivity
 import com.nunchuk.android.signer.SignerIntroActivity
@@ -17,8 +16,8 @@ import com.nunchuk.android.type.SignerType
 
 interface SignerNavigatorDelegate : SignerNavigator {
 
-    override fun openSignerIntroScreen(activityContext: Context, tapSignerStatus: TapSignerStatus?) {
-        SignerIntroActivity.start(activityContext, tapSignerStatus)
+    override fun openSignerIntroScreen(activityContext: Context) {
+        SignerIntroActivity.start(activityContext)
     }
 
     override fun openSignerInfoScreen(
@@ -26,6 +25,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         id: String,
         name: String,
         type: SignerType,
+        derivationPath: String,
         justAdded: Boolean,
         setPassphrase: Boolean,
         isInWallet: Boolean
@@ -37,7 +37,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
             justAdded = justAdded,
             type = type,
             setPassphrase = setPassphrase,
-            isInWallet = isInWallet
+            isInWallet = isInWallet,
+            derivationPath = derivationPath
         )
     }
 
@@ -72,5 +73,4 @@ interface SignerNavigatorDelegate : SignerNavigator {
     override fun openSetPassphraseScreen(activityContext: Context, mnemonic: String, signerName: String) {
         SetPassphraseActivity.start(activityContext, mnemonic, signerName)
     }
-
 }

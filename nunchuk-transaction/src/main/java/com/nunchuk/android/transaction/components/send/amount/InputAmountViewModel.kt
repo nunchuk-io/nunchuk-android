@@ -1,18 +1,20 @@
 package com.nunchuk.android.transaction.components.send.amount
 
+import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
-import com.nunchuk.android.core.util.fromBTCToUSD
-import com.nunchuk.android.core.util.fromSATtoBTC
-import com.nunchuk.android.core.util.fromUSDToBTC
-import com.nunchuk.android.core.util.toNumericValue
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.SwapCurrencyEvent
+import com.nunchuk.android.transaction.components.utils.privateNote
+import com.nunchuk.android.usecase.ParseBtcUriUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 internal class InputAmountViewModel @Inject constructor(
+    private val parseBtcUriUseCase: ParseBtcUriUseCase
 ) : NunchukViewModel<InputAmountState, InputAmountEvent>() {
 
     private var availableAmount: Double = 0.0
@@ -22,6 +24,34 @@ internal class InputAmountViewModel @Inject constructor(
     fun init(availableAmount: Double) {
         updateState { initialState }
         this.availableAmount = availableAmount
+    }
+
+    fun parseBtcUri(content: String) {
+        viewModelScope.launch {
+            val result = parseBtcUriUseCase(content)
+            if (result.isSuccess) {
+                val btcUri = result.getOrThrow()
+                if (btcUri.amount.value > 0) {
+                    updateState {
+                        copy(
+                            address = btcUri.address,
+                            privateNote = btcUri.privateNote,
+                            amountBTC = btcUri.amount.pureBTC(),
+                            useBtc = true
+                        )
+                    }
+                } else {
+                    updateState {
+                        copy(
+                            address = btcUri.address,
+                        )
+                    }
+                }
+                setEvent(InputAmountEvent.ParseBtcUriSuccess(result.getOrThrow()))
+            } else {
+                setEvent(InputAmountEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
     }
 
     fun switchCurrency() {
@@ -62,4 +92,9 @@ internal class InputAmountViewModel @Inject constructor(
         }
     }
 
+    fun getAddress(): String = getState().address
+
+    fun getPrivateNote(): String = getState().privateNote
+
+    fun getAmountBtc(): Double = getState().amountBTC
 }

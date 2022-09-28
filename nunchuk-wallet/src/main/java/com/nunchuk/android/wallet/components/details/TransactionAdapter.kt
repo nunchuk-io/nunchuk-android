@@ -5,7 +5,6 @@ import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import com.nunchuk.android.core.base.BaseViewHolder
-import com.nunchuk.android.core.base.ItemComparator
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.wallet.R
@@ -58,7 +57,7 @@ internal class TransactionViewHolder(
 
 }
 
-internal object TransactionDiffCallback : ItemComparator<Transaction>, DiffUtil.ItemCallback<Transaction>() {
+internal object TransactionDiffCallback : DiffUtil.ItemCallback<Transaction>() {
 
     override fun areItemsTheSame(item1: Transaction, item2: Transaction) = item1.txId == item2.txId
 

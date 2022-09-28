@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/customizeFeeDetails"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toBottomOf="@+id/customizeFeeSwitch">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        style="@style/NCToolbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/toolbarTitle"
+            style="@style/NCToolbar.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/nc_replace_by_fee" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_old_fee_label"
+        style="@style/NCText.Body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:text="@string/nc_your_old_fee_rate"
+        app:layout_constraintBottom_toBottomOf="@id/tv_old_fee_btc"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/tv_old_fee_sat" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_old_fee_sat"
+        style="@style/NCText.Title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:layout_marginEnd="@dimen/nc_padding_16"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        tools:text="10.5 sat/vbyte" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_old_fee_btc"
+        style="@style/NCText.Body.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:layout_marginEnd="@dimen/nc_padding_16"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_old_fee_sat"
+        tools:text="10.5 sat/vbyte" />
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:background="@color/nc_whisper_color"
+        app:layout_constraintTop_toBottomOf="@+id/tv_old_fee_btc" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/manualFeeLabel"
+        style="@style/NCText.Body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:text="@string/nc_new_fee_rate"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/divider" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/manual_fee_desc"
+        style="@style/NCText.Body.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:text="@string/nc_new_fee_must_high_than_old_fee"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/manualFeeLabel" />
+
+    <com.nunchuk.android.widget.NCFontEditText
+        android:id="@+id/feeRateInput"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/nc_padding_8"
+        android:background="@drawable/nc_edit_text_bg"
+        android:inputType="numberDecimal"
+        android:maxLength="20"
+        android:padding="@dimen/nc_padding_12"
+        android:scrollHorizontally="false"
+        android:singleLine="true"
+        android:textColor="@color/nc_black_color"
+        android:textCursorDrawable="@null"
+        android:textSize="@dimen/nc_text_size_16"
+        app:layout_constraintTop_toBottomOf="@+id/manual_fee_desc"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/feeUnit"
+        android:layout_margin="@dimen/nc_padding_16"
+        tools:text="210" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/feeUnit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:text="@string/nc_transaction_fee_rate_unit"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_14"
+        app:fontTextStyle="semi_bold"
+        android:layout_marginEnd="@dimen/nc_padding_16"
+        app:layout_constraintBottom_toBottomOf="@+id/feeRateInput"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/feeRateInput" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_new_fee_rate_btc"
+        style="@style/NCText.Body.Small"
+        android:layout_width="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/feeRateInput"
+        tools:text="0 BTC/vbyte" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_error"
+        style="@style/NCText.Body.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:textColor="@color/nc_orange_color"
+        app:layout_constraintStart_toStartOf="@+id/tv_new_fee_rate_btc"
+        app:layout_constraintTop_toBottomOf="@+id/tv_new_fee_rate_btc"
+        android:drawableStart="@drawable/ic_error_outline"
+        android:drawablePadding="@dimen/nc_padding_4"
+        android:text="@string/nc_new_fee_rate_must_higher" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/manualFeeDetails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/nc_padding_16"
+        android:background="@drawable/nc_rounded_8dp_primary_background"
+        android:padding="@dimen/nc_padding_12"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_error">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/processingSpeed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_16"
+            android:text="@string/nc_transaction_processing_speed"
+            android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_14"
+            app:fontTextStyle="semi_bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_error" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guidelineStart"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.33" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guidelineEnd"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.66" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/priorityRate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_8"
+            android:text="@string/nc_transaction_priority_rate"
+            android:textColor="#757575"
+            android:textSize="@dimen/nc_text_size_14"
+            app:layout_constraintEnd_toStartOf="@+id/guidelineStart"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/processingSpeed" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/priorityRateValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_4"
+            android:text="@string/nc_transaction_priority_rate_value"
+            android:textColor="@color/nc_primary_dark_color"
+            android:textSize="@dimen/nc_text_size_14"
+            app:layout_constraintEnd_toStartOf="@+id/guidelineStart"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/priorityRate" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/standardRate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_8"
+            android:text="@string/nc_transaction_standard_rate"
+            android:textColor="#757575"
+            android:textSize="@dimen/nc_text_size_14"
+            app:layout_constraintEnd_toStartOf="@+id/guidelineEnd"
+            app:layout_constraintStart_toEndOf="@+id/guidelineStart"
+            app:layout_constraintTop_toBottomOf="@+id/processingSpeed" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/standardRateValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_4"
+            android:text="@string/nc_transaction_standard_rate_value"
+            android:textColor="@color/nc_primary_dark_color"
+            android:textSize="@dimen/nc_text_size_14"
+            app:layout_constraintEnd_toStartOf="@+id/guidelineEnd"
+            app:layout_constraintStart_toEndOf="@+id/guidelineStart"
+            app:layout_constraintTop_toBottomOf="@+id/standardRate" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/economicalRate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_8"
+            android:text="@string/nc_transaction_economical_rate"
+            android:textColor="#757575"
+            android:textSize="@dimen/nc_text_size_14"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/guidelineEnd"
+            app:layout_constraintTop_toBottomOf="@+id/processingSpeed" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/economicalRateValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_4"
+            android:text="@string/nc_transaction_economical_rate_value"
+            android:textColor="@color/nc_primary_dark_color"
+            android:textSize="@dimen/nc_text_size_14"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/guidelineEnd"
+            app:layout_constraintTop_toBottomOf="@+id/economicalRate" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btn_continue"
+        style="@style/NCPrimaryButton.Dark"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/nc_padding_16"
+        android:text="@string/nc_text_continue"
+        app:layout_constraintBottom_toBottomOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

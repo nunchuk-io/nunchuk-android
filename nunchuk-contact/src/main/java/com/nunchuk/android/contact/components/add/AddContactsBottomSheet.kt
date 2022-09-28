@@ -72,6 +72,7 @@ class AddContactsBottomSheet : BaseBottomSheet<BottomSheetAddContactsBinding>() 
             AddContactSuccessEvent -> showAddContactSuccess()
             is AddContactsErrorEvent -> showAddContactError(event.message)
             is FailedSendEmailsEvent -> showDialogConfirmationEmailInvitation(event.emailsAndUserNames)
+            else -> {}
         }
     }
 

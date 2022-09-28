@@ -1,6 +1,8 @@
 package com.nunchuk.android.contact.components.contacts
 
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.style.UnderlineSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -68,8 +70,10 @@ class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
 
     private fun setEmptyState() {
         emptyStateView = binding.viewStubEmptyState.inflate()
-        emptyStateView?.findViewById<TextView>(R.id.tvEmptyStateDes)?.text = getString(R.string.nc_contact_no_contact)
-        emptyStateView?.findViewById<ImageView>(R.id.ivContactAdd)?.setImageResource(R.drawable.ic_contact_add)
+        emptyStateView?.findViewById<TextView>(R.id.tvEmptyStateDes)?.text =
+            getString(R.string.nc_contact_no_contact)
+        emptyStateView?.findViewById<ImageView>(R.id.ivContactAdd)
+            ?.setImageResource(R.drawable.ic_contact_add)
     }
 
     private fun observeEvent() {
@@ -78,7 +82,7 @@ class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
 
     private fun handleState(state: ContactsState) {
         updateContacts(state)
-        updatePendingContacts(state.pendingContacts)
+        updatePendingContacts(state)
     }
 
     private fun updateContacts(state: ContactsState) {
@@ -91,12 +95,19 @@ class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
         binding.avatar.text = "${contact.name.first()}"
     }
 
-    private fun updatePendingContacts(pendingContacts: List<Contact>) {
-        val hasPendingContacts = pendingContacts.isNotEmpty()
+    private fun updatePendingContacts(state: ContactsState) {
+        val hasPendingContacts = state.pendingContacts.isNotEmpty()
         binding.pendingContacts.isVisible = hasPendingContacts
         binding.viewAll.isVisible = hasPendingContacts
+        val viewAllText: SpannableString = if (state.receivedContactRequestCount > 0) {
+            SpannableString("${getString(R.string.nc_contact_view_all)} ${state.receivedContactRequestCount}")
+        } else {
+            SpannableString(getString(R.string.nc_contact_view_all))
+        }
+        viewAllText.setSpan(UnderlineSpan(), 0, viewAllText.length, 0)
+        binding.viewAll.text = viewAllText
         if (hasPendingContacts) {
-            bindPendingContact(pendingContacts.first())
+            bindPendingContact(state.pendingContacts.first())
         }
     }
 

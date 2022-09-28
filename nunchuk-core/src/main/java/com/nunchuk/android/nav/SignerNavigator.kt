@@ -2,17 +2,17 @@ package com.nunchuk.android.nav
 
 import android.content.Context
 import androidx.fragment.app.Fragment
-import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.type.SignerType
 
 interface SignerNavigator {
-    fun openSignerIntroScreen(activityContext: Context, tapSignerStatus: TapSignerStatus? = null)
+    fun openSignerIntroScreen(activityContext: Context)
 
     fun openSignerInfoScreen(
         activityContext: Context,
         id: String,
         name: String,
         type: SignerType,
+        derivationPath: String = "",
         justAdded: Boolean = false,
         setPassphrase: Boolean = false,
         isInWallet: Boolean = false

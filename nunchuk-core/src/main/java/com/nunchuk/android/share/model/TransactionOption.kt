@@ -7,5 +7,6 @@ enum class TransactionOption {
     EXPORT_PASSPORT,
     IMPORT_KEYSTONE,
     IMPORT_PASSPORT,
-    REPLACE_BY_FEE
+    REPLACE_BY_FEE,
+    COPY_TRANSACTION_ID,
 }

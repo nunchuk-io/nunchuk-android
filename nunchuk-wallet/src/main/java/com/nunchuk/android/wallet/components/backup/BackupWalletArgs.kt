@@ -5,11 +5,11 @@ import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.core.util.getStringValue
 
-data class BackupWalletArgs(val walletId: String, val totalRequireSigns: Int, val isQuickWallet: Boolean) : ActivityArgs {
+data class BackupWalletArgs(val walletId: String, val numberOfSignKey: Int, val isQuickWallet: Boolean) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, BackupWalletActivity::class.java).apply {
         putExtra(EXTRA_WALLET_ID, walletId)
-        putExtra(EXTRA_WALLET_TOTAL_SIGN, totalRequireSigns)
+        putExtra(EXTRA_WALLET_TOTAL_SIGN, numberOfSignKey)
         putExtra(EXTRA_IS_QUICK_WALLET, isQuickWallet)
     }
 
@@ -20,7 +20,7 @@ data class BackupWalletArgs(val walletId: String, val totalRequireSigns: Int, va
 
         fun deserializeFrom(intent: Intent): BackupWalletArgs = BackupWalletArgs(
             walletId = intent.extras.getStringValue(EXTRA_WALLET_ID),
-            totalRequireSigns = intent.getIntExtra(EXTRA_WALLET_TOTAL_SIGN, 0),
+            numberOfSignKey = intent.getIntExtra(EXTRA_WALLET_TOTAL_SIGN, 0),
             isQuickWallet = intent.getBooleanExtra(EXTRA_IS_QUICK_WALLET, false),
         )
     }

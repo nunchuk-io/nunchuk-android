@@ -12,6 +12,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.core.util.toReadableDrawable
 import com.nunchuk.android.core.util.toReadableString
@@ -46,7 +47,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
 
         setupViews()
         observeEvent()
-        viewModel.init(args.id, args.signerType)
+        viewModel.init(args)
     }
 
     override fun onOptionClickListener(option: SingerOption) {
@@ -154,7 +155,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     }
 
     private fun handleEvent(event: SignerInfoEvent) {
-        showOrHideLoading(event is NfcLoading, getString(R.string.nc_keep_holding_nfc))
+        showOrHideNfcLoading(event is NfcLoading)
         when (event) {
             is UpdateNameSuccessEvent -> {
                 binding.signerName.text = event.signerName
@@ -185,6 +186,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
                 val message = event.e?.message ?: getString(R.string.nc_topup_xpub_failed)
                 NCToastMessage(this).showError(message)
             }
+            else -> {}
         }
     }
 
@@ -205,6 +207,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     }
 
     private fun setupViews() {
+        binding.btnHealthCheck.isVisible = args.signerType != SignerType.COLDCARD_NFC
         binding.signerName.text = args.name
         if (args.justAdded) {
             NCToastMessage(this).showMessage(
@@ -284,6 +287,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
             id: String,
             name: String,
             type: SignerType,
+            derivationPath: String,
             justAdded: Boolean = false,
             setPassphrase: Boolean = false,
             isInWallet: Boolean
@@ -292,6 +296,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
                 SignerInfoArgs(
                     id = id,
                     name = name,
+                    derivationPath = derivationPath,
                     justAdded = justAdded,
                     signerType = type,
                     setPassphrase = setPassphrase,

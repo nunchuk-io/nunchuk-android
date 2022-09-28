@@ -1,7 +1,6 @@
 package com.nunchuk.android.messages.components.detail
 
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetDeveloperSettingUseCase
@@ -9,6 +8,7 @@ import com.nunchuk.android.core.domain.HideBannerNewChatUseCase
 import com.nunchuk.android.core.domain.SendErrorEventUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.*
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.usecase.message.CheckShowBannerNewChatUseCase
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
@@ -19,10 +19,8 @@ import com.nunchuk.android.usecase.*
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.trySafe
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.read.ReadService
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
@@ -33,6 +31,7 @@ import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
+// TODO cache transaction with event
 @HiltViewModel
 class RoomDetailViewModel @Inject constructor(
     accountManager: AccountManager,
@@ -47,7 +46,9 @@ class RoomDetailViewModel @Inject constructor(
     private val sendErrorEventUseCase: SendErrorEventUseCase,
     private val getDeveloperSettingUseCase: GetDeveloperSettingUseCase,
     private val getContactsUseCase: GetContactsUseCase,
-    private val leaveRoomUseCase: LeaveRoomUseCase
+    private val leaveRoomUseCase: LeaveRoomUseCase,
+    private val sessionHolder: SessionHolder,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
 
     private var debugMode: Boolean = false
@@ -62,16 +63,24 @@ class RoomDetailViewModel @Inject constructor(
 
     private var latestPreviewableEventTs: Long = -1
 
-    private var timelineListenerAdapter = TimelineListenerAdapter(::handleTimelineEvents)
-
     private var isConsumingEvents = AtomicBoolean(false)
 
     private val consumedEventIds = HashSet<String>()
 
     override val initialState = RoomDetailState.empty()
 
+    private var loadMessageJob: Job? = null
+
+    private val timelineListenerAdapter = TimelineListenerAdapter()
+
+    init {
+        viewModelScope.launch {
+            timelineListenerAdapter.data.filter { it.isNotEmpty() }.collect(::handleTimelineEvents)
+        }
+    }
+
     fun initialize(roomId: String) {
-        SessionHolder.activeSession?.roomService()?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
+        sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
         getDeveloperSettings()
     }
 
@@ -86,30 +95,31 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     private fun checkInviteUser(room: Room) {
-        getContactsUseCase.execute()
-            .defaultSchedulers()
-            .subscribe({
-                if (it.isNotEmpty() && (currentId in it.map(Contact::chatId))) {
-                    leaveRoom(room)
+        viewModelScope.launch {
+            getContactsUseCase.execute()
+                .catch { }
+                .collect {
+                    if (it.isNotEmpty() && (currentId in it.map(Contact::chatId))) {
+                        leaveRoom(room)
+                    }
                 }
-            }, {})
-            .addToDisposables()
+        }
     }
 
     private fun leaveRoom(room: Room) {
         viewModelScope.launch {
             leaveRoomUseCase.execute(room.roomId)
-                .flowOn(IO)
+                .flowOn(ioDispatcher)
                 .onException { }
                 .collect { event(LeaveRoomEvent) }
         }
     }
 
     private fun markRoomDisplayed(room: Room) {
-        viewModelScope.launch(IO) {
-            trySafe { SessionHolder.activeSession?.roomService()?.onRoomDisplayed(room.roomId) }
+        viewModelScope.launch(ioDispatcher) {
+            trySafe { sessionHolder.getSafeActiveSession()?.roomService()?.onRoomDisplayed(room.roomId) }
         }
-        viewModelScope.launch(IO) {
+        viewModelScope.launch(ioDispatcher) {
             trySafe { room.readService().markAsRead(ReadService.MarkAsReadParams.READ_RECEIPT) }
         }
     }
@@ -117,38 +127,40 @@ class RoomDetailViewModel @Inject constructor(
     private fun getDeveloperSettings() {
         viewModelScope.launch {
             getDeveloperSettingUseCase.execute()
-                .flowOn(IO)
+                .flowOn(ioDispatcher)
                 .onException { }
                 .collect { debugMode = it.debugMode }
         }
     }
 
-    private fun getRoomWallet(onCompleted: () -> Unit = {}) {
+    private fun getRoomWallet() {
         viewModelScope.launch {
             getRoomWalletUseCase.execute(roomId = room.roomId)
-                .flowOn(IO)
+                .flowOn(ioDispatcher)
                 .onException {
-                    updateState { copy(roomWallet = null) }
+                    handleUpdateMessagesContent(roomWallet = null)
                     sendErrorEvent(it)
                 }
-                .collect {
-                    onCompleted()
-                    updateState { copy(roomWallet = it) }
+                .collect { roomWallet ->
+                    if (roomWallet != getState().roomWallet) {
+                        getTransactions()
+                        handleUpdateMessagesContent(roomWallet = roomWallet)
+                    }
                 }
         }
     }
 
     private fun storeRoom(room: Room) {
         this.room = room
-        SessionHolder.currentRoom = room
+        sessionHolder.setActiveRoom(room.roomId, false)
     }
 
     private fun initSendEventExecutor() {
         SendEventHelper.executor = object : SendEventExecutor {
             override fun execute(roomId: String, type: String, content: String, ignoreError: Boolean): String {
                 Timber.d(" (${type}):  $content")
-                if (SessionHolder.hasActiveSession()) {
-                    SessionHolder.activeSession?.roomService()?.getRoom(roomId)?.run {
+                if (sessionHolder.hasActiveSession()) {
+                    sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomId)?.run {
                         trySafe { sendService().sendEvent(type, content.toMatrixContent()) }
                     }
                 }
@@ -158,8 +170,8 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     private fun joinRoom() {
-        viewModelScope.launch(IO) {
-            trySafe { SessionHolder.activeSession?.roomService()?.joinRoom(room.roomId) }
+        viewModelScope.launch(ioDispatcher) {
+            trySafe { sessionHolder.getSafeActiveSession()?.roomService()?.joinRoom(room.roomId) }
         }
     }
 
@@ -172,72 +184,82 @@ class RoomDetailViewModel @Inject constructor(
         }
     }
 
-    private fun handleTimelineEvents(events: List<TimelineEvent>) {
+    private suspend fun handleTimelineEvents(events: List<TimelineEvent>) {
         Timber.tag(TAG).d("handleTimelineEvents:${events.size}")
-        val displayableEvents = events.filter(TimelineEvent::isDisplayable).filterNot { !debugMode && it.isNunchukErrorEvent() }.groupEvents(loadMore = ::handleLoadMore)
-        val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent).filterNot(TimelineEvent::isNunchukErrorEvent).sortedByDescending(TimelineEvent::time)
-        viewModelScope.launch {
-            val consumableEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
-                .filterNot(NunchukMatrixEvent::isLocalEvent)
-                .sortedByDescending(NunchukMatrixEvent::time)
-            consumeEvents(consumableEvents, displayableEvents, nunchukEvents)
-        }
+        val displayableEvents =
+            events.filter(TimelineEvent::isDisplayable).filterNot { !debugMode && it.isNunchukErrorEvent() }.groupEvents(loadMore = ::handleLoadMore)
+        val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent).filterNot(TimelineEvent::isNunchukErrorEvent)
+            .sortedByDescending(TimelineEvent::time)
+        val consumableEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
+            .filterNot(NunchukMatrixEvent::isLocalEvent)
+            .sortedByDescending(NunchukMatrixEvent::time)
+        consumeEvents(consumableEvents)
     }
 
-    private fun consumeEvents(
-        sortedEvents: List<NunchukMatrixEvent>,
-        displayableEvents: List<TimelineEvent>,
-        nunchukEvents: List<TimelineEvent>
+    private suspend fun consumeEvents(
+        sortedEvents: List<NunchukMatrixEvent>
     ) {
-        viewModelScope.launch {
-            updateState { copy(messages = displayableEvents.toMessages(currentId)) }
-            sortedEvents.asFlow()
-                .filterNot { it.eventId in consumedEventIds }
-                .flatMapConcat { consumeEventUseCase.execute(it) }
-                .onStart { isConsumingEvents.set(true) }
-                .flowOn(IO)
-                .onException { sendErrorEvent(it) }
-                .onCompletion {
-                    isConsumingEvents.set(false)
-                    onConsumeEventCompleted(nunchukEvents)
-                    consumedEventIds.addAll(sortedEvents.map(NunchukMatrixEvent::eventId))
-                    Timber.tag(TAG).d("onConsumeEventCompleted:${sortedEvents.size}")
+        val unConsumeEvents = sortedEvents.filterNot { it.eventId in consumedEventIds }
+        unConsumeEvents.chunked(20).asFlow()
+            .onStart {
+                isConsumingEvents.set(true)
+            }
+            .map { events ->
+                supervisorScope {
+                    val tasks = events.filterNot { it.eventId in consumedEventIds }.map { event -> async { consumeEventUseCase(event) } }
+                    tasks.awaitAll()
                 }
-                .collect { Timber.tag(TAG).d("Consume event completed") }
-        }
+                consumedEventIds.addAll(events.map { event -> event.eventId })
+            }
+            .flowOn(ioDispatcher)
+            .onEach {
+                onConsumeEventCompleted()
+                handleUpdateMessagesContent()
+            }
+            .onCompletion {
+                Timber.tag(TAG).d("onConsumeEventCompleted:${sortedEvents.size}")
+                onConsumeEventCompleted()
+                handleUpdateMessagesContent()
+                isConsumingEvents.set(false)
+            }
+            .collect()
     }
 
-    private fun onConsumeEventCompleted(nunchukEvents: List<TimelineEvent>) {
-        getRoomWallet(nunchukEvents)
+    private fun onConsumeEventCompleted() {
         val latestEventTs = room.roomSummary().latestPreviewableEventTs()
+        getTransactions()
         if (latestEventTs != latestPreviewableEventTs) {
             latestPreviewableEventTs = latestEventTs
-            event(HasUpdatedEvent)
+            setEvent(HasUpdatedEvent)
         }
     }
 
-    private fun getRoomWallet(nunchukEvents: List<TimelineEvent>) {
-        getRoomWallet {
+    fun getTransactions() {
+        val roomWallet = getState().roomWallet
+        if (roomWallet != null && roomWallet.isCreated()) {
             getState().roomWallet?.walletId?.let {
-                getTransactions(it, nunchukEvents.filter(TimelineEvent::isNunchukTransactionEvent))
-                event(GetRoomWalletSuccessEvent)
+                getTransactions(it)
+                setEvent(GetRoomWalletSuccessEvent)
             }
+        } else {
+            getRoomWallet()
         }
     }
 
-    private fun getTransactions(walletId: String, events: List<TimelineEvent>) {
-        val eventFilterNotLocal = events.filterNot {
+    private fun getTransactions(walletId: String) {
+        val eventFilterNotLocal = timelineListenerAdapter.getNunchukEvents().filterNot {
             it.eventId.startsWith("\$local.")
-        }
+        }.filter { consumedEventIds.contains(it.eventId) }
         viewModelScope.launch {
             val eventIds = mapTransactionEvents(eventFilterNotLocal)
             getTransactionsUseCase.execute(walletId, eventIds)
-                .flowOn(IO)
+                .flowOn(ioDispatcher)
                 .onException { sendErrorEvent(it) }
-                .flowOn(Main)
-                .collect {
-                    updateState { copy(transactions = it) }
-                    event(HasUpdatedEvent)
+                .collect { newTrans ->
+                    if (newTrans != getState().transactions) {
+                        updateState { copy(transactions = newTrans) }
+                        handleUpdateMessagesContent(transactions = newTrans)
+                    }
                 }
         }
     }
@@ -251,9 +273,9 @@ class RoomDetailViewModel @Inject constructor(
 
     fun handleTitleClick() {
         if (room.isDirectChat()) {
-            event(OpenChatInfoEvent)
+            setEvent(OpenChatInfoEvent)
         } else {
-            event(OpenChatGroupInfoEvent)
+            setEvent(OpenChatGroupInfoEvent)
         }
     }
 
@@ -267,9 +289,8 @@ class RoomDetailViewModel @Inject constructor(
     fun cancelWallet() {
         viewModelScope.launch {
             cancelWalletUseCase.execute(room.roomId)
-                .flowOn(IO)
+                .flowOn(ioDispatcher)
                 .onException { sendErrorEvent(it) }
-                .flowOn(Main)
                 .collect { getRoomWallet() }
         }
     }
@@ -277,19 +298,18 @@ class RoomDetailViewModel @Inject constructor(
     fun finalizeWallet() {
         viewModelScope.launch {
             createSharedWalletUseCase.execute(room.roomId)
-                .flowOn(IO)
+                .flowOn(ioDispatcher)
                 .onException { sendErrorEvent(it) }
-                .flowOn(Main)
                 .collect {
                     getRoomWallet()
-                    event(RoomWalletCreatedEvent)
+                    setEvent(RoomWalletCreatedEvent)
                 }
         }
     }
 
     fun viewConfig() {
         getState().roomWallet?.jsonContent?.toRoomWalletData()?.let {
-            event(ViewWalletConfigEvent(room.roomId, it))
+            setEvent(ViewWalletConfigEvent(room.roomId, it))
         }
     }
 
@@ -301,13 +321,12 @@ class RoomDetailViewModel @Inject constructor(
     fun handleAddEvent() {
         val roomWallet = getState().roomWallet
         if (roomWallet == null) {
-            event(CreateNewSharedWallet)
+            setEvent(CreateNewSharedWallet)
         } else {
             viewModelScope.launch {
                 getWalletUseCase.execute(walletId = roomWallet.walletId)
-                    .flowOn(IO)
+                    .flowOn(ioDispatcher)
                     .onException { sendErrorEvent(it) }
-                    .flowOn(Main)
                     .collect { onGetWallet(it.wallet) }
             }
         }
@@ -316,35 +335,35 @@ class RoomDetailViewModel @Inject constructor(
     fun handleReceiveEvent() {
         val roomWallet = getState().roomWallet
         if (roomWallet == null) {
-            event(CreateNewSharedWallet)
+            setEvent(CreateNewSharedWallet)
         } else {
-            event(ReceiveBTCEvent(roomWallet.walletId))
+            setEvent(ReceiveBTCEvent(roomWallet.walletId))
         }
     }
 
     private fun onGetWallet(wallet: Wallet) {
         if (wallet.balance.value > 0L) {
-            event(CreateNewTransaction(roomId = room.roomId, walletId = wallet.id, availableAmount = wallet.balance.pureBTC()))
+            setEvent(CreateNewTransaction(roomId = room.roomId, walletId = wallet.id, availableAmount = wallet.balance.pureBTC()))
         }
     }
 
     fun hideBannerNewChat() {
         viewModelScope.launch {
             hideBannerNewChatUseCase.execute()
-                .flowOn(IO)
+                .flowOn(ioDispatcher)
                 .catch { }
-                .collect { event(HideBannerNewChatEvent) }
+                .collect { setEvent(HideBannerNewChatEvent) }
         }
     }
 
     fun checkShowBannerNewChat() {
         viewModelScope.launch {
             checkShowBannerNewChatUseCase.execute()
-                .flowOn(IO)
+                .flowOn(ioDispatcher)
                 .onException { }
                 .collect {
                     if (!it) {
-                        event(HideBannerNewChatEvent)
+                        setEvent(HideBannerNewChatEvent)
                     }
                 }
         }
@@ -355,31 +374,57 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     fun markMessageRead(eventId: String) {
-        viewModelScope.launch(IO) {
+        viewModelScope.launch(ioDispatcher) {
             room.readService().setReadReceipt(eventId = eventId)
         }
+    }
+
+    private fun handleUpdateMessagesContent(
+        roomWallet: RoomWallet? = getState().roomWallet,
+        transactions: List<TransactionExtended> = getState().transactions,
+        isSelectedEnable: Boolean = getState().isSelectEnable
+    ) {
+        loadMessageJob?.cancel()
+        loadMessageJob = viewModelScope.launch {
+            val newMessages = withContext(ioDispatcher) {
+                val displayableEvents =
+                    timelineListenerAdapter.getLastTimeEvents().filter(TimelineEvent::isDisplayable)
+                        .filterNot { !debugMode && it.isNunchukErrorEvent() }
+                        .groupEvents(loadMore = ::handleLoadMore)
+                displayableEvents.toMessages(currentId, roomWallet, transactions, isSelectedEnable, getState().selectedEventIds)
+            }
+            updateState { copy(messages = newMessages, transactions = transactions, roomWallet = roomWallet, isSelectEnable = isSelectedEnable) }
+        }
+    }
+
+    fun applySelected(isSelectedEnable: Boolean) {
+        if (isSelectedEnable != getState().isSelectEnable) {
+            handleUpdateMessagesContent(isSelectedEnable = isSelectedEnable)
+        }
+        if (isSelectedEnable.not()) {
+            getState().selectedEventIds.clear()
+        }
+    }
+
+    fun isSelectedEnable() = getState().isSelectEnable
+
+    fun toggleSelected(eventId: Long) {
+        if (getState().selectedEventIds.contains(eventId).not()) {
+            getState().selectedEventIds.add(eventId)
+        } else {
+            getState().selectedEventIds.remove(eventId)
+        }
+        handleUpdateMessagesContent(isSelectedEnable = true)
     }
 
     override fun onCleared() {
         timeline?.apply {
             dispose()
             removeAllListeners()
-            timelineListenerAdapter = TimelineListenerAdapter {}
         }
-        SessionHolder.currentRoom = null
+        sessionHolder.clearActiveRoom()
         consumedEventIds.clear()
         super.onCleared()
-    }
-
-    fun handleRoomTransactionCreated() {
-        // TODO
-//        timeline?.apply {
-//            dispose()
-//            removeAllListeners()
-//            timelineListenerAdapter = TimelineListenerAdapter(::handleTimelineEvents)
-//        }
-//        updateState { RoomDetailState.empty() }
-//        retrieveTimelineEvents()
     }
 
     companion object {

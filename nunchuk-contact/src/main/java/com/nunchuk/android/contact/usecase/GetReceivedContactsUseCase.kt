@@ -1,18 +1,18 @@
 package com.nunchuk.android.contact.usecase
 
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.ReceiveContact
-import com.nunchuk.android.contact.repository.ContactsRepository
-import io.reactivex.Single
+import com.nunchuk.android.repository.ContactsRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface GetReceivedContactsUseCase {
-    fun execute(): Single<List<ReceiveContact>>
-}
+class GetReceivedContactsUseCase @Inject constructor(
+    private val contactsRepository: ContactsRepository,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+) : UseCase<Unit, List<ReceiveContact>>(dispatcher) {
 
-internal class GetReceivedContactsUseCaseImpl @Inject constructor(
-    private val contactsRepository: ContactsRepository
-) : GetReceivedContactsUseCase {
-
-    override fun execute() = contactsRepository.getPendingApprovalContacts()
-
+    override suspend fun execute(parameters: Unit): List<ReceiveContact> {
+        return contactsRepository.getPendingApprovalContacts()
+    }
 }

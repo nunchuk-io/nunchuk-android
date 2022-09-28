@@ -1,8 +1,6 @@
 package com.nunchuk.android.contact.api
 
 import com.nunchuk.android.core.network.Data
-import io.reactivex.Completable
-import io.reactivex.Single
 import retrofit2.http.*
 
 internal interface ContactApi {
@@ -11,19 +9,19 @@ internal interface ContactApi {
     suspend fun addContacts(@Body payLoad: AddContactPayload): Data<AddContactsResponse>
 
     @GET("user/contacts/")
-    fun getContacts(): Single<Data<ContactResponseWrapper>>
+    suspend fun getContacts(): Data<ContactResponseWrapper>
 
     @HTTP(method = "DELETE", path = "user/contacts/request", hasBody = true)
-    fun cancelRequest(@Body payLoad: CancelRequestPayload): Completable
+    suspend fun cancelRequest(@Body payLoad: CancelRequestPayload)
 
     @POST("user/contacts/accept")
-    fun acceptContact(@Body payload: AcceptRequestPayload): Completable
+    suspend fun acceptContact(@Body payload: AcceptRequestPayload)
 
     @GET("user/contacts/request/sent")
-    fun getPendingSentContacts(): Single<Data<UsersResponseWrapper>>
+    suspend fun getPendingSentContacts(): Data<UsersResponseWrapper>
 
     @GET("user/contacts/request/received")
-    fun getPendingApprovalContacts(): Single<Data<UsersResponseWrapper>>
+    suspend fun getPendingApprovalContacts(): Data<UsersResponseWrapper>
 
     @GET("user/search")
     suspend fun searchContact(@Query("email") email: String): Data<UserResponseWrapper>

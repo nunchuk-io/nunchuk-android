@@ -25,6 +25,7 @@ internal class RecoverWalletActionBottomSheet : BaseBottomSheet<BottomSheetWalle
     private fun setupViews() {
         binding.btnUsingQrCode.setOnClickListener { onActionClicked(RecoverWalletOption.QrCode) }
         binding.btnUsingBSMSFile.setOnClickListener { onActionClicked(RecoverWalletOption.BSMSFile) }
+        binding.btnRecoverFromColdcard.setOnClickListener { onActionClicked(RecoverWalletOption.ColdCard) }
     }
 
     private fun onActionClicked(option: RecoverWalletOption) {
@@ -44,6 +45,7 @@ internal class RecoverWalletActionBottomSheet : BaseBottomSheet<BottomSheetWalle
 sealed class RecoverWalletOption {
     object QrCode : RecoverWalletOption()
     object BSMSFile : RecoverWalletOption()
+    object ColdCard : RecoverWalletOption()
 }
 
 

@@ -33,33 +33,31 @@ internal class SignerInfoViewModel @Inject constructor(
     private val getTapSignerBackupUseCase: GetTapSignerBackupUseCase,
     private val healthCheckTapSignerUseCase: HealthCheckTapSignerUseCase,
     private val topUpXpubTapSignerUseCase: TopUpXpubTapSignerUseCase,
-    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase
+    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
 ) : NunchukViewModel<SignerInfoState, SignerInfoEvent>() {
 
     override val initialState = SignerInfoState()
 
-    lateinit var id: String
-    private var signerType: SignerType = SignerType.SOFTWARE
+    private lateinit var args: SignerInfoArgs
 
-    fun init(id: String, type: SignerType) {
-        this.id = id
-        this.signerType = type
+    fun init(args: SignerInfoArgs) {
+        this.args = args
         viewModelScope.launch {
-            if (shouldLoadMasterSigner(signerType)) {
-                when (val result = getMasterSignerUseCase.execute(id)) {
+            if (shouldLoadMasterSigner(args.signerType)) {
+                when (val result = getMasterSignerUseCase.execute(args.id)) {
                     is Success -> updateState { copy(masterSigner = result.data) }
                     is Error -> Log.e(TAG, "get software signer error", result.exception)
                 }
             } else {
-                when (val result = getRemoteSignerUseCase.execute(id)) {
-                    is Success -> updateState { copy(remoteSigner = result.data) }
-                    is Error -> Log.e(TAG, "get remote signer error", result.exception)
+                val result = getRemoteSignerUseCase(GetRemoteSignerUseCase.Data(args.id, args.derivationPath))
+                if (result.isSuccess) {
+                    updateState { copy(remoteSigner = result.getOrThrow()) }
                 }
             }
         }
-        if (signerType == SignerType.NFC) {
+        if (args.signerType == SignerType.NFC) {
             viewModelScope.launch {
-                val result = getTapSignerStatusByIdUseCase(id)
+                val result = getTapSignerStatusByIdUseCase(args.id)
                 if (result.isSuccess) {
                     updateState { copy(nfcCardId = result.getOrThrow().ident) }
                 }
@@ -70,7 +68,7 @@ internal class SignerInfoViewModel @Inject constructor(
     fun handleEditCompletedEvent(updateSignerName: String) {
         viewModelScope.launch {
             val state = getState()
-            if (shouldLoadMasterSigner(signerType)) {
+            if (shouldLoadMasterSigner(args.signerType)) {
                 state.masterSigner?.let {
                     when (val result = updateMasterSignerUseCase.execute(masterSigner = it.copy(name = updateSignerName))) {
                         is Success -> event(UpdateNameSuccessEvent(updateSignerName))
@@ -91,7 +89,7 @@ internal class SignerInfoViewModel @Inject constructor(
     fun handleRemoveSigner() {
         viewModelScope.launch {
             val state = getState()
-            if (shouldLoadMasterSigner(signerType)) {
+            if (shouldLoadMasterSigner(args.signerType)) {
                 state.masterSigner?.let {
                     when (val result = deleteMasterSignerUseCase.execute(
                         masterSignerId = it.id
@@ -136,7 +134,7 @@ internal class SignerInfoViewModel @Inject constructor(
                 signature = "",
                 path = masterSigner.device.path,
                 masterSignerId = if (masterSigner.device.needPassPhraseSent) masterSigner.id else null
-                )
+            )
                 .flowOn(Dispatchers.IO)
                 .onException { event(HealthCheckErrorEvent(it.message)) }
                 .flowOn(Dispatchers.Main)
@@ -196,7 +194,7 @@ internal class SignerInfoViewModel @Inject constructor(
         }
     }
 
-    private fun shouldLoadMasterSigner(type: SignerType) = type != SignerType.AIRGAP
+    private fun shouldLoadMasterSigner(type: SignerType) = (type != SignerType.AIRGAP) && (type != SignerType.COLDCARD_NFC)
 
     companion object {
         private const val TAG = "SignerInfoViewModel"

@@ -50,7 +50,6 @@
     <string name="nc_cvc_has_been_changed">CVC has been changed</string>
     <string name="nc_master_private_key_init">Master private key has been initialized</string>
     <string name="nc_config_cvc_failed">Config cvc failed</string>
-    <string name="nc_create_signer_failed">Create signer failed</string>
     <string name="nc_set_up_chain_code">Set up chain code</string>
     <string name="nc_chain_code_desc">The chain code is a 32-byte of entropy, used for the key picking process.</string>
     <string name="nc_automatic">Automatic</string>
@@ -72,8 +71,8 @@
     <string name="nc_convert_backup_key_msg">Note that we will convert the NFC key backup into a software key. On the next screens, you will:</string>
     <string name="nc_select_the_encrypted_backup">Select the encrypted backup file</string>
     <string name="nc_enter_descryption_key_msg">Enter the decryption key. You can find it on the back of the card.</string>
-    <string name="nc_add_new_nfc_key">Add new NFC Key</string>
-    <string name="nc_recover_nfc_key_from_backup">Recover NFC key from backup</string>
+    <string name="nc_add_new_nfc_key">Add TAPSIGNER</string>
+    <string name="nc_recover_nfc_key_from_backup">Recover TAPSIGNER key from backup</string>
     <string name="nc_enter_decryption_key">Enter decryption key</string>
     <string name="nc_decryption_key">Decryption key</string>
     <string name="nc_warning_key_use_in_wallet">Oops, your key is currently being used in a wallet. Please remove the wallet first.</string>
@@ -85,4 +84,10 @@
     <string name="nc_detect_unseal_slot_has_balance">We detect that there is %1$s in unsealed slot %2$s. Unsealed slots are unsafe. Would you like to sweep it?</string>
     <string name="nc_select_wallet_first">Select wallet first</string>
     <string name="nc_please_wait_balance_confirmation">Please wait balance confirmation</string>
+    <string name="nc_mk4_init_device_key_desc">Follow the vendor’s instruction on how to set up your device with a seed phrase.</string>
+    <string name="nc_unlock_device_desc">You might need to enter a PIN and/or a PASSPHRASE directly on COLDCARD.</string>
+    <string name="nc_mk4_tooltip">For COLDCARD devices, please refer to</string>
+    <string name="nc_this_starter_guide">this starter guide</string>
+    <string name="nc_mk4_signer_title">We found these keys from the device.\nWhich key do you want to use?</string>
+    <string name="nc_enable_mk4_nfc_desc">Go to Settings → Hardware On/Off → NFC Sharing → Enable NFC.</string>
 </resources>

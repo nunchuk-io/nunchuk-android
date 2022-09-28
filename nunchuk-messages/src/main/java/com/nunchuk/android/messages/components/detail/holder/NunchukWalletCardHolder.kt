@@ -13,9 +13,7 @@ import com.nunchuk.android.messages.components.detail.NunchukWalletMessage
 import com.nunchuk.android.messages.components.detail.bindCanceledStatus
 import com.nunchuk.android.messages.components.detail.bindWalletStatus
 import com.nunchuk.android.messages.databinding.ItemWalletCardBinding
-import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.toRoomWalletData
-import timber.log.Timber
 
 internal class NunchukWalletCardHolder(
     val binding: ItemWalletCardBinding,
@@ -26,18 +24,19 @@ internal class NunchukWalletCardHolder(
 
     private val gson = Gson()
 
-    fun bind(roomWallet: RoomWallet? = null, model: NunchukWalletMessage) {
+    fun bind(model: NunchukWalletMessage) {
+        val roomWallet = model.roomWallet
         if (roomWallet?.jsonContent == null) {
             return
         }
-        val body = roomWallet?.jsonContent.orEmpty()
+        val body = roomWallet.jsonContent
         val initData = body.toRoomWalletData(gson)
         val ratio = "${initData.requireSigners} / ${initData.totalSigners}"
         val context = itemView.context
         binding.cancelWallet.text = context.getString(
             if (model.isOwner) R.string.nc_message_cancel_wallet else R.string.nc_message_deny_wallet
         )
-        if (roomWallet == null || roomWallet.initEventId != model.timelineEvent.eventId) {
+        if (roomWallet.initEventId != model.timelineEvent.eventId) {
             binding.cancelWallet.isVisible = false
             binding.pendingKeys.isVisible = false
             binding.status.bindCanceledStatus()

@@ -21,7 +21,6 @@ internal sealed class WalletsEvent {
     class NeedSetupSatsCard(val status: SatsCardStatus) : WalletsEvent()
     class NfcLoading(val loading: Boolean) : WalletsEvent()
     class GoToSatsCardScreen(val status: SatsCardStatus) : WalletsEvent()
-    class GoToTapSignerScreen(val status: TapSignerStatus) : WalletsEvent()
-    class GoToSignerInfoScreen(val status: TapSignerStatus) : WalletsEvent()
+    class GetTapSignerStatusSuccess(val status: TapSignerStatus) : WalletsEvent()
     class SatsCardUsedUp(val numberOfSlot: Int) : WalletsEvent()
 }

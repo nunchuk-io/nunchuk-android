@@ -2,6 +2,8 @@ package com.nunchuk.android.messages.components.detail
 
 import com.nunchuk.android.messages.util.TransactionEventType
 import com.nunchuk.android.messages.util.WalletEventType
+import com.nunchuk.android.model.RoomWallet
+import com.nunchuk.android.model.Transaction
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -22,7 +24,8 @@ data class MatrixMessage(
     override val time: Long,
     override val type: Int,
     val timelineEvent: TimelineEvent,
-    val selected: Boolean = false
+    val selected: Boolean,
+    val isSelectEnable: Boolean
 ) : Message(
     sender,
     content,
@@ -52,7 +55,8 @@ data class NunchukWalletMessage(
     val eventType: String,
     val msgType: WalletEventType,
     override val type: Int = MessageType.TYPE_NUNCHUK_WALLET_CARD.index,
-    val isOwner: Boolean = false
+    val isOwner: Boolean = false,
+    val roomWallet: RoomWallet?
 ) : Message(
     sender,
     content,
@@ -69,7 +73,10 @@ data class NunchukTransactionMessage(
     val eventType: String,
     val msgType: TransactionEventType,
     override val type: Int = MessageType.TYPE_NUNCHUK_TRANSACTION_CARD.index,
-    val isOwner: Boolean = false
+    val isOwner: Boolean = false,
+    val roomWallet: RoomWallet?,
+    val walletId: String,
+    val transaction: Transaction?
 ) : Message(
     sender,
     content,

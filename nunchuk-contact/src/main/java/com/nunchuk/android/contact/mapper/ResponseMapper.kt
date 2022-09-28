@@ -1,9 +1,9 @@
 package com.nunchuk.android.contact.mapper
 
-import com.nunchuk.android.contact.api.UserResponse
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.ReceiveContact
 import com.nunchuk.android.model.SentContact
+import com.nunchuk.android.model.UserResponse
 
 internal fun UserResponse.toModel() = Contact(
     id = id,

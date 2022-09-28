@@ -45,6 +45,7 @@ internal class GuestModeIntroActivity : BaseActivity<ActivityGuestModeIntroBindi
             GuestModeEvent.InitSuccessEvent -> handleInitGuestModeNunchukSuccess()
             is GuestModeEvent.InitErrorEvent -> NCToastMessage(this).showError(event.error)
             is GuestModeEvent.LoadingEvent -> showLoading()
+            GuestModeEvent.OpenSignInScreen -> {}
         }
     }
 

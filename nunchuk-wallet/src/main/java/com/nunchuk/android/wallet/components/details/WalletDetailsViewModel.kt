@@ -5,23 +5,30 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
+import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.session.room.model.Membership
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,6 +40,10 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val exportWalletUseCase: ExportWalletUseCase,
     private val getTransactionHistoryUseCase: GetTransactionHistoryUseCase,
     private val importTransactionUseCase: ImportTransactionUseCase,
+    private val sessionHolder: SessionHolder,
+    private val accountManager: AccountManager,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val selectedWalletUseCase: SetSelectedWalletUseCase
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
 
     lateinit var walletId: String
@@ -45,6 +56,9 @@ internal class WalletDetailsViewModel @Inject constructor(
         this.walletId = walletId
         if (shouldReloadPendingTx) {
             handleLoadPendingTx()
+        }
+        viewModelScope.launch {
+            selectedWalletUseCase(walletId)
         }
     }
 
@@ -65,35 +79,53 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     private fun getWalletDetails() {
         viewModelScope.launch {
-            getWalletUseCase.execute(walletId)
-                .onStart { event(Loading(true)) }
-                .flowOn(IO)
-                .onException { event(WalletDetailsError(it.message.orUnknownError())) }
-                .flowOn(Main)
+            getWalletUseCase.execute(walletId).onStart { event(Loading(true)) }.flowOn(IO)
+                .onException { event(WalletDetailsError(it.message.orUnknownError())) }.flowOn(Main)
                 .collect {
                     updateState { copy(walletExtended = it) }
+                    checkUserInRoom(it.roomWallet)
                     getTransactionHistory()
                 }
         }
     }
 
+    private fun checkUserInRoom(roomWallet: RoomWallet?) {
+        roomWallet ?: return
+        viewModelScope.launch {
+            val result = withContext(ioDispatcher) {
+                sessionHolder.getSafeActiveSession()?.let {
+                    val account = accountManager.getAccount()
+                    it.roomService().getRoom(roomWallet.roomId)?.membershipService()
+                        ?.getRoomMember(account.chatId)
+                }
+            }
+            if (result == null || result.membership == Membership.LEAVE) {
+                updateState {
+                    copy(
+                        isLeaveRoom = true
+                    )
+                }
+            }
+        }
+    }
+
     private fun getTransactionHistory() {
         viewModelScope.launch {
-            getTransactionHistoryUseCase.execute(walletId)
-                .flowOn(IO)
-                .onException { event(WalletDetailsError(it.message.orUnknownError())) }
-                .flowOn(Main)
+            getTransactionHistoryUseCase.execute(walletId).flowOn(IO)
+                .onException { event(WalletDetailsError(it.message.orUnknownError())) }.flowOn(Main)
                 .collect {
-                    transactions = it.sortedWith(compareBy(Transaction::status).thenByDescending(Transaction::blockTime))
+                    transactions =
+                        it.sortedWith(compareBy(Transaction::status).thenByDescending(Transaction::blockTime))
                     onRetrievedTransactionHistory()
                 }
         }
     }
 
-    fun paginateTransactions() = Pager(
-        config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
-        pagingSourceFactory = { TransactionPagingSource(transactions) }
-    ).flow.cachedIn(viewModelScope).flowOn(IO)
+    fun paginateTransactions() =
+        Pager(config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
+            pagingSourceFactory = { TransactionPagingSource(transactions) }).flow.cachedIn(
+            viewModelScope
+        ).flowOn(IO)
 
     private fun onRetrievedTransactionHistory() {
         if (transactions.isEmpty()) {
@@ -106,10 +138,8 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     private fun getUnusedAddresses() {
         viewModelScope.launch {
-            addressesUseCase.execute(walletId = walletId)
-                .flowOn(IO)
-                .onException { generateNewAddress() }
-                .flowOn(Main)
+            addressesUseCase.execute(walletId = walletId).flowOn(IO)
+                .onException { generateNewAddress() }.flowOn(Main)
                 .collect { onRetrieveUnusedAddress(it) }
         }
     }
@@ -124,8 +154,7 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     private fun generateNewAddress() {
         viewModelScope.launch {
-            newAddressUseCase.execute(walletId = walletId)
-                .flowOn(IO)
+            newAddressUseCase.execute(walletId = walletId).flowOn(IO)
                 .onException { event(UpdateUnusedAddress("")) }
                 .collect { event(UpdateUnusedAddress(it)) }
         }
@@ -159,16 +188,17 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     fun handleImportPSBT(filePath: String) {
         viewModelScope.launch {
-            importTransactionUseCase.execute(walletId, filePath)
-                .flowOn(IO)
-                .onException { event(WalletDetailsError(it.readableMessage())) }
-                .flowOn(Main)
+            importTransactionUseCase.execute(walletId, filePath).flowOn(IO)
+                .onException { event(WalletDetailsError(it.readableMessage())) }.flowOn(Main)
                 .collect {
                     event(ImportPSBTSuccess)
                     getTransactionHistory()
                 }
         }
     }
+
+    val isLeaveRoom: Boolean
+        get() = getState().isLeaveRoom
 
     companion object {
         private const val TIMEOUT_TO_RELOAD = 5000L

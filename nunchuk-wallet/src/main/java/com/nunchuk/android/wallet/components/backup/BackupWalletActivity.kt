@@ -57,7 +57,7 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
     private fun navigateToNextScreen() {
         if (args.isQuickWallet) {
             finish()
-        } else if (args.totalRequireSigns > 1) {
+        } else if (args.numberOfSignKey > 1) {
             navigator.openUploadConfigurationScreen(this, args.walletId)
         } else {
             navigator.openMainScreen(this)

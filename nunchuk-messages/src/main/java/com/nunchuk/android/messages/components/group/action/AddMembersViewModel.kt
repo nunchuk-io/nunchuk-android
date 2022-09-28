@@ -1,7 +1,6 @@
 package com.nunchuk.android.messages.components.group.action
 
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.ext.defaultSchedulers
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.messages.components.create.isContains
@@ -12,14 +11,15 @@ import com.nunchuk.android.model.Contact
 import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
-import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
 class AddMembersViewModel @Inject constructor(
-    private val getContactsUseCase: GetContactsUseCase
+    private val getContactsUseCase: GetContactsUseCase,
+    private val sessionHolder: SessionHolder
 ) : NunchukViewModel<AddMembersState, AddMembersEvent>() {
 
     private var contacts: List<Contact> = ArrayList()
@@ -33,17 +33,17 @@ class AddMembersViewModel @Inject constructor(
     override val initialState = AddMembersState()
 
     fun initRoom(roomId: String) {
-        room = SessionHolder.activeSession?.roomService()?.getRoom(roomId)!!
+        room = sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomId)!!
     }
 
     private fun getContacts() {
-        getContactsUseCase.execute()
-            .defaultSchedulers()
-            .subscribe({
-                contacts = it
-            }, {
-            })
-            .addToDisposables()
+        viewModelScope.launch {
+            getContactsUseCase.execute()
+                .catch { }
+                .collect {
+                    contacts = it
+                }
+        }
     }
 
     fun handleInput(word: String) {

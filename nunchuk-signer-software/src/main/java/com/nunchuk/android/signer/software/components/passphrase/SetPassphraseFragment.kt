@@ -80,8 +80,8 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
             activityContext = requireActivity(),
             id = masterSigner.id,
             name = masterSigner.name,
-            justAdded = true,
             type = masterSigner.type,
+            justAdded = true,
             setPassphrase = !skipPassphrase
         )
     }

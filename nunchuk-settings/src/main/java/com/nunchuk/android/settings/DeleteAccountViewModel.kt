@@ -11,7 +11,10 @@ import com.nunchuk.android.settings.DeleteAccountEvent.*
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -20,6 +23,7 @@ internal class DeleteAccountViewModel @Inject constructor(
     private val accountManager: AccountManager,
     private val repository: UserProfileRepository,
     private val cleanUpCryptoAssetsUseCase: CleanUpCryptoAssetsUseCase,
+    private val sessionHolder: SessionHolder
 ) : NunchukViewModel<DeleteAccountState, DeleteAccountEvent>() {
 
     override val initialState = DeleteAccountState("")
@@ -44,7 +48,7 @@ internal class DeleteAccountViewModel @Inject constructor(
             cleanUpCryptoAssetsUseCase.execute()
                 .flatMapLatest {
                     flow {
-                        emit(SessionHolder.clearActiveSession())
+                        emit(sessionHolder.clearActiveSession())
                     }
                 }
                 .flatMapLatest {

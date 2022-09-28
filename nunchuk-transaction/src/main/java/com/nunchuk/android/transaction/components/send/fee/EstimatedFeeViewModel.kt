@@ -9,6 +9,7 @@ import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeCompletedEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeErrorEvent
@@ -22,7 +23,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-internal class EstimatedFeeViewModel @Inject constructor(
+class EstimatedFeeViewModel @Inject constructor(
     private val estimateFeeUseCase: EstimateFeeUseCase,
     private val draftTransactionUseCase: DraftTransactionUseCase,
     private val draftSatsCardTransactionUseCase: DraftSatsCardTransactionUseCase
@@ -47,15 +48,19 @@ internal class EstimatedFeeViewModel @Inject constructor(
         getEstimateFeeRates()
     }
 
-    private fun getEstimateFeeRates() {
+    fun getEstimateFeeRates() {
         viewModelScope.launch {
             val result = estimateFeeUseCase(Unit)
             if (result.isSuccess) {
+                setEvent(EstimatedFeeEvent.GetFeeRateSuccess(result.getOrThrow()))
                 updateState { copy(estimateFeeRates = result.getOrThrow(), manualFeeRate = result.getOrThrow().defaultRate) }
             } else {
+                setEvent(EstimatedFeeErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
                 updateState { copy(estimateFeeRates = EstimateFeeRates()) }
             }
-            draftTransaction()
+            if (walletId.isNotEmpty()) {
+                draftTransaction()
+            }
         }
     }
 
@@ -108,21 +113,6 @@ internal class EstimatedFeeViewModel @Inject constructor(
         }
     }
 
-    fun handleCustomizeFeeSwitch(checked: Boolean, isSendingAll: Boolean) {
-        if (checked) {
-            updateState { copy(customizeFeeDetails = true) }
-        } else {
-            updateState {
-                copy(
-                    customizeFeeDetails = false,
-                    manualFeeDetails = false,
-                    manualFeeRate = estimateFeeRates.defaultRate,
-                    subtractFeeFromAmount = isSendingAll
-                )
-            }
-        }
-    }
-
     fun handleSubtractFeeSwitch(checked: Boolean) {
         updateState { copy(subtractFeeFromAmount = checked) }
         draftTransaction()
@@ -164,6 +154,3 @@ internal class EstimatedFeeViewModel @Inject constructor(
     val defaultRate: Int
         get() = getState().estimateFeeRates.defaultRate
 }
-
-val EstimateFeeRates.defaultRate: Int
-    get() = economicRate

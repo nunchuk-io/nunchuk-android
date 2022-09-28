@@ -6,13 +6,14 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.InitAppSettingsUseCase
 import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.profile.UserProfileRepository
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.AppSettings
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -21,7 +22,10 @@ internal class NetworkSettingViewModel @Inject constructor(
     private val updateAppSettingUseCase: UpdateAppSettingUseCase,
     private val getAppSettingUseCase: GetAppSettingUseCase,
     private val accountManager: AccountManager,
-    private val repository: UserProfileRepository
+    private val repository: UserProfileRepository,
+    private val sessionHolder: SessionHolder,
+    private val appScope: CoroutineScope,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher
 ) : NunchukViewModel<NetworkSettingState, NetworkSettingEvent>() {
 
     override val initialState = NetworkSettingState()
@@ -100,13 +104,13 @@ internal class NetworkSettingViewModel @Inject constructor(
                 .onException { }
                 .collect {}
         }
-        accountManager.signOut(
-            onStartSignOut = {
-                event(NetworkSettingEvent.LoadingEvent(true))
-            },
-            onSignedOut = {
-                event(NetworkSettingEvent.SignOutSuccessEvent)
+        appScope.launch {
+            event(NetworkSettingEvent.LoadingEvent(true))
+            withContext(dispatcher) {
+                sessionHolder.clearActiveSession()
+                accountManager.signOut()
             }
-        )
+            event(NetworkSettingEvent.SignOutSuccessEvent)
+        }
     }
 }

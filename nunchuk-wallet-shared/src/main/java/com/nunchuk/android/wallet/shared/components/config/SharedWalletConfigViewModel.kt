@@ -14,6 +14,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.members.RoomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import javax.inject.Inject
@@ -23,27 +24,27 @@ internal class SharedWalletConfigViewModel @Inject constructor(
     private val createSharedWalletUseCase: CreateSharedWalletUseCase,
     private val getRoomWalletUseCase: GetRoomWalletUseCase,
     private val getMatrixEventUseCase: GetMatrixEventUseCase,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
+    private val sessionHolder: SessionHolder
 ) : NunchukViewModel<SharedWalletConfigState, SharedWalletConfigEvent>() {
 
     override val initialState = SharedWalletConfigState()
 
     init {
-        if (SessionHolder.hasActiveRoom()) {
-            val currentRoom = SessionHolder.currentRoom!!
-            val roomMembers = currentRoom.membershipService().getRoomMembers(RoomMemberQueryParams.Builder().build())
-            updateState { copy(signerModels = roomMembers.toSignerModels()) }
-            getRoomWallet(currentRoom.roomId)
+        if (sessionHolder.hasActiveRoom()) {
+            val roomMembers =
+                sessionHolder.getSafeActiveSession()?.getRoom(sessionHolder.getActiveRoomId())
+                    ?.membershipService()
+                    ?.getRoomMembers(RoomMemberQueryParams.Builder().build())
+            updateState { copy(signerModels = roomMembers.orEmpty().toSignerModels()) }
+            getRoomWallet(sessionHolder.getActiveRoomId())
         }
     }
 
     private fun getRoomWallet(roomId: String) {
         viewModelScope.launch {
-            getRoomWalletUseCase.execute(roomId)
-                .flowOn(Dispatchers.IO)
-                .onException { }
-                .flowOn(Dispatchers.Main)
-                .collect {
+            getRoomWalletUseCase.execute(roomId).flowOn(Dispatchers.IO).onException { }
+                .flowOn(Dispatchers.Main).collect {
                     updateState { copy(roomWallet = it) }
                     getMatrixEvent(it?.initEventId)
                 }
@@ -63,10 +64,8 @@ internal class SharedWalletConfigViewModel @Inject constructor(
 
     fun finalizeWallet() {
         viewModelScope.launch {
-            val roomId = SessionHolder.currentRoom!!.roomId
-            createSharedWalletUseCase.execute(roomId)
-                .flowOn(Dispatchers.IO)
-                .onException { }
+            val roomId = sessionHolder.getActiveRoomId()
+            createSharedWalletUseCase.execute(roomId).flowOn(Dispatchers.IO).onException { }
                 .collect {
                     getRoomWallet(roomId)
                     event(CreateSharedWalletSuccess)
@@ -79,8 +78,5 @@ internal class SharedWalletConfigViewModel @Inject constructor(
 private fun List<RoomMemberSummary>.toSignerModels() = map(RoomMemberSummary::toSignerModel)
 
 private fun RoomMemberSummary.toSignerModel() = SignerModel(
-    id = userId,
-    name = displayName ?: userId,
-    fingerPrint = "",
-    derivationPath = ""
+    id = userId, name = displayName ?: userId, fingerPrint = "", derivationPath = ""
 )
