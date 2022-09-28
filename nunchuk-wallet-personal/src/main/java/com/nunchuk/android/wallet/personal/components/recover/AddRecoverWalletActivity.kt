@@ -104,7 +104,9 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
 
     private fun setupViews() {
         binding.walletName.getEditTextView().filters = arrayOf(LengthFilter(MAX_LENGTH))
-        binding.walletName.addTextChangedCallback(viewModel::updateWalletName)
+        if (recoverWalletData.type == RecoverWalletType.COLDCARD) {
+            binding.walletName.getEditTextView().setText("${getString(R.string.nc_my_coldcard)} wallet")
+        }
         binding.walletName.addTextChangedCallback(viewModel::updateWalletName)
 
         binding.toolbar.setNavigationOnClickListener {

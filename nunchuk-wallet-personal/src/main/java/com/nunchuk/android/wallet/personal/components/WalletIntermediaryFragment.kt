@@ -18,9 +18,14 @@ import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletActionBottomSheet
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletOption
@@ -29,12 +34,16 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
-class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBinding>() {
+class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBinding>(),
+    BottomSheetOptionListener {
     private val viewModel: WalletIntermediaryViewModel by viewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
     private val args: WalletIntermediaryFragmentArgs by navArgs()
 
-    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentWalletIntermediaryBinding {
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentWalletIntermediaryBinding {
         return FragmentWalletIntermediaryBinding.inflate(inflater, container, false)
     }
 
@@ -48,19 +57,49 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
         observer()
     }
 
+    override fun onOptionClicked(option: SheetOption) {
+        when (option.type) {
+            SheetOptionType.IMPORT_MULTI_SIG_COLD_CARD -> (activity as? NfcActionListener)?.startNfcFlow(
+                BaseNfcActivity.REQUEST_IMPORT_MULTI_WALLET_FROM_MK4
+            )
+            SheetOptionType.IMPORT_SINGLE_SIG_COLD_CARD -> (activity as? NfcActionListener)?.startNfcFlow(
+                BaseNfcActivity.REQUEST_IMPORT_SINGLE_WALLET_FROM_MK4
+            )
+            else -> {
+                viewModel.createWallet(option.id.orEmpty())
+            }
+        }
+    }
+
     private fun observer() {
         flowObserver(viewModel.event) {
-            showOrHideNfcLoading(it is WalletIntermediaryEvent.Loading)
+            showOrHideNfcLoading(it is WalletIntermediaryEvent.NfcLoading)
             when (it) {
                 is WalletIntermediaryEvent.OnLoadFileSuccess -> handleLoadFilePath(it)
                 is WalletIntermediaryEvent.ImportWalletFromMk4Success -> openRecoverWalletName(it.walletId)
                 is WalletIntermediaryEvent.ShowError -> showError(it.msg)
-                else -> {}
+                is WalletIntermediaryEvent.ExtractWalletsFromColdCard -> showWallets(it.wallets)
+                is WalletIntermediaryEvent.Loading -> showOrHideLoading(it.isLoading)
+                is WalletIntermediaryEvent.NfcLoading -> showOrHideNfcLoading(it.isLoading)
             }
         }
-        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_IMPORT_WALLET_FROM_MK4 }) {
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_IMPORT_MULTI_WALLET_FROM_MK4 }) {
             viewModel.importWalletFromMk4(it.records)
         }
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_IMPORT_SINGLE_WALLET_FROM_MK4 }) {
+            viewModel.getWalletsFromColdCard(it.records)
+        }
+    }
+
+    private fun showWallets(wallets: List<Wallet>) {
+        BottomSheetOption.newInstance(wallets.mapIndexed { index, wallet ->
+            SheetOption(
+                type = index,
+                label = wallet.name,
+                id = wallet.id,
+            )
+        }, title = getString(R.string.nc_sellect_wallet_type))
+            .show(childFragmentManager, "BottomSheetOption")
     }
 
     private fun handleLoadFilePath(it: WalletIntermediaryEvent.OnLoadFileSuccess) {
@@ -104,7 +143,7 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
             when (it) {
                 RecoverWalletOption.QrCode -> handleOptionUsingQRCode()
                 RecoverWalletOption.BSMSFile -> openSelectFileChooser(WalletIntermediaryActivity.REQUEST_CODE)
-                RecoverWalletOption.ColdCard -> handleImportWalletFromColdCard()
+                RecoverWalletOption.ColdCard -> showOptionImportFromColdCard()
             }
         }
     }
@@ -155,14 +194,21 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
             return
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(arrayOf(Manifest.permission.CAMERA), WalletIntermediaryActivity.REQUEST_PERMISSION_CAMERA)
+            requestPermissions(
+                arrayOf(Manifest.permission.CAMERA),
+                WalletIntermediaryActivity.REQUEST_PERMISSION_CAMERA
+            )
         }
     }
 
 
     // TODO: refactor with registerForActivityResult later
     @RequiresApi(Build.VERSION_CODES.M)
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == WalletIntermediaryActivity.REQUEST_PERMISSION_CAMERA) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -207,7 +253,19 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
         )
     }
 
-    private fun handleImportWalletFromColdCard() {
-        (activity as? NfcActionListener)?.startNfcFlow(BaseNfcActivity.REQUEST_IMPORT_WALLET_FROM_MK4)
+    private fun showOptionImportFromColdCard() {
+        BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    SheetOptionType.IMPORT_SINGLE_SIG_COLD_CARD,
+                    stringId = R.string.nc_single_sig_wallet,
+                ),
+                SheetOption(
+                    SheetOptionType.IMPORT_MULTI_SIG_COLD_CARD,
+                    stringId = R.string.nc_multisig_wallet,
+                ),
+            ),
+            title = getString(R.string.nc_which_type_wallet_you_want_import)
+        ).show(childFragmentManager, "BottomSheetOption")
     }
 }

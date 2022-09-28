@@ -127,11 +127,16 @@
     <string name="nc_hint_import_trans_from_mk4">Ready to import signature</string>
     <string name="nc_enable_nfc">Enable NFC</string>
     <string name="nc_refer_to">Refer to</string>
-    <string name="nc_hint_import_wallet_from_mk4">On COLDCARD, go to Settings → Multisig Wallets → Select wallet → Coldcard Export → Press 3.</string>
+    <string name="nc_hint_import_wallet_from_mk4">On COLDCARD, go to Settings → Multisig Wallets → &lt;Select wallet&gt; → Coldcard Export → Press 3.</string>
+    <string name="nc_hint_import_single_sig_wallet_from_mk4">On COLDCARD, go to Advanced/Tools → Export Wallet → Generic JSON → OK (x2)→ Press 3.</string>
     <string name="nc_create_transaction">Create transaction</string>
     <string name="nc_customize_fee_settings">Customize fee settings</string>
     <string name="nc_scan_qr">Scan Qr</string>
     <string name="nc_continue_to_sweep">Continue to sweep</string>
     <string name="nc_data_transfer_in_progress">Data transfer in progress…</string>
     <string name="nc_keep_hold_coldcard_until_finish">Keep holding your device near the COLDCARD until it\'s finished.</string>
+    <string name="nc_multisig_wallet">Multisig wallet</string>
+    <string name="nc_sellect_wallet_type">Select your wallet address type</string>
+    <string name="nc_single_sig_wallet">Single-sig wallet</string>
+    <string name="nc_which_type_wallet_you_want_import">What type of wallet do you want to import?</string>
 </resources>
