@@ -9,7 +9,10 @@ import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,7 +28,7 @@ internal class RecoverWalletViewModel @Inject constructor(
     val walletName: String?
         get() = state.value?.walletName
 
-    fun init() {
+    init {
         updateState { initialState }
     }
 

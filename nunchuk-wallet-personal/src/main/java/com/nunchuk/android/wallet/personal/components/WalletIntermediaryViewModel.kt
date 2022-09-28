@@ -25,6 +25,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+const val DEFAULT_COLDCARD_WALLET_NAME = "My COLDCARD wallet"
+
 @HiltViewModel
 class WalletIntermediaryViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -93,7 +95,7 @@ class WalletIntermediaryViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value.wallets.find { it.id == walletId }?.let { wallet ->
                 _event.emit(WalletIntermediaryEvent.Loading(true))
-                val result = createWallet2UseCase(wallet)
+                val result = createWallet2UseCase(wallet.copy(name = DEFAULT_COLDCARD_WALLET_NAME))
                 _event.emit(WalletIntermediaryEvent.Loading(false))
                 if (result.isSuccess) {
                     _event.emit(WalletIntermediaryEvent.ImportWalletFromMk4Success(result.getOrThrow().id))

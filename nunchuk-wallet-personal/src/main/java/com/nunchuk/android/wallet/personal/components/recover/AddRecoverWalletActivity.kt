@@ -9,6 +9,7 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
 import com.nunchuk.android.wallet.personal.R
+import com.nunchuk.android.wallet.personal.components.DEFAULT_COLDCARD_WALLET_NAME
 import com.nunchuk.android.wallet.personal.databinding.ActivityAddRecoverWalletBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
@@ -32,7 +33,6 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
 
         setupViews()
         observeEvent()
-        viewModel.init()
     }
 
     private fun observeEvent() {
@@ -104,10 +104,10 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
 
     private fun setupViews() {
         binding.walletName.getEditTextView().filters = arrayOf(LengthFilter(MAX_LENGTH))
-        if (recoverWalletData.type == RecoverWalletType.COLDCARD) {
-            binding.walletName.getEditTextView().setText("${getString(R.string.nc_my_coldcard)} wallet")
-        }
         binding.walletName.addTextChangedCallback(viewModel::updateWalletName)
+        if (recoverWalletData.type == RecoverWalletType.COLDCARD) {
+            binding.walletName.getEditTextView().setText(DEFAULT_COLDCARD_WALLET_NAME)
+        }
 
         binding.toolbar.setNavigationOnClickListener {
             onBackPressed()
