@@ -9,6 +9,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.share.IntentSharingController
@@ -161,7 +162,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
                 binding.signerName.text = event.signerName
                 showEditSignerNameSuccess()
             }
-            RemoveSignerCompletedEvent -> openMainScreen()
+            RemoveSignerCompletedEvent -> finish()
             is RemoveSignerErrorEvent -> showToast(event.message)
             is UpdateNameErrorEvent -> showToast(event.message)
             is HealthCheckErrorEvent -> {
@@ -260,7 +261,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     }
 
     private fun openMainScreen() {
-        finish()
+        ActivityManager.popUntilRoot()
     }
 
     private fun onEditClicked() {
