@@ -2,7 +2,7 @@
 <resources>
     <string name="nc_signer_intro_title">Please add a key before adding a wallet.</string>
     <string name="nc_wallet_intro_title">Looks like you have added a key</string>
-    <string name="nc_signer_intro_subtitle">Software and air-gapped keys are supported.</string>
+    <string name="nc_signer_intro_subtitle">NFC, air-gapped and software keys are supported.</string>
     <string name="nc_wallet_intro_subtitle">Do you want to add a Bitcoin wallet?</string>
     <string name="nc_text_add_a_signer">Add a key</string>
     <string name="nc_text_add_a_wallet">Add a wallet</string>
