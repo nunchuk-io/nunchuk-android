@@ -30,7 +30,7 @@
     <string name="nc_wallet_customize_address_type">Customize address type</string>
     <string name="nc_wallet_default_address_type">Default: Native segwit</string>
     <string name="nc_wallet_default_wallet_type">Default: Standard wallet</string>
-    <string name="nc_wallet_name_hint_text">Nunchuk’s Fun Fund</string>
+    <string name="nc_wallet_name_hint_text">Wallet name</string>
 
     <string name="nc_signer_air_gapped">Air-gapped</string>
     <string name="nc_wallet_save_wallet_configuration">Save wallet configuration</string>
