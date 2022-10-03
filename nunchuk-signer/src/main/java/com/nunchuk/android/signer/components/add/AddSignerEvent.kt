@@ -4,7 +4,7 @@ import com.nunchuk.android.model.SingleSigner
 
 sealed class AddSignerEvent {
     data class AddSignerSuccessEvent(val singleSigner: SingleSigner) : AddSignerEvent()
-    data class ParseKeystoneSignerSuccess(val signerSpec: String) : AddSignerEvent()
+    data class ParseKeystoneSignerSuccess(val signers: List<SingleSigner>) : AddSignerEvent()
     data class AddSignerErrorEvent(val message: String) : AddSignerEvent()
     object InvalidSignerSpecEvent : AddSignerEvent()
     object SignerNameRequiredEvent : AddSignerEvent()

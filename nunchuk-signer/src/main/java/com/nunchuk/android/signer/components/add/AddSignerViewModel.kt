@@ -6,10 +6,7 @@ import com.nunchuk.android.core.signer.InvalidSignerFormatException
 import com.nunchuk.android.core.signer.SignerInput
 import com.nunchuk.android.core.signer.toSigner
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.toSpec
 import com.nunchuk.android.signer.components.add.AddSignerEvent.*
-import com.nunchuk.android.usecase.CreateKeystoneSignerUseCase
 import com.nunchuk.android.usecase.CreatePassportSignersUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
@@ -27,10 +24,8 @@ import javax.inject.Inject
 @HiltViewModel
 internal class AddSignerViewModel @Inject constructor(
     private val createSignerUseCase: CreateSignerUseCase,
-    private val createKeystoneSignerUseCase: CreateKeystoneSignerUseCase,
     private val createPassportSignersUseCase: CreatePassportSignersUseCase
 ) : NunchukViewModel<Unit, AddSignerEvent>() {
-
     private val qrDataList = HashSet<String>()
     private var isProcessing = false
     override val initialState = Unit
@@ -71,18 +66,7 @@ internal class AddSignerViewModel @Inject constructor(
         }
     }
 
-    fun handleAddQrData(qrData: String) {
-        viewModelScope.launch {
-            createKeystoneSignerUseCase.execute(qrData = qrData)
-                .onStart { event(LoadingEvent) }
-                .flowOn(IO)
-                .onException { event(AddSignerErrorEvent(it.message.orUnknownError())) }
-                .flowOn(Main)
-                .collect { event(ParseKeystoneSignerSuccess(it.toSpec())) }
-        }
-    }
-
-    fun handAddPassportSigners(qrData: String, onSuccessEvent: (List<SingleSigner>) -> Unit = {}) {
+    fun handAddPassportSigners(qrData: String) {
         qrDataList.add(qrData)
         if (!isProcessing) {
             viewModelScope.launch {
@@ -95,7 +79,7 @@ internal class AddSignerViewModel @Inject constructor(
                     .onCompletion { isProcessing = false }
                     .collect {
                         Timber.tag(TAG).d("add passport signer successful::$it")
-                        onSuccessEvent(it)
+                        event(ParseKeystoneSignerSuccess(it))
                     }
             }
         }

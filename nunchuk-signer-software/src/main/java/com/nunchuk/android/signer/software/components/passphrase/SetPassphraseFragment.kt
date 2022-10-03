@@ -79,6 +79,7 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
         navigator.openSignerInfoScreen(
             activityContext = requireActivity(),
             id = masterSigner.id,
+            masterFingerprint = masterSigner.device.masterFingerprint,
             name = masterSigner.name,
             type = masterSigner.type,
             justAdded = true,

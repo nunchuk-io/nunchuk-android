@@ -49,7 +49,7 @@ internal class SignerInfoViewModel @Inject constructor(
                     is Error -> Log.e(TAG, "get software signer error", result.exception)
                 }
             } else {
-                val result = getRemoteSignerUseCase(GetRemoteSignerUseCase.Data(args.id, args.derivationPath))
+                val result = getRemoteSignerUseCase(GetRemoteSignerUseCase.Data(args.masterFingerprint, args.derivationPath))
                 if (result.isSuccess) {
                     updateState { copy(remoteSigner = result.getOrThrow()) }
                 }

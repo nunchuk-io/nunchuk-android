@@ -10,6 +10,7 @@ interface SignerNavigator {
     fun openSignerInfoScreen(
         activityContext: Context,
         id: String,
+        masterFingerprint: String,
         name: String,
         type: SignerType,
         derivationPath: String = "",

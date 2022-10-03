@@ -23,6 +23,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
     override fun openSignerInfoScreen(
         activityContext: Context,
         id: String,
+        masterFingerprint: String,
         name: String,
         type: SignerType,
         derivationPath: String,
@@ -38,7 +39,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
             type = type,
             setPassphrase = setPassphrase,
             isInWallet = isInWallet,
-            derivationPath = derivationPath
+            derivationPath = derivationPath,
+            masterFingerprint = masterFingerprint
         )
     }
 

@@ -62,7 +62,11 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
 
     private fun onChangeCvcOptionClicked() {
         viewModel.state.value?.masterSigner?.id?.let { masterSignerId ->
-            NfcSetupActivity.navigate(activity = this, setUpAction = NfcSetupActivity.CHANGE_CVC, masterSignerId = masterSignerId)
+            NfcSetupActivity.navigate(
+                activity = this,
+                setUpAction = NfcSetupActivity.CHANGE_CVC,
+                masterSignerId = masterSignerId
+            )
         }
     }
 
@@ -92,39 +96,53 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
 
         lifecycleScope.launchWhenStarted {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
-                nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_VIEW_BACKUP_KEY }.collect {
-                    requestViewBackupKey(it)
-                    nfcViewModel.clearScanInfo()
-                }
+                nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_VIEW_BACKUP_KEY }
+                    .collect {
+                        requestViewBackupKey(it)
+                        nfcViewModel.clearScanInfo()
+                    }
             }
         }
 
         lifecycleScope.launchWhenStarted {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
-                nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_HEALTH_CHECK }.collect {
-                    val isoDep = IsoDep.get(it.tag) ?: return@collect
-                    viewModel.healthCheckTapSigner(isoDep, nfcViewModel.inputCvc.orEmpty(), viewModel.state.value?.masterSigner ?: return@collect)
-                    nfcViewModel.clearScanInfo()
-                }
+                nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_HEALTH_CHECK }
+                    .collect {
+                        val isoDep = IsoDep.get(it.tag) ?: return@collect
+                        viewModel.healthCheckTapSigner(
+                            isoDep,
+                            nfcViewModel.inputCvc.orEmpty(),
+                            viewModel.state.value?.masterSigner ?: return@collect
+                        )
+                        nfcViewModel.clearScanInfo()
+                    }
             }
         }
 
         lifecycleScope.launchWhenStarted {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
-                nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_TOPUP_XPUBS }.collect {
-                    topUpXPubs(it)
-                    nfcViewModel.clearScanInfo()
-                }
+                nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_TOPUP_XPUBS }
+                    .collect {
+                        topUpXPubs(it)
+                        nfcViewModel.clearScanInfo()
+                    }
             }
         }
     }
 
     private fun requestViewBackupKey(nfcScanInfo: NfcScanInfo) {
-        viewModel.getTapSignerBackup(IsoDep.get(nfcScanInfo.tag) ?: return, nfcViewModel.inputCvc.orEmpty())
+        viewModel.getTapSignerBackup(
+            IsoDep.get(nfcScanInfo.tag) ?: return,
+            nfcViewModel.inputCvc.orEmpty()
+        )
     }
 
     private fun topUpXPubs(nfcScanInfo: NfcScanInfo) {
-        viewModel.topUpXpubTapSigner(IsoDep.get(nfcScanInfo.tag) ?: return, nfcViewModel.inputCvc.orEmpty(), args.id)
+        viewModel.topUpXpubTapSigner(
+            IsoDep.get(nfcScanInfo.tag) ?: return,
+            nfcViewModel.inputCvc.orEmpty(),
+            args.id
+        )
     }
 
     private fun handleState(state: SignerInfoState) {
@@ -148,7 +166,12 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
 
     private fun bindRemoteSigner(signer: SingleSigner) {
         binding.signerName.text = signer.name
-        binding.signerTypeIcon.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_air_signer_big))
+        binding.signerTypeIcon.setImageDrawable(
+            ContextCompat.getDrawable(
+                this,
+                R.drawable.ic_air_signer_big
+            )
+        )
         binding.signerSpec.isVisible = true
         binding.signerSpec.text = signer.toSpec()
         binding.fingerprint.isVisible = false
@@ -169,10 +192,14 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
                 if (nfcViewModel.handleNfcError(event.e).not()) showHealthCheckError(event)
             }
             is HealthCheckSuccessEvent -> NCToastMessage(this).showMessage(
-                message = getString(R.string.nc_txt_run_health_check_success_event, binding.signerName.text),
+                message = getString(
+                    R.string.nc_txt_run_health_check_success_event,
+                    binding.signerName.text
+                ),
                 icon = R.drawable.ic_check_circle_outline
             )
-            is GetTapSignerBackupKeyEvent -> IntentSharingController.from(this).shareFile(event.backupKeyPath)
+            is GetTapSignerBackupKeyEvent -> IntentSharingController.from(this)
+                .shareFile(event.backupKeyPath)
             is GetTapSignerBackupKeyError -> {
                 if (nfcViewModel.handleNfcError(event.e).not()) {
                     val message = event.e?.message ?: getString(R.string.nc_backup_key_failed)
@@ -286,6 +313,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
         fun start(
             activityContext: Context,
             id: String,
+            masterFingerprint: String,
             name: String,
             type: SignerType,
             derivationPath: String,
@@ -301,6 +329,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
                     justAdded = justAdded,
                     signerType = type,
                     setPassphrase = setPassphrase,
+                    masterFingerprint = masterFingerprint,
                     isInWallet = isInWallet
                 ).buildIntent(activityContext)
             )

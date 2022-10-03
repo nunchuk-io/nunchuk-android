@@ -309,6 +309,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         navigator.openSignerInfoScreen(
             activityContext = requireActivity(),
             id = signer.id,
+            masterFingerprint = signer.fingerPrint,
             name = signer.name,
             type = signer.type,
             derivationPath = signer.derivationPath,
