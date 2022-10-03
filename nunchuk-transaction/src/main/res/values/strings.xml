@@ -65,7 +65,8 @@
     <string name="nc_transaction_balance">Balance</string>
     <string name="nc_transaction_signed_successful">Transaction signed successfully</string>
     <string name="nc_transaction_broadcast_successful">Transaction has been broadcast</string>
-    <string name="nc_transaction_deleted">Transaction cancelled</string>
+    <string name="nc_transaction_cancelled">Transaction cancelled</string>
+    <string name="nc_transaction_removed">Transaction removed</string>
     <string name="nc_transaction_imported">Transaction Imported</string>
     <string name="nc_transaction_imported_failed">Import failed :</string>
     <string name="nc_transaction_export_psbt">Export PSBT</string>
