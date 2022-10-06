@@ -13,6 +13,7 @@ fun SignerType.toReadableString(context: Context) = when (this) {
     HARDWARE -> context.getString(R.string.nc_signer_type_hardware)
     FOREIGN_SOFTWARE -> context.getString(R.string.nc_signer_type_foreign_software)
     NFC, COLDCARD_NFC -> context.getString(R.string.nc_nfc)
+    UNKNOWN-> context.getString(R.string.nc_unknown)
 }
 
 fun SignerModel.toReadableSignerType(context: Context) = type.toReadableString(context)
@@ -23,6 +24,7 @@ fun SignerType.toReadableDrawable(context: Context) = when (this) {
     HARDWARE -> ContextCompat.getDrawable(context, R.drawable.ic_signer_type_wired)
     FOREIGN_SOFTWARE -> ContextCompat.getDrawable(context, R.drawable.ic_singer_type_software)
     NFC -> ContextCompat.getDrawable(context, R.drawable.ic_nfc_card)
+    UNKNOWN -> ContextCompat.getDrawable(context, R.drawable.ic_air_signer_small)
 }
 
 fun SignerModel.toReadableSignerTypeDrawable(context: Context) = type.toReadableDrawable(context)
