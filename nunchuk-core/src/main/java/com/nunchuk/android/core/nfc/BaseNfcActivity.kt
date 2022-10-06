@@ -173,7 +173,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>(),
     private fun showInputCvcDialog(errorMessage: String? = null, descMessage: String? = null) {
         NCInputDialog(this)
             .showDialog(
-                title = "Enter CVC",
+                title = "Enter PIN",
                 onConfirmed = { cvc ->
                     if (cvc.isValidCvc()) {
                         nfcViewModel.updateInputCvc(cvc)
