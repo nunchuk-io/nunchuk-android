@@ -92,7 +92,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
         }
         lifecycleScope.launch {
             binding.receiptInput.textChanges()
-                .map { it.toString().lowercase() }
+                .map { it.toString() }
                 .distinctUntilChanged()
                 .collect(viewModel::handleReceiptChanged)
         }
@@ -124,7 +124,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
         val privateNoteCounter = "${state.privateNote.length}/$MAX_NOTE_LENGTH"
         hideError()
         if (binding.receiptInput.text.toString() != state.address) {
-            binding.receiptInput.setText(state.address.lowercase())
+            binding.receiptInput.setText(state.address)
             binding.receiptInput.setSelection(state.address.length)
         }
         if (binding.privateNoteInput.text.toString() != state.privateNote) {
