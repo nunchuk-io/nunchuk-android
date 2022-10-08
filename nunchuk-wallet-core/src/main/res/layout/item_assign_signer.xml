@@ -65,28 +65,4 @@
         app:layout_constraintTop_toTopOf="@+id/avatar"
         tools:checked="true" />
 
-    <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/barrier"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:barrierDirection="bottom"
-        app:constraint_referenced_ids="avatar,xpf,signerType" />
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/warning"
-        style="@style/NCText.Body.Small"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/nc_padding_4"
-        android:drawableStart="@drawable/ic_warn"
-        android:drawablePadding="@dimen/nc_padding_4"
-        android:paddingHorizontal="@dimen/nc_padding_4"
-        android:paddingVertical="@dimen/nc_padding_4"
-        android:text="@string/nc_wallet_signer_has_been_used_warning"
-        android:textColor="@color/nc_beeswax_dark"
-        android:visibility="gone"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/barrier"
-        tools:visibility="visible" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
