@@ -19,7 +19,6 @@ internal class SignersViewBinder(
         val binding = ItemAssignSignerBinding.bind(container.getChildAt(position))
         binding.signerType.text = model.toReadableSignerType(context)
 
-        binding.warning.isVisible = model.used
         binding.avatar.text = model.name.shorten()
         binding.signerName.text = model.name
         val xfpValue = "XFP: ${model.fingerPrint}"

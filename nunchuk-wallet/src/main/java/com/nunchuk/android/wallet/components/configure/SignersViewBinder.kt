@@ -2,7 +2,6 @@ package com.nunchuk.android.wallet.components.configure
 
 import android.view.ViewGroup
 import androidx.core.view.get
-import androidx.core.view.isVisible
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.toReadableSignerType
@@ -22,7 +21,6 @@ internal class SignersViewBinder(
         val binding = ItemAssignSignerBinding.bind(container[position])
         val xfpValue = "XFP: ${model.fingerPrint}"
         binding.signerType.text = model.toReadableSignerType(context)
-        binding.warning.isVisible = model.used
         binding.avatar.text = model.name.shorten()
         binding.signerName.text = model.name
         binding.xpf.text = xfpValue
