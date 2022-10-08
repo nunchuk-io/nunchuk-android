@@ -299,9 +299,8 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/nc_padding_16"
             android:buttonTint="@color/nc_black_color"
-            app:layout_constraintBottom_toBottomOf="@+id/nestedSegwitType"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/nestedSegwitDesc" />
+            app:layout_constraintTop_toTopOf="@+id/nestedSegwitType" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/legacyType"
@@ -334,9 +333,8 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/nc_padding_16"
             android:buttonTint="@color/nc_black_color"
-            app:layout_constraintBottom_toBottomOf="@+id/legacyType"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/legacyDesc" />
+            app:layout_constraintTop_toTopOf="@+id/legacyType"
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/taprootType"
@@ -383,9 +381,8 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/nc_padding_16"
             android:buttonTint="@color/nc_black_color"
-            app:layout_constraintBottom_toBottomOf="@+id/taprootType"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/taprootDesc" />
+            app:layout_constraintTop_toTopOf="@+id/taprootType"
+            app:layout_constraintEnd_toEndOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.nunchuk.android.widget.NCFontButton
