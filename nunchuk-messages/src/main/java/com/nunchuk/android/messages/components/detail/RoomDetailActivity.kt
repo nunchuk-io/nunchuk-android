@@ -3,8 +3,6 @@ package com.nunchuk.android.messages.components.detail
 import android.app.Activity
 import android.content.Context
 import android.os.Bundle
-import android.view.View
-import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
@@ -62,8 +60,6 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 
     private lateinit var stickyBinding: ViewWalletStickyBinding
-
-    private var selectMessageActionView: View? = null
 
     override fun initializeBinding() = ActivityRoomDetailBinding.inflate(layoutInflater)
 
@@ -149,9 +145,10 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 
     private fun setupViews() {
-        selectMessageActionView = binding.viewStubSelectMessageAction.inflate()
-        selectMessageActionView?.findViewById<ImageView>(R.id.btnCopy)?.setOnClickListener {
-            copyMessageText(adapter.getSelectedMessage().joinToString("\n", transform = MatrixMessage::content))
+        binding.btnCopy.setOnClickListener {
+            copyMessageText(
+                adapter.getSelectedMessage().joinToString("\n", transform = MatrixMessage::content)
+            )
             viewModel.applySelected(false)
         }
         stickyBinding = ViewWalletStickyBinding.bind(binding.walletStickyContainer.root)
@@ -266,7 +263,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 
     private fun setupViewForSelectMode(selectMode: Boolean) {
-        selectMessageActionView?.isVisible = selectMode
+        binding.clMessageAction.isVisible = selectMode
         binding.tvSelectedMessageCount.isVisible = selectMode
         binding.editText.isVisible = !selectMode
         binding.add.isVisible = !selectMode
