@@ -6,6 +6,7 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.BaseNfcUseCase
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.TapSignerStatus
@@ -64,7 +65,15 @@ internal class WalletsViewModel @Inject constructor(
                     event(Loading(false))
                     isRetrievingData.set(false)
                 }
-                .collect { updateState { copy(masterSigners = it.first, signers = it.second, wallets = it.third) } }
+                .collect {
+                    updateState {
+                        copy(
+                            masterSigners = it.first,
+                            signers = it.second,
+                            wallets = it.third
+                        )
+                    }
+                }
         }
     }
 
@@ -84,10 +93,16 @@ internal class WalletsViewModel @Inject constructor(
         event(AddWalletEvent)
     }
 
-    fun isInWallet(signerId: String): Boolean {
+    fun isInWallet(signer: SignerModel): Boolean {
         return getState().wallets
             .any {
-                it.wallet.signers.any { singleSigner -> singleSigner.masterSignerId == signerId }
+                it.wallet.signers.any anyLast@ { singleSigner ->
+                    if (singleSigner.hasMasterSigner) {
+                        return@anyLast singleSigner.masterFingerprint == signer.fingerPrint
+                    }
+                    return@anyLast  singleSigner.masterFingerprint == signer.fingerPrint
+                            && singleSigner.derivationPath == signer.derivationPath
+                }
             }
     }
 
