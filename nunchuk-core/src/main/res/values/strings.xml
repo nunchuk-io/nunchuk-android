@@ -139,5 +139,6 @@
     <string name="nc_sellect_wallet_type">Select your wallet address type</string>
     <string name="nc_single_sig_wallet">Single-sig wallet</string>
     <string name="nc_which_type_wallet_you_want_import">What type of wallet do you want to import?</string>
+    <string name="nc_remove_transaction">Remove transaction</string>
     <string name="nc_unknown">Unknown</string>
 </resources>

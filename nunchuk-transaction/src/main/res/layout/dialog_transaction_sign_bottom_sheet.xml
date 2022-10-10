@@ -113,4 +113,17 @@
         android:textSize="@dimen/nc_text_size_16"
         app:drawableTint="@color/nc_primary_color" />
 
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btnRemoveTransaction"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:drawableStart="@drawable/ic_cancel_red"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:padding="@dimen/nc_padding_16"
+        android:text="@string/nc_remove_transaction"
+        android:textColor="@color/nc_orange_dark_color"
+        android:textSize="@dimen/nc_text_size_16" />
+
+
 </LinearLayout>

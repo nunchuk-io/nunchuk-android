@@ -9,4 +9,5 @@ enum class TransactionOption {
     IMPORT_PASSPORT,
     REPLACE_BY_FEE,
     COPY_TRANSACTION_ID,
+    REMOVE_TRANSACTION,
 }

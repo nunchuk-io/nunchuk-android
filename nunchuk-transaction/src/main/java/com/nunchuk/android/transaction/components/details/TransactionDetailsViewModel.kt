@@ -12,10 +12,7 @@ import com.nunchuk.android.core.domain.SignTransactionByTapSignerUseCase
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSignerModel
-import com.nunchuk.android.core.util.isPending
-import com.nunchuk.android.core.util.isPendingConfirm
-import com.nunchuk.android.core.util.messageOrUnknownError
-import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
@@ -86,7 +83,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    fun init(walletId: String, txId: String, initEventId: String, roomId: String, transaction: Transaction?) {
+    fun init(
+        walletId: String,
+        txId: String,
+        initEventId: String,
+        roomId: String,
+        transaction: Transaction?
+    ) {
         this.walletId = walletId
         this.txId = txId
         this.initEventId = initEventId
@@ -110,7 +113,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
         if (initEventId.isEmpty() && roomId.isNotEmpty()) {
             setEvent(LoadingEvent)
             viewModelScope.launch {
-                val result = getPendingTransactionUseCase(GetPendingTransactionUseCase.Data(roomId, txId))
+                val result =
+                    getPendingTransactionUseCase(GetPendingTransactionUseCase.Data(roomId, txId))
                 if (result.isSuccess) {
                     initEventId = result.getOrThrow().initEventId
                 }
@@ -170,7 +174,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private fun getPersonalTransaction() {
         viewModelScope.launch {
             getAllSignersUseCase.execute()
-                .zip(getTransactionUseCase.execute(walletId, txId)) { p, tx -> Triple(p.first, p.second, tx) }
+                .zip(getTransactionUseCase.execute(walletId, txId)) { p, tx ->
+                    Triple(
+                        p.first,
+                        p.second,
+                        tx
+                    )
+                }
                 .flowOn(IO)
                 .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }
                 .collect {
@@ -189,7 +199,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     roomWallet = it
                 }
                 ) { p, _ -> p }
-                .zip(getTransactionUseCase.execute(walletId, txId)) { p, tx -> Triple(p.first, p.second, tx) }
+                .zip(getTransactionUseCase.execute(walletId, txId)) { p, tx ->
+                    Triple(
+                        p.first,
+                        p.second,
+                        tx
+                    )
+                }
                 .flowOn(IO)
                 .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }
                 .collect {
@@ -268,13 +284,19 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun handleMenuMoreEvent() {
         val status = getState().transaction.status
-        setEvent(PromptTransactionOptions(status.isPending(), status.isPendingConfirm()))
+        setEvent(
+            PromptTransactionOptions(
+                isPendingTransaction = status.isPending(),
+                isPendingConfirm = status.isPendingConfirm(),
+                isRejected = status.isRejected()
+            )
+        )
     }
 
-    fun handleDeleteTransactionEvent() {
+    fun handleDeleteTransactionEvent(isCancel: Boolean = true) {
         viewModelScope.launch {
             when (val result = deleteTransactionUseCase.execute(walletId, txId)) {
-                is Success -> setEvent(DeleteTransactionSuccess)
+                is Success -> setEvent(DeleteTransactionSuccess(isCancel))
                 is Error -> setEvent(TransactionDetailsError("${result.exception.message.orEmpty()},walletId::$walletId,txId::$txId"))
             }
         }
@@ -300,7 +322,14 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 }
             }
         } else {
-            setEvent(PromptTransactionOptions(isPendingTransaction = true, isPendingConfirm = false, masterFingerPrint = signer.fingerPrint))
+            setEvent(
+                PromptTransactionOptions(
+                    isPendingTransaction = true,
+                    isPendingConfirm = false,
+                    isRejected = false,
+                    masterFingerPrint = signer.fingerPrint
+                )
+            )
         }
     }
 
@@ -393,7 +422,14 @@ internal class TransactionDetailsViewModel @Inject constructor(
         val signer = currentSigner ?: return
         viewModelScope.launch {
             setEvent(LoadingEvent)
-            val result = importTransactionFromMk4UseCase(ImportTransactionFromMk4UseCase.Data(walletId, records, initEventId, signer.fingerPrint))
+            val result = importTransactionFromMk4UseCase(
+                ImportTransactionFromMk4UseCase.Data(
+                    walletId,
+                    records,
+                    initEventId,
+                    signer.fingerPrint
+                )
+            )
             val transaction = result.getOrThrow()
             if (result.isSuccess && transaction != null) {
                 updateState { copy(transaction = transaction) }
@@ -407,7 +443,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private fun signRoomTransactionTapSigner(isoDep: IsoDep, inputCvc: String) {
         viewModelScope.launch {
             setEvent(NfcLoadingEvent())
-            val result = signRoomTransactionByTapSignerUseCase(SignRoomTransactionByTapSignerUseCase.Data(isoDep, inputCvc, initEventId))
+            val result = signRoomTransactionByTapSignerUseCase(
+                SignRoomTransactionByTapSignerUseCase.Data(
+                    isoDep,
+                    inputCvc,
+                    initEventId
+                )
+            )
             if (result.isSuccess) {
                 setEvent(SignTransactionSuccess(roomId))
             } else {
