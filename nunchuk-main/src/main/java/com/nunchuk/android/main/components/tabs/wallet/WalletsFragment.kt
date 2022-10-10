@@ -33,7 +33,7 @@ import com.nunchuk.android.signer.satscard.SatsCardActivity
 import com.nunchuk.android.signer.util.handleTapSignerStatus
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
-import com.nunchuk.android.wallet.components.details.WalletDetailsArgs
+import com.nunchuk.android.wallet.components.details.WalletDetailsFragmentArgs
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningVerticalDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -282,7 +282,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun openWalletDetailsScreen(walletId: String) {
-        findNavController().navigate(R.id.walletDetailsFragment, WalletDetailsArgs(walletId).buildBundle())
+        findNavController().navigate(R.id.walletDetailsFragment, WalletDetailsFragmentArgs(walletId).toBundle())
     }
 
     private fun showSigners(signers: List<SignerModel>) {

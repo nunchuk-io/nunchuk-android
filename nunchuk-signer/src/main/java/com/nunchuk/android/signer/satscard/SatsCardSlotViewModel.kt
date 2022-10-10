@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetSatsCardSlotBalanceUseCase
-import com.nunchuk.android.model.BlockListener
+import com.nunchuk.android.listener.BlockListener
 import com.nunchuk.android.model.NcExceptionCode
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SatsCardStatus
