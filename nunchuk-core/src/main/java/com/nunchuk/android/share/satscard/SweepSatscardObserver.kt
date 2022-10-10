@@ -33,5 +33,12 @@ fun BaseActivity<*>.handleSweepSuccess(event: SweepEvent.SweepSuccess, walletId:
     if (walletId.isNotEmpty()) {
         navigator.openWalletDetailsScreen(this, walletId)
     }
-    navigator.openTransactionDetailsScreen(this, walletId, event.transaction.txId, "", "", event.transaction)
+    navigator.openTransactionDetailsScreen(
+        activityContext = this,
+        walletId = walletId,
+        txId = event.transaction.txId,
+        initEventId = "",
+        roomId = "",
+        transaction = event.transaction
+    )
 }
