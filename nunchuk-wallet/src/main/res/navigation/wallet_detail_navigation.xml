@@ -7,5 +7,10 @@
     <fragment
         android:id="@+id/walletDetailsFragment"
         android:name="com.nunchuk.android.wallet.components.details.WalletDetailsFragment"
-        android:label="WalletDetailsFragment" />
+        android:label="WalletDetailsFragment" >
+
+        <argument
+            android:name="walletId"
+            app:argType="string" />
+    </fragment>
 </navigation>

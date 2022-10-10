@@ -1,5 +1,6 @@
 package com.nunchuk.android.wallet.components.details
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -11,6 +12,7 @@ import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.RoomWallet
@@ -33,6 +35,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class WalletDetailsViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val getWalletUseCase: GetWalletUseCase,
     private val addressesUseCase: GetAddressesUseCase,
@@ -45,15 +48,27 @@ internal class WalletDetailsViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val selectedWalletUseCase: SetSelectedWalletUseCase
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
-
-    lateinit var walletId: String
+    private val args: WalletDetailsFragmentArgs = WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
     private var transactions: List<Transaction> = ArrayList()
 
     override val initialState = WalletDetailsState()
 
+    init {
+        viewModelScope.launch {
+            TransactionListener.transactionUpdateFlow.collect {
+                if (it.walletId == args.walletId) {
+                    syncData()
+                }
+            }
+        }
+        viewModelScope.launch {
+            selectedWalletUseCase(args.walletId)
+        }
+        syncData()
+    }
+
     fun init(walletId: String, shouldReloadPendingTx: Boolean) {
-        this.walletId = walletId
         if (shouldReloadPendingTx) {
             handleLoadPendingTx()
         }
@@ -79,7 +94,7 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     private fun getWalletDetails() {
         viewModelScope.launch {
-            getWalletUseCase.execute(walletId).onStart { event(Loading(true)) }.flowOn(IO)
+            getWalletUseCase.execute(args.walletId).onStart { event(Loading(true)) }.flowOn(IO)
                 .onException { event(WalletDetailsError(it.message.orUnknownError())) }.flowOn(Main)
                 .collect {
                     updateState { copy(walletExtended = it) }
@@ -111,7 +126,7 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     private fun getTransactionHistory() {
         viewModelScope.launch {
-            getTransactionHistoryUseCase.execute(walletId).flowOn(IO)
+            getTransactionHistoryUseCase.execute(args.walletId).flowOn(IO)
                 .onException { event(WalletDetailsError(it.message.orUnknownError())) }.flowOn(Main)
                 .collect {
                     transactions =
@@ -138,7 +153,7 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     private fun getUnusedAddresses() {
         viewModelScope.launch {
-            addressesUseCase.execute(walletId = walletId).flowOn(IO)
+            addressesUseCase.execute(walletId = args.walletId).flowOn(IO)
                 .onException { generateNewAddress() }.flowOn(Main)
                 .collect { onRetrieveUnusedAddress(it) }
         }
@@ -154,7 +169,7 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     private fun generateNewAddress() {
         viewModelScope.launch {
-            newAddressUseCase.execute(walletId = walletId).flowOn(IO)
+            newAddressUseCase.execute(walletId = args.walletId).flowOn(IO)
                 .onException { event(UpdateUnusedAddress("")) }
                 .collect { event(UpdateUnusedAddress(it)) }
         }
@@ -166,8 +181,8 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     fun handleExportBSMS() {
         viewModelScope.launch {
-            when (val event = createShareFileUseCase.execute("$walletId.bsms")) {
-                is Success -> exportWalletToFile(walletId, event.data, ExportFormat.BSMS)
+            when (val event = createShareFileUseCase.execute("${args.walletId}.bsms")) {
+                is Success -> exportWalletToFile(args.walletId, event.data, ExportFormat.BSMS)
                 is Error -> showError(event)
             }
         }
@@ -188,7 +203,7 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     fun handleImportPSBT(filePath: String) {
         viewModelScope.launch {
-            importTransactionUseCase.execute(walletId, filePath).flowOn(IO)
+            importTransactionUseCase.execute(args.walletId, filePath).flowOn(IO)
                 .onException { event(WalletDetailsError(it.readableMessage())) }.flowOn(Main)
                 .collect {
                     event(ImportPSBTSuccess)

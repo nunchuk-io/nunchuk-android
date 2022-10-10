@@ -3,6 +3,7 @@ package com.nunchuk.android.share.satscard
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orUnknownError
@@ -28,8 +29,9 @@ fun BaseActivity<*>.observerSweepSatscard(sweepSatscardViewModel: SweepSatscardV
 
 fun BaseActivity<*>.handleSweepSuccess(event: SweepEvent.SweepSuccess, walletId: String) {
     ActivityManager.popUntilRoot()
+    NcToastManager.scheduleShowMessage(getString(R.string.nc_satscard_sweeped))
     if (walletId.isNotEmpty()) {
-        navigator.openWalletDetailsScreen(this, walletId, true)
+        navigator.openWalletDetailsScreen(this, walletId)
     }
     navigator.openTransactionDetailsScreen(this, walletId, event.transaction.txId, "", "", event.transaction)
 }

@@ -1,6 +1,7 @@
 package com.nunchuk.android.wallet.components.details
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
@@ -21,11 +22,18 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
     }
 
     companion object {
-        fun start(activityContext: Context, walletId: String, isSweepBalance: Boolean) {
+        fun start(activityContext: Context, walletId: String) {
             activityContext.startActivity(
-                WalletDetailsArgs(walletId = walletId, isSweepBalance = isSweepBalance).buildIntent(
-                    activityContext
-                )
+                Intent(
+                    activityContext,
+                    WalletDetailsActivity::class.java
+                ).apply {
+                    putExtras(
+                        WalletDetailsFragmentArgs(
+                            walletId = walletId
+                        ).toBundle()
+                    )
+                }
             )
         }
     }

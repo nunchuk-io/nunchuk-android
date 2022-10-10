@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.navArgs
 import androidx.paging.CombinedLoadStates
 import androidx.paging.LoadState
 import androidx.paging.PagingData
@@ -78,7 +79,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         }
     }
 
-    private val args: WalletDetailsArgs by lazy { WalletDetailsArgs.deserializeFrom(requireArguments()) }
+    private val args : WalletDetailsFragmentArgs by navArgs()
 
     override fun initializeBinding(
         inflater: LayoutInflater, container: ViewGroup?
@@ -88,25 +89,11 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
 
     private var job: Job? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        if (args.isSweepBalance) {
-            NCToastMessage(requireActivity()).show(getString(R.string.nc_satscard_sweeped))
-        }
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         setupViews()
         observeEvent()
-        viewModel.init(args.walletId, args.isSweepBalance)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        showLoading()
-        viewModel.syncData()
     }
 
     override fun onOptionClicked(option: SheetOption) {
