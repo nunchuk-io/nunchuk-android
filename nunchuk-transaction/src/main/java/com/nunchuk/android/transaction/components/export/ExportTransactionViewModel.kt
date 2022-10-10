@@ -95,7 +95,7 @@ internal class ExportTransactionViewModel @Inject constructor(
         }
     }
 
-    fun getQrSize(): Int {
-        return Resources.getSystem().displayMetrics.widthPixels * 3 / 4
+    private fun getQrSize(): Int {
+        return Resources.getSystem().displayMetrics.widthPixels
     }
 }

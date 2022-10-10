@@ -11,9 +11,10 @@ import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 
 internal const val WIDTH = 400
+internal const val DEFAULT_MARGIN = 2
 
-fun String.convertToQRCode(width: Int = WIDTH, height: Int = WIDTH): Bitmap? {
-    val hints = mapOf(ERROR_CORRECTION to ErrorCorrectionLevel.L, EncodeHintType.CHARACTER_SET to "UTF-8", MARGIN to 0)
+fun String.convertToQRCode(width: Int = WIDTH, height: Int = WIDTH, margin: Int = DEFAULT_MARGIN): Bitmap? {
+    val hints = mapOf(ERROR_CORRECTION to ErrorCorrectionLevel.L, EncodeHintType.CHARACTER_SET to "UTF-8", MARGIN to margin)
     val matrix: BitMatrix = try {
         QRCodeWriter().encode(this, BarcodeFormat.QR_CODE, width, height, hints)
     } catch (e: Exception) {
