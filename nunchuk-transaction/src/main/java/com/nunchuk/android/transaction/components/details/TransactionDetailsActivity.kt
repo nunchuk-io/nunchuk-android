@@ -52,22 +52,21 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 
-    private val launcher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            val data = it.data
-            if (it.resultCode == Activity.RESULT_OK && data != null) {
-                val result = ReplaceFeeArgs.deserializeFrom(data)
-                navigator.openTransactionDetailsScreen(
-                    this,
-                    result.walletId,
-                    result.transaction.txId,
-                    "",
-                    ""
-                )
-                NcToastManager.scheduleShowMessage(getString(R.string.nc_replace_by_fee_success))
-                finish()
-            }
+    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        val data = it.data
+        if (it.resultCode == Activity.RESULT_OK && data != null) {
+            val result = ReplaceFeeArgs.deserializeFrom(data)
+            navigator.openTransactionDetailsScreen(
+                activityContext = this,
+                walletId = result.walletId,
+                txId = result.transaction.txId,
+                initEventId = "",
+                roomId = ""
+            )
+            NcToastManager.scheduleShowMessage(getString(R.string.nc_replace_by_fee_success))
+            finish()
         }
+    }
 
     override fun initializeBinding() = ActivityTransactionDetailsBinding.inflate(layoutInflater)
 
@@ -202,11 +201,13 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         binding.transactionDetailsContainer.isVisible = state.viewMore
 
         bindTransaction(state.transaction)
-        bindSigners(
-            state.transaction.signers,
-            state.signers.sortedByDescending(SignerModel::localKey),
-            state.transaction.status
-        )
+        if (state.transaction.isReceive.not()) {
+            bindSigners(
+                state.transaction.signers,
+                state.signers.sortedByDescending(SignerModel::localKey),
+                state.transaction.status
+            )
+        }
         hideLoading()
     }
 

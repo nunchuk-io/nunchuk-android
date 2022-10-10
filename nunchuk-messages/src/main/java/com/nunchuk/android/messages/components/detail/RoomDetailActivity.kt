@@ -282,12 +282,12 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
     private fun openTransactionDetails(walletId: String, txId: String, initEventId: String) {
         navigator.openTransactionDetailsScreen(
-            launcher,
+            launcher = launcher,
             activityContext = this,
             walletId = walletId,
             txId = txId,
             initEventId = initEventId,
-            args.roomId
+            roomId = args.roomId
         )
     }
 
