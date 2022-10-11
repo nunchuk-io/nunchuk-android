@@ -25,4 +25,7 @@ internal object NunchukPersistenceModule {
     fun provideSyncFileDao(database: NunchukDatabase) = database.syncFileDao()
 
 
+    @Singleton
+    @Provides
+    fun provideSyncEventDao(database: NunchukDatabase) = database.syncEventDao()
 }

@@ -1,5 +1,7 @@
 package com.nunchuk.android.core.di
 
+import com.nunchuk.android.core.repository.SyncEventRepository
+import com.nunchuk.android.core.repository.SyncEventRepositoryImpl
 import com.nunchuk.android.core.repository.SyncFileRepository
 import com.nunchuk.android.core.repository.SyncFileRepositoryImpl
 import dagger.Binds
@@ -14,4 +16,8 @@ internal interface SyncFileDataModule {
     @Binds
     @Singleton
     fun bindSyncFileRepository(repository: SyncFileRepositoryImpl): SyncFileRepository
+
+    @Binds
+    @Singleton
+    fun bindSyncEventRepository(repository: SyncEventRepositoryImpl) : SyncEventRepository
 }

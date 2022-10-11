@@ -24,7 +24,6 @@ class SyncSettingActivity : BaseActivity<ActivitySyncSettingBinding>() {
         showToolbarBackButton()
 
         setupViews()
-        setupData()
         observeEvent()
     }
 
@@ -74,10 +73,6 @@ class SyncSettingActivity : BaseActivity<ActivitySyncSettingBinding>() {
                 enable = enable
             )
         )
-    }
-
-    private fun setupData() {
-        viewModel.getSyncSettings()
     }
 
     companion object {
