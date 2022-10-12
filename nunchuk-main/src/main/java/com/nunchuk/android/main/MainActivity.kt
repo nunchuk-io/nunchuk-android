@@ -25,16 +25,15 @@ import com.nunchuk.android.core.util.AppEvenBus
 import com.nunchuk.android.core.util.AppEvent
 import com.nunchuk.android.core.util.AppEventListener
 import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.main.components.tabs.wallet.WalletsViewModel
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 import com.nunchuk.android.main.di.MainAppEvent
-import com.nunchuk.android.main.di.MainAppEvent.DownloadFileSyncSucceed
 import com.nunchuk.android.messages.components.list.RoomsState
 import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.notifications.PushNotificationHelper
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
-import java.io.File
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -55,6 +54,8 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
     private val contactsViewModel: ContactsViewModel by viewModels()
 
     private val syncRoomViewModel: SyncRoomViewModel by viewModels()
+
+    private val walletViewModel: WalletsViewModel by viewModels()
 
     private val loginHalfToken
         get() = intent.getStringExtra(EXTRAS_LOGIN_HALF_TOKEN).orEmpty()
@@ -146,9 +147,8 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
 
     private fun handleEvent(event: MainAppEvent) {
         when (event) {
-            is DownloadFileSyncSucceed -> handleDownloadedSyncFile(event)
             is MainAppEvent.UpdateAppRecommendEvent -> handleAppUpdateEvent(event.data)
-            MainAppEvent.ConsumeSyncEventCompleted -> syncRoomViewModel.findSyncRoom() // safe way to trigger sync data
+            MainAppEvent.ConsumeSyncEventCompleted -> walletViewModel.retrieveData()
             else -> {}
         }
     }
@@ -170,14 +170,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         NCInfoDialog(this).showDialog(
             message = getString(R.string.nc_unverified_device),
             cancelable = true
-        )
-    }
-
-    private fun handleDownloadedSyncFile(event: DownloadFileSyncSucceed) {
-        viewModel.saveSyncFileToCache(
-            data = event.responseBody,
-            path = externalCacheDir.toString() + File.separator + "FileBackup" + System.currentTimeMillis(),
-            fileJsonInfo = event.jsonInfo
         )
     }
 

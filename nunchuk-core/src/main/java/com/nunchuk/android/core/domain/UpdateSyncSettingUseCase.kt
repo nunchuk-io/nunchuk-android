@@ -1,25 +1,17 @@
 package com.nunchuk.android.core.domain
 
-import com.google.gson.Gson
-import com.nunchuk.android.core.domain.data.SyncSetting
-import com.nunchuk.android.core.persistence.NCSharePreferences
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.SettingRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface UpdateSyncSettingUseCase {
-    fun execute(syncSetting: SyncSetting): Flow<SyncSetting>
-}
+class UpdateSyncSettingUseCase @Inject constructor(
+    private val repository: SettingRepository,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher
+) : UseCase<Boolean, Unit>(dispatcher) {
 
-internal class UpdateSyncSettingUseCaseImpl @Inject constructor(
-    private val ncSharedPreferences: NCSharePreferences,
-    private val gson: Gson
-) : UpdateSyncSettingUseCase {
-
-    override fun execute(syncSetting: SyncSetting) = flow {
-        ncSharedPreferences.syncSetting = gson.toJson(syncSetting)
-        emit(
-            gson.fromJson(ncSharedPreferences.syncSetting, SyncSetting::class.java) as SyncSetting
-        )
+    override suspend fun execute(parameters: Boolean) {
+        return repository.setSyncEnable(parameters)
     }
 }

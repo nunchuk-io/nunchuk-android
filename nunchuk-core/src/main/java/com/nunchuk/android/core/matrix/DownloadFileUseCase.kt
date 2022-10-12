@@ -1,28 +1,22 @@
 package com.nunchuk.android.core.matrix
 
 import com.nunchuk.android.core.repository.MatrixAPIRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
-import okhttp3.ResponseBody
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
 /*
 * Android Matrix SDK does not have a native upload func, so we have to call rest api
 * */
-interface DownloadFileUseCase {
-    fun execute(
-        serverName: String,
-        mediaId: String
-    ): Flow<ResponseBody>
-}
+class DownloadFileUseCase @Inject constructor(
+    private val matrixAPIRepository: MatrixAPIRepository,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+) : UseCase<DownloadFileUseCase.Params, String>(dispatcher) {
 
-internal class DownloadFileUseCaseImpl @Inject constructor(
-    private val matrixAPIRepository: MatrixAPIRepository
-) : DownloadFileUseCase {
+    override suspend fun execute(parameters: Params): String {
+        return matrixAPIRepository.download(parameters.serverName, parameters.mediaId)
+    }
 
-    override fun execute(
-        serverName: String,
-        mediaId: String
-    ) = matrixAPIRepository.download(serverName, mediaId).flowOn(Dispatchers.IO)
+    data class Params(val serverName: String, val mediaId: String)
 }

@@ -25,33 +25,22 @@ internal class SyncSettingViewModel @Inject constructor(
 
     override val initialState = SyncSettingState()
 
-    fun getSyncSettings() {
+    init {
         viewModelScope.launch {
-            getSyncSettingUseCase.execute()
-                .flowOn(Dispatchers.IO)
-                .onException { }
-                .flowOn(Dispatchers.Main)
+            getSyncSettingUseCase(Unit)
                 .collect {
+                    val isEnable = it.getOrElse { false }
                     updateState {
-                        copy(syncSetting = it)
+                        copy(syncSetting = SyncSetting(isEnable))
                     }
-                    event(SyncSettingEvent.GetSyncSettingSuccessEvent(it.enable))
+                    event(SyncSettingEvent.GetSyncSettingSuccessEvent(isEnable))
                 }
         }
     }
 
     fun updateSyncSettings(syncSetting: SyncSetting) {
         viewModelScope.launch {
-            updateSyncSettingUseCase.execute(syncSetting)
-                .flowOn(Dispatchers.IO)
-                .onException { }
-                .flowOn(Dispatchers.Main)
-                .collect {
-                    updateState {
-                        copy(syncSetting = it)
-                    }
-                    event(SyncSettingEvent.UpdateSyncSettingSuccessEvent(it.enable))
-                }
+            updateSyncSettingUseCase(syncSetting.enable)
         }
     }
 
