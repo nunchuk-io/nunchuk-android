@@ -51,7 +51,7 @@
     <string name="nc_master_private_key_init">Master private key has been initialized</string>
     <string name="nc_config_cvc_failed">Config cvc failed</string>
     <string name="nc_set_up_chain_code">Set up chain code</string>
-    <string name="nc_chain_code_desc">The chain code is a 32-byte of entropy, used for the key picking process.</string>
+    <string name="nc_chain_code_desc">The chain code is a 32-byte of entropy, used for the key picking process. If you are unsure, we recommend that you leave it on automatic.</string>
     <string name="nc_automatic">Automatic</string>
     <string name="nc_advanced">Advanced</string>
     <string name="nc_pick_my_chain_code">I’ll pick my chain code</string>
