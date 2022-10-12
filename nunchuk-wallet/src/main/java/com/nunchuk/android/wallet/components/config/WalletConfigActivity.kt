@@ -35,7 +35,11 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
     private val viewModel: WalletConfigViewModel by viewModels()
 
-    private val controller: IntentSharingController by lazy(LazyThreadSafetyMode.NONE) { IntentSharingController.from(this) }
+    private val controller: IntentSharingController by lazy(LazyThreadSafetyMode.NONE) {
+        IntentSharingController.from(
+            this
+        )
+    }
 
     private val args: WalletConfigArgs by lazy { WalletConfigArgs.deserializeFrom(intent) }
 
@@ -87,7 +91,9 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
     override fun handleSharedEvent(event: UploadConfigurationEvent) {
         super.handleSharedEvent(event)
-        if (event is UploadConfigurationEvent.ExportColdcardSuccess && event.filePath.isNullOrEmpty().not()) {
+        if (event is UploadConfigurationEvent.ExportColdcardSuccess
+            && event.filePath.isNullOrEmpty().not()
+        ) {
             shareConfigurationFile(event.filePath.orEmpty())
         }
     }
@@ -111,7 +117,9 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
     private fun walletDeleted() {
         NCToastMessage(this).showMessage(getString(R.string.nc_wallet_delete_wallet_success))
-        setResult(Activity.RESULT_OK)
+        setResult(Activity.RESULT_OK, Intent().apply {
+            putExtra(EXTRA_WALLET_ACTION, WalletConfigAction.DELETE)
+        })
         ActivityManager.popUntilRoot()
     }
 
@@ -121,10 +129,14 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
         binding.configuration.bindWalletConfiguration(wallet)
 
-        binding.walletType.text = (if (wallet.escrow) WalletType.ESCROW else WalletType.MULTI_SIG).toReadableString(this)
+        binding.walletType.text =
+            (if (wallet.escrow) WalletType.ESCROW else WalletType.MULTI_SIG).toReadableString(this)
         binding.addressType.text = wallet.addressType.toReadableString(this)
         binding.shareIcon.isVisible = walletExtended.isShared
-        SignersViewBinder(binding.signersContainer, wallet.signers.map(SingleSigner::toModel)).bindItems()
+        SignersViewBinder(
+            binding.signersContainer,
+            wallet.signers.map(SingleSigner::toModel)
+        ).bindItems()
     }
 
     private fun setupViews() {
@@ -143,9 +155,22 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
     private fun showMoreOptions() {
         val options = listOf(
-            SheetOption(SheetOptionType.TYPE_EXPORT_AS_QR, R.drawable.ic_qr, R.string.nc_show_as_qr_code),
-            SheetOption(SheetOptionType.TYPE_EXPORT_TO_COLD_CARD, R.drawable.ic_export, R.string.nc_wallet_export_coldcard),
-            SheetOption(SheetOptionType.TYPE_DELETE_WALLET, R.drawable.ic_delete_red, R.string.nc_wallet_delete_wallet, isDeleted = true),
+            SheetOption(
+                SheetOptionType.TYPE_EXPORT_AS_QR,
+                R.drawable.ic_qr,
+                R.string.nc_show_as_qr_code
+            ),
+            SheetOption(
+                SheetOptionType.TYPE_EXPORT_TO_COLD_CARD,
+                R.drawable.ic_export,
+                R.string.nc_wallet_export_coldcard
+            ),
+            SheetOption(
+                SheetOptionType.TYPE_DELETE_WALLET,
+                R.drawable.ic_delete_red,
+                R.string.nc_wallet_delete_wallet,
+                isDeleted = true
+            ),
         )
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(supportFragmentManager, "BottomSheetOption")
@@ -161,19 +186,37 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     }
 
     private fun showEditWalletSuccess() {
-        binding.root.post { NCToastMessage(this).show(R.string.nc_text_change_wallet_success) }
+        binding.root.post {
+            NCToastMessage(this).show(R.string.nc_text_change_wallet_success)
+            setResult(Activity.RESULT_OK, Intent().apply {
+                putExtra(EXTRA_WALLET_ACTION, WalletConfigAction.UPDATE_NAME)
+            })
+        }
     }
 
     companion object {
         private const val CONFIRMATION_TEXT = "DELETE"
+        const val EXTRA_WALLET_ACTION = "action"
 
         fun start(activityContext: Context, walletId: String) {
-            activityContext.startActivity(WalletConfigArgs(walletId = walletId).buildIntent(activityContext))
+            activityContext.startActivity(
+                WalletConfigArgs(walletId = walletId).buildIntent(
+                    activityContext
+                )
+            )
         }
 
-        fun start(launcher: ActivityResultLauncher<Intent>, activityContext: Context, walletId: String) {
+        fun start(
+            launcher: ActivityResultLauncher<Intent>,
+            activityContext: Context,
+            walletId: String
+        ) {
             launcher.launch(WalletConfigArgs(walletId = walletId).buildIntent(activityContext))
         }
     }
 
+}
+
+enum class WalletConfigAction {
+    DELETE, UPDATE_NAME
 }

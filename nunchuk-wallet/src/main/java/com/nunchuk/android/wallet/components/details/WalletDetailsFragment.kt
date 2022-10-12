@@ -30,6 +30,8 @@ import com.nunchuk.android.core.util.*
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.components.config.WalletConfigAction
+import com.nunchuk.android.wallet.components.config.WalletConfigActivity
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import com.nunchuk.android.wallet.databinding.FragmentWalletDetailBinding
 import com.nunchuk.android.widget.NCToastMessage
@@ -55,8 +57,12 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
 
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == Activity.RESULT_OK) {
-                activity?.onBackPressed()
+            val data = it.data
+            if (it.resultCode == Activity.RESULT_OK && data != null) {
+                when (data.getSerializableExtra(WalletConfigActivity.EXTRA_WALLET_ACTION) as WalletConfigAction) {
+                    WalletConfigAction.DELETE -> activity?.onBackPressed()
+                    WalletConfigAction.UPDATE_NAME -> viewModel.getWalletDetails(false)
+                }
             }
         }
 
@@ -79,7 +85,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         }
     }
 
-    private val args : WalletDetailsFragmentArgs by navArgs()
+    private val args: WalletDetailsFragmentArgs by navArgs()
 
     override fun initializeBinding(
         inflater: LayoutInflater, container: ViewGroup?
