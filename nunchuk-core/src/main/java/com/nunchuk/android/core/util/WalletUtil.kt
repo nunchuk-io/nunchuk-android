@@ -17,7 +17,7 @@ fun Wallet.getUSDAmount() = balance.getUSDAmount()
 
 fun Amount.getBTCAmount() = when (CURRENT_DISPLAY_UNIT_TYPE) {
     SAT -> "${value.beautifySATFormat()} sat"
-    BTC -> "${NativeSdkProvider.instance.nativeSdk.valueFromAmount(this).trimEnd { it == '0' }} BTC"
+    BTC -> "${NativeSdkProvider.instance.nativeSdk.valueFromAmount(this).trimEnd { it == '0' }.trimEnd { it == '.' }} BTC"
     else -> "${NativeSdkProvider.instance.nativeSdk.valueFromAmount(this)} BTC"
 }
 
