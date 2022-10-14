@@ -217,8 +217,9 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>(),
         const val REQUEST_MK4_ADD_KEY = 11
         const val REQUEST_EXPORT_WALLET_TO_MK4 = 12
         const val REQUEST_MK4_EXPORT_TRANSACTION = 13
-        const val REQUEST_MK4_IMPORT_TRANSACTION = 14
+        const val REQUEST_MK4_IMPORT_SIGNATURE = 14
         const val REQUEST_IMPORT_MULTI_WALLET_FROM_MK4 = 15
         const val REQUEST_IMPORT_SINGLE_WALLET_FROM_MK4 = 16
+        const val REQUEST_GENERATE_HEAL_CHECK_MSG = 17
     }
 }

@@ -2,6 +2,7 @@ package com.nunchuk.android.signer.components.details
 
 import android.content.Context
 import android.nfc.tech.IsoDep
+import android.nfc.tech.Ndef
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
@@ -14,25 +15,11 @@ import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.core.util.showOrHideNfcLoading
-import com.nunchuk.android.core.util.showToast
-import com.nunchuk.android.core.util.toReadableDrawable
-import com.nunchuk.android.core.util.toReadableString
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.toSpec
 import com.nunchuk.android.signer.R
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.GetTapSignerBackupKeyError
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.GetTapSignerBackupKeyEvent
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.HealthCheckErrorEvent
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.HealthCheckSuccessEvent
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.NfcLoading
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.RemoveSignerCompletedEvent
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.RemoveSignerErrorEvent
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.TopUpXpubFailed
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.TopUpXpubSuccess
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.UpdateNameErrorEvent
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.UpdateNameSuccessEvent
 import com.nunchuk.android.signer.components.details.model.SingerOption
 import com.nunchuk.android.signer.databinding.ActivitySignerInfoBinding
 import com.nunchuk.android.signer.nfc.NfcSetupActivity
@@ -139,6 +126,23 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
                     }
             }
         }
+
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_GENERATE_HEAL_CHECK_MSG }) { scanInfo ->
+            viewModel.state.value?.remoteSigner?.let { signer ->
+                viewModel.generateColdcardHealthMessages(
+                    Ndef.get(scanInfo.tag),
+                    signer.derivationPath
+                )
+            }
+            nfcViewModel.clearScanInfo()
+        }
+
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_MK4_IMPORT_SIGNATURE }) {
+            viewModel.state.value?.remoteSigner?.let { signer ->
+                viewModel.healthCheckColdCard(signer, it.records)
+            }
+            nfcViewModel.clearScanInfo()
+        }
     }
 
     private fun requestViewBackupKey(nfcScanInfo: NfcScanInfo) {
@@ -192,46 +196,47 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     }
 
     private fun handleEvent(event: SignerInfoEvent) {
-        showOrHideNfcLoading(event is NfcLoading)
+        showOrHideNfcLoading(event is SignerInfoEvent.NfcLoading)
         when (event) {
-            is UpdateNameSuccessEvent -> {
+            is SignerInfoEvent.UpdateNameSuccessEvent -> {
                 binding.signerName.text = event.signerName
                 showEditSignerNameSuccess()
             }
-            RemoveSignerCompletedEvent -> finish()
-            is RemoveSignerErrorEvent -> showToast(event.message)
-            is UpdateNameErrorEvent -> showToast(event.message)
-            is HealthCheckErrorEvent -> {
+            SignerInfoEvent.RemoveSignerCompletedEvent -> finish()
+            is SignerInfoEvent.RemoveSignerErrorEvent -> showToast(event.message)
+            is SignerInfoEvent.UpdateNameErrorEvent -> showToast(event.message)
+            is SignerInfoEvent.HealthCheckErrorEvent -> {
                 if (nfcViewModel.handleNfcError(event.e).not()) showHealthCheckError(event)
             }
-            is HealthCheckSuccessEvent -> NCToastMessage(this).showMessage(
+            SignerInfoEvent.HealthCheckSuccessEvent -> NCToastMessage(this).showMessage(
                 message = getString(
                     R.string.nc_txt_run_health_check_success_event,
                     binding.signerName.text
                 ),
                 icon = R.drawable.ic_check_circle_outline
             )
-            is GetTapSignerBackupKeyEvent -> IntentSharingController.from(this)
+            is SignerInfoEvent.GetTapSignerBackupKeyEvent -> IntentSharingController.from(this)
                 .shareFile(event.backupKeyPath)
-            is GetTapSignerBackupKeyError -> {
+            is SignerInfoEvent.NfcError -> {
                 if (nfcViewModel.handleNfcError(event.e).not()) {
-                    val message = event.e?.message ?: getString(R.string.nc_backup_key_failed)
+                    val message = event.e?.message.orUnknownError()
                     NCToastMessage(this).showError(message)
                 }
             }
-            TopUpXpubSuccess -> NCToastMessage(this).showMessage(
+            SignerInfoEvent.TopUpXpubSuccess -> NCToastMessage(this).showMessage(
                 message = getString(R.string.nc_xpub_topped_up),
                 icon = R.drawable.ic_check_circle_outline
             )
-            is TopUpXpubFailed -> {
+            is SignerInfoEvent.TopUpXpubFailed -> {
                 val message = event.e?.message ?: getString(R.string.nc_topup_xpub_failed)
                 NCToastMessage(this).showError(message)
             }
-            else -> {}
+            SignerInfoEvent.GenerateColdcardHealthMessagesSuccess -> startNfcFlow(REQUEST_MK4_IMPORT_SIGNATURE)
+            SignerInfoEvent.NfcLoading -> showOrHideNfcLoading(true)
         }
     }
 
-    private fun showHealthCheckError(event: HealthCheckErrorEvent) {
+    private fun showHealthCheckError(event: SignerInfoEvent.HealthCheckErrorEvent) {
         if (event.message.isNullOrEmpty()) {
             val errorMessage = if (event.e?.message.isNullOrEmpty()) {
                 getString(
@@ -248,7 +253,6 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     }
 
     private fun setupViews() {
-        binding.btnHealthCheck.isVisible = args.signerType != SignerType.COLDCARD_NFC
         binding.signerName.text = args.name
         if (args.isReplacePrimaryKey) {
             NCToastMessage(this).showMessage(
@@ -288,8 +292,9 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
 
     private fun handleRunHealthCheck() {
         val masterSigner = viewModel.state.value?.masterSigner
+        val remoteSigner = viewModel.state.value?.remoteSigner
         if (masterSigner != null) {
-            if (masterSigner.type == SignerType.NFC) {
+            if (args.signerType == SignerType.NFC) {
                 startNfcFlow(REQUEST_NFC_HEALTH_CHECK)
             } else if (masterSigner.software) {
                 if (masterSigner.device.needPassPhraseSent) {
@@ -300,6 +305,10 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
                 } else {
                     viewModel.handleHealthCheck(masterSigner)
                 }
+            }
+        } else if (remoteSigner != null) {
+            if (args.signerType == SignerType.COLDCARD_NFC) {
+                startNfcFlow(REQUEST_GENERATE_HEAL_CHECK_MSG)
             }
         }
     }

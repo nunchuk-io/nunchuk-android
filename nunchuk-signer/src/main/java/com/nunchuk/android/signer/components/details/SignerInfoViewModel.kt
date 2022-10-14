@@ -1,6 +1,8 @@
 package com.nunchuk.android.signer.components.details
 
+import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
+import android.nfc.tech.Ndef
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
@@ -9,6 +11,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.signer.components.details.SignerInfoEvent.*
 import com.nunchuk.android.type.HealthStatus
 import com.nunchuk.android.type.SignerType
@@ -34,6 +37,8 @@ internal class SignerInfoViewModel @Inject constructor(
     private val healthCheckTapSignerUseCase: HealthCheckTapSignerUseCase,
     private val topUpXpubTapSignerUseCase: TopUpXpubTapSignerUseCase,
     private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
+    private val generateColdCardHealthCheckMessageUseCase: GenerateColdCardHealthCheckMessageUseCase,
+    private val healthCheckColdCardUseCase: HealthCheckColdCardUseCase
 ) : NunchukViewModel<SignerInfoState, SignerInfoEvent>() {
 
     override val initialState = SignerInfoState()
@@ -177,7 +182,7 @@ internal class SignerInfoViewModel @Inject constructor(
             if (result.isSuccess) {
                 event(GetTapSignerBackupKeyEvent(result.getOrThrow()))
             } else {
-                event(GetTapSignerBackupKeyError(result.exceptionOrNull()))
+                event(NfcError(result.exceptionOrNull()))
             }
         }
     }
@@ -195,6 +200,30 @@ internal class SignerInfoViewModel @Inject constructor(
     }
 
     private fun shouldLoadMasterSigner(type: SignerType) = (type != SignerType.AIRGAP) && (type != SignerType.COLDCARD_NFC)
+
+    fun generateColdcardHealthMessages(ndef: Ndef,  derivationPath: String) {
+        viewModelScope.launch {
+            event(NfcLoading)
+            val result = generateColdCardHealthCheckMessageUseCase(GenerateColdCardHealthCheckMessageUseCase.Data(derivationPath, ndef))
+            if (result.isSuccess) {
+                setEvent(GenerateColdcardHealthMessagesSuccess)
+            } else {
+                setEvent(NfcError(result.exceptionOrNull()))
+            }
+        }
+    }
+
+    fun healthCheckColdCard(signer: SingleSigner, records: List<NdefRecord>) {
+        viewModelScope.launch {
+            event(NfcLoading)
+            val result = healthCheckColdCardUseCase(HealthCheckColdCardUseCase.Param(signer, records))
+            if (result.isSuccess) {
+                setEvent(HealthCheckSuccessEvent)
+            } else {
+                setEvent(NfcError(result.exceptionOrNull()))
+            }
+        }
+    }
 
     companion object {
         private const val TAG = "SignerInfoViewModel"
