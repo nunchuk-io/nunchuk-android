@@ -41,8 +41,11 @@ class InputBottomSheet : BaseBottomSheet<DialogInputBottomSheetBinding>() {
 
     private fun setupViews() {
         binding.title.text = args.title
-        binding.edit.setText(args.currentInput)
+        binding.edit.getEditTextView().setText(args.currentInput)
         binding.btnSave.setUnderline()
+
+        binding.desc.isVisible = args.desc.isNullOrEmpty().not()
+        binding.desc.text = args.desc
 
         binding.edit.addTextChangedCallback {
             binding.btnSave.isVisible = it.isNotEmpty()
@@ -57,7 +60,7 @@ class InputBottomSheet : BaseBottomSheet<DialogInputBottomSheetBinding>() {
     }
 
     private fun onSaveClicked() {
-        val newInput = binding.edit.text.toString()
+        val newInput = binding.edit.getEditText()
         if (newInput != args.currentInput) {
             listener.onInputDone(newInput)
         }
@@ -71,12 +74,12 @@ class InputBottomSheet : BaseBottomSheet<DialogInputBottomSheetBinding>() {
     companion object {
         private const val TAG = "InputBottomSheet"
 
-        private fun newInstance(currentInput: String, title: String) = InputBottomSheet().apply {
-            arguments = InputBottomSheetArgs(title, currentInput).buildBundle()
+        private fun newInstance(currentInput: String, title: String, desc: String? = null) = InputBottomSheet().apply {
+            arguments = InputBottomSheetArgs(title, desc, currentInput).buildBundle()
         }
 
-        fun show(fragmentManager: FragmentManager, currentInput: String, title: String): InputBottomSheet {
-            return newInstance(currentInput, title).apply { show(fragmentManager, TAG) }
+        fun show(fragmentManager: FragmentManager, currentInput: String, title: String, desc: String? = null): InputBottomSheet {
+            return newInstance(currentInput, title, desc).apply { show(fragmentManager, TAG) }
         }
     }
 }
@@ -85,19 +88,22 @@ interface InputBottomSheetListener {
     fun onInputDone(newInput: String)
 }
 
-data class InputBottomSheetArgs(val title: String, val currentInput: String) : FragmentArgs {
+data class InputBottomSheetArgs(val title: String, val desc: String? = null, val currentInput: String) : FragmentArgs {
 
     override fun buildBundle() = Bundle().apply {
         putString(EXTRA_CURRENT_INPUT, currentInput)
         putString(EXTRA_TITLE, title)
+        putString(EXTRA_DESC, desc)
     }
 
     companion object {
         private const val EXTRA_CURRENT_INPUT = "EXTRA_CURRENT_INPUT"
         private const val EXTRA_TITLE = "EXTRA_TITLE"
+        private const val EXTRA_DESC = "EXTRA_DESC"
 
         fun deserializeFrom(data: Bundle?) = InputBottomSheetArgs(
             data?.getString(EXTRA_TITLE).orEmpty(),
+            data?.getString(EXTRA_DESC).orEmpty(),
             data?.getString(EXTRA_CURRENT_INPUT).orEmpty(),
         )
     }

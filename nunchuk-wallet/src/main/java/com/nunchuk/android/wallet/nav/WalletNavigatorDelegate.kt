@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.qr.DynamicQRCodeActivity
-import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RoomWalletData
 import com.nunchuk.android.model.SingleSigner
@@ -64,7 +63,7 @@ interface WalletNavigatorDelegate : WalletNavigator {
         walletType: WalletType,
         addressType: AddressType,
         totalRequireSigns: Int,
-        masterSigners: List<MasterSigner>,
+        masterSigners: List<SingleSigner>,
         remoteSigners: List<SingleSigner>
     ) {
         ReviewWalletActivity.start(

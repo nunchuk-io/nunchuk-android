@@ -8,20 +8,21 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class MasterSignerMapper @Inject constructor(private val accountManager: AccountManager) :
-    Mapper<MasterSigner, SignerModel> {
+class MasterSignerMapper @Inject constructor(private val accountManager: AccountManager) {
 
-    override fun map(from: MasterSigner): SignerModel {
+    operator fun invoke(from: MasterSigner, derivationPath: String = ""): SignerModel {
         val accountInfo = accountManager.getAccount()
-        val isPrimaryKey = accountInfo.loginType == SignInMode.PRIMARY_KEY.value && accountInfo.primaryKeyInfo?.xfp == from.device.masterFingerprint
+        val isPrimaryKey =
+            accountInfo.loginType == SignInMode.PRIMARY_KEY.value && accountInfo.primaryKeyInfo?.xfp == from.device.masterFingerprint
         return SignerModel(
             id = from.id,
             name = from.name,
-            derivationPath = from.device.path,
+            derivationPath = derivationPath.ifEmpty { from.device.path },
             fingerPrint = from.device.masterFingerprint,
             type = from.type,
             software = from.software,
-            isPrimaryKey = isPrimaryKey
+            isPrimaryKey = isPrimaryKey,
+            isMasterSigner = true
         )
     }
 }

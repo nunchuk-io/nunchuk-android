@@ -5,30 +5,26 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.domain.SendErrorEventUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
-import com.nunchuk.android.core.mapper.toListMapper
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
-import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
+import com.nunchuk.android.usecase.GetSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.JoinWalletUseCase
 import com.nunchuk.android.utils.onException
-import com.nunchuk.android.wallet.shared.components.assign.AssignSignerEvent.AssignSignerErrorEvent
+import com.nunchuk.android.wallet.shared.components.assign.AssignSignerEvent.ShowError
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 internal class AssignSignerViewModel @AssistedInject constructor(
     @Assisted private val args: AssignSignerArgs,
@@ -38,88 +34,129 @@ internal class AssignSignerViewModel @AssistedInject constructor(
     private val sendErrorEventUseCase: SendErrorEventUseCase,
     private val hasSignerUseCase: HasSignerUseCase,
     private val sessionHolder: SessionHolder,
-    private val masterSignerMapper: MasterSignerMapper
+    private val masterSignerMapper: MasterSignerMapper,
+    private val getSignerFromMasterSignerUseCase: GetSignerFromMasterSignerUseCase
 ) : NunchukViewModel<AssignSignerState, AssignSignerEvent>() {
 
     override val initialState = AssignSignerState()
 
     fun init() {
         updateState { initialState }
-        getSigners()
     }
 
     fun filterSigners(signer: SingleSigner) {
-        hasSignerUseCase.execute(signer)
-            .flowOn(Dispatchers.IO)
-            .onException {  }
-            .onEach {
-                if (it) {
-                    updateState {
-                        val newList = filterRecSigners.toMutableList()
-                        newList.add(signer)
-                        copy(
-                            filterRecSigners = newList
-                        )
-                    }
+        hasSignerUseCase.execute(signer).flowOn(Dispatchers.IO).onException { }.onEach {
+            if (it) {
+                updateState {
+                    val newList = filterRecSigners.toMutableList()
+                    newList.add(signer)
+                    copy(
+                        filterRecSigners = newList
+                    )
+                }
+            }
+        }.flowOn(Dispatchers.Main).launchIn(viewModelScope)
+    }
+
+    fun getSigners(walletType: WalletType, addressType: AddressType) {
+        getCompoundSignersUseCase.execute().flatMapLatest { signerPair ->
+            getUnusedSignerUseCase.execute(
+                signerPair.first, walletType, addressType
+            ).map { signers ->
+                Triple(signerPair.first,
+                    signerPair.second,
+                    signers.associateBy { it.masterSignerId })
+            }
+        }.flowOn(Dispatchers.IO)
+            .onException {
+                updateState {
+                    copy(
+                        masterSigners = emptyList(), remoteSigners = emptyList()
+                    )
+                }
+            }.onEach {
+                updateState {
+                    copy(
+                        masterSigners = it.first,
+                        remoteSigners = it.second,
+                        masterSignerMap = it.third
+                    )
                 }
             }
             .flowOn(Dispatchers.Main)
             .launchIn(viewModelScope)
     }
 
-    private fun getSigners() {
-        getCompoundSignersUseCase.execute()
-            .flowOn(Dispatchers.IO)
-            .onException { updateState { copy(masterSigners = emptyList(), remoteSigners = emptyList()) } }
-            .onEach { updateState { copy(masterSigners = it.first, remoteSigners = it.second) } }
-            .flowOn(Dispatchers.Main)
-            .launchIn(viewModelScope)
-    }
-
-    fun updateSelectedXfps(xfp: String, checked: Boolean) {
+    fun updateSelectedXfps(model: SignerModel, checked: Boolean) {
+        val newSet = getState().selectedSigner.toMutableSet().apply {
+            if (checked) add(model) else remove(model)
+        }
         updateState {
             copy(
-                selectedPFXs = if (checked) selectedPFXs + listOf(xfp) else selectedPFXs - listOf(xfp)
+                selectedSigner = newSet
             )
         }
         val state = getState()
         val currentNum = state.totalRequireSigns
-        if (currentNum == 0 || state.totalRequireSigns > state.selectedPFXs.size) {
-            updateState { copy(totalRequireSigns = state.selectedPFXs.size) }
+        if (currentNum == 0 || state.totalRequireSigns > state.selectedSigner.size) {
+            updateState { copy(totalRequireSigns = state.selectedSigner.size) }
         }
     }
 
-    fun handleContinueEvent(walletType: WalletType, addressType: AddressType) {
-        val state = getState()
-        val masterSigners = state.masterSigners.filter { it.device.masterFingerprint in state.selectedPFXs }
-        val remoteSigners = if (state.filterRecSigners.isNotEmpty()) state.filterRecSigners.filter { it.masterFingerprint in state.selectedPFXs } else state.remoteSigners.filter { it.masterFingerprint in state.selectedPFXs }
+    fun getMasterSignerMap() = getState().masterSignerMap
 
-        if (masterSigners.isEmpty() && remoteSigners.isEmpty()) {
-            event(AssignSignerErrorEvent("No keys found"))
+    fun changeBip32Path(masterSignerId: String, newPath: String) {
+        viewModelScope.launch {
+            setEvent(AssignSignerEvent.Loading(true))
+            val result = getSignerFromMasterSignerUseCase(
+                GetSignerFromMasterSignerUseCase.Params(
+                    masterSignerId, newPath
+                )
+            )
+            setEvent(AssignSignerEvent.Loading(false))
+            if (result.isSuccess) {
+                val newMap = getState().masterSignerMap.toMutableMap().apply {
+                    set(masterSignerId, result.getOrThrow())
+                }
+                updateState {
+                    copy(masterSignerMap = newMap)
+                }
+                setEvent(AssignSignerEvent.ChangeBip32Success)
+            } else {
+                setEvent(ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun handleContinueEvent() {
+        val state = getState()
+        val unusedSignerSigners =
+            state.selectedSigner.asSequence().map { state.masterSignerMap[it.id] }.filterNotNull()
+                .toList()
+        val remoteSigners = if (state.filterRecSigners.isNotEmpty()) state.filterRecSigners.filter {
+            state.selectedSigner.contains(it.toModel())
+        }
+        else state.remoteSigners.filter { state.selectedSigner.contains(it.toModel()) }
+
+        if (unusedSignerSigners.isEmpty() && remoteSigners.isEmpty()) {
+            event(ShowError("No keys found"))
             return
         }
 
         viewModelScope.launch {
-            val unusedSignerSigners = ArrayList<SingleSigner>()
-            getUnusedSignerUseCase
-                .execute(masterSigners, walletType, addressType)
-                .onException {}
-                .collect { unusedSignerSigners.addAll(it) }
-
             if (sessionHolder.hasActiveRoom()) {
                 sessionHolder.getActiveRoomId().let { roomId ->
                     joinWalletUseCase.execute(
                         roomId,
                         if (state.filterRecSigners.isNotEmpty()) remoteSigners else remoteSigners + unusedSignerSigners
-                    )
-                        .flowOn(Dispatchers.IO)
+                    ).flowOn(Dispatchers.IO)
+                        .onStart { setEvent(AssignSignerEvent.Loading(true)) }
+                        .onCompletion { setEvent(AssignSignerEvent.Loading(false)) }
                         .onException {
-                            event(AssignSignerErrorEvent(it.readableMessage()))
+                            event(ShowError(it.readableMessage()))
                             sendErrorEvent(roomId, it, sendErrorEventUseCase::execute)
-                        }
-                        .onEach { event(AssignSignerEvent.AssignSignerCompletedEvent(roomId)) }
-                        .flowOn(Dispatchers.Main)
-                        .launchIn(viewModelScope)
+                        }.onEach { event(AssignSignerEvent.AssignSignerCompletedEvent(roomId)) }
+                        .flowOn(Dispatchers.Main).launchIn(viewModelScope)
                 }
             }
         }
@@ -127,10 +164,16 @@ internal class AssignSignerViewModel @AssistedInject constructor(
 
     fun mapSigners(): List<SignerModel> {
         val state = getState()
+        val masterSignerModels = state.masterSigners.map { signer ->
+            masterSignerMapper(
+                signer,
+                state.masterSignerMap[signer.id]?.derivationPath.orEmpty()
+            )
+        }
         val signers = if (args.signers.isNotEmpty()) {
-            masterSignerMapper.toListMapper()(state.masterSigners) + state.filterRecSigners.map(SingleSigner::toModel)
+            masterSignerModels + state.filterRecSigners.map(SingleSigner::toModel)
         } else {
-            masterSignerMapper.toListMapper()(state.masterSigners) + state.remoteSigners.map(SingleSigner::toModel)
+            masterSignerModels + state.remoteSigners.map(SingleSigner::toModel)
         }
         return signers
     }

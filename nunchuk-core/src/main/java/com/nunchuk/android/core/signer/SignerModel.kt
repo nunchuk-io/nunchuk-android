@@ -14,7 +14,8 @@ data class SignerModel(
     val type: SignerType = SignerType.AIRGAP,
     val software: Boolean = false,
     val localKey: Boolean = true,
-    val isPrimaryKey: Boolean = false
+    val isPrimaryKey: Boolean = false,
+    val isMasterSigner: Boolean = false
 ) {
     fun isSame(other: SignerModel) = fingerPrint == other.fingerPrint && derivationPath == other.derivationPath
 }

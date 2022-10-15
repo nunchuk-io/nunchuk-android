@@ -12,6 +12,7 @@ import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.usecase.DeleteWalletUseCase
+import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.utils.onException
@@ -29,7 +30,8 @@ internal class WalletConfigViewModel @Inject constructor(
     private val updateWalletUseCase: UpdateWalletUseCase,
     private val deleteWalletUseCase: DeleteWalletUseCase,
     private val leaveRoomUseCase: LeaveRoomUseCase,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
+    private val getUnusedSignerFromMasterSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
 ) : NunchukViewModel<WalletExtended, WalletConfigEvent>() {
 
     override val initialState = WalletExtended()
