@@ -3,7 +3,11 @@ package com.nunchuk.android.app.splash
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import com.nunchuk.android.app.splash.SplashEvent.*
+import com.nunchuk.android.app.splash.SplashEvent.InitErrorEvent
+import com.nunchuk.android.app.splash.SplashEvent.NavActivateAccountEvent
+import com.nunchuk.android.app.splash.SplashEvent.NavHomeScreenEvent
+import com.nunchuk.android.app.splash.SplashEvent.NavIntroEvent
+import com.nunchuk.android.app.splash.SplashEvent.NavSignInEvent
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
@@ -22,7 +26,7 @@ internal class SplashActivity : AppCompatActivity() {
 
         setTransparentStatusBar()
         subscribeEvents()
-        viewModel.handleNavigation()
+        viewModel.initFlow()
     }
 
     private fun subscribeEvents() {

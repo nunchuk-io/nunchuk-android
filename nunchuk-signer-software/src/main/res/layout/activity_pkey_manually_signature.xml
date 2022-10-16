@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/nc_white_color"
+    android:fitsSystemWindows="true">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        style="@style/NCToolbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/toolbarTitle"
+            style="@style/NCToolbar.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/nc_primary_key_signin_manually_username_title" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/challengeLabel"
+        style="@style/NCText.EditText.Title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_22"
+        android:text="@string/nc_primary_key_signin_manually_challenge_message"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+    <RelativeLayout
+        android:id="@+id/challengeInputLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginEnd="@dimen/nc_padding_22"
+        android:background="@drawable/nc_edit_text_bg"
+        android:paddingHorizontal="@dimen/nc_padding_12"
+        android:paddingVertical="@dimen/nc_padding_14"
+        app:layout_constraintEnd_toStartOf="@+id/reloadImage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/challengeLabel">
+
+        <com.nunchuk.android.widget.NCFontEditText
+            android:id="@+id/challengeInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/nc_padding_16"
+            android:layout_toStartOf="@+id/copyImage"
+            android:background="@null"
+            android:clickable="false"
+            android:inputType="textMultiLine"
+            android:maxLength="500"
+            android:scrollHorizontally="false"
+            android:singleLine="false"
+            android:textColor="@color/nc_black_color"
+            android:textCursorDrawable="@null"
+            android:textSize="@dimen/nc_text_size_16"
+            tools:text="[[timestamp], I am Tom and I want to sign in]" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/copyImage"
+            android:layout_width="@dimen/nc_padding_24"
+            android:layout_height="@dimen/nc_padding_24"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_copy"
+            app:layout_constraintBottom_toBottomOf="@+id/challengeInput"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/challengeInput" />
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/reloadImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/nc_padding_22"
+        android:src="@drawable/ic_cached"
+        app:layout_constraintBottom_toBottomOf="@+id/challengeInputLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/challengeInputLayout" />
+
+    <com.nunchuk.android.widget.NCEditTextView
+        android:id="@+id/yourSignatureInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:edit_gravity="top"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:inputType="textMultiLine"
+        app:edit_title="@string/nc_primary_key_signin_manually_your_signature"
+        android:scrollHorizontally="false"
+        android:singleLine="false"
+        app:errorEnabled="true"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/challengeInputLayout" />
+
+    <CheckBox
+        android:id="@+id/staySignIn"
+        style="@style/NCText.Body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_10"
+        android:layout_marginBottom="@dimen/nc_padding_18"
+        android:buttonTint="@color/nc_primary_color"
+        android:checked="false"
+        android:text="@string/nc_text_stay_sign_in"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/btnSignIn" />
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btnSignIn"
+        style="@style/NCPrimaryButton.Dark"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/nc_padding_16"
+        android:text="@string/nc_text_sign_in"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

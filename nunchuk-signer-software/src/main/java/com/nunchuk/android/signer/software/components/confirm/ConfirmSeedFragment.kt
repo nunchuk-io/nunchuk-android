@@ -22,7 +22,10 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
     private val args: ConfirmSeedFragmentArgs by navArgs()
     private val viewModel: ConfirmSeedViewModel by viewModels()
 
-    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentConfirmSeedBinding {
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentConfirmSeedBinding {
         return FragmentConfirmSeedBinding.inflate(inflater, container, false)
     }
 
@@ -53,14 +56,21 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
 
     private fun openSetPassphrase() {
         if (args.isQuickWallet) {
-            findNavController().navigate(ConfirmSeedFragmentDirections.actionConfirmSeedFragmentToSetPassphraseFragment(args.mnemonic, DEFAULT_KEY_NAME, true))
+            findNavController().navigate(
+                ConfirmSeedFragmentDirections.actionConfirmSeedFragmentToSetPassphraseFragment(
+                    mnemonic = args.mnemonic,
+                    signerName = DEFAULT_KEY_NAME,
+                    isQuickWallet = true,
+                    primaryKeyFlow = args.primaryKeyFlow
+                )
+            )
         } else {
             openSetNameScreen()
         }
     }
 
     private fun openSetNameScreen() {
-        navigator.openAddSoftwareSignerNameScreen(requireActivity(), args.mnemonic)
+        navigator.openAddSoftwareSignerNameScreen(requireActivity(), args.mnemonic, args.primaryKeyFlow, passphrase = args.passphrase)
     }
 
     private fun setupViews() {

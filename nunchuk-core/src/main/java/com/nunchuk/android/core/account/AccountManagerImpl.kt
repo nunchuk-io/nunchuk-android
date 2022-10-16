@@ -1,5 +1,6 @@
 package com.nunchuk.android.core.account
 
+import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.util.AppUpdateStateHolder
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -15,7 +16,11 @@ interface AccountManager {
 
     fun getAccount(): AccountInfo
 
+    fun getPrimaryKeyInfo(): PrimaryKeyInfo?
+
     fun storeAccount(accountInfo: AccountInfo)
+
+    fun storePrimaryKeyInfo(primaryKeyInfo: PrimaryKeyInfo)
 
     suspend fun signOut()
 
@@ -24,6 +29,8 @@ interface AccountManager {
     fun isFreshInstall(): Boolean
 
     fun clearFreshInstall()
+
+    fun loginType(): Int
 }
 
 @Singleton
@@ -41,8 +48,19 @@ internal class AccountManagerImpl @Inject constructor(
 
     override fun getAccount() = accountSharedPref.getAccountInfo()
 
+    override fun getPrimaryKeyInfo(): PrimaryKeyInfo? {
+        val account = getAccount()
+        if (account.loginType != SignInMode.PRIMARY_KEY.value) return null
+        return account.primaryKeyInfo
+    }
+
     override fun storeAccount(accountInfo: AccountInfo) {
         accountSharedPref.storeAccountInfo(accountInfo)
+    }
+
+    override fun storePrimaryKeyInfo(primaryKeyInfo: PrimaryKeyInfo) {
+        val account = accountSharedPref.getAccountInfo()
+        storeAccount(account.copy(primaryKeyInfo = primaryKeyInfo))
     }
 
     override suspend fun signOut() {
@@ -61,4 +79,6 @@ internal class AccountManagerImpl @Inject constructor(
     override fun clearFreshInstall() {
         accountSharedPref.clearFreshInstall()
     }
+
+    override fun loginType(): Int = accountSharedPref.getAccountInfo().loginType
 }

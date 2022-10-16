@@ -2,6 +2,7 @@ package com.nunchuk.android.contact.components.contacts
 
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.contact.R
 import com.nunchuk.android.contact.databinding.ItemContactBinding
@@ -44,6 +45,7 @@ internal class ContactViewHolder(
         binding.avatar.text = data.name.shorten()
         binding.name.text = data.name
         binding.email.text = data.email
+        binding.email.isVisible = data.isLoginInPrimaryKey().not()
         binding.root.setOnClickListener { listener(data) }
     }
 

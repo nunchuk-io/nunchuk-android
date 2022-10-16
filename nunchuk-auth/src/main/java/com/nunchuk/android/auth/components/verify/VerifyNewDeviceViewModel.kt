@@ -5,6 +5,8 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.auth.components.verify.VerifyNewDeviceEvent.*
 import com.nunchuk.android.auth.domain.VerifyNewDeviceUseCase
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.InitNunchukUseCase
@@ -20,6 +22,7 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
     private val verifyNewDeviceUseCase: VerifyNewDeviceUseCase,
     private val initNunchukUseCase: InitNunchukUseCase,
     private val accountManager: AccountManager,
+    private val signInModeHolder: SignInModeHolder
 ) : NunchukViewModel<Unit, VerifyNewDeviceEvent>() {
 
     override val initialState = Unit
@@ -51,6 +54,7 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
                 }
                 .flowOn(Dispatchers.Main)
                 .collect {
+                    signInModeHolder.setCurrentMode(SignInMode.EMAIL)
                     event(SignInSuccessEvent(token = token.orEmpty(), encryptedDeviceId = encryptedDeviceId.orEmpty()))
                 }
         }

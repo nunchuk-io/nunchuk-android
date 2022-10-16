@@ -3,6 +3,10 @@ package com.nunchuk.android.signer.software.components.passphrase
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.ChangePrimaryKeyUseCase
+import com.nunchuk.android.core.signer.PrimaryKeyFlow.isPrimaryKeyFlow
+import com.nunchuk.android.core.signer.PrimaryKeyFlow.isReplaceFlow
+import com.nunchuk.android.core.signer.PrimaryKeyFlow.isSignUpFlow
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.*
@@ -24,17 +28,19 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class SetPassphraseViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val createSoftwareSignerUseCase: CreateSoftwareSignerUseCase,
     private val getUnusedSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
     private val draftWalletUseCase: DraftWalletUseCase,
-    private val createWalletUseCase: CreateWalletUseCase
+    private val createWalletUseCase: CreateWalletUseCase,
+    private val changePrimaryKeyUseCase: ChangePrimaryKeyUseCase
 ) : NunchukViewModel<SetPassphraseState, SetPassphraseEvent>() {
-    private lateinit var mnemonic: String
 
+    private lateinit var mnemonic: String
     private lateinit var signerName: String
 
-    private val args: SetPassphraseFragmentArgs = SetPassphraseFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    private val args: SetPassphraseFragmentArgs =
+        SetPassphraseFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
     override val initialState = SetPassphraseState()
 
@@ -53,6 +59,13 @@ internal class SetPassphraseViewModel @Inject constructor(
 
     fun skipPassphraseEvent() {
         updatePassphrase("")
+        if (args.primaryKeyFlow.isSignUpFlow()) {
+            event(CreateSoftwareSignerCompletedEvent(skipPassphrase = true))
+            return
+        } else if (args.primaryKeyFlow.isReplaceFlow()) {
+            replacePrimaryKey()
+            return
+        }
         createSoftwareSigner(true)
     }
 
@@ -66,8 +79,34 @@ internal class SetPassphraseViewModel @Inject constructor(
             passphrase != confirmPassphrase -> event(ConfirmPassPhraseNotMatchedEvent)
             else -> {
                 event(PassPhraseValidEvent)
+                if (args.primaryKeyFlow.isSignUpFlow()) {
+                    event(CreateSoftwareSignerCompletedEvent(skipPassphrase = false))
+                    return
+                } else if (args.primaryKeyFlow.isReplaceFlow()) {
+                    replacePrimaryKey()
+                    return
+                }
                 createSoftwareSigner(false)
             }
+        }
+    }
+
+    private fun replacePrimaryKey() = viewModelScope.launch {
+        setEvent(LoadingEvent(true))
+        val result = changePrimaryKeyUseCase(
+            ChangePrimaryKeyUseCase.Param(
+                mnemonic = args.mnemonic,
+                newKeyPassphrase = getState().passphrase,
+                signerName = args.signerName,
+                oldKeyPassphrase = args.passphrase
+            )
+        )
+        if (result.isFailure) {
+            setEvent(CreateSoftwareSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+            return@launch
+        }
+        if (result.isSuccess) {
+            setEvent(CreateSoftwareSignerCompletedEvent(result.getOrThrow(), false))
         }
     }
 
@@ -76,11 +115,14 @@ internal class SetPassphraseViewModel @Inject constructor(
             createSoftwareSignerUseCase.execute(
                 name = signerName,
                 mnemonic = mnemonic,
-                passphrase = getState().passphrase
+                passphrase = getState().passphrase,
+                isPrimaryKey = args.primaryKeyFlow.isPrimaryKeyFlow()
             )
                 .flowOn(Dispatchers.IO)
                 .onStart { event(LoadingEvent(true)) }
-                .onException { event(CreateSoftwareSignerErrorEvent(it.message.orUnknownError())) }
+                .onException {
+                    event(CreateSoftwareSignerErrorEvent(it.message.orUnknownError()))
+                }
                 .flowOn(Dispatchers.Main)
                 .collect {
                     if (args.isQuickWallet) {

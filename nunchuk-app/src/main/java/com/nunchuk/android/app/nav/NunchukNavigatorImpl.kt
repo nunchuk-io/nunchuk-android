@@ -19,10 +19,10 @@ import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
 import com.nunchuk.android.nav.AppNavigator
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.nav.SettingNavigatorDelegate
+import com.nunchuk.android.signer.nav.NfcNavigatorDelegate
 import com.nunchuk.android.signer.nav.SignerNavigatorDelegate
 import com.nunchuk.android.transaction.nav.TransactionNavigatorDelegate
 import com.nunchuk.android.wallet.nav.WalletNavigatorDelegate
-import com.nunchuk.android.signer.nav.NfcNavigatorDelegate
 import javax.inject.Inject
 
 internal class NunchukNavigatorImpl @Inject constructor(
@@ -46,9 +46,14 @@ internal class NunchukNavigatorImpl @Inject constructor(
         loginHalfToken: String?,
         deviceId: String?,
         bottomNavViewPosition: Int?,
-        isNewDevice: Boolean
+        messages: ArrayList<String>?,
+        isNewDevice: Boolean,
+        isClearTask: Boolean
     ) {
-        MainActivity.start(activityContext, loginHalfToken, deviceId, bottomNavViewPosition, isNewDevice)
+        MainActivity.start(
+            activityContext, loginHalfToken, deviceId, bottomNavViewPosition, isNewDevice,
+            messages = messages, isClearTask = isClearTask
+        )
     }
 
     override fun openGuestModeIntroScreen(activityContext: Context) {

@@ -7,14 +7,17 @@ dependencies {
 
     implementation project(':nunchuk-arch')
     implementation project(':nunchuk-core')
+    implementation project(':nunchuk-utils')
     implementation project(':nunchuk-domain')
     implementation project(':nunchuk-widget')
     implementation project(':nunchuk-signer-core')
+    implementation project(':nunchuk-network')
     implementation nunchukDeps.nativeSdk
 
     implementation pluginsDeps.kotlinAndroidRuntime
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()
+    implementation networkDeps.values()
 
     testImplementation otherTestDeps.junit
 }

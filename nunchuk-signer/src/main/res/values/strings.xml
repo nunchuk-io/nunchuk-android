@@ -22,8 +22,6 @@
     <string name="nc_text_signer_name">Key name</string>
     <string name="nc_text_signer_spec">Key spec</string>
     <string name="nc_text_add_signer">Add key</string>
-    <string name="nc_text_nunchuk_as_signer">Add software key</string>
-    <string name="nc_text_ss_desc">The software key is managed by the app</string>
 
     <string name="nc_signer_bad_ratio_not_recommend">It is not recommended for the software keys to have complete control of the wallet. Software keys are not as safe as hardware keys. Are you sure you want to proceed?</string>
     <string name="nc_signer_bad_ratio_recommend">It is recommended for the hardware keys to have complete control of the wallet. Software keys are not as safe as hardware keys. Are you sure you want to proceed?</string>

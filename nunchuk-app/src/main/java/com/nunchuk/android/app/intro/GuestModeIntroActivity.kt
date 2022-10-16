@@ -6,8 +6,6 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.app.splash.GuestModeEvent
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.guestmode.SignInMode
-import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.databinding.ActivityGuestModeIntroBinding
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -32,7 +30,6 @@ internal class GuestModeIntroActivity : BaseActivity<ActivityGuestModeIntroBindi
     private fun handleInitGuestModeNunchukSuccess() {
         hideLoading()
         finish()
-        SignInModeHolder.currentMode = SignInMode.GUEST_MODE
         navigator.openMainScreen(this)
     }
 

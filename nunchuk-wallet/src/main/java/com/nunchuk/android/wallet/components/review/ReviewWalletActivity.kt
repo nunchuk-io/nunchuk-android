@@ -4,27 +4,37 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.utils.viewModelProviderFactoryOf
 import com.nunchuk.android.wallet.components.config.SignersViewBinder
-import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.*
+import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.CreateWalletErrorEvent
+import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.CreateWalletSuccessEvent
+import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.SetLoadingEvent
 import com.nunchuk.android.wallet.databinding.ActivityReviewWalletBinding
 import com.nunchuk.android.wallet.util.isWalletExisted
 import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ReviewWalletActivity : BaseActivity<ActivityReviewWalletBinding>() {
 
-    private val args: ReviewWalletArgs by lazy { ReviewWalletArgs.deserializeFrom(intent) }
+    @Inject
+    internal lateinit var vmFactory: ReviewWalletViewModel.Factory
 
-    private val viewModel: ReviewWalletViewModel by viewModels()
+    private val viewModel: ReviewWalletViewModel by viewModels {
+        viewModelProviderFactoryOf {
+            vmFactory.create(args)
+        }
+    }
+
+    private val args: ReviewWalletArgs by lazy { ReviewWalletArgs.deserializeFrom(intent) }
 
     override fun initializeBinding() = ActivityReviewWalletBinding.inflate(layoutInflater)
 
@@ -64,7 +74,7 @@ class ReviewWalletActivity : BaseActivity<ActivityReviewWalletBinding>() {
 
     private fun setupViews() {
         binding.walletName.text = args.walletName
-        val signers = args.masterSigners.map(MasterSigner::toModel) + args.remoteSigners.map(SingleSigner::toModel)
+        val signers = viewModel.mapSigners()
         binding.configuration.bindWalletConfiguration(
             requireSigns = args.totalRequireSigns,
             totalSigns = signers.size

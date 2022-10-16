@@ -3,7 +3,7 @@ package com.nunchuk.android.core.manager
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
-import java.util.*
+import java.util.Stack
 
 object ActivityManager : Application.ActivityLifecycleCallbacks {
     private val activityStack = Stack<Activity>()
@@ -16,6 +16,13 @@ object ActivityManager : Application.ActivityLifecycleCallbacks {
                 activityStack.remove(it)
                 it.finish()
             }
+        }
+    }
+
+    fun popToLevel(level: Int) {
+        if (activityStack.size <= level) return
+        while (activityStack.size > level) {
+            activityStack.pop().finish()
         }
     }
 
@@ -54,4 +61,5 @@ object ActivityManager : Application.ActivityLifecycleCallbacks {
     }
 }
 
-infix fun <T : Activity> Activity?.instanceOf(clazz: Class<T>) = this != null && this.javaClass == clazz
+infix fun <T : Activity> Activity?.instanceOf(clazz: Class<T>) =
+    this != null && this.javaClass == clazz

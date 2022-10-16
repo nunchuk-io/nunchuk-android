@@ -33,6 +33,7 @@ import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.notifications.PushNotificationHelper
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCInfoDialog
+import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -62,6 +63,12 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
 
     private val deviceId
         get() = intent.getStringExtra(EXTRAS_ENCRYPTED_DEVICE_ID).orEmpty()
+
+    private val messages
+        get() = intent.getStringArrayListExtra(EXTRAS_MESSAGE_LIST).orEmpty()
+
+    private val signerPrimaryKeyName
+        get() = intent.getStringExtra(EXTRAS_SIGNER_PRIMARY_KEY_NAME).orEmpty()
 
     private val bottomNavViewPosition: Int
         get() = intent.getIntExtra(EXTRAS_BOTTOM_NAV_VIEW_POSITION, 0)
@@ -107,6 +114,12 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         viewModel.checkAppUpdateRecommend(false)
         if (savedInstanceState == null && intent.getBooleanExtra(EXTRAS_IS_NEW_DEVICE, false)) {
             showUnverifiedDeviceWarning()
+        }
+
+        messages.forEachIndexed { index, message ->
+            NCToastMessage(this).showMessage(
+                message = message, dismissTime = (index + 1) * DISMISS_TIME
+            )
         }
     }
 
@@ -224,17 +237,23 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
     }
 
     companion object {
+        private const val DISMISS_TIME = 2000L
+
         const val EXTRAS_LOGIN_HALF_TOKEN = "EXTRAS_LOGIN_HALF_TOKEN"
         const val EXTRAS_ENCRYPTED_DEVICE_ID = "EXTRAS_ENCRYPTED_DEVICE_ID"
         const val EXTRAS_BOTTOM_NAV_VIEW_POSITION = "EXTRAS_BOTTOM_NAV_VIEW_POSITION"
         const val EXTRAS_IS_NEW_DEVICE = "EXTRAS_IS_NEW_DEVICE"
+        const val EXTRAS_MESSAGE_LIST = "EXTRAS_MESSAGE_LIST"
+        const val EXTRAS_SIGNER_PRIMARY_KEY_NAME = "EXTRAS_SIGNER_PRIMARY_KEY_NAME"
 
         fun start(
             activityContext: Context,
             loginHalfToken: String? = null,
             deviceId: String? = null,
             position: Int? = null,
-            isNewDevice: Boolean = false
+            isNewDevice: Boolean = false,
+            messages: ArrayList<String>? = null,
+            isClearTask: Boolean = false
         ) {
             activityContext.startActivity(
                 createIntent(
@@ -242,7 +261,9 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
                     loginHalfToken = loginHalfToken,
                     deviceId = deviceId,
                     bottomNavViewPosition = position,
-                    isNewDevice
+                    messages = messages,
+                    isNewDevice = isNewDevice,
+                    isClearTask = isClearTask
                 )
             )
         }
@@ -253,14 +274,21 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
             loginHalfToken: String? = null,
             deviceId: String? = null,
             @IdRes bottomNavViewPosition: Int? = null,
-            isNewDevice: Boolean = false
+            isNewDevice: Boolean = false,
+            messages: ArrayList<String>? = null,
+            isClearTask: Boolean = false
         ): Intent {
             return Intent(activityContext, MainActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                if (isClearTask) {
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                } else {
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                }
                 putExtra(EXTRAS_LOGIN_HALF_TOKEN, loginHalfToken)
                 putExtra(EXTRAS_ENCRYPTED_DEVICE_ID, deviceId)
                 putExtra(EXTRAS_BOTTOM_NAV_VIEW_POSITION, bottomNavViewPosition)
                 putExtra(EXTRAS_IS_NEW_DEVICE, isNewDevice)
+                putExtra(EXTRAS_MESSAGE_LIST, messages)
             }
         }
     }

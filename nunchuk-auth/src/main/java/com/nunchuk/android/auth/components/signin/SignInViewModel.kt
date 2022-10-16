@@ -2,25 +2,39 @@ package com.nunchuk.android.auth.components.signin
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.auth.components.signin.SignInEvent.*
+import com.nunchuk.android.auth.components.signin.SignInEvent.CheckPrimaryKeyAccountEvent
+import com.nunchuk.android.auth.components.signin.SignInEvent.EmailInvalidEvent
+import com.nunchuk.android.auth.components.signin.SignInEvent.EmailRequiredEvent
+import com.nunchuk.android.auth.components.signin.SignInEvent.EmailValidEvent
+import com.nunchuk.android.auth.components.signin.SignInEvent.PasswordRequiredEvent
+import com.nunchuk.android.auth.components.signin.SignInEvent.PasswordValidEvent
+import com.nunchuk.android.auth.components.signin.SignInEvent.ProcessingEvent
+import com.nunchuk.android.auth.components.signin.SignInEvent.SignInErrorEvent
+import com.nunchuk.android.auth.components.signin.SignInEvent.SignInSuccessEvent
 import com.nunchuk.android.auth.domain.SignInUseCase
 import com.nunchuk.android.auth.util.orUnknownError
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.network.ApiErrorCode
+import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.network.NunchukApiException
-import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.core.retry.DEFAULT_RETRY_POLICY
 import com.nunchuk.android.core.retry.RetryPolicy
 import com.nunchuk.android.core.retry.retryIO
 import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.share.InitNunchukUseCase
+import com.nunchuk.android.usecase.GetPrimaryKeyListUseCase
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -29,7 +43,8 @@ internal class SignInViewModel @Inject constructor(
     private val signInUseCase: SignInUseCase,
     private val initNunchukUseCase: InitNunchukUseCase,
     private val accountManager: AccountManager,
-    private val ncSharePreferences: NCSharePreferences,
+    private val signInModeHolder: SignInModeHolder,
+    private val getPrimaryKeyListUseCase: GetPrimaryKeyListUseCase,
     @Named(DEFAULT_RETRY_POLICY) private val retryPolicy: RetryPolicy
 ) : NunchukViewModel<Unit, SignInEvent>() {
 
@@ -79,6 +94,7 @@ internal class SignInViewModel @Inject constructor(
                     result
                 }
                 .onEach {
+                    signInModeHolder.setCurrentMode(SignInMode.EMAIL)
                     event(
                         SignInSuccessEvent(
                             token = token.orEmpty(),
@@ -88,6 +104,15 @@ internal class SignInViewModel @Inject constructor(
                 }
                 .flowOn(Main)
                 .launchIn(viewModelScope)
+        }
+    }
+
+    fun checkPrimaryKeyAccounts() = viewModelScope.launch {
+        val result = getPrimaryKeyListUseCase(Unit)
+        if (result.isSuccess) {
+            val data = result.getOrThrow()
+            if (data.isEmpty()) event(CheckPrimaryKeyAccountEvent(arrayListOf()))
+            else event(CheckPrimaryKeyAccountEvent(ArrayList(data)))
         }
     }
 

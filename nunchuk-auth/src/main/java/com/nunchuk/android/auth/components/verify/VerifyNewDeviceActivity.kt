@@ -9,8 +9,6 @@ import com.nunchuk.android.auth.components.verify.VerifyNewDeviceEvent.*
 import com.nunchuk.android.auth.databinding.ActivityVerifyNewDeviceBinding
 import com.nunchuk.android.auth.util.getTextTrimmed
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.guestmode.SignInMode
-import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
@@ -50,7 +48,6 @@ class VerifyNewDeviceActivity : BaseActivity<ActivityVerifyNewDeviceBinding>() {
             when (it) {
                 is SignInErrorEvent -> onSignInError(it.message)
                 is SignInSuccessEvent -> {
-                    SignInModeHolder.currentMode = SignInMode.NORMAL
                     openMainScreen(it.token, it.encryptedDeviceId)
                 }
                 is ProcessingEvent -> showLoading()
@@ -67,7 +64,12 @@ class VerifyNewDeviceActivity : BaseActivity<ActivityVerifyNewDeviceBinding>() {
         hideLoading()
         setResult(RESULT_OK)
         finish()
-        navigator.openMainScreen(activityContext = this, loginHalfToken = token, deviceId = deviceId, isNewDevice = true)
+        navigator.openMainScreen(
+            activityContext = this,
+            loginHalfToken = token,
+            deviceId = deviceId,
+            isNewDevice = true
+        )
     }
 
     private fun setupViews() {

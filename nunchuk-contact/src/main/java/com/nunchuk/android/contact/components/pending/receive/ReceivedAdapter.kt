@@ -2,6 +2,7 @@ package com.nunchuk.android.contact.components.pending.receive
 
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.contact.R
 import com.nunchuk.android.contact.databinding.ItemReceivedBinding
@@ -47,6 +48,7 @@ internal class ContactViewHolder(
         binding.avatar.text = contact.name.shorten()
         binding.name.text = contact.name
         binding.email.text = contact.email
+        binding.email.isVisible = contact.isLoginInPrimaryKey().not()
         binding.accept.setOnClickListener { accept(data) }
         binding.cancel.setOnClickListener { cancel(data) }
     }

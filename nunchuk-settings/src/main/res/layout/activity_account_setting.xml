@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
@@ -24,6 +25,17 @@
         android:drawableStart="@drawable/ic_password"
         android:drawableEnd="@drawable/ic_arrow"
         android:text="@string/nc_settings_change_password" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/replacePrimaryKey"
+        style="@style/NCText.Settings"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:background="?android:selectableItemBackground"
+        android:drawableStart="@drawable/ic_replace_primary_key"
+        android:drawableEnd="@drawable/ic_arrow"
+        android:text="@string/nc_settings_replace_primary_key"
+        android:visibility="gone"
+        tools:visibility="visible" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/devices"

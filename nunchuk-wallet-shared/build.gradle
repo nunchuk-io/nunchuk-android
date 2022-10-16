@@ -9,6 +9,7 @@ dependencies {
     implementation project(':nunchuk-domain')
     implementation project(':nunchuk-widget')
     implementation project(':nunchuk-wallet-core')
+    implementation project(':nunchuk-utils')
 
     implementation nunchukDeps.nativeSdk
     implementation matrixDeps.matrixSdk

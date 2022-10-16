@@ -25,6 +25,7 @@ class NcDataStore @Inject constructor(
     private val gson: Gson,
 ) {
     private val btcPriceKey = doublePreferencesKey("btc_price")
+    private val turnOnNotification = booleanPreferencesKey("turn_on_notification")
     private val syncEnableKey = booleanPreferencesKey("sync_enable")
 
     val btcPriceFlow: Flow<Double>
@@ -38,6 +39,17 @@ class NcDataStore @Inject constructor(
                 )
             }.getOrNull()?.enable ?: false
         }
+
+    val turnOnNotificationFlow: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[turnOnNotification] ?: true
+        }
+
+    suspend fun updateTurnOnNotification(turnOn: Boolean) {
+        context.dataStore.edit { settings ->
+            settings[turnOnNotification] = turnOn
+        }
+    }
 
     suspend fun updateBtcPrice(price: Double) {
         context.dataStore.edit { settings ->

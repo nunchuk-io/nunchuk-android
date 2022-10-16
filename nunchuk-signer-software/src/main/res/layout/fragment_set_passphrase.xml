@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/nc_white_color"
     android:fitsSystemWindows="true">
 
@@ -35,6 +36,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/primaryKeyNote"
+        style="@style/NCText.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        android:textColor="@color/nc_beeswax_dark"
+        android:text="@string/nc_ssigner_text_set_passphrase_primary_key_note"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/note" />
+
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/nameTitle"
         style="@style/NCText.EditText.Title"
@@ -44,7 +57,7 @@
         android:layout_marginTop="@dimen/nc_padding_16"
         android:text="@string/nc_signer_passphrase"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/note" />
+        app:layout_constraintTop_toBottomOf="@+id/primaryKeyNote" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/optional"
@@ -103,26 +116,26 @@
         android:drawablePadding="@dimen/nc_padding_8"
         android:padding="@dimen/nc_padding_16"
         android:text="@string/nc_ssigner_text_set_passphrase_warn"
-        app:layout_constraintBottom_toTopOf="@+id/btnNoPassphrase"
+        app:layout_constraintBottom_toTopOf="@+id/btnFirst"
         app:layout_constraintStart_toStartOf="parent" />
 
     <com.nunchuk.android.widget.NCFontButton
-        android:id="@+id/btnNoPassphrase"
+        android:id="@+id/btnFirst"
         style="@style/NCPrimaryButton.Dark"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
-        android:text="@string/nc_ssigner_text_dont_set_passphrase"
-        app:layout_constraintBottom_toTopOf="@+id/btnSetPassphrase"
+        tools:text="@string/nc_ssigner_text_dont_set_passphrase"
+        app:layout_constraintBottom_toTopOf="@+id/btnSecondary"
         app:layout_constraintStart_toStartOf="parent" />
 
     <com.nunchuk.android.widget.NCFontButton
-        android:id="@+id/btnSetPassphrase"
+        android:id="@+id/btnSecondary"
         style="@style/NCPrimaryButton.Light"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
-        android:text="@string/nc_ssigner_text_set_passphrase"
+        tools:text="@string/nc_ssigner_text_set_passphrase"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 

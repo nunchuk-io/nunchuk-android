@@ -19,6 +19,7 @@ import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.Load
 import com.nunchuk.android.wallet.databinding.ActivityConfigureWalletBinding
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.NCWarningVerticalDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -88,7 +89,7 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>() {
         val totalSigns = state.selectedSigners.size
         bindSigners(
             state.masterSigners,
-            state.masterSigners.map(MasterSigner::toModel) + state.remoteSigners.map(SingleSigner::toModel),
+            viewModel.mapSigners(),
             state.selectedSigners
         )
         bindTotalRequireSigns(requireSigns)
@@ -128,11 +129,28 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>() {
 
         binding.iconPlus.setOnClickListener { viewModel.handleIncreaseRequiredSigners() }
         binding.iconMinus.setOnClickListener { viewModel.handleDecreaseRequiredSigners() }
-        binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }
+        binding.btnContinue.setOnClickListener {
+            if (viewModel.isShowRiskSignerDialog()) {
+                showRiskSignerDialog()
+            }else {
+                viewModel.handleContinueEvent()
+            }
+        }
 
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
+    }
+
+    private fun showRiskSignerDialog() {
+        NCWarningVerticalDialog(this).showDialog(
+            message = getString(R.string.nc_risk_signer_key_warning_desc),
+            btnYes = getString(R.string.nc_risk_signer_key_warning_button),
+            btnNeutral = getString(R.string.nc_text_cancel),
+            btnNo = "",
+            onYesClick = {
+                viewModel.handleContinueEvent()
+            })
     }
 
     private fun setupViewVisibility(enabled: Boolean, alpha: Float) {

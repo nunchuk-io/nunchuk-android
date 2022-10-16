@@ -1,7 +1,6 @@
 package com.nunchuk.android.core.signer
 
 import com.nunchuk.android.model.JoinKey
-import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.SignerType
 import java.util.regex.Pattern
@@ -14,28 +13,21 @@ data class SignerModel(
     val used: Boolean = false,
     val type: SignerType = SignerType.AIRGAP,
     val software: Boolean = false,
-    val localKey: Boolean = true
+    val localKey: Boolean = true,
+    val isPrimaryKey: Boolean = false
 ) {
     fun isSame(other: SignerModel) = fingerPrint == other.fingerPrint && derivationPath == other.derivationPath
 }
 
-fun SingleSigner.toModel() = SignerModel(
+fun SingleSigner.toModel(isPrimaryKey: Boolean = false) = SignerModel(
     id = masterSignerId,
     name = name.ifEmpty { masterFingerprint },
     derivationPath = derivationPath,
     type = type,
     used = used,
     software = type == SignerType.SOFTWARE,
-    fingerPrint = masterFingerprint
-)
-
-fun MasterSigner.toModel() = SignerModel(
-    id = id,
-    name = name,
-    derivationPath = device.path,
-    fingerPrint = device.masterFingerprint,
-    type = type,
-    software = software
+    fingerPrint = masterFingerprint,
+    isPrimaryKey = isPrimaryKey
 )
 
 fun JoinKey.toSignerModel() = SignerModel(

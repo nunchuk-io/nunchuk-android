@@ -28,12 +28,22 @@ class SetPassphraseActivity : BaseActivity<ActivitySetPassphraseBinding>() {
     }
 
     companion object {
-        fun start(activityContext: Context, mnemonic: String, signerName: String) {
+        fun start(
+            activityContext: Context,
+            mnemonic: String,
+            signerName: String,
+            primaryKeyFlow: Int,
+            passphrase: String
+        ) {
             activityContext.startActivity(
-                Intent(activityContext, SetPassphraseActivity::class.java).putExtras(SetPassphraseFragmentArgs(
-                    mnemonic = mnemonic,
-                    signerName = signerName
-                ).toBundle())
+                Intent(activityContext, SetPassphraseActivity::class.java).putExtras(
+                    SetPassphraseFragmentArgs(
+                        mnemonic = mnemonic,
+                        signerName = signerName,
+                        primaryKeyFlow = primaryKeyFlow,
+                        passphrase = passphrase
+                        ).toBundle()
+                )
             )
         }
     }

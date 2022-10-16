@@ -13,6 +13,7 @@ import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.utils.viewModelProviderFactoryOf
 import com.nunchuk.android.wallet.shared.R
 import com.nunchuk.android.wallet.shared.components.assign.AssignSignerEvent.AssignSignerCompletedEvent
 import com.nunchuk.android.wallet.shared.components.assign.AssignSignerEvent.AssignSignerErrorEvent
@@ -20,13 +21,21 @@ import com.nunchuk.android.wallet.shared.databinding.ActivityAssignSignerBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class AssignSignerSharedWalletActivity : BaseActivity<ActivityAssignSignerBinding>() {
 
-    private val args: AssignSignerArgs by lazy { AssignSignerArgs.deserializeFrom(intent) }
+    @Inject
+    internal lateinit var vmFactory: AssignSignerViewModel.Factory
 
-    private val viewModel: AssignSignerViewModel by viewModels()
+    private val viewModel: AssignSignerViewModel by viewModels {
+        viewModelProviderFactoryOf {
+            vmFactory.create(args)
+        }
+    }
+
+    private val args: AssignSignerArgs by lazy { AssignSignerArgs.deserializeFrom(intent) }
 
     private var emptyStateView: View? = null
 
@@ -69,11 +78,7 @@ class AssignSignerSharedWalletActivity : BaseActivity<ActivityAssignSignerBindin
     }
 
     private fun handleState(state: AssignSignerState) {
-        val signers = if (args.signers.isNotEmpty()) {
-            state.masterSigners.map(MasterSigner::toModel) + state.filterRecSigners.map(SingleSigner::toModel)
-        } else {
-            state.masterSigners.map(MasterSigner::toModel) + state.remoteSigners.map(SingleSigner::toModel)
-        }
+        val signers = viewModel.mapSigners()
 
         bindSigners(signers, state.selectedPFXs)
 
