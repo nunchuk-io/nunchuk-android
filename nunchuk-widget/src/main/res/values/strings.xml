@@ -26,5 +26,5 @@
     <string name="nc_text_canceled">Canceled</string>
     <string name="nc_text_completed">Completed</string>
     <string name="nc_confirmation">Confirmation</string>
-    <string name="nc_delete_account">Are you sure you want to delete this account? Please type DELETE to confirm.</string>
+    <string name="nc_delete_account">Are you sure you want to delete this account? All your keys and wallets will be removed. Please make sure that you have backups.\n\nPlease type DELETE to confirm.</string>
 </resources>
