@@ -48,7 +48,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val selectedWalletUseCase: SetSelectedWalletUseCase
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
-    private val args: WalletDetailsFragmentArgs = WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    private val args: WalletDetailsFragmentArgs =
+        WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
     private var transactions: List<Transaction> = ArrayList()
 
@@ -92,14 +93,21 @@ internal class WalletDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun getWalletDetails() {
+    fun getWalletDetails(shouldRefreshTransaction: Boolean = true) {
         viewModelScope.launch {
-            getWalletUseCase.execute(args.walletId).onStart { event(Loading(true)) }.flowOn(IO)
+            getWalletUseCase.execute(args.walletId)
+                .onStart { event(Loading(true)) }
+                .flowOn(IO)
                 .onException { event(WalletDetailsError(it.message.orUnknownError())) }.flowOn(Main)
+
                 .collect {
                     updateState { copy(walletExtended = it) }
-                    checkUserInRoom(it.roomWallet)
-                    getTransactionHistory()
+                    if (shouldRefreshTransaction) {
+                        checkUserInRoom(it.roomWallet)
+                        getTransactionHistory()
+                    } else {
+                        event(Loading(false))
+                    }
                 }
         }
     }
