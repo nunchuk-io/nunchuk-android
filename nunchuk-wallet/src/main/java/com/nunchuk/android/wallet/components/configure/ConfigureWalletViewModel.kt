@@ -2,6 +2,9 @@ package com.nunchuk.android.wallet.components.configure
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.account.PrimaryKeySignerInfoHolder
+import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.isContain
@@ -18,7 +21,11 @@ import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.Assi
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -28,7 +35,9 @@ internal class ConfigureWalletViewModel @Inject constructor(
     private val sendSignerPassphrase: SendSignerPassphrase,
     private val masterSignerMapper: MasterSignerMapper,
     private val getUnusedSignerFromMasterSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
-    private val getSignerFromMasterSignerUseCase: GetSignerFromMasterSignerUseCase
+    private val getSignerFromMasterSignerUseCase: GetSignerFromMasterSignerUseCase,
+    private val signInModeHolder: SignInModeHolder,
+    private val primaryKeySignerInfoHolder: PrimaryKeySignerInfoHolder
 ) : NunchukViewModel<ConfigureWalletState, ConfigureWalletEvent>() {
 
     private lateinit var args: ConfigureWalletArgs
@@ -188,8 +197,15 @@ internal class ConfigureWalletViewModel @Inject constructor(
         } + state.remoteSigners.map(SingleSigner::toModel)
     }
 
-    fun isShowRiskSignerDialog(): Boolean {
-        return getState().nonePassphraseSignerCount > 0
+    fun checkShowRiskSignerDialog() = viewModelScope.launch {
+        if (signInModeHolder.getCurrentMode() != SignInMode.PRIMARY_KEY
+            || getState().nonePassphraseSignerCount == 0
+            || primaryKeySignerInfoHolder.isNeedPassphraseSent()
+        ) {
+            setEvent(ConfigureWalletEvent.ShowRiskSignerDialog(false))
+            return@launch
+        }
+        setEvent(ConfigureWalletEvent.ShowRiskSignerDialog(true))
     }
 
 }

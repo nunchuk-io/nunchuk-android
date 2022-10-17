@@ -15,6 +15,7 @@ sealed class ConfigureWalletEvent {
 
     data class PromptInputPassphrase(val func: (String) -> Unit) : ConfigureWalletEvent()
     data class ShowError(val message: String) : ConfigureWalletEvent()
+    data class ShowRiskSignerDialog(val isShow: Boolean) : ConfigureWalletEvent()
 }
 
 data class ConfigureWalletState(
