@@ -118,7 +118,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
             SheetOptionType.EXPORT_TX_TO_Mk4 -> startNfcFlow(REQUEST_MK4_EXPORT_TRANSACTION)
-            SheetOptionType.IMPORT_TX_FROM_Mk4 -> startNfcFlow(REQUEST_MK4_IMPORT_TRANSACTION)
+            SheetOptionType.IMPORT_TX_FROM_Mk4 -> startNfcFlow(REQUEST_MK4_IMPORT_SIGNATURE)
         }
     }
 
@@ -133,7 +133,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             viewModel.handleExportTransactionToMk4(Ndef.get(it.tag) ?: return@flowObserver)
             nfcViewModel.clearScanInfo()
         }
-        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_MK4_IMPORT_TRANSACTION }) {
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_MK4_IMPORT_SIGNATURE }) {
             viewModel.handleImportTransactionFromMk4(it.records)
             nfcViewModel.clearScanInfo()
         }
@@ -366,7 +366,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private fun handleExportTxToMk4Success() {
         hideLoading()
-        startNfcFlow(REQUEST_MK4_IMPORT_TRANSACTION)
+        startNfcFlow(REQUEST_MK4_IMPORT_SIGNATURE)
         NCToastMessage(this).show(getString(R.string.nc_transaction_exported))
     }
 
