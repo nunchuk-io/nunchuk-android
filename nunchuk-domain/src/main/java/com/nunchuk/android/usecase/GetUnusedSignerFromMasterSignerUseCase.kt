@@ -4,6 +4,7 @@ import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -28,13 +29,21 @@ internal class GetUnusedSignerFromMasterSignerUseCaseImpl @Inject constructor(
     ) = flow {
         emit(
             masterSigners.map { masterSigner ->
-                nativeSdk.getUnusedSignerFromMasterSigner(
-                    masterSigner.id,
-                    walletType,
-                    addressType
-                ).also {
-                    if (masterSigner.device.needPassPhraseSent) {
-                        nativeSdk.clearSignerPassphrase(masterSigner.id)
+                if (masterSigner.type == SignerType.NFC) {
+                    nativeSdk.getDefaultSignerFromMasterSigner(
+                        masterSignerId = masterSigner.id,
+                        walletType = walletType.ordinal,
+                        addressType = addressType.ordinal
+                    )
+                } else {
+                    nativeSdk.getUnusedSignerFromMasterSigner(
+                        masterSignerId = masterSigner.id,
+                        walletType = walletType,
+                        addressType = addressType
+                    ).also {
+                        if (masterSigner.device.needPassPhraseSent) {
+                            nativeSdk.clearSignerPassphrase(masterSigner.id)
+                        }
                     }
                 }
             }

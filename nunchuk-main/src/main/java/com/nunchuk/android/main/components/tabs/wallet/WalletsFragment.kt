@@ -17,7 +17,6 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.MainActivityViewModel
 import com.nunchuk.android.main.R
@@ -26,8 +25,6 @@ import com.nunchuk.android.main.databinding.FragmentWalletsBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
 import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
-import com.nunchuk.android.model.MasterSigner
-import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.signer.nfc.NfcSetupActivity
 import com.nunchuk.android.signer.satscard.SatsCardActivity

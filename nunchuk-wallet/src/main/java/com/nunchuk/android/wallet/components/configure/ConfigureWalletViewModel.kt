@@ -3,12 +3,15 @@ package com.nunchuk.android.wallet.components.configure
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.mapper.MasterSignerMapper
-import com.nunchuk.android.core.mapper.toListMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.isContain
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.isTaproot
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
+import com.nunchuk.android.usecase.GetSignerFromMasterSignerUseCase
+import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.SendSignerPassphrase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.AssignSignerCompletedEvent
@@ -23,23 +26,24 @@ import javax.inject.Inject
 internal class ConfigureWalletViewModel @Inject constructor(
     private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     private val sendSignerPassphrase: SendSignerPassphrase,
-    private val masterSignerMapper: MasterSignerMapper
+    private val masterSignerMapper: MasterSignerMapper,
+    private val getUnusedSignerFromMasterSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
+    private val getSignerFromMasterSignerUseCase: GetSignerFromMasterSignerUseCase
 ) : NunchukViewModel<ConfigureWalletState, ConfigureWalletEvent>() {
 
-    private var taproot: Boolean = false
+    private lateinit var args: ConfigureWalletArgs
 
     override val initialState = ConfigureWalletState()
 
-    fun init(taproot: Boolean) {
-        this.taproot = taproot
-        updateState { initialState.copy(totalRequireSigns = if (taproot) 1 else 0) }
+    fun init(args: ConfigureWalletArgs) {
+        this.args = args
+        updateState { initialState.copy(totalRequireSigns = if (args.addressType.isTaproot()) 1 else 0) }
         getSigners()
     }
 
     private fun getSigners() {
         getCompoundSignersUseCase.execute()
             .onStart { event(Loading(true)) }
-            .flowOn(Dispatchers.IO)
             .onException {
                 updateState {
                     copy(
@@ -47,8 +51,28 @@ internal class ConfigureWalletViewModel @Inject constructor(
                         remoteSigners = emptyList()
                     )
                 }
+            }.flatMapLatest { signerPair ->
+                getUnusedSignerFromMasterSignerUseCase.execute(
+                    signerPair.first,
+                    args.walletType,
+                    args.addressType
+                ).map { signers ->
+                    Triple(
+                        signerPair.first,
+                        signerPair.second,
+                        signers.associateBy { it.masterSignerId })
+                }
             }
-            .onEach { updateState { copy(masterSigners = it.first, remoteSigners = it.second) } }
+            .flowOn(Dispatchers.IO)
+            .onEach {
+                updateState {
+                    copy(
+                        masterSigners = it.first,
+                        masterSignerMap = it.third,
+                        remoteSigners = it.second,
+                    )
+                }
+            }
             .flowOn(Dispatchers.Main)
             .onCompletion { event(Loading(false)) }
             .launchIn(viewModelScope)
@@ -59,12 +83,12 @@ internal class ConfigureWalletViewModel @Inject constructor(
             event(ConfigureWalletEvent.PromptInputPassphrase {
                 viewModelScope.launch {
                     sendSignerPassphrase.execute(signer.id, it)
-                        .onException { event(ConfigureWalletEvent.InputPassphraseError(it.message.orEmpty())) }
-                        .collect { updateStateSelectedSigner(checked, signer, needPassPhraseSent) }
+                        .onException { event(ConfigureWalletEvent.ShowError(it.message.orEmpty())) }
+                        .collect { updateStateSelectedSigner(checked, signer, true) }
                 }
             })
         } else {
-            updateStateSelectedSigner(checked, signer, needPassPhraseSent)
+            updateStateSelectedSigner(checked, signer, false)
         }
     }
 
@@ -75,13 +99,13 @@ internal class ConfigureWalletViewModel @Inject constructor(
     ) {
         var currentNonePassphraseSignerCount = getState().nonePassphraseSignerCount
         if (needPassPhraseSent.not()) {
-            if (checked) currentNonePassphraseSignerCount++ else currentNonePassphraseSignerCount --
+            if (checked) currentNonePassphraseSignerCount++ else currentNonePassphraseSignerCount--
         }
         updateState {
             copy(
                 selectedSigners = if (!checked) {
                     selectedSigners - listOf(signer).toSet()
-                } else if (taproot) {
+                } else if (args.addressType.isTaproot()) {
                     listOf(signer)
                 } else {
                     selectedSigners + listOf(signer)
@@ -119,23 +143,49 @@ internal class ConfigureWalletViewModel @Inject constructor(
             event(
                 AssignSignerCompletedEvent(
                     state.totalRequireSigns,
-                    state.masterSigners.filter {
-                        state.selectedSigners.isContain(
-                            masterSignerMapper.map(
-                                it
-                            )
-                        )
-                    },
+                    state.selectedSigners
+                        .asSequence()
+                        .map {
+                            state.masterSignerMap[it.id]
+                        }.filterNotNull()
+                        .toList(),
                     state.remoteSigners.filter { state.selectedSigners.isContain(it.toModel()) })
             )
         }
     }
 
+    fun changeBip32Path(masterSignerId: String, newPath: String) {
+        viewModelScope.launch {
+            setEvent(Loading(true))
+            val result = getSignerFromMasterSignerUseCase(
+                GetSignerFromMasterSignerUseCase.Params(
+                    masterSignerId,
+                    newPath
+                )
+            )
+            setEvent(Loading(false))
+            if (result.isSuccess) {
+                val newMap = getState().masterSignerMap.toMutableMap().apply {
+                    set(masterSignerId, result.getOrThrow())
+                }
+                updateState {
+                    copy(masterSignerMap = newMap)
+                }
+                setEvent(ConfigureWalletEvent.ChangeBip32Success)
+            } else {
+                setEvent(ConfigureWalletEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
     fun mapSigners(): List<SignerModel> {
         val state = getState()
-        return masterSignerMapper.toListMapper()(state.masterSigners) + state.remoteSigners.map(
-            SingleSigner::toModel
-        )
+        return state.masterSigners.map { signer ->
+            masterSignerMapper(
+                signer,
+                state.masterSignerMap[signer.id]?.derivationPath.orEmpty()
+            )
+        } + state.remoteSigners.map(SingleSigner::toModel)
     }
 
     fun isShowRiskSignerDialog(): Boolean {

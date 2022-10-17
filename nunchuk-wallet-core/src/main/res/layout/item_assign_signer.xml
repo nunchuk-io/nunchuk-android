@@ -7,13 +7,13 @@
     android:paddingVertical="@dimen/nc_padding_8">
 
     <ImageView
-        android:id="@+id/avatar"
+        android:id="@+id/iv_signer_type"
         android:layout_width="@dimen/nc_padding_48"
         android:layout_height="@dimen/nc_padding_48"
         android:background="@drawable/nc_circle_white_background"
-        android:gravity="center"
-        android:padding="@dimen/nc_padding_12"
-        android:textColor="@color/nc_black_color"
+        tools:src="@drawable/ic_singer_type_software"
+        android:scaleType="center"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -24,20 +24,9 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         app:fontTextStyle="semi_bold"
-        app:layout_constraintStart_toEndOf="@+id/avatar"
+        app:layout_constraintStart_toEndOf="@+id/iv_signer_type"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Tom’s Trezor Model T" />
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/xpf"
-        style="@style/NCText.Body.Small"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_4"
-        app:layout_constraintStart_toEndOf="@+id/avatar"
-        app:layout_constraintTop_toBottomOf="@+id/signerName"
-        tools:text="XFP: 79EB35F4" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/signerPrimaryKeyType"
@@ -49,8 +38,8 @@
         android:paddingHorizontal="@dimen/nc_padding_8"
         android:text="@string/nc_signer_type_primary_key"
         android:visibility="gone"
-        app:layout_constraintStart_toStartOf="@+id/xpf"
-        app:layout_constraintTop_toBottomOf="@+id/xpf"
+        app:layout_constraintStart_toStartOf="@+id/signerName"
+        app:layout_constraintTop_toBottomOf="@+id/signerName"
         app:layout_goneMarginStart="0dp"
         tools:visibility="visible" />
 
@@ -65,8 +54,32 @@
         android:paddingHorizontal="@dimen/nc_padding_8"
         android:text="@string/nc_signer_air_gapped"
         app:layout_constraintStart_toEndOf="@+id/signerPrimaryKeyType"
-        app:layout_constraintTop_toBottomOf="@+id/xpf"
+        app:layout_constraintTop_toBottomOf="@+id/signerName"
         app:layout_goneMarginStart="0dp" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/xpf"
+        style="@style/NCText.Body.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        app:layout_constraintStart_toEndOf="@+id/iv_signer_type"
+        app:layout_constraintTop_toBottomOf="@+id/signerType"
+        tools:text="XFP: 79EB35F4" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_bip32_path"
+        style="@style/NCText.Body.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:drawablePadding="@dimen/nc_padding_4"
+        android:drawableEnd="@drawable/ic_edit_small"
+        app:layout_constraintStart_toEndOf="@+id/iv_signer_type"
+        app:layout_constraintTop_toBottomOf="@+id/xpf"
+        tools:text="BIP32 path: m/48h/0h/0h" />
 
     <CheckBox
         android:id="@+id/checkbox"
@@ -75,9 +88,9 @@
         android:buttonTint="@color/nc_primary_color"
         android:checked="false"
         android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="@+id/avatar"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/avatar"
+        app:layout_constraintTop_toTopOf="parent"
         tools:checked="true" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

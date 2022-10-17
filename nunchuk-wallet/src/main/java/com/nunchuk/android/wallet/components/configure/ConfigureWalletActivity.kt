@@ -5,7 +5,6 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.model.MasterSigner
@@ -13,6 +12,8 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.wallet.InputBipPathBottomSheet
+import com.nunchuk.android.wallet.InputBipPathBottomSheetListener
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.AssignSignerCompletedEvent
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.Loading
@@ -24,7 +25,8 @@ import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>() {
+class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>(),
+    InputBipPathBottomSheetListener {
 
     private val args: ConfigureWalletArgs by lazy { ConfigureWalletArgs.deserializeFrom(intent) }
 
@@ -40,7 +42,11 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>() {
         setupViews()
         observeEvent()
 
-        viewModel.init(args.addressType.isTaproot())
+        viewModel.init(args)
+    }
+
+    override fun onInputDone(masterSignerId: String, newInput: String) {
+        viewModel.changeBip32Path(masterSignerId, newInput)
     }
 
     private fun observeEvent() {
@@ -57,7 +63,8 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>() {
             )
             is Loading -> showOrHideLoading(event.loading)
             is ConfigureWalletEvent.PromptInputPassphrase -> requireInputPassphrase(event.func)
-            is ConfigureWalletEvent.InputPassphraseError -> NCToastMessage(this).showError(event.message)
+            is ConfigureWalletEvent.ShowError -> NCToastMessage(this).showError(event.message)
+            ConfigureWalletEvent.ChangeBip32Success -> NCToastMessage(this).show(getString(R.string.nc_bip_32_updated))
         }
     }
 
@@ -70,7 +77,7 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>() {
 
     private fun openWalletConfirmScreen(
         totalRequireSigns: Int,
-        masterSigners: List<MasterSigner>,
+        masterSigners: List<SingleSigner>,
         remoteSigners: List<SingleSigner>
     ) {
         navigator.openReviewWalletScreen(
@@ -90,7 +97,8 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>() {
         bindSigners(
             state.masterSigners,
             viewModel.mapSigners(),
-            state.selectedSigners
+            state.selectedSigners,
+            state.masterSignerMap,
         )
         bindTotalRequireSigns(requireSigns)
         binding.totalRequireSigns.bindWalletConfiguration(
@@ -103,19 +111,32 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>() {
         binding.requiredSingerCounter.text = "$totalRequireSigns"
     }
 
-    private fun bindSigners(masterSigners: List<MasterSigner>, signers: List<SignerModel>, selectedPFXs: List<SignerModel>) {
+    private fun bindSigners(
+        masterSigners: List<MasterSigner>,
+        signers: List<SignerModel>,
+        selectedPFXs: List<SignerModel>,
+        masterSignerMap: Map<String, SingleSigner>
+    ) {
         SignersViewBinder(
-            binding.signersContainer,
-            signers,
-            selectedPFXs
-        ) { model, checked ->
-            val device = masterSigners.find { it.device.masterFingerprint == model.fingerPrint }?.device
-            viewModel.updateSelectedSigner(
-                signer = model,
-                checked = checked,
-                needPassPhraseSent = checked && device?.needPassPhraseSent.orFalse()
-            )
-        }.bindItems()
+            container = binding.signersContainer,
+            signers = signers,
+            selectedSigners = selectedPFXs,
+            onItemSelectedListener = { model, checked ->
+                val device =
+                    masterSigners.find { it.device.masterFingerprint == model.fingerPrint }?.device
+                viewModel.updateSelectedSigner(
+                    signer = model,
+                    checked = checked,
+                    needPassPhraseSent = checked && device?.needPassPhraseSent.orFalse()
+                )
+            }, onEditPath = { model ->
+                InputBipPathBottomSheet.show(
+                    supportFragmentManager,
+                    model.id,
+                    masterSignerMap[model.id]?.derivationPath.orEmpty()
+                )
+            }
+        ).bindItems()
     }
 
     private fun setupViews() {
@@ -163,8 +184,19 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>() {
 
     companion object {
 
-        fun start(activityContext: Context, walletName: String, walletType: WalletType, addressType: AddressType) {
-            activityContext.startActivity(ConfigureWalletArgs(walletName, walletType, addressType).buildIntent(activityContext))
+        fun start(
+            activityContext: Context,
+            walletName: String,
+            walletType: WalletType,
+            addressType: AddressType
+        ) {
+            activityContext.startActivity(
+                ConfigureWalletArgs(
+                    walletName,
+                    walletType,
+                    addressType
+                ).buildIntent(activityContext)
+            )
         }
     }
 

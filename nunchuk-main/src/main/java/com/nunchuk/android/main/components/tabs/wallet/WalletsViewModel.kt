@@ -9,18 +9,9 @@ import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.mapper.MasterSignerMapper
-import com.nunchuk.android.core.mapper.toListMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.AddWalletEvent
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GetTapSignerStatusSuccess
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GoToSatsCardScreen
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.Loading
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.NeedSetupSatsCard
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.NfcLoading
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.SatsCardUsedUp
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEvent
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowSignerIntroEvent
+import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TapSignerStatus
@@ -83,7 +74,8 @@ internal class WalletsViewModel @Inject constructor(
                 }
                 .collect {
                     val (masterSigners, signers, wallets) = it
-                    val newMasterSigner = masterSigners.sortedByDescending { signer -> isPrimaryKey(signer.id) }
+                    val newMasterSigner =
+                        masterSigners.sortedByDescending { signer -> isPrimaryKey(signer.id) }
                     updateState {
                         copy(
                             masterSigners = newMasterSigner,
@@ -95,7 +87,8 @@ internal class WalletsViewModel @Inject constructor(
         }
     }
 
-    private fun isPrimaryKey(id: String) = accountManager.loginType() == SignInMode.PRIMARY_KEY.value && accountManager.getPrimaryKeyInfo()?.xfp == id
+    private fun isPrimaryKey(id: String) =
+        accountManager.loginType() == SignInMode.PRIMARY_KEY.value && accountManager.getPrimaryKeyInfo()?.xfp == id
 
     fun handleAddSignerOrWallet() {
         if (hasSigner()) {
@@ -116,11 +109,11 @@ internal class WalletsViewModel @Inject constructor(
     fun isInWallet(signer: SignerModel): Boolean {
         return getState().wallets
             .any {
-                it.wallet.signers.any anyLast@ { singleSigner ->
+                it.wallet.signers.any anyLast@{ singleSigner ->
                     if (singleSigner.hasMasterSigner) {
                         return@anyLast singleSigner.masterFingerprint == signer.fingerPrint
                     }
-                    return@anyLast  singleSigner.masterFingerprint == signer.fingerPrint
+                    return@anyLast singleSigner.masterFingerprint == signer.fingerPrint
                             && singleSigner.derivationPath == signer.derivationPath
                 }
             }
@@ -157,8 +150,6 @@ internal class WalletsViewModel @Inject constructor(
 
     fun mapSigners(): List<SignerModel> {
         val state = getState()
-        return masterSignerMapper.toListMapper()(state.masterSigners) + state.signers.map(
-            SingleSigner::toModel
-        )
+        return state.masterSigners.map(masterSignerMapper::invoke) + state.signers.map(SingleSigner::toModel)
     }
 }
