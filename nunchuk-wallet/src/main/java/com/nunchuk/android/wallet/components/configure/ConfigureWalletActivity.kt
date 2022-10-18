@@ -65,6 +65,13 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>(),
             is ConfigureWalletEvent.PromptInputPassphrase -> requireInputPassphrase(event.func)
             is ConfigureWalletEvent.ShowError -> NCToastMessage(this).showError(event.message)
             ConfigureWalletEvent.ChangeBip32Success -> NCToastMessage(this).show(getString(R.string.nc_bip_32_updated))
+            is ConfigureWalletEvent.ShowRiskSignerDialog -> {
+                if (event.isShow) {
+                    showRiskSignerDialog()
+                } else {
+                    viewModel.handleContinueEvent()
+                }
+            }
         }
     }
 
@@ -150,13 +157,7 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>(),
 
         binding.iconPlus.setOnClickListener { viewModel.handleIncreaseRequiredSigners() }
         binding.iconMinus.setOnClickListener { viewModel.handleDecreaseRequiredSigners() }
-        binding.btnContinue.setOnClickListener {
-            if (viewModel.isShowRiskSignerDialog()) {
-                showRiskSignerDialog()
-            }else {
-                viewModel.handleContinueEvent()
-            }
-        }
+        binding.btnContinue.setOnClickListener { viewModel.checkShowRiskSignerDialog() }
 
         binding.toolbar.setNavigationOnClickListener {
             finish()
