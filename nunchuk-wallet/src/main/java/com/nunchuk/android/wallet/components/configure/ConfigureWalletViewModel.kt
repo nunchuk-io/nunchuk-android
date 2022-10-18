@@ -21,11 +21,7 @@ import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.Assi
 import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 

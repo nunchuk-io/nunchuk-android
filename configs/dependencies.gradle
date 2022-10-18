@@ -48,7 +48,7 @@ ext {
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
     PATCH_VERSION = 20
-    TASK_LABEL = "BIP32"
+    TASK_LABEL = "UAT"
 
     VERSION_CODE = 184
 
