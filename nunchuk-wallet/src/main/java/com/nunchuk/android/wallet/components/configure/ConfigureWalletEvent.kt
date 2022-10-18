@@ -13,9 +13,12 @@ sealed class ConfigureWalletEvent {
         val remoteSigners: List<SingleSigner>
     ) : ConfigureWalletEvent()
 
-    data class PromptInputPassphrase(val func: (String) -> Unit) : ConfigureWalletEvent()
+    data class PromptInputPassphrase(val signer: SignerModel) : ConfigureWalletEvent()
     data class ShowError(val message: String) : ConfigureWalletEvent()
     data class ShowRiskSignerDialog(val isShow: Boolean) : ConfigureWalletEvent()
+    object RequestCacheTapSignerXpub : ConfigureWalletEvent()
+    data class CacheTapSignerXpubError(val error: Throwable?) : ConfigureWalletEvent()
+    data class NfcLoading(val isLoading: Boolean) : ConfigureWalletEvent()
 }
 
 data class ConfigureWalletState(
@@ -23,6 +26,6 @@ data class ConfigureWalletState(
     val masterSigners: List<MasterSigner> = emptyList(),
     val remoteSigners: List<SingleSigner> = emptyList(),
     val masterSignerMap: Map<String, SingleSigner> = emptyMap(),
-    val selectedSigners: List<SignerModel> = emptyList(),
+    val selectedSigners: Set<SignerModel> = emptySet(),
     val nonePassphraseSignerCount: Int = 0
 )

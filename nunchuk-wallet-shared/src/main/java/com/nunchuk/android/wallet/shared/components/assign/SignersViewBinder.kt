@@ -31,7 +31,7 @@ internal class SignersViewBinder(
         binding.ivSignerType.setImageDrawable(model.type.toReadableDrawable(context))
         binding.signerName.text = model.name
         binding.xpf.text = xfpValue
-        binding.tvBip32Path.isVisible = model.isMasterSigner
+        binding.tvBip32Path.isVisible = model.isMasterSigner && model.derivationPath.isNotEmpty()
         binding.tvBip32Path.text = "BIP32 path: ${model.derivationPath}"
         if (model.type == SignerType.NFC) {
             binding.tvBip32Path.setOnDebounceClickListener { onEditPath(model) }
