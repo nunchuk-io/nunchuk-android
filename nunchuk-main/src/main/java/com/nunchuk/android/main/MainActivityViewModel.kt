@@ -32,6 +32,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.NoOpMatrixCallback
@@ -455,7 +456,7 @@ internal class MainActivityViewModel @Inject constructor(
             if (syncEnableState.value) {
                 consumerSyncEventUseCase.execute(sortedEvents)
                     .onCompletion {
-                        // Fixme optimize this one, should we have to consume all?
+                        ensureActive()
                         if (timeline?.hasMoreToLoad(Timeline.Direction.BACKWARDS).orFalse()) {
                             timeline?.paginate(Timeline.Direction.BACKWARDS, PAGINATION)
                         } else {
