@@ -28,24 +28,26 @@ internal class GetUnusedSignerFromMasterSignerUseCaseImpl @Inject constructor(
         addressType: AddressType
     ) = flow {
         emit(
-            masterSigners.map { masterSigner ->
-                if (masterSigner.type == SignerType.NFC) {
-                    nativeSdk.getDefaultSignerFromMasterSigner(
-                        masterSignerId = masterSigner.id,
-                        walletType = walletType.ordinal,
-                        addressType = addressType.ordinal
-                    )
-                } else {
-                    nativeSdk.getUnusedSignerFromMasterSigner(
-                        masterSignerId = masterSigner.id,
-                        walletType = walletType,
-                        addressType = addressType
-                    ).also {
-                        if (masterSigner.device.needPassPhraseSent) {
-                            nativeSdk.clearSignerPassphrase(masterSigner.id)
+            masterSigners.mapNotNull { masterSigner ->
+                runCatching {
+                    if (masterSigner.type == SignerType.NFC) {
+                        nativeSdk.getDefaultSignerFromMasterSigner(
+                            masterSignerId = masterSigner.id,
+                            walletType = walletType.ordinal,
+                            addressType = addressType.ordinal
+                        )
+                    } else {
+                        nativeSdk.getUnusedSignerFromMasterSigner(
+                            masterSignerId = masterSigner.id,
+                            walletType = walletType,
+                            addressType = addressType
+                        ).also {
+                            if (masterSigner.device.needPassPhraseSent) {
+                                nativeSdk.clearSignerPassphrase(masterSigner.id)
+                            }
                         }
                     }
-                }
+                }.getOrNull()
             }
         )
     }

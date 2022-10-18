@@ -1,10 +1,13 @@
 package com.nunchuk.android.core.signer
 
+import android.os.Parcelable
 import com.nunchuk.android.model.JoinKey
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.SignerType
+import kotlinx.parcelize.Parcelize
 import java.util.regex.Pattern
 
+@Parcelize
 data class SignerModel(
     val id: String,
     val name: String,
@@ -16,7 +19,7 @@ data class SignerModel(
     val localKey: Boolean = true,
     val isPrimaryKey: Boolean = false,
     val isMasterSigner: Boolean = false
-) {
+) : Parcelable {
     fun isSame(other: SignerModel) = fingerPrint == other.fingerPrint && derivationPath == other.derivationPath
 }
 

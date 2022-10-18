@@ -1,13 +1,15 @@
 package com.nunchuk.android.wallet.components.configure
 
 import android.content.Context
+import android.nfc.tech.IsoDep
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.isTaproot
-import com.nunchuk.android.core.util.orFalse
-import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.AddressType
@@ -20,12 +22,14 @@ import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.Load
 import com.nunchuk.android.wallet.databinding.ActivityConfigureWalletBinding
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.NCWarningVerticalDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
-class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>(),
+class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(),
     InputBipPathBottomSheetListener {
 
     private val args: ConfigureWalletArgs by lazy { ConfigureWalletArgs.deserializeFrom(intent) }
@@ -52,6 +56,13 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>(),
     private fun observeEvent() {
         viewModel.event.observe(this, ::handleEvent)
         viewModel.state.observe(this, ::handleState)
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_TOPUP_XPUBS }) {
+            viewModel.cacheTapSignerXpub(
+                IsoDep.get(it.tag),
+                nfcViewModel.inputCvc.orEmpty(),
+            )
+            nfcViewModel.clearScanInfo()
+        }
     }
 
     private fun handleEvent(event: ConfigureWalletEvent) {
@@ -62,7 +73,7 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>(),
                 remoteSigners = event.remoteSigners
             )
             is Loading -> showOrHideLoading(event.loading)
-            is ConfigureWalletEvent.PromptInputPassphrase -> requireInputPassphrase(event.func)
+            is ConfigureWalletEvent.PromptInputPassphrase -> requireInputPassphrase(event.signer)
             is ConfigureWalletEvent.ShowError -> NCToastMessage(this).showError(event.message)
             ConfigureWalletEvent.ChangeBip32Success -> NCToastMessage(this).show(getString(R.string.nc_bip_32_updated))
             is ConfigureWalletEvent.ShowRiskSignerDialog -> {
@@ -72,13 +83,38 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>(),
                     viewModel.handleContinueEvent()
                 }
             }
+            ConfigureWalletEvent.RequestCacheTapSignerXpub -> handleCacheXpub()
+            is ConfigureWalletEvent.CacheTapSignerXpubError -> handleCacheXpubError(event)
+            is ConfigureWalletEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
         }
     }
 
-    private fun requireInputPassphrase(func: (String) -> Unit) {
+    private fun handleCacheXpub() {
+        NCWarningDialog(this).showDialog(
+            title = getString(R.string.nc_text_info),
+            message = getString(R.string.nc_new_xpub_need),
+            onYesClick = {
+                startNfcFlow(REQUEST_NFC_TOPUP_XPUBS)
+            }
+        )
+    }
+
+    private fun handleCacheXpubError(event: ConfigureWalletEvent.CacheTapSignerXpubError) {
+        if (nfcViewModel.handleNfcError(event.error).not()) {
+            val message = event.error?.message.orUnknownError()
+            NCToastMessage(this).showError(message)
+        }
+    }
+
+    private fun requireInputPassphrase(signer: SignerModel) {
         NCInputDialog(this).showDialog(
             title = getString(R.string.nc_transaction_enter_passphrase),
-            onConfirmed = func
+            onConfirmed = {
+                viewModel.verifyPassphrase(signer, it)
+            },
+            onCanceled = {
+                viewModel.cancelVerifyPassphrase(signer)
+            }
         )
     }
 
@@ -102,7 +138,6 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>(),
         val requireSigns = state.totalRequireSigns
         val totalSigns = state.selectedSigners.size
         bindSigners(
-            state.masterSigners,
             viewModel.mapSigners(),
             state.selectedSigners,
             state.masterSignerMap,
@@ -119,9 +154,8 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>(),
     }
 
     private fun bindSigners(
-        masterSigners: List<MasterSigner>,
         signers: List<SignerModel>,
-        selectedPFXs: List<SignerModel>,
+        selectedPFXs: Set<SignerModel>,
         masterSignerMap: Map<String, SingleSigner>
     ) {
         SignersViewBinder(
@@ -129,12 +163,9 @@ class ConfigureWalletActivity : BaseActivity<ActivityConfigureWalletBinding>(),
             signers = signers,
             selectedSigners = selectedPFXs,
             onItemSelectedListener = { model, checked ->
-                val device =
-                    masterSigners.find { it.device.masterFingerprint == model.fingerPrint }?.device
                 viewModel.updateSelectedSigner(
                     signer = model,
                     checked = checked,
-                    needPassPhraseSent = checked && device?.needPassPhraseSent.orFalse()
                 )
             }, onEditPath = { model ->
                 InputBipPathBottomSheet.show(

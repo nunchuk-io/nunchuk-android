@@ -1,13 +1,17 @@
 package com.nunchuk.android.wallet.shared.components.assign
 
 import android.content.Context
+import android.nfc.tech.IsoDep
 import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
-import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
@@ -19,19 +23,21 @@ import com.nunchuk.android.wallet.shared.components.assign.AssignSignerEvent.Ass
 import com.nunchuk.android.wallet.shared.components.assign.AssignSignerEvent.ShowError
 import com.nunchuk.android.wallet.shared.databinding.ActivityAssignSignerBinding
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.filter
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class AssignSignerSharedWalletActivity : BaseActivity<ActivityAssignSignerBinding>(), InputBipPathBottomSheetListener {
+class AssignSignerSharedWalletActivity : BaseNfcActivity<ActivityAssignSignerBinding>(), InputBipPathBottomSheetListener {
 
     @Inject
     internal lateinit var vmFactory: AssignSignerViewModel.Factory
 
     private val viewModel: AssignSignerViewModel by viewModels {
         viewModelProviderFactoryOf {
-            vmFactory.create(args)
+            vmFactory.create(args, it)
         }
     }
 
@@ -68,6 +74,13 @@ class AssignSignerSharedWalletActivity : BaseActivity<ActivityAssignSignerBindin
     private fun observeEvent() {
         viewModel.event.observe(this, ::handleEvent)
         viewModel.state.observe(this, ::handleState)
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_TOPUP_XPUBS }) {
+            viewModel.cacheTapSignerXpub(
+                IsoDep.get(it.tag),
+                nfcViewModel.inputCvc.orEmpty(),
+            )
+            nfcViewModel.clearScanInfo()
+        }
     }
 
     private fun handleEvent(event: AssignSignerEvent) {
@@ -76,6 +89,26 @@ class AssignSignerSharedWalletActivity : BaseActivity<ActivityAssignSignerBindin
             is ShowError -> NCToastMessage(this).showError(event.message)
             AssignSignerEvent.ChangeBip32Success -> NCToastMessage(this).show(getString(R.string.nc_bip_32_updated))
             is AssignSignerEvent.Loading -> showOrHideLoading(event.isLoading)
+            is AssignSignerEvent.CacheTapSignerXpubError -> handleCacheXpubError(event)
+            AssignSignerEvent.RequestCacheTapSignerXpub -> handleCacheXpub()
+            is AssignSignerEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
+        }
+    }
+
+    private fun handleCacheXpub() {
+        NCWarningDialog(this).showDialog(
+            title = getString(R.string.nc_text_info),
+            message = getString(R.string.nc_new_xpub_need),
+            onYesClick = {
+                startNfcFlow(REQUEST_NFC_TOPUP_XPUBS)
+            }
+        )
+    }
+
+    private fun handleCacheXpubError(event: AssignSignerEvent.CacheTapSignerXpubError) {
+        if (nfcViewModel.handleNfcError(event.error).not()) {
+            val message = event.error?.message.orUnknownError()
+            NCToastMessage(this).showError(message)
         }
     }
 

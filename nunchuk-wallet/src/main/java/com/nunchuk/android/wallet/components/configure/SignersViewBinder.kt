@@ -15,7 +15,7 @@ import com.nunchuk.android.widget.util.setOnDebounceClickListener
 internal class SignersViewBinder(
     container: ViewGroup,
     signers: List<SignerModel>,
-    private val selectedSigners: List<SignerModel> = emptyList(),
+    private val selectedSigners: Set<SignerModel> = emptySet(),
     val onItemSelectedListener: (SignerModel, Boolean) -> Unit,
     val onEditPath: (SignerModel) -> Unit,
 ) : AbsViewBinder<SignerModel, ItemAssignSignerBinding>(container, signers) {
@@ -30,7 +30,7 @@ internal class SignersViewBinder(
         binding.ivSignerType.setImageDrawable(model.type.toReadableDrawable(context))
         binding.signerName.text = model.name
         binding.xpf.text = xfpValue
-        binding.tvBip32Path.isVisible = model.isMasterSigner
+        binding.tvBip32Path.isVisible = model.isMasterSigner && model.derivationPath.isNotEmpty()
         binding.tvBip32Path.text = "BIP32 path: ${model.derivationPath}"
         if (model.type == SignerType.NFC) {
             binding.tvBip32Path.setCompoundDrawablesRelativeWithIntrinsicBounds(0,0,0,0)
@@ -40,7 +40,7 @@ internal class SignersViewBinder(
             binding.tvBip32Path.setCompoundDrawablesRelativeWithIntrinsicBounds(0,0, R.drawable.ic_edit_small,0)
         }
         binding.checkbox.isChecked =
-            selectedSigners.isNotEmpty() && (selectedSigners.firstOrNull { it.isSame(model) } != null)
+            selectedSigners.isNotEmpty() && selectedSigners.contains(model)
         binding.checkbox.setOnCheckedChangeListener { _, checked ->
             onItemSelectedListener(
                 model,

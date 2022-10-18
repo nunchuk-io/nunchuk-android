@@ -1,11 +1,16 @@
 package com.nunchuk.android.utils
 
+import androidx.lifecycle.AbstractSavedStateViewModelFactory
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 
 inline fun <VM : ViewModel> viewModelProviderFactoryOf(
-    crossinline f: () -> VM
-): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+    crossinline f: (handle: SavedStateHandle) -> VM
+): AbstractSavedStateViewModelFactory = object : AbstractSavedStateViewModelFactory() {
     @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T = f() as T
+    override fun <T : ViewModel> create(
+        key: String,
+        modelClass: Class<T>,
+        handle: SavedStateHandle
+    ): T = f(handle) as T
 }

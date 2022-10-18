@@ -1,7 +1,11 @@
 package com.nunchuk.android.wallet.shared.components.assign
 
+import android.nfc.tech.IsoDep
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.GetDefaultSignerFromMasterSignerUseCase
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.CacheDefaultTapsignerMasterSignerXPubUseCase
 import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.domain.SendErrorEventUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
@@ -12,6 +16,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetSignerFromMasterSignerUseCase
@@ -28,6 +33,7 @@ import kotlinx.coroutines.launch
 
 internal class AssignSignerViewModel @AssistedInject constructor(
     @Assisted private val args: AssignSignerArgs,
+    @Assisted private val savedStateHandle: SavedStateHandle,
     private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     private val getUnusedSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
     private val joinWalletUseCase: JoinWalletUseCase,
@@ -35,7 +41,9 @@ internal class AssignSignerViewModel @AssistedInject constructor(
     private val hasSignerUseCase: HasSignerUseCase,
     private val sessionHolder: SessionHolder,
     private val masterSignerMapper: MasterSignerMapper,
-    private val getSignerFromMasterSignerUseCase: GetSignerFromMasterSignerUseCase
+    private val getSignerFromMasterSignerUseCase: GetSignerFromMasterSignerUseCase,
+    private val cacheDefaultTapsignerMasterSignerXPubUseCase: CacheDefaultTapsignerMasterSignerXPubUseCase,
+    private val getDefaultSignerFromMasterSignerUseCase: GetDefaultSignerFromMasterSignerUseCase
 ) : NunchukViewModel<AssignSignerState, AssignSignerEvent>() {
 
     override val initialState = AssignSignerState()
@@ -56,6 +64,37 @@ internal class AssignSignerViewModel @AssistedInject constructor(
                 }
             }
         }.flowOn(Dispatchers.Main).launchIn(viewModelScope)
+    }
+
+    fun cacheTapSignerXpub(isoDep: IsoDep, cvc: String) {
+        viewModelScope.launch {
+            val signer: SignerModel = savedStateHandle[EXTRA_CURRENT_MASTER_SIGNER] ?: return@launch
+            val result = cacheDefaultTapsignerMasterSignerXPubUseCase(
+                CacheDefaultTapsignerMasterSignerXPubUseCase.Data(isoDep, cvc, signer.id)
+            )
+            if (result.isSuccess) {
+                val signerResult = getDefaultSignerFromMasterSignerUseCase(
+                    GetDefaultSignerFromMasterSignerUseCase.Params(
+                        signer.id,
+                        args.walletType,
+                        args.addressType
+                    )
+                )
+                if (signerResult.isSuccess) {
+                    handleSelected(signerResult.getOrThrow().toModel(), true)
+                    updateState {
+                        copy(masterSignerMap = masterSignerMap.toMutableMap().apply {
+                            set(signer.id, signerResult.getOrThrow())
+                        })
+                    }
+                } else {
+                    handleSelected(signer, false)
+                }
+            } else {
+                handleSelected(signer, false)
+                setEvent(AssignSignerEvent.CacheTapSignerXpubError(result.exceptionOrNull()))
+            }
+        }
     }
 
     fun getSigners(walletType: WalletType, addressType: AddressType) {
@@ -88,18 +127,11 @@ internal class AssignSignerViewModel @AssistedInject constructor(
     }
 
     fun updateSelectedXfps(model: SignerModel, checked: Boolean) {
-        val newSet = getState().selectedSigner.toMutableSet().apply {
-            if (checked) add(model) else remove(model)
-        }
-        updateState {
-            copy(
-                selectedSigner = newSet
-            )
-        }
-        val state = getState()
-        val currentNum = state.totalRequireSigns
-        if (currentNum == 0 || state.totalRequireSigns > state.selectedSigner.size) {
-            updateState { copy(totalRequireSigns = state.selectedSigner.size) }
+        if (model.type == SignerType.NFC && model.derivationPath.isEmpty()) {
+            savedStateHandle[EXTRA_CURRENT_MASTER_SIGNER] = model
+            setEvent(AssignSignerEvent.RequestCacheTapSignerXpub)
+        } else {
+            handleSelected(model, checked)
         }
     }
 
@@ -178,8 +210,28 @@ internal class AssignSignerViewModel @AssistedInject constructor(
         return signers
     }
 
+    private fun handleSelected(model: SignerModel, checked: Boolean) {
+        val newSet = getState().selectedSigner.toMutableSet().apply {
+            if (checked) add(model) else remove(model)
+        }
+        updateState {
+            copy(
+                selectedSigner = newSet
+            )
+        }
+        val state = getState()
+        val currentNum = state.totalRequireSigns
+        if (currentNum == 0 || state.totalRequireSigns > state.selectedSigner.size) {
+            updateState { copy(totalRequireSigns = state.selectedSigner.size) }
+        }
+    }
+
     @AssistedFactory
     internal interface Factory {
-        fun create(args: AssignSignerArgs): AssignSignerViewModel
+        fun create(args: AssignSignerArgs, savedStateHandle: SavedStateHandle): AssignSignerViewModel
+    }
+
+    companion object {
+        private const val EXTRA_CURRENT_MASTER_SIGNER = "_a"
     }
 }

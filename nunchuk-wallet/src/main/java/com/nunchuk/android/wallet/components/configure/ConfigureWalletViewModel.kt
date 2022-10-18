@@ -1,17 +1,21 @@
 package com.nunchuk.android.wallet.components.configure
 
+import android.nfc.tech.IsoDep
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.GetDefaultSignerFromMasterSignerUseCase
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.PrimaryKeySignerInfoHolder
+import com.nunchuk.android.core.domain.CacheDefaultTapsignerMasterSignerXPubUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.signer.isContain
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
@@ -33,7 +37,10 @@ internal class ConfigureWalletViewModel @Inject constructor(
     private val getUnusedSignerFromMasterSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
     private val getSignerFromMasterSignerUseCase: GetSignerFromMasterSignerUseCase,
     private val signInModeHolder: SignInModeHolder,
-    private val primaryKeySignerInfoHolder: PrimaryKeySignerInfoHolder
+    private val primaryKeySignerInfoHolder: PrimaryKeySignerInfoHolder,
+    private val savedStateHandle: SavedStateHandle,
+    private val cacheDefaultTapsignerMasterSignerXPubUseCase: CacheDefaultTapsignerMasterSignerXPubUseCase,
+    private val getDefaultSignerFromMasterSignerUseCase: GetDefaultSignerFromMasterSignerUseCase
 ) : NunchukViewModel<ConfigureWalletState, ConfigureWalletEvent>() {
 
     private lateinit var args: ConfigureWalletArgs
@@ -47,74 +54,110 @@ internal class ConfigureWalletViewModel @Inject constructor(
     }
 
     private fun getSigners() {
-        getCompoundSignersUseCase.execute()
-            .onStart { event(Loading(true)) }
-            .onException {
-                updateState {
-                    copy(
-                        masterSigners = emptyList(),
-                        remoteSigners = emptyList()
-                    )
-                }
-            }.flatMapLatest { signerPair ->
-                getUnusedSignerFromMasterSignerUseCase.execute(
-                    signerPair.first,
-                    args.walletType,
-                    args.addressType
-                ).map { signers ->
-                    Triple(
-                        signerPair.first,
-                        signerPair.second,
-                        signers.associateBy { it.masterSignerId })
-                }
+        getCompoundSignersUseCase.execute().onStart { event(Loading(true)) }.onException {
+            updateState {
+                copy(
+                    masterSigners = emptyList(), remoteSigners = emptyList()
+                )
             }
-            .flowOn(Dispatchers.IO)
-            .onEach {
-                updateState {
-                    copy(
-                        masterSigners = it.first,
-                        masterSignerMap = it.third,
-                        remoteSigners = it.second,
-                    )
-                }
+        }.flatMapLatest { signerPair ->
+            getUnusedSignerFromMasterSignerUseCase.execute(
+                signerPair.first, args.walletType, args.addressType
+            ).map { signers ->
+                Triple(signerPair.first,
+                    signerPair.second,
+                    signers.associateBy { it.masterSignerId })
             }
-            .flowOn(Dispatchers.Main)
-            .onCompletion { event(Loading(false)) }
+        }.flowOn(Dispatchers.IO).onEach {
+            updateState {
+                copy(
+                    masterSigners = it.first,
+                    masterSignerMap = it.third,
+                    remoteSigners = it.second,
+                )
+            }
+        }.flowOn(Dispatchers.Main).onCompletion { event(Loading(false)) }
             .launchIn(viewModelScope)
     }
 
-    fun updateSelectedSigner(signer: SignerModel, checked: Boolean, needPassPhraseSent: Boolean) {
-        if (needPassPhraseSent) {
-            event(ConfigureWalletEvent.PromptInputPassphrase {
-                viewModelScope.launch {
-                    sendSignerPassphrase.execute(signer.id, it)
-                        .onException { event(ConfigureWalletEvent.ShowError(it.message.orEmpty())) }
-                        .collect { updateStateSelectedSigner(checked, signer, true) }
+    fun cacheTapSignerXpub(isoDep: IsoDep, cvc: String) {
+        viewModelScope.launch {
+            val signer: SignerModel = savedStateHandle[EXTRA_CURRENT_MASTER_SIGNER] ?: return@launch
+            val result = cacheDefaultTapsignerMasterSignerXPubUseCase(
+                CacheDefaultTapsignerMasterSignerXPubUseCase.Data(isoDep, cvc, signer.id)
+            )
+            if (result.isSuccess) {
+                val signerResult = getDefaultSignerFromMasterSignerUseCase(
+                    GetDefaultSignerFromMasterSignerUseCase.Params(
+                        signer.id, args.walletType, args.addressType
+                    )
+                )
+                if (signerResult.isSuccess) {
+                    val newSigner = signerResult.getOrThrow()
+                    updateStateSelectedSigner(true, newSigner.toModel(), false)
+                    updateState {
+                        copy(masterSignerMap = masterSignerMap.toMutableMap().apply {
+                            set(signer.id, newSigner)
+                        })
+                    }
+                } else {
+                    updateStateSelectedSigner(false, signer, false)
                 }
-            })
+            } else {
+                updateStateSelectedSigner(false, signer, false)
+                setEvent(ConfigureWalletEvent.CacheTapSignerXpubError(result.exceptionOrNull()))
+            }
+        }
+    }
+
+    fun updateSelectedSigner(signer: SignerModel, checked: Boolean) {
+        val masterSigner =
+            getState().masterSigners.find { it.device.masterFingerprint == signer.fingerPrint }
+        savedStateHandle[EXTRA_CURRENT_MASTER_SIGNER] = signer
+        val device = masterSigner?.device
+        val isShouldCacheXpub = signer.type == SignerType.NFC && signer.derivationPath.isEmpty()
+        if (checked && isShouldCacheXpub) {
+            setEvent(ConfigureWalletEvent.RequestCacheTapSignerXpub)
+        } else if (checked && device?.needPassPhraseSent == true) {
+            setEvent(ConfigureWalletEvent.PromptInputPassphrase(signer))
         } else {
             updateStateSelectedSigner(checked, signer, false)
         }
     }
 
+    fun verifyPassphrase(signer: SignerModel, passphrase: String) {
+        viewModelScope.launch {
+            sendSignerPassphrase.execute(signer.id, passphrase).onException {
+                event(ConfigureWalletEvent.ShowError(it.message.orEmpty()))
+                updateStateSelectedSigner(false, signer, true)
+            }.collect { updateStateSelectedSigner(true, signer, true) }
+        }
+    }
+
+    fun cancelVerifyPassphrase(signer: SignerModel) {
+        updateStateSelectedSigner(false, signer, true)
+    }
+
     private fun updateStateSelectedSigner(
-        checked: Boolean,
-        signer: SignerModel,
-        needPassPhraseSent: Boolean
+        checked: Boolean, signer: SignerModel, needPassPhraseSent: Boolean
     ) {
         var currentNonePassphraseSignerCount = getState().nonePassphraseSignerCount
         if (needPassPhraseSent.not()) {
             if (checked) currentNonePassphraseSignerCount++ else currentNonePassphraseSignerCount--
         }
+        val newSet = getState().selectedSigners.toMutableSet()
+        if (!checked) {
+            newSet.remove(signer)
+        } else if (args.addressType.isTaproot()) {
+            newSet.clear()
+            newSet.add(signer)
+        } else {
+            newSet.add(signer)
+        }
+
         updateState {
             copy(
-                selectedSigners = if (!checked) {
-                    selectedSigners - listOf(signer).toSet()
-                } else if (args.addressType.isTaproot()) {
-                    listOf(signer)
-                } else {
-                    selectedSigners + listOf(signer)
-                },
+                selectedSigners = newSet,
                 nonePassphraseSignerCount = currentNonePassphraseSignerCount
             )
         }
@@ -146,15 +189,11 @@ internal class ConfigureWalletViewModel @Inject constructor(
         val isValidRequireSigns = state.totalRequireSigns > 0
         if (isValidRequireSigns && hasSigners) {
             event(
-                AssignSignerCompletedEvent(
-                    state.totalRequireSigns,
-                    state.selectedSigners
-                        .asSequence()
-                        .map {
-                            state.masterSignerMap[it.id]
-                        }.filterNotNull()
-                        .toList(),
-                    state.remoteSigners.filter { state.selectedSigners.isContain(it.toModel()) })
+                AssignSignerCompletedEvent(state.totalRequireSigns,
+                    state.selectedSigners.asSequence().map {
+                        state.masterSignerMap[it.id]
+                    }.filterNotNull().toList(),
+                    state.remoteSigners.filter { state.selectedSigners.contains(it.toModel()) })
             )
         }
     }
@@ -164,8 +203,7 @@ internal class ConfigureWalletViewModel @Inject constructor(
             setEvent(Loading(true))
             val result = getSignerFromMasterSignerUseCase(
                 GetSignerFromMasterSignerUseCase.Params(
-                    masterSignerId,
-                    newPath
+                    masterSignerId, newPath
                 )
             )
             setEvent(Loading(false))
@@ -187,21 +225,20 @@ internal class ConfigureWalletViewModel @Inject constructor(
         val state = getState()
         return state.masterSigners.map { signer ->
             masterSignerMapper(
-                signer,
-                state.masterSignerMap[signer.id]?.derivationPath.orEmpty()
+                signer, state.masterSignerMap[signer.id]?.derivationPath.orEmpty()
             )
         } + state.remoteSigners.map(SingleSigner::toModel)
     }
 
     fun checkShowRiskSignerDialog() = viewModelScope.launch {
-        if (signInModeHolder.getCurrentMode() != SignInMode.PRIMARY_KEY
-            || getState().nonePassphraseSignerCount == 0
-            || primaryKeySignerInfoHolder.isNeedPassphraseSent()
-        ) {
+        if (signInModeHolder.getCurrentMode() != SignInMode.PRIMARY_KEY || getState().nonePassphraseSignerCount == 0 || primaryKeySignerInfoHolder.isNeedPassphraseSent()) {
             setEvent(ConfigureWalletEvent.ShowRiskSignerDialog(false))
             return@launch
         }
         setEvent(ConfigureWalletEvent.ShowRiskSignerDialog(true))
     }
 
+    companion object {
+        private const val EXTRA_CURRENT_MASTER_SIGNER = "_a"
+    }
 }
