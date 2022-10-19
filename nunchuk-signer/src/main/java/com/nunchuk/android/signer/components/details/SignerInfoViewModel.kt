@@ -201,7 +201,8 @@ internal class SignerInfoViewModel @Inject constructor(
 
     private fun shouldLoadMasterSigner(type: SignerType) = (type != SignerType.AIRGAP) && (type != SignerType.COLDCARD_NFC)
 
-    fun generateColdcardHealthMessages(ndef: Ndef,  derivationPath: String) {
+    fun generateColdcardHealthMessages(ndef: Ndef?,  derivationPath: String) {
+        ndef ?: return
         viewModelScope.launch {
             event(NfcLoading)
             val result = generateColdCardHealthCheckMessageUseCase(GenerateColdCardHealthCheckMessageUseCase.Data(derivationPath, ndef))

@@ -76,7 +76,7 @@ internal class AssignSignerViewModel @AssistedInject constructor(
                 val signerResult = getDefaultSignerFromMasterSignerUseCase(
                     GetDefaultSignerFromMasterSignerUseCase.Params(
                         signer.id,
-                        args.walletType,
+                        WalletType.MULTI_SIG,
                         args.addressType
                     )
                 )

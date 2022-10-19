@@ -16,6 +16,7 @@ import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
@@ -45,6 +46,8 @@ internal class ConfigureWalletViewModel @Inject constructor(
 
     private lateinit var args: ConfigureWalletArgs
 
+    private var walletType = WalletType.SINGLE_SIG
+
     override val initialState = ConfigureWalletState()
 
     fun init(args: ConfigureWalletArgs) {
@@ -62,9 +65,10 @@ internal class ConfigureWalletViewModel @Inject constructor(
             }
         }.flatMapLatest { signerPair ->
             getUnusedSignerFromMasterSignerUseCase.execute(
-                signerPair.first, args.walletType, args.addressType
+                signerPair.first, WalletType.SINGLE_SIG, args.addressType
             ).map { signers ->
-                Triple(signerPair.first,
+                Triple(
+                    signerPair.first,
                     signerPair.second,
                     signers.associateBy { it.masterSignerId })
             }
@@ -76,8 +80,24 @@ internal class ConfigureWalletViewModel @Inject constructor(
                     remoteSigners = it.second,
                 )
             }
-        }.flowOn(Dispatchers.Main).onCompletion { event(Loading(false)) }
-            .launchIn(viewModelScope)
+        }.flowOn(Dispatchers.Main).onCompletion { event(Loading(false)) }.launchIn(viewModelScope)
+    }
+
+    fun reloadSignerPath() {
+        val newWalletType =
+            if (getState().selectedSigners.size > 1) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
+        if (newWalletType != walletType) {
+            walletType = newWalletType
+            viewModelScope.launch {
+                getUnusedSignerFromMasterSignerUseCase.execute(
+                    getState().masterSigners, newWalletType, args.addressType
+                ).collect { signers ->
+                    // the path change so we need to map selected signers to new path
+                    val newSignerMap = signers.associateBy { it.masterSignerId }
+                    handleNewPathMap(newSignerMap)
+                }
+            }
+        }
     }
 
     fun cacheTapSignerXpub(isoDep: IsoDep, cvc: String) {
@@ -208,12 +228,10 @@ internal class ConfigureWalletViewModel @Inject constructor(
             )
             setEvent(Loading(false))
             if (result.isSuccess) {
-                val newMap = getState().masterSignerMap.toMutableMap().apply {
+                val newSignerMap = getState().masterSignerMap.toMutableMap().apply {
                     set(masterSignerId, result.getOrThrow())
                 }
-                updateState {
-                    copy(masterSignerMap = newMap)
-                }
+                handleNewPathMap(newSignerMap)
                 setEvent(ConfigureWalletEvent.ChangeBip32Success)
             } else {
                 setEvent(ConfigureWalletEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
@@ -236,6 +254,18 @@ internal class ConfigureWalletViewModel @Inject constructor(
             return@launch
         }
         setEvent(ConfigureWalletEvent.ShowRiskSignerDialog(true))
+    }
+
+    private fun handleNewPathMap(newSignerMap: Map<String, SingleSigner>) {
+        val selectedSigners =
+            getState().selectedSigners.mapNotNull { newSignerMap[it.id]?.toModel() }
+                .toSet()
+        updateState {
+            copy(
+                masterSignerMap = newSignerMap,
+                selectedSigners = selectedSigners
+            )
+        }
     }
 
     companion object {

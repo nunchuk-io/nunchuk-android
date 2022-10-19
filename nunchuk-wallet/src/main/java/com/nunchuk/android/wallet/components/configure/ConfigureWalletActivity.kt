@@ -148,6 +148,7 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
             state.masterSignerMap,
         )
         bindTotalRequireSigns(requireSigns)
+        viewModel.reloadSignerPath()
         binding.totalRequireSigns.bindWalletConfiguration(
             totalSigns = totalSigns,
             requireSigns = requireSigns

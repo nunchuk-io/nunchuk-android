@@ -26,8 +26,8 @@ data class SignerModel(
 
         other as SignerModel
 
-        if (derivationPath != other.derivationPath) return false
         if (fingerPrint != other.fingerPrint) return false
+        if (derivationPath != other.derivationPath) return false
 
         return true
     }
