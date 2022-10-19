@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.util.CAMERA_PERMISSION_REQUEST_CODE
+import com.nunchuk.android.core.util.checkCameraPermission
 import com.nunchuk.android.signer.airgap.databinding.ActivityBeforeAddAirSignerBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
@@ -20,8 +22,25 @@ class AirSignerIntroActivity : BaseActivity<ActivityBeforeAddAirSignerBinding>()
         setupViews()
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
+            if (checkCameraPermission()) {
+                navigator.openAddAirSignerScreen(this)
+            }
+        }
+    }
+
     private fun setupViews() {
-        binding.btnContinue.setOnClickListener { navigator.openAddAirSignerScreen(this) }
+        binding.btnContinue.setOnClickListener {
+            if (checkCameraPermission()) {
+                navigator.openAddAirSignerScreen(this)
+            }
+        }
 
         binding.toolbar.setNavigationOnClickListener {
             finish()
