@@ -117,7 +117,7 @@ internal class ConfigureWalletViewModel @Inject constructor(
         val device = masterSigner?.device
         val isShouldCacheXpub = signer.type == SignerType.NFC && signer.derivationPath.isEmpty()
         if (checked && isShouldCacheXpub) {
-            setEvent(ConfigureWalletEvent.RequestCacheTapSignerXpub)
+            setEvent(ConfigureWalletEvent.RequestCacheTapSignerXpub(signer))
         } else if (checked && device?.needPassPhraseSent == true) {
             setEvent(ConfigureWalletEvent.PromptInputPassphrase(signer))
         } else {

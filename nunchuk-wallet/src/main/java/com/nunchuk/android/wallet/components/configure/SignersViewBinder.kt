@@ -41,10 +41,10 @@ internal class SignersViewBinder(
         }
         binding.checkbox.isChecked =
             selectedSigners.isNotEmpty() && selectedSigners.contains(model)
-        binding.checkbox.setOnCheckedChangeListener { _, checked ->
+        binding.checkbox.setOnClickListener {
             onItemSelectedListener(
                 model,
-                checked
+                binding.checkbox.isChecked
             )
         }
         binding.signerPrimaryKeyType.isVisible = model.isPrimaryKey

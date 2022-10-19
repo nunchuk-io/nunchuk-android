@@ -16,7 +16,7 @@ sealed class ConfigureWalletEvent {
     data class PromptInputPassphrase(val signer: SignerModel) : ConfigureWalletEvent()
     data class ShowError(val message: String) : ConfigureWalletEvent()
     data class ShowRiskSignerDialog(val isShow: Boolean) : ConfigureWalletEvent()
-    object RequestCacheTapSignerXpub : ConfigureWalletEvent()
+    data class RequestCacheTapSignerXpub(val signer: SignerModel) : ConfigureWalletEvent()
     data class CacheTapSignerXpubError(val error: Throwable?) : ConfigureWalletEvent()
     data class NfcLoading(val isLoading: Boolean) : ConfigureWalletEvent()
 }

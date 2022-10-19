@@ -81,10 +81,11 @@ internal class AssignSignerViewModel @AssistedInject constructor(
                     )
                 )
                 if (signerResult.isSuccess) {
-                    handleSelected(signerResult.getOrThrow().toModel(), true)
+                    val newSigner = signerResult.getOrThrow()
+                    handleSelected(newSigner.toModel(), true)
                     updateState {
                         copy(masterSignerMap = masterSignerMap.toMutableMap().apply {
-                            set(signer.id, signerResult.getOrThrow())
+                            set(signer.id, newSigner)
                         })
                     }
                 } else {

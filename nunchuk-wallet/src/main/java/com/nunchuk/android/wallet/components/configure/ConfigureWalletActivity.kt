@@ -83,18 +83,23 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
                     viewModel.handleContinueEvent()
                 }
             }
-            ConfigureWalletEvent.RequestCacheTapSignerXpub -> handleCacheXpub()
+            is ConfigureWalletEvent . RequestCacheTapSignerXpub -> handleCacheXpub(event.signer)
             is ConfigureWalletEvent.CacheTapSignerXpubError -> handleCacheXpubError(event)
             is ConfigureWalletEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
         }
     }
 
-    private fun handleCacheXpub() {
+    private fun handleCacheXpub(signer: SignerModel) {
         NCWarningDialog(this).showDialog(
             title = getString(R.string.nc_text_info),
             message = getString(R.string.nc_new_xpub_need),
+            btnYes = getString(R.string.nc_ok),
+            btnNo = getString(R.string.nc_cancel),
             onYesClick = {
                 startNfcFlow(REQUEST_NFC_TOPUP_XPUBS)
+            },
+            onNoClick = {
+                viewModel.cancelVerifyPassphrase(signer)
             }
         )
     }

@@ -11,11 +11,33 @@
         android:layout_width="@dimen/nc_padding_48"
         android:layout_height="@dimen/nc_padding_48"
         android:background="@drawable/nc_circle_white_background"
-        tools:src="@drawable/ic_singer_type_software"
         android:scaleType="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/ic_singer_type_software" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/avatar"
+        android:layout_width="@dimen/nc_padding_48"
+        android:layout_height="@dimen/nc_padding_48"
+        android:background="@drawable/nc_circle_beeswax_light_background"
+        android:gravity="center"
+        android:textColor="@color/nc_black_color"
+        android:visibility="gone"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="TN" />
+
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="right"
+        app:constraint_referenced_ids="avatar,iv_signer_type" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/signerName"
@@ -24,7 +46,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         app:fontTextStyle="semi_bold"
-        app:layout_constraintStart_toEndOf="@+id/iv_signer_type"
+        app:layout_constraintStart_toEndOf="@+id/barrier"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Tom’s Trezor Model T" />
 
@@ -64,7 +86,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_4"
-        app:layout_constraintStart_toEndOf="@+id/iv_signer_type"
+        app:layout_constraintStart_toEndOf="@+id/barrier"
         app:layout_constraintTop_toBottomOf="@+id/signerType"
         tools:text="XFP: 79EB35F4" />
 
@@ -75,9 +97,9 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_4"
-        android:drawablePadding="@dimen/nc_padding_4"
         android:drawableEnd="@drawable/ic_edit_small"
-        app:layout_constraintStart_toEndOf="@+id/iv_signer_type"
+        android:drawablePadding="@dimen/nc_padding_4"
+        app:layout_constraintStart_toEndOf="@+id/barrier"
         app:layout_constraintTop_toBottomOf="@+id/xpf"
         tools:text="BIP32 path: m/48h/0h/0h" />
 

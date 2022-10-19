@@ -20,7 +20,23 @@ data class SignerModel(
     val isPrimaryKey: Boolean = false,
     val isMasterSigner: Boolean = false
 ) : Parcelable {
-    fun isSame(other: SignerModel) = fingerPrint == other.fingerPrint && derivationPath == other.derivationPath
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as SignerModel
+
+        if (derivationPath != other.derivationPath) return false
+        if (fingerPrint != other.fingerPrint) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = derivationPath.hashCode()
+        result = 31 * result + fingerPrint.hashCode()
+        return result
+    }
 }
 
 fun SingleSigner.toModel(isPrimaryKey: Boolean = false) = SignerModel(
@@ -62,5 +78,3 @@ fun String.toSigner(): SignerInput {
     }
     throw InvalidSignerFormatException(this)
 }
-
-fun List<SignerModel>.isContain(signer: SignerModel) = firstOrNull { it.isSame(signer) } != null

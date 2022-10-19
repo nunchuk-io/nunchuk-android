@@ -42,10 +42,10 @@ internal class SignersViewBinder(
         }
         binding.checkbox.isChecked =
             selectedXpfs.isNotEmpty() && selectedXpfs.contains(model)
-        binding.checkbox.setOnCheckedChangeListener { _, checked ->
+        binding.checkbox.setOnClickListener {
             onItemSelectedListener(
                 model,
-                checked
+                binding.checkbox.isChecked
             )
         }
         if (!binding.checkbox.isChecked) {
