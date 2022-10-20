@@ -261,6 +261,7 @@ internal class ConfigureWalletViewModel @Inject constructor(
     private fun handleNewPathMap(newSignerMap: Map<String, SingleSigner>) {
         val selectedSigners =
             getState().selectedSigners.mapNotNull { newSignerMap[it.id]?.toModel() }
+                .filter { it.derivationPath.isNotEmpty() }
                 .toSet()
         updateState {
             copy(
