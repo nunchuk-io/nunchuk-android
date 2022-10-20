@@ -1,5 +1,7 @@
 ## [1.9.20]
 
+### Feature
+
 - [NUN-2071](https://nunchuck.atlassian.net/browse/NUN-2071)
 - Replace logo
 - [NUN-2066](https://nunchuck.atlassian.net/browse/NUN-2066)
@@ -10,6 +12,8 @@
 - Health check coldcard
 - [NUN-1918](https://nunchuck.atlassian.net/browse/NUN-1918)
 - Primary Key
+
+### Fixed
 
 - [NUN-2037](https://nunchuck.atlassian.net/browse/NUN-2037)
 - Fix wallet name not update
