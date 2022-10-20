@@ -107,9 +107,11 @@ internal class ConfigureWalletViewModel @Inject constructor(
                 CacheDefaultTapsignerMasterSignerXPubUseCase.Data(isoDep, cvc, signer.id)
             )
             if (result.isSuccess) {
+                val newWalletType =
+                    if (getState().selectedSigners.size > 1) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
                 val signerResult = getDefaultSignerFromMasterSignerUseCase(
                     GetDefaultSignerFromMasterSignerUseCase.Params(
-                        signer.id, args.walletType, args.addressType
+                        signer.id, newWalletType, args.addressType
                     )
                 )
                 if (signerResult.isSuccess) {
