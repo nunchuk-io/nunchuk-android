@@ -50,6 +50,8 @@ internal class ConfigureWalletViewModel @Inject constructor(
 
     override val initialState = ConfigureWalletState()
 
+    private val masterSignerIdSet = mutableSetOf<String>()
+
     fun init(args: ConfigureWalletArgs) {
         this.args = args
         updateState { initialState.copy(totalRequireSigns = if (args.addressType.isTaproot()) 1 else 0) }
@@ -64,6 +66,7 @@ internal class ConfigureWalletViewModel @Inject constructor(
                 )
             }
         }.flatMapLatest { signerPair ->
+            masterSignerIdSet.addAll(signerPair.first.map { it.id })
             getUnusedSignerFromMasterSignerUseCase.execute(
                 signerPair.first, WalletType.SINGLE_SIG, args.addressType
             ).map { signers ->
@@ -118,7 +121,7 @@ internal class ConfigureWalletViewModel @Inject constructor(
                     val newSigner = signerResult.getOrThrow()
                     updateStateSelectedSigner(
                         true,
-                        newSigner.toModel().copy(isMasterSigner = true),
+                        newSigner.toModel(),
                         false
                     )
                     updateState {
@@ -266,9 +269,14 @@ internal class ConfigureWalletViewModel @Inject constructor(
     private fun handleNewPathMap(newSignerMap: Map<String, SingleSigner>) {
         val selectedSigners =
             getState().selectedSigners.mapNotNull {
-                if (it.isMasterSigner) newSignerMap[it.id]?.toModel() else it
-            }.filter { it.isMasterSigner.not() || it.derivationPath.isNotEmpty() }
-                .toSet()
+                if (masterSignerIdSet.contains(it.id)) {
+                    newSignerMap[it.id]?.takeIf { signer -> signer.derivationPath.isNotEmpty() }
+                        ?.toModel(true)
+                }
+                else {
+                    it
+                }
+            }.toSet()
         updateState {
             copy(
                 masterSignerMap = newSignerMap,
