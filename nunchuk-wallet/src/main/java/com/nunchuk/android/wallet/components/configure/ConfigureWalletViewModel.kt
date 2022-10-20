@@ -116,7 +116,11 @@ internal class ConfigureWalletViewModel @Inject constructor(
                 )
                 if (signerResult.isSuccess) {
                     val newSigner = signerResult.getOrThrow()
-                    updateStateSelectedSigner(true, newSigner.toModel(), false)
+                    updateStateSelectedSigner(
+                        true,
+                        newSigner.toModel().copy(isMasterSigner = true),
+                        false
+                    )
                     updateState {
                         copy(masterSignerMap = masterSignerMap.toMutableMap().apply {
                             set(signer.id, newSigner)
@@ -124,6 +128,7 @@ internal class ConfigureWalletViewModel @Inject constructor(
                     }
                 } else {
                     updateStateSelectedSigner(false, signer, false)
+                    setEvent(ConfigureWalletEvent.CacheTapSignerXpubError(result.exceptionOrNull()))
                 }
             } else {
                 updateStateSelectedSigner(false, signer, false)
@@ -260,8 +265,9 @@ internal class ConfigureWalletViewModel @Inject constructor(
 
     private fun handleNewPathMap(newSignerMap: Map<String, SingleSigner>) {
         val selectedSigners =
-            getState().selectedSigners.mapNotNull { newSignerMap[it.id]?.toModel() }
-                .filter { it.derivationPath.isNotEmpty() }
+            getState().selectedSigners.mapNotNull {
+                if (it.isMasterSigner) newSignerMap[it.id]?.toModel() else it
+            }.filter { it.isMasterSigner.not() || it.derivationPath.isNotEmpty() }
                 .toSet()
         updateState {
             copy(
