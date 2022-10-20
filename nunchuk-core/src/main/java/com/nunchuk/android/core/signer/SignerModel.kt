@@ -20,6 +20,9 @@ data class SignerModel(
     val isPrimaryKey: Boolean = false,
     val isMasterSigner: Boolean = false
 ) : Parcelable {
+    val isEditablePath: Boolean
+        get() = type == SignerType.HARDWARE || type == SignerType.SOFTWARE
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

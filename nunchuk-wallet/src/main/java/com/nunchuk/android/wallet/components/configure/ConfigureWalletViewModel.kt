@@ -97,6 +97,11 @@ internal class ConfigureWalletViewModel @Inject constructor(
                 ).collect { signers ->
                     // the path change so we need to map selected signers to new path
                     val newSignerMap = signers.associateBy { it.masterSignerId }
+                    val signer: SignerModel? = savedStateHandle[EXTRA_CURRENT_SELECTED_MASTER_SIGNER]
+                    // if user select new signer but we can not get derivationPath it should tap again
+                    if (signer != null && signer.type == SignerType.NFC && newSignerMap.contains(signer.id).not()) {
+                        setEvent(ConfigureWalletEvent.RequestCacheTapSignerXpub(signer))
+                    }
                     handleNewPathMap(newSignerMap)
                 }
             }
@@ -105,7 +110,7 @@ internal class ConfigureWalletViewModel @Inject constructor(
 
     fun cacheTapSignerXpub(isoDep: IsoDep, cvc: String) {
         viewModelScope.launch {
-            val signer: SignerModel = savedStateHandle[EXTRA_CURRENT_MASTER_SIGNER] ?: return@launch
+            val signer: SignerModel = savedStateHandle[EXTRA_CURRENT_SELECTED_MASTER_SIGNER] ?: return@launch
             val result = cacheDefaultTapsignerMasterSignerXPubUseCase(
                 CacheDefaultTapsignerMasterSignerXPubUseCase.Data(isoDep, cvc, signer.id)
             )
@@ -143,7 +148,7 @@ internal class ConfigureWalletViewModel @Inject constructor(
     fun updateSelectedSigner(signer: SignerModel, checked: Boolean) {
         val masterSigner =
             getState().masterSigners.find { it.device.masterFingerprint == signer.fingerPrint }
-        savedStateHandle[EXTRA_CURRENT_MASTER_SIGNER] = signer
+        savedStateHandle[EXTRA_CURRENT_SELECTED_MASTER_SIGNER] = signer
         val device = masterSigner?.device
         val isShouldCacheXpub = signer.type == SignerType.NFC && signer.derivationPath.isEmpty()
         if (checked && isShouldCacheXpub) {
@@ -286,6 +291,6 @@ internal class ConfigureWalletViewModel @Inject constructor(
     }
 
     companion object {
-        private const val EXTRA_CURRENT_MASTER_SIGNER = "_a"
+        private const val EXTRA_CURRENT_SELECTED_MASTER_SIGNER = "_a"
     }
 }

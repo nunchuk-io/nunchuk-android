@@ -6,7 +6,6 @@ import androidx.core.view.isVisible
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableDrawable
 import com.nunchuk.android.core.util.toReadableSignerType
-import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.core.databinding.ItemAssignSignerBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
@@ -32,7 +31,7 @@ internal class SignersViewBinder(
         binding.xpf.text = xfpValue
         binding.tvBip32Path.isVisible = model.isMasterSigner && model.derivationPath.isNotEmpty()
         binding.tvBip32Path.text = "BIP32 path: ${model.derivationPath}"
-        if (model.type == SignerType.NFC) {
+        if (model.isEditablePath.not()) {
             binding.tvBip32Path.setCompoundDrawablesRelativeWithIntrinsicBounds(0,0,0,0)
             binding.tvBip32Path.setOnDebounceClickListener {  }
         } else {
