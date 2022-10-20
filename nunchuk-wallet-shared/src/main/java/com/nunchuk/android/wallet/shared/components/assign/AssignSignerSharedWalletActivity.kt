@@ -8,6 +8,9 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orUnknownError
@@ -30,7 +33,8 @@ import kotlinx.coroutines.flow.filter
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class AssignSignerSharedWalletActivity : BaseNfcActivity<ActivityAssignSignerBinding>(), InputBipPathBottomSheetListener {
+class AssignSignerSharedWalletActivity : BaseNfcActivity<ActivityAssignSignerBinding>(),
+    InputBipPathBottomSheetListener, BottomSheetOptionListener {
 
     @Inject
     internal lateinit var vmFactory: AssignSignerViewModel.Factory
@@ -65,6 +69,10 @@ class AssignSignerSharedWalletActivity : BaseNfcActivity<ActivityAssignSignerBin
 
     override fun onInputDone(masterSignerId: String, newInput: String) {
         viewModel.changeBip32Path(masterSignerId, newInput)
+    }
+
+    override fun onOptionClicked(option: SheetOption) {
+        viewModel.toggleShowPath()
     }
 
     private fun setEmptyState() {
@@ -120,7 +128,7 @@ class AssignSignerSharedWalletActivity : BaseNfcActivity<ActivityAssignSignerBin
     private fun handleState(state: AssignSignerState) {
         val signers = viewModel.mapSigners()
 
-        bindSigners(signers, state.selectedSigner)
+        bindSigners(signers, state.selectedSigner, state.isShowPath)
 
         emptyStateView?.isVisible = signers.isEmpty()
 
@@ -128,7 +136,7 @@ class AssignSignerSharedWalletActivity : BaseNfcActivity<ActivityAssignSignerBin
         binding.slot.text = getString(R.string.nc_wallet_slots_left_in_the_wallet, slot)
     }
 
-    private fun bindSigners(signers: List<SignerModel>, selectedPFXs: Set<SignerModel>) {
+    private fun bindSigners(signers: List<SignerModel>, selectedPFXs: Set<SignerModel>, isShowPath: Boolean) {
         val canSelect = args.totalSigns - selectedPFXs.size
         SignersViewBinder(
             container = binding.signersContainer,
@@ -136,7 +144,8 @@ class AssignSignerSharedWalletActivity : BaseNfcActivity<ActivityAssignSignerBin
             canSelect = canSelect > 0,
             selectedXpfs = selectedPFXs,
             onItemSelectedListener = viewModel::updateSelectedXfps,
-            onEditPath = ::handleEditDerivationPath
+            onEditPath = ::handleEditDerivationPath,
+            isShowPath = isShowPath
         ).bindItems()
     }
 
@@ -149,6 +158,20 @@ class AssignSignerSharedWalletActivity : BaseNfcActivity<ActivityAssignSignerBin
     }
 
     private fun setupViews() {
+        binding.toolbar.setOnMenuItemClickListener {
+            BottomSheetOption.newInstance(
+                options = listOf(
+                    SheetOption(
+                        0,
+                        label = if (viewModel.isShowPath())
+                            getString(R.string.nc_hide)
+                        else
+                            getString(R.string.nc_show)
+                    ),
+                )
+            ).show(supportFragmentManager, "BottomSheetOption")
+            true
+        }
         binding.signersContainer.removeAllViews()
         binding.btnContinue.setOnClickListener {
             viewModel.handleContinueEvent()

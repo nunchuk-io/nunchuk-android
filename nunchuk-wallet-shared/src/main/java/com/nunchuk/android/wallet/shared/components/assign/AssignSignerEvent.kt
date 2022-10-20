@@ -11,6 +11,7 @@ sealed class AssignSignerEvent {
     data class AssignSignerCompletedEvent(
         val roomId: String
     ) : AssignSignerEvent()
+
     object RequestCacheTapSignerXpub : AssignSignerEvent()
     data class CacheTapSignerXpubError(val error: Throwable?) : AssignSignerEvent()
     data class NfcLoading(val isLoading: Boolean) : AssignSignerEvent()
@@ -22,5 +23,6 @@ data class AssignSignerState(
     val remoteSigners: List<SingleSigner> = emptyList(),
     val masterSignerMap: Map<String, SingleSigner> = emptyMap(),
     val selectedSigner: Set<SignerModel> = setOf(),
-    val filterRecSigners: List<SingleSigner> = emptyList()
+    val filterRecSigners: List<SingleSigner> = emptyList(),
+    val isShowPath: Boolean = false,
 )

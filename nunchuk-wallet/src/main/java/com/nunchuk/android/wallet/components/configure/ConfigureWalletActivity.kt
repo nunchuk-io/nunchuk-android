@@ -5,6 +5,9 @@ import android.nfc.tech.IsoDep
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.isTaproot
@@ -30,7 +33,7 @@ import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
 class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(),
-    InputBipPathBottomSheetListener {
+    InputBipPathBottomSheetListener, BottomSheetOptionListener {
 
     private val args: ConfigureWalletArgs by lazy { ConfigureWalletArgs.deserializeFrom(intent) }
 
@@ -51,6 +54,10 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
 
     override fun onInputDone(masterSignerId: String, newInput: String) {
         viewModel.changeBip32Path(masterSignerId, newInput)
+    }
+
+    override fun onOptionClicked(option: SheetOption) {
+        viewModel.toggleShowPath()
     }
 
     private fun observeEvent() {
@@ -83,7 +90,7 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
                     viewModel.handleContinueEvent()
                 }
             }
-            is ConfigureWalletEvent . RequestCacheTapSignerXpub -> handleCacheXpub(event.signer)
+            is ConfigureWalletEvent.RequestCacheTapSignerXpub -> handleCacheXpub(event.signer)
             is ConfigureWalletEvent.CacheTapSignerXpubError -> handleCacheXpubError(event)
             is ConfigureWalletEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
         }
@@ -146,6 +153,7 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
             viewModel.mapSigners(),
             state.selectedSigners,
             state.masterSignerMap,
+            state.isShowPath
         )
         bindTotalRequireSigns(requireSigns)
         viewModel.reloadSignerPath()
@@ -159,15 +167,18 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
         binding.requiredSingerCounter.text = "$totalRequireSigns"
     }
 
+    // TODO Hai Recycler view
     private fun bindSigners(
         signers: List<SignerModel>,
         selectedPFXs: Set<SignerModel>,
-        masterSignerMap: Map<String, SingleSigner>
+        masterSignerMap: Map<String, SingleSigner>,
+        isShowPath: Boolean
     ) {
         SignersViewBinder(
             container = binding.signersContainer,
             signers = signers,
             selectedSigners = selectedPFXs,
+            isShowPath = isShowPath,
             onItemSelectedListener = { model, checked ->
                 viewModel.updateSelectedSigner(
                     signer = model,
@@ -184,6 +195,20 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
     }
 
     private fun setupViews() {
+        binding.toolbar.setOnMenuItemClickListener {
+            BottomSheetOption.newInstance(
+                options = listOf(
+                    SheetOption(
+                        0,
+                        label = if (viewModel.isShowPath())
+                            getString(R.string.nc_hide)
+                        else
+                            getString(R.string.nc_show)
+                    ),
+                )
+            ).show(supportFragmentManager, "BottomSheetOption")
+            true
+        }
         binding.signersContainer.removeAllViews()
 
         if (args.addressType.isTaproot()) {

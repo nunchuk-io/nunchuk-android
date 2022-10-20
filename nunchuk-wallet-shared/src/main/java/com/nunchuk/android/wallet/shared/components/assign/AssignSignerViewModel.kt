@@ -227,6 +227,16 @@ internal class AssignSignerViewModel @AssistedInject constructor(
         }
     }
 
+    fun toggleShowPath() {
+        updateState {
+            copy(
+                isShowPath = isShowPath.not()
+            )
+        }
+    }
+
+    fun isShowPath() = getState().isShowPath
+
     @AssistedFactory
     internal interface Factory {
         fun create(args: AssignSignerArgs, savedStateHandle: SavedStateHandle): AssignSignerViewModel

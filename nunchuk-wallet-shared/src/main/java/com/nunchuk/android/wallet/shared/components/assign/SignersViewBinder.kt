@@ -18,6 +18,7 @@ internal class SignersViewBinder(
     private val selectedXpfs: Set<SignerModel> = emptySet(),
     val onItemSelectedListener: (SignerModel, Boolean) -> Unit,
     val onEditPath: (SignerModel) -> Unit,
+    private val isShowPath: Boolean,
 ) : AbsViewBinder<SignerModel, ItemAssignSignerBinding>(container, signers) {
 
     override fun initializeBinding() = ItemAssignSignerBinding.inflate(inflater, container, false)
@@ -30,7 +31,7 @@ internal class SignersViewBinder(
         binding.ivSignerType.setImageDrawable(model.type.toReadableDrawable(context))
         binding.signerName.text = model.name
         binding.xpf.text = xfpValue
-        binding.tvBip32Path.isVisible = model.isMasterSigner && model.derivationPath.isNotEmpty()
+        binding.tvBip32Path.isVisible = model.isMasterSigner && model.derivationPath.isNotEmpty() && isShowPath
         binding.tvBip32Path.text = "BIP32 path: ${model.derivationPath}"
         if (model.isEditablePath.not()) {
             binding.tvBip32Path.setCompoundDrawablesRelativeWithIntrinsicBounds(0,0,0,0)
