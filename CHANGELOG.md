@@ -1,3 +1,37 @@
+## [1.9.20]
+
+- [NUN-2071](https://nunchuck.atlassian.net/browse/NUN-2071)
+- Replace logo
+- [NUN-2066](https://nunchuck.atlassian.net/browse/NUN-2066)
+- Ask user to tap TAPSIGNER again if GetDefaultSignerFromMasfer failed
+- [NUN-2057](https://nunchuck.atlassian.net/browse/NUN-2057)
+- Support user change bip32 path when create wallet
+- [NUN-2059](https://nunchuck.atlassian.net/browse/NUN-2059)
+- Health check coldcard
+- [NUN-1918](https://nunchuck.atlassian.net/browse/NUN-1918)
+- Primary Key
+
+- [NUN-2037](https://nunchuck.atlassian.net/browse/NUN-2037)
+- Fix wallet name not update
+- [NUN-2029](https://nunchuck.atlassian.net/browse/NUN-2029)
+- Fix show btc unit
+- [NUN-2025](https://nunchuck.atlassian.net/browse/NUN-2025)
+- Refactor sync room
+- [NUN-1953](https://nunchuck.atlassian.net/browse/NUN-1953)
+- Update qr generate, logic check signer in wallet
+- [NUN-2026](https://nunchuck.atlassian.net/browse/NUN-2026)
+- Fix overlap when select message in room
+- [NUN-1970](https://nunchuck.atlassian.net/browse/NUN-1970)
+- Fix Member keys list key that doesn't belong in wallet
+- [NUN-1969](https://nunchuck.atlassian.net/browse/NUN-1969)
+Support auto reload transaction in transaction detail
+- [NUN-1993](https://nunchuck.atlassian.net/browse/NUN-1993)
+- Add a "Remove transaction" option to the menu for Network Rejected transactions
+- [NUN-2024](https://nunchuck.atlassian.net/browse/NUN-2024)
+- Remove all warning airgap has been used
+- [NUN-1928](https://nunchuck.atlassian.net/browse/NUN-1928)
+- Support select address type
+
 ## [1.9.19]
 
 ### Feature
