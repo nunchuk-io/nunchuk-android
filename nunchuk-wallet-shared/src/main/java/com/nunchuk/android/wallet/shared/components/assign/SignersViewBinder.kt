@@ -34,10 +34,10 @@ internal class SignersViewBinder(
         binding.tvBip32Path.isVisible = model.isMasterSigner && model.derivationPath.isNotEmpty()
         binding.tvBip32Path.text = "BIP32 path: ${model.derivationPath}"
         if (model.type == SignerType.NFC) {
-            binding.tvBip32Path.setOnDebounceClickListener { onEditPath(model) }
             binding.tvBip32Path.setCompoundDrawablesRelativeWithIntrinsicBounds(0,0,0,0)
-        } else {
             binding.tvBip32Path.setOnDebounceClickListener {  }
+        } else {
+            binding.tvBip32Path.setOnDebounceClickListener { onEditPath(model) }
             binding.tvBip32Path.setCompoundDrawablesRelativeWithIntrinsicBounds(0,0, R.drawable.ic_edit_small,0)
         }
         binding.checkbox.isChecked =
