@@ -41,7 +41,7 @@ internal class IntroActivity : BaseComposeActivity() {
 
         setContent {
             NunchukTheme {
-                IntroContent(viewModel)
+                IntroScreen(viewModel)
             }
         }
 
@@ -79,18 +79,33 @@ internal class IntroActivity : BaseComposeActivity() {
 }
 
 @Composable
-internal fun IntroContent(viewModel: GuestModeViewModel = viewModel()) {
+internal fun IntroScreen(viewModel: GuestModeViewModel = viewModel()) {
+    IntroContent(
+        initGuestModeNunchuk = viewModel::initGuestModeNunchuk,
+        openSignInScreen = viewModel::openSignInScreen
+    )
+}
+
+@Composable
+internal fun IntroContent(
+    initGuestModeNunchuk: () -> Unit = {},
+    openSignInScreen: () -> Unit = {}
+) {
     Surface(
         color = colorResource(id = R.color.nc_primary_color),
         modifier = Modifier
             .fillMaxSize()
     ) {
-        Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Spacer(modifier = Modifier.weight(1.0f))
-            Image(painter = painterResource(id = R.drawable.ic_logo), contentDescription = "Logo")
+            Image(painter = painterResource(id = R.drawable.ic_logo_light), contentDescription = "Logo")
             Text(
                 modifier = Modifier.padding(top = 24.dp),
-                text = stringResource(id = R.string.nc_text_welcome_to_nunchuk), style = NunchukTheme.typography.heading.copy(
+                text = stringResource(id = R.string.nc_text_welcome_to_nunchuk),
+                style = NunchukTheme.typography.heading.copy(
                     color = colorResource(
                         id = R.color.nc_white_color
                     )
@@ -107,13 +122,18 @@ internal fun IntroContent(viewModel: GuestModeViewModel = viewModel()) {
                 textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.weight(3.0f))
-            NcPrimaryButton(onClick = { viewModel.initGuestModeNunchuk() }) {
-                Text(text = stringResource(id = R.string.nc_text_get_started), style = NunchukTheme.typography.title)
+            NcPrimaryButton(onClick = initGuestModeNunchuk) {
+                Text(
+                    text = stringResource(id = R.string.nc_text_get_started),
+                    style = NunchukTheme.typography.title
+                )
             }
-            TextButton(modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp),
-                onClick = { viewModel.openSignInScreen() }) {
+            TextButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+                onClick = openSignInScreen,
+            ) {
                 Text(
                     text = stringResource(id = R.string.nc_text_sign_in),
                     style = NunchukTheme.typography.title.copy(color = MaterialTheme.colors.onPrimary)

@@ -6,13 +6,7 @@ import androidx.core.content.ContextCompat
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.type.SignerType.AIRGAP
-import com.nunchuk.android.type.SignerType.COLDCARD_NFC
-import com.nunchuk.android.type.SignerType.FOREIGN_SOFTWARE
-import com.nunchuk.android.type.SignerType.HARDWARE
-import com.nunchuk.android.type.SignerType.NFC
-import com.nunchuk.android.type.SignerType.SOFTWARE
-import com.nunchuk.android.type.SignerType.UNKNOWN
+import com.nunchuk.android.type.SignerType.*
 
 fun SignerType.toReadableString(context: Context, isPrimaryKey: Boolean): String {
     if (isPrimaryKey) return context.getString(R.string.nc_signer_type_primary_key)
@@ -35,7 +29,7 @@ fun SignerType.toReadableDrawable(context: Context, isPrimaryKey: Boolean = fals
         AIRGAP, COLDCARD_NFC -> ContextCompat.getDrawable(context, R.drawable.ic_air_signer_small)
         SOFTWARE -> ContextCompat.getDrawable(context, R.drawable.ic_software_key)
         HARDWARE -> ContextCompat.getDrawable(context, R.drawable.ic_signer_type_wired)
-        FOREIGN_SOFTWARE -> ContextCompat.getDrawable(context, R.drawable.ic_singer_type_software)
+        FOREIGN_SOFTWARE -> ContextCompat.getDrawable(context, R.drawable.ic_logo_dark_small)
         NFC -> ContextCompat.getDrawable(context, R.drawable.ic_nfc_card)
         UNKNOWN -> ContextCompat.getDrawable(context, R.drawable.ic_air_signer_small)
     }

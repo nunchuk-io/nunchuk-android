@@ -58,7 +58,7 @@ class PushNotificationHelper @Inject constructor(
 fun Context.showNotification(data: PushNotificationData) {
     val builder = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
     builder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-    builder.setSmallIcon(R.drawable.ic_notification)
+    builder.setSmallIcon(R.drawable.ic_logo_notification)
     builder.setContentTitle(data.title)
     builder.setContentText(data.message)
     builder.setAutoCancel(true)

@@ -15,7 +15,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:src="@drawable/ic_singer_type_software" />
+        tools:src="@drawable/ic_logo_dark" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/avatar"
