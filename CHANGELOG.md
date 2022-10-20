@@ -28,7 +28,7 @@
 - [NUN-1970](https://nunchuck.atlassian.net/browse/NUN-1970)
 - Fix Member keys list key that doesn't belong in wallet
 - [NUN-1969](https://nunchuck.atlassian.net/browse/NUN-1969)
-Support auto reload transaction in transaction detail
+- Support auto reload transaction in transaction detail
 - [NUN-1993](https://nunchuck.atlassian.net/browse/NUN-1993)
 - Add a "Remove transaction" option to the menu for Network Rejected transactions
 - [NUN-2024](https://nunchuck.atlassian.net/browse/NUN-2024)
