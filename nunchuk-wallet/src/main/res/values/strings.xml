@@ -43,7 +43,7 @@
 
     <string name="nc_wallet_select_file">Please select your transaction file</string>
     <string name="nc_wallet_psbt_imported">PSBT imported successfully</string>
-    <string name="nc_wallet_import_keystone_seed_signer">QR format: Keystone/SeedSigner</string>
+    <string name="nc_wallet_import_keystone_seed_signer">QR format: Keystone/SeedSigner/Jade</string>
     <string name="nc_wallet_import_passport">QR format: Passport</string>
     <string name="nc_import_psbt_via_qr">Import PSBT via QR</string>
     <string name="nc_show_as_qr_code">Show as QR code</string>
