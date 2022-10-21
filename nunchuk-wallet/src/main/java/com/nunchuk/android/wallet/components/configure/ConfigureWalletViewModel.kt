@@ -15,6 +15,7 @@ import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
@@ -59,31 +60,42 @@ internal class ConfigureWalletViewModel @Inject constructor(
     }
 
     private fun getSigners() {
-        getCompoundSignersUseCase.execute().onStart { event(Loading(true)) }.onException {
-            updateState {
-                copy(
-                    masterSigners = emptyList(), remoteSigners = emptyList()
-                )
-            }
-        }.flatMapLatest { signerPair ->
-            masterSignerIdSet.addAll(signerPair.first.map { it.id })
-            getUnusedSignerFromMasterSignerUseCase.execute(
-                signerPair.first, WalletType.SINGLE_SIG, args.addressType
-            ).map { signers ->
-                Triple(
-                    signerPair.first,
-                    signerPair.second,
-                    signers.associateBy { it.masterSignerId })
-            }
-        }.flowOn(Dispatchers.IO).onEach {
-            updateState {
-                copy(
-                    masterSigners = it.first,
-                    masterSignerMap = it.third,
-                    remoteSigners = it.second,
-                )
-            }
-        }.flowOn(Dispatchers.Main).onCompletion { event(Loading(false)) }.launchIn(viewModelScope)
+        getCompoundSignersUseCase.execute().onStart { event(Loading(true)) }
+            .onException {
+                updateState {
+                    copy(
+                        masterSigners = emptyList(), remoteSigners = emptyList()
+                    )
+                }
+            }.map {
+                // TAPROOT only support software key
+                if (args.addressType == AddressType.TAPROOT) {
+                    Pair(
+                        it.first.filter { signer -> signer.type == SignerType.SOFTWARE },
+                        it.second.filter { signer -> signer.type == SignerType.SOFTWARE })
+                } else {
+                    it
+                }
+            }.flatMapLatest { signerPair ->
+                masterSignerIdSet.addAll(signerPair.first.map { it.id })
+                getUnusedSignerFromMasterSignerUseCase.execute(
+                    signerPair.first, WalletType.SINGLE_SIG, args.addressType
+                ).map { signers ->
+                    Triple(
+                        signerPair.first,
+                        signerPair.second,
+                        signers.associateBy { it.masterSignerId })
+                }
+            }.flowOn(Dispatchers.IO).onEach {
+                updateState {
+                    copy(
+                        masterSigners = it.first,
+                        masterSignerMap = it.third,
+                        remoteSigners = it.second,
+                    )
+                }
+            }.flowOn(Dispatchers.Main).onCompletion { event(Loading(false)) }
+            .launchIn(viewModelScope)
     }
 
     fun reloadSignerPath() {
