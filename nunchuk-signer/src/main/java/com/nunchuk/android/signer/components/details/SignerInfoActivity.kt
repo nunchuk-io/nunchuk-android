@@ -18,7 +18,6 @@ import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.toSpec
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.details.model.SingerOption
 import com.nunchuk.android.signer.databinding.ActivitySignerInfoBinding
@@ -190,7 +189,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
             )
         )
         binding.signerSpec.isVisible = true
-        binding.signerSpec.text = signer.toSpec()
+        binding.signerSpec.text = signer.descriptor
         binding.fingerprint.isVisible = false
         binding.signerType.text = signer.type.toReadableString(this, isPrimaryKey(signer.masterSignerId))
     }

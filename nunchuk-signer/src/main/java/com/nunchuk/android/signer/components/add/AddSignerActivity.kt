@@ -3,24 +3,30 @@ package com.nunchuk.android.signer.components.add
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.toSpec
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.add.AddSignerEvent.*
 import com.nunchuk.android.signer.databinding.ActivityAddSignerBinding
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.util.addTextChangedCallback
-import com.nunchuk.android.widget.util.heightExtended
-import com.nunchuk.android.widget.util.setLightStatusBar
-import com.nunchuk.android.widget.util.setMaxLength
+import com.nunchuk.android.widget.util.*
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>() {
+class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>(), BottomSheetOptionListener {
 
     private val viewModel: AddSignerViewModel by viewModels()
+
+    private val launcher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            viewModel.parseAirgapSigner(it)
+        }
+    }
 
     override fun initializeBinding() = ActivityAddSignerBinding.inflate(layoutInflater)
 
@@ -32,6 +38,12 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>() {
         observeEvent()
     }
 
+    override fun onOptionClicked(option: SheetOption) {
+        viewModel.signers.getOrNull(option.type)?.let {
+            binding.signerSpec.getEditTextView().setText(it.descriptor)
+        }
+    }
+
     private fun observeEvent() {
         viewModel.event.observe(this) {
             when (it) {
@@ -39,9 +51,22 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>() {
                 InvalidSignerSpecEvent -> binding.signerSpec.setError(getString(R.string.nc_error_invalid_signer_spec))
                 is AddSignerErrorEvent -> onAddAirSignerError(it.message)
                 SignerNameRequiredEvent -> binding.signerName.setError(getString(R.string.nc_text_required))
-                LoadingEvent -> showLoading()
+                is LoadingEvent -> showOrHideLoading(it.isLoading)
                 is ParseKeystoneSignerSuccess -> handleResult(it.signers)
+                is ParseKeystoneSigner -> openSignerSheet(it.signers)
             }
+        }
+    }
+
+    private fun openSignerSheet(signers: List<SingleSigner>) {
+        if (signers.isNotEmpty()) {
+            val fragment = BottomSheetOption.newInstance(signers.mapIndexed { index, singleSigner ->
+                SheetOption(
+                    type = index,
+                    label = singleSigner.derivationPath
+                )
+            }, title = getString(R.string.nc_signer_select_key_dialog_title))
+            fragment.show(supportFragmentManager, "BottomSheetOption")
         }
     }
 
@@ -71,7 +96,10 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>() {
             updateCounter(it.length)
         }
 
-        binding.addPassportSigner.setOnClickListener { openScanDynamicQRScreen() }
+        binding.scanContainer.setOnClickListener { openScanDynamicQRScreen() }
+        binding.btnImportViaFile.setOnDebounceClickListener {
+            launcher.launch("*/*")
+        }
         binding.signerSpec.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_180))
         binding.addSigner.setOnClickListener {
             viewModel.handleAddSigner(
@@ -109,7 +137,7 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>() {
     }
 
     private fun bindKey(key: SingleSigner) {
-        binding.signerSpec.getEditTextView().setText(key.toSpec())
+        binding.signerSpec.getEditTextView().setText(key.descriptor)
     }
 
     private fun showSelectKeysDialog(
