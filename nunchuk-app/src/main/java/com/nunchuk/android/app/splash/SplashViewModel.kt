@@ -1,11 +1,7 @@
 package com.nunchuk.android.app.splash
 
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.app.splash.SplashEvent.InitErrorEvent
-import com.nunchuk.android.app.splash.SplashEvent.NavActivateAccountEvent
-import com.nunchuk.android.app.splash.SplashEvent.NavHomeScreenEvent
-import com.nunchuk.android.app.splash.SplashEvent.NavIntroEvent
-import com.nunchuk.android.app.splash.SplashEvent.NavSignInEvent
+import com.nunchuk.android.app.splash.SplashEvent.*
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.guestmode.SignInMode
@@ -31,10 +27,6 @@ internal class SplashViewModel @Inject constructor(
 
     override val initialState = Unit
 
-    init {
-        initSignInMode()
-    }
-
     private fun initSignInMode() {
         val isAccountExist = accountManager.isAccountExisted()
         val loginType = accountManager.loginType()
@@ -53,9 +45,6 @@ internal class SplashViewModel @Inject constructor(
         } else {
             signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
         }
-        if (isAccountExist) {
-            accountManager.clearFreshInstall()
-        }
     }
 
     fun initFlow() {
@@ -73,10 +62,6 @@ internal class SplashViewModel @Inject constructor(
                 .flowOn(Dispatchers.Main)
                 .collect {
                     when {
-                        accountManager.isFreshInstall() -> {
-                            event(NavIntroEvent)
-                            accountManager.clearFreshInstall()
-                        }
                         accountManager.isAccountExisted() && !accountManager.isAccountActivated() -> event(
                             NavActivateAccountEvent
                         )
@@ -85,6 +70,7 @@ internal class SplashViewModel @Inject constructor(
                         )
                         else -> event(NavHomeScreenEvent(account.token, account.deviceId))
                     }
+                    initSignInMode()
                 }
         }
     }

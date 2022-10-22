@@ -30,7 +30,7 @@ internal class SignersViewBinder(
         binding.ivSignerType.setImageDrawable(model.type.toReadableDrawable(context))
         binding.signerName.text = model.name
         binding.xpf.text = xfpValue
-        binding.tvBip32Path.isVisible = model.isMasterSigner && model.derivationPath.isNotEmpty() && isShowPath
+        binding.tvBip32Path.isVisible = model.derivationPath.isNotEmpty() && isShowPath
         binding.tvBip32Path.text = "BIP32 path: ${model.derivationPath}"
         if (model.isEditablePath.not()) {
             binding.tvBip32Path.setCompoundDrawablesRelativeWithIntrinsicBounds(0,0,0,0)

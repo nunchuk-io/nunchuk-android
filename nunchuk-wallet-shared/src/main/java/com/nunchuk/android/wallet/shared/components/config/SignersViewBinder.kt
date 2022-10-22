@@ -31,7 +31,7 @@ internal class SignersViewBinder(
         binding.xpf.isVisible = !isEmptyXFP
         binding.signerType.isVisible = !isEmptyXFP
         binding.signerPrimaryKeyType.isVisible = model.isPrimaryKey
-        binding.tvBip32Path.isVisible = model.isMasterSigner
+        binding.tvBip32Path.isVisible = model.derivationPath.isNotEmpty()
         binding.tvBip32Path.text = "BIP32 path: ${model.derivationPath}"
     }
 }

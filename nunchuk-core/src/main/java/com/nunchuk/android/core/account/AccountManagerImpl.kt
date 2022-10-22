@@ -26,10 +26,6 @@ interface AccountManager {
 
     fun clearUserData()
 
-    fun isFreshInstall(): Boolean
-
-    fun clearFreshInstall()
-
     fun loginType(): Int
 }
 
@@ -44,7 +40,7 @@ internal class AccountManagerImpl @Inject constructor(
 
     override fun isAccountActivated() = accountSharedPref.getAccountInfo().activated
 
-    override fun isStaySignedIn() = accountSharedPref.getAccountInfo().staySignedIn
+    override fun isStaySignedIn() = accountSharedPref.getAccountInfo().let { it.staySignedIn || it.loginType ==  SignInMode.GUEST_MODE.value }
 
     override fun getAccount() = accountSharedPref.getAccountInfo()
 
@@ -70,14 +66,6 @@ internal class AccountManagerImpl @Inject constructor(
     override fun clearUserData() {
         AppUpdateStateHolder.reset()
         accountSharedPref.clearAccountInfo()
-    }
-
-    override fun isFreshInstall(): Boolean {
-        return accountSharedPref.isFreshInstall()
-    }
-
-    override fun clearFreshInstall() {
-        accountSharedPref.clearFreshInstall()
     }
 
     override fun loginType(): Int = accountSharedPref.getAccountInfo().loginType

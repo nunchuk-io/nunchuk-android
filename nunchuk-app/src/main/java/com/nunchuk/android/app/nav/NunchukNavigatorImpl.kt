@@ -9,7 +9,6 @@ import com.jakewharton.processphoenix.ProcessPhoenix
 import com.nunchuk.android.QuickWalletNavigationDirections
 import com.nunchuk.android.app.intro.GuestModeIntroActivity
 import com.nunchuk.android.app.intro.GuestModeMessageIntroActivity
-import com.nunchuk.android.app.intro.IntroActivity
 import com.nunchuk.android.app.splash.SplashActivity
 import com.nunchuk.android.app.wallet.QuickWalletActivity
 import com.nunchuk.android.auth.nav.AuthNavigatorDelegate
@@ -36,10 +35,6 @@ internal class NunchukNavigatorImpl @Inject constructor(
     MessageNavigatorDelegate,
     SettingNavigatorDelegate,
     NfcNavigatorDelegate {
-
-    override fun openIntroScreen(activityContext: Context) {
-        IntroActivity.start(activityContext)
-    }
 
     override fun openMainScreen(
         activityContext: Context,

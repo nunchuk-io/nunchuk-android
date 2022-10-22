@@ -3,11 +3,7 @@ package com.nunchuk.android.app.splash
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import com.nunchuk.android.app.splash.SplashEvent.InitErrorEvent
-import com.nunchuk.android.app.splash.SplashEvent.NavActivateAccountEvent
-import com.nunchuk.android.app.splash.SplashEvent.NavHomeScreenEvent
-import com.nunchuk.android.app.splash.SplashEvent.NavIntroEvent
-import com.nunchuk.android.app.splash.SplashEvent.NavSignInEvent
+import com.nunchuk.android.app.splash.SplashEvent.*
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
@@ -38,7 +34,6 @@ internal class SplashActivity : AppCompatActivity() {
             NavActivateAccountEvent -> navigator.openChangePasswordScreen(this)
             NavSignInEvent -> navigator.openSignInScreen(this, false)
             is NavHomeScreenEvent -> navigator.openMainScreen(this, loginHalfToken = event.loginHalfToken, deviceId = event.deviceId)
-            NavIntroEvent -> navigator.openIntroScreen(this)
             is InitErrorEvent -> NCToastMessage(this).showError(event.error)
         }
         overridePendingTransition(0, 0)

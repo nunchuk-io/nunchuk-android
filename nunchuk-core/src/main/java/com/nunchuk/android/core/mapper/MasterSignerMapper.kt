@@ -22,7 +22,6 @@ class MasterSignerMapper @Inject constructor(private val accountManager: Account
             type = from.type,
             software = from.software,
             isPrimaryKey = isPrimaryKey,
-            isMasterSigner = true
         )
     }
 }

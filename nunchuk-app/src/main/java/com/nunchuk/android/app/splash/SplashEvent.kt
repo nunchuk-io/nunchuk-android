@@ -6,8 +6,6 @@ sealed class SplashEvent {
 
     object NavSignInEvent : SplashEvent()
 
-    object NavIntroEvent : SplashEvent()
-
     data class NavHomeScreenEvent(
         val loginHalfToken: String?,
         val deviceId: String?
