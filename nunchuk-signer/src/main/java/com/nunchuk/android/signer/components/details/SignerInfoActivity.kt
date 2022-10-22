@@ -11,7 +11,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.core.guestmode.SignInMode
-import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.share.IntentSharingController
@@ -313,7 +312,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     }
 
     private fun openMainScreen() {
-        ActivityManager.popUntilRoot()
+        navigator.returnToMainScreen()
     }
 
     private fun onEditClicked() {

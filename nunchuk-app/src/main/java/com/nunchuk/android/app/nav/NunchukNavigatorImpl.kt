@@ -13,6 +13,7 @@ import com.nunchuk.android.app.splash.SplashActivity
 import com.nunchuk.android.app.wallet.QuickWalletActivity
 import com.nunchuk.android.auth.nav.AuthNavigatorDelegate
 import com.nunchuk.android.contact.nav.ContactNavigatorDelegate
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.main.MainActivity
 import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
 import com.nunchuk.android.nav.AppNavigator
@@ -51,6 +52,10 @@ internal class NunchukNavigatorImpl @Inject constructor(
         )
     }
 
+    override fun returnToMainScreen() {
+        ActivityManager.popUntil(MainActivity::class.java)
+    }
+
     override fun openGuestModeIntroScreen(activityContext: Context) {
         GuestModeIntroActivity.start(activityContext)
     }
@@ -59,18 +64,25 @@ internal class NunchukNavigatorImpl @Inject constructor(
         GuestModeMessageIntroActivity.start(activityContext)
     }
 
-    override fun openQuickWalletScreen(launcher: ActivityResultLauncher<Intent>, activityContext: Context) {
+    override fun openQuickWalletScreen(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Context
+    ) {
         QuickWalletActivity.start(launcher, activityContext)
     }
 
     override fun openCreateNewSeedScreen(fragment: Fragment, isQuickWallet: Boolean) {
-        fragment.findNavController().navigate(QuickWalletNavigationDirections.showCreateNewSeedFragment(isQuickWallet))
+        fragment.findNavController()
+            .navigate(QuickWalletNavigationDirections.showCreateNewSeedFragment(isQuickWallet))
     }
 }
 
 interface AppNavigatorDelegate : AppNavigator {
 
     override fun restartApp(activityContext: Context) {
-        ProcessPhoenix.triggerRebirth(activityContext, Intent(activityContext, SplashActivity::class.java))
+        ProcessPhoenix.triggerRebirth(
+            activityContext,
+            Intent(activityContext, SplashActivity::class.java)
+        )
     }
 }

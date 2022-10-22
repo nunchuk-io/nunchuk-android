@@ -12,7 +12,7 @@ interface MainNavigator {
         isNewDevice: Boolean = false,
         isClearTask: Boolean = false
     )
-
+    fun returnToMainScreen()
     fun openGuestModeIntroScreen(activityContext: Context)
     fun openGuestModeMessageIntroScreen(activityContext: Context)
 }

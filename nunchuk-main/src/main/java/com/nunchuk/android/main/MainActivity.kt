@@ -67,9 +67,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
     private val messages
         get() = intent.getStringArrayListExtra(EXTRAS_MESSAGE_LIST).orEmpty()
 
-    private val signerPrimaryKeyName
-        get() = intent.getStringExtra(EXTRAS_SIGNER_PRIMARY_KEY_NAME).orEmpty()
-
     private val bottomNavViewPosition: Int
         get() = intent.getIntExtra(EXTRAS_BOTTOM_NAV_VIEW_POSITION, 0)
 
@@ -244,7 +241,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         const val EXTRAS_BOTTOM_NAV_VIEW_POSITION = "EXTRAS_BOTTOM_NAV_VIEW_POSITION"
         const val EXTRAS_IS_NEW_DEVICE = "EXTRAS_IS_NEW_DEVICE"
         const val EXTRAS_MESSAGE_LIST = "EXTRAS_MESSAGE_LIST"
-        const val EXTRAS_SIGNER_PRIMARY_KEY_NAME = "EXTRAS_SIGNER_PRIMARY_KEY_NAME"
 
         fun start(
             activityContext: Context,

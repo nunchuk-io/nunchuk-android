@@ -3,7 +3,7 @@ package com.nunchuk.android.core.manager
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
-import java.util.Stack
+import java.util.*
 
 object ActivityManager : Application.ActivityLifecycleCallbacks {
     private val activityStack = Stack<Activity>()
