@@ -217,10 +217,10 @@ internal class ConfigureWalletViewModel @Inject constructor(
     fun mapSigners(): List<SignerModel> {
         val state = getState()
         val signerMap = getSignerModelMap()
-        return state.masterSigners.map { signer ->
-            masterSignerMapper(
-                signer, signerMap[signer.id]?.derivationPath.orEmpty()
-            )
+        return state.masterSigners.mapNotNull { masterSigner ->
+            signerMap[masterSigner.id]?.let { singleSigner ->
+                masterSignerMapper(masterSigner, singleSigner.derivationPath)
+            }
         } + state.remoteSigners.map(SingleSigner::toModel)
     }
 
