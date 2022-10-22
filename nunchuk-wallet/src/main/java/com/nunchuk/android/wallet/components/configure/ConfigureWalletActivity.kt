@@ -152,11 +152,9 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
         bindSigners(
             viewModel.mapSigners(),
             state.selectedSigners,
-            state.masterSignerMap,
             state.isShowPath
         )
         bindTotalRequireSigns(requireSigns)
-        viewModel.reloadSignerPath()
         binding.totalRequireSigns.bindWalletConfiguration(
             totalSigns = totalSigns,
             requireSigns = requireSigns
@@ -171,7 +169,6 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
     private fun bindSigners(
         signers: List<SignerModel>,
         selectedPFXs: Set<SignerModel>,
-        masterSignerMap: Map<String, SingleSigner>,
         isShowPath: Boolean
     ) {
         SignersViewBinder(
@@ -188,7 +185,7 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
                 InputBipPathBottomSheet.show(
                     supportFragmentManager,
                     model.id,
-                    masterSignerMap[model.id]?.derivationPath.orEmpty()
+                    model.derivationPath
                 )
             }
         ).bindItems()
