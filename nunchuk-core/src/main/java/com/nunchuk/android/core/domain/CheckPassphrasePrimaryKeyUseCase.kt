@@ -21,7 +21,7 @@ class CheckPassphrasePrimaryKeyUseCase @Inject constructor(
         val response = signerSoftwareRepository.pKeyUserInfo(
             address = address
         )
-        return Result(username = response.username, address = address)
+        return Result(username = response.username.orEmpty(), address = address)
     }
 
     class Param(val mnemonic: String, val passphrase: String)

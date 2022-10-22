@@ -19,7 +19,7 @@ data class UserResponse(
     @SerializedName("chat_id")
     val chatId: String,
     @SerializedName("login_type")
-    val loginType: String,
+    val loginType: String?,
     @SerializedName("username")
-    val username: String
+    val username: String?
 )
