@@ -8,5 +8,6 @@ sealed class AddSignerEvent {
     data class AddSignerErrorEvent(val message: String) : AddSignerEvent()
     object InvalidSignerSpecEvent : AddSignerEvent()
     object SignerNameRequiredEvent : AddSignerEvent()
-    object LoadingEvent : AddSignerEvent()
+    data class ParseKeystoneSigner(val signers: List<SingleSigner>) : AddSignerEvent()
+    data class LoadingEvent(val isLoading: Boolean) : AddSignerEvent()
 }

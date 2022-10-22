@@ -1,34 +1,50 @@
 package com.nunchuk.android.signer.components.add
 
+import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.signer.InvalidSignerFormatException
 import com.nunchuk.android.core.signer.SignerInput
 import com.nunchuk.android.core.signer.toSigner
+import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.signer.components.add.AddSignerEvent.*
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreatePassportSignersUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
+import com.nunchuk.android.usecase.ParseJsonSignerUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 internal class AddSignerViewModel @Inject constructor(
     private val createSignerUseCase: CreateSignerUseCase,
-    private val createPassportSignersUseCase: CreatePassportSignersUseCase
+    private val createPassportSignersUseCase: CreatePassportSignersUseCase,
+    private val parseJsonSignerUseCase: ParseJsonSignerUseCase,
+    private val application: Application,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<Unit, AddSignerEvent>() {
     private val qrDataList = HashSet<String>()
     private var isProcessing = false
     override val initialState = Unit
+
+    private val _signers = mutableListOf<SingleSigner>()
+    val signers: List<SingleSigner>
+        get() = _signers
 
     fun handleAddSigner(signerName: String, signerSpec: String) {
         validateInput(signerName, signerSpec) {
@@ -44,16 +60,20 @@ internal class AddSignerViewModel @Inject constructor(
                 derivationPath = signerInput.derivationPath,
                 masterFingerprint = signerInput.fingerPrint.lowercase(),
                 publicKey = ""
-            )
-                .onStart { event(LoadingEvent) }
-                .flowOn(IO)
+            ).flowOn(IO)
+                .onStart { setEvent(LoadingEvent(true)) }
+                .onCompletion { setEvent(LoadingEvent(false)) }
                 .onException { event(AddSignerErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Main)
                 .collect { event(AddSignerSuccessEvent(it)) }
         }
     }
 
-    private fun validateInput(signerName: String, signerSpec: String, doAfterValidate: (SignerInput) -> Unit = {}) {
+    private fun validateInput(
+        signerName: String,
+        signerSpec: String,
+        doAfterValidate: (SignerInput) -> Unit = {}
+    ) {
         if (signerName.isEmpty()) {
             event(SignerNameRequiredEvent)
         } else {
@@ -82,6 +102,29 @@ internal class AddSignerViewModel @Inject constructor(
                         event(ParseKeystoneSignerSuccess(it))
                     }
             }
+        }
+    }
+
+    fun parseAirgapSigner(uri: Uri) {
+        viewModelScope.launch {
+            setEvent(LoadingEvent(true))
+            withContext(ioDispatcher) {
+                getFileFromUri(application.contentResolver, uri, application.cacheDir)?.readText()
+            }?.let { content ->
+                val result = parseJsonSignerUseCase(
+                    ParseJsonSignerUseCase.Params(content, SignerType.AIRGAP)
+                )
+                if (result.isSuccess) {
+                    _signers.apply {
+                        clear()
+                        addAll(result.getOrThrow())
+                    }
+                    setEvent(ParseKeystoneSignerSuccess(result.getOrThrow()))
+                } else {
+                    setEvent(AddSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+                }
+            }
+            setEvent(LoadingEvent(false))
         }
     }
 
