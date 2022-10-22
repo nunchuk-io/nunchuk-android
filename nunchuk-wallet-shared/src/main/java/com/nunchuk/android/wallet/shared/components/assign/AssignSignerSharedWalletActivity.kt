@@ -164,9 +164,9 @@ class AssignSignerSharedWalletActivity : BaseNfcActivity<ActivityAssignSignerBin
                     SheetOption(
                         0,
                         label = if (viewModel.isShowPath())
-                            getString(R.string.nc_hide)
+                            getString(R.string.nc_hide_bip_32_path)
                         else
-                            getString(R.string.nc_show)
+                            getString(R.string.nc_show_bip_32_path)
                     ),
                 )
             ).show(supportFragmentManager, "BottomSheetOption")
