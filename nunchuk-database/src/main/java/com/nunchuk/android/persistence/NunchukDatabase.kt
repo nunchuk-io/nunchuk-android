@@ -39,7 +39,6 @@ internal abstract class NunchukDatabase : RoomDatabase() {
             Room.databaseBuilder(applicationContext, NunchukDatabase::class.java, DATABASE_NAME)
                 .addMigrations(DBMigrations.MIGRATION_1_2)
                 .addMigrations(DBMigrations.MIGRATION_2_3)
-                .addMigrations(DBMigrations.MIGRATION_3_4)
                 .build()
     }
 }

@@ -27,8 +27,8 @@ internal fun UserResponse.toEntity(accountId: String) = ContactEntity(
     status = status.orEmpty(),
     chatId = chatId,
     accountId = accountId,
-    loginType = loginType,
-    username = username
+    loginType = loginType.orEmpty(),
+    username = username.orEmpty()
 )
 
 internal fun List<UserResponse>.toEntities(accountId: String) = map { it.toEntity(accountId) }
