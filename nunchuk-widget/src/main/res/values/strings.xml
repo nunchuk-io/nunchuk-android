@@ -30,4 +30,5 @@
     <string name="nc_text_stay_sign_in">Stay signed in</string>
     <string name="nc_text_signed_in_with_data">Signed in with %s</string>
     <string name="nc_text_key_has_been_added_data">%s has been added</string>
+    <string name="nc_please_wait">Please wait…</string>
 </resources>
