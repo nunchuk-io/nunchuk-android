@@ -45,7 +45,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>(),
     private val askScanNfcDialog: NfcScanDialog by lazy(LazyThreadSafetyMode.NONE) {
         NfcScanDialog(this).apply {
             setOnShowListener {
-                if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                     nfcAdapter?.enableForegroundDispatch(
                         this@BaseNfcActivity,
                         getNfcPendingIntent(requestCode),
@@ -56,7 +56,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>(),
             }
 
             setOnDismissListener {
-                if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                     nfcAdapter?.enableForegroundDispatch(this@BaseNfcActivity, getNfcPendingIntent(0), null, null)
                 }
             }
