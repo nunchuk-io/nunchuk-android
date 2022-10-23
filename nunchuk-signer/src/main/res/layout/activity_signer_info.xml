@@ -43,8 +43,8 @@
             android:layout_height="96dp"
             android:layout_marginTop="@dimen/nc_padding_24"
             android:background="@drawable/nc_circle_white_background"
-            android:padding="@dimen/nc_padding_24"
-            android:src="@drawable/ic_software_signer_big"
+            android:padding="@dimen/nc_padding_16"
+            android:src="@drawable/ic_logo_dark"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -71,12 +71,28 @@
             style="@style/NCText.Badges"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/nc_padding_8"
             android:layout_marginTop="@dimen/nc_padding_4"
             android:background="@drawable/nc_rounded_tag_whisper_background"
             android:text="@string/nc_signer_type_air_gapped"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/signerPrimaryKeyType"
             app:layout_constraintTop_toBottomOf="@+id/signerName" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/signerPrimaryKeyType"
+            style="@style/NCText.Badges"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_4"
+            android:background="@drawable/nc_rounded_tag_primary_key_background"
+            android:text="@string/nc_signer_type_primary_key"
+            android:visibility="gone"
+            app:layout_constraintEnd_toStartOf="@+id/signerType"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/signerName"
+            tools:visibility="visible" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.nunchuk.android.widget.NCFontTextView

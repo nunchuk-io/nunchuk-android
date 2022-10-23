@@ -20,9 +20,16 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
 
     private lateinit var listener: (TransactionOption) -> Unit
 
-    private val args: TransactionOptionsArgs by lazy { TransactionOptionsArgs.deserializeFrom(arguments) }
+    private val args: TransactionOptionsArgs by lazy {
+        TransactionOptionsArgs.deserializeFrom(
+            arguments
+        )
+    }
 
-    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): DialogTransactionSignBottomSheetBinding {
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): DialogTransactionSignBottomSheetBinding {
         return DialogTransactionSignBottomSheetBinding.inflate(inflater, container, false)
     }
 
@@ -83,6 +90,12 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             listener(COPY_TRANSACTION_ID)
             dismiss()
         }
+
+        binding.btnRemoveTransaction.isVisible = args.isRejected
+        binding.btnRemoveTransaction.setOnDebounceClickListener {
+            listener(REMOVE_TRANSACTION)
+            dismiss()
+        }
     }
 
     fun setListener(listener: (TransactionOption) -> Unit) {
@@ -92,32 +105,53 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
     companion object {
         private const val TAG = "TransactionOptionsBottomSheet"
 
-        private fun newInstance(isPending: Boolean, isPendingConfirm: Boolean) = TransactionOptionsBottomSheet().apply {
-            arguments = TransactionOptionsArgs(isPending, isPendingConfirm).buildBundle()
+        private fun newInstance(
+            isPending: Boolean,
+            isPendingConfirm: Boolean,
+            isRejected: Boolean
+        ) = TransactionOptionsBottomSheet().apply {
+            arguments =
+                TransactionOptionsArgs(isPending, isPendingConfirm, isRejected).buildBundle()
         }
 
 
-        fun show(fragmentManager: FragmentManager, isPending: Boolean, isPendingConfirm: Boolean): TransactionOptionsBottomSheet {
-            return newInstance(isPending, isPendingConfirm).apply { show(fragmentManager, TAG) }
+        fun show(
+            fragmentManager: FragmentManager,
+            isPending: Boolean,
+            isPendingConfirm: Boolean,
+            isRejected: Boolean
+        ): TransactionOptionsBottomSheet {
+            return newInstance(
+                isPending,
+                isPendingConfirm,
+                isRejected
+            ).apply { show(fragmentManager, TAG) }
         }
     }
 
 }
 
-data class TransactionOptionsArgs(val isPending: Boolean, val isPendingConfirm: Boolean) : FragmentArgs {
+data class TransactionOptionsArgs(
+    val isPending: Boolean,
+    val isPendingConfirm: Boolean,
+    val isRejected: Boolean
+) : FragmentArgs {
 
     override fun buildBundle() = Bundle().apply {
         putBoolean(EXTRA_IS_PENDING, isPending)
         putBoolean(EXTRA_IS_PENDING_CONFIRM, isPendingConfirm)
+        putBoolean(EXTRA_IS_REJECTED, isRejected)
     }
 
     companion object {
         private const val EXTRA_IS_PENDING = "EXTRA_IS_PENDING"
         private const val EXTRA_IS_PENDING_CONFIRM = "EXTRA_IS_PENDING_CONFIRM"
+        private const val EXTRA_IS_REJECTED = "EXTRA_IS_REJECTED"
 
         fun deserializeFrom(data: Bundle?) = TransactionOptionsArgs(
             data?.getBooleanValue(EXTRA_IS_PENDING).orFalse(),
             data?.getBooleanValue(EXTRA_IS_PENDING_CONFIRM).orFalse(),
+            data?.getBooleanValue(EXTRA_IS_REJECTED).orFalse(),
         )
     }
 }

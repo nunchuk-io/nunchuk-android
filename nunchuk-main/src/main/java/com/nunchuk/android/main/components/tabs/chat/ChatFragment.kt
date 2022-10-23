@@ -11,9 +11,13 @@ import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.main.databinding.FragmentChatBinding
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 internal class ChatFragment : BaseFragment<FragmentChatBinding>() {
+
+    @Inject
+    lateinit var signInModeHolder: SignInModeHolder
 
     private lateinit var pagerAdapter: ChatFragmentPagerAdapter
 
@@ -38,7 +42,7 @@ internal class ChatFragment : BaseFragment<FragmentChatBinding>() {
     }
 
     private fun setupViews() {
-        binding.containerNotSignIn.isVisible = SignInModeHolder.currentMode.isGuestMode()
+        binding.containerNotSignIn.isVisible = signInModeHolder.getCurrentMode().isGuestMode()
         binding.pagers.isVisible = binding.containerNotSignIn.isGone
         val tabs = binding.tabs
 

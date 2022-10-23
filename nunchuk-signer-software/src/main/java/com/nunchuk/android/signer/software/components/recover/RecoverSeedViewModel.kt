@@ -6,7 +6,11 @@ import com.nunchuk.android.core.util.countWords
 import com.nunchuk.android.core.util.lastWord
 import com.nunchuk.android.core.util.replaceLastWord
 import com.nunchuk.android.model.Result.Success
-import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.*
+import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.CanGoNextStepEvent
+import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.InvalidMnemonicEvent
+import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.MnemonicRequiredEvent
+import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.UpdateMnemonicEvent
+import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.ValidMnemonicEvent
 import com.nunchuk.android.usecase.CheckMnemonicUseCase
 import com.nunchuk.android.usecase.GetBip39WordListUseCase
 import com.nunchuk.android.utils.onException

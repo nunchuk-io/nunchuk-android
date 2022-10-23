@@ -5,7 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="@dimen/nc_padding_8"
-    android:foreground="?attr/selectableItemBackground">
+    android:foreground="?attr/selectableItemBackground"
+    android:paddingTop="@dimen/nc_padding_2"
+    android:paddingBottom="@dimen/nc_padding_2">
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/avatar"
@@ -25,10 +27,11 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
-        android:paddingTop="@dimen/nc_padding_8"
         app:fontTextStyle="semi_bold"
+        app:layout_constraintBottom_toTopOf="@+id/email"
         app:layout_constraintStart_toEndOf="@+id/avatar"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@id/avatar"
+        app:layout_constraintVertical_chainStyle="spread"
         tools:text="Hugo Nguyen" />
 
     <com.nunchuk.android.widget.NCFontTextView
@@ -37,8 +40,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_4"
-        android:paddingBottom="@dimen/nc_padding_8"
+        app:layout_constraintBottom_toBottomOf="@id/avatar"
         app:layout_constraintStart_toEndOf="@+id/avatar"
         app:layout_constraintTop_toBottomOf="@+id/name"
         tools:text="hugonguyen@gmail.com" />

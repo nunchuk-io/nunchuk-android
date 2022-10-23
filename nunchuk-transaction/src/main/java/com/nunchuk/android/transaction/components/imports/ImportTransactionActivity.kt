@@ -88,7 +88,7 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
 
     override fun onPause() {
         super.onPause()
-        binding.barcodeView.resume()
+        binding.barcodeView.pause()
     }
 
     companion object {

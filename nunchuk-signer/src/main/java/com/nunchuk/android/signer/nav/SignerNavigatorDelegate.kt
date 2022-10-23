@@ -1,6 +1,7 @@
 package com.nunchuk.android.signer.nav
 
 import android.content.Context
+import com.nunchuk.android.model.PrimaryKey
 import com.nunchuk.android.nav.SignerNavigator
 import com.nunchuk.android.signer.AirSignerIntroActivity
 import com.nunchuk.android.signer.SignerIntroActivity
@@ -11,6 +12,17 @@ import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedActivit
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedActivity
 import com.nunchuk.android.signer.software.components.name.AddSoftwareSignerNameActivity
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseActivity
+import com.nunchuk.android.signer.software.components.primarykey.PKeyAddSignerActivity
+import com.nunchuk.android.signer.software.components.primarykey.account.PKeyAccountActivity
+import com.nunchuk.android.signer.software.components.primarykey.chooseusername.PKeyChooseUsernameActivity
+import com.nunchuk.android.signer.software.components.primarykey.intro.PKeySignInIntroActivity
+import com.nunchuk.android.signer.software.components.primarykey.intro.PKeySignUpIntroActivity
+import com.nunchuk.android.signer.software.components.primarykey.intro.replace.PKeyReplaceKeyIntroActivity
+import com.nunchuk.android.signer.software.components.primarykey.manuallysignature.PKeyManuallySignatureActivity
+import com.nunchuk.android.signer.software.components.primarykey.manuallyusername.PKeyManuallyUsernameActivity
+import com.nunchuk.android.signer.software.components.primarykey.notification.PKeyNotificationActivity
+import com.nunchuk.android.signer.software.components.primarykey.passphrase.PKeyEnterPassphraseActivity
+import com.nunchuk.android.signer.software.components.primarykey.signin.PKeySignInActivity
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedActivity
 import com.nunchuk.android.type.SignerType
 
@@ -23,12 +35,14 @@ interface SignerNavigatorDelegate : SignerNavigator {
     override fun openSignerInfoScreen(
         activityContext: Context,
         id: String,
+        masterFingerprint: String,
         name: String,
         type: SignerType,
         derivationPath: String,
         justAdded: Boolean,
         setPassphrase: Boolean,
-        isInWallet: Boolean
+        isInWallet: Boolean,
+        isReplacePrimaryKey: Boolean
     ) {
         SignerInfoActivity.start(
             activityContext = activityContext,
@@ -38,7 +52,9 @@ interface SignerNavigatorDelegate : SignerNavigator {
             type = type,
             setPassphrase = setPassphrase,
             isInWallet = isInWallet,
-            derivationPath = derivationPath
+            derivationPath = derivationPath,
+            masterFingerprint = masterFingerprint,
+            isReplacePrimaryKey = isReplacePrimaryKey
         )
     }
 
@@ -50,27 +66,134 @@ interface SignerNavigatorDelegate : SignerNavigator {
         AddSignerActivity.start(activityContext)
     }
 
-    override fun openAddSoftwareSignerScreen(activityContext: Context) {
-        SoftwareSignerIntroActivity.start(activityContext)
+    override fun openAddSoftwareSignerScreen(
+        activityContext: Context,
+        passphrase: String,
+        primaryKeyFlow: Int
+    ) {
+        SoftwareSignerIntroActivity.start(activityContext, passphrase, primaryKeyFlow)
     }
 
-    override fun openCreateNewSeedScreen(activityContext: Context) {
-        CreateNewSeedActivity.start(activityContext)
+    override fun openCreateNewSeedScreen(
+        activityContext: Context,
+        passphrase: String,
+        primaryKeyFlow: Int
+    ) {
+        CreateNewSeedActivity.start(activityContext, primaryKeyFlow, passphrase)
     }
 
-    override fun openRecoverSeedScreen(activityContext: Context) {
-        RecoverSeedActivity.start(activityContext)
+    override fun openRecoverSeedScreen(
+        activityContext: Context,
+        passphrase: String,
+        primaryKeyFlow: Int
+    ) {
+        RecoverSeedActivity.start(activityContext, passphrase, primaryKeyFlow)
     }
 
-    override fun openSelectPhraseScreen(activityContext: Context, mnemonic: String) {
-        ConfirmSeedActivity.start(activityContext, mnemonic)
+    override fun openSelectPhraseScreen(
+        activityContext: Context,
+        mnemonic: String,
+        passphrase: String,
+        primaryKeyFlow: Int
+    ) {
+        ConfirmSeedActivity.start(activityContext, mnemonic, passphrase, primaryKeyFlow)
     }
 
-    override fun openAddSoftwareSignerNameScreen(activityContext: Context, mnemonic: String) {
-        AddSoftwareSignerNameActivity.start(activityContext, mnemonic)
+    override fun openAddSoftwareSignerNameScreen(
+        activityContext: Context,
+        mnemonic: String,
+        primaryKeyFlow: Int,
+        username: String?,
+        passphrase: String,
+        address: String?,
+    ) {
+        AddSoftwareSignerNameActivity.start(
+            activityContext,
+            mnemonic,
+            primaryKeyFlow,
+            username,
+            passphrase,
+            address
+        )
     }
 
-    override fun openSetPassphraseScreen(activityContext: Context, mnemonic: String, signerName: String) {
-        SetPassphraseActivity.start(activityContext, mnemonic, signerName)
+    override fun openSetPassphraseScreen(
+        activityContext: Context,
+        mnemonic: String,
+        signerName: String,
+        passphrase: String,
+        primaryKeyFlow: Int
+    ) {
+        SetPassphraseActivity.start(
+            activityContext,
+            mnemonic,
+            signerName,
+            primaryKeyFlow,
+            passphrase
+        )
+    }
+
+    override fun openPrimaryKeyIntroScreen(activityContext: Context) {
+        PKeySignUpIntroActivity.start(activityContext)
+    }
+
+    override fun openAddPrimaryKeyScreen(
+        activityContext: Context,
+        passphrase: String,
+        primaryKeyFlow: Int
+    ) {
+        PKeyAddSignerActivity.start(activityContext, primaryKeyFlow, passphrase)
+    }
+
+    override fun openPrimaryKeyChooseUserNameScreen(
+        activityContext: Context,
+        mnemonic: String,
+        passphrase: String,
+        signerName: String
+    ) {
+        PKeyChooseUsernameActivity.start(activityContext, mnemonic, passphrase, signerName)
+    }
+
+    override fun openPrimaryKeySignInIntroScreen(activityContext: Context) {
+        PKeySignInIntroActivity.start(activityContext)
+    }
+
+    override fun openPrimaryKeyAccountScreen(
+        activityContext: Context,
+        accounts: ArrayList<PrimaryKey>
+    ) {
+        PKeyAccountActivity.start(activityContext, accounts)
+    }
+
+    override fun openPrimaryKeySignInScreen(activityContext: Context, primaryKey: PrimaryKey) {
+        PKeySignInActivity.start(activityContext, primaryKey)
+    }
+
+    override fun openPrimaryKeyEnterPassphraseScreen(
+        activityContext: Context,
+        mnemonic: String,
+        primaryKeyFlow: Int,
+    ) {
+        PKeyEnterPassphraseActivity.start(activityContext, primaryKeyFlow, mnemonic)
+    }
+
+    override fun openPrimaryKeyManuallyUsernameScreen(activityContext: Context) {
+        PKeyManuallyUsernameActivity.start(activityContext)
+    }
+
+    override fun openPrimaryKeyManuallySignatureScreen(activityContext: Context, username: String) {
+        PKeyManuallySignatureActivity.start(activityContext, username)
+    }
+
+    override fun openPrimaryKeyNotificationScreen(
+        activityContext: Context,
+        messages: ArrayList<String>,
+        primaryKeyFlow: Int
+    ) {
+        PKeyNotificationActivity.start(activityContext, messages, primaryKeyFlow)
+    }
+
+    override fun openPrimaryKeyReplaceIntroScreen(activityContext: Context, primaryKeyFlow: Int) {
+        PKeyReplaceKeyIntroActivity.start(activityContext)
     }
 }

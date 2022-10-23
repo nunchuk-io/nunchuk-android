@@ -28,19 +28,10 @@ internal class AccountSharedPref @Inject constructor(
         sharedPreferences.edit().putString(ACCOUNT_KEY, gson.toJson(AccountInfo())).apply()
     }
 
-    fun isFreshInstall() : Boolean {
-        return sharedPreferences.getBoolean(FRESH_INSTALL, true)
-    }
-
-    fun clearFreshInstall() {
-        sharedPreferences.edit().putBoolean(FRESH_INSTALL, false).commit()
-    }
-
     fun isHasAccountBefore() = sharedPreferences.contains(ACCOUNT_KEY)
 
     companion object {
         private const val ACCOUNT_PREFERENCE = "ACCOUNT_PREFERENCE"
         private const val ACCOUNT_KEY = "ACCOUNT_KEY"
-        private const val FRESH_INSTALL = "FRESH_INSTALL"
     }
 }

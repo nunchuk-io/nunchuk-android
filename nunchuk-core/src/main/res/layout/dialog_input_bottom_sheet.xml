@@ -25,7 +25,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/edit" />
 
-    <com.nunchuk.android.widget.NCFontEditText
+    <com.nunchuk.android.widget.NCEditTextView
         android:id="@+id/edit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -35,18 +35,27 @@
         android:textColor="@color/nc_primary_color"
         android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/title" />
+        app:layout_constraintTop_toBottomOf="@+id/desc" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/title"
         style="@style/NCText.Title.Large"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/nc_padding_8"
-        android:paddingVertical="@dimen/nc_padding_8"
+        android:layout_marginTop="@dimen/nc_padding_16"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/iconClose"
         tools:text="Title" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/desc"
+        style="@style/NCText.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title"
+        tools:text="For example: m/48h/0h/0h" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btnSave"

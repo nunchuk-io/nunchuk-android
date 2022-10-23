@@ -30,12 +30,11 @@ import com.nunchuk.android.usecase.RegisterAutoBackupUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import okhttp3.ResponseBody
 import org.matrix.android.sdk.api.NoOpMatrixCallback
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupState
@@ -67,7 +66,6 @@ internal class MainActivityViewModel @Inject constructor(
     private val getSyncFileUseCase: GetSyncFileUseCase,
     private val createOrUpdateSyncFileUseCase: CreateOrUpdateSyncFileUseCase,
     private val deleteSyncFileUseCase: DeleteSyncFileUseCase,
-    private val saveCacheFileUseCase: SaveCacheFileUseCase,
     private val getLocalBtcPriceFlowUseCase: GetLocalBtcPriceFlowUseCase,
     private val sessionHolder: SessionHolder,
     @IoDispatcher private val dispatcher: CoroutineDispatcher
@@ -77,13 +75,27 @@ internal class MainActivityViewModel @Inject constructor(
 
     private var timeline: Timeline? = null
 
+    private var syncRoomId: String? = null
+
     private var checkBootstrap: Boolean = false
 
     private val timelineListenerAdapter = TimelineListenerAdapter()
 
+    private val syncEnableState = getSyncSettingUseCase(Unit)
+        .map { it.getOrElse { false } }
+        .stateIn(viewModelScope, SharingStarted.Lazily, false)
+
     init {
         viewModelScope.launch {
-            timelineListenerAdapter.data.debounce(500L).collect(::handleTimelineEvents)
+            timelineListenerAdapter.data.collect(::handleTimelineEvents)
+        }
+        viewModelScope.launch {
+            syncEnableState
+                .collect { isEnableSync ->
+                    if (isEnableSync && syncRoomId.isNullOrEmpty().not()) {
+                        syncData(syncRoomId.orEmpty())
+                    }
+                }
         }
     }
 
@@ -131,7 +143,8 @@ internal class MainActivityViewModel @Inject constructor(
 
     private fun downloadKeys(session: Session) {
         viewModelScope.launch(dispatcher) {
-            session.cryptoService().downloadKeys(listOf(session.myUserId), true, NoOpMatrixCallback())
+            session.cryptoService()
+                .downloadKeys(listOf(session.myUserId), true, NoOpMatrixCallback())
         }
     }
 
@@ -160,7 +173,6 @@ internal class MainActivityViewModel @Inject constructor(
                             )
                         }
                     }
-
                 }
         }
     }
@@ -174,7 +186,8 @@ internal class MainActivityViewModel @Inject constructor(
                 .collect { data ->
                     val count = AppUpdateStateHolder.countShowingRecommend.incrementAndGet()
                     val isUpdateAvailable = data.isUpdateAvailable.orFalse() && count == 1
-                    val isForceUpdate = data.isUpdateAvailable.orFalse() && data.isUpdateRequired.orFalse() && isResume
+                    val isForceUpdate =
+                        data.isUpdateAvailable.orFalse() && data.isUpdateRequired.orFalse() && isResume
                     if (isUpdateAvailable || isForceUpdate) {
                         event(UpdateAppRecommendEvent(data = data))
                     }
@@ -188,23 +201,6 @@ internal class MainActivityViewModel @Inject constructor(
                 .flowOn(IO)
                 .onException {}
                 .collect { getBTCConvertPrice() }
-        }
-    }
-
-    fun saveSyncFileToCache(
-        data: ResponseBody,
-        path: String,
-        fileJsonInfo: String
-    ) {
-        viewModelScope.launch {
-            saveCacheFileUseCase.execute(
-                data = data,
-                path = path
-            ).flowOn(IO)
-                .onException {}
-                .collect {
-                    consumeSyncFile(fileJsonInfo, it)
-                }
         }
     }
 
@@ -354,7 +350,14 @@ internal class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             uploadFileUseCase.execute(fileName = fileName, fileType = mineType, fileData = data)
                 .flowOn(IO)
-                .onException { createOrUpdateUploadSyncFile(fileName, fileJsonInfo, data, mineType) }
+                .onException {
+                    createOrUpdateUploadSyncFile(
+                        fileName,
+                        fileJsonInfo,
+                        data,
+                        mineType
+                    )
+                }
                 .flowOn(Main)
                 .collect {
                     deleteUploadSyncFile(fileName, fileJsonInfo, data, mineType)
@@ -379,17 +382,19 @@ internal class MainActivityViewModel @Inject constructor(
         val serverName = if (contentUriInfo.isEmpty()) "" else contentUriInfo[0]
         val mediaId = if (contentUriInfo.isEmpty()) "" else contentUriInfo[1]
         viewModelScope.launch {
-            downloadFileUseCase.execute(serverName = serverName, mediaId = mediaId)
-                .flowOn(IO)
-                .onException {
-                    createOrUpdateDownloadSyncFile(fileJsonInfo, fileUrl)
-                }
-                .flowOn(Main)
-                .collect {
-                    deleteDownloadSyncFile(fileJsonInfo, fileUrl)
-                    Timber.tag(TAG).d("[App] DownloadFileSyncSucceed: $fileJsonInfo")
-                    event(DownloadFileSyncSucceed(fileJsonInfo, it))
-                }
+            val result = downloadFileUseCase(
+                DownloadFileUseCase.Params(
+                    serverName = serverName,
+                    mediaId = mediaId
+                )
+            )
+            if (result.isSuccess) {
+                deleteDownloadSyncFile(fileJsonInfo, fileUrl)
+                Timber.tag(TAG).d("[App] DownloadFileSyncSucceed: $fileJsonInfo")
+                consumeSyncFile(fileJsonInfo, result.getOrThrow())
+            } else {
+                createOrUpdateDownloadSyncFile(fileJsonInfo, fileUrl)
+            }
         }
     }
 
@@ -405,41 +410,17 @@ internal class MainActivityViewModel @Inject constructor(
 
     private fun registerAutoBackup(syncRoomId: String, accessToken: String) {
         viewModelScope.launch {
-            getSyncSettingUseCase.execute()
-                .flatMapConcat {
-                    if (it.enable) {
-                        registerAutoBackupUseCase.execute(syncRoomId, accessToken).map { true }
-                    } else {
-                        flow {
-                            Timber.tag(TAG).v("can not registerAutoBackup due to disable")
-                            emit(false)
-                        }
-                    }
-                }
-                .flowOn(IO)
-                .onException { }
-                .collect { isRegister ->
-                    if (isRegister) {
-                        Timber.tag(TAG).v("registerAutoBackup success")
-                    }
-                }
+            registerAutoBackupUseCase.execute(syncRoomId, accessToken).collect()
         }
     }
 
     private fun enableAutoBackup() {
         viewModelScope.launch {
-            getSyncSettingUseCase.execute()
-                .flatMapConcat {
-                    enableAutoBackupUseCase.execute(it.enable)
-                }.flowOn(IO)
-                .onException { }
-                .collect {
-                    Timber.tag(TAG).v("enableAutoBackup success")
-                    if (it) {
-                        backupData()
-                    }
-                }
-
+            enableAutoBackupUseCase.execute(syncEnableState.value).onException { }
+                .collect()
+            if (syncEnableState.value) {
+                backupData()
+            }
         }
     }
 
@@ -447,50 +428,44 @@ internal class MainActivityViewModel @Inject constructor(
         // backup missing data if needed
         viewModelScope.launch {
             backupDataUseCase.execute()
-                .flowOn(Dispatchers.IO)
+                .flowOn(IO)
                 .onException { }
                 .collect { Timber.v("backupDataUseCase success") }
         }
     }
 
 
-    private fun Room.retrieveTimelineEvents() {
+    private fun retrieveTimelineEvents(room: Room) {
         Timber.tag(TAG).v("retrieveTimelineEvents")
-        timeline = timelineService().createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
-            removeAllListeners()
-            addListener(timelineListenerAdapter)
-            start()
-        }
+        timeline =
+            room.timelineService().createTimeline(null, TimelineSettings(initialSize = PAGINATION, true))
+                .apply {
+                    removeAllListeners()
+                    addListener(timelineListenerAdapter)
+                    start()
+                }
     }
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
-        Timber.tag(TAG).v("handleTimelineEvents")
-        checkIfReRequestKeysNeeded(events)
-        val nunchukEvents = events.filter(TimelineEvent::isNunchukConsumeSyncEvent)
-        viewModelScope.launch {
+        viewModelScope.launch(dispatcher) {
+            checkIfReRequestKeysNeeded(events)
+            val nunchukEvents = events.filter(TimelineEvent::isNunchukConsumeSyncEvent)
             val sortedEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
                 .sortedByDescending(NunchukMatrixEvent::time)
-            Timber.tag(TAG).v("sortedEvents::$sortedEvents")
-            getSyncSettingUseCase.execute()
-                .flatMapConcat {
-                    if (it.enable) {
-                        consumerSyncEventUseCase.execute(sortedEvents).map { true }
-                    } else {
-                        flow {
-                            Timber.tag(TAG).v("can not consumerSyncEvent due to disable")
-                            emit(false)
+            if (syncEnableState.value) {
+                consumerSyncEventUseCase.execute(sortedEvents)
+                    .onCompletion {
+                        ensureActive()
+                        if (timeline?.hasMoreToLoad(Timeline.Direction.BACKWARDS).orFalse()) {
+                            timeline?.paginate(Timeline.Direction.BACKWARDS, PAGINATION)
+                        } else {
+                            event(ConsumeSyncEventCompleted)
                         }
                     }
-                }
-                .flowOn(IO)
-                .onException { Timber.tag(TAG).v("consumerSyncEvent fail") }
-                .collect { consume ->
-                    if (consume) {
-                        Timber.tag(TAG).v("consumerSyncEvent success")
-                        event(ConsumeSyncEventCompleted)
-                    }
-                }
+                    .onException { Timber.e(it) }
+                    .collect()
+            }
         }
     }
 
@@ -513,6 +488,7 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     fun syncData(roomId: String) {
+        syncRoomId = roomId
         Timber.tag(TAG).d("syncData::$roomId")
         registerAutoBackup(
             syncRoomId = roomId,
@@ -524,13 +500,17 @@ internal class MainActivityViewModel @Inject constructor(
     private fun retrieveTimelines(roomId: String) {
         viewModelScope.launch {
             flow {
-                val activeSession = sessionHolder.getSafeActiveSession() ?: throw SessionLostException()
-                val room = activeSession.roomService().getRoom(roomId) ?: throw RoomNotFoundException(roomId)
+                val activeSession =
+                    sessionHolder.getSafeActiveSession() ?: throw SessionLostException()
+                val room =
+                    activeSession.roomService().getRoom(roomId) ?: throw RoomNotFoundException(
+                        roomId
+                    )
                 emit(room)
             }.flowOn(IO)
                 .onException { }
                 .flowOn(Main)
-                .collect { it.retrieveTimelineEvents() }
+                .collect { retrieveTimelineEvents(it) }
         }
     }
 

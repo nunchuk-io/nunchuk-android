@@ -22,7 +22,7 @@ internal class SplashActivity : AppCompatActivity() {
 
         setTransparentStatusBar()
         subscribeEvents()
-        viewModel.handleNavigation()
+        viewModel.initFlow()
     }
 
     private fun subscribeEvents() {
@@ -34,7 +34,6 @@ internal class SplashActivity : AppCompatActivity() {
             NavActivateAccountEvent -> navigator.openChangePasswordScreen(this)
             NavSignInEvent -> navigator.openSignInScreen(this, false)
             is NavHomeScreenEvent -> navigator.openMainScreen(this, loginHalfToken = event.loginHalfToken, deviceId = event.deviceId)
-            NavIntroEvent -> navigator.openIntroScreen(this)
             is InitErrorEvent -> NCToastMessage(this).showError(event.error)
         }
         overridePendingTransition(0, 0)

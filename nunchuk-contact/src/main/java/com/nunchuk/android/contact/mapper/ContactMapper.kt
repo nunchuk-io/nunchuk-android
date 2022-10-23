@@ -12,6 +12,8 @@ internal fun ContactEntity.toModel() = Contact(
     avatar = avatar,
     status = status,
     chatId = chatId,
+    loginType = loginType.orEmpty(),
+    username = username.orEmpty()
 )
 
 internal fun List<ContactEntity>.toModels() = map(ContactEntity::toModel)
@@ -24,7 +26,9 @@ internal fun UserResponse.toEntity(accountId: String) = ContactEntity(
     avatar = avatar.orEmpty(),
     status = status.orEmpty(),
     chatId = chatId,
-    accountId = accountId
+    accountId = accountId,
+    loginType = loginType.orEmpty(),
+    username = username.orEmpty()
 )
 
 internal fun List<UserResponse>.toEntities(accountId: String) = map { it.toEntity(accountId) }

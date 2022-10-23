@@ -19,6 +19,13 @@ object ActivityManager : Application.ActivityLifecycleCallbacks {
         }
     }
 
+    fun popToLevel(level: Int) {
+        if (activityStack.size <= level) return
+        while (activityStack.size > level) {
+            activityStack.pop().finish()
+        }
+    }
+
     fun <T : Activity> popUntil(clazz: Class<T>, inclusive: Boolean = false) {
         if (activityStack.isNotEmpty()) {
             while (activityStack.isNotEmpty() && !(activityStack.lastElement() instanceOf clazz)) {
@@ -54,4 +61,5 @@ object ActivityManager : Application.ActivityLifecycleCallbacks {
     }
 }
 
-infix fun <T : Activity> Activity?.instanceOf(clazz: Class<T>) = this != null && this.javaClass == clazz
+infix fun <T : Activity> Activity?.instanceOf(clazz: Class<T>) =
+    this != null && this.javaClass == clazz

@@ -4,19 +4,14 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.google.gson.Gson
 import com.google.zxing.client.android.Intents
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.signer.databinding.ActivityScanDynamicQrBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
-
-    @Inject
-    lateinit var gson: Gson
 
     private val viewModel: AddSignerViewModel by viewModels()
 
@@ -27,6 +22,18 @@ class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
 
         setLightStatusBar()
         setupViews()
+        observer()
+    }
+
+    private fun observer() {
+        viewModel.event.observe(this) {
+            if (it is AddSignerEvent.ParseKeystoneSignerSuccess) {
+                setResult(Activity.RESULT_OK, Intent().apply {
+                    putParcelableArrayListExtra(PASSPORT_EXTRA_KEYS, ArrayList(it.signers))
+                })
+                finish()
+            }
+        }
     }
 
     private fun setupViews() {
@@ -34,12 +41,7 @@ class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
         barcodeViewIntent.putExtra(Intents.Scan.MODE, Intents.Scan.QR_CODE_MODE)
         binding.barcodeView.initializeFromIntent(barcodeViewIntent)
         binding.barcodeView.decodeContinuous { result ->
-            viewModel.handAddPassportSigners(result.text) {
-                setResult(Activity.RESULT_OK, Intent().apply {
-                    putExtra(PASSPORT_EXTRA_KEYS, gson.toJson(it))
-                })
-                finish()
-            }
+            viewModel.handAddPassportSigners(result.text)
         }
 
         binding.toolbar.setNavigationOnClickListener {
@@ -54,8 +56,10 @@ class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
 
     override fun onPause() {
         super.onPause()
-        binding.barcodeView.resume()
+        binding.barcodeView.pause()
     }
+
+
 
     companion object {
         fun start(activityContext: Activity, requestCode: Int) {

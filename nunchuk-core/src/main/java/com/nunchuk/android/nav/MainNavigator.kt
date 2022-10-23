@@ -8,9 +8,11 @@ interface MainNavigator {
         loginHalfToken: String? = null,
         deviceId: String? = null,
         bottomNavViewPosition: Int? = null,
-        isNewDevice: Boolean = false
+        messages: ArrayList<String>? = null,
+        isNewDevice: Boolean = false,
+        isClearTask: Boolean = false
     )
-
+    fun returnToMainScreen()
     fun openGuestModeIntroScreen(activityContext: Context)
     fun openGuestModeMessageIntroScreen(activityContext: Context)
 }

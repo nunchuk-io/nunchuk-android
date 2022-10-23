@@ -18,4 +18,8 @@ data class UserResponse(
     val status: String?,
     @SerializedName("chat_id")
     val chatId: String,
+    @SerializedName("login_type")
+    val loginType: String?,
+    @SerializedName("username")
+    val username: String?
 )

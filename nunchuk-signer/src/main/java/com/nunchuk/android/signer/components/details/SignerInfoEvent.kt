@@ -21,7 +21,9 @@ sealed class SignerInfoEvent {
 
     data class GetTapSignerBackupKeyEvent(val backupKeyPath: String) : SignerInfoEvent()
 
-    data class GetTapSignerBackupKeyError(val e: Throwable?) : SignerInfoEvent()
+    data class NfcError(val e: Throwable?) : SignerInfoEvent()
+
+    object GenerateColdcardHealthMessagesSuccess : SignerInfoEvent()
 
     object TopUpXpubSuccess : SignerInfoEvent()
 

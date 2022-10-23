@@ -11,12 +11,14 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.checkSelfPermission
 import com.nunchuk.android.utils.CrashlyticsReporter
 
-private const val CAMERA_PERMISSION_REQUEST_CODE = 0x1024
+const val CAMERA_PERMISSION_REQUEST_CODE = 0x1024
 private const val READ_STORAGE_PERMISSION_REQUEST_CODE = 0x2048
 
-fun Activity.isPermissionGranted(permission: String) = checkSelfPermission(this, permission) == PERMISSION_GRANTED
+fun Activity.isPermissionGranted(permission: String) =
+    checkSelfPermission(this, permission) == PERMISSION_GRANTED
 
-fun Activity.isPermissionGranted(permissions: Array<String>): Boolean = permissions.all { checkSelfPermission(this, it) == PERMISSION_GRANTED }
+fun Activity.isPermissionGranted(permissions: Array<String>): Boolean =
+    permissions.all { checkSelfPermission(this, it) == PERMISSION_GRANTED }
 
 fun Activity.checkReadExternalPermission(): Boolean {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {

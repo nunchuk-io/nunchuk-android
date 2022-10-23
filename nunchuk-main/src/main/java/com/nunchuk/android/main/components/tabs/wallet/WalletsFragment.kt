@@ -11,12 +11,12 @@ import androidx.core.view.isVisible
 import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.MainActivityViewModel
 import com.nunchuk.android.main.R
@@ -25,22 +25,24 @@ import com.nunchuk.android.main.databinding.FragmentWalletsBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
 import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
-import com.nunchuk.android.model.MasterSigner
-import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.signer.nfc.NfcSetupActivity
 import com.nunchuk.android.signer.satscard.SatsCardActivity
 import com.nunchuk.android.signer.util.handleTapSignerStatus
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
-import com.nunchuk.android.wallet.components.details.WalletDetailsArgs
+import com.nunchuk.android.wallet.components.details.WalletDetailsFragmentArgs
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningVerticalDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import javax.inject.Inject
 
 @AndroidEntryPoint
 internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
+
+    @Inject
+    lateinit var accountManager: AccountManager
 
     private val walletsViewModel: WalletsViewModel by activityViewModels()
 
@@ -164,7 +166,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun showWalletState(state: WalletsState) {
         val wallets = state.wallets
-        val signers = state.masterSigners.map(MasterSigner::toModel) + state.signers.map(SingleSigner::toModel)
+        val signers = walletsViewModel.mapSigners()
         showWallets(wallets)
         showSigners(signers)
         showConnectionBlockchainStatus(state)
@@ -282,7 +284,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun openWalletDetailsScreen(walletId: String) {
-        findNavController().navigate(R.id.walletDetailsFragment, WalletDetailsArgs(walletId).buildBundle())
+        findNavController().navigate(R.id.walletDetailsFragment, WalletDetailsFragmentArgs(walletId).toBundle())
     }
 
     private fun showSigners(signers: List<SignerModel>) {
@@ -305,10 +307,11 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun openSignerInfoScreen(signer: SignerModel) {
-        val isInWallet = walletsViewModel.isInWallet(signer.id)
+        val isInWallet = walletsViewModel.isInWallet(signer)
         navigator.openSignerInfoScreen(
             activityContext = requireActivity(),
             id = signer.id,
+            masterFingerprint = signer.fingerPrint,
             name = signer.name,
             type = signer.type,
             derivationPath = signer.derivationPath,

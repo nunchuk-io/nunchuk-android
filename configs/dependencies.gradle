@@ -23,8 +23,8 @@ ext {
     coroutinesVersion = '1.6.2'
 
     // Plugins versions
-    gradleVersion = '7.2.2'
-    googleServiceVersion = '4.3.4'
+    gradleVersion = '7.3.0'
+    googleServiceVersion = '4.3.10'
     kotlinGradlePluginVersion = '1.7.10'
     kotlinStdlibVersion = '1.7.10'
     pagingVersion = "3.1.1"
@@ -32,7 +32,7 @@ ext {
     hiltVersion = "2.42"
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.1.48'
+    nativeSdkVersion = '1.1.53'
 
     // Matrix
     matrixSdkVersion = '1.4.27'
@@ -47,10 +47,10 @@ ext {
 
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
-    PATCH_VERSION = 19
+    PATCH_VERSION = 20
     TASK_LABEL = "UAT"
 
-    VERSION_CODE = 184
+    VERSION_CODE = 185
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",

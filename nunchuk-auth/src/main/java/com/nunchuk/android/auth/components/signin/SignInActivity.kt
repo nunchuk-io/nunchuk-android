@@ -12,8 +12,6 @@ import com.nunchuk.android.auth.databinding.ActivitySigninBinding
 import com.nunchuk.android.auth.util.getTextTrimmed
 import com.nunchuk.android.auth.util.setUnderlineText
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.guestmode.SignInMode
-import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.network.ApiErrorCode.NEW_DEVICE
 import com.nunchuk.android.core.network.ErrorDetail
 import com.nunchuk.android.core.util.linkify
@@ -23,11 +21,13 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class SignInActivity : BaseActivity<ActivitySigninBinding>() {
-    private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == RESULT_OK) {
-            finish()
+
+    private val signInLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                finish()
+            }
         }
-    }
 
     private val viewModel: SignInViewModel by viewModels()
 
@@ -56,11 +56,15 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                 is PasswordRequiredEvent -> binding.password.setError(getString(R.string.nc_text_required))
                 is PasswordValidEvent -> binding.password.hideError()
                 is SignInErrorEvent -> onSignInError(it.code, it.message.orEmpty(), it.errorDetail)
-                is SignInSuccessEvent -> {
-                    SignInModeHolder.currentMode = SignInMode.NORMAL
-                    openMainScreen(it.token, it.deviceId)
-                }
+                is SignInSuccessEvent -> openMainScreen(it.token, it.deviceId)
                 is ProcessingEvent -> showLoading(false)
+                is CheckPrimaryKeyAccountEvent -> {
+                    if (it.accounts.isNotEmpty()) {
+                        navigator.openPrimaryKeyAccountScreen(this, it.accounts)
+                    } else {
+                        navigator.openPrimaryKeySignInIntroScreen(this)
+                    }
+                }
             }
         }
     }
@@ -100,6 +104,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         }
         binding.signUp.setOnClickListener { onSignUpClick() }
         binding.signIn.setOnClickListener { onSignInClick() }
+        binding.signInPrimaryKey.setOnClickListener { viewModel.checkPrimaryKeyAccounts() }
         binding.forgotPassword.setOnClickListener { onForgotPasswordClick() }
         binding.guestMode.setOnClickListener { onGuestModeClick() }
         binding.tvTermAndPolicy.linkify(

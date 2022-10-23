@@ -2,6 +2,7 @@ package com.nunchuk.android.signer.components.details
 
 import android.content.Context
 import android.nfc.tech.IsoDep
+import android.nfc.tech.Ndef
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
@@ -9,18 +10,14 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.core.util.showOrHideNfcLoading
-import com.nunchuk.android.core.util.showToast
-import com.nunchuk.android.core.util.toReadableDrawable
-import com.nunchuk.android.core.util.toReadableString
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.toSpec
 import com.nunchuk.android.signer.R
-import com.nunchuk.android.signer.components.details.SignerInfoEvent.*
 import com.nunchuk.android.signer.components.details.model.SingerOption
 import com.nunchuk.android.signer.databinding.ActivitySignerInfoBinding
 import com.nunchuk.android.signer.nfc.NfcSetupActivity
@@ -61,7 +58,11 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
 
     private fun onChangeCvcOptionClicked() {
         viewModel.state.value?.masterSigner?.id?.let { masterSignerId ->
-            NfcSetupActivity.navigate(activity = this, setUpAction = NfcSetupActivity.CHANGE_CVC, masterSignerId = masterSignerId)
+            NfcSetupActivity.navigate(
+                activity = this,
+                setUpAction = NfcSetupActivity.CHANGE_CVC,
+                masterSignerId = masterSignerId
+            )
         }
     }
 
@@ -91,39 +92,70 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
 
         lifecycleScope.launchWhenStarted {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
-                nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_VIEW_BACKUP_KEY }.collect {
-                    requestViewBackupKey(it)
-                    nfcViewModel.clearScanInfo()
-                }
+                nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_VIEW_BACKUP_KEY }
+                    .collect {
+                        requestViewBackupKey(it)
+                        nfcViewModel.clearScanInfo()
+                    }
             }
         }
 
         lifecycleScope.launchWhenStarted {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
-                nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_HEALTH_CHECK }.collect {
-                    val isoDep = IsoDep.get(it.tag) ?: return@collect
-                    viewModel.healthCheckTapSigner(isoDep, nfcViewModel.inputCvc.orEmpty(), viewModel.state.value?.masterSigner ?: return@collect)
-                    nfcViewModel.clearScanInfo()
-                }
+                nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_HEALTH_CHECK }
+                    .collect {
+                        val isoDep = IsoDep.get(it.tag) ?: return@collect
+                        viewModel.healthCheckTapSigner(
+                            isoDep,
+                            nfcViewModel.inputCvc.orEmpty(),
+                            viewModel.state.value?.masterSigner ?: return@collect
+                        )
+                        nfcViewModel.clearScanInfo()
+                    }
             }
         }
 
         lifecycleScope.launchWhenStarted {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
-                nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_TOPUP_XPUBS }.collect {
-                    topUpXPubs(it)
-                    nfcViewModel.clearScanInfo()
-                }
+                nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_TOPUP_XPUBS }
+                    .collect {
+                        topUpXPubs(it)
+                        nfcViewModel.clearScanInfo()
+                    }
             }
+        }
+
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_GENERATE_HEAL_CHECK_MSG }) { scanInfo ->
+            viewModel.state.value?.remoteSigner?.let { signer ->
+                viewModel.generateColdcardHealthMessages(
+                    Ndef.get(scanInfo.tag),
+                    signer.derivationPath
+                )
+            }
+            nfcViewModel.clearScanInfo()
+        }
+
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_MK4_IMPORT_SIGNATURE }) {
+            viewModel.state.value?.remoteSigner?.let { signer ->
+                viewModel.healthCheckColdCard(signer, it.records)
+            }
+            nfcViewModel.clearScanInfo()
         }
     }
 
     private fun requestViewBackupKey(nfcScanInfo: NfcScanInfo) {
-        viewModel.getTapSignerBackup(IsoDep.get(nfcScanInfo.tag) ?: return, nfcViewModel.inputCvc.orEmpty())
+        viewModel.getTapSignerBackup(
+            IsoDep.get(nfcScanInfo.tag) ?: return,
+            nfcViewModel.inputCvc.orEmpty()
+        )
     }
 
     private fun topUpXPubs(nfcScanInfo: NfcScanInfo) {
-        viewModel.topUpXpubTapSigner(IsoDep.get(nfcScanInfo.tag) ?: return, nfcViewModel.inputCvc.orEmpty(), args.id)
+        viewModel.topUpXpubTapSigner(
+            IsoDep.get(nfcScanInfo.tag) ?: return,
+            nfcViewModel.inputCvc.orEmpty(),
+            args.id
+        )
     }
 
     private fun handleState(state: SignerInfoState) {
@@ -137,60 +169,72 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     }
 
     private fun bindMasterSigner(signer: MasterSigner) {
+        val isPrimaryKey = isPrimaryKey(signer.device.masterFingerprint)
         binding.signerName.text = signer.name
-        binding.signerTypeIcon.setImageDrawable(signer.type.toReadableDrawable(this))
+        binding.signerTypeIcon.setImageDrawable(signer.type.toReadableDrawable(this, isPrimaryKey))
         binding.fingerprint.isVisible = true
         binding.fingerprint.text = signer.device.masterFingerprint
         binding.signerSpec.isVisible = false
-        binding.signerType.text = signer.type.toReadableString(this)
+        binding.signerType.text = signer.type.toReadableString(this, false)
+        binding.signerPrimaryKeyType.isVisible = isPrimaryKey
     }
 
     private fun bindRemoteSigner(signer: SingleSigner) {
         binding.signerName.text = signer.name
-        binding.signerTypeIcon.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_air_signer_big))
+        binding.signerTypeIcon.setImageDrawable(
+            ContextCompat.getDrawable(
+                this,
+                R.drawable.ic_air_signer_big
+            )
+        )
         binding.signerSpec.isVisible = true
-        binding.signerSpec.text = signer.toSpec()
+        binding.signerSpec.text = signer.descriptor
         binding.fingerprint.isVisible = false
-        binding.signerType.text = signer.type.toReadableString(this)
+        binding.signerType.text = signer.type.toReadableString(this, isPrimaryKey(signer.masterSignerId))
     }
 
     private fun handleEvent(event: SignerInfoEvent) {
-        showOrHideNfcLoading(event is NfcLoading)
+        showOrHideNfcLoading(event is SignerInfoEvent.NfcLoading)
         when (event) {
-            is UpdateNameSuccessEvent -> {
+            is SignerInfoEvent.UpdateNameSuccessEvent -> {
                 binding.signerName.text = event.signerName
                 showEditSignerNameSuccess()
             }
-            RemoveSignerCompletedEvent -> openMainScreen()
-            is RemoveSignerErrorEvent -> showToast(event.message)
-            is UpdateNameErrorEvent -> showToast(event.message)
-            is HealthCheckErrorEvent -> {
+            SignerInfoEvent.RemoveSignerCompletedEvent -> finish()
+            is SignerInfoEvent.RemoveSignerErrorEvent -> showToast(event.message)
+            is SignerInfoEvent.UpdateNameErrorEvent -> showToast(event.message)
+            is SignerInfoEvent.HealthCheckErrorEvent -> {
                 if (nfcViewModel.handleNfcError(event.e).not()) showHealthCheckError(event)
             }
-            is HealthCheckSuccessEvent -> NCToastMessage(this).showMessage(
-                message = getString(R.string.nc_txt_run_health_check_success_event, binding.signerName.text),
+            SignerInfoEvent.HealthCheckSuccessEvent -> NCToastMessage(this).showMessage(
+                message = getString(
+                    R.string.nc_txt_run_health_check_success_event,
+                    binding.signerName.text
+                ),
                 icon = R.drawable.ic_check_circle_outline
             )
-            is GetTapSignerBackupKeyEvent -> IntentSharingController.from(this).shareFile(event.backupKeyPath)
-            is GetTapSignerBackupKeyError -> {
+            is SignerInfoEvent.GetTapSignerBackupKeyEvent -> IntentSharingController.from(this)
+                .shareFile(event.backupKeyPath)
+            is SignerInfoEvent.NfcError -> {
                 if (nfcViewModel.handleNfcError(event.e).not()) {
-                    val message = event.e?.message ?: getString(R.string.nc_backup_key_failed)
+                    val message = event.e?.message.orUnknownError()
                     NCToastMessage(this).showError(message)
                 }
             }
-            TopUpXpubSuccess -> NCToastMessage(this).showMessage(
+            SignerInfoEvent.TopUpXpubSuccess -> NCToastMessage(this).showMessage(
                 message = getString(R.string.nc_xpub_topped_up),
                 icon = R.drawable.ic_check_circle_outline
             )
-            is TopUpXpubFailed -> {
+            is SignerInfoEvent.TopUpXpubFailed -> {
                 val message = event.e?.message ?: getString(R.string.nc_topup_xpub_failed)
                 NCToastMessage(this).showError(message)
             }
-            else -> {}
+            SignerInfoEvent.GenerateColdcardHealthMessagesSuccess -> startNfcFlow(REQUEST_MK4_IMPORT_SIGNATURE)
+            SignerInfoEvent.NfcLoading -> showOrHideNfcLoading(true)
         }
     }
 
-    private fun showHealthCheckError(event: HealthCheckErrorEvent) {
+    private fun showHealthCheckError(event: SignerInfoEvent.HealthCheckErrorEvent) {
         if (event.message.isNullOrEmpty()) {
             val errorMessage = if (event.e?.message.isNullOrEmpty()) {
                 getString(
@@ -207,9 +251,13 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     }
 
     private fun setupViews() {
-        binding.btnHealthCheck.isVisible = args.signerType != SignerType.COLDCARD_NFC
         binding.signerName.text = args.name
-        if (args.justAdded) {
+        if (args.isReplacePrimaryKey) {
+            NCToastMessage(this).showMessage(
+                message = getString(R.string.nc_replace_primary_key_success),
+                icon = R.drawable.ic_check_circle_outline
+            )
+        } else if (args.justAdded) {
             NCToastMessage(this).showMessage(
                 message = getString(R.string.nc_text_add_signer_success, args.name),
                 icon = R.drawable.ic_check_circle_outline
@@ -223,7 +271,6 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
             }
         }
         binding.btnDone.isVisible = args.justAdded
-        binding.signerType.text = args.signerType.toReadableString(this)
         binding.toolbar.setNavigationOnClickListener { openMainScreen() }
         binding.toolbar.setOnMenuItemClickListener {
             if (it.itemId == R.id.menu_more) {
@@ -243,8 +290,9 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
 
     private fun handleRunHealthCheck() {
         val masterSigner = viewModel.state.value?.masterSigner
+        val remoteSigner = viewModel.state.value?.remoteSigner
         if (masterSigner != null) {
-            if (masterSigner.type == SignerType.NFC) {
+            if (args.signerType == SignerType.NFC) {
                 startNfcFlow(REQUEST_NFC_HEALTH_CHECK)
             } else if (masterSigner.software) {
                 if (masterSigner.device.needPassPhraseSent) {
@@ -256,11 +304,15 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
                     viewModel.handleHealthCheck(masterSigner)
                 }
             }
+        } else if (remoteSigner != null) {
+            if (args.signerType == SignerType.COLDCARD_NFC) {
+                startNfcFlow(REQUEST_GENERATE_HEAL_CHECK_MSG)
+            }
         }
     }
 
     private fun openMainScreen() {
-        finish()
+        navigator.returnToMainScreen()
     }
 
     private fun onEditClicked() {
@@ -280,17 +332,24 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
         }
     }
 
+    private fun isPrimaryKey(xfp: String): Boolean {
+        val accountInfo = accountManager.getAccount()
+        return accountInfo.loginType == SignInMode.PRIMARY_KEY.value && accountInfo.primaryKeyInfo?.xfp == xfp
+    }
+
     companion object {
 
         fun start(
             activityContext: Context,
             id: String,
+            masterFingerprint: String,
             name: String,
             type: SignerType,
             derivationPath: String,
             justAdded: Boolean = false,
             setPassphrase: Boolean = false,
-            isInWallet: Boolean
+            isInWallet: Boolean,
+            isReplacePrimaryKey: Boolean = false
         ) {
             activityContext.startActivity(
                 SignerInfoArgs(
@@ -300,7 +359,9 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
                     justAdded = justAdded,
                     signerType = type,
                     setPassphrase = setPassphrase,
-                    isInWallet = isInWallet
+                    masterFingerprint = masterFingerprint,
+                    isInWallet = isInWallet,
+                    isReplacePrimaryKey = isReplacePrimaryKey
                 ).buildIntent(activityContext)
             )
         }

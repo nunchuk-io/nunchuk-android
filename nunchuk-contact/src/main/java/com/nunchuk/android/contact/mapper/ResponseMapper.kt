@@ -12,7 +12,9 @@ internal fun UserResponse.toModel() = Contact(
     gender = gender.orEmpty(),
     avatar = avatar.orEmpty(),
     status = status.orEmpty(),
-    chatId = chatId
+    chatId = chatId,
+    loginType = loginType.orEmpty(),
+    username = username.orEmpty()
 )
 
 internal fun List<UserResponse>.toSentContacts() = map { SentContact(it.toModel()) }

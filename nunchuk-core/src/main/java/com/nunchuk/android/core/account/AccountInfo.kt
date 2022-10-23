@@ -1,6 +1,7 @@
 package com.nunchuk.android.core.account
 
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.core.guestmode.SignInMode
 
 data class AccountInfo(
     @SerializedName("email")
@@ -18,5 +19,16 @@ data class AccountInfo(
     @SerializedName("avatar_url")
     val avatarUrl: String? = "",
     @SerializedName("device_id")
-    val deviceId: String? = ""
+    val deviceId: String? = "",
+    @SerializedName("login_type")
+    val loginType: Int = SignInMode.UNKNOWN.value,
+    @SerializedName("username")
+    val username: String = "",
+    @SerializedName("primary_key_info")
+    val primaryKeyInfo: PrimaryKeyInfo? = null
+)
+
+data class PrimaryKeyInfo(
+    @SerializedName("xfp")
+    val xfp: String = ""
 )

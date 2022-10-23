@@ -37,7 +37,7 @@
         android:textColor="@color/nc_black_color"
         android:textSize="@dimen/nc_text_size_20"
         app:fontTextStyle="semi_bold"
-        app:layout_constraintBottom_toBottomOf="@+id/email"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Z" />
@@ -49,8 +49,10 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         app:fontTextStyle="semi_bold"
+        app:layout_constraintBottom_toTopOf="@+id/email"
         app:layout_constraintStart_toEndOf="@+id/avatar"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/avatar"
+        app:layout_constraintVertical_chainStyle="spread"
         tools:text="Hugo Nguyen" />
 
     <com.nunchuk.android.widget.NCFontTextView
@@ -60,6 +62,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_4"
+        app:layout_constraintBottom_toBottomOf="@id/avatar"
         app:layout_constraintStart_toEndOf="@+id/avatar"
         app:layout_constraintTop_toBottomOf="@+id/name"
         tools:text="hugonguyen@gmail.com" />

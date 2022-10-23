@@ -7,9 +7,14 @@ import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.signer.PrimaryKeyFlow
 import com.nunchuk.android.core.util.bindEnableState
 import com.nunchuk.android.signer.software.R
-import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.*
+import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.CanGoNextStepEvent
+import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.InvalidMnemonicEvent
+import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.MnemonicRequiredEvent
+import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.UpdateMnemonicEvent
+import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.ValidMnemonicEvent
 import com.nunchuk.android.signer.software.databinding.ActivityRecoverSeedBinding
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.heightExtended
@@ -47,7 +52,27 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
         when (event) {
             MnemonicRequiredEvent -> binding.mnemonic.setError(getString(R.string.nc_text_required))
             InvalidMnemonicEvent -> binding.mnemonic.setError(getString(R.string.nc_error_invalid_signer_spec))
-            is ValidMnemonicEvent -> navigator.openAddSoftwareSignerNameScreen(this, event.mnemonic)
+            is ValidMnemonicEvent -> {
+                when (val primaryKeyFlow =
+                    intent.getIntExtra(EXTRA_PRIMARY_KEY_FLOW, PrimaryKeyFlow.NONE)) {
+                    PrimaryKeyFlow.SIGN_IN -> {
+                        navigator.openPrimaryKeyEnterPassphraseScreen(
+                            this,
+                            event.mnemonic,
+                            primaryKeyFlow
+                        )
+                    }
+                    else -> {
+                        val passphrase = intent.getStringExtra(EXTRA_PASSPHRASE).orEmpty()
+                        navigator.openAddSoftwareSignerNameScreen(
+                            this,
+                            mnemonic = event.mnemonic,
+                            passphrase = passphrase,
+                            primaryKeyFlow = primaryKeyFlow
+                        )
+                    }
+                }
+            }
             is UpdateMnemonicEvent -> updateMnemonic(event.mnemonic)
             is CanGoNextStepEvent -> binding.btnContinue.bindEnableState(event.canGoNext)
         }
@@ -63,7 +88,8 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
         binding.mnemonic.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_120))
         binding.mnemonic.addTextChangedCallback(viewModel::handleInputEvent)
         adapter = RecoverSeedSuggestionAdapter(viewModel::handleSelectWord)
-        binding.recyclerView.layoutManager = LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)
+        binding.recyclerView.layoutManager =
+            LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)
         binding.recyclerView.adapter = adapter
         binding.toolbar.setNavigationOnClickListener {
             finish()
@@ -74,8 +100,24 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
     }
 
     companion object {
-        fun start(activityContext: Context) {
-            activityContext.startActivity(Intent(activityContext, RecoverSeedActivity::class.java))
+        private const val EXTRA_PRIMARY_KEY_FLOW = "EXTRA_PRIMARY_KEY_FLOW"
+        private const val EXTRA_PASSPHRASE = "EXTRA_PASSPHRASE"
+
+        fun start(activityContext: Context, passphrase: String, primaryKeyFlow: Int) {
+            activityContext.startActivity(
+                Intent(
+                    activityContext,
+                    RecoverSeedActivity::class.java
+                ).apply {
+                    putExtra(
+                        EXTRA_PRIMARY_KEY_FLOW,
+                        primaryKeyFlow
+                    )
+                    putExtra(
+                        EXTRA_PASSPHRASE,
+                        passphrase
+                    )
+                })
         }
     }
 

@@ -22,14 +22,29 @@ import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.guestmode.isPrimaryKey
+import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
+import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.isPermissionGranted
+import com.nunchuk.android.core.util.loadImage
+import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.core.util.pickPhotoWithResult
+import com.nunchuk.android.core.util.shorten
+import com.nunchuk.android.core.util.showAlertDialog
+import com.nunchuk.android.core.util.showLoading
+import com.nunchuk.android.core.util.startActivityAppSetting
+import com.nunchuk.android.core.util.takePhotoWithResult
 import com.nunchuk.android.settings.AccountEvent.SignOutEvent
 import com.nunchuk.android.settings.databinding.FragmentAccountBinding
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.ByteArrayOutputStream
+import javax.inject.Inject
 
 @AndroidEntryPoint
 internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
+
+    @Inject
+    lateinit var signInModeHolder: SignInModeHolder
 
     private val viewModel: AccountViewModel by activityViewModels()
 
@@ -64,13 +79,25 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
         binding.avatarHolder.isInvisible = state.account.avatarUrl?.isNotEmpty().orFalse()
 
         binding.name.text = state.account.name
-        binding.email.text = state.account.email
+        if (signInModeHolder.getCurrentMode().isPrimaryKey()) {
+            binding.primaryTag.isVisible = true
+            binding.subContent.isVisible = state.account.primaryKeyInfo?.xfp.isNullOrBlank().not()
+            binding.subContent.text =
+                String.format(
+                    getString(R.string.nc_primary_key_account_xfp),
+                    state.account.primaryKeyInfo?.xfp
+                )
+            binding.name.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
+            binding.name.isClickable = false
+        } else {
+            binding.subContent.text = state.account.email
+        }
 
         binding.layoutSync.root.isVisible = state.isSyncing()
         binding.layoutSync.tvSyncingPercent.text = "${state.syncProgress}%"
         binding.layoutSync.progressBarSyncing.progress = state.syncProgress
 
-        val isGuestMode = SignInModeHolder.currentMode.isGuestMode()
+        val isGuestMode = signInModeHolder.getCurrentMode().isGuestMode()
         binding.btnSignOut.isVisible = !isGuestMode
         binding.signIn.isVisible = isGuestMode
         binding.signUp.isVisible = isGuestMode
@@ -184,10 +211,10 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
         binding.name.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             binding.name.setTextAppearance(R.style.NCText_Title)
-            binding.email.setTextAppearance(R.style.NCText_Body)
+            binding.subContent.setTextAppearance(R.style.NCText_Body)
         }
         binding.name.text = getString(R.string.nc_do_more_with_nunchuk)
-        binding.email.text = getString(R.string.nc_create_account_to_take_advantage)
+        binding.subContent.text = getString(R.string.nc_create_account_to_take_advantage)
     }
 
     private fun openAlbum() {
@@ -213,7 +240,9 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
 
             REQUEST_SELECT_PHOTO_CODE -> {
                 data?.data?.let {
-                    val bitmap = BitmapFactory.decodeStream(requireActivity().contentResolver.openInputStream(it))
+                    val bitmap = BitmapFactory.decodeStream(
+                        requireActivity().contentResolver.openInputStream(it)
+                    )
                     uploadPhotoData(bitmap)
                 }
             }
@@ -235,8 +264,17 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
         }
 
         when (code) {
-            REQUEST_PERMISSION_SELECT_PHOTO_CODE -> requestPermissions(arrayOf(WRITE_EXTERNAL_STORAGE), code)
-            REQUEST_PERMISSION_TAKE_PHOTO_CODE -> requestPermissions(arrayOf(WRITE_EXTERNAL_STORAGE, CAMERA), code)
+            REQUEST_PERMISSION_SELECT_PHOTO_CODE -> requestPermissions(
+                arrayOf(
+                    WRITE_EXTERNAL_STORAGE
+                ), code
+            )
+            REQUEST_PERMISSION_TAKE_PHOTO_CODE -> requestPermissions(
+                arrayOf(
+                    WRITE_EXTERNAL_STORAGE,
+                    CAMERA
+                ), code
+            )
             else -> {
             }
         }
@@ -244,12 +282,19 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
 
     // TODO: refactor with registerForActivityResult later
     @RequiresApi(Build.VERSION_CODES.M)
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_PERMISSION_TAKE_PHOTO_CODE || requestCode == REQUEST_PERMISSION_SELECT_PHOTO_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 handlePermissionGranted(requestCode)
-            } else if (shouldShowRequestPermissionRationale(WRITE_EXTERNAL_STORAGE) || shouldShowRequestPermissionRationale(CAMERA)) {
+            } else if (shouldShowRequestPermissionRationale(WRITE_EXTERNAL_STORAGE) || shouldShowRequestPermissionRationale(
+                    CAMERA
+                )
+            ) {
                 showAlertPermissionNotGranted(requestCode)
             } else {
                 showAlertPermissionDeniedPermanently()
@@ -311,14 +356,18 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
         binding.network.setOnClickListener { changeNetworkSetting() }
         binding.about.setOnClickListener { openAboutScreen() }
         binding.developerMode.setOnClickListener { openDeveloperScreen() }
-        if (SignInModeHolder.currentMode.isGuestMode()) {
+        if (signInModeHolder.getCurrentMode().isGuestMode()) {
             binding.name.setOnClickListener(null)
             binding.takePicture.setOnClickListener(null)
             binding.accountSettings.setOnClickListener(null)
         } else {
             binding.name.setOnClickListener { editName() }
             binding.takePicture.setOnClickListener { changeAvatar() }
-            binding.accountSettings.setOnClickListener { AccountSettingActivity.start(requireActivity()) }
+            binding.accountSettings.setOnClickListener {
+                AccountSettingActivity.start(
+                    requireActivity()
+                )
+            }
         }
     }
 

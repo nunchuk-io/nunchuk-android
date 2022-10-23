@@ -89,7 +89,7 @@ class ContactsViewModel @Inject constructor(
         }
     }
 
-    private fun onUpdateReceivedContactRequestCount(count: Int) = postState {
+    private fun onUpdateReceivedContactRequestCount(count: Int) = updateState {
         copy(receivedContactRequestCount = count)
     }
 

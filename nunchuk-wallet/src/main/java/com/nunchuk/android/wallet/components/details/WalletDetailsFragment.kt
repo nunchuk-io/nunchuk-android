@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.navArgs
 import androidx.paging.CombinedLoadStates
 import androidx.paging.LoadState
 import androidx.paging.PagingData
@@ -29,6 +30,8 @@ import com.nunchuk.android.core.util.*
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.components.config.WalletConfigAction
+import com.nunchuk.android.wallet.components.config.WalletConfigActivity
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import com.nunchuk.android.wallet.databinding.FragmentWalletDetailBinding
 import com.nunchuk.android.widget.NCToastMessage
@@ -54,8 +57,12 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
 
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == Activity.RESULT_OK) {
-                activity?.onBackPressed()
+            val data = it.data
+            if (it.resultCode == Activity.RESULT_OK && data != null) {
+                when (data.getSerializableExtra(WalletConfigActivity.EXTRA_WALLET_ACTION) as WalletConfigAction) {
+                    WalletConfigAction.DELETE -> activity?.onBackPressed()
+                    WalletConfigAction.UPDATE_NAME -> viewModel.getWalletDetails(false)
+                }
             }
         }
 
@@ -78,7 +85,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         }
     }
 
-    private val args: WalletDetailsArgs by lazy { WalletDetailsArgs.deserializeFrom(requireArguments()) }
+    private val args: WalletDetailsFragmentArgs by navArgs()
 
     override fun initializeBinding(
         inflater: LayoutInflater, container: ViewGroup?
@@ -88,25 +95,11 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
 
     private var job: Job? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        if (args.isSweepBalance) {
-            NCToastMessage(requireActivity()).show(getString(R.string.nc_satscard_sweeped))
-        }
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         setupViews()
         observeEvent()
-        viewModel.init(args.walletId, args.isSweepBalance)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        showLoading()
-        viewModel.syncData()
     }
 
     override fun onOptionClicked(option: SheetOption) {

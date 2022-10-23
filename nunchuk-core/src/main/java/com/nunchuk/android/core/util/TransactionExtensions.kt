@@ -10,6 +10,8 @@ fun TransactionStatus.hadBroadcast() = this == CONFIRMED || this == NETWORK_REJE
 
 fun TransactionStatus.isPending() = this == PENDING_SIGNATURES || this == READY_TO_BROADCAST
 
+fun TransactionStatus.isRejected() = this == NETWORK_REJECTED
+
 fun TransactionStatus.isPendingConfirm() = this == PENDING_CONFIRMATION
 
 fun TransactionStatus.isConfirmed() = this == CONFIRMED

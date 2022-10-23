@@ -81,13 +81,12 @@
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginBottom="14dp"
         android:paddingHorizontal="@dimen/nc_text_size_8"
         android:scrollbars="vertical"
-        app:layout_constraintBottom_toTopOf="@id/editText"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_barrier"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/divider"
+        app:layout_constraintTop_toBottomOf="@+id/divider"
         tools:listitem="@layout/item_wallet_card" />
 
     <com.nunchuk.android.widget.NCFontEditText
@@ -103,7 +102,6 @@
         android:maxLines="2"
         android:minLines="2"
         android:padding="@dimen/nc_padding_12"
-        android:textColor="@color/nc_grey_color"
         android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/send"
@@ -168,6 +166,13 @@
         app:layout_constraintTop_toTopOf="@+id/editText"
         tools:visibility="visible" />
 
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/bottom_barrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="top"
+        app:constraint_referenced_ids="clMessageAction, editText"/>
+
     <ImageView
         android:id="@+id/send"
         android:layout_width="wrap_content"
@@ -178,14 +183,25 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/editText" />
 
-    <ViewStub
-        android:id="@+id/viewStubSelectMessageAction"
-        android:layout_width="0dp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clMessageAction"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:layout="@layout/layout_select_message_action"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:background="@color/nc_white_color"
+        android:elevation="@dimen/nc_padding_8"
+        android:padding="@dimen/nc_padding_16"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/btnCopy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_copy"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

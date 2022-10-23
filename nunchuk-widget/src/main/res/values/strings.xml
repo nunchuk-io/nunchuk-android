@@ -19,12 +19,16 @@
     <string name="nc_text_confirmation">Confirmation</string>
     <string name="nc_text_waiting">Please wait…</string>
 
-    <string name="nc_export_as_qr_keystone">Export to Keystone/SeedSigner as QR code</string>
+    <string name="nc_export_as_qr_keystone">Export to Keystone/SeedSigner/Jade as QR code</string>
     <string name="nc_export_as_passport">Export to Passport as QR code</string>
     <string name="nc_text_shared">Collaborative</string>
     <string name="nc_text_created">Created</string>
     <string name="nc_text_canceled">Canceled</string>
     <string name="nc_text_completed">Completed</string>
     <string name="nc_confirmation">Confirmation</string>
-    <string name="nc_delete_account">Are you sure you want to delete this account? Please type DELETE to confirm.</string>
+    <string name="nc_delete_account">Are you sure you want to delete this account? All your keys and wallets will be removed. Please make sure that you have backups.\n\nPlease type DELETE to confirm.</string>
+    <string name="nc_text_stay_sign_in">Stay signed in</string>
+    <string name="nc_text_signed_in_with_data">Signed in with %s</string>
+    <string name="nc_text_key_has_been_added_data">%s has been added</string>
+    <string name="nc_please_wait">Please wait…</string>
 </resources>

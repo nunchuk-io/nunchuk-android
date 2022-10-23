@@ -91,7 +91,7 @@ class ContactsFragment : BaseFragment<FragmentContactsBinding>() {
     }
 
     private fun bindPendingContact(contact: Contact) {
-        binding.email.text = contact.email
+        binding.email.text = if (contact.isLoginInPrimaryKey()) contact.name else contact.email
         binding.avatar.text = "${contact.name.first()}"
     }
 

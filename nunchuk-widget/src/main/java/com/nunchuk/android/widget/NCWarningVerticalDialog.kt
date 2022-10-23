@@ -35,6 +35,7 @@ class NCWarningVerticalDialog @Inject constructor(
         binding.message.text = message
         binding.btnNeutral.text = btnNeutral
         binding.btnNeutral.isVisible = btnNeutral.isNotEmpty()
+        binding.btnNo.isVisible = btnNo.isNotEmpty()
         binding.btnYes.setOnClickListener {
             onYesClick()
             dismiss()

@@ -17,7 +17,7 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 internal interface AppCommonModule {
     @Binds
-    fun bindApplicationContext(application: Application) : Context
+    fun bindApplicationContext(application: Application): Context
 
     @Binds
     fun bindAppInfoProvider(nav: AppInfoProviderImpl): AppInfoProvider

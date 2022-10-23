@@ -62,10 +62,14 @@ class AddNfcNameFragment : BaseFragment<FragmentAddNameKeyBinding>() {
         lifecycleScope.launchWhenCreated {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.event.collect { state ->
-                    showOrHideLoading(state is AddNfcNameState.Loading, message = getString(R.string.nc_keep_holding_nfc))
+                    showOrHideLoading(
+                        state is AddNfcNameState.Loading,
+                        message = getString(R.string.nc_keep_holding_nfc)
+                    )
                     if (state is AddNfcNameState.Success) {
                         navigator.openSignerInfoScreen(
                             activityContext = requireActivity(),
+                            masterFingerprint = state.masterSigner.device.masterFingerprint,
                             id = state.masterSigner.id,
                             name = state.masterSigner.name,
                             type = state.masterSigner.type,
@@ -74,7 +78,9 @@ class AddNfcNameFragment : BaseFragment<FragmentAddNameKeyBinding>() {
                         requireActivity().finish()
                     } else if (state is AddNfcNameState.Error) {
                         if (nfcViewModel.handleNfcError(state.e).not()) {
-                            NCToastMessage(requireActivity()).showError(state.e?.message?.orUnknownError().orEmpty())
+                            NCToastMessage(requireActivity()).showError(
+                                state.e?.message?.orUnknownError().orEmpty()
+                            )
                         }
                     } else if (state is AddNfcNameState.UpdateError) {
                         NCToastMessage(requireActivity()).showError(state.e?.message.orEmpty())
@@ -85,7 +91,8 @@ class AddNfcNameFragment : BaseFragment<FragmentAddNameKeyBinding>() {
     }
 
     private fun initViews() {
-        binding.signerName.getEditTextView().setText(nfcViewModel.masterSigner?.name ?: NFC_DEFAULT_NAME)
+        binding.signerName.getEditTextView()
+            .setText(nfcViewModel.masterSigner?.name ?: NFC_DEFAULT_NAME)
         binding.signerName.setMaxLength(20)
     }
 

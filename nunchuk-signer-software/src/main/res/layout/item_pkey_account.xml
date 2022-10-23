@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/nc_padding_16"
+    android:paddingVertical="@dimen/nc_padding_12">
+
+    <ImageView
+        android:id="@+id/icSS"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/nc_circle_whisper_background"
+        android:padding="@dimen/nc_padding_12"
+        android:src="@drawable/ic_logo_dark_small"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/textKeyName"
+        style="@style/NCText.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_8"
+        android:layout_marginEnd="@dimen/nc_padding_16"
+        android:gravity="start"
+        app:layout_constraintEnd_toStartOf="@+id/icSArrow"
+        app:layout_constraintStart_toEndOf="@+id/icSS"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="[Primary Key Name]" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/textUserName"
+        style="@style/NCText.Body.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="@dimen/nc_padding_16"
+        android:gravity="start"
+        app:layout_constraintEnd_toStartOf="@+id/icSArrow"
+        app:layout_constraintStart_toStartOf="@+id/textKeyName"
+        app:layout_constraintTop_toBottomOf="@+id/textKeyName"
+        tools:text="[username’s username]" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/textXFP"
+        style="@style/NCText.Body.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="@dimen/nc_padding_16"
+        android:gravity="start"
+        app:layout_constraintStart_toStartOf="@+id/textKeyName"
+        app:layout_constraintTop_toBottomOf="@+id/textUserName"
+        tools:text="[XFP:123456]" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/signerType"
+        style="@style/NCText.Badges"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_8"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:background="@drawable/nc_rounded_tag_whisper_background"
+        android:text="@string/nc_signer_type_software"
+        app:layout_constraintBaseline_toBaselineOf="@+id/textXFP"
+        app:layout_constraintStart_toEndOf="@+id/textXFP" />
+
+    <ImageView
+        android:id="@+id/icSArrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/nc_padding_16"
+        android:src="@drawable/ic_arrow"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

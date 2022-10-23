@@ -1,7 +1,9 @@
 package com.nunchuk.android.transaction.components.export
 
+import android.content.res.Resources
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.qr.convertToQRCode
 import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Result.Error
@@ -17,6 +19,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,7 +28,7 @@ internal class ExportTransactionViewModel @Inject constructor(
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val exportTransactionUseCase: ExportTransactionUseCase,
     private val exportPassportTransactionUseCase: ExportPassportTransactionUseCase,
-    private val exportKeystoneTransactionUseCase: ExportKeystoneTransactionUseCase
+    private val exportKeystoneTransactionUseCase: ExportKeystoneTransactionUseCase,
 ) : NunchukViewModel<ExportTransactionState, ExportTransactionEvent>() {
 
     private lateinit var walletId: String
@@ -69,23 +72,30 @@ internal class ExportTransactionViewModel @Inject constructor(
     }
 
     private fun exportTransactionToQRs() {
+        val qrSize = getQrSize()
         viewModelScope.launch {
             exportKeystoneTransactionUseCase.execute(walletId, txId)
+                .map { it.mapNotNull { qrCode -> qrCode.convertToQRCode(qrSize, qrSize) } }
                 .flowOn(IO)
                 .onException { event(ExportTransactionError(it.message.orUnknownError())) }
                 .flowOn(Main)
-                .collect { updateState { copy(qrcode = it) } }
+                .collect { updateState { copy(qrCodeBitmap = it) } }
         }
     }
 
     private fun exportPassportTransaction() {
+        val qrSize = getQrSize()
         viewModelScope.launch {
             exportPassportTransactionUseCase.execute(walletId, txId)
+                .map { it.mapNotNull { qrCode -> qrCode.convertToQRCode(qrSize, qrSize) } }
                 .flowOn(IO)
                 .onException { event(ExportTransactionError(it.message.orUnknownError())) }
                 .flowOn(Main)
-                .collect { updateState { copy(qrcode = it) } }
+                .collect { updateState { copy(qrCodeBitmap = it) } }
         }
     }
 
+    private fun getQrSize(): Int {
+        return Resources.getSystem().displayMetrics.widthPixels
+    }
 }

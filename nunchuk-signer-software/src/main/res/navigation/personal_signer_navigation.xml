@@ -14,6 +14,14 @@
             android:name="is_quick_wallet"
             android:defaultValue="false"
             app:argType="boolean" />
+        <argument
+            android:name="primary_key_flow"
+            android:defaultValue="0"
+            app:argType="integer" />
+        <argument
+            android:name="passphrase"
+            app:argType="string"
+            android:defaultValue=""/>
         <action
             android:id="@+id/action_createNewSeedFragment_to_confirmSeedFragment"
             app:destination="@id/confirmSeedFragment"
@@ -31,10 +39,17 @@
             android:name="is_quick_wallet"
             android:defaultValue="false"
             app:argType="boolean" />
-
         <argument
             android:name="mnemonic"
             app:argType="string" />
+        <argument
+            android:name="primary_key_flow"
+            android:defaultValue="0"
+            app:argType="integer" />
+        <argument
+            android:name="passphrase"
+            app:argType="string"
+            android:defaultValue=""/>
 
         <action
             android:id="@+id/action_confirmSeedFragment_to_setPassphraseFragment"
@@ -53,12 +68,20 @@
             android:name="mnemonic"
             app:argType="string" />
         <argument
+            android:name="passphrase"
+            app:argType="string"
+            android:defaultValue=""/>
+        <argument
             android:name="signerName"
             app:argType="string" />
         <argument
             android:name="is_quick_wallet"
             android:defaultValue="false"
             app:argType="boolean" />
+        <argument
+            android:name="primary_key_flow"
+            android:defaultValue="0"
+            app:argType="integer" />
     </fragment>
 
 

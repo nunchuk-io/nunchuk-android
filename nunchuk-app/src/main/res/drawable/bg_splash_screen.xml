@@ -6,10 +6,9 @@
         </shape>
     </item>
 
-    <item android:bottom="@dimen/nc_padding_24">
-        <bitmap
-            android:gravity="center"
-            android:src="@drawable/ic_splash" />
-    </item>
+    <item
+        android:bottom="@dimen/nc_padding_24"
+        android:drawable="@drawable/ic_logo_vertical_light"
+        android:gravity="center" />
 
 </layer-list>

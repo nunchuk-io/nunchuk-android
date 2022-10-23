@@ -4,6 +4,7 @@
     <string name="nc_settings_unit">Display unit (%1$s)</string>
     <string name="nc_settings_network">Network settings</string>
     <string name="nc_settings_change_password">Change password</string>
+    <string name="nc_settings_replace_primary_key">Replace Primary Key</string>
     <string name="nc_settings_logged_in_devices">Logged-in devices</string>
     <string name="nc_settings_enable_sync">Multi-device sync (experimental)</string>
     <string name="nc_settings_delete_account">Delete account</string>

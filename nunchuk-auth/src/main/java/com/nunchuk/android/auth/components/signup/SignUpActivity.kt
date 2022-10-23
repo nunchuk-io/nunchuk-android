@@ -11,6 +11,7 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.linkify
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showToast
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -30,8 +31,9 @@ class SignUpActivity : BaseActivity<ActivitySignupBinding>() {
     }
 
     private fun setupViews() {
-        binding.signUp.setOnClickListener { onRegisterClicked() }
-        binding.signIn.setOnClickListener { openLoginScreen() }
+        binding.signUp.setOnDebounceClickListener { onRegisterClicked() }
+        binding.signIn.setOnDebounceClickListener { openLoginScreen() }
+        binding.signUpPrimaryKey.setOnDebounceClickListener { openSignUpPrimaryKeyScreen() }
 
         binding.tvTermAndPolicy.linkify(getString(R.string.nc_hyperlink_text_term), TERM_URL)
         binding.tvTermAndPolicy.linkify(getString(R.string.nc_hyperlink_text_policy), PRIVACY_URL)
@@ -90,6 +92,11 @@ class SignUpActivity : BaseActivity<ActivitySignupBinding>() {
     private fun openLoginScreen() {
         finish()
         navigator.openSignInScreen(this)
+    }
+
+    private fun openSignUpPrimaryKeyScreen() {
+        finish()
+        navigator.openPrimaryKeyIntroScreen(this)
     }
 
     private fun openChangePasswordScreen() {

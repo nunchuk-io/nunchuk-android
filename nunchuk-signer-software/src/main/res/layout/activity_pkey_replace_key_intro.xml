@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        style="@style/NCToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_back">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/toolbarTitle"
+            style="@style/NCToolbar.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/nc_replace_primary_key" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <ImageView
+        android:id="@+id/replacePKIcon"
+        android:layout_width="96dp"
+        android:layout_height="97dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:background="@drawable/nc_circle_white_background"
+        android:padding="@dimen/nc_padding_22"
+        android:src="@drawable/ic_replace_primary_key"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/guidelineStepText"
+        style="@style/NCText.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:gravity="center"
+        android:text="@string/nc_replace_primary_key_step_guide"
+        app:layout_constraintTop_toBottomOf="@+id/replacePKIcon" />
+
+    <com.nunchuk.android.widget.NCLabelWithNumber
+        android:id="@+id/number1Text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        app:bold="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/guidelineStepText"
+        app:pos="1" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/step1Text"
+        style="@style/NCText.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_12"
+        android:layout_marginEnd="@dimen/nc_padding_16"
+        android:text="@string/nc_replace_primary_key_step_1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/number1Text"
+        app:layout_constraintTop_toTopOf="@+id/number1Text" />
+
+    <com.nunchuk.android.widget.NCLabelWithNumber
+        android:id="@+id/number2Text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        app:bold="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/step1Text"
+        app:pos="2" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/step2Text"
+        style="@style/NCText.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_12"
+        android:layout_marginEnd="@dimen/nc_padding_16"
+        android:text="@string/nc_replace_primary_key_step_2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/number2Text"
+        app:layout_constraintTop_toTopOf="@+id/number2Text" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/primaryKeyNote"
+        style="@style/NCText.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textColor="@color/nc_beeswax_dark"
+        android:text="@string/nc_replace_primary_key_note"
+        app:layout_constraintStart_toStartOf="@+id/step2Text"
+        app:layout_constraintEnd_toEndOf="@+id/step2Text"
+        app:layout_constraintTop_toBottomOf="@+id/step2Text" />
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/continueBtn"
+        style="@style/NCPrimaryButton.Dark"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/nc_padding_16"
+        android:text="@string/nc_text_continue"
+        app:layout_constraintBottom_toBottomOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

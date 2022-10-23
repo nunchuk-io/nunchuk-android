@@ -1,11 +1,13 @@
 package com.nunchuk.android.core.signer
 
+import android.os.Parcelable
 import com.nunchuk.android.model.JoinKey
-import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.SignerType
+import kotlinx.parcelize.Parcelize
 import java.util.regex.Pattern
 
+@Parcelize
 data class SignerModel(
     val id: String,
     val name: String,
@@ -14,28 +16,40 @@ data class SignerModel(
     val used: Boolean = false,
     val type: SignerType = SignerType.AIRGAP,
     val software: Boolean = false,
-    val localKey: Boolean = true
-) {
-    fun isSame(other: SignerModel) = fingerPrint == other.fingerPrint && derivationPath == other.derivationPath
+    val localKey: Boolean = true,
+    val isPrimaryKey: Boolean = false,
+) : Parcelable {
+    val isEditablePath: Boolean
+        get() = type == SignerType.HARDWARE || type == SignerType.SOFTWARE
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as SignerModel
+
+        if (fingerPrint != other.fingerPrint) return false
+        if (derivationPath != other.derivationPath) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = derivationPath.hashCode()
+        result = 31 * result + fingerPrint.hashCode()
+        return result
+    }
 }
 
-fun SingleSigner.toModel() = SignerModel(
+fun SingleSigner.toModel(isPrimaryKey: Boolean = false) = SignerModel(
     id = masterSignerId,
     name = name.ifEmpty { masterFingerprint },
     derivationPath = derivationPath,
     type = type,
     used = used,
     software = type == SignerType.SOFTWARE,
-    fingerPrint = masterFingerprint
-)
-
-fun MasterSigner.toModel() = SignerModel(
-    id = id,
-    name = name,
-    derivationPath = device.path,
-    fingerPrint = device.masterFingerprint,
-    type = type,
-    software = software
+    fingerPrint = masterFingerprint,
+    isPrimaryKey = isPrimaryKey
 )
 
 fun JoinKey.toSignerModel() = SignerModel(
@@ -66,5 +80,3 @@ fun String.toSigner(): SignerInput {
     }
     throw InvalidSignerFormatException(this)
 }
-
-fun List<SignerModel>.isContain(signer: SignerModel) = firstOrNull { it.isSame(signer) } != null

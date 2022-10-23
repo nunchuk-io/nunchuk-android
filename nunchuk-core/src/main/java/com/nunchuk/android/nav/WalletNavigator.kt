@@ -3,7 +3,6 @@ package com.nunchuk.android.nav
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
-import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RoomWalletData
 import com.nunchuk.android.model.SingleSigner
@@ -26,7 +25,7 @@ interface PersonalWalletNavigator {
         walletType: WalletType,
         addressType: AddressType,
         totalRequireSigns: Int,
-        masterSigners: List<MasterSigner>,
+        masterSigners: List<SingleSigner>,
         remoteSigners: List<SingleSigner>
     )
 }
@@ -91,7 +90,7 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
 
     fun openDynamicQRScreen(activityContext: Context, values: List<String>)
 
-    fun openWalletDetailsScreen(activityContext: Context, walletId: String, isSweepBalance: Boolean = false)
+    fun openWalletDetailsScreen(activityContext: Context, walletId: String)
 
     fun openWalletEmptySignerScreen(activityContext: Context)
 
