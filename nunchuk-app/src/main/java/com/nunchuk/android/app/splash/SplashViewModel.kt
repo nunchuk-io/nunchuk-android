@@ -22,10 +22,14 @@ internal class SplashViewModel @Inject constructor(
     private val initNunchukUseCase: InitNunchukUseCase,
     private val accountManager: AccountManager,
     private val matrixInitializerUseCase: MatrixInitializerUseCase,
-    private val signInModeHolder: SignInModeHolder
+    private val signInModeHolder: SignInModeHolder,
 ) : NunchukViewModel<Unit, SplashEvent>() {
 
     override val initialState = Unit
+
+    init {
+        initSignInMode()
+    }
 
     private fun initSignInMode() {
         val isAccountExist = accountManager.isAccountExisted()
@@ -62,15 +66,10 @@ internal class SplashViewModel @Inject constructor(
                 .flowOn(Dispatchers.Main)
                 .collect {
                     when {
-                        accountManager.isAccountExisted() && !accountManager.isAccountActivated() -> event(
-                            NavActivateAccountEvent
-                        )
-                        accountManager.isHasAccountBefore() && !accountManager.isStaySignedIn() -> event(
-                            NavSignInEvent
-                        )
+                        accountManager.isAccountExisted() && accountManager.isAccountActivated().not() -> event(NavActivateAccountEvent)
+                        accountManager.isHasAccountBefore() && accountManager.isStaySignedIn().not() -> event(NavSignInEvent)
                         else -> event(NavHomeScreenEvent(account.token, account.deviceId))
                     }
-                    initSignInMode()
                 }
         }
     }
