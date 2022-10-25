@@ -40,7 +40,7 @@ internal class AccountManagerImpl @Inject constructor(
 
     override fun isAccountActivated() = accountSharedPref.getAccountInfo().activated
 
-    override fun isStaySignedIn() = accountSharedPref.getAccountInfo().let { it.staySignedIn || it.loginType ==  SignInMode.GUEST_MODE.value }
+    override fun isStaySignedIn() = accountSharedPref.getAccountInfo().staySignedIn
 
     override fun getAccount() = accountSharedPref.getAccountInfo()
 
