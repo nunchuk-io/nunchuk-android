@@ -13,10 +13,12 @@ class SignInModeHolder @Inject constructor(private val accountManager: AccountMa
 
     fun setCurrentMode(mode: SignInMode) {
         currentMode = mode
-        val loginType = accountManager.loginType()
-        if (loginType != currentMode.value) {
-            val account = accountManager.getAccount()
-            accountManager.storeAccount(account.copy(loginType = currentMode.value))
+        if (currentMode.isGuestMode().not()) {
+            val loginType = accountManager.loginType()
+            if (loginType != currentMode.value) {
+                val account = accountManager.getAccount()
+                accountManager.storeAccount(account.copy(loginType = currentMode.value))
+            }
         }
     }
 

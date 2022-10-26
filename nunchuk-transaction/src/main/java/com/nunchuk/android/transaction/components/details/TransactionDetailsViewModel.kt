@@ -10,7 +10,6 @@ import com.nunchuk.android.core.domain.ExportPsbtToMk4UseCase
 import com.nunchuk.android.core.domain.ImportTransactionFromMk4UseCase
 import com.nunchuk.android.core.domain.SignRoomTransactionByTapSignerUseCase
 import com.nunchuk.android.core.domain.SignTransactionByTapSignerUseCase
-import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSignerModel
@@ -119,6 +118,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     private fun loadWallet() {
+        if (walletId.isEmpty()) return
         viewModelScope.launch {
             getWalletUseCase.execute(walletId).collect {
                 val account = accountManager.getAccount()
