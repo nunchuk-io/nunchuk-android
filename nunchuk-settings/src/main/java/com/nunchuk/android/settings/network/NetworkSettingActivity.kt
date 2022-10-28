@@ -110,7 +110,7 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
                 }
             )
         )
-        inputType = if (currentChain == selectedChain) { InputType.TYPE_CLASS_TEXT } else InputType.TYPE_NULL
+        isEnabled = currentChain == selectedChain
     }
 
     private fun handleEvent(event: NetworkSettingEvent) {
@@ -162,6 +162,9 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
         binding.electrumServerSwitch.isChecked = true
         binding.electrumServerSwitch.isClickable = false
         binding.electrumServerSwitch.isEnabled = false
+        binding.tvMainNetHost.inputType = InputType.TYPE_CLASS_TEXT
+        binding.tvTestNetHost.inputType = InputType.TYPE_CLASS_TEXT
+        binding.tvSigNetHost.inputType = InputType.TYPE_CLASS_TEXT
 
         binding.rbMainNet.setOnCheckedChangeListener { view, checked ->
             if (checked) {
