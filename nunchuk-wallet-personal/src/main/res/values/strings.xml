@@ -7,8 +7,8 @@
     <string name="nc_text_recover_wallet_description">Use a multisig wallet for maximum safety. A multisig wallet has multiple signers—if one is compromised, your funds are still safe.</string>
     <string name="nc_text_create_new_wallet">Create new wallet</string>
     <string name="nc_text_recover_wallet">Recover existing wallet</string>
-    <string name="nc_txt_recover_using_qr_code">Recover using QR code</string>
-    <string name="nc_txt_recover_using_bsms_file">Recover using BSMS/descriptors</string>
+    <string name="nc_txt_recover_using_qr_code">Recover via QR code</string>
+    <string name="nc_txt_recover_using_bsms_file">Recover via BSMS/descriptors/config file</string>
     <string name="nc_txt_file_bsms_chooser">Please select your BSMS file</string>
     <string name="nc_txt_import_wallet_success">%s has been successfully recovered</string>
     <string name="nc_wallet_taproot_title">To use Taproot, please note the following</string>

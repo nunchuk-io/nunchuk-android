@@ -1,6 +1,7 @@
 package com.nunchuk.android.core.profile
 
 import com.nunchuk.android.core.network.ApiInterceptedException
+import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -28,7 +29,8 @@ interface UserProfileRepository {
 }
 
 internal class UserProfileRepositoryImpl @Inject constructor(
-    private val userProfileApi: UserProfileApi
+    private val userProfileApi: UserProfileApi,
+    private val ncDataStore: NcDataStore,
 ) : UserProfileRepository {
 
     override fun getUserProfile() = flow {
@@ -57,6 +59,7 @@ internal class UserProfileRepositoryImpl @Inject constructor(
     }.flowOn(Dispatchers.IO)
 
     override fun signOut() = flow {
+        ncDataStore.clear()
         userProfileApi.signOut()
         emit(Unit)
     }

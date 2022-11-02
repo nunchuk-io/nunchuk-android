@@ -21,8 +21,6 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 @Singleton
 class NcDataStore @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val ncSharePreferences: NCSharePreferences,
-    private val gson: Gson,
 ) {
     private val btcPriceKey = doublePreferencesKey("btc_price")
     private val turnOnNotification = booleanPreferencesKey("turn_on_notification")
@@ -33,11 +31,7 @@ class NcDataStore @Inject constructor(
 
     val syncEnableFlow: Flow<Boolean>
         get() = context.dataStore.data.map {
-            it[syncEnableKey] ?: runCatching {
-                gson.fromJson(
-                    ncSharePreferences.syncSetting, SyncSetting::class.java
-                )
-            }.getOrNull()?.enable ?: false
+            it[syncEnableKey] ?: false
         }
 
     val turnOnNotificationFlow: Flow<Boolean>
@@ -60,6 +54,13 @@ class NcDataStore @Inject constructor(
     suspend fun setSyncEnable(isEnable: Boolean) {
         context.dataStore.edit { settings ->
             settings[syncEnableKey] = isEnable
+        }
+    }
+
+    suspend fun clear() {
+        context.dataStore.edit {
+            it.remove(syncEnableKey)
+            it.remove(turnOnNotification)
         }
     }
 }

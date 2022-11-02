@@ -9,6 +9,7 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.shared.R
 import com.nunchuk.android.wallet.shared.databinding.ActivityAddRecoverSharedWalletBinding
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
@@ -45,7 +46,7 @@ class AddRecoverSharedWalletActivity : BaseActivity<ActivityAddRecoverSharedWall
                 navigator.openReviewSharedWalletScreen(
                     activityContext = this,
                     walletName = walletName,
-                    walletType = if(event.wallet.escrow) WalletType.ESCROW else WalletType.MULTI_SIG ,
+                    walletType = if (event.wallet.escrow) WalletType.ESCROW else WalletType.MULTI_SIG,
                     addressType = event.wallet.addressType,
                     totalSigns = event.wallet.signers.size,
                     requireSigns = event.wallet.totalRequireSigns,
@@ -53,8 +54,12 @@ class AddRecoverSharedWalletActivity : BaseActivity<ActivityAddRecoverSharedWall
                 )
             }
             is RecoverSharedWalletEvent.WalletSetupDoneEvent -> handleWalletSetupDoneEvent()
-            RecoverSharedWalletEvent.WalletNameRequiredEvent -> binding.walletName.setError(getString(
-                R.string.nc_text_required))
+            RecoverSharedWalletEvent.WalletNameRequiredEvent -> binding.walletName.setError(
+                getString(
+                    R.string.nc_text_required
+                )
+            )
+            is RecoverSharedWalletEvent.ShowError -> NCToastMessage(this).showError(event.message)
         }
     }
 
