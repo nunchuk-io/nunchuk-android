@@ -19,7 +19,7 @@
     <string name="nc_txt_recover_des3">A copy of the wallet configuration file (BSMS or descriptors)</string>
     <string name="nc_txt_recover_des_header1">1</string>
     <string name="nc_txt_recover_des_header2">2</string>
-    <string name="nc_txt_btn_recover_bsms">Recover using BSMS/descriptors</string>
+    <string name="nc_txt_btn_recover_bsms">Recover via BSMS/descriptors/config file</string>
     <string name="nc_txt_exit_wallet_recovery">Exit wallet recovery</string>
     <string name="nc_txt_assign_key_not_found_des">We couldn’t find any keys that can be assigned to this wallet</string>
 </resources>

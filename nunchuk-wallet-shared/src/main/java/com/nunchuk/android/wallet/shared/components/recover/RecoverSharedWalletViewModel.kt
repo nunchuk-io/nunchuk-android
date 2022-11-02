@@ -3,6 +3,7 @@ package com.nunchuk.android.wallet.shared.components.recover
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.ParseWalletDescriptorUseCase
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -36,7 +37,7 @@ internal class RecoverSharedWalletViewModel @Inject constructor(
         viewModelScope.launch {
             parseWalletDescriptorUseCase.execute(content)
                 .flowOn(Dispatchers.IO)
-                .onException {  }
+                .onException { setEvent(RecoverSharedWalletEvent.ShowError(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
                 .collect {
                     event(RecoverSharedWalletEvent.RecoverSharedWalletSuccess(it))

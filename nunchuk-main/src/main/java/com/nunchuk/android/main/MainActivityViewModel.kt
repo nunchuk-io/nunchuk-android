@@ -95,6 +95,7 @@ internal class MainActivityViewModel @Inject constructor(
                     if (isEnableSync && syncRoomId.isNullOrEmpty().not()) {
                         syncData(syncRoomId.orEmpty())
                     }
+                    enableAutoBackup()
                 }
         }
     }
@@ -106,7 +107,6 @@ internal class MainActivityViewModel @Inject constructor(
         getDisplayUnitSetting()
         checkMissingSyncFile()
         observeInitialSync()
-        enableAutoBackup()
         listenBtcPrice()
     }
 
@@ -149,6 +149,7 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     private fun checkMissingSyncFile() {
+        if (syncEnableState.value.not()) return
         val userId = sessionHolder.getSafeActiveSession()?.sessionParams?.userId
         if (userId.isNullOrEmpty()) {
             return
@@ -438,7 +439,8 @@ internal class MainActivityViewModel @Inject constructor(
     private fun retrieveTimelineEvents(room: Room) {
         Timber.tag(TAG).v("retrieveTimelineEvents")
         timeline =
-            room.timelineService().createTimeline(null, TimelineSettings(initialSize = PAGINATION, true))
+            room.timelineService()
+                .createTimeline(null, TimelineSettings(initialSize = PAGINATION, true))
                 .apply {
                     removeAllListeners()
                     addListener(timelineListenerAdapter)
@@ -453,19 +455,17 @@ internal class MainActivityViewModel @Inject constructor(
             val sortedEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
                 .sortedByDescending(NunchukMatrixEvent::time)
-            if (syncEnableState.value) {
-                consumerSyncEventUseCase.execute(sortedEvents)
-                    .onCompletion {
-                        ensureActive()
-                        if (timeline?.hasMoreToLoad(Timeline.Direction.BACKWARDS).orFalse()) {
-                            timeline?.paginate(Timeline.Direction.BACKWARDS, PAGINATION)
-                        } else {
-                            event(ConsumeSyncEventCompleted)
-                        }
+            consumerSyncEventUseCase.execute(sortedEvents)
+                .onCompletion {
+                    ensureActive()
+                    if (timeline?.hasMoreToLoad(Timeline.Direction.BACKWARDS).orFalse()) {
+                        timeline?.paginate(Timeline.Direction.BACKWARDS, PAGINATION)
+                    } else {
+                        event(ConsumeSyncEventCompleted)
                     }
-                    .onException { Timber.e(it) }
-                    .collect()
-            }
+                }
+                .onException { Timber.e(it) }
+                .collect()
         }
     }
 
@@ -498,6 +498,7 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     private fun retrieveTimelines(roomId: String) {
+        if (syncEnableState.value.not()) return
         viewModelScope.launch {
             flow {
                 val activeSession =
