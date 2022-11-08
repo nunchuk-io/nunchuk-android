@@ -2,7 +2,7 @@ package com.nunchuk.android.wallet.components.review
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.core.mapper.MasterSignerMapper
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.orUnknownError
@@ -13,7 +13,6 @@ import com.nunchuk.android.type.WalletType.ESCROW
 import com.nunchuk.android.type.WalletType.SINGLE_SIG
 import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.DraftWalletUseCase
-import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.*
 import dagger.assisted.Assisted
@@ -26,10 +25,9 @@ import timber.log.Timber
 
 internal class ReviewWalletViewModel @AssistedInject constructor(
     @Assisted private val args: ReviewWalletArgs,
-    private val getUnusedSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
     private val draftWalletUseCase: DraftWalletUseCase,
     private val createWalletUseCase: CreateWalletUseCase,
-    private val masterSignerMapper: MasterSignerMapper
+    private val accountManager: AccountManager
 ) : NunchukViewModel<Unit, ReviewWalletEvent>() {
 
     override val initialState = Unit
@@ -82,7 +80,10 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
     }
 
     fun mapSigners(): List<SignerModel> {
-        return args.masterSigners.map(SingleSigner::toModel) + args.remoteSigners.map(SingleSigner::toModel)
+        val masterSigners = args.masterSigners.map {
+            it.toModel(isPrimaryKey = accountManager.getPrimaryKeyInfo()?.xfp == it.masterFingerprint)
+        }
+        return masterSigners + args.remoteSigners.map(SingleSigner::toModel)
     }
 
     @AssistedFactory
