@@ -10,8 +10,14 @@ import javax.inject.Inject
 class GetSecurityQuestionUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val userWalletsRepository: PremiumWalletRepository,
-) : UseCase<Unit, List<SecurityQuestion>>(dispatcher) {
-    override suspend fun execute(parameters: Unit): List<SecurityQuestion> {
-        return userWalletsRepository.getSecurityQuestions()
+) : UseCase<GetSecurityQuestionUseCase.Param, List<SecurityQuestion>>(dispatcher) {
+    override suspend fun execute(parameters: Param): List<SecurityQuestion> {
+        val questions = userWalletsRepository.getSecurityQuestions(parameters.verifyToken)
+        if (parameters.isFilterAnswer) {
+            return questions.filter { it.isAnswer && it.id == "241188271403569152" }
+        }
+        return questions
     }
+
+    class Param(val isFilterAnswer: Boolean, val verifyToken: String? = null)
 }

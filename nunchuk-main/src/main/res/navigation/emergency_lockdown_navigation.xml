@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/emergency_lockdown_navigation"
+    app:startDestination="@id/emergencyLockdownIntroFragment">
+
+    <fragment
+        android:id="@+id/emergencyLockdownIntroFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.emergencylockdown.intro.EmergencyLockdownIntroFragment"
+        android:label="EmergencyLockdownIntroFragment">
+        <action
+            android:id="@+id/action_emergencyLockdownIntroFragment_to_lockdownPeriodFragment"
+            app:destination="@id/lockdownPeriodFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/lockdownPeriodFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.emergencylockdown.lockdownperiod.EmergencyLockdownPeriodFragment"
+        android:label="LockdownPeriodFragment">
+        <action
+            android:id="@+id/action_lockdownPeriodFragment_to_lockdownConfirmFragment"
+            app:destination="@id/lockdownConfirmFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/lockdownConfirmFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.emergencylockdown.lockdownconfirm.EmergencyLockdownConfirmFragment"
+        android:label="LockdownConfirmFragment">
+        <action
+            android:id="@+id/action_lockdownConfirmFragment_to_lockdownSuccessFragment"
+            app:destination="@id/lockdownSuccessFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/lockdownSuccessFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.emergencylockdown.lockdownsuccess.LockdownSuccessFragment"
+        android:label="LockdownSuccessFragment"/>
+</navigation>

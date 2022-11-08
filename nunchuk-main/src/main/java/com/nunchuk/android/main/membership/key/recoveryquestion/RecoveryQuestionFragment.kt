@@ -1,9 +1,11 @@
 package com.nunchuk.android.main.membership.key.recoveryquestion
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -34,25 +36,46 @@ import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.keyrecovery.checksignmessage.CheckSignMessageActivity
 import com.nunchuk.android.main.membership.model.SecurityQuestionModel
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.parcelable
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class RecoveryQuestionFragment : MembershipFragment() {
+
+    @Inject
+    lateinit var navigator: NunchukNavigator
+
     private val viewModel: RecoveryQuestionViewModel by viewModels()
+    private val args: RecoveryQuestionFragmentArgs by navArgs()
+
+    private val launcher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data?.extras
+            if (it.resultCode == Activity.RESULT_OK && data != null) {
+                val signatureMap =
+                    data.getSerializable(CheckSignMessageActivity.SIGNATURE_EXTRA) as HashMap<String, String>
+                viewModel.securityQuestionUpdate(signatureMap)
+            }
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                RecoveryQuestionScreen(viewModel, membershipStepManager)
+                RecoveryQuestionScreen(viewModel, membershipStepManager, args)
             }
         }
     }
@@ -60,12 +83,22 @@ class RecoveryQuestionFragment : MembershipFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) {
-            when(it) {
-                RecoveryQuestionEvent.ContinueStepEvent -> handleContinue()
+            when (it) {
+                is RecoveryQuestionEvent.ContinueStepEvent -> handleContinue()
                 is RecoveryQuestionEvent.GetSecurityQuestionSuccess -> handleShowSecurityQuestion(it)
                 is RecoveryQuestionEvent.Loading -> showOrHideLoading(it.isLoading)
                 is RecoveryQuestionEvent.ShowError -> showError(it.message)
-                RecoveryQuestionEvent.ConfigRecoveryQuestionSuccess -> findNavController().popBackStack()
+                is RecoveryQuestionEvent.ConfigRecoveryQuestionSuccess -> findNavController().popBackStack()
+                is RecoveryQuestionEvent.CalculateRequiredSignaturesSuccess -> navigator.openCheckSignMessageScreen(
+                    walletId = it.walletId,
+                    userData = it.userData,
+                    requiredSignatures = it.requiredSignatures,
+                    launcher,
+                    requireActivity()
+                )
+                RecoveryQuestionEvent.RecoveryQuestionUpdateSuccess -> {
+
+                }
             }
         }
     }
@@ -74,15 +107,24 @@ class RecoveryQuestionFragment : MembershipFragment() {
         findNavController().navigate(
             RecoveryQuestionFragmentDirections.actionRecoveryQuestionFragmentToRecoveryQuestionBottomSheetFragment(
                 event.questions.toMutableList().apply {
-                    add(SecurityQuestionModel(SecurityQuestionModel.CUSTOM_QUESTION_ID, getString(R.string.nc_create_my_own_question)))
+                    add(
+                        SecurityQuestionModel(
+                            SecurityQuestionModel.CUSTOM_QUESTION_ID,
+                            getString(R.string.nc_create_my_own_question)
+                        )
+                    )
                 }.toTypedArray()
             )
         )
     }
 
     private fun handleContinue() {
-        setFragmentResult(REQUEST_KEY, Bundle())
-        findNavController().popBackStack(R.id.addKeyListFragment, false)
+        if (args.isRecoveryFlow) {
+            findNavController().navigate(RecoveryQuestionFragmentDirections.actionRecoveryQuestionFragmentToSignSecurityQuestionFragment())
+        } else {
+            setFragmentResult(REQUEST_KEY, Bundle())
+            findNavController().popBackStack(R.id.addKeyListFragment, false)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -105,11 +147,13 @@ class RecoveryQuestionFragment : MembershipFragment() {
 fun RecoveryQuestionScreen(
     viewModel: RecoveryQuestionViewModel = viewModel(),
     membershipStepManager: MembershipStepManager,
+    args: RecoveryQuestionFragmentArgs
 ) {
     val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
     RecoveryQuestionScreenContent(state,
-        remainTime,
+        remainTime = remainTime,
+        isRecoveryFlow = args.isRecoveryFlow,
         viewModel::onContinueClicked,
         onQuestionClicked = {
             viewModel.getSecurityQuestionList(it)
@@ -126,6 +170,7 @@ fun RecoveryQuestionScreen(
 fun RecoveryQuestionScreenContent(
     state: RecoveryQuestionState = RecoveryQuestionState.Empty,
     remainTime: Int = 0,
+    isRecoveryFlow: Boolean = true,
     onContinueClicked: () -> Unit = {},
     onQuestionClicked: (index: Int) -> Unit = {},
     onInputAnswerTextChange: (index: Int, value: String) -> Unit = { _, _ -> },
@@ -139,7 +184,12 @@ fun RecoveryQuestionScreenContent(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainTime))
+                val title = if (isRecoveryFlow) {
+                    stringResource(R.string.nc_estimate_remain_time, remainTime)
+                } else {
+                    ""
+                }
+                NcTopAppBar(title)
 
                 LazyColumn(
                     modifier = Modifier.weight(1.0f),
@@ -172,7 +222,6 @@ fun RecoveryQuestionScreenContent(
                             })
                     }
                 }
-
                 NcPrimaryDarkButton(
                     enabled = state.recoveries.all { it.answer.isNotEmpty() },
                     modifier = Modifier
@@ -181,6 +230,17 @@ fun RecoveryQuestionScreenContent(
                     onClick = onContinueClicked,
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))
+                }
+                if (isRecoveryFlow) {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.nc_discard_changes),
+                            style = NunchukTheme.typography.title
+                        )
+                    }
                 }
             }
         }
@@ -221,7 +281,8 @@ fun QuestionRow(
                 val textStyle =
                     if (question.question.isNullOrEmpty()) NunchukTheme.typography.body.copy(color = NcColor.boulder) else NunchukTheme.typography.body
                 Text(
-                    text = question.question.orEmpty().ifBlank {stringResource(id = R.string.nc_select_a_question)  },
+                    text = question.question.orEmpty()
+                        .ifBlank { stringResource(id = R.string.nc_select_a_question) },
                     style = textStyle,
                     modifier = Modifier
                         .padding(top = 14.dp, start = 12.dp, bottom = 14.dp)

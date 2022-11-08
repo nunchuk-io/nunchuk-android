@@ -11,13 +11,21 @@ sealed class RecoveryQuestionEvent {
         val questions: List<SecurityQuestionModel>,
     ) : RecoveryQuestionEvent()
 
+    data class CalculateRequiredSignaturesSuccess(
+        val walletId: String,
+        val userData: String,
+        val requiredSignatures: Int
+    ) : RecoveryQuestionEvent()
+
     data class ShowError(val message: String) : RecoveryQuestionEvent()
+    object RecoveryQuestionUpdateSuccess : RecoveryQuestionEvent()
 }
 
 data class RecoveryQuestionState(
     val recoveries: List<RecoveryData> = recoveryListInitialize(),
     val securityQuestions: List<SecurityQuestionModel> = emptyList(),
     val interactQuestionIndex: Int = InitValue,
+    val userData: String? = null
 ) {
     companion object {
         val Empty = RecoveryQuestionState()

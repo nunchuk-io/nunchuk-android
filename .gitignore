@@ -5,3 +5,4 @@
 local.properties
 keystore.properties
 nunchuk-keystore.jks
+nunchuk-database/schemas

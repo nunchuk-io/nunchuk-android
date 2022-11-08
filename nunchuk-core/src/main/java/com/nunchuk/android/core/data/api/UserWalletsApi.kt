@@ -19,7 +19,7 @@ internal interface UserWalletsApi {
     ): Data<CreateServerKeyResponse>
 
     @GET("/v1.1/user-wallets/security-questions")
-    suspend fun getSecurityQuestion(): Data<SecurityQuestionDataResponse>
+    suspend fun getSecurityQuestion(@Header("Verify-token") verifyToken: String?): Data<SecurityQuestionDataResponse>
 
     @POST("/v1.1/user-wallets/security-questions")
     suspend fun createSecurityQuestion(@Body request: CreateSecurityQuestionRequest): Data<CreateSecurityQuestionResponse>
@@ -66,4 +66,31 @@ internal interface UserWalletsApi {
 
     @GET("/v1.1/user-wallets/inheritance")
     suspend fun getInheritance(@Query("wallet") wallet: String) : Data<InheritanceResponse>
+
+    @POST("/v1.1/user-wallets/user-keys/{key_id_or_xfp}/download-backup")
+    suspend fun downloadBackup(
+        @Header("Verify-token") verifyToken: String,
+        @Path("key_id_or_xfp") id: String,
+        @Body payload: ConfigSecurityQuestionPayload
+    ): Data<com.nunchuk.android.model.KeyResponse>
+
+    @POST("/v1.1/passport/verified-password-token/{target_action}")
+    suspend fun verifiedPasswordToken(
+        @Path("target_action") targetAction: String,
+        @Body payload: VerifiedPasswordTokenRequest
+    ): Data<VerifiedPasswordTokenResponse>
+
+    @POST("/v1.1/user-wallets/security-questions/calculate-required-signatures")
+    suspend fun calculateRequiredSignaturesSecurityQuestions(
+        @Body payload: CalculateRequiredSignaturesPayload
+    ) : Data<CalculateRequiredSignaturesResponse>
+
+    @PUT("/v1.1/user-wallets/security-questions/update")
+    suspend fun securityQuestionsUpdate(
+        @HeaderMap headers: Map<String, String>,
+        @Body payload: SecurityQuestionsUpdateRequest
+    )
+
+    @GET("/v1.1/app/time/utc")
+    suspend fun getCurrentServerTime(): Data<GetCurrentServerTimeResponse>
 }
