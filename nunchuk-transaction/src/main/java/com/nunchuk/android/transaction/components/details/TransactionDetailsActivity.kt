@@ -47,6 +47,7 @@ import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
 import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeArgs
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
+import com.nunchuk.android.transaction.components.utils.returnActiveRoom
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
@@ -57,7 +58,9 @@ import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 
 
 @AndroidEntryPoint
@@ -71,21 +74,22 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 
-    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        val data = it.data
-        if (it.resultCode == Activity.RESULT_OK && data != null) {
-            val result = ReplaceFeeArgs.deserializeFrom(data)
-            navigator.openTransactionDetailsScreen(
-                activityContext = this,
-                walletId = result.walletId,
-                txId = result.transaction.txId,
-                initEventId = "",
-                roomId = ""
-            )
-            NcToastManager.scheduleShowMessage(getString(R.string.nc_replace_by_fee_success))
-            finish()
+    private val launcher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data
+            if (it.resultCode == Activity.RESULT_OK && data != null) {
+                val result = ReplaceFeeArgs.deserializeFrom(data)
+                navigator.openTransactionDetailsScreen(
+                    activityContext = this,
+                    walletId = result.walletId,
+                    txId = result.transaction.txId,
+                    initEventId = "",
+                    roomId = ""
+                )
+                NcToastManager.scheduleShowMessage(getString(R.string.nc_replace_by_fee_success))
+                finish()
+            }
         }
-    }
 
     override fun initializeBinding() = ActivityTransactionDetailsBinding.inflate(layoutInflater)
 
@@ -365,7 +369,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private fun handleEvent(event: TransactionDetailsEvent) {
         when (event) {
-            is SignTransactionSuccess -> showSignTransactionSuccess(event.roomId)
+            is SignTransactionSuccess -> showSignTransactionSuccess(event)
             is BroadcastTransactionSuccess -> showBroadcastTransactionSuccess(event.roomId)
             is DeleteTransactionSuccess -> showTransactionDeleteSuccess(event.isCancel)
             is ViewBlockchainExplorer -> openExternalLink(event.url)
@@ -492,10 +496,24 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         )
     }
 
-    private fun showSignTransactionSuccess(roomId: String) {
+    private fun showSignTransactionSuccess(event: SignTransactionSuccess) {
         hideLoading()
         NCToastMessage(this).show(getString(R.string.nc_transaction_signed_successful))
-        if (roomId.isNotEmpty()) {
+        lifecycleScope.launch {
+            if (event.isAssistedWallet) {
+                if (event.status == TransactionStatus.READY_TO_BROADCAST) {
+                    delay(3000L)
+                    NCToastMessage(this@TransactionDetailsActivity).show(getString(R.string.nc_server_key_signed))
+                }
+                if (event.status == TransactionStatus.PENDING_CONFIRMATION) {
+                    delay(3000L)
+                    NCToastMessage(this@TransactionDetailsActivity).show(getString(R.string.nc_server_key_signed))
+                    delay(3000L)
+                    NCToastMessage(this@TransactionDetailsActivity).show(getString(R.string.nc_transaction_has_succesfully_broadcast))
+                }
+            }
+        }
+        if (event.roomId.isNotEmpty()) {
             returnActiveRoom()
         }
     }

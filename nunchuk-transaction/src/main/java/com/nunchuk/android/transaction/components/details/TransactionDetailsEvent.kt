@@ -19,8 +19,10 @@
 
 package com.nunchuk.android.transaction.components.details
 
+import com.nunchuk.android.type.TransactionStatus
+
 sealed class TransactionDetailsEvent {
-    data class SignTransactionSuccess(val roomId: String = "") : TransactionDetailsEvent()
+    data class SignTransactionSuccess(val roomId: String = "", val isAssistedWallet: Boolean = false, val status: TransactionStatus? = null) : TransactionDetailsEvent()
 
     data class BroadcastTransactionSuccess(val roomId: String = "") : TransactionDetailsEvent()
 
