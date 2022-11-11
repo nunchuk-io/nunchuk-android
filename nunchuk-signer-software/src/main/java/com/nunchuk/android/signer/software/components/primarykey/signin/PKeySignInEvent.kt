@@ -1,5 +1,6 @@
 package com.nunchuk.android.signer.software.components.primarykey.signin
 
+import com.nunchuk.android.model.AppSettings
 import com.nunchuk.android.model.PrimaryKey
 
 sealed class PKeySignInEvent {
@@ -11,5 +12,6 @@ sealed class PKeySignInEvent {
 
 data class PKeySignInState(
     val primaryKey: PrimaryKey? = null,
-    val staySignedIn: Boolean = false
+    val staySignedIn: Boolean = false,
+    val appSettings: AppSettings? = null
 )

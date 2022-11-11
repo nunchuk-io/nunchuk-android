@@ -8,12 +8,13 @@ import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.utils.onException
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
@@ -24,7 +25,8 @@ internal class PKeySignInViewModel @AssistedInject constructor(
     private val getAppSettingUseCase: GetAppSettingUseCase,
     private val updateAppSettingUseCase: UpdateAppSettingUseCase,
     private val signInPrimaryKeyUseCase: SignInPrimaryKeyUseCase,
-    private val signInModeHolder: SignInModeHolder
+    private val signInModeHolder: SignInModeHolder,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : NunchukViewModel<PKeySignInState, PKeySignInEvent>() {
 
     override val initialState: PKeySignInState =
@@ -38,15 +40,17 @@ internal class PKeySignInViewModel @AssistedInject constructor(
         viewModelScope.launch {
             getAppSettingUseCase.execute()
                 .flatMapConcat {
+                    postState { copy(appSettings = it) }
                     val appSettingsNew = it.copy(chain = args.primaryKey.chain!!)
                     updateAppSettingUseCase.execute(appSettingsNew)
-                }.flatMapConcat {
+                }
+                .flatMapConcat {
                     initNunchukUseCase.execute(accountId = args.primaryKey.account)
                         .onException {
                             event(PKeySignInEvent.InitFailure(it.message.orUnknownError()))
                         }
                 }
-                .flowOn(Dispatchers.IO)
+                .flowOn(ioDispatcher)
                 .onException { }
                 .collect {}
         }
@@ -66,14 +70,25 @@ internal class PKeySignInViewModel @AssistedInject constructor(
                 staySignedIn = getState().staySignedIn
             )
         )
-        setEvent(PKeySignInEvent.LoadingEvent(false))
-        if (result.isFailure) {
+        val appSettings = state.value?.appSettings
+        if (result.isFailure || appSettings == null) {
+            setEvent(PKeySignInEvent.LoadingEvent(false))
             setEvent(PKeySignInEvent.ProcessErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
-            return@launch
-        }
-        if (result.isSuccess) {
-            signInModeHolder.setCurrentMode(SignInMode.PRIMARY_KEY)
-            setEvent(PKeySignInEvent.SignInSuccessEvent)
+        } else {
+            updateAppSettingUseCase.execute(appSettings)
+                .flatMapConcat {
+                    initNunchukUseCase.execute(accountId = args.primaryKey.account)
+                        .onException {
+                            event(PKeySignInEvent.InitFailure(it.message.orUnknownError()))
+                        }
+                }
+                .flowOn(ioDispatcher)
+                .onException {}
+                .collect {
+                    setEvent(PKeySignInEvent.LoadingEvent(false))
+                    signInModeHolder.setCurrentMode(SignInMode.PRIMARY_KEY)
+                    setEvent(PKeySignInEvent.SignInSuccessEvent)
+                }
         }
     }
 
