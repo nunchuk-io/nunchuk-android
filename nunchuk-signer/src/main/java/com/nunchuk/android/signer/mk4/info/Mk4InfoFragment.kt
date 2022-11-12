@@ -23,42 +23,42 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
-import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.util.ClickAbleText
-import com.nunchuk.android.core.util.makeTextLink
 import com.nunchuk.android.core.util.openExternalLink
-import com.nunchuk.android.signer.R
-import com.nunchuk.android.signer.databinding.FragmentMk4InfoBinding
-import com.nunchuk.android.widget.util.setOnDebounceClickListener
+import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.signer.mk4.info.component.Mk4InfoContent
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @AndroidEntryPoint
-class Mk4InfoFragment : BaseFragment<FragmentMk4InfoBinding>() {
+class Mk4InfoFragment : Fragment() {
+    @Inject
+    lateinit var membershipStepManager: MembershipStepManager
 
-    override fun initializeBinding(
-        inflater: LayoutInflater, container: ViewGroup?
-    ): FragmentMk4InfoBinding {
-        return FragmentMk4InfoBinding.inflate(inflater, container, false)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        initView()
-    }
-
-    private fun initView() {
-        binding.toolbar.setNavigationOnClickListener {
-            activity?.finish()
-        }
-        binding.tvDescOne.makeTextLink(
-            ClickAbleText(content = getString(R.string.nc_refer_to)),
-            ClickAbleText(content = getString(R.string.nc_this_starter_guide), onClick = {
-                requireActivity().openExternalLink(COLDCARD_GUIDE_URL)
-            })
-        )
-        binding.btnContinue.setOnDebounceClickListener {
-            findNavController().navigate(Mk4InfoFragmentDirections.actionMk4InfoFragmentToMk4IntroFragment())
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setContent {
+                val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
+                Mk4InfoContent(
+                    remainTime = remainTime,
+                    onContinueClicked = {
+                        findNavController().navigate(Mk4InfoFragmentDirections.actionMk4InfoFragmentToMk4IntroFragment())
+                    },
+                    onOpenGuideClicked = {
+                        requireActivity().openExternalLink(COLDCARD_GUIDE_URL)
+                    }
+                )
+            }
         }
     }
 

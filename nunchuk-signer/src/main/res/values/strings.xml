@@ -107,4 +107,5 @@
     <string name="nc_tap_signer_existed_desc">It looks like you have already added this TAPSIGNER. Are you sure you want to use it in the wallet?</string>
     <string name="nc_yes_use_this_tapsigner">Yes, use this TAPSIGNER</string>
     <string name="nc_no_add_a_new_one">No, I want to add a new one</string>
+    <string name="nc_add_your_coldcard">Add your COLDCARD</string>
 </resources>

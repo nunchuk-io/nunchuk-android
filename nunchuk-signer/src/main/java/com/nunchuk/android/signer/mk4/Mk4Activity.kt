@@ -20,6 +20,7 @@
 package com.nunchuk.android.signer.mk4
 
 import android.os.Bundle
+import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.signer.R
@@ -35,7 +36,7 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setLightStatusBar()
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         initStartDestination()
     }
 

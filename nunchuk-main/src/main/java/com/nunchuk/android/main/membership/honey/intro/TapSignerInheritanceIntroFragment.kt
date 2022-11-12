@@ -87,6 +87,7 @@ class TapSignerInheritanceIntroFragment : Fragment() {
         if (addKeyViewModel.getTapSigners().isNotEmpty()) {
             clearFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY)
             setFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY) { _, bundle ->
+                findNavController().popBackStack(R.id.addKeyListFragment, false)
                 bundle.parcelable<SignerModel>(TapSignerListBottomSheetFragment.EXTRA_SELECTED_SIGNER_ID)
                     ?.let {
                         openCreateBackUpTapSigner(it.id)

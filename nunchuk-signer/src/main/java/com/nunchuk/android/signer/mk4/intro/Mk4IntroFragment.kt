@@ -44,7 +44,6 @@ class Mk4IntroFragment : Fragment(), BottomSheetOptionListener {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-        WindowCompat.setDecorFitsSystemWindows(requireActivity().window, false)
         return ComposeView(requireContext()).apply {
             setContent {
                 Mk4IntroScreen(viewModel)
@@ -55,11 +54,6 @@ class Mk4IntroFragment : Fragment(), BottomSheetOptionListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         observer()
-    }
-
-    override fun onDestroyView() {
-        WindowCompat.setDecorFitsSystemWindows(requireActivity().window, true)
-        super.onDestroyView()
     }
 
     override fun onOptionClicked(option: SheetOption) {

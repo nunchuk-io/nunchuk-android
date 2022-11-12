@@ -144,36 +144,34 @@ private fun AddTapSignerIntroScreen(
 @Composable
 fun AddTapSignerIntroScreenContent(onContinueClicked: () -> Unit = {}, remainTime: Int = 0) {
     NunchukTheme {
-        NunchukTheme {
-            Scaffold { innerPadding ->
-                Column(
+        Scaffold { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .navigationBarsPadding()
+            ) {
+                NcImageAppBar(
+                    backgroundRes = R.drawable.nc_bg_tap_signer_chip,
+                    title = stringResource(id = R.string.nc_estimate_remain_time, remainTime)
+                )
+                Text(
+                    modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
+                    text = stringResource(R.string.nc_add_a_tapsigner),
+                    style = NunchukTheme.typography.heading
+                )
+                Text(
+                    modifier = Modifier.padding(16.dp),
+                    text = stringResource(R.string.nc_add_tap_signer_intro_desc),
+                    style = NunchukTheme.typography.body
+                )
+                Spacer(modifier = Modifier.weight(1.0f))
+                NcPrimaryDarkButton(
                     modifier = Modifier
-                        .padding(innerPadding)
-                        .navigationBarsPadding()
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    onClick = onContinueClicked,
                 ) {
-                    NcImageAppBar(
-                        backgroundRes = R.drawable.nc_bg_tap_signer_chip,
-                        title = stringResource(id = R.string.nc_estimate_remain_time, remainTime)
-                    )
-                    Text(
-                        modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                        text = stringResource(R.string.nc_add_a_tapsigner),
-                        style = NunchukTheme.typography.heading
-                    )
-                    Text(
-                        modifier = Modifier.padding(16.dp),
-                        text = stringResource(R.string.nc_add_tap_signer_intro_desc),
-                        style = NunchukTheme.typography.body
-                    )
-                    Spacer(modifier = Modifier.weight(1.0f))
-                    NcPrimaryDarkButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        onClick = onContinueClicked,
-                    ) {
-                        Text(text = stringResource(id = R.string.nc_text_continue))
-                    }
+                    Text(text = stringResource(id = R.string.nc_text_continue))
                 }
             }
         }

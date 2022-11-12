@@ -28,20 +28,6 @@ fun NcHintMessage(
     messages: List<ClickAbleText>,
     type: HighlightMessageType = HighlightMessageType.HINT
 ) {
-    val annotatedString = buildAnnotatedString {
-        messages.forEachIndexed { index, message ->
-            if (message.onClick != null) {
-                withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-                    append(message.content)
-                }
-            } else {
-                append(message.content)
-            }
-            if (index != messages.lastIndex) {
-                append(" ")
-            }
-        }
-    }
     val backgroundColor = when(type) {
         HighlightMessageType.WARNING -> colorResource(id = R.color.nc_beeswax_tint)
         HighlightMessageType.HINT -> colorResource(id = R.color.nc_whisper_color)
@@ -64,20 +50,11 @@ fun NcHintMessage(
                 painter = icon,
                 contentDescription = "Info icon"
             )
-            ClickableText(
+            NcClickableText(
                 modifier = Modifier.padding(start = 8.dp),
-                text = annotatedString,
+                messages = messages,
                 style = NunchukTheme.typography.titleSmall
-            ) { offset ->
-                var count = offset
-                messages.forEach {
-                    count -= it.content.length.inc()
-                    if (count <= 0) {
-                        it.onClick?.invoke()
-                        return@forEach
-                    }
-                }
-            }
+            )
         }
     }
 }

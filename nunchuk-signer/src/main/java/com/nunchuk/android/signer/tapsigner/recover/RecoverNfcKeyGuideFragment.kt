@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.signer.R
@@ -24,11 +25,17 @@ class RecoverNfcKeyGuideFragment : BaseFragment<FragmentRecoverNfcKeyGuideBindin
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(requireActivity().window, true)
         binding.btnContinue.setOnClickListener {
             openDocument.launch("application/*")
         }
         binding.toolbar.setNavigationOnClickListener {
             activity?.onBackPressed()
         }
+    }
+
+    override fun onDestroyView() {
+        WindowCompat.setDecorFitsSystemWindows(requireActivity().window, false)
+        super.onDestroyView()
     }
 }
