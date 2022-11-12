@@ -59,8 +59,9 @@ class MembershipStepManager @Inject constructor(
         steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
 
         // TODO Hai
-        steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_1] = MembershipStepFlow(totalStep = 8)
-        steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_2] = MembershipStepFlow(totalStep = 8)
+        steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_1] = MembershipStepFlow(totalStep = 2)
+        steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_2] = MembershipStepFlow(totalStep = 2)
+        steps[MembershipStep.SETUP_INHERITANCE] = MembershipStepFlow(totalStep = 2)
 
         _remainingTime.value = steps.values.sumOf { it.totalStep * 2 }
         _stepDone.value = emptySet()
@@ -107,17 +108,32 @@ class MembershipStepManager @Inject constructor(
 
     fun isNotConfig() = _stepDone.value.isEmpty()
 
-    fun isConfigKeyDone() = _stepDone.value.containsAll(
-        listOf(
-            MembershipStep.ADD_TAP_SIGNER_1,
-            MembershipStep.ADD_TAP_SIGNER_2,
-            MembershipStep.ADD_SEVER_KEY
-        )
-    )
+    fun isConfigKeyDone(): Boolean {
+        return if (plan == MembershipPlan.IRON_HAND) {
+            _stepDone.value.containsAll(
+                listOf(
+                    MembershipStep.ADD_TAP_SIGNER_1,
+                    MembershipStep.ADD_TAP_SIGNER_2,
+                    MembershipStep.ADD_SEVER_KEY
+                )
+            )
+        } else {
+            _stepDone.value.containsAll(
+                listOf(
+                    MembershipStep.HONEY_ADD_TAP_SIGNER,
+                    MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
+                    MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
+                    MembershipStep.ADD_SEVER_KEY
+                )
+            )
+        }
+    }
 
-    fun isConfigRecoverKeyDone() = _stepDone.value.size >= STEP_RECOVER_KEY_INDEX
+    fun isConfigRecoverKeyDone(): Boolean {
+        return isConfigKeyDone() && _stepDone.value.contains(MembershipStep.ADD_SEVER_KEY)
+    }
 
-    fun isCreatedAssistedWalletDone() = _stepDone.value.size >= steps.size
+    fun isCreatedAssistedWalletDone() = isConfigRecoverKeyDone() && _stepDone.value.contains(MembershipStep.CREATE_WALLET)
 
     fun getRemainTimeBySteps(querySteps: List<MembershipStep>) =
         calculateRemainTime(steps.filter { it.key in querySteps }.values)
@@ -130,12 +146,4 @@ class MembershipStepManager @Inject constructor(
 
     private fun calculateRemainTime(stepFlows: Collection<MembershipStepFlow>) =
         stepFlows.sumOf { (it.totalStep - it.currentStep).coerceAtLeast(0) * 2 }
-
-    companion object {
-        /**
-         * Refer to [steps] to calculate the index
-         */
-        private const val STEP_CONFIG_KEY_INDEX = 3
-        private const val STEP_RECOVER_KEY_INDEX = 4
-    }
 }

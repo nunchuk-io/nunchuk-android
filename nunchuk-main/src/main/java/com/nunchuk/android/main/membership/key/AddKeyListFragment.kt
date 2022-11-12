@@ -27,8 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.setFragmentResultListener
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.*
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -56,19 +55,7 @@ class AddKeyListFragment : MembershipFragment() {
     @Inject
     lateinit var navigator: NunchukNavigator
 
-    private val viewModel by viewModels<AddKeyListViewModel>()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY) { _, bundle ->
-            bundle.parcelable<SignerModel>(TapSignerListBottomSheetFragment.EXTRA_SELECTED_SIGNER_ID)
-                ?.let {
-                    openCreateBackUpTapSigner(it.id)
-                } ?: run {
-                openSetupTapSigner()
-            }
-        }
-    }
+    private val viewModel by activityViewModels<AddKeyListViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -100,15 +87,7 @@ class AddKeyListFragment : MembershipFragment() {
         when (data.type) {
             MembershipStep.ADD_TAP_SIGNER_1,
             MembershipStep.ADD_TAP_SIGNER_2 -> {
-                if (viewModel.getTapSigners().isNotEmpty()) {
-                    findNavController().navigate(
-                        AddKeyListFragmentDirections.actionAddKeyListFragmentToTapSignerListBottomSheetFragment(
-                            viewModel.getTapSigners().toTypedArray()
-                        )
-                    )
-                } else {
-                    openSetupTapSigner()
-                }
+                handleAddTapSigner()
             }
             MembershipStep.ADD_SEVER_KEY -> {
                 findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToConfigureServerKeyIntroFragment())
@@ -117,9 +96,31 @@ class AddKeyListFragment : MembershipFragment() {
                 findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToTapSignerInheritanceIntroFragment())
             }
             MembershipStep.SETUP_KEY_RECOVERY,
+            MembershipStep.SETUP_INHERITANCE,
             MembershipStep.CREATE_WALLET -> throw IllegalArgumentException("handleOnAddKey")
             MembershipStep.HONEY_ADD_HARDWARE_KEY_1 -> TODO()
             MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> TODO()
+        }
+    }
+
+    private fun handleAddTapSigner() {
+        if (viewModel.getTapSigners().isNotEmpty()) {
+            clearFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY)
+            setFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY) { _, bundle ->
+                bundle.parcelable<SignerModel>(TapSignerListBottomSheetFragment.EXTRA_SELECTED_SIGNER_ID)
+                    ?.let {
+                        openCreateBackUpTapSigner(it.id)
+                    } ?: run {
+                    openSetupTapSigner()
+                }
+            }
+            findNavController().navigate(
+                AddKeyListFragmentDirections.actionAddKeyListFragmentToTapSignerListBottomSheetFragment(
+                    viewModel.getTapSigners().toTypedArray()
+                )
+            )
+        } else {
+            openSetupTapSigner()
         }
     }
 

@@ -43,9 +43,9 @@ import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.sendEmail
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningDialog
-import com.nunchuk.android.widget.databinding.NcConfirmDialogBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -128,15 +128,18 @@ class AddKeyStepFragment : Fragment(), BottomSheetOptionListener {
 fun AddKeyStepScreen(viewModel: AddKeyStepViewModel = viewModel()) {
     val isConfigKeyDone by viewModel.isConfigKeyDone.collectAsStateWithLifecycle()
     val isSetupRecoverKeyDone by viewModel.isSetupRecoverKeyDone.collectAsStateWithLifecycle()
+    val isCreateWalletDone by viewModel.isCreateWalletDone.collectAsStateWithLifecycle()
     val groupRemainTime by viewModel.groupRemainTime.collectAsStateWithLifecycle()
 
     AddKeyStepContent(
         isConfigKeyDone = isConfigKeyDone,
         isSetupRecoverKeyDone = isSetupRecoverKeyDone,
+        isCreateWalletDone = isCreateWalletDone,
         groupRemainTime = groupRemainTime,
         onMoreClicked = viewModel::onMoreClicked,
         onContinueClicked = viewModel::onContinueClicked,
         openContactUs = viewModel::openContactUs,
+        plan = viewModel.plan
     )
 }
 
@@ -144,10 +147,12 @@ fun AddKeyStepScreen(viewModel: AddKeyStepViewModel = viewModel()) {
 fun AddKeyStepContent(
     isConfigKeyDone: Boolean = false,
     isSetupRecoverKeyDone: Boolean = false,
-    groupRemainTime: IntArray = IntArray(3),
+    isCreateWalletDone: Boolean = false,
+    groupRemainTime: IntArray = IntArray(4),
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
     openContactUs: (mail: String) -> Unit = {},
+    plan: MembershipPlan = MembershipPlan.HONEY_BADGER,
 ) = NunchukTheme {
 
     Scaffold { innerPadding ->
@@ -191,8 +196,16 @@ fun AddKeyStepContent(
                 3,
                 stringResource(R.string.nc_create_your_wallet),
                 groupRemainTime[2],
-                false
+                isCreateWalletDone
             )
+            if (plan == MembershipPlan.HONEY_BADGER) {
+                StepWithEstTime(
+                    4,
+                    stringResource(R.string.nc_set_up_inheritance_plan),
+                    groupRemainTime[2],
+                    false
+                )
+            }
             Spacer(modifier = Modifier.weight(1.0f))
             NcPrimaryDarkButton(
                 modifier = Modifier

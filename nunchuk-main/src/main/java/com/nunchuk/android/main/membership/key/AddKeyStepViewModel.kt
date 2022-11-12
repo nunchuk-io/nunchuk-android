@@ -18,12 +18,18 @@ class AddKeyStepViewModel @Inject constructor(
     private val _event = MutableSharedFlow<AddKeyStepEvent>()
     val event = _event.asSharedFlow()
 
+    val plan = membershipStepManager.plan
+
     val isConfigKeyDone =
         membershipStepManager.stepDone.map { membershipStepManager.isConfigKeyDone() }
             .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val isSetupRecoverKeyDone =
         membershipStepManager.stepDone.map { membershipStepManager.isConfigRecoverKeyDone() }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val isCreateWalletDone =
+        membershipStepManager.stepDone.map { membershipStepManager.isCreatedAssistedWalletDone() }
             .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val groupRemainTime =
@@ -37,7 +43,8 @@ class AddKeyStepViewModel @Inject constructor(
                     )
                 ),
                 membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.SETUP_KEY_RECOVERY)),
-                membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.CREATE_WALLET))
+                membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.CREATE_WALLET)),
+                membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.SETUP_INHERITANCE)),
             )
         }.stateIn(viewModelScope, SharingStarted.Eagerly, IntArray(3))
 

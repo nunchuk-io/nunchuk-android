@@ -14,8 +14,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.*
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
@@ -26,15 +25,22 @@ import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.key.AddKeyListFragmentDirections
+import com.nunchuk.android.main.membership.key.AddKeyListViewModel
+import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class TapSignerInheritanceIntroFragment : Fragment() {
     private val viewModel: TapSignerInheritanceIntroViewModel by viewModels()
+    private val addKeyViewModel: AddKeyListViewModel by activityViewModels()
 
     @Inject
     lateinit var navigator: NunchukNavigator
@@ -54,10 +60,47 @@ class TapSignerInheritanceIntroFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
-                    when(event) {
-                        TapSignerInheritanceIntroEvent.OnContinueClicked -> openSetupTapSigner()
+                    when (event) {
+                        TapSignerInheritanceIntroEvent.OnContinueClicked -> handleAddTapSigner()
                     }
                 }
+        }
+    }
+
+    private fun openCreateBackUpTapSigner(masterSignerId: String) {
+        if (addKeyViewModel.isSignerExist(masterSignerId).not()) {
+            navigator.openCreateBackUpTapSigner(
+                activity = requireActivity(),
+                fromMembershipFlow = true,
+                masterSignerId = masterSignerId
+            )
+        } else {
+            showSameSignerAdded()
+        }
+    }
+
+    private fun showSameSignerAdded() {
+        showError(getString(R.string.nc_error_add_same_tap_signer))
+    }
+
+    private fun handleAddTapSigner() {
+        if (addKeyViewModel.getTapSigners().isNotEmpty()) {
+            clearFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY)
+            setFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY) { _, bundle ->
+                bundle.parcelable<SignerModel>(TapSignerListBottomSheetFragment.EXTRA_SELECTED_SIGNER_ID)
+                    ?.let {
+                        openCreateBackUpTapSigner(it.id)
+                    } ?: run {
+                    openSetupTapSigner()
+                }
+            }
+            findNavController().navigate(
+                TapSignerInheritanceIntroFragmentDirections.actionTapSignerInheritanceIntroFragmentToTapSignerListBottomSheetFragment(
+                    addKeyViewModel.getTapSigners().toTypedArray()
+                )
+            )
+        } else {
+            openSetupTapSigner()
         }
     }
 

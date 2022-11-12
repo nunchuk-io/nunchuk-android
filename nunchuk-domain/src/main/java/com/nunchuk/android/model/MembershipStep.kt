@@ -9,4 +9,5 @@ enum class MembershipStep {
     HONEY_ADD_TAP_SIGNER,
     HONEY_ADD_HARDWARE_KEY_1,
     HONEY_ADD_HARDWARE_KEY_2,
+    SETUP_INHERITANCE,
 }
