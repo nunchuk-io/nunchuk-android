@@ -254,4 +254,7 @@
     <string name="nc_view_policies">View policies</string>
     <string name="nc_check_out_assisted_wallet">Check out our assisted wallet</string>
     <string name="nc_confirm_restart_wizard">Are you sure you want to restart the wizard? All wizard data will be cleared.</string>
+    <string name="nc_assisted">Assisted</string>
+    <string name="nc_your_inheritance_key">Your inheritance key</string>
+    <string name="nc_inheritance_intro_desc">This TAPSIGNER will be your designated inheritance key. Once you have set up an inheritance plan, a Beneficiary or Trustee will be able to recover this TAPSIGNER’s private key at a later date to access your wallet and claim the inheritance.Please take a moment to mark or label this key.</string>
 </resources>

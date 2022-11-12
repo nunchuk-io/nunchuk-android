@@ -7,6 +7,7 @@ import com.nunchuk.android.core.domain.membership.CreateServerKeysUseCase
 import com.nunchuk.android.core.domain.membership.UpdateServerKeysUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.KeyPolicy
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.util.SERVER_KEY_NAME
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -17,6 +18,7 @@ import javax.inject.Inject
 class ConfigureServerKeySettingViewModel @Inject constructor(
     private val createServerKeysUseCase: CreateServerKeysUseCase,
     private val updateServerKeysUseCase: UpdateServerKeysUseCase,
+    private val membershipStepManager: MembershipStepManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val args: ConfigureServerKeySettingFragmentArgs =
@@ -53,10 +55,12 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
         val result = if (args.xfp.isNullOrEmpty()) {
             createServerKeysUseCase(
                 CreateServerKeysUseCase.Param(
-                    name = SERVER_KEY_NAME, keyPolicy = KeyPolicy(
+                    name = SERVER_KEY_NAME,
+                    keyPolicy = KeyPolicy(
                         autoBroadcastTransaction = state.autoBroadcastSwitched,
                         signingDelayInHour = signingDelayInHour
-                    )
+                    ),
+                    plan = membershipStepManager.plan
                 )
             )
         } else {

@@ -8,6 +8,7 @@ import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.membership.model.AddKeyData
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -50,16 +51,24 @@ class AddKeyListViewModel @Inject constructor(
         .map { it.getOrElse { emptyList() } }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    private val _keys = MutableStateFlow(
-        listOf(
-            AddKeyData(type = MembershipStep.ADD_TAP_SIGNER_1),
-            AddKeyData(type = MembershipStep.ADD_TAP_SIGNER_2),
-            AddKeyData(type = MembershipStep.ADD_SEVER_KEY),
-        )
-    )
+    private val _keys = MutableStateFlow(listOf<AddKeyData>())
     val key = _keys.asStateFlow()
 
     init {
+        if (membershipStepManager.plan == MembershipPlan.IRON_HAND) {
+            _keys.value = listOf(
+                AddKeyData(type = MembershipStep.ADD_TAP_SIGNER_1),
+                AddKeyData(type = MembershipStep.ADD_TAP_SIGNER_2),
+                AddKeyData(type = MembershipStep.ADD_SEVER_KEY),
+            )
+        } else {
+            _keys.value = listOf(
+                AddKeyData(type = MembershipStep.HONEY_ADD_TAP_SIGNER),
+                AddKeyData(type = MembershipStep.HONEY_ADD_HARDWARE_KEY_1),
+                AddKeyData(type = MembershipStep.HONEY_ADD_HARDWARE_KEY_2),
+                AddKeyData(type = MembershipStep.ADD_SEVER_KEY),
+            )
+        }
         viewModelScope.launch {
             getMasterSignersUseCase.execute().collect { masterSigners ->
                 _state.update {
@@ -101,17 +110,12 @@ class AddKeyListViewModel @Inject constructor(
     fun onAddKeyClicked(data: AddKeyData) {
         viewModelScope.launch {
             savedStateHandle[KEY_CURRENT_KEY] = data.type
-            when (data.type) {
-                MembershipStep.ADD_TAP_SIGNER_1,
-                MembershipStep.ADD_TAP_SIGNER_2,
-                MembershipStep.ADD_SEVER_KEY -> membershipStepManager.setCurrentStep(data.type)
-                else -> {}
-            }
+            membershipStepManager.setCurrentStep(data.type)
             _event.emit(AddKeyListEvent.OnAddKey(data))
         }
     }
 
-    fun isSignerExist(masterSignerId: String) = _keys.value.any { it.signer?.id ==  masterSignerId}
+    fun isSignerExist(masterSignerId: String) = _keys.value.any { it.signer?.id == masterSignerId }
 
     fun onVerifyClicked(data: AddKeyData) {
         data.signer?.let { signer ->
@@ -128,27 +132,6 @@ class AddKeyListViewModel @Inject constructor(
         }
     }
 
-    fun onAddKeySuccess(signer: SignerModel?, isVerify: Boolean) {
-        val addKeyType = currentAddKeyType.value ?: return
-        val currentKeys = _keys.value
-        if (currentKeys.find { it.signer == signer } != null) {
-            viewModelScope.launch {
-                _event.emit(AddKeyListEvent.OnAddSameKey)
-            }
-        } else {
-            val new =
-                _keys.value.map {
-                    if (it.type == addKeyType) it.copy(
-                        signer = signer,
-                        isVerify = isVerify
-                    ) else it
-                }
-            _keys.update {
-                new
-            }
-        }
-    }
-
     fun onContinueClicked() {
         viewModelScope.launch {
             _event.emit(AddKeyListEvent.OnAddAllKey)
@@ -157,7 +140,7 @@ class AddKeyListViewModel @Inject constructor(
 
     private fun getStepInfo(step: MembershipStep) =
         membershipStepState.value.find { it.step == step } ?: run {
-            MembershipStepInfo(step = step)
+            MembershipStepInfo(step = step, plan = membershipStepManager.plan)
         }
 
     fun getTapSigners() = _state.value.tapSigners

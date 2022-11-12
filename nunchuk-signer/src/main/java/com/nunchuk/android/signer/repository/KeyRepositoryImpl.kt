@@ -5,6 +5,7 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.model.KeyUpload
 import com.nunchuk.android.model.KeyVerifiedRequest
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.entity.MembershipStepEntity
@@ -36,7 +37,8 @@ class KeyRepositoryImpl @Inject constructor(
         keyName: String,
         keyType: String,
         xfp: String,
-        filePath: String
+        filePath: String,
+        plan: MembershipPlan
     ): Flow<KeyUpload> {
         return callbackFlow {
             val file = File(filePath)
@@ -66,7 +68,8 @@ class KeyRepositoryImpl @Inject constructor(
                     step = step,
                     masterSignerId = xfp,
                     keyIdInServer = result.data.keyId,
-                    checkSum = result.data.keyCheckSum
+                    checkSum = result.data.keyCheckSum,
+                    plan = plan
                 )
                 membershipDao.updateOrInsert(info)
                 val serverKeyFilePath = nfcFileManager.storeServerBackupKeyToFile(

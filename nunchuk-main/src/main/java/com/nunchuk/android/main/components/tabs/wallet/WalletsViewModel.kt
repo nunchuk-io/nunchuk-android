@@ -67,7 +67,7 @@ internal class WalletsViewModel @Inject constructor(
         viewModelScope.launch {
             val result = getUserSubscriptionUseCase(Unit)
             if (result.isSuccess) {
-                val subscription = result.getOrThrow()
+                val subscription = result.getOrThrow().copy(slug = HONEY_BADGER_PLAN) // TODO Hai remove
                 val isPremiumUser = subscription.subscriptionId.isNullOrEmpty().not()
                 val getServerWalletResult = getServerWalletUseCase(Unit)
                 if (getServerWalletResult.isSuccess && getServerWalletResult.getOrThrow().isNeedReload) {
@@ -75,10 +75,15 @@ internal class WalletsViewModel @Inject constructor(
                 }
                 keyPolicyMap.clear()
                 keyPolicyMap.putAll(getServerWalletResult.getOrNull()?.keyPolicyMap.orEmpty())
+                if (subscription.slug == IRON_HAND_PLAN) {
+                    membershipStepManager.setCurrentPlan(MembershipPlan.IRON_HAND)
+                } else if (subscription.slug == HONEY_BADGER_PLAN) {
+                    membershipStepManager.setCurrentPlan(MembershipPlan.HONEY_BADGER)
+                }
                 updateState {
                     copy(
-                        isPremiumUser = isPremiumUser && subscription.slug == IRON_HAND_PLAN,
-                        hasCreatedWallet = getServerWalletResult.getOrNull()?.isHasWallet ?: false,
+                        isPremiumUser = isPremiumUser,
+                        hasCreatedWallet = getServerWalletResult.getOrThrow().planWalletCreated.contains(subscription.slug),
                     )
                 }
             }
@@ -216,5 +221,6 @@ internal class WalletsViewModel @Inject constructor(
 
     companion object {
         private const val IRON_HAND_PLAN = "iron_hand"
+        private const val HONEY_BADGER_PLAN = "honey_badger"
     }
 }

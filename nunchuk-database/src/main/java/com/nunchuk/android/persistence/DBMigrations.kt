@@ -45,4 +45,11 @@ object DBMigrations {
             database.execSQL("CREATE TABLE IF NOT EXISTS `membership_flow` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `email` TEXT NOT NULL, `step` INTEGER NOT NULL, `master_signer_id` TEXT NOT NULL, `key_id_in_server` TEXT NOT NULL, `key_id_check_sum` TEXT NOT NULL, `is_verify` INTEGER NOT NULL)")
         }
     }
+
+    val MIGRATION_4_5 = object : Migration(4, 5) {
+
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE `membership_flow` ADD COLUMN `plan` INT DEFAULT 0")
+        }
+    }
 }

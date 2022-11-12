@@ -46,6 +46,7 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
                     keyType = SignerType.NFC.name,
                     xfp = args.masterSignerId,
                     filePath = args.filePath,
+                    plan = membershipStepManager.plan
                 )
             ).collect {
                 if (it.isSuccess) {
@@ -83,7 +84,11 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
     }
 }
 
-data class UploadBackUpTapSignerState(val percent: Int = 0, val isError: Boolean = false, val serverFilePath: String = "")
+data class UploadBackUpTapSignerState(
+    val percent: Int = 0,
+    val isError: Boolean = false,
+    val serverFilePath: String = ""
+)
 
 sealed class UploadBackUpTapSignerEvent {
     object OnContinueClicked : UploadBackUpTapSignerEvent()

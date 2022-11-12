@@ -58,6 +58,13 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_addKeyListFragment_to_tapSignerInheritanceIntroFragment"
+            app:destination="@id/tapSignerInheritanceIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
     </fragment>
 
     <fragment
@@ -142,4 +149,8 @@
             android:name="wallet_id"
             app:argType="string" />
     </fragment>
+    <fragment
+        android:id="@+id/tapSignerInheritanceIntroFragment"
+        android:name="com.nunchuk.android.main.membership.honey.intro.TapSignerInheritanceIntroFragment"
+        android:label="TapSignerInheritanceIntroFragment" />
 </navigation>

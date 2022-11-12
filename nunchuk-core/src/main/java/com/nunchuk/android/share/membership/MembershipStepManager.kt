@@ -1,5 +1,6 @@
 package com.nunchuk.android.share.membership
 
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import kotlinx.coroutines.CoroutineScope
@@ -16,6 +17,8 @@ class MembershipStepManager @Inject constructor(
     getMembershipStepUseCase: GetMembershipStepUseCase,
     applicationScope: CoroutineScope,
 ) {
+    var plan = MembershipPlan.IRON_HAND
+        private set
     private val steps = hashMapOf<MembershipStep, MembershipStepFlow>()
     private val _stepDone = MutableStateFlow<Set<MembershipStep>>(emptySet())
     val stepDone = _stepDone.asStateFlow()
@@ -50,12 +53,21 @@ class MembershipStepManager @Inject constructor(
     private fun initStep() {
         steps[MembershipStep.ADD_TAP_SIGNER_1] = MembershipStepFlow(totalStep = 8)
         steps[MembershipStep.ADD_TAP_SIGNER_2] = MembershipStepFlow(totalStep = 8)
+        steps[MembershipStep.HONEY_ADD_TAP_SIGNER] = MembershipStepFlow(totalStep = 8)
         steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
         steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 1)
         steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
 
+        // TODO Hai
+        steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_1] = MembershipStepFlow(totalStep = 8)
+        steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_2] = MembershipStepFlow(totalStep = 8)
+
         _remainingTime.value = steps.values.sumOf { it.totalStep * 2 }
         _stepDone.value = emptySet()
+    }
+
+    fun setCurrentPlan(plan: MembershipPlan) {
+        this.plan = plan
     }
 
     fun setCurrentStep(step: MembershipStep) {
@@ -86,9 +98,9 @@ class MembershipStepManager @Inject constructor(
         val stepInfo = steps[step] ?: throw IllegalArgumentException("Not support $step")
         if (_stepDone.value.contains(step)) return
         if (isForward) {
-            stepInfo.currentStep++
+            stepInfo.currentStep = stepInfo.currentStep.inc().coerceAtMost(stepInfo.totalStep)
         } else {
-            stepInfo.currentStep--
+            stepInfo.currentStep = stepInfo.currentStep.dec().coerceAtLeast(0)
         }
         updateRemainTime()
     }

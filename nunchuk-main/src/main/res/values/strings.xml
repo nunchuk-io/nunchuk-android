@@ -24,4 +24,5 @@
     <string name="nc_restart_wizard">Restart wizard</string>
     <string name="nc_exit_wizard">Exit wizard</string>
     <string name="nc_resume_wizard_desc">You can resume the wizard anytime from the Wallets tab.</string>
+    <string name="nc_inheritance_intro_hint">TAPSIGNER is a wireless NFC smart card that will sign transactions with a simple tap on your phone.</string>
 </resources>

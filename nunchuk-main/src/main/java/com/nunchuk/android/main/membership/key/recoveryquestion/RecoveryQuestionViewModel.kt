@@ -8,6 +8,7 @@ import com.nunchuk.android.core.domain.membership.GetSecurityQuestionUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.SecurityQuestionModel
 import com.nunchuk.android.model.QuestionsAndAnswer
+import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -18,7 +19,8 @@ import javax.inject.Inject
 class RecoveryQuestionViewModel @Inject constructor(
     private val getSecurityQuestionUseCase: GetSecurityQuestionUseCase,
     private val configSecurityQuestionUseCase: ConfigSecurityQuestionUseCase,
-    private val createSecurityQuestionUseCase: CreateSecurityQuestionUseCase
+    private val createSecurityQuestionUseCase: CreateSecurityQuestionUseCase,
+    private val membershipStepManager: MembershipStepManager
 ) : ViewModel() {
     private val _event = MutableSharedFlow<RecoveryQuestionEvent>()
     val event = _event.asSharedFlow()
@@ -114,7 +116,7 @@ class RecoveryQuestionViewModel @Inject constructor(
         _state.update {
             it.copy(recoveries = newRecoveryQuestions)
         }
-        val result = configSecurityQuestionUseCase(questionsAndAnswers)
+        val result = configSecurityQuestionUseCase(ConfigSecurityQuestionUseCase.Param(questionsAndAnswers, membershipStepManager.plan))
         _event.emit(RecoveryQuestionEvent.Loading(false))
         if (result.isSuccess) {
             _event.emit(RecoveryQuestionEvent.ConfigRecoveryQuestionSuccess)

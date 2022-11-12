@@ -8,6 +8,7 @@ import com.nunchuk.android.core.domain.membership.CreateServerWalletUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.ServerKey
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
@@ -30,7 +31,8 @@ class CreateWalletViewModel @Inject constructor(
     private val createSignerUseCase: CreateSignerUseCase,
     private val gson: Gson,
     private val createServerWalletUseCase: CreateServerWalletUseCase,
-    private val deleteWalletUseCase: DeleteWalletUseCase
+    private val deleteWalletUseCase: DeleteWalletUseCase,
+    private val membershipStepManager: MembershipStepManager,
 ) : ViewModel() {
     private val masterSignerIds = mutableListOf<String>()
     private var serverKey: ServerKey? = null
@@ -125,8 +127,8 @@ class CreateWalletViewModel @Inject constructor(
                 addressType = addressType,
                 isEscrow = false
             ).map {
-               val result = createServerWalletUseCase(
-                    CreateServerWalletUseCase.Params(it, serverKeyId)
+                val result = createServerWalletUseCase(
+                    CreateServerWalletUseCase.Params(it, serverKeyId, membershipStepManager.plan)
                 )
                 if (result.isFailure) {
                     deleteWalletUseCase.execute(it.id)

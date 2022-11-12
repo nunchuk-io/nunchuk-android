@@ -1,6 +1,7 @@
 package com.nunchuk.android.core.domain.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SeverWallet
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.repository.PremiumWalletRepository
@@ -13,8 +14,8 @@ class CreateServerWalletUseCase @Inject constructor(
     private val userWalletsRepository: PremiumWalletRepository,
 ) : UseCase<CreateServerWalletUseCase.Params, SeverWallet>(dispatcher) {
     override suspend fun execute(parameters: Params): SeverWallet {
-        return userWalletsRepository.createServerWallet(parameters.wallet, parameters.serverKeyId)
+        return userWalletsRepository.createServerWallet(parameters.wallet, parameters.serverKeyId, parameters.plan)
     }
 
-    data class Params(val wallet: Wallet, val serverKeyId: String)
+    data class Params(val wallet: Wallet, val serverKeyId: String, val plan: MembershipPlan)
 }

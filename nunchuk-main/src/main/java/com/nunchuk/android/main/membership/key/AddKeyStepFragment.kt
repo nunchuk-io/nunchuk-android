@@ -125,62 +125,82 @@ class AddKeyStepFragment : Fragment(), BottomSheetOptionListener {
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
-fun AddKeyStepScreen(viewModel: AddKeyStepViewModel = viewModel()) = NunchukTheme {
+fun AddKeyStepScreen(viewModel: AddKeyStepViewModel = viewModel()) {
     val isConfigKeyDone by viewModel.isConfigKeyDone.collectAsStateWithLifecycle()
     val isSetupRecoverKeyDone by viewModel.isSetupRecoverKeyDone.collectAsStateWithLifecycle()
     val groupRemainTime by viewModel.groupRemainTime.collectAsStateWithLifecycle()
 
-    NunchukTheme {
-        Scaffold { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxHeight()
-                    .verticalScroll(rememberScrollState())
-                    .navigationBarsPadding(),
-            ) {
-                NcImageAppBar(backgroundRes = R.drawable.nc_bg_let_s_add_keys, actions = {
-                    IconButton(onClick = viewModel::onMoreClicked) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_more),
-                            contentDescription = "More icon"
-                        )
-                    }
-                })
-                StepWithEstTime(
-                    1,
-                    stringResource(id = R.string.nc_add_your_keys),
-                    groupRemainTime[0],
-                    isConfigKeyDone
-                )
-                if (isConfigKeyDone.not()) {
-                    NcHintMessage(
-                        modifier = Modifier.padding(top = 16.dp, end = 16.dp, start = 16.dp),
-                        messages = listOf(ClickAbleText("This step requires hardware keys to complete. If you have not received your hardware after a while, please contact us at"),
-                            ClickAbleText(CONTACT_EMAIL) {
-                                viewModel.openContactUs(CONTACT_EMAIL)
-                            })
+    AddKeyStepContent(
+        isConfigKeyDone = isConfigKeyDone,
+        isSetupRecoverKeyDone = isSetupRecoverKeyDone,
+        groupRemainTime = groupRemainTime,
+        onMoreClicked = viewModel::onMoreClicked,
+        onContinueClicked = viewModel::onContinueClicked,
+        openContactUs = viewModel::openContactUs,
+    )
+}
+
+@Composable
+fun AddKeyStepContent(
+    isConfigKeyDone: Boolean = false,
+    isSetupRecoverKeyDone: Boolean = false,
+    groupRemainTime: IntArray = IntArray(3),
+    onMoreClicked: () -> Unit = {},
+    onContinueClicked: () -> Unit = {},
+    openContactUs: (mail: String) -> Unit = {},
+) = NunchukTheme {
+
+    Scaffold { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxHeight()
+                .verticalScroll(rememberScrollState())
+                .navigationBarsPadding(),
+        ) {
+            NcImageAppBar(backgroundRes = R.drawable.nc_bg_let_s_add_keys, actions = {
+                IconButton(onClick = onMoreClicked) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_more),
+                        contentDescription = "More icon"
                     )
                 }
-                StepWithEstTime(
-                    2,
-                    stringResource(R.string.nc_set_up_key_recover),
-                    groupRemainTime[1],
-                    isSetupRecoverKeyDone
+            })
+            StepWithEstTime(
+                1,
+                stringResource(id = R.string.nc_add_your_keys),
+                groupRemainTime[0],
+                isConfigKeyDone
+            )
+            if (isConfigKeyDone.not()) {
+                NcHintMessage(
+                    modifier = Modifier.padding(top = 16.dp, end = 16.dp, start = 16.dp),
+                    messages = listOf(ClickAbleText("This step requires hardware keys to complete. If you have not received your hardware after a while, please contact us at"),
+                        ClickAbleText(CONTACT_EMAIL) {
+                            openContactUs(CONTACT_EMAIL)
+                        })
                 )
-                StepWithEstTime(
-                    3,
-                    stringResource(R.string.nc_create_your_wallet),
-                    groupRemainTime[2],
-                    false
-                )
-                Spacer(modifier = Modifier.weight(1.0f))
-                NcPrimaryDarkButton(modifier = Modifier
+            }
+            StepWithEstTime(
+                2,
+                stringResource(R.string.nc_set_up_key_recover),
+                groupRemainTime[1],
+                isSetupRecoverKeyDone
+            )
+            StepWithEstTime(
+                3,
+                stringResource(R.string.nc_create_your_wallet),
+                groupRemainTime[2],
+                false
+            )
+            Spacer(modifier = Modifier.weight(1.0f))
+            NcPrimaryDarkButton(
+                modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                    onClick = { viewModel.onContinueClicked() }) {
-                    Text(text = stringResource(id = R.string.nc_text_continue))
-                }
+                onClick = onContinueClicked
+            ) {
+                Text(text = stringResource(id = R.string.nc_text_continue))
             }
         }
     }
@@ -231,5 +251,5 @@ fun StepWithEstTime(index: Int, label: String, estInMinutes: Int, isCompleted: B
 @Preview
 @Composable
 fun AddKeyStepScreenPreview() {
-    AddKeyStepScreen()
+    AddKeyStepContent()
 }

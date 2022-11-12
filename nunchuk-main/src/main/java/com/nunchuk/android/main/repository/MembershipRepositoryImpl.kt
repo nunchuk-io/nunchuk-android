@@ -37,7 +37,8 @@ class MembershipRepositoryImpl @Inject constructor(
                 isVerify = info.isVerify,
                 id = info.id,
                 extraJson = info.extraData,
-                keyIdInServer = info.keyIdInServer
+                keyIdInServer = info.keyIdInServer,
+                plan = info.plan
             )
         )
     }

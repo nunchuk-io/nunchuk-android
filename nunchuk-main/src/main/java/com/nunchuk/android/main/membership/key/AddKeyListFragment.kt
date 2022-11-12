@@ -97,18 +97,29 @@ class AddKeyListFragment : MembershipFragment() {
     }
 
     private fun handleOnAddKey(data: AddKeyData) {
-        if (data.type == MembershipStep.ADD_TAP_SIGNER_1 || data.type == MembershipStep.ADD_TAP_SIGNER_2) {
-            if (viewModel.getTapSigners().isNotEmpty()) {
-                findNavController().navigate(
-                    AddKeyListFragmentDirections.actionAddKeyListFragmentToTapSignerListBottomSheetFragment(
-                        viewModel.getTapSigners().toTypedArray()
+        when (data.type) {
+            MembershipStep.ADD_TAP_SIGNER_1,
+            MembershipStep.ADD_TAP_SIGNER_2 -> {
+                if (viewModel.getTapSigners().isNotEmpty()) {
+                    findNavController().navigate(
+                        AddKeyListFragmentDirections.actionAddKeyListFragmentToTapSignerListBottomSheetFragment(
+                            viewModel.getTapSigners().toTypedArray()
+                        )
                     )
-                )
-            } else {
-                openSetupTapSigner()
+                } else {
+                    openSetupTapSigner()
+                }
             }
-        } else if (data.type == MembershipStep.ADD_SEVER_KEY) {
-            findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToConfigureServerKeyIntroFragment())
+            MembershipStep.ADD_SEVER_KEY -> {
+                findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToConfigureServerKeyIntroFragment())
+            }
+            MembershipStep.HONEY_ADD_TAP_SIGNER -> {
+                findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToTapSignerInheritanceIntroFragment())
+            }
+            MembershipStep.SETUP_KEY_RECOVERY,
+            MembershipStep.CREATE_WALLET -> throw IllegalArgumentException("handleOnAddKey")
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_1 -> TODO()
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> TODO()
         }
     }
 

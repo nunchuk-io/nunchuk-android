@@ -43,7 +43,6 @@ class UploadBackUpTapSignerFragment : MembershipFragment() {
     private val viewModel: UploadBackUpTapSignerViewModel by viewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         nfcViewModel.updateMasterSigner(args.masterSignerId)

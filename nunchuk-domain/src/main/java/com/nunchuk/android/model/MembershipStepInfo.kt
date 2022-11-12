@@ -6,7 +6,8 @@ data class MembershipStepInfo(
     val masterSignerId: String = "",
     val keyIdInServer: String = "",
     val isVerify: Boolean = false,
-    val extraData: String = ""
+    val extraData: String = "",
+    val plan: MembershipPlan,
 ) {
     val isVerifyOrAddKey: Boolean
         get() = isVerify || masterSignerId.isNotEmpty()

@@ -38,6 +38,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun configSecurityQuestions(
         questions: List<QuestionsAndAnswer>,
+        plan: MembershipPlan,
     ) {
         val result = userWalletsApi.configSecurityQuestion(
             ConfigSecurityQuestionPayload(
@@ -53,14 +54,19 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             membershipRepository.saveStepInfo(
                 MembershipStepInfo(
                     step = MembershipStep.SETUP_KEY_RECOVERY,
-                    isVerify = true
+                    isVerify = true,
+                    plan = plan
                 )
             )
         }
         throw result.error
     }
 
-    override suspend fun createServerKeys(name: String, keyPolicy: KeyPolicy): KeyPolicy {
+    override suspend fun createServerKeys(
+        name: String,
+        keyPolicy: KeyPolicy,
+        plan: MembershipPlan
+    ): KeyPolicy {
         val data = userWalletsApi.createServerKey(
             CreateServerKeysPayload(
                 name = name, keyPoliciesDtoPayload = KeyPoliciesDto(
@@ -82,7 +88,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         derivationPath = key.derivationPath.orEmpty(),
                         xpub = key.xpub.orEmpty()
                     )
-                )
+                ),
+                plan = plan
             )
         )
         return keyPolicy
@@ -127,7 +134,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return SecurityQuestion(id = response.id, question = response.question)
     }
 
-    override suspend fun createServerWallet(wallet: Wallet, serverKeyId: String): SeverWallet {
+    override suspend fun createServerWallet(
+        wallet: Wallet,
+        serverKeyId: String,
+        plan: MembershipPlan
+    ): SeverWallet {
         val signers = wallet.signers.map {
             if (it.type == SignerType.NFC) {
                 val status = nunchukNativeSdk.getTapSignerStatusFromMasterSigner(it.masterSignerId)
@@ -170,7 +181,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             membershipRepository.saveStepInfo(
                 MembershipStepInfo(
                     step = MembershipStep.CREATE_WALLET,
-                    isVerify = true
+                    isVerify = true,
+                    plan = plan
                 )
             )
         }
@@ -240,8 +252,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 nunchukNativeSdk.updateWallet(wallet)
             }
         }
+        val planWalletCreated = mutableSetOf<String>()
+        result.data.wallets.forEach { planWalletCreated.add(it.slug.orEmpty()) }
         return WalletServerSync(
-            isHasWallet = result.data.hasWalletCreated,
+            planWalletCreated = planWalletCreated,
             keyPolicyMap = keyPolicyMap,
             isNeedReload = isNeedReload
         )

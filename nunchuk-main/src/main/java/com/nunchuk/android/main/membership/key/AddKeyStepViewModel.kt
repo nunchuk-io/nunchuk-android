@@ -29,7 +29,13 @@ class AddKeyStepViewModel @Inject constructor(
     val groupRemainTime =
         membershipStepManager.remainingTime.map {
             intArrayOf(
-                membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.ADD_TAP_SIGNER_1, MembershipStep.ADD_TAP_SIGNER_2, MembershipStep.SETUP_KEY_RECOVERY)),
+                membershipStepManager.getRemainTimeBySteps(
+                    listOf(
+                        MembershipStep.ADD_TAP_SIGNER_1,
+                        MembershipStep.ADD_TAP_SIGNER_2,
+                        MembershipStep.SETUP_KEY_RECOVERY
+                    )
+                ),
                 membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.SETUP_KEY_RECOVERY)),
                 membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.CREATE_WALLET))
             )
