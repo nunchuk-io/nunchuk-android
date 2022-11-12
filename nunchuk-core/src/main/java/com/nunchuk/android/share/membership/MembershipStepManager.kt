@@ -4,6 +4,7 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
@@ -14,31 +15,15 @@ import javax.inject.Singleton
 
 @Singleton
 class MembershipStepManager @Inject constructor(
-    getMembershipStepUseCase: GetMembershipStepUseCase,
-    applicationScope: CoroutineScope,
+   private val getMembershipStepUseCase: GetMembershipStepUseCase,
+   private val applicationScope: CoroutineScope,
 ) {
+    private var job: Job? = null
     var plan = MembershipPlan.IRON_HAND
         private set
     private val steps = hashMapOf<MembershipStep, MembershipStepFlow>()
     private val _stepDone = MutableStateFlow<Set<MembershipStep>>(emptySet())
     val stepDone = _stepDone.asStateFlow()
-
-    init {
-        applicationScope.launch {
-            getMembershipStepUseCase(Unit)
-                .map { it.getOrElse { emptyList() } }
-                .collect { steps ->
-                    if (steps.isEmpty()) {
-                        initStep()
-                    } else {
-                        steps.forEach { step ->
-                            if (step.isVerifyOrAddKey) markStepDone(step.step)
-                            else addRequireStep(step.step)
-                        }
-                    }
-                }
-        }
-    }
 
     var currentStep: MembershipStep? = null
         private set
@@ -67,8 +52,28 @@ class MembershipStepManager @Inject constructor(
         _stepDone.value = emptySet()
     }
 
+    private fun observerStep(plan: MembershipPlan) {
+        job?.cancel()
+        job = applicationScope.launch {
+            getMembershipStepUseCase(plan)
+                .map { it.getOrElse { emptyList() } }
+                .collect { steps ->
+                    if (steps.isEmpty()) {
+                        initStep()
+                    } else {
+                        steps.forEach { step ->
+                            if (step.isVerifyOrAddKey) markStepDone(step.step)
+                            else addRequireStep(step.step)
+                        }
+                    }
+                }
+        }
+    }
+
     fun setCurrentPlan(plan: MembershipPlan) {
         this.plan = plan
+        initStep()
+        observerStep(plan)
     }
 
     fun setCurrentStep(step: MembershipStep) {

@@ -47,7 +47,7 @@ class AddKeyListViewModel @Inject constructor(
         }
     }
 
-    private val membershipStepState = getMembershipStepUseCase(Unit)
+    private val membershipStepState = getMembershipStepUseCase(membershipStepManager.plan)
         .map { it.getOrElse { emptyList() } }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 

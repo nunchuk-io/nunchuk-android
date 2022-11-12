@@ -46,7 +46,7 @@ class CreateWalletViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getMembershipStepUseCase(Unit)
+            getMembershipStepUseCase(membershipStepManager.plan)
                 .filter { it.isSuccess }
                 .map { it.getOrThrow() }
                 .collect { steps ->

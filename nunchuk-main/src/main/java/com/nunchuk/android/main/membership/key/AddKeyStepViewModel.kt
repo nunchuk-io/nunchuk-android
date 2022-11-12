@@ -12,7 +12,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddKeyStepViewModel @Inject constructor(
-    membershipStepManager: MembershipStepManager,
+    private val membershipStepManager: MembershipStepManager,
     private val restartWizardUseCase: RestartWizardUseCase
 ) : ViewModel() {
     private val _event = MutableSharedFlow<AddKeyStepEvent>()
@@ -74,7 +74,7 @@ class AddKeyStepViewModel @Inject constructor(
 
     fun resetWizard() {
         viewModelScope.launch {
-            val result = restartWizardUseCase(Unit)
+            val result = restartWizardUseCase(membershipStepManager.plan)
             if (result.isSuccess) {
                 _event.emit(AddKeyStepEvent.RestartWizardSuccess)
             }

@@ -3,6 +3,7 @@ package com.nunchuk.android.main.repository
 import com.nunchuk.android.api.key.MembershipApi
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.model.MemberSubscription
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.MembershipStepDao
@@ -21,8 +22,8 @@ class MembershipRepositoryImpl @Inject constructor(
     private val membershipApi: MembershipApi,
     private val nativeSdk: NunchukNativeSdk,
 ) : MembershipRepository {
-    override fun getSteps(): Flow<List<MembershipStepInfo>> {
-        return membershipStepDao.getSteps(accountManager.getAccount().email)
+    override fun getSteps(plan: MembershipPlan): Flow<List<MembershipStepInfo>> {
+        return membershipStepDao.getSteps(accountManager.getAccount().email, plan)
             .map {
                 it.map { entity -> entity.toModel() }
             }
@@ -57,8 +58,8 @@ class MembershipRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun restart() {
-        val steps = getSteps().first()
+    override suspend fun restart(plan: MembershipPlan) {
+        val steps = getSteps(plan).first()
         steps.filter { it.masterSignerId.isNotEmpty() }.forEach {
             nativeSdk.deleteMasterSigner(it.masterSignerId)
         }
