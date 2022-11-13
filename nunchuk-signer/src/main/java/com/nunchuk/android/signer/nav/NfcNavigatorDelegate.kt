@@ -21,12 +21,17 @@ package com.nunchuk.android.signer.nav
 
 import android.app.Activity
 import com.nunchuk.android.nav.NfcNavigator
+import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 
 interface NfcNavigatorDelegate : NfcNavigator {
-    override fun openSetupMk4(activity: Activity, fromMembershipFlow: Boolean) {
-        Mk4Activity.navigate(activity, fromMembershipFlow)
+    override fun openSetupMk4(
+        activity: Activity,
+        fromMembershipFlow: Boolean,
+        action: ColdcardAction
+    ) {
+        Mk4Activity.navigate(activity, fromMembershipFlow, action)
     }
 
     override fun openSetupTapSigner(

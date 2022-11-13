@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.CreateMk4SignerUseCase
 import com.nunchuk.android.core.domain.GetMk4SingersUseCase
+import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.SIGNER_PATH_PREFIX
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MembershipStepInfo
@@ -48,7 +49,7 @@ class Mk4IntroViewModel @Inject constructor(
                     val signer = sortedSigner.find { it.derivationPath == SIGNER_PATH } ?: run {
                         sortedSigner.find { it.derivationPath.contains(SIGNER_PATH_PREFIX) }
                     } ?: throw NullPointerException("Can not find signer")
-                    val createSignerResult = createMk4SignerUseCase(signer.copy(name = DEFAULT_KEY_NAME))
+                    val createSignerResult = createMk4SignerUseCase(signer.copy(name = COLDCARD_DEFAULT_KEY_NAME))
                     if (createSignerResult.isSuccess) {
                         val coldcardSigner = createSignerResult.getOrThrow()
                         saveMembershipStepUseCase(MembershipStepInfo(
@@ -83,7 +84,6 @@ class Mk4IntroViewModel @Inject constructor(
     }
 
     companion object {
-        private const val DEFAULT_KEY_NAME = "COLDCARD"
         private const val SIGNER_PATH = "m/48h/0h/0h/1h"
     }
 }

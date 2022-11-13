@@ -30,6 +30,7 @@ import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.core.util.COLDCARD_GUIDE_URL
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.mk4.info.component.Mk4InfoContent
@@ -68,9 +69,5 @@ class Mk4InfoFragment : Fragment() {
                 )
             }
         }
-    }
-
-    companion object {
-        private const val COLDCARD_GUIDE_URL = "https://coldcard.com/docs/quick"
     }
 }

@@ -27,7 +27,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.*
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.clearFragmentResult
+import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -49,10 +51,10 @@ import com.nunchuk.android.main.membership.model.getLabel
 import com.nunchuk.android.main.membership.model.resId
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -103,7 +105,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             SignerType.COLDCARD_NFC.ordinal -> handleShowKeysOrCreate(viewModel.getColdcard(), SignerType.COLDCARD_NFC, ::showAddColdcardOptions)
             SignerType.AIRGAP.ordinal -> handleShowKeysOrCreate(viewModel.getAirgap(), SignerType.AIRGAP, ::openAddAirgap)
             SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(requireActivity(), true)
-            SheetOptionType.TYPE_ADD_COLDCARD_FILE -> TODO("Hai")
+            SheetOptionType.TYPE_ADD_COLDCARD_FILE -> navigator.openSetupMk4(requireActivity(), true, ColdcardAction.RECOVER)
         }
     }
 

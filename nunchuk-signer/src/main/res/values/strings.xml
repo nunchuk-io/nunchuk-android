@@ -108,4 +108,6 @@
     <string name="nc_yes_use_this_tapsigner">Yes, use this TAPSIGNER</string>
     <string name="nc_no_add_a_new_one">No, I want to add a new one</string>
     <string name="nc_add_your_coldcard">Add your COLDCARD</string>
+    <string name="nc_export_xpub_coldcard_desc">Navigate to Advanced/Tools → Export Wallet → Generic JSON → OK.</string>
+    <string name="nc_import_xpub_into_app_desc">Import the file from step 3 on the next screen.</string>
 </resources>

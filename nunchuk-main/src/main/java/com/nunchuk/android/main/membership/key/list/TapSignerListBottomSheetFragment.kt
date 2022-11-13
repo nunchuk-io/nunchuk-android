@@ -69,7 +69,10 @@ class TapSignerListBottomSheetFragment : BaseComposeBottomSheet() {
                     ).toBundle()
                 )
                 TapSignerListBottomSheetEvent.OnAddNewKey -> setFragmentResult(
-                    REQUEST_KEY, Bundle()
+                    REQUEST_KEY, TapSignerListBottomSheetFragmentArgs(
+                        emptyArray(),
+                        args.type
+                    ).toBundle()
                 )
             }
             dismissAllowingStateLoss()

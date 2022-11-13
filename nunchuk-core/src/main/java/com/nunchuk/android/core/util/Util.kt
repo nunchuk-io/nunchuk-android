@@ -63,6 +63,8 @@ const val NFC_DEFAULT_NAME = "NFC Key"
 const val ONE_HOUR_TO_SECONDS = 60 * 60
 
 const val SIGNER_PATH_PREFIX = "m/48h"
+const val COLDCARD_GUIDE_URL = "https://coldcard.com/docs/quick"
+const val COLDCARD_DEFAULT_KEY_NAME = "COLDCARD"
 
 fun Long.formatDate(): String = SimpleDateFormat("MM/dd/yyyy 'at' HH:mm aaa", Locale.US).format(Date(this * 1000))
 

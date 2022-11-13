@@ -20,11 +20,13 @@
 package com.nunchuk.android.nav
 
 import android.app.Activity
+import com.nunchuk.android.share.ColdcardAction
 
 interface NfcNavigator {
     fun openSetupMk4(
         activity: Activity,
-        fromMembershipFlow: Boolean
+        fromMembershipFlow: Boolean,
+        action: ColdcardAction = ColdcardAction.CREATE
     )
 
     fun openSetupTapSigner(
