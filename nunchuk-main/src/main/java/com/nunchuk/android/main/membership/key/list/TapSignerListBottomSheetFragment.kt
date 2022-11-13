@@ -88,7 +88,7 @@ private fun TapSignerListScreen(
     viewModel: TapSingerListBottomSheetViewModel,
     args: TapSignerListBottomSheetFragmentArgs,
 ) {
-    val selectedSignerId by viewModel.selectSingleId.collectAsStateWithLifecycle()
+    val selectedSigner by viewModel.selectSingle.collectAsStateWithLifecycle()
     val onBackPressedDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
 
     TapSignerListContent(
@@ -100,7 +100,7 @@ private fun TapSignerListScreen(
         signers = args.signers.toList(),
         type = args.type,
         onSignerSelected = viewModel::onSignerSelected,
-        selectedSignerId = selectedSignerId,
+        selectedSigner = selectedSigner,
     )
 }
 
@@ -111,7 +111,7 @@ private fun TapSignerListContent(
     onAddNewKeyClicked: () -> Unit = {},
     signers: List<SignerModel> = emptyList(),
     onSignerSelected: (signer: SignerModel) -> Unit = {},
-    selectedSignerId: String = "",
+    selectedSigner: SignerModel? = null,
     type: SignerType = SignerType.NFC,
 ) {
     val signerLabel = when (type) {
@@ -137,13 +137,13 @@ private fun TapSignerListContent(
         Text(
             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
             text = stringResource(
-                R.string.nc_do_you_want_add_existing_key, signerLabel,
+                R.string.nc_do_you_want_add_existing_key
             ),
             style = NunchukTheme.typography.title,
         )
         Text(
             modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
-            text = stringResource(R.string.nc_notice_you_have_exist_key),
+            text = stringResource(R.string.nc_notice_you_have_exist_key, signerLabel),
             style = NunchukTheme.typography.body,
         )
         LazyColumn(
@@ -152,7 +152,7 @@ private fun TapSignerListContent(
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             items(signers) { signer ->
-                SignerCard(signer, signer.id == selectedSignerId, onSignerSelected)
+                SignerCard(signer, signer == selectedSigner, onSignerSelected)
             }
         }
         NcPrimaryDarkButton(
@@ -160,7 +160,7 @@ private fun TapSignerListContent(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
             onClick = onAddExistKeyClicked,
-            enabled = selectedSignerId.isNotEmpty(),
+            enabled = selectedSigner != null,
         ) {
             Text(
                 text = stringResource(R.string.nc_add_existing_key),

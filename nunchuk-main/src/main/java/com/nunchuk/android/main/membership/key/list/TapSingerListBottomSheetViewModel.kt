@@ -1,6 +1,5 @@
 package com.nunchuk.android.main.membership.key.list
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.signer.SignerModel
@@ -14,22 +13,20 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TapSingerListBottomSheetViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val args = TapSignerListBottomSheetFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _event = MutableSharedFlow<TapSignerListBottomSheetEvent>()
     val event = _event.asSharedFlow()
 
-    private val _selectSingleId = MutableStateFlow("")
-    val selectSingleId = _selectSingleId.asStateFlow()
+    private val _selectSingle = MutableStateFlow<SignerModel?>(null)
+    val selectSingle = _selectSingle.asStateFlow()
 
     fun onSignerSelected(signer: SignerModel) {
-        _selectSingleId.value = signer.id
+        _selectSingle.value = signer
     }
 
     fun onAddExistingKey() {
         viewModelScope.launch {
-            selectedSigner?.let {
+            _selectSingle.value?.let {
                 _event.emit(TapSignerListBottomSheetEvent.OnAddExistingKey(it))
             }
         }
@@ -40,9 +37,6 @@ class TapSingerListBottomSheetViewModel @Inject constructor(
             _event.emit(TapSignerListBottomSheetEvent.OnAddNewKey)
         }
     }
-
-    val selectedSigner: SignerModel?
-        get() = args.signers.find { it.id == selectSingleId.value }
 }
 
 sealed class TapSignerListBottomSheetEvent {
