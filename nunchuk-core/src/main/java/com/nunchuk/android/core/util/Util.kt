@@ -33,9 +33,6 @@ import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
-import kotlin.properties.ObservableProperty
-import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KProperty
 
 fun Throwable.readableMessage() = message ?: UNKNOWN_ERROR
 
@@ -64,6 +61,8 @@ const val NFC_CARD_TIMEOUT = 5000
 const val NFC_DEFAULT_NAME = "NFC Key"
 
 const val ONE_HOUR_TO_SECONDS = 60 * 60
+
+const val SIGNER_PATH_PREFIX = "m/48h"
 
 fun Long.formatDate(): String = SimpleDateFormat("MM/dd/yyyy 'at' HH:mm aaa", Locale.US).format(Date(this * 1000))
 

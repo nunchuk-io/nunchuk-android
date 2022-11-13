@@ -189,7 +189,7 @@
     <string name="nc_locate_phone_nfc">Locate phone’s NFC chip</string>
     <string name="nc_back_up_tapsigner">Backing up TAPSIGNER</string>
     <string name="nc_do_you_want_add_existing_key">Do you want to add an existing key?</string>
-    <string name="nc_notice_you_have_tapsigner_in_key">We noticed that you already have a TAPSIGNER in your key manager</string>
+    <string name="nc_notice_you_have_exist_key">We notice that you have these %1$s</string>
     <string name="nc_add_existing_key">Add existing key</string>
     <string name="nc_take_me_to_add_new_key">Take me to add a new key</string>
     <string name="nc_added">Added</string>
@@ -215,7 +215,7 @@
     <string name="nc_est_time_in_mins">Est. time: %1$d minutes</string>
     <string name="nc_set_up_key_recover">Set up key recovery</string>
     <string name="nc_create_your_wallet">Create your wallet</string>
-    <string name="nc_error_add_same_tap_signer">You must add different tap signer</string>
+    <string name="nc_error_add_same_tap_signer">Two keys cannot share the same master fingerprint (XFP)</string>
     <string name="nc_let_s_get_you_started">Let’s get you started</string>
     <string name="nc_start_wizard">Start wizard</string>
     <string name="nc_configure_server_key_intro_question">What is the Nunchuk server key?</string>
@@ -258,4 +258,5 @@
     <string name="nc_your_inheritance_key">Your inheritance key</string>
     <string name="nc_inheritance_intro_desc">This TAPSIGNER will be your designated inheritance key. Once you have set up an inheritance plan, a Beneficiary or Trustee will be able to recover this TAPSIGNER’s private key at a later date to access your wallet and claim the inheritance.Please take a moment to mark or label this key.</string>
     <string name="nc_set_up_inheritance_plan">Set up an inheritance plan</string>
+    <string name="nc_add_coldcard_via_file">Add COLDCARD via a file (Advanced)</string>
 </resources>

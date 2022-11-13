@@ -19,6 +19,8 @@
 
 package com.nunchuk.android.signer.mk4
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
@@ -41,7 +43,17 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
     }
 
     private fun initStartDestination() {
-        val navHostFragment = (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
-        navHostFragment.navController.setGraph(R.navigation.mk4_navigation)
+        val navHostFragment =
+            (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
+        navHostFragment.navController.setGraph(R.navigation.mk4_navigation, intent.extras)
+    }
+
+    companion object {
+        private const val EXTRA_IS_MEMBERSHIP_FLOW = "is_membership_flow"
+        fun navigate(activity: Activity, isMembershipFlow: Boolean) {
+            activity.startActivity(Intent(activity, Mk4Activity::class.java).apply {
+                putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
+            })
+        }
     }
 }

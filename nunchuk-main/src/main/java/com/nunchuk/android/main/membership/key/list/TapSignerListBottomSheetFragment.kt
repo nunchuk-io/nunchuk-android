@@ -33,6 +33,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.type.SignerType
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -62,9 +63,11 @@ class TapSignerListBottomSheetFragment : BaseComposeBottomSheet() {
             when (event) {
                 is TapSignerListBottomSheetEvent.OnAddExistingKey -> setFragmentResult(
                     REQUEST_KEY,
-                    Bundle().apply {
-                        putParcelable(EXTRA_SELECTED_SIGNER_ID, viewModel.selectedSigner)
-                    })
+                    TapSignerListBottomSheetFragmentArgs(
+                        listOf(event.signer).toTypedArray(),
+                        args.type
+                    ).toBundle()
+                )
                 TapSignerListBottomSheetEvent.OnAddNewKey -> setFragmentResult(
                     REQUEST_KEY, Bundle()
                 )
@@ -95,6 +98,7 @@ private fun TapSignerListScreen(
         onAddExistKeyClicked = viewModel::onAddExistingKey,
         onAddNewKeyClicked = viewModel::onAddNewKey,
         signers = args.signers.toList(),
+        type = args.type,
         onSignerSelected = viewModel::onSignerSelected,
         selectedSignerId = selectedSignerId,
     )
@@ -108,7 +112,14 @@ private fun TapSignerListContent(
     signers: List<SignerModel> = emptyList(),
     onSignerSelected: (signer: SignerModel) -> Unit = {},
     selectedSignerId: String = "",
+    type: SignerType = SignerType.NFC,
 ) {
+    val signerLabel = when (type) {
+        SignerType.NFC -> "TAPSIGNER(s)"
+        SignerType.COLDCARD_NFC -> "COLDCARD(s)"
+        SignerType.AIRGAP -> "Air-gapped key(s)"
+        else -> ""
+    }
     Column(
         modifier = Modifier.background(
             color = MaterialTheme.colors.surface,
@@ -125,12 +136,14 @@ private fun TapSignerListContent(
         }
         Text(
             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-            text = stringResource(R.string.nc_do_you_want_add_existing_key),
+            text = stringResource(
+                R.string.nc_do_you_want_add_existing_key, signerLabel,
+            ),
             style = NunchukTheme.typography.title,
         )
         Text(
             modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
-            text = stringResource(R.string.nc_notice_you_have_tapsigner_in_key),
+            text = stringResource(R.string.nc_notice_you_have_exist_key),
             style = NunchukTheme.typography.body,
         )
         LazyColumn(
@@ -215,7 +228,7 @@ fun TapSignerListContentPreview() {
                 SignerModel(
                     "123", "Tom’s TAPSIGNER 2", fingerPrint = "79EB35F4", derivationPath = ""
                 ),
-            )
+            ),
         )
     }
 }

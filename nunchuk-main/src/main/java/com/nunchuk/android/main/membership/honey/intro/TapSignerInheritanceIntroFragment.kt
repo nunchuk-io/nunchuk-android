@@ -29,10 +29,10 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.key.AddKeyListFragmentDirections
 import com.nunchuk.android.main.membership.key.AddKeyListViewModel
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -65,6 +65,16 @@ class TapSignerInheritanceIntroFragment : Fragment() {
                     }
                 }
         }
+        setFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY) { _, bundle ->
+            findNavController().popBackStack(R.id.addKeyListFragment, false)
+            bundle.parcelable<SignerModel>(TapSignerListBottomSheetFragment.EXTRA_SELECTED_SIGNER_ID)
+                ?.let {
+                    openCreateBackUpTapSigner(it.id)
+                } ?: run {
+                openSetupTapSigner()
+                clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
+            }
+        }
     }
 
     private fun openCreateBackUpTapSigner(masterSignerId: String) {
@@ -85,19 +95,10 @@ class TapSignerInheritanceIntroFragment : Fragment() {
 
     private fun handleAddTapSigner() {
         if (addKeyViewModel.getTapSigners().isNotEmpty()) {
-            clearFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY)
-            setFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY) { _, bundle ->
-                findNavController().popBackStack(R.id.addKeyListFragment, false)
-                bundle.parcelable<SignerModel>(TapSignerListBottomSheetFragment.EXTRA_SELECTED_SIGNER_ID)
-                    ?.let {
-                        openCreateBackUpTapSigner(it.id)
-                    } ?: run {
-                    openSetupTapSigner()
-                }
-            }
             findNavController().navigate(
                 TapSignerInheritanceIntroFragmentDirections.actionTapSignerInheritanceIntroFragmentToTapSignerListBottomSheetFragment(
-                    addKeyViewModel.getTapSigners().toTypedArray()
+                    signers = addKeyViewModel.getTapSigners().toTypedArray(),
+                    type = SignerType.NFC
                 )
             )
         } else {

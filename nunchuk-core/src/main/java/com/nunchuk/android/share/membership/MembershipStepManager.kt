@@ -19,6 +19,8 @@ class MembershipStepManager @Inject constructor(
    private val applicationScope: CoroutineScope,
 ) {
     private var job: Job? = null
+
+    // TODO Hai Save instance state
     var plan = MembershipPlan.IRON_HAND
         private set
     private val steps = hashMapOf<MembershipStep, MembershipStepFlow>()

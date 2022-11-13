@@ -21,21 +21,13 @@ package com.nunchuk.android.signer
 
 import android.content.Context
 import android.content.Intent
-import android.nfc.tech.IsoDep
 import android.os.Bundle
-import androidx.activity.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.nfc.BaseNfcActivity
-import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_STATUS
 import com.nunchuk.android.signer.databinding.ActivitySignerIntroBinding
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.signer.tapsigner.SetUpNfcOptionSheet
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
 class SignerIntroActivity : BaseActivity<ActivitySignerIntroBinding>(), SetUpNfcOptionSheet.OptionClickListener {
@@ -54,7 +46,7 @@ class SignerIntroActivity : BaseActivity<ActivitySignerIntroBinding>(), SetUpNfc
             SetUpNfcOptionSheet.SetUpNfcOption.ADD_NEW -> navigateToSetupTapSigner()
             SetUpNfcOptionSheet.SetUpNfcOption.RECOVER -> NfcSetupActivity.navigate(this, NfcSetupActivity.RECOVER_NFC)
             SetUpNfcOptionSheet.SetUpNfcOption.Mk4 -> {
-                navigator.openSetupMk4(this)
+                navigator.openSetupMk4(this, false)
                 finish()
             }
         }

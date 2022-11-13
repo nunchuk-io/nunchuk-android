@@ -33,11 +33,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.*
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
+import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.main.membership.model.getButtonText
 import com.nunchuk.android.main.membership.model.getLabel
@@ -46,12 +51,13 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class AddKeyListFragment : MembershipFragment() {
+class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     @Inject
     lateinit var navigator: NunchukNavigator
 
@@ -70,6 +76,56 @@ class AddKeyListFragment : MembershipFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         observer()
+        setFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY) { _, bundle ->
+            val data = TapSignerListBottomSheetFragmentArgs.fromBundle(bundle)
+            if (data.signers.isNotEmpty()) {
+                when (data.type) {
+                    SignerType.NFC -> openCreateBackUpTapSigner(data.signers.first().id)
+                    SignerType.AIRGAP,
+                    SignerType.COLDCARD_NFC -> viewModel.onSelectedHardwareSigner(data.signers.first())
+                    else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
+                }
+            } else {
+                when (data.type) {
+                    SignerType.NFC -> openSetupTapSigner()
+                    SignerType.AIRGAP -> TODO("Hai")
+                    SignerType.COLDCARD_NFC -> showAddColdcardOptions()
+                    else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
+                }
+            }
+            clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
+        }
+    }
+
+    override fun onOptionClicked(option: SheetOption) {
+        when (option.type) {
+            SignerType.NFC.ordinal -> handleShowKeysOrCreate(viewModel.getTapSigners(), SignerType.NFC, ::openSetupTapSigner)
+            SignerType.COLDCARD_NFC.ordinal -> handleShowKeysOrCreate(viewModel.getColdcard(), SignerType.COLDCARD_NFC, ::showAddColdcardOptions)
+            SignerType.AIRGAP.ordinal -> handleShowKeysOrCreate(viewModel.getAirgap(), SignerType.AIRGAP, ::openAddAirgap)
+            SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(requireActivity(), true)
+            SheetOptionType.TYPE_ADD_COLDCARD_FILE -> TODO("Hai")
+        }
+    }
+
+    private fun showAddColdcardOptions() {
+        BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_COLDCARD_NFC,
+                    label = getString(R.string.nc_add_coldcard_via_nfc),
+                    resId = R.drawable.ic_nfc_indicator_small
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_COLDCARD_FILE,
+                    label = getString(R.string.nc_add_coldcard_via_file),
+                    resId = R.drawable.ic_import
+                ),
+            )
+        ).show(childFragmentManager, "BottomSheetOption")
+    }
+
+    private fun openAddAirgap() {
+
     }
 
     private fun observer() {
@@ -86,9 +142,7 @@ class AddKeyListFragment : MembershipFragment() {
     private fun handleOnAddKey(data: AddKeyData) {
         when (data.type) {
             MembershipStep.ADD_TAP_SIGNER_1,
-            MembershipStep.ADD_TAP_SIGNER_2 -> {
-                handleAddTapSigner()
-            }
+            MembershipStep.ADD_TAP_SIGNER_2 -> handleShowKeysOrCreate(viewModel.getTapSigners(), SignerType.NFC, ::openSetupTapSigner)
             MembershipStep.ADD_SEVER_KEY -> {
                 findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToConfigureServerKeyIntroFragment())
             }
@@ -98,29 +152,40 @@ class AddKeyListFragment : MembershipFragment() {
             MembershipStep.SETUP_KEY_RECOVERY,
             MembershipStep.SETUP_INHERITANCE,
             MembershipStep.CREATE_WALLET -> throw IllegalArgumentException("handleOnAddKey")
-            MembershipStep.HONEY_ADD_HARDWARE_KEY_1 -> TODO()
-            MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> TODO()
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> openSelectHardwareOption()
         }
     }
 
-    private fun handleAddTapSigner() {
-        if (viewModel.getTapSigners().isNotEmpty()) {
-            clearFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY)
-            setFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY) { _, bundle ->
-                bundle.parcelable<SignerModel>(TapSignerListBottomSheetFragment.EXTRA_SELECTED_SIGNER_ID)
-                    ?.let {
-                        openCreateBackUpTapSigner(it.id)
-                    } ?: run {
-                    openSetupTapSigner()
-                }
-            }
+    private fun openSelectHardwareOption() {
+        BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    type = SignerType.NFC.ordinal,
+                    label = getString(R.string.nc_tapsigner)
+                ),
+                SheetOption(
+                    type = SignerType.COLDCARD_NFC.ordinal,
+                    label = getString(R.string.nc_coldcard)
+                ),
+                SheetOption(
+                    type = SignerType.AIRGAP.ordinal,
+                    label = getString(R.string.nc_signer_air_gapped)
+                ),
+            )
+        ).show(childFragmentManager, "BottomSheetOption")
+    }
+
+    private fun handleShowKeysOrCreate(signer: List<SignerModel>, type: SignerType, onEmptySigner: () -> Unit) {
+        if (signer.isNotEmpty()) {
             findNavController().navigate(
                 AddKeyListFragmentDirections.actionAddKeyListFragmentToTapSignerListBottomSheetFragment(
-                    viewModel.getTapSigners().toTypedArray()
+                    signer.toTypedArray(),
+                    type
                 )
             )
         } else {
-            openSetupTapSigner()
+            onEmptySigner()
         }
     }
 

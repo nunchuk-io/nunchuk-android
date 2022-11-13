@@ -7,15 +7,19 @@ import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.SIGNER_PATH_PREFIX
 import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
-import com.nunchuk.android.usecase.GetMasterSignersUseCase
+import com.nunchuk.android.usecase.GetRemoteSignersUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
+import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -23,14 +27,16 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddKeyListViewModel @Inject constructor(
-    private val getMasterSignersUseCase: GetMasterSignersUseCase,
+    private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     private val savedStateHandle: SavedStateHandle,
     getMembershipStepUseCase: GetMembershipStepUseCase,
     private val getMasterSignerUseCase: GetMasterSignerUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val nfcFileManager: NfcFileManager,
     private val masterSignerMapper: MasterSignerMapper,
-    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase
+    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
+    private val getRemoteSignersUseCase: GetRemoteSignersUseCase,
+    private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     private val _event = MutableSharedFlow<AddKeyListEvent>()
@@ -38,14 +44,6 @@ class AddKeyListViewModel @Inject constructor(
 
     private val currentAddKeyType =
         savedStateHandle.getStateFlow<MembershipStep?>(KEY_CURRENT_KEY, null)
-
-    init {
-        viewModelScope.launch {
-            currentAddKeyType.filterNotNull().collect {
-                membershipStepManager.setCurrentStep(it)
-            }
-        }
-    }
 
     private val membershipStepState = getMembershipStepUseCase(membershipStepManager.plan)
         .map { it.getOrElse { emptyList() } }
@@ -55,6 +53,11 @@ class AddKeyListViewModel @Inject constructor(
     val key = _keys.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            currentAddKeyType.filterNotNull().collect {
+                membershipStepManager.setCurrentStep(it)
+            }
+        }
         if (membershipStepManager.plan == MembershipPlan.IRON_HAND) {
             _keys.value = listOf(
                 AddKeyData(type = MembershipStep.ADD_TAP_SIGNER_1),
@@ -70,16 +73,19 @@ class AddKeyListViewModel @Inject constructor(
             )
         }
         viewModelScope.launch {
-            getMasterSignersUseCase.execute().collect { masterSigners ->
+            getCompoundSignersUseCase.execute().collect { pair ->
                 _state.update {
                     it.copy(
-                        tapSigners = masterSigners.asSequence()
-                            .filter { signer -> signer.type == SignerType.NFC }
-                            .map { signer ->
-                                masterSignerMapper(signer)
-                            }.toList(),
+                        signers = pair.first.map { signer ->
+                            masterSignerMapper(signer)
+                        } + pair.second.map { signer -> signer.toModel() }
                     )
                 }
+            }
+        }
+        viewModelScope.launch {
+            getRemoteSignersUseCase.execute().collect {
+
             }
         }
         viewModelScope.launch {
@@ -104,6 +110,22 @@ class AddKeyListViewModel @Inject constructor(
                 }
                 _keys.value = news
             }
+        }
+    }
+
+    // COLDCARD or Airgap
+    fun onSelectedHardwareSigner(signer: SignerModel) {
+        viewModelScope.launch {
+            saveMembershipStepUseCase(
+                MembershipStepInfo(
+                    step = membershipStepManager.currentStep
+                        ?: throw IllegalArgumentException("Current step empty"),
+                    masterSignerId = signer.id,
+                    plan = membershipStepManager.plan,
+                    isVerify = true,
+                    extraData = signer.derivationPath
+                )
+            )
         }
     }
 
@@ -143,7 +165,14 @@ class AddKeyListViewModel @Inject constructor(
             MembershipStepInfo(step = step, plan = membershipStepManager.plan)
         }
 
-    fun getTapSigners() = _state.value.tapSigners
+    fun getTapSigners() = _state.value.signers.filter { it.type == SignerType.NFC }
+
+    fun getColdcard() = _state.value.signers.filter {
+        it.type == SignerType.COLDCARD_NFC
+                && it.derivationPath.contains(SIGNER_PATH_PREFIX)
+    }
+
+    fun getAirgap() = _state.value.signers.filter { it.type == SignerType.AIRGAP }
 
     companion object {
         private const val KEY_CURRENT_KEY = "current_key"
@@ -157,4 +186,4 @@ sealed class AddKeyListEvent {
     object OnAddAllKey : AddKeyListEvent()
 }
 
-data class AddKeyListState(val tapSigners: List<SignerModel> = emptyList())
+data class AddKeyListState(val signers: List<SignerModel> = emptyList())

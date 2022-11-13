@@ -68,4 +68,6 @@ object SheetOptionType {
     // Membership
     const val TYPE_RESTART_WIZARD = 20
     const val TYPE_EXIT_WIZARD = 21
+    const val TYPE_ADD_COLDCARD_NFC = 22
+    const val TYPE_ADD_COLDCARD_FILE = 23
 }

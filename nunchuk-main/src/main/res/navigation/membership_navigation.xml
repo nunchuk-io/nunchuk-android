@@ -121,6 +121,11 @@
         <argument
             android:name="signers"
             app:argType="com.nunchuk.android.core.signer.SignerModel[]" />
+
+        <argument
+            android:name="type"
+            app:argType="com.nunchuk.android.type.SignerType" />
+
     </dialog>
 
     <dialog

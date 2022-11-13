@@ -29,9 +29,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.mk4.info.component.Mk4InfoContent
+import com.nunchuk.android.signer.mk4.intro.Mk4IntroFragmentArgs
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -40,6 +42,8 @@ import javax.inject.Inject
 class Mk4InfoFragment : Fragment() {
     @Inject
     lateinit var membershipStepManager: MembershipStepManager
+
+    private val args: Mk4IntroFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -52,7 +56,11 @@ class Mk4InfoFragment : Fragment() {
                 Mk4InfoContent(
                     remainTime = remainTime,
                     onContinueClicked = {
-                        findNavController().navigate(Mk4InfoFragmentDirections.actionMk4InfoFragmentToMk4IntroFragment())
+                        findNavController().navigate(
+                            Mk4InfoFragmentDirections.actionMk4InfoFragmentToMk4IntroFragment(
+                                args.isMembershipFlow
+                            )
+                        )
                     },
                     onOpenGuideClicked = {
                         requireActivity().openExternalLink(COLDCARD_GUIDE_URL)

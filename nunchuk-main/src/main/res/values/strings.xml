@@ -25,4 +25,7 @@
     <string name="nc_exit_wizard">Exit wizard</string>
     <string name="nc_resume_wizard_desc">You can resume the wizard anytime from the Wallets tab.</string>
     <string name="nc_inheritance_intro_hint">TAPSIGNER is a wireless NFC smart card that will sign transactions with a simple tap on your phone.</string>
+    <string name="nc_tapsigner">TAPSIGNER</string>
+    <string name="nc_coldcard">COLDCARD</string>
+    <string name="nc_add_coldcard_via_nfc">Add COLDCARD via NFC</string>
 </resources>

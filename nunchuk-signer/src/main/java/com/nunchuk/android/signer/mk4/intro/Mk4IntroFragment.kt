@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
@@ -17,6 +18,8 @@ import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcImageAppBar
@@ -58,7 +61,11 @@ class Mk4IntroFragment : Fragment(), BottomSheetOptionListener {
 
     override fun onOptionClicked(option: SheetOption) {
         val signer = viewModel.mk4Signers.getOrNull(option.type) ?: return
-        findNavController().navigate(Mk4IntroFragmentDirections.actionMk4IntroFragmentToAddMk4NameFragment(signer))
+        findNavController().navigate(
+            Mk4IntroFragmentDirections.actionMk4IntroFragmentToAddMk4NameFragment(
+                signer
+            )
+        )
     }
 
     private fun observer() {
@@ -75,6 +82,7 @@ class Mk4IntroFragment : Fragment(), BottomSheetOptionListener {
                 Mk4IntroViewEvent.OnContinueClicked -> (requireActivity() as NfcActionListener).startNfcFlow(
                     BaseNfcActivity.REQUEST_MK4_ADD_KEY
                 )
+                Mk4IntroViewEvent.OnCreateSignerSuccess -> requireActivity().finish()
             }
         }
     }
@@ -92,8 +100,10 @@ class Mk4IntroFragment : Fragment(), BottomSheetOptionListener {
 }
 
 
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 private fun Mk4IntroScreen(viewModel: Mk4IntroViewModel = viewModel()) = NunchukTheme {
+    val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     NunchukTheme {
         Scaffold { innerPadding ->
             Column(
@@ -101,7 +111,10 @@ private fun Mk4IntroScreen(viewModel: Mk4IntroViewModel = viewModel()) = Nunchuk
                     .padding(innerPadding)
                     .navigationBarsPadding()
             ) {
-                NcImageAppBar(backgroundRes = R.drawable.nc_bg_coldcard_intro)
+                NcImageAppBar(
+                    backgroundRes = R.drawable.nc_bg_coldcard_intro,
+                    title = stringResource(id = R.string.nc_estimate_remain_time, remainTime)
+                )
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_coldcard_nfc_tip),

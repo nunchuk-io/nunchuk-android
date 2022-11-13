@@ -20,11 +20,12 @@
 package com.nunchuk.android.nav
 
 import android.app.Activity
-import android.content.Intent
-import androidx.activity.result.ActivityResultLauncher
 
 interface NfcNavigator {
-    fun openSetupMk4(activity: Activity)
+    fun openSetupMk4(
+        activity: Activity,
+        fromMembershipFlow: Boolean
+    )
 
     fun openSetupTapSigner(
         activity: Activity,
