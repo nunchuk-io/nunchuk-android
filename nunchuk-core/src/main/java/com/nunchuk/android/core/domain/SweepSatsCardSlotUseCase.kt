@@ -32,7 +32,7 @@ class SweepSatsCardSlotUseCase @Inject constructor(
     private val nunchukNativeSdk: NunchukNativeSdk,
 ) : UseCase<SweepSatsCardSlotUseCase.Data, Transaction>(dispatcher) {
     override suspend fun execute(parameters: Data) : Transaction {
-        return nunchukNativeSdk.sweepBalance(parameters.slots, parameters.address, parameters.feeRate)
+        return nunchukNativeSdk.sweepBalance(parameters.slots, parameters.address, parameters.feeRate).copy(isReceive = true)
     }
 
     class Data(val address: String, val slots: List<SatsCardSlot>, val feeRate: Int)
