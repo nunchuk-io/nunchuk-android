@@ -12,6 +12,7 @@ interface KeyRepository {
         keyType: String,
         xfp: String,
         filePath: String,
+        isAddNewKey: Boolean
         plan: MembershipPlan,
     ): Flow<KeyUpload>
 

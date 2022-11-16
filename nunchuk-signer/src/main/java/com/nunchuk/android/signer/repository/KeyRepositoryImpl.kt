@@ -38,6 +38,7 @@ class KeyRepositoryImpl @Inject constructor(
         keyType: String,
         xfp: String,
         filePath: String,
+        isAddNewKey: Boolean,
         plan: MembershipPlan
     ): Flow<KeyUpload> {
         return callbackFlow {
@@ -69,6 +70,7 @@ class KeyRepositoryImpl @Inject constructor(
                     masterSignerId = xfp,
                     keyIdInServer = result.data.keyId,
                     checkSum = result.data.keyCheckSum,
+                    extraJson = isAddNewKey.toString(),
                     plan = plan
                 )
                 membershipDao.updateOrInsert(info)

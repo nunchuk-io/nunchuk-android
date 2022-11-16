@@ -35,6 +35,7 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -46,6 +47,7 @@ class UploadBackUpTapSignerFragment : MembershipFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         nfcViewModel.updateMasterSigner(args.masterSignerId)
+        viewModel.init((requireActivity() as NfcSetupActivity).isAddNewSigner)
     }
 
     override fun onCreateView(
@@ -60,6 +62,7 @@ class UploadBackUpTapSignerFragment : MembershipFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.upload()
         flowObserver(viewModel.event) {
             when (it) {
                 UploadBackUpTapSignerEvent.OnContinueClicked -> {
