@@ -72,6 +72,13 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
     val hasWallet: Boolean
             by lazy(LazyThreadSafetyMode.NONE) { intent.getBooleanExtra(EXTRA_HAS_WALLET, false) }
 
+    val isAddNewSigner: Boolean
+            by lazy(LazyThreadSafetyMode.NONE) {
+                intent.getStringExtra(
+                    EXTRA_MASTER_SIGNER_ID
+                ).orEmpty().isEmpty()
+            }
+
     companion object {
         private const val EXTRA_ACTION = "EXTRA_ACTION"
         private const val EXTRA_HAS_WALLET = "EXTRA_HAS_WALLET"

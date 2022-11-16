@@ -28,11 +28,13 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
     private val _state = MutableStateFlow(UploadBackUpTapSignerState())
     val state = _state.asStateFlow()
 
-    init {
-        upload()
+    private var isAddNewKey = true
+
+    fun init(isAddNewKey: Boolean) {
+        this.isAddNewKey = isAddNewKey
     }
 
-    private fun upload() {
+    fun upload() {
         val keyName = if (membershipStepManager.currentStep == MembershipStep.ADD_TAP_SIGNER_1) {
             TAPSIGNER_KEY_1_NAME
         } else {
@@ -46,6 +48,7 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
                     keyType = SignerType.NFC.name,
                     xfp = args.masterSignerId,
                     filePath = args.filePath,
+                    isAddNewKey = isAddNewKey,
                 )
             ).collect {
                 if (it.isSuccess) {
@@ -83,7 +86,11 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
     }
 }
 
-data class UploadBackUpTapSignerState(val percent: Int = 0, val isError: Boolean = false, val serverFilePath: String = "")
+data class UploadBackUpTapSignerState(
+    val percent: Int = 0,
+    val isError: Boolean = false,
+    val serverFilePath: String = ""
+)
 
 sealed class UploadBackUpTapSignerEvent {
     object OnContinueClicked : UploadBackUpTapSignerEvent()
