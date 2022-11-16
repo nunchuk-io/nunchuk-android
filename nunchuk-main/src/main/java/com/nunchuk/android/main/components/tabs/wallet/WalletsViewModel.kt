@@ -100,6 +100,12 @@ internal class WalletsViewModel @Inject constructor(
                         hasCreatedWallet = getServerWalletResult.getOrNull()?.isHasWallet ?: false,
                     )
                 }
+            } else {
+                updateState {
+                    copy(
+                        isPremiumUser = false,
+                    )
+                }
             }
         }
         viewModelScope.launch {
@@ -188,6 +194,8 @@ internal class WalletsViewModel @Inject constructor(
     fun hasSigner() = getState().signers.isNotEmpty() || getState().masterSigners.isNotEmpty()
 
     fun hasWallet() = getState().wallets.isNotEmpty()
+
+    fun isPremiumUser() = getState().isPremiumUser
 
     fun getSatsCardStatus(isoDep: IsoDep?) {
         isoDep ?: return
