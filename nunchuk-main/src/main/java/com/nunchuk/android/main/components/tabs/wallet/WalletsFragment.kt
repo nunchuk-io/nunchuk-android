@@ -92,7 +92,11 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             return@setOnMenuItemClickListener false
         }
         binding.tvIntroAction.setOnDebounceClickListener {
-            navigator.openMembershipActivity(requireActivity(), walletsViewModel.getGroupStage())
+            if (walletsViewModel.isPremiumUser() == true) {
+                navigator.openMembershipActivity(requireActivity(), walletsViewModel.getGroupStage())
+            } else {
+                // TODO Hai
+            }
         }
     }
 
