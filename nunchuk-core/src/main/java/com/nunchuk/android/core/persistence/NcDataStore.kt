@@ -1,3 +1,22 @@
+/**************************************************************************
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
+ * Copyright (C) 2022 Nunchuk								              *
+ *                                                                        *
+ * This program is free software; you can redistribute it and/or          *
+ * modify it under the terms of the GNU General Public License            *
+ * as published by the Free Software Foundation; either version 3         *
+ * of the License, or (at your option) any later version.                 *
+ *                                                                        *
+ * This program is distributed in the hope that it will be useful,        *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of         *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          *
+ * GNU General Public License for more details.                           *
+ *                                                                        *
+ * You should have received a copy of the GNU General Public License      *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.  *
+ *                                                                        *
+ **************************************************************************/
+
 package com.nunchuk.android.core.persistence
 
 import android.content.Context
@@ -21,8 +40,6 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 @Singleton
 class NcDataStore @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val ncSharePreferences: NCSharePreferences,
-    private val gson: Gson,
 ) {
     private val btcPriceKey = doublePreferencesKey("btc_price")
     private val turnOnNotification = booleanPreferencesKey("turn_on_notification")
@@ -33,11 +50,7 @@ class NcDataStore @Inject constructor(
 
     val syncEnableFlow: Flow<Boolean>
         get() = context.dataStore.data.map {
-            it[syncEnableKey] ?: runCatching {
-                gson.fromJson(
-                    ncSharePreferences.syncSetting, SyncSetting::class.java
-                )
-            }.getOrNull()?.enable ?: false
+            it[syncEnableKey] ?: false
         }
 
     val turnOnNotificationFlow: Flow<Boolean>
@@ -60,6 +73,13 @@ class NcDataStore @Inject constructor(
     suspend fun setSyncEnable(isEnable: Boolean) {
         context.dataStore.edit { settings ->
             settings[syncEnableKey] = isEnable
+        }
+    }
+
+    suspend fun clear() {
+        context.dataStore.edit {
+            it.remove(syncEnableKey)
+            it.remove(turnOnNotification)
         }
     }
 }

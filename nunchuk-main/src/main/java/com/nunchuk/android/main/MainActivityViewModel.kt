@@ -1,3 +1,22 @@
+/**************************************************************************
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
+ * Copyright (C) 2022 Nunchuk								              *
+ *                                                                        *
+ * This program is free software; you can redistribute it and/or          *
+ * modify it under the terms of the GNU General Public License            *
+ * as published by the Free Software Foundation; either version 3         *
+ * of the License, or (at your option) any later version.                 *
+ *                                                                        *
+ * This program is distributed in the hope that it will be useful,        *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of         *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          *
+ * GNU General Public License for more details.                           *
+ *                                                                        *
+ * You should have received a copy of the GNU General Public License      *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.  *
+ *                                                                        *
+ **************************************************************************/
+
 package com.nunchuk.android.main
 
 import androidx.lifecycle.asFlow
@@ -95,6 +114,7 @@ internal class MainActivityViewModel @Inject constructor(
                     if (isEnableSync && syncRoomId.isNullOrEmpty().not()) {
                         syncData(syncRoomId.orEmpty())
                     }
+                    enableAutoBackup()
                 }
         }
     }
@@ -106,7 +126,6 @@ internal class MainActivityViewModel @Inject constructor(
         getDisplayUnitSetting()
         checkMissingSyncFile()
         observeInitialSync()
-        enableAutoBackup()
         listenBtcPrice()
     }
 
@@ -149,6 +168,7 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     private fun checkMissingSyncFile() {
+        if (syncEnableState.value.not()) return
         val userId = sessionHolder.getSafeActiveSession()?.sessionParams?.userId
         if (userId.isNullOrEmpty()) {
             return
@@ -438,7 +458,8 @@ internal class MainActivityViewModel @Inject constructor(
     private fun retrieveTimelineEvents(room: Room) {
         Timber.tag(TAG).v("retrieveTimelineEvents")
         timeline =
-            room.timelineService().createTimeline(null, TimelineSettings(initialSize = PAGINATION, true))
+            room.timelineService()
+                .createTimeline(null, TimelineSettings(initialSize = PAGINATION, true))
                 .apply {
                     removeAllListeners()
                     addListener(timelineListenerAdapter)
@@ -453,19 +474,17 @@ internal class MainActivityViewModel @Inject constructor(
             val sortedEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
                 .filterNot(NunchukMatrixEvent::isLocalEvent)
                 .sortedByDescending(NunchukMatrixEvent::time)
-            if (syncEnableState.value) {
-                consumerSyncEventUseCase.execute(sortedEvents)
-                    .onCompletion {
-                        ensureActive()
-                        if (timeline?.hasMoreToLoad(Timeline.Direction.BACKWARDS).orFalse()) {
-                            timeline?.paginate(Timeline.Direction.BACKWARDS, PAGINATION)
-                        } else {
-                            event(ConsumeSyncEventCompleted)
-                        }
+            consumerSyncEventUseCase.execute(sortedEvents)
+                .onCompletion {
+                    ensureActive()
+                    if (timeline?.hasMoreToLoad(Timeline.Direction.BACKWARDS).orFalse()) {
+                        timeline?.paginate(Timeline.Direction.BACKWARDS, PAGINATION)
+                    } else {
+                        event(ConsumeSyncEventCompleted)
                     }
-                    .onException { Timber.e(it) }
-                    .collect()
-            }
+                }
+                .onException { Timber.e(it) }
+                .collect()
         }
     }
 
@@ -498,6 +517,7 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     private fun retrieveTimelines(roomId: String) {
+        if (syncEnableState.value.not()) return
         viewModelScope.launch {
             flow {
                 val activeSession =

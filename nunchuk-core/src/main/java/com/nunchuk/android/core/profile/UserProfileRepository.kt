@@ -1,6 +1,26 @@
+/**************************************************************************
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
+ * Copyright (C) 2022 Nunchuk								              *
+ *                                                                        *
+ * This program is free software; you can redistribute it and/or          *
+ * modify it under the terms of the GNU General Public License            *
+ * as published by the Free Software Foundation; either version 3         *
+ * of the License, or (at your option) any later version.                 *
+ *                                                                        *
+ * This program is distributed in the hope that it will be useful,        *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of         *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          *
+ * GNU General Public License for more details.                           *
+ *                                                                        *
+ * You should have received a copy of the GNU General Public License      *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.  *
+ *                                                                        *
+ **************************************************************************/
+
 package com.nunchuk.android.core.profile
 
 import com.nunchuk.android.core.network.ApiInterceptedException
+import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -28,7 +48,8 @@ interface UserProfileRepository {
 }
 
 internal class UserProfileRepositoryImpl @Inject constructor(
-    private val userProfileApi: UserProfileApi
+    private val userProfileApi: UserProfileApi,
+    private val ncDataStore: NcDataStore,
 ) : UserProfileRepository {
 
     override fun getUserProfile() = flow {
@@ -57,6 +78,7 @@ internal class UserProfileRepositoryImpl @Inject constructor(
     }.flowOn(Dispatchers.IO)
 
     override fun signOut() = flow {
+        ncDataStore.clear()
         userProfileApi.signOut()
         emit(Unit)
     }
