@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nc_wallet_review_wallet_title">Review Wallet</string>
+    <string name="nc_wallet_has_been_created">Wallet has been created</string>
+    <string name="nc_wallet_create_wallet">Create wallet</string>
+
+    <string name="nc_wallet_backup">Backup</string>
+    <string name="nc_wallet_device_registration">Wallet registration</string>
+    <string name="nc_wallet_backup_your_wallet">Please save your BSMS file</string>
+    <string name="nc_wallet_backup_wallet_description">The BSMS file stores your wallet configuration. \n\nLosing the BSMS file alone does not compromise your funds, but you should still keep it safe to protect your privacy. Anyone who has the file can monitor transactions in the wallet.</string>
+    <string name="nc_wallet_backup_wallet_description_hint">Tip: you need both the keys and the BSMS file to recover your wallet.</string>
+    <string name="nc_wallet_save_wallet_descriptor">Save BSMS file</string>
+    <string name="nc_wallet_skip_backup">I’ll do this later</string>
+
+    <string name="nc_wallet_upload_configuration_title">Register wallet on hardware</string>
+    <string name="nc_wallet_upload_configuration">If you have a hardware key in your multisig wallet, you might be required to register the wallet with the hardware before the key can be used.\n\nChoose the export option according to your hardware type. Please check the vendor’s manual.</string>
+    <string name="nc_wallet_save_configuration">Export configuration as a file</string>
+    <string name="nc_wallet_skip_upload_configuration">I’ll do this later</string>
+
+    <string name="nc_text_wallet_config_title">Wallet config</string>
+    <string name="nc_text_wallet_qr_code">QR code</string>
+
+    <string name="nc_wallet_checking_account">Checking Account</string>
+    <string name="nc_wallet_view_wallet_config">View wallet config</string>
+    <string name="nc_wallet_send">Send</string>
+    <string name="nc_wallet_receive">Receive</string>
+
+    <string name="nc_transaction">Recent transactions</string>
+    <string name="nc_transaction_empty_title">You don’t have any transactions yet. Here is an address where you can deposit your funds.</string>
+    <string name="nc_wallet_empty_signer_title">You don’t have any keys yet.</string>
+    <string name="nc_wallet_empty_signer_desc">Please add a key before adding a wallet.</string>
+    <string name="nc_wallet_take_to_add_a_signer">Take me to add a key</string>
+    <string name="nc_wallet_add_a_wallet">Add a wallet</string>
+    <string name="nc_wallet_backup_wallet">Backup wallet</string>
+    <string name="nc_wallet_import_psbt">Import PSBT</string>
+    <string name="nc_wallet_save_wallet_configuration">Save wallet configuration</string>
+    <string name="nc_wallet_upload_device_registration">Upload device registration</string>
+    <string name="nc_wallet_upload_success">Upload wallet success</string>
+    <string name="nc_wallet_delete_wallet">Delete wallet</string>
+    <string name="nc_wallet_delete_wallet_success">Delete wallet success</string>
+    <string name="nc_txt_send_from_shared_description">For collaborative wallets, please initiate the send transaction from inside the chat room</string>
+    <string name="nc_address_copy_to_clipboard">Address copied to clipboard</string>
+
+    <string name="nc_wallet_select_file">Please select your transaction file</string>
+    <string name="nc_wallet_psbt_imported">PSBT imported successfully</string>
+    <string name="nc_wallet_import_keystone_seed_signer">QR format: Keystone/SeedSigner/Jade</string>
+    <string name="nc_wallet_import_passport">QR format: Passport</string>
+    <string name="nc_import_psbt_via_qr">Import PSBT via QR</string>
+    <string name="nc_show_as_qr_code">Show as QR code</string>
+    <string name="nc_delete_collaborative_wallet">Deleting this collaborative wallet will also delete the corresponding chat. Are you sure you want to delete?</string>
+</resources>

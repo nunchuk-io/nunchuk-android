@@ -1,0 +1,56 @@
+/**************************************************************************
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
+ * Copyright (C) 2022 Nunchuk								              *
+ *                                                                        *
+ * This program is free software; you can redistribute it and/or          *
+ * modify it under the terms of the GNU General Public License            *
+ * as published by the Free Software Foundation; either version 3         *
+ * of the License, or (at your option) any later version.                 *
+ *                                                                        *
+ * This program is distributed in the hope that it will be useful,        *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of         *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          *
+ * GNU General Public License for more details.                           *
+ *                                                                        *
+ * You should have received a copy of the GNU General Public License      *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.  *
+ *                                                                        *
+ **************************************************************************/
+
+package com.nunchuk.android.persistence.entity
+
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import com.nunchuk.android.persistence.TABLE_SYNC_FILE
+
+@Entity(tableName = TABLE_SYNC_FILE)
+data class SyncFileEntity(
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "id")
+    val id: Int,
+
+    @ColumnInfo(name = "user_id")
+    val userId: String,
+
+    @ColumnInfo(name = "action")
+    val action: String,
+
+    @ColumnInfo(name = "file_name")
+    val fileName: String?,
+
+    @ColumnInfo(name = "file_url")
+    val fileUrl: String?,
+
+    @ColumnInfo(name = "file_json_info")
+    val fileJsonInfo: String,
+
+    @ColumnInfo(name = "file_mine_type")
+    val fileMineType: String?,
+
+    @ColumnInfo(name = "file_length")
+    val fileLength: Int?,
+
+    @ColumnInfo(name = "file_data", typeAffinity = ColumnInfo.BLOB)
+    val fileData: ByteArray?
+)

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="NCText.Settings" parent="NCText.Body">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:paddingStart">@dimen/nc_padding_16</item>
+        <item name="android:paddingEnd">@dimen/nc_padding_16</item>
+        <item name="android:paddingTop">@dimen/nc_padding_12</item>
+        <item name="android:paddingBottom">@dimen/nc_padding_12</item>
+        <item name="android:drawablePadding">@dimen/nc_padding_8</item>
+        <item name="android:gravity">start|center_vertical</item>
+    </style>
+
+</resources>

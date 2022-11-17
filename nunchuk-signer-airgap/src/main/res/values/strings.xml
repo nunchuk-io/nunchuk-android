@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="nc_signer_before_start_title">Before you start</string>
+    <string name="nc_signer_before_start_note">Please ensure to do the following before proceeding</string>
+    <string name="nc_signer_before_start_initialize">Initialize the device key</string>
+    <string name="nc_signer_before_start_initialize_content">Follow the vendor\'s instruction on how to set up your device with a seed phrase.</string>
+    <string name="nc_signer_before_start_device_unlock">Unlock the device</string>
+    <string name="nc_signer_before_start_device_unlock_content">To unlock the device, you might need to enter a PIN and/or a PASSPHRASE directly on the device screen.</string>
+
+</resources>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nc_wallet_create_shared_wallet">Create collaborative wallet</string>
+    <string name="nc_wallet_configure_shared_wallet">Configure collaborative wallet</string>
+    <string name="nc_wallet_review_shared_wallet_title">Review collaborative wallet</string>
+    <string name="nc_wallet_shared_wallet_config_title">Wallet config</string>
+    <string name="nc_wallet_assign_signer_title">Assign key</string>
+
+    <string name="nc_wallet_assign_signer">Continue to assign key</string>
+    <string name="nc_wallet_assign_signers_and_send_invite">Assign keys and send invite</string>
+    <string name="nc_wallet_slots_left_in_the_wallet">%d slots left in the wallet</string>
+    <string name="nc_wallet_total_number_keys">Total number of keys</string>
+    <string name="nc_wallet_total_number_keys_in_wallet">Total number of keys \nin the wallet</string>
+    <string name="nc_wallet_continue_assign_key">Continue to assign keys</string>
+    <string name="nc_wallet_finalize_wallet">Finalize wallet</string>
+    <string name="nc_txt_recover_collaborative_wallet">Recover collaborative wallet</string>
+    <string name="nc_txt_recover_des1">In order to recover a collaborative wallet, you will need:</string>
+    <string name="nc_txt_recover_des2">Room members to recover the keys from the original wallet</string>
+    <string name="nc_txt_recover_des3">A copy of the wallet configuration file (BSMS or descriptors)</string>
+    <string name="nc_txt_recover_des_header1">1</string>
+    <string name="nc_txt_recover_des_header2">2</string>
+    <string name="nc_txt_btn_recover_bsms">Recover via BSMS/descriptors/config file</string>
+    <string name="nc_txt_exit_wallet_recovery">Exit wallet recovery</string>
+    <string name="nc_txt_assign_key_not_found_des">We couldn’t find any keys that can be assigned to this wallet</string>
+</resources>

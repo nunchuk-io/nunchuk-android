@@ -1,0 +1,24 @@
+apply from: '../configs/dependencies.gradle'
+apply from: '../configs/submodule-config.gradle'
+apply plugin: 'dagger.hilt.android.plugin'
+apply plugin: 'androidx.navigation.safeargs.kotlin'
+
+dependencies {
+
+    implementation project(':nunchuk-arch')
+    implementation project(':nunchuk-core')
+    implementation project(':nunchuk-domain')
+    implementation project(':nunchuk-widget')
+    implementation project(':nunchuk-signer-airgap')
+    implementation project(':nunchuk-signer-software')
+    implementation project(':nunchuk-signer-core')
+    implementation nunchukDeps.nativeSdk
+
+    implementation pluginsDeps.kotlinAndroidRuntime
+    implementation androidxDeps.values()
+    implementation lifecycleDeps.values()
+    implementation zxingDeps.values()
+    implementation googleDeps.gson
+
+    testImplementation otherTestDeps.junit
+}

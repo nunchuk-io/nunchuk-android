@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/nc_bottom_sheet_background"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/nc_padding_24"
+    app:behavior_hideable="true"
+    app:behavior_peekHeight="90dp">
+
+    <RelativeLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/nc_padding_16">
+
+        <ImageView
+            android:id="@+id/closeBtn"
+            android:layout_width="@dimen/nc_padding_24"
+            android:layout_height="@dimen/nc_padding_24"
+            android:layout_alignParentStart="true"
+            android:background="?android:selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_close" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/saveBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:text="@string/nc_text_save"
+            android:textColor="@color/nc_black_color"
+            android:textSize="@dimen/nc_text_size_18"
+            app:fontTextStyle="semi_bold" />
+
+    </RelativeLayout>
+
+    <com.nunchuk.android.widget.NCFontTextView
+        style="@style/NCText.Title.Large"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:text="@string/nc_text_name"
+        app:fontTextStyle="semi_bold" />
+
+    <com.nunchuk.android.widget.NCFontEditText
+        android:id="@+id/edtName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:background="@null"
+        android:backgroundTint="@color/nc_whisper_color"
+        android:gravity="start|top"
+        android:hint="@string/nc_text_type_name_here"
+        android:inputType="textEmailAddress"
+        android:maxEms="20"
+        android:minHeight="400dp"
+        android:minEms="5"
+        android:textColor="@color/nc_primary_color"
+        android:textSize="@dimen/nc_text_size_16" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>

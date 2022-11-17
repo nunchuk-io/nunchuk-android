@@ -1,0 +1,38 @@
+apply from: 'configs/dependencies.gradle'
+
+buildscript {
+    apply from: 'configs/dependencies.gradle'
+    repositories {
+        google()
+        jcenter()
+        mavenCentral()
+        maven { url "https://maven.google.com" }
+        maven { url 'https://jitpack.io' }
+        mavenLocal()
+    }
+    dependencies {
+        classpath pluginsDeps.gradleAndroid
+        classpath kotlinDeps.plugin
+        classpath pluginsDeps.googleServices
+        classpath pluginsDeps.crashlytics
+        classpath pluginsDeps.kotlinAndroidRuntime
+        classpath pluginsDeps.appdistribution
+        classpath pluginsDeps.hilt
+        classpath pluginsDeps.safeArgs
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+        mavenCentral()
+        maven { url "https://maven.google.com" }
+        maven { url 'https://jitpack.io' }
+        mavenLocal()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

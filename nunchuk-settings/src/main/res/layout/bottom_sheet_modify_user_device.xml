@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/nc_bottom_sheet_background"
+    android:orientation="vertical"
+    android:padding="@dimen/nc_padding_16"
+    android:paddingBottom="300dp"
+    app:behavior_hideable="false"
+    app:behavior_peekHeight="90dp">
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/deviceInfo"
+        style="@style/NCText.Title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:textStyle="bold"
+        android:fontFamily="@font/lato_bold"
+        android:paddingHorizontal="@dimen/nc_padding_14"
+        android:paddingVertical="@dimen/nc_padding_16"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        tools:text="Desktop 1222" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/signOut"
+        style="@style/NCText.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:padding="@dimen/nc_padding_16"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        tools:text="@string/nc_text_take_photo" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/markCompromise"
+        style="@style/NCText.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:padding="@dimen/nc_padding_16"
+        android:textColor="@color/nc_orange_color"
+        android:textSize="@dimen/nc_text_size_16"
+        tools:text="@string/nc_text_remove_photo" />
+
+</LinearLayout>

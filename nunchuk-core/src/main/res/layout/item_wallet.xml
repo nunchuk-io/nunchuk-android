@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/nc_padding_8"
+    android:background="@drawable/nc_gradient_background"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:padding="@dimen/nc_padding_12">
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/walletName"
+        style="@style/NCText.Title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/nc_white_color"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Nunchuk Fun Fund" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btc"
+        style="@style/NCText.Title.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_2"
+        android:textColor="@color/nc_white_color"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/walletName"
+        tools:text="0.00 BTC" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/balance"
+        style="@style/NCText.Body.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_2"
+        android:textColor="@color/nc_white_color"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btc"
+        tools:text="($0.00)" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/share_icon"
+        style="@style/NCText.Badges"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/nc_padding_4"
+        android:background="@drawable/nc_rounded_tag_whisper_background"
+        android:drawableStart="@drawable/ic_wallet_small"
+        android:drawablePadding="@dimen/nc_padding_4"
+        android:text="@string/nc_text_shared"
+        app:layout_constraintBottom_toBottomOf="@+id/btc"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btc"
+        tools:text="Shared" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/config"
+        style="@style/NCText.Badges"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/nc_rounded_tag_whisper_background"
+        app:layout_constraintBottom_toBottomOf="@+id/balance"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="2/3 Multisig" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

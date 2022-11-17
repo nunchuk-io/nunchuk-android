@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/nc_padding_16">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_qr"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:contentPadding="@dimen/nc_padding_6"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/qrCode"
+            android:layout_width="48dp"
+            android:layout_height="48dp" />
+
+    </androidx.cardview.widget.CardView>
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_address"
+        style="@style/NCText.Body.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_12"
+        android:layout_marginEnd="@dimen/nc_padding_16"
+        app:layout_constraintEnd_toStartOf="@+id/iv_arrow"
+        app:layout_constraintStart_toEndOf="@+id/card_qr"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="bc1qepuayeutds0ys0q82g3ucad7r0eqk0dpusmxwvlpn5wkjcmhv6sqyulylk" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_balance_btc"
+        style="@style/NCText.Title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_12"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:layout_marginEnd="@dimen/nc_padding_16"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/iv_arrow"
+        app:layout_constraintStart_toEndOf="@+id/card_qr"
+        app:layout_constraintTop_toBottomOf="@+id/tv_address"
+        tools:text="Address balance: 0 BTC" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/iv_arrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_arrow" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

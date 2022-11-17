@@ -1,0 +1,69 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+
+android {
+    compileSdkVersion androidConfig.compileSdkVersion
+
+    defaultConfig {
+        minSdkVersion androidConfig.minSdkVersion
+        targetSdkVersion androidConfig.targetSdkVersion
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = ["library": "true"]
+            }
+        }
+    }
+
+    buildFeatures {
+        viewBinding true
+        compose = true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = '11'
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.3.0'
+    }
+
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/ASL2.0'
+        exclude 'META-INF/versions/9/module-info.class'
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinStdlibVersion"
+
+    kapt hiltDeps.processor
+    implementation hiltDeps.hilt
+
+    // Coroutines
+    implementation coroutineDeps.values()
+
+    // Kotlin
+    implementation navigationDeps.navigationUi
+    implementation navigationDeps.navigationFragment
+
+    implementation loggingDeps.timber
+
+    implementation lifecycleDeps.lifeCycleRuntime
+
+    implementation imageLoaderDeps.glide
+    implementation composeDeps.values()
+    kapt imageLoaderDeps.processor
+}

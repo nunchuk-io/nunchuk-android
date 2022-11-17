@@ -1,0 +1,11 @@
+apply from: '../configs/dependencies.gradle'
+apply from: '../configs/submodule-config.gradle'
+
+dependencies {
+
+    api project(':nunchuk-utils')
+
+    implementation zxingDeps.values()
+    implementation androidxDeps.values()
+
+}

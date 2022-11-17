@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_gravity="center"
+        android:background="@color/nc_primary_color"
+        android:gravity="center"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/toolbarTitle"
+            style="@style/NCToolbar.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/nc_title_account"
+            android:textColor="@color/nc_white_color" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="@dimen/nc_padding_16"
+        android:scrollbars="none">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/avatar"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:visibility="invisible"
+                app:layout_constraintBottom_toBottomOf="@+id/avatarHolder"
+                app:layout_constraintEnd_toEndOf="@+id/avatarHolder"
+                app:layout_constraintStart_toStartOf="@+id/avatarHolder"
+                app:layout_constraintTop_toTopOf="@+id/avatarHolder" />
+
+            <androidx.constraintlayout.widget.Barrier
+                android:id="@+id/barrier"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:barrierDirection="end"
+                app:constraint_referenced_ids="avatar" />
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/take_picture"
+                android:layout_width="@dimen/nc_padding_36"
+                android:layout_height="@dimen/nc_padding_36"
+                android:background="@color/nc_white_color"
+                android:gravity="center"
+                android:shape="ring"
+                app:cardCornerRadius="@dimen/nc_padding_18"
+                app:layout_constraintBottom_toBottomOf="@+id/avatarHolder"
+                app:layout_constraintEnd_toEndOf="@+id/barrier"
+                app:layout_constraintStart_toStartOf="@+id/barrier">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    style="@style/NCText.Body.Small"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:src="@drawable/ic_camera" />
+            </androidx.cardview.widget.CardView>
+
+            <include
+                android:id="@+id/layoutSync"
+                layout="@layout/layout_syncing_data" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/avatarHolder"
+                style="@style/NCText.Heading"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginTop="@dimen/nc_padding_16"
+                android:background="@drawable/nc_circle_beeswax_light_background"
+                android:gravity="center"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.498"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/layoutSync"
+                tools:text="HT" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/name"
+                style="@style/NCText.Heading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/nc_padding_12"
+                android:drawablePadding="@dimen/nc_padding_4"
+                android:gravity="center"
+                android:paddingHorizontal="@dimen/nc_padding_16"
+                app:drawableRightCompat="@drawable/ic_edit"
+                app:layout_constraintEnd_toEndOf="@+id/avatar"
+                app:layout_constraintStart_toStartOf="@+id/avatar"
+                app:layout_constraintTop_toBottomOf="@+id/take_picture"
+                tools:text="Hung Tran Long text text text " />
+
+            <LinearLayout
+                android:id="@+id/subContentLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/nc_padding_4"
+                android:gravity="center"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/name">
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/primaryTag"
+                    style="@style/NCText.Badges"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/nc_padding_8"
+                    android:background="@drawable/nc_rounded_tag_primary_key_background"
+                    android:text="@string/nc_signer_type_primary_key"
+                    android:visibility="gone"
+                    app:layout_constraintBaseline_toBaselineOf="@+id/email"
+                    app:layout_constraintEnd_toStartOf="@+id/email"
+                    tools:visibility="visible" />
+
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/subContent"
+                    style="@style/NCText.Body.Small"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/nc_padding_6"
+                    android:gravity="center"
+                    android:textColor="@color/nc_grey_dark_color"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    tools:text="hung.tran@nunchuk.io" />
+            </LinearLayout>
+
+            <com.nunchuk.android.widget.NCFontButton
+                android:id="@+id/signUp"
+                style="@style/NCPrimaryButton.Dark"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_16"
+                android:text="@string/nc_text_create_an_account"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/subContentLayout" />
+
+            <com.nunchuk.android.widget.NCFontButton
+                android:id="@+id/signIn"
+                style="@style/NCPrimaryButton.Light"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_16"
+                android:text="@string/nc_text_sign_in"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/signUp" />
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/unit"
+                style="@style/NCText.Settings"
+                android:layout_marginTop="@dimen/nc_padding_24"
+                android:drawableStart="@drawable/ic_bitcoin"
+                android:drawableEnd="@drawable/ic_arrow"
+                android:text="@string/nc_settings_unit"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/signIn" />
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/account_settings"
+                style="@style/NCText.Settings"
+                android:drawableStart="@drawable/ic_accounts_settings"
+                android:drawableEnd="@drawable/ic_arrow"
+                android:text="@string/nc_settings_account_settings"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/unit" />
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/network"
+                style="@style/NCText.Settings"
+                android:drawableStart="@drawable/ic_network"
+                android:drawableEnd="@drawable/ic_arrow"
+                android:text="@string/nc_settings_network"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/account_settings" />
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/developerMode"
+                style="@style/NCText.Settings"
+                android:drawableStart="@drawable/ic_developer_mode"
+                android:drawableEnd="@drawable/ic_arrow"
+                android:text="@string/nc_settings_developer_mode"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/network" />
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/about"
+                style="@style/NCText.Settings"
+                android:drawableStart="@drawable/ic_about"
+                android:drawableEnd="@drawable/ic_arrow"
+                android:text="@string/nc_settings_about"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/developerMode" />
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/btnSignOut"
+                style="@style/NCText.Settings"
+                android:gravity="center"
+                android:text="@string/nc_settings_sign_out"
+                android:textColor="@color/nc_red_color"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/about" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+</LinearLayout>

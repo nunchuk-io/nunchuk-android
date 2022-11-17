@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="SplashTheme" parent="NunchukTheme">
+        <item name="android:windowBackground">@drawable/bg_splash_screen</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+</resources>

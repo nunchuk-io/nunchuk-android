@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:parentTag="android.widget.LinearLayout">
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_number"
+        style="@style/NCText.Body"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="center_vertical"
+        android:background="@drawable/nc_bg_black_stroke_circle"
+        android:gravity="center"
+        android:textColor="@color/nc_black_color"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/guideline"
+        tools:text="1" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_content"
+        style="@style/NCText.Body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_12"
+        android:gravity="start"
+        android:textColor="@color/nc_black_color"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/tvDes1"
+        app:layout_constraintTop_toTopOf="@+id/tvDes1"
+        tools:text="Very long long long long long long long long long long long long long long text" />
+
+</merge>

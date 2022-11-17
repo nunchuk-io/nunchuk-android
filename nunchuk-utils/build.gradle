@@ -1,0 +1,7 @@
+apply from: '../configs/dependencies.gradle'
+apply from: '../configs/submodule-config.gradle'
+
+dependencies {
+    implementation platform(playServices.firebaseBom)
+    implementation playServices.firebaseCrashlytics
+}

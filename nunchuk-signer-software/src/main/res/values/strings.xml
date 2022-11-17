@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nc_ssigner_title">Add a software key</string>
+    <string name="nc_ssigner_new_seed_title">New key seed</string>
+    <string name="nc_ssigner_new_seed">Create new seed</string>
+    <string name="nc_ssigner_recover_seed">Recover existing seed</string>
+    <string name="nc_ssigner_description">The private key is stored on this device. Please keep your device safe to prevent your key from being compromised.</string>
+    <string name="nc_ssigner_new_seed_note">Please take a moment to write down this seed phrase. It’s the backup for your key.</string>
+    <string name="nc_ssigner_new_seed_warning">Never share the seed phrase with anyone. Avoid having a digital copy.</string>
+
+    <string name="nc_ssigner_recover_seed_phrase">Your seed phrase</string>
+    <string name="nc_ssigner_recover_seed_phrase_note">Please enter the seed phrase.</string>
+
+    <string name="nc_ssigner_confirm_seed_title">Confirm seed phrase</string>
+    <string name="nc_ssigner_confirm_seed_note">Please confirm the seed phrase.</string>
+    <string name="nc_ssigner_confirm_seed_error">Incorrect words. Please try again.</string>
+    <string name="nc_ssigner_add_name_title">Give your key a name</string>
+    <string name="nc_ssigner_set_passphrase_title">Set a passphrase</string>
+    <string name="nc_ssigner_text_dont_set_passphrase">I don\'t need a passphrase</string>
+    <string name="nc_ssigner_text_set_passphrase">Set passphrase</string>
+    <string name="nc_ssigner_text_set_passphrase_note">Passphrase adds another layer of security to your key. You will need to enter the passphrase every time you sign using this key. You can think of it as the 25th word of your seed phrase. Passphrase is optional.</string>
+    <string name="nc_ssigner_text_set_passphrase_primary_key_note">We strongly recommend adding a passphrase for your Primary Key.</string>
+    <string name="nc_ssigner_text_set_passphrase_warn">Please back up your passphrase along with the seed. You will need both to recover your key.</string>
+    <string name="nc_ssigner_confirm_passphrase">Confirm passphrase</string>
+    <string name="nc_ssigner_text_name">Key name</string>
+    <string name="nc_ssigner_text_set_passphrase_skip_confirmation">Are you sure you don’t want a passphrase? A Primary Key without a passphrase means that your account is unprotected. Anyone who has access to your device can access all your data, including your wallets.</string>
+
+    <string name="nc_text_confirm_passphrase_not_matched">Passphrase does not match</string>
+    <string name="nc_error_invalid_signer_spec">Invalid Key Spec</string>
+    <string name="nc_signer_passphrase">Passphrase</string>
+    <string name="nc_signer_optional">(optional)</string>
+
+    <string name="nc_primary_key_signer_intro_title">Primary Key account</string>
+    <string name="nc_primary_key_signer_intro_desc">A Primary Key is a dual-purpose key that can be used both for account-based authentication and for signing Bitcoin transactions. \n\n A Primary Key account is an account that does not require any personal information, including email addresses.</string>
+    <string name="nc_add_primary_key_title">Add a Primary Key</string>
+    <string name="nc_add_primary_key_desc">A Primary Key must be a software key. Support for other key types coming soon.</string>
+    <string name="nc_ssigner_primary_key_choose_username_title">Choose your username</string>
+    <string name="nc_ssigner_primary_key_choose_username">Username</string>
+    <string name="nc_ssigner_primary_key_choose_username_desc">Almost there! Now we just need to pick a username for your account.\n\nThe default username is the fingerprint (XFP) of your Primary Key. You can change this if you want to.</string>
+    <string name="nc_ssigner_primary_key_notification_title">Stay in the know</string>
+    <string name="nc_ssigner_primary_key_notification_desc">Get notified when you receive new messages or contact requests.</string>
+    <string name="nc_ssigner_primary_key_turn_notification">Turn on notifications</string>
+    <string name="nc_ssigner_primary_key_not_now">Not now</string>
+    <string name="nc_primary_key_signin_intro_desc">A Primary Key is a dual-purpose key that can be used both for account-based authentication and for signing Bitcoin transactions. A Primary Key account is an account that does not require an associated email address.\n\nWe strongly recommend enabling passphrases for Primary Keys.</string>
+    <string name="nc_primary_key_signin_intro_manually">Sign in manually</string>
+    <string name="nc_primary_key_signin_intro_import">Import Primary Key</string>
+    <string name="nc_primary_key_account_title">Primary Key accounts</string>
+    <string name="nc_primary_key_signin_title">Sign in to Primary Key account</string>
+    <string name="nc_primary_key_signin_stay_sign_in">Stay signed in</string>
+    <string name="nc_primary_key_signin_name">Primary Key name</string>
+    <string name="nc_primary_key_signin_passphrase">Passphrase</string>
+    <string name="nc_primary_key_enter_passphrase_desc">Please enter the passphrase associated with the Primary Key. If you don’t have one, leave it blank.</string>
+    <string name="nc_primary_key_enter_passphrase_title">Enter your passphrase</string>
+    <string name="nc_primary_key_check_passphrase_not_found">We can’t find any account associated with this key.</string>
+    <string name="nc_primary_key_signin_manually_username_title">Sign in manually</string>
+    <string name="nc_primary_key_signin_manually_your_username">Your username</string>
+    <string name="nc_primary_key_signin_manually_challenge_message">Challenge message</string>
+    <string name="nc_primary_key_signin_manually_your_signature">Your signature</string>
+    <string name="nc_primary_key_signin_manually_copy_clipboard">Copied to clipboard</string>
+    <string name="nc_primary_key_signin_manually_account_not_found">Account not found</string>
+</resources>

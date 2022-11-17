@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="push_http_url" translatable="false">https://sygnal.nunchuk.io/_matrix/push/v1/notify</string>
+    <string name="push_app_id" translatable="false">io.nunchuk.android</string>
+    <string name="notification_wallet_update">Wallet Update</string>
+    <string name="notification_wallet_update_message">You\'ve got a wallet update</string>
+    <string name="notification_transaction_update">Transaction Update</string>
+    <string name="notification_transaction_update_message">You\'ve got a transaction update</string>
+    <string name="notification_contact_update">Contact Update</string>
+    <string name="notification_contact_update_message">You\'ve got a contact update</string>
+    <string name="notification_text_message_update">Message Update</string>
+    <string name="notification_update">Update</string>
+    <string name="notification_update_message">You have new message, check it out</string>
+    <string name="notification_cant_sync_push">Can\'t sync from push, no current session</string>
+</resources>

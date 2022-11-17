@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_wallets">
+
+    <fragment
+        android:id="@+id/navigation_messages"
+        android:name="com.nunchuk.android.main.components.tabs.chat.ChatFragment"
+        android:label="@string/nc_title_message"
+        tools:layout="@layout/fragment_chat" />
+
+    <fragment
+        android:id="@+id/navigation_wallets"
+        android:name="com.nunchuk.android.main.components.tabs.wallet.WalletsFragment"
+        android:label="@string/nc_title_wallets"
+        tools:layout="@layout/fragment_wallets" />
+
+    <fragment
+        android:id="@+id/navigation_account"
+        android:name="com.nunchuk.android.settings.AccountFragment"
+        android:label="@string/nc_title_account"
+        tools:layout="@layout/fragment_account" />
+
+    <fragment
+        android:id="@+id/walletDetailsFragment"
+        android:name="com.nunchuk.android.wallet.components.details.WalletDetailsFragment"
+        android:label="WalletDetailsFragment"
+        tools:layout="@layout/fragment_wallet_detail" />
+</navigation>

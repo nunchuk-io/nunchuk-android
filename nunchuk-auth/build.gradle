@@ -1,0 +1,17 @@
+apply from: '../configs/dependencies.gradle'
+apply from: '../configs/submodule-config.gradle'
+apply plugin: 'dagger.hilt.android.plugin'
+
+dependencies {
+    implementation project(':nunchuk-arch')
+    implementation project(':nunchuk-core')
+    implementation project(':nunchuk-network')
+    implementation project(':nunchuk-domain')
+    implementation project(':nunchuk-widget')
+
+    implementation androidxDeps.values()
+    implementation lifecycleDeps.values()
+    implementation networkDeps.values()
+    implementation nunchukDeps.nativeSdk
+    implementation matrixDeps.matrixSdk
+}

@@ -1,0 +1,16 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menu_search"
+        android:icon="@drawable/ic_search_white"
+        android:title="@string/nc_text_more"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_more"
+        android:icon="@drawable/ic_more_white"
+        android:title="@string/nc_text_more"
+        app:showAsAction="ifRoom" />
+
+</menu>

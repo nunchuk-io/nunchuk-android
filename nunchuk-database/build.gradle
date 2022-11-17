@@ -1,0 +1,17 @@
+apply from: '../configs/dependencies.gradle'
+apply from: '../configs/submodule-config.gradle'
+
+android {
+    defaultConfig {
+        kapt { arguments { arg("room.schemaLocation", "$projectDir/schemas") } }
+    }
+}
+
+dependencies {
+    implementation project(':nunchuk-domain')
+
+    implementation androidxDeps.values()
+    // Room
+    kapt roomArch.roomCompiler
+    implementation roomArch.roomKtx
+}

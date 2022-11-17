@@ -1,0 +1,27 @@
+apply from: '../configs/dependencies.gradle'
+apply from: '../configs/submodule-config.gradle'
+apply plugin: 'dagger.hilt.android.plugin'
+apply plugin: 'kotlin-parcelize'
+
+dependencies {
+
+    implementation project(':nunchuk-arch')
+    implementation project(':nunchuk-network')
+    implementation project(':nunchuk-utils')
+    implementation project(':nunchuk-widget')
+    implementation project(':nunchuk-domain')
+    implementation project(':nunchuk-database')
+
+    implementation nunchukDeps.nativeSdk
+    implementation dataStoreDeps.dataStore
+    implementation matrixDeps.matrixSdk
+
+    implementation androidxDeps.values()
+    implementation lifecycleDeps.values()
+    implementation networkDeps.values()
+    implementation pluginsDeps.kotlinAndroidRuntime
+
+    implementation zxingDeps.values()
+
+    testImplementation otherTestDeps.junit
+}

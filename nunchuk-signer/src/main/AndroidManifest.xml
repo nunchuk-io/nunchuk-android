@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.nunchuk.android.signer">
+
+    <application>
+
+        <activity
+            android:name=".components.add.AddSignerActivity"
+            android:label="@string/nc_create_signer_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".components.details.SignerInfoActivity"
+            android:label="@string/nc_text_signer_info"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Dark" />
+
+        <activity
+            android:name=".SignerIntroActivity"
+            android:exported="true"
+            android:label="@string/nc_add_signer_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light">
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".AirSignerIntroActivity"
+            android:label="@string/nc_signer_before_start_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".components.add.ScanDynamicQRActivity"
+            android:label="Add passport signers"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".nfc.NfcSetupActivity"
+            android:label="Nfc set up"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden" />
+
+        <activity android:name=".satscard.SatsCardActivity"
+            android:label="Sats Card Activity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity android:name=".mk4.Mk4Activity"
+            android:label="Mk4 Activity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"/>
+
+    </application>
+
+</manifest>

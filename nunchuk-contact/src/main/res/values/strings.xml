@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nc_contact_request">Request</string>
+    <string name="nc_contact_view_all">View All</string>
+    <string name="nc_contact_no_contact">You have no contacts yet.</string>
+    <string name="nc_contact_pending">Pending</string>
+    <string name="nc_contact_received">Received</string>
+    <string name="nc_contact_sent">Sent</string>
+    <string name="nc_contact_withdraw">Withdraw</string>
+    <string name="nc_contact_status_pending">Pending</string>
+    <string name="nc_contact_requests">Requests</string>
+    <string name="nc_text_invite_message">These contacts are not on Nunchuk. Would you like to send an invite?</string>
+    <string name="nc_contacts_enter_the_emails">Enter emails or usernames, separated by spaces</string>
+    <string name="nc_contacts_type_email_here">Type email here</string>
+    <string name="nc_contact_add_contacts">Add Contacts</string>
+    <string name="nc_contact_valid_email_address">That does not look like a valid email address</string>
+    <string name="nc_contact_add_contact_success">Add contact success</string>
+    <string name="nc_user_name_invalid">That does not look like a valid username</string>
+
+</resources>

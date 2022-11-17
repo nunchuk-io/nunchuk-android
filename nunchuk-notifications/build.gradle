@@ -1,0 +1,27 @@
+apply from: '../configs/dependencies.gradle'
+apply from: '../configs/submodule-config.gradle'
+apply plugin: 'dagger.hilt.android.plugin'
+
+dependencies {
+
+    implementation project(':nunchuk-arch')
+    implementation project(':nunchuk-core')
+    implementation project(':nunchuk-widget')
+    implementation project(':nunchuk-domain')
+    implementation project(':nunchuk-network')
+
+    implementation androidxDeps.values()
+    implementation lifecycleDeps.values()
+    implementation networkDeps.values()
+    implementation nunchukDeps.nativeSdk
+    implementation matrixDeps.matrixSdk
+    implementation platform(playServices.firebaseBom)
+
+    kapt hiltDeps.processor
+    api hiltDeps.hilt
+
+    implementation 'com.google.android.gms:play-services-base:18.0.1'
+    implementation 'com.google.firebase:firebase-messaging-ktx:23.0.0'
+
+    testImplementation otherTestDeps.junit
+}

@@ -1,0 +1,26 @@
+apply from: '../configs/dependencies.gradle'
+apply from: '../configs/submodule-config.gradle'
+apply plugin: 'kotlin-parcelize'
+apply plugin: 'dagger.hilt.android.plugin'
+apply plugin: 'androidx.navigation.safeargs.kotlin'
+
+dependencies {
+    implementation project(':nunchuk-arch')
+    implementation project(':nunchuk-core')
+    implementation project(':nunchuk-domain')
+    implementation project(':nunchuk-widget')
+    implementation project(':nunchuk-wallet-core')
+    implementation project(':nunchuk-wallet-personal')
+    implementation project(':nunchuk-wallet-shared')
+
+    implementation nunchukDeps.nativeSdk
+
+    implementation androidxDeps.values()
+    implementation lifecycleDeps.values()
+
+    implementation zxingDeps.values()
+    implementation pagingDeps.values()
+    implementation matrixDeps.values()
+
+    testImplementation otherTestDeps.junit
+}

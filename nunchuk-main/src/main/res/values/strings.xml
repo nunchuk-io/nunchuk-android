@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nc_signer_intro_title">Please add a key before adding a wallet.</string>
+    <string name="nc_wallet_intro_title">Looks like you have added a key</string>
+    <string name="nc_signer_intro_subtitle">NFC, air-gapped and software keys are supported.</string>
+    <string name="nc_wallet_intro_subtitle">Do you want to add a Bitcoin wallet?</string>
+    <string name="nc_text_add_a_signer">Add a key</string>
+    <string name="nc_text_add_a_wallet">Add a wallet</string>
+
+    <string name="nc_text_you_have_not_add_wallet">You have no wallets yet</string>
+    <string name="nc_text_you_have_not_add_signer">You have no keys yet</string>
+    <string name="nc_text_connection_status_offline">Offline</string>
+    <string name="nc_text_connection_status_syncing">Syncing</string>
+    <string name="nc_text_connection_status_online">Online</string>
+    <string name="nc_text_home_wallet_chain_testnet">(Testnet)</string>
+    <string name="nc_text_home_wallet_chain_signet">(Signet)</string>
+    <string name="nc_text_home_wallet_connection">%s %s</string>
+    <string name="nc_setup_satscard_msg">No active slot is detected. Do you want to set up a new slot?</string>
+</resources>

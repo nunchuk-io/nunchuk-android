@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingTop="@dimen/nc_padding_24"
+    android:paddingHorizontal="@dimen/nc_padding_16">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/pendingContacts"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible">
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/pendingContactsLabel"
+            style="@style/NCText.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:text="@string/nc_contact_requests"
+            app:fontTextStyle="semi_bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/viewAll"
+            style="@style/NCText.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:paddingVertical="@dimen/nc_padding_4"
+            android:text="@string/nc_contact_view_all"
+            android:visibility="gone"
+            app:fontTextStyle="semi_bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="visible" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/contactDetails"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_12"
+            android:padding="@dimen/nc_padding_12"
+            android:background="@drawable/nc_rounded_8dp_white_background"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/pendingContactsLabel">
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/avatar"
+                android:layout_width="@dimen/nc_padding_48"
+                android:layout_height="@dimen/nc_padding_48"
+                android:layout_marginTop="@dimen/nc_padding_4"
+                android:layout_marginBottom="@dimen/nc_padding_4"
+                android:background="@drawable/nc_circle_beeswax_light_background"
+                android:gravity="center"
+                android:textColor="@color/nc_black_color"
+                android:textSize="@dimen/nc_text_size_20"
+                app:fontTextStyle="semi_bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="Z" />
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/email"
+                style="@style/NCText.Body"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/nc_padding_16"
+                app:layout_constraintStart_toEndOf="@+id/avatar"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="hugonguyen@gmail.com" />
+
+            <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/status"
+                style="@style/NCText.Badges"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/nc_padding_16"
+                android:layout_marginBottom="@dimen/nc_padding_4"
+                android:background="@drawable/nc_rounded_blue_light_background"
+                android:paddingHorizontal="@dimen/nc_padding_8"
+                android:text="@string/nc_contact_pending"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/avatar" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/nc_padding_72"
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/pendingContacts"
+        tools:listitem="@layout/item_contact"
+        tools:visibility="gone" />
+
+    <com.nunchuk.android.widget.NCMovableFloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="@dimen/nc_padding_16"
+        android:src="@drawable/ic_plus_white"
+        app:backgroundTint="@color/nc_primary_color"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="@color/nc_whisper_color" />
+
+    <ViewStub
+        android:id="@+id/viewStubEmptyState"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout="@layout/layout_empty_state_contacts"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/pendingContacts"
+        tools:visibility="visible" />
+</androidx.constraintlayout.widget.ConstraintLayout>

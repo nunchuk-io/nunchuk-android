@@ -1,0 +1,17 @@
+apply from: '../configs/dependencies.gradle'
+apply from: '../configs/submodule-config.gradle'
+
+dependencies {
+
+    implementation project(':nunchuk-arch')
+    implementation project(':nunchuk-core')
+    implementation project(':nunchuk-domain')
+    implementation project(':nunchuk-widget')
+    implementation nunchukDeps.nativeSdk
+
+    implementation pluginsDeps.kotlinAndroidRuntime
+    implementation androidxDeps.values()
+    implementation lifecycleDeps.values()
+
+    testImplementation otherTestDeps.junit
+}

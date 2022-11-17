@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="nc_wallet_add_wallet_title">Add a wallet</string>
+    <string name="nc_wallet_qrcode_title">QRCode</string>
+    <string name="nc_wallet_configure_title">Configure wallet</string>
+    <string name="nc_text_recover_wallet_description">Use a multisig wallet for maximum safety. A multisig wallet has multiple signers—if one is compromised, your funds are still safe.</string>
+    <string name="nc_text_create_new_wallet">Create new wallet</string>
+    <string name="nc_text_recover_wallet">Recover existing wallet</string>
+    <string name="nc_txt_recover_using_qr_code">Recover via QR code</string>
+    <string name="nc_txt_recover_using_bsms_file">Recover via BSMS/descriptors/config file</string>
+    <string name="nc_txt_file_bsms_chooser">Please select your BSMS file</string>
+    <string name="nc_txt_import_wallet_success">%s has been successfully recovered</string>
+    <string name="nc_wallet_taproot_title">To use Taproot, please note the following</string>
+    <string name="nc_wallet_taproot_withdraw_support_title">Withdraw support (possible loss of funds)</string>
+    <string name="nc_wallet_taproot_withdraw_support_desc"><![CDATA[If you are sending bitcoin from an exchange or a service to this wallet, please make absolutely sure that they support sending to Bech32m addresses. <font color=\'#D2232A\'>There has been reports of loss of funds.</font>]]></string>
+    <string name="nc_wallet_taproot_hardware_support_title">Hardware support</string>
+    <string name="nc_wallet_taproot_hardware_support_desc">If you plan to use hardware keys in the wallet, please make sure that they support Taproot as well. If you are unsure, use software keys only.</string>
+    <string name="nc_wallet_qrcode">QRCode</string>
+
+</resources>

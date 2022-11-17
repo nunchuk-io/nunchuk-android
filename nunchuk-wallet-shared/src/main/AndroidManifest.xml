@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.nunchuk.android.wallet.shared">
+
+    <application>
+
+        <activity
+            android:name=".components.recover.AddRecoverSharedWalletActivity"
+            android:label="@string/nc_txt_recover_collaborative_wallet"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".components.recover.RecoverSharedWalletActivity"
+            android:label="@string/nc_txt_recover_collaborative_wallet"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".components.create.CreateSharedWalletActivity"
+            android:label="@string/nc_wallet_create_shared_wallet"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".components.configure.ConfigureSharedWalletActivity"
+            android:label="@string/nc_wallet_configure_shared_wallet"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".components.review.ReviewSharedWalletActivity"
+            android:label="@string/nc_wallet_review_shared_wallet_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".components.assign.AssignSignerSharedWalletActivity"
+            android:label="@string/nc_wallet_assign_signer_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".components.config.SharedWalletConfigActivity"
+            android:label="@string/nc_wallet_shared_wallet_config_title"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize" />
+
+    </application>
+</manifest>

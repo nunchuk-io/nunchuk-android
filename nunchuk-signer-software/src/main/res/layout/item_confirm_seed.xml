@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/nc_white_color"
+    android:paddingBottom="@dimen/nc_text_size_16">
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/wordNum"
+        style="@style/NCText.Title.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/nc_padding_8"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Word #2" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/firstWord"
+        style="@style/NCText.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        android:layout_marginEnd="@dimen/nc_padding_8"
+        android:background="@drawable/nc_rounded_light_thin_background"
+        android:gravity="center"
+        android:paddingVertical="@dimen/nc_padding_14"
+        app:layout_constraintEnd_toStartOf="@+id/leftGuideline"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/wordNum"
+        tools:text="Computer" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/leftGuideline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.33" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/secondWord"
+        style="@style/NCText.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_8"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        android:background="@drawable/nc_rounded_light_thin_background"
+        android:gravity="center"
+        android:paddingVertical="@dimen/nc_padding_14"
+        app:layout_constraintEnd_toStartOf="@+id/rightGuideline"
+        app:layout_constraintStart_toEndOf="@+id/leftGuideline"
+        app:layout_constraintTop_toBottomOf="@+id/wordNum"
+        tools:text="Crypto" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/rightGuideline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.66" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/thirdWord"
+        style="@style/NCText.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_8"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        android:background="@drawable/nc_rounded_light_thin_background"
+        android:gravity="center"
+        android:paddingVertical="@dimen/nc_padding_14"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/rightGuideline"
+        app:layout_constraintTop_toBottomOf="@+id/wordNum"
+        tools:text="Star" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

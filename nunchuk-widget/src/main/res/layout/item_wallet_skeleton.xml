@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/nc_padding_8"
+    android:background="@drawable/nc_rounded_skeleton_background"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:padding="@dimen/nc_padding_12">
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.45" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/walletName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/nc_skeleton_line_white_background"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btc"
+        android:layout_width="75dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:background="@drawable/nc_skeleton_line_white_background"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/walletName" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/balance"
+        android:layout_width="48dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:background="@drawable/nc_skeleton_line_white_background"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btc" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/share_icon"
+        android:layout_width="@dimen/nc_padding_60"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/nc_padding_4"
+        android:background="@drawable/nc_skeleton_line_white_background"
+        app:layout_constraintBottom_toBottomOf="@+id/btc"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btc" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/config"
+        android:layout_width="@dimen/nc_padding_72"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:background="@drawable/nc_skeleton_line_white_background"
+        app:layout_constraintBottom_toBottomOf="@+id/balance"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

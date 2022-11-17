@@ -1,0 +1,19 @@
+apply from: '../configs/dependencies.gradle'
+apply from: '../configs/submodule-config.gradle'
+apply plugin: 'dagger.hilt.android.plugin'
+
+dependencies {
+
+    implementation project(':nunchuk-arch')
+    implementation project(':nunchuk-core')
+    implementation project(':nunchuk-domain')
+    implementation project(':nunchuk-widget')
+    implementation project(':nunchuk-signer-core')
+    implementation nunchukDeps.nativeSdk
+
+    implementation pluginsDeps.kotlinAndroidRuntime
+    implementation androidxDeps.values()
+    implementation lifecycleDeps.values()
+
+    testImplementation otherTestDeps.junit
+}
