@@ -3,3 +3,5 @@
 /build
 *.iml
 local.properties
+keystore.properties
+nunchuk-keystore.jks

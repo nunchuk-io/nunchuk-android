@@ -8,6 +8,10 @@ apply plugin: 'com.google.firebase.appdistribution'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'androidx.navigation.safeargs.kotlin'
 
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
 android {
     compileSdkVersion androidConfig.compileSdkVersion
     buildToolsVersion androidConfig.buildToolsVersion
@@ -42,10 +46,10 @@ android {
 
     signingConfigs {
         release {
-            storeFile file("${project.rootDir}/production-keystore.jks")
-            storePassword "nunchuk@2021"
+            storeFile file("${project.rootDir}/nunchuk-keystore.jks")
+            storePassword "Nunchuk@2022"
             keyAlias "nunchuk-android"
-            keyPassword "nunchuk@2021"
+            keyPassword "Nunchuk@2022"
         }
         debug {
             storeFile file("${project.rootDir}/debug.keystore")
