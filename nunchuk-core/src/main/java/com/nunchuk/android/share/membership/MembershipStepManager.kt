@@ -15,8 +15,8 @@ import javax.inject.Singleton
 
 @Singleton
 class MembershipStepManager @Inject constructor(
-   private val getMembershipStepUseCase: GetMembershipStepUseCase,
-   private val applicationScope: CoroutineScope,
+    private val getMembershipStepUseCase: GetMembershipStepUseCase,
+    private val applicationScope: CoroutineScope,
 ) {
     private var job: Job? = null
 
@@ -140,17 +140,35 @@ class MembershipStepManager @Inject constructor(
         return isConfigKeyDone() && _stepDone.value.contains(MembershipStep.ADD_SEVER_KEY)
     }
 
-    fun isCreatedAssistedWalletDone() = isConfigRecoverKeyDone() && _stepDone.value.contains(MembershipStep.CREATE_WALLET)
+    fun isCreatedAssistedWalletDone() =
+        isConfigRecoverKeyDone() && _stepDone.value.contains(MembershipStep.CREATE_WALLET)
 
     fun getRemainTimeBySteps(querySteps: List<MembershipStep>) =
         calculateRemainTime(steps.filter { it.key in querySteps }.values)
 
     private fun updateRemainTime() {
         _remainingTime.update {
-            calculateRemainTime(steps.values)
+            calculateRemainTime(steps.filter { isStepInThisPlan(it.key, plan) }.values)
         }
     }
 
     private fun calculateRemainTime(stepFlows: Collection<MembershipStepFlow>) =
         stepFlows.sumOf { (it.totalStep - it.currentStep).coerceAtLeast(0) * 2 }
+
+    private fun isStepInThisPlan(step: MembershipStep, plan: MembershipPlan): Boolean {
+        return when (plan) {
+            MembershipPlan.IRON_HAND ->
+                step == MembershipStep.CREATE_WALLET
+                        || step == MembershipStep.ADD_SEVER_KEY
+                        || step == MembershipStep.ADD_TAP_SIGNER_1
+                        || step == MembershipStep.ADD_TAP_SIGNER_2
+            MembershipPlan.HONEY_BADGER ->
+                step == MembershipStep.CREATE_WALLET
+                        || step == MembershipStep.ADD_SEVER_KEY
+                        || step == MembershipStep.HONEY_ADD_TAP_SIGNER
+                        || step == MembershipStep.HONEY_ADD_HARDWARE_KEY_1
+                        || step == MembershipStep.HONEY_ADD_HARDWARE_KEY_2
+                        || step == MembershipStep.SETUP_INHERITANCE
+        }
+    }
 }

@@ -175,7 +175,8 @@ fun AddKeyStepContent(
                 1,
                 stringResource(id = R.string.nc_add_your_keys),
                 groupRemainTime[0],
-                isConfigKeyDone
+                isConfigKeyDone,
+                isConfigKeyDone.not()
             )
             if (isConfigKeyDone.not()) {
                 NcHintMessage(
@@ -190,20 +191,23 @@ fun AddKeyStepContent(
                 2,
                 stringResource(R.string.nc_set_up_key_recover),
                 groupRemainTime[1],
-                isSetupRecoverKeyDone
+                isSetupRecoverKeyDone,
+                isConfigKeyDone && isSetupRecoverKeyDone.not()
             )
             StepWithEstTime(
                 3,
                 stringResource(R.string.nc_create_your_wallet),
                 groupRemainTime[2],
-                isCreateWalletDone
+                isCreateWalletDone,
+                isSetupRecoverKeyDone && isCreateWalletDone.not()
             )
             if (plan == MembershipPlan.HONEY_BADGER) {
                 StepWithEstTime(
                     4,
                     stringResource(R.string.nc_set_up_inheritance_plan),
                     groupRemainTime[2],
-                    false
+                    false,
+                    isCreateWalletDone
                 )
             }
             Spacer(modifier = Modifier.weight(1.0f))
@@ -220,7 +224,13 @@ fun AddKeyStepContent(
 }
 
 @Composable
-fun StepWithEstTime(index: Int, label: String, estInMinutes: Int, isCompleted: Boolean) {
+fun StepWithEstTime(
+    index: Int,
+    label: String,
+    estInMinutes: Int,
+    isCompleted: Boolean,
+    isInProgress: Boolean
+) {
     Text(
         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
         text = "${stringResource(R.string.nc_step)} $index",
@@ -246,14 +256,21 @@ fun StepWithEstTime(index: Int, label: String, estInMinutes: Int, isCompleted: B
                 style = NunchukTheme.typography.caption
             )
         } else {
+            val modifier = if (isInProgress) Modifier
+                .background(
+                    color = colorResource(id = R.color.nc_green_color),
+                    shape = RoundedCornerShape(20.dp)
+                )
+                .padding(horizontal = 10.dp, vertical = 4.dp)
+            else Modifier
+                .border(
+                    width = 1.dp,
+                    color = colorResource(id = R.color.nc_whisper_color),
+                    shape = RoundedCornerShape(20.dp)
+                )
+                .padding(horizontal = 10.dp, vertical = 4.dp)
             Text(
-                modifier = Modifier
-                    .border(
-                        width = 1.dp,
-                        color = colorResource(id = R.color.nc_whisper_color),
-                        shape = RoundedCornerShape(20.dp)
-                    )
-                    .padding(horizontal = 10.dp, vertical = 4.dp),
+                modifier = modifier,
                 text = stringResource(R.string.nc_est_time_in_mins, estInMinutes),
                 style = NunchukTheme.typography.caption
             )

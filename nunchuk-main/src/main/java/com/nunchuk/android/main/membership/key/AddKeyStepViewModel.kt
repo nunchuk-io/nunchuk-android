@@ -2,6 +2,7 @@ package com.nunchuk.android.main.membership.key
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.membership.RestartWizardUseCase
@@ -34,14 +35,18 @@ class AddKeyStepViewModel @Inject constructor(
 
     val groupRemainTime =
         membershipStepManager.remainingTime.map {
+            val setupKeySteps = if (plan == MembershipPlan.IRON_HAND) listOf(
+                MembershipStep.ADD_TAP_SIGNER_1,
+                MembershipStep.ADD_TAP_SIGNER_2,
+                MembershipStep.ADD_SEVER_KEY
+            ) else listOf(
+                MembershipStep.HONEY_ADD_TAP_SIGNER,
+                MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
+                MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
+                MembershipStep.ADD_SEVER_KEY
+            )
             intArrayOf(
-                membershipStepManager.getRemainTimeBySteps(
-                    listOf(
-                        MembershipStep.ADD_TAP_SIGNER_1,
-                        MembershipStep.ADD_TAP_SIGNER_2,
-                        MembershipStep.SETUP_KEY_RECOVERY
-                    )
-                ),
+                membershipStepManager.getRemainTimeBySteps(setupKeySteps),
                 membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.SETUP_KEY_RECOVERY)),
                 membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.CREATE_WALLET)),
                 membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.SETUP_INHERITANCE)),
