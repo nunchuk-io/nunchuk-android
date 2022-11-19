@@ -154,6 +154,13 @@ fun AddKeyStepContent(
     openContactUs: (mail: String) -> Unit = {},
     plan: MembershipPlan = MembershipPlan.HONEY_BADGER,
 ) = NunchukTheme {
+    val imageBannerId = if (isSetupRecoverKeyDone) {
+        R.drawable.bg_create_a_wallet
+    } else if (isConfigKeyDone) {
+        R.drawable.bg_setup_recovery_key
+    } else {
+        R.drawable.nc_bg_let_s_add_keys
+    }
 
     Scaffold { innerPadding ->
         Column(
@@ -163,7 +170,7 @@ fun AddKeyStepContent(
                 .verticalScroll(rememberScrollState())
                 .navigationBarsPadding(),
         ) {
-            NcImageAppBar(backgroundRes = R.drawable.nc_bg_let_s_add_keys, actions = {
+            NcImageAppBar(backgroundRes = imageBannerId, actions = {
                 IconButton(onClick = onMoreClicked) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_more),
@@ -281,5 +288,5 @@ fun StepWithEstTime(
 @Preview
 @Composable
 fun AddKeyStepScreenPreview() {
-    AddKeyStepContent()
+    AddKeyStepContent(isSetupRecoverKeyDone = true, isConfigKeyDone = true)
 }
