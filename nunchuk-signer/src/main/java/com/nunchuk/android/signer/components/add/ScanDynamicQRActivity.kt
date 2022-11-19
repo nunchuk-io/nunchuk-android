@@ -32,7 +32,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
 
-    private val viewModel: AddSignerViewModel by viewModels()
+    private val viewModel: AddAirgapSignerViewModel by viewModels()
 
     override fun initializeBinding() = ActivityScanDynamicQrBinding.inflate(layoutInflater)
 
@@ -78,12 +78,9 @@ class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
         binding.barcodeView.pause()
     }
 
-
-
     companion object {
-        fun start(activityContext: Activity, requestCode: Int) {
-            activityContext.startActivityForResult(Intent(activityContext, ScanDynamicQRActivity::class.java), requestCode)
-        }
+        fun buildIntent(activityContext: Activity) =
+            Intent(activityContext, ScanDynamicQRActivity::class.java)
     }
 
 }

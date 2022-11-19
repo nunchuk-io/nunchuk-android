@@ -4,10 +4,6 @@ import com.google.gson.Gson
 import com.nunchuk.android.core.data.api.UserWalletsApi
 import com.nunchuk.android.core.data.model.*
 import com.nunchuk.android.core.data.model.membership.*
-import com.nunchuk.android.core.data.model.membership.CreateWalletRequest
-import com.nunchuk.android.core.data.model.membership.KeyPoliciesDto
-import com.nunchuk.android.core.data.model.membership.SignerServerDto
-import com.nunchuk.android.core.data.model.membership.TapSignerDto
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.util.ONE_HOUR_TO_SECONDS
 import com.nunchuk.android.model.*
@@ -82,7 +78,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 isVerify = true,
                 keyIdInServer = key.id.orEmpty(),
                 extraData = gson.toJson(
-                    ServerKey(
+                    ServerKeyExtra(
                         name = key.name.orEmpty(),
                         xfp = key.xfp.orEmpty(),
                         derivationPath = key.derivationPath.orEmpty(),

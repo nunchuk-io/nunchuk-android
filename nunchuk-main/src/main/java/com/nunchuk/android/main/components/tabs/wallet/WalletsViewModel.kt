@@ -67,7 +67,7 @@ internal class WalletsViewModel @Inject constructor(
         viewModelScope.launch {
             val result = getUserSubscriptionUseCase(Unit)
             if (result.isSuccess) {
-                val subscription = result.getOrThrow().copy(slug = HONEY_BADGER_PLAN) // TODO Hai remove
+                val subscription = result.getOrThrow()
                 val isPremiumUser = subscription.subscriptionId.isNullOrEmpty().not()
                 val getServerWalletResult = getServerWalletUseCase(Unit)
                 if (getServerWalletResult.isSuccess && getServerWalletResult.getOrThrow().isNeedReload) {

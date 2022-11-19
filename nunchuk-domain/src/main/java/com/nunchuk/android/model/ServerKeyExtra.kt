@@ -2,7 +2,7 @@ package com.nunchuk.android.model
 
 import com.google.gson.annotations.SerializedName
 
-class ServerKey(
+class ServerKeyExtra(
     @SerializedName("name")
     val name: String,
     @SerializedName("xfp")

@@ -6,9 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.getFileFromUri
+import com.nunchuk.android.core.util.gson
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipStepInfo
+import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreateSignerUseCase
@@ -83,7 +85,13 @@ class ColdcardRecoverViewModel @Inject constructor(
                         masterSignerId = coldcardSigner.masterSignerId,
                         plan = membershipStepManager.plan,
                         isVerify = true,
-                        extraData = coldcardSigner.derivationPath
+                        extraData = gson.toJson(
+                            SignerExtra(
+                                derivationPath = coldcardSigner.derivationPath,
+                                isAddNew = true,
+                                signerType = coldcardSigner.type
+                            )
+                        )
                     )
                 )
                 _event.emit(ColdcardRecoverEvent.CreateSignerSuccess)

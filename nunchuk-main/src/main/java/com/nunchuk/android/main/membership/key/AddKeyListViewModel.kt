@@ -3,6 +3,7 @@ package com.nunchuk.android.main.membership.key
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.mapper.MasterSignerMapper
@@ -13,6 +14,7 @@ import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
+import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
@@ -37,6 +39,7 @@ class AddKeyListViewModel @Inject constructor(
     private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
     private val getRemoteSignersUseCase: GetRemoteSignersUseCase,
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
+    private val gson: Gson,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     private val _event = MutableSharedFlow<AddKeyListEvent>()
@@ -114,7 +117,7 @@ class AddKeyListViewModel @Inject constructor(
     }
 
     // COLDCARD or Airgap
-    fun onSelectedHardwareSigner(signer: SignerModel) {
+    fun onSelectedExistingHardwareSigner(signer: SignerModel) {
         viewModelScope.launch {
             saveMembershipStepUseCase(
                 MembershipStepInfo(
@@ -123,7 +126,7 @@ class AddKeyListViewModel @Inject constructor(
                     masterSignerId = signer.id,
                     plan = membershipStepManager.plan,
                     isVerify = true,
-                    extraData = signer.derivationPath
+                    extraData = gson.toJson(SignerExtra(derivationPath = signer.derivationPath, isAddNew = false, signerType = signer.type))
                 )
             )
         }

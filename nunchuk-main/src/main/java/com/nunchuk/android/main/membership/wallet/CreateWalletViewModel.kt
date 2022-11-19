@@ -7,7 +7,7 @@ import com.nunchuk.android.GetDefaultSignerFromMasterSignerUseCase
 import com.nunchuk.android.core.domain.membership.CreateServerWalletUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MembershipStep
-import com.nunchuk.android.model.ServerKey
+import com.nunchuk.android.model.ServerKeyExtra
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
@@ -35,7 +35,7 @@ class CreateWalletViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
 ) : ViewModel() {
     private val masterSignerIds = mutableListOf<String>()
-    private var serverKey: ServerKey? = null
+    private var serverKeyExtra: ServerKeyExtra? = null
     private var serverKeyId: String? = null
 
     private val _event = MutableSharedFlow<CreateWalletEvent>()
@@ -55,10 +55,10 @@ class CreateWalletViewModel @Inject constructor(
                             MembershipStep.ADD_TAP_SIGNER_1,
                             MembershipStep.ADD_TAP_SIGNER_2 -> masterSignerIds.add(it.masterSignerId)
                             MembershipStep.ADD_SEVER_KEY -> {
-                                serverKey = runCatching {
+                                serverKeyExtra = runCatching {
                                     gson.fromJson(
                                         it.extraData,
-                                        ServerKey::class.java
+                                        ServerKeyExtra::class.java
                                     )
                                 }.getOrNull()
                                 serverKeyId = it.keyIdInServer
@@ -81,7 +81,7 @@ class CreateWalletViewModel @Inject constructor(
     }
 
     private fun createQuickWallet() {
-        val serverKey = serverKey ?: return
+        val serverKey = serverKeyExtra ?: return
         val serverKeyId = serverKeyId ?: return
         viewModelScope.launch {
             val addressType = AddressType.NATIVE_SEGWIT

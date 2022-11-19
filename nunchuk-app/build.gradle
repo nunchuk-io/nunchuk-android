@@ -137,7 +137,6 @@ dependencies {
     implementation project(':nunchuk-domain')
     implementation project(':nunchuk-network')
     implementation project(':nunchuk-signer')
-    implementation project(':nunchuk-signer-airgap')
     implementation project(':nunchuk-signer-software')
     implementation project(':nunchuk-signer-core')
     implementation project(':nunchuk-wallet')

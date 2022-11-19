@@ -17,59 +17,47 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.signer
+package com.nunchuk.android.signer.components.add
 
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.core.view.WindowCompat
+import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.util.CAMERA_PERMISSION_REQUEST_CODE
-import com.nunchuk.android.core.util.checkCameraPermission
-import com.nunchuk.android.signer.airgap.databinding.ActivityBeforeAddAirSignerBinding
-import com.nunchuk.android.widget.util.setLightStatusBar
+import com.nunchuk.android.signer.R
+import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class AirSignerIntroActivity : BaseActivity<ActivityBeforeAddAirSignerBinding>() {
-
-    override fun initializeBinding() = ActivityBeforeAddAirSignerBinding.inflate(layoutInflater)
+class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        setLightStatusBar()
-        setupViews()
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        val navHostFragment =
+            (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
+        navHostFragment.navController.setGraph(R.navigation.airgap_navigation)
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
-            if (checkCameraPermission()) {
-                navigator.openAddAirSignerScreen(this)
-            }
-        }
-    }
-
-    private fun setupViews() {
-        binding.btnContinue.setOnClickListener {
-            if (checkCameraPermission()) {
-                navigator.openAddAirSignerScreen(this)
-            }
-        }
-
-        binding.toolbar.setNavigationOnClickListener {
-            finish()
-        }
-    }
+    val isMembershipFlow : Boolean by lazy { intent.getBooleanExtra(EXTRA_IS_MEMBERSHIP_FLOW, false) }
 
     companion object {
-        fun start(activityContext: Context) {
-            activityContext.startActivity(Intent(activityContext, AirSignerIntroActivity::class.java))
+        private const val EXTRA_IS_MEMBERSHIP_FLOW = "is_membership_flow"
+
+        fun start(activityContext: Context, isMembershipFlow: Boolean) {
+            activityContext.startActivity(
+                Intent(
+                    activityContext,
+                    AddAirgapSignerActivity::class.java
+                ).apply {
+                    putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
+                }
+            )
         }
     }
 
+    override fun initializeBinding(): ActivityNavigationBinding {
+        return ActivityNavigationBinding.inflate(layoutInflater)
+    }
 }

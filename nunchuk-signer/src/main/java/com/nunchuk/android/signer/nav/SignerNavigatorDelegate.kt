@@ -22,9 +22,8 @@ package com.nunchuk.android.signer.nav
 import android.content.Context
 import com.nunchuk.android.model.PrimaryKey
 import com.nunchuk.android.nav.SignerNavigator
-import com.nunchuk.android.signer.AirSignerIntroActivity
 import com.nunchuk.android.signer.SignerIntroActivity
-import com.nunchuk.android.signer.components.add.AddSignerActivity
+import com.nunchuk.android.signer.components.add.AddAirgapSignerActivity
 import com.nunchuk.android.signer.components.details.SignerInfoActivity
 import com.nunchuk.android.signer.software.SoftwareSignerIntroActivity
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedActivity
@@ -77,12 +76,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
         )
     }
 
-    override fun openAddAirSignerIntroScreen(activityContext: Context) {
-        AirSignerIntroActivity.start(activityContext)
-    }
-
-    override fun openAddAirSignerScreen(activityContext: Context) {
-        AddSignerActivity.start(activityContext)
+    override fun openAddAirSignerScreen(activityContext: Context, isMembershipFlow: Boolean) {
+        AddAirgapSignerActivity.start(activityContext, isMembershipFlow)
     }
 
     override fun openAddSoftwareSignerScreen(

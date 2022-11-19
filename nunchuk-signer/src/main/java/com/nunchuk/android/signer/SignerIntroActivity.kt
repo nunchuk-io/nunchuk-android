@@ -65,7 +65,7 @@ class SignerIntroActivity : BaseActivity<ActivitySignerIntroBinding>(), SetUpNfc
 
     private fun openAddAirSignerIntroScreen() {
         finish()
-        navigator.openAddAirSignerIntroScreen(this)
+        navigator.openAddAirSignerScreen(this, false)
     }
 
     private fun openAddSoftwareSignerScreen() {

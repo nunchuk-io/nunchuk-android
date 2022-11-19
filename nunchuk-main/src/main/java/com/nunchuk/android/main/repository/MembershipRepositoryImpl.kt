@@ -1,16 +1,19 @@
 package com.nunchuk.android.main.repository
 
+import com.google.gson.Gson
 import com.nunchuk.android.api.key.MembershipApi
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.model.MemberSubscription
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStepInfo
+import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.entity.MembershipStepEntity
 import com.nunchuk.android.persistence.entity.toModel
 import com.nunchuk.android.persistence.updateOrInsert
 import com.nunchuk.android.repository.MembershipRepository
+import com.nunchuk.android.type.SignerType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -21,6 +24,7 @@ class MembershipRepositoryImpl @Inject constructor(
     private val accountManager: AccountManager,
     private val membershipApi: MembershipApi,
     private val nativeSdk: NunchukNativeSdk,
+    private val gson: Gson,
 ) : MembershipRepository {
     override fun getSteps(plan: MembershipPlan): Flow<List<MembershipStepInfo>> {
         return membershipStepDao.getSteps(accountManager.getAccount().email, plan)
@@ -61,9 +65,16 @@ class MembershipRepositoryImpl @Inject constructor(
     override suspend fun restart(plan: MembershipPlan) {
         val steps = getSteps(plan).first()
         steps.filter { it.masterSignerId.isNotEmpty() }.forEach {
-            if (it.extraData.toBooleanStrictOrNull() == true) {
-                nativeSdk.deleteMasterSigner(it.masterSignerId)
-            }
+            runCatching { gson.fromJson(it.extraData, SignerExtra::class.java) }
+                .getOrNull()
+                ?.takeIf { extra -> extra.isAddNew }
+                ?.let { extra ->
+                    if (extra.signerType == SignerType.NFC) {
+                        nativeSdk.deleteMasterSigner(it.masterSignerId)
+                    } else {
+                        nativeSdk.deleteRemoteSigner(it.masterSignerId, extra.derivationPath)
+                    }
+                }
         }
         membershipStepDao.deleteStepByEmail(accountManager.getAccount().email)
     }

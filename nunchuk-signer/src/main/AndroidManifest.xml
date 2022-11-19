@@ -5,7 +5,7 @@
     <application>
 
         <activity
-            android:name=".components.add.AddSignerActivity"
+            android:name=".components.add.AddAirgapSignerActivity"
             android:label="@string/nc_create_signer_title"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light"

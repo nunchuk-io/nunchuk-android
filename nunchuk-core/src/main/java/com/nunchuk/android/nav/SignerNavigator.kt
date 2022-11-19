@@ -41,9 +41,7 @@ interface SignerNavigator {
         isReplacePrimaryKey: Boolean = false
     )
 
-    fun openAddAirSignerScreen(activityContext: Context)
-
-    fun openAddAirSignerIntroScreen(activityContext: Context)
+    fun openAddAirSignerScreen(activityContext: Context, isMembershipFlow: Boolean)
 
     /**
      * @param passphrase only need for replacing primary key

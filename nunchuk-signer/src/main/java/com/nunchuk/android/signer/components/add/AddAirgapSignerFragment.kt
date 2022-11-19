@@ -19,42 +19,75 @@
 
 package com.nunchuk.android.signer.components.add
 
-import android.content.Context
-import android.content.Intent
+import android.app.Activity
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
-import com.nunchuk.android.core.base.BaseActivity
+import androidx.core.view.WindowCompat
+import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
+import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showWarning
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.add.AddSignerEvent.*
 import com.nunchuk.android.signer.databinding.ActivityAddSignerBinding
-import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.util.*
+import com.nunchuk.android.utils.parcelableArrayList
+import com.nunchuk.android.widget.util.addTextChangedCallback
+import com.nunchuk.android.widget.util.heightExtended
+import com.nunchuk.android.widget.util.setMaxLength
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>(), BottomSheetOptionListener {
+class AddAirgapSignerFragment : BaseFragment<ActivityAddSignerBinding>(),
+    BottomSheetOptionListener {
 
-    private val viewModel: AddSignerViewModel by viewModels()
+    private val viewModel: AddAirgapSignerViewModel by viewModels()
 
-    private val launcher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let {
-            viewModel.parseAirgapSigner(it)
+    private val importFileLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let {
+                viewModel.parseAirgapSigner(it)
+            }
         }
-    }
 
-    override fun initializeBinding() = ActivityAddSignerBinding.inflate(layoutInflater)
+    private val scanQrLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                val keys = it.data?.parcelableArrayList<SingleSigner>(PASSPORT_EXTRA_KEYS).orEmpty()
+                handleResult(keys)
+            }
+        }
+
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): ActivityAddSignerBinding {
+        return ActivityAddSignerBinding.inflate(inflater, container, false)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(requireActivity().window, true)
+    }
 
-        setLightStatusBar()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         setupViews()
         observeEvent()
+    }
+
+    override fun onDestroy() {
+        WindowCompat.setDecorFitsSystemWindows(requireActivity().window, false)
+        super.onDestroy()
     }
 
     override fun onOptionClicked(option: SheetOption) {
@@ -64,7 +97,7 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>(), BottomSheetO
     }
 
     private fun observeEvent() {
-        viewModel.event.observe(this) {
+        viewModel.event.observe(viewLifecycleOwner) {
             when (it) {
                 is AddSignerSuccessEvent -> openSignerInfo(it.singleSigner)
                 InvalidSignerSpecEvent -> binding.signerSpec.setError(getString(R.string.nc_error_invalid_signer_spec))
@@ -85,20 +118,20 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>(), BottomSheetO
                     label = singleSigner.derivationPath
                 )
             }, title = getString(R.string.nc_signer_select_key_dialog_title))
-            fragment.show(supportFragmentManager, "BottomSheetOption")
+            fragment.show(childFragmentManager, "BottomSheetOption")
         }
     }
 
     private fun onAddAirSignerError(message: String) {
         hideLoading()
-        NCToastMessage(this).showWarning(message)
+        showWarning(message)
     }
 
     private fun openSignerInfo(singleSigner: SingleSigner) {
         hideLoading()
-        finish()
+        requireActivity().finish()
         navigator.openSignerInfoScreen(
-            this,
+            requireContext(),
             id = singleSigner.masterSignerId,
             masterFingerprint = singleSigner.masterFingerprint,
             name = singleSigner.name,
@@ -109,40 +142,37 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>(), BottomSheetO
     }
 
     private fun setupViews() {
+        val isMembershipFlow = (requireActivity() as AddAirgapSignerActivity).isMembershipFlow
         binding.signerName.setMaxLength(MAX_LENGTH)
         updateCounter(0)
+        with(isMembershipFlow) {
+            binding.signerName.isVisible = this.not()
+            binding.signerNameLabel.isVisible = this.not()
+            binding.signerNameCounter.isVisible = this.not()
+        }
         binding.signerName.addTextChangedCallback {
             updateCounter(it.length)
         }
 
         binding.scanContainer.setOnClickListener { openScanDynamicQRScreen() }
         binding.btnImportViaFile.setOnDebounceClickListener {
-            launcher.launch("*/*")
+            importFileLauncher.launch("*/*")
         }
         binding.signerSpec.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_180))
         binding.addSigner.setOnClickListener {
-            viewModel.handleAddSigner(
-                binding.signerName.getEditText(), binding.signerSpec.getEditText()
+            viewModel.handleAddAirgapSigner(
+                signerName = binding.signerName.getEditText(),
+                signerSpec = binding.signerSpec.getEditText(),
+                isMembershipFlow = isMembershipFlow
             )
         }
         binding.toolbar.setNavigationOnClickListener {
-            finish()
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
     }
 
     private fun openScanDynamicQRScreen() {
-        ScanDynamicQRActivity.start(this, PASSPORT_REQUEST_CODE)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == PASSPORT_REQUEST_CODE) {
-            if (resultCode == RESULT_OK) {
-                val keys =
-                    data?.getParcelableArrayListExtra<SingleSigner>(PASSPORT_EXTRA_KEYS).orEmpty()
-                handleResult(keys)
-            }
-        }
+        scanQrLauncher.launch(ScanDynamicQRActivity.buildIntent(requireActivity()))
     }
 
     private fun handleResult(keys: List<SingleSigner>) {
@@ -162,7 +192,7 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>(), BottomSheetO
     private fun showSelectKeysDialog(
         keys: List<SingleSigner>, onKeySelected: (SingleSigner) -> Unit
     ) {
-        SelectKeyBottomSheet.show(fragmentManager = supportFragmentManager, keys)
+        SelectKeyBottomSheet.show(fragmentManager = childFragmentManager, keys)
             .setListener(onKeySelected)
     }
 
@@ -173,12 +203,7 @@ class AddSignerActivity : BaseActivity<ActivityAddSignerBinding>(), BottomSheetO
 
     companion object {
         private const val MAX_LENGTH = 20
-
-        fun start(activityContext: Context) {
-            activityContext.startActivity(Intent(activityContext, AddSignerActivity::class.java))
-        }
     }
 }
 
-internal const val PASSPORT_REQUEST_CODE = 0x1024
 internal const val PASSPORT_EXTRA_KEYS = "PASSPORT_EXTRA_KEYS"

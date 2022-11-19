@@ -22,6 +22,7 @@ package com.nunchuk.android.signer.components.add
 import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.signer.InvalidSignerFormatException
 import com.nunchuk.android.core.signer.SignerInput
@@ -29,12 +30,16 @@ import com.nunchuk.android.core.signer.toSigner
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.MembershipStepInfo
+import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.components.add.AddSignerEvent.*
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreatePassportSignersUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.ParseJsonSignerUseCase
+import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -50,11 +55,14 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-internal class AddSignerViewModel @Inject constructor(
+internal class AddAirgapSignerViewModel @Inject constructor(
     private val createSignerUseCase: CreateSignerUseCase,
     private val createPassportSignersUseCase: CreatePassportSignersUseCase,
     private val parseJsonSignerUseCase: ParseJsonSignerUseCase,
     private val application: Application,
+    private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
+    private val membershipStepManager: MembershipStepManager,
+    private val gson: Gson,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<Unit, AddSignerEvent>() {
     private val qrDataList = HashSet<String>()
@@ -65,13 +73,21 @@ internal class AddSignerViewModel @Inject constructor(
     val signers: List<SingleSigner>
         get() = _signers
 
-    fun handleAddSigner(signerName: String, signerSpec: String) {
+    fun handleAddAirgapSigner(signerName: String, signerSpec: String, isMembershipFlow: Boolean) {
         validateInput(signerName, signerSpec) {
-            doAfterValidate(signerName, it)
+            if (isMembershipFlow) {
+                doAfterValidate("Hardware key", it, true)
+            } else {
+                doAfterValidate(signerName, it, false)
+            }
         }
     }
 
-    private fun doAfterValidate(signerName: String, signerInput: SignerInput) {
+    private fun doAfterValidate(
+        signerName: String,
+        signerInput: SignerInput,
+        isMembershipFlow: Boolean
+    ) {
         viewModelScope.launch {
             setEvent(LoadingEvent(true))
             val result = createSignerUseCase(
@@ -83,12 +99,31 @@ internal class AddSignerViewModel @Inject constructor(
                     type = SignerType.AIRGAP
                 )
             )
-            setEvent(LoadingEvent(false))
             if (result.isSuccess) {
+                val airgap = result.getOrThrow()
+                if (isMembershipFlow) {
+                    saveMembershipStepUseCase(
+                        MembershipStepInfo(
+                            step = membershipStepManager.currentStep
+                                ?: throw IllegalArgumentException("Current step empty"),
+                            masterSignerId = airgap.masterSignerId,
+                            plan = membershipStepManager.plan,
+                            isVerify = true,
+                            extraData = gson.toJson(
+                                SignerExtra(
+                                    derivationPath = airgap.derivationPath,
+                                    isAddNew = true,
+                                    signerType = airgap.type
+                                )
+                            )
+                        )
+                    )
+                }
                 setEvent(AddSignerSuccessEvent(result.getOrThrow()))
             } else {
                 setEvent(AddSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
             }
+            setEvent(LoadingEvent(false))
         }
     }
 

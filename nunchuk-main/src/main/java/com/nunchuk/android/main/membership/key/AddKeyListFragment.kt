@@ -84,13 +84,13 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 when (data.type) {
                     SignerType.NFC -> openCreateBackUpTapSigner(data.signers.first().id)
                     SignerType.AIRGAP,
-                    SignerType.COLDCARD_NFC -> viewModel.onSelectedHardwareSigner(data.signers.first())
+                    SignerType.COLDCARD_NFC -> viewModel.onSelectedExistingHardwareSigner(data.signers.first())
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
             } else {
                 when (data.type) {
                     SignerType.NFC -> openSetupTapSigner()
-                    SignerType.AIRGAP -> TODO("Hai")
+                    SignerType.AIRGAP -> openAddAirgap()
                     SignerType.COLDCARD_NFC -> showAddColdcardOptions()
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
@@ -101,11 +101,27 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
 
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
-            SignerType.NFC.ordinal -> handleShowKeysOrCreate(viewModel.getTapSigners(), SignerType.NFC, ::openSetupTapSigner)
-            SignerType.COLDCARD_NFC.ordinal -> handleShowKeysOrCreate(viewModel.getColdcard(), SignerType.COLDCARD_NFC, ::showAddColdcardOptions)
-            SignerType.AIRGAP.ordinal -> handleShowKeysOrCreate(viewModel.getAirgap(), SignerType.AIRGAP, ::openAddAirgap)
+            SignerType.NFC.ordinal -> handleShowKeysOrCreate(
+                viewModel.getTapSigners(),
+                SignerType.NFC,
+                ::openSetupTapSigner
+            )
+            SignerType.COLDCARD_NFC.ordinal -> handleShowKeysOrCreate(
+                viewModel.getColdcard(),
+                SignerType.COLDCARD_NFC,
+                ::showAddColdcardOptions
+            )
+            SignerType.AIRGAP.ordinal -> handleShowKeysOrCreate(
+                viewModel.getAirgap(),
+                SignerType.AIRGAP,
+                ::openAddAirgap
+            )
             SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(requireActivity(), true)
-            SheetOptionType.TYPE_ADD_COLDCARD_FILE -> navigator.openSetupMk4(requireActivity(), true, ColdcardAction.RECOVER)
+            SheetOptionType.TYPE_ADD_COLDCARD_FILE -> navigator.openSetupMk4(
+                requireActivity(),
+                true,
+                ColdcardAction.RECOVER
+            )
         }
     }
 
@@ -127,7 +143,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     private fun openAddAirgap() {
-
+        navigator.openAddAirSignerScreen(requireActivity(), true)
     }
 
     private fun observer() {
@@ -144,7 +160,11 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     private fun handleOnAddKey(data: AddKeyData) {
         when (data.type) {
             MembershipStep.ADD_TAP_SIGNER_1,
-            MembershipStep.ADD_TAP_SIGNER_2 -> handleShowKeysOrCreate(viewModel.getTapSigners(), SignerType.NFC, ::openSetupTapSigner)
+            MembershipStep.ADD_TAP_SIGNER_2 -> handleShowKeysOrCreate(
+                viewModel.getTapSigners(),
+                SignerType.NFC,
+                ::openSetupTapSigner
+            )
             MembershipStep.ADD_SEVER_KEY -> {
                 findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToConfigureServerKeyIntroFragment())
             }
@@ -178,7 +198,11 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         ).show(childFragmentManager, "BottomSheetOption")
     }
 
-    private fun handleShowKeysOrCreate(signer: List<SignerModel>, type: SignerType, onEmptySigner: () -> Unit) {
+    private fun handleShowKeysOrCreate(
+        signer: List<SignerModel>,
+        type: SignerType,
+        onEmptySigner: () -> Unit
+    ) {
         if (signer.isNotEmpty()) {
             findNavController().navigate(
                 AddKeyListFragmentDirections.actionAddKeyListFragmentToTapSignerListBottomSheetFragment(
