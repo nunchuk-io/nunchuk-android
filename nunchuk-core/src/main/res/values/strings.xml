@@ -179,7 +179,7 @@
     <string name="nc_add">Add</string>
     <string name="nc_configure">Configure</string>
     <string name="nc_add_a_tapsigner">Add TAPSIGNER</string>
-    <string name="nc_add_tap_signer_intro_desc">TAPSIGNER is a wireless NFC smart card that holds your Bitcoin private key and will sign transactions with a simple tap on your phone.\n\nOn the next screen, place and hold your card near the top of your phone, where the NFC chip resides.</string>
+    <string name="nc_add_tap_signer_intro_desc">TAPSIGNER is a wireless NFC smart card that will sign transactions with a simple tap on your phone.\n\nOn the next screen, place and hold your card as close as possible to the NFC chip on your phone. Make sure you hold it until the app shows a success notification.\n\nIf you are unsure where the chip is, please refer to your phone manual.</string>
     <string name="nc_coldcard_nfc_intro_desc">On the next screen, bring your phone as close as possible to the COLDCARD’s NFC chip, which is centered around number 8 on the keypad.</string>
     <string name="nc_universal_nfc_intro_desc">Interacting with NFC devices will require bringing them as close as possible to the phone’s NFC chip. Please take a moment to locate where the chip is. If you are unsure, refer to your device manual.</string>
     <string name="nc_back_up_tap_signer_desc">An encrypted backup for the TAPSIGNER will be stored on our server.</string>
