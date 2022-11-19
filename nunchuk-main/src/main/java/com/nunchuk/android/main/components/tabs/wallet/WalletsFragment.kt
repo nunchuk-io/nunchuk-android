@@ -227,10 +227,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun showWalletState(state: WalletsState) {
         val wallets = state.wallets
-        val signers =
-            walletsViewModel.mapSigners()
         showWallets(wallets, state.assistedWalletIds)
-        showSigners(signers)
+        showSigners(state.signers)
         showConnectionBlockchainStatus(state)
         showIntro(state)
     }

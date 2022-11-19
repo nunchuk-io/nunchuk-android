@@ -169,7 +169,7 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
         val requireSigns = state.totalRequireSigns
         val totalSigns = state.selectedSigners.size
         bindSigners(
-            viewModel.mapSigners(),
+            state.signers,
             state.selectedSigners,
             state.isShowPath
         )

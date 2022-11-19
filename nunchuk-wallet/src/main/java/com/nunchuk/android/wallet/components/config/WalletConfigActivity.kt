@@ -31,7 +31,6 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.model.KeyPolicy
-import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.R
@@ -151,8 +150,8 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         ActivityManager.popUntilRoot()
     }
 
-    private fun handleState(walletExtended: WalletExtended) {
-        val wallet = walletExtended.wallet
+    private fun handleState(state: WalletConfigState) {
+        val wallet = state.walletExtended.wallet
         binding.walletName.text = wallet.name
 
         binding.configuration.bindWalletConfiguration(wallet)
@@ -160,8 +159,8 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         binding.walletType.text =
             (if (wallet.escrow) WalletType.ESCROW else WalletType.MULTI_SIG).toReadableString(this)
         binding.addressType.text = wallet.addressType.toReadableString(this)
-        binding.shareIcon.isVisible = walletExtended.isShared
-        SignersViewBinder(binding.signersContainer, viewModel.mapSigners(wallet.signers)) {
+        binding.shareIcon.isVisible = state.walletExtended.isShared
+        SignersViewBinder(binding.signersContainer, state.signers) {
             showReEnterPassword(it.fingerPrint)
         }.bindItems()
     }

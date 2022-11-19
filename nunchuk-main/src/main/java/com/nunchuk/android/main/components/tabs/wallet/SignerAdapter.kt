@@ -31,7 +31,6 @@ import com.nunchuk.android.core.util.getString
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.core.util.toReadableSignerTypeDrawable
 import com.nunchuk.android.signer.databinding.ItemSignerBinding
-import com.nunchuk.android.type.SignerType
 
 class SignerAdapter(
     private val callback: (signer: SignerModel) -> Unit
@@ -69,21 +68,28 @@ class SingerViewHolder(
     fun bindItem(model: SignerModel) {
         binding.signerType.apply {
             if (model.isPrimaryKey) {
-                background = AppCompatResources.getDrawable(binding.root.context, R.drawable.nc_rounded_tag_primary_key_background)
+                background = AppCompatResources.getDrawable(
+                    binding.root.context,
+                    R.drawable.nc_rounded_tag_primary_key_background
+                )
                 text = getString(R.string.nc_signer_type_primary_key)
             } else {
-                background = AppCompatResources.getDrawable(binding.root.context, R.drawable.nc_rounded_tag_whisper_background)
+                background = AppCompatResources.getDrawable(
+                    binding.root.context,
+                    R.drawable.nc_rounded_tag_whisper_background
+                )
                 text = getString(R.string.nc_signer_type_software)
             }
         }
         binding.signerName.text = model.name
-        if (model.type == SignerType.NFC) {
-            binding.xpf.text = "CardID: ...${model.cardIdShorten()}"
-        } else {
-            binding.xpf.text = "XFP: ${model.fingerPrint}"
-        }
+        binding.xpf.text = model.getXfpOrCardIdLabel()
         binding.signerType.text = model.toReadableSignerType(binding.root.context)
-        binding.icPin.setImageDrawable(model.toReadableSignerTypeDrawable(binding.root.context, model.isPrimaryKey))
+        binding.icPin.setImageDrawable(
+            model.toReadableSignerTypeDrawable(
+                binding.root.context,
+                model.isPrimaryKey
+            )
+        )
         binding.root.setOnClickListener { callback(model) }
     }
 }

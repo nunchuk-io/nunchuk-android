@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
-import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
@@ -36,7 +35,6 @@ class AddKeyListViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val nfcFileManager: NfcFileManager,
     private val masterSignerMapper: MasterSignerMapper,
-    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
     private val getRemoteSignersUseCase: GetRemoteSignersUseCase,
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
     private val gson: Gson,
@@ -97,13 +95,10 @@ class AddKeyListViewModel @Inject constructor(
                     val info = getStepInfo(addKeyData.type)
                     if (addKeyData.signer == null && info.masterSignerId.isNotEmpty()) {
                         val result = getMasterSignerUseCase(info.masterSignerId)
-                        val resultTapSignerStatus =
-                            getTapSignerStatusByIdUseCase(info.masterSignerId)
                         if (result.isSuccess) {
                             return@map addKeyData.copy(
                                 signer = masterSignerMapper(
                                     result.getOrThrow(),
-                                    cardId = resultTapSignerStatus.getOrNull()?.ident.orEmpty()
                                 ),
                                 isVerify = info.isVerify
                             )

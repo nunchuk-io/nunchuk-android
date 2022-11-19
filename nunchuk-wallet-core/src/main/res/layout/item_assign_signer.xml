@@ -80,7 +80,7 @@
         app:layout_goneMarginStart="0dp" />
 
     <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/xpf"
+        android:id="@+id/xfp"
         style="@style/NCText.Body.Small"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -100,7 +100,7 @@
         android:drawableEnd="@drawable/ic_edit_small"
         android:drawablePadding="@dimen/nc_padding_4"
         app:layout_constraintStart_toEndOf="@+id/barrier"
-        app:layout_constraintTop_toBottomOf="@+id/xpf"
+        app:layout_constraintTop_toBottomOf="@+id/xfp"
         tools:text="BIP32 path: m/48h/0h/0h" />
 
     <CheckBox

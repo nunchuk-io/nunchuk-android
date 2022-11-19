@@ -145,11 +145,9 @@ class AssignSignerSharedWalletActivity : BaseNfcActivity<ActivityAssignSignerBin
     }
 
     private fun handleState(state: AssignSignerState) {
-        val signers = viewModel.mapSigners()
+        bindSigners(state.signers, state.selectedSigner, state.isShowPath)
 
-        bindSigners(signers, state.selectedSigner, state.isShowPath)
-
-        emptyStateView?.isVisible = signers.isEmpty()
+        emptyStateView?.isVisible = state.signers.isEmpty()
 
         val slot = args.totalSigns - state.selectedSigner.size
         binding.slot.text = getString(R.string.nc_wallet_slots_left_in_the_wallet, slot)

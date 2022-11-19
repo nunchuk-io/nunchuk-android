@@ -27,7 +27,6 @@ import com.nunchuk.android.core.util.hadBroadcast
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.transaction.databinding.ItemTransactionSignerBinding
-import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.widget.util.AbsViewBinder
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
@@ -40,22 +39,19 @@ internal class TransactionSignersViewBinder(
     val listener: (SignerModel) -> Unit = {}
 ) : AbsViewBinder<SignerModel, ItemTransactionSignerBinding>(container, signers) {
 
-    override fun initializeBinding() = ItemTransactionSignerBinding.inflate(inflater, container, false)
+    override fun initializeBinding() =
+        ItemTransactionSignerBinding.inflate(inflater, container, false)
 
     override fun bindItem(position: Int, model: SignerModel) {
         val binding = ItemTransactionSignerBinding.bind(container[position])
         binding.avatar.text = model.name.shorten()
         binding.signerName.text = model.name
-        if (model.type == SignerType.NFC) {
-            binding.xpf.text = "CardID: ...${model.cardIdShorten()}"
-        } else {
-            binding.xpf.text = "XFP: ${model.fingerPrint}"
-        }
+        binding.xpf.text = model.getXfpOrCardIdLabel()
         binding.signerType.text = model.toReadableSignerType(context)
         binding.btnSign.setOnDebounceClickListener { listener(model) }
         val isSigned = model.isSigned()
 
-        if (txStatus.hadBroadcast()){
+        if (txStatus.hadBroadcast()) {
             binding.btnSign.isVisible = false
             binding.signed.isVisible = false
             binding.signNotAvailable.isVisible = false

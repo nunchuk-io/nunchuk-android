@@ -19,14 +19,16 @@
 
 package com.nunchuk.android.main.components.tabs.wallet
 
-import com.nunchuk.android.model.*
+import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.model.SatsCardStatus
+import com.nunchuk.android.model.TapSignerStatus
+import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 
 internal data class WalletsState(
     val wallets: List<WalletExtended> = emptyList(),
-    val signers: List<SingleSigner> = emptyList(),
-    val masterSigners: List<MasterSigner> = emptyList(),
+    val signers: List<SignerModel> = emptyList(),
     val connectionStatus: ConnectionStatus? = null,
     val chain: Chain = Chain.MAIN,
     val isPremiumUser: Boolean? = null,

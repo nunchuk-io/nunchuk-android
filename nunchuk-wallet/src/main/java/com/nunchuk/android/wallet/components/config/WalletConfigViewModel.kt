@@ -23,6 +23,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.auth.domain.SignInUseCase
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -31,7 +32,7 @@ import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.WalletExtended
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.DeleteWalletUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.UpdateWalletUseCase
@@ -41,6 +42,7 @@ import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateName
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
@@ -54,10 +56,10 @@ internal class WalletConfigViewModel @Inject constructor(
     private val leaveRoomUseCase: LeaveRoomUseCase,
     private val accountManager: AccountManager,
     private val signInUseCase: SignInUseCase,
-    private val assistedWalletManager: AssistedWalletManager
-) : NunchukViewModel<WalletExtended, WalletConfigEvent>() {
+    private val assistedWalletManager: AssistedWalletManager,
+    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
+) : NunchukViewModel<WalletConfigState, WalletConfigEvent>() {
 
-    override val initialState = WalletExtended()
     lateinit var walletId: String
 
     fun init(walletId: String) {
@@ -68,6 +70,7 @@ internal class WalletConfigViewModel @Inject constructor(
     private fun getWalletDetails() {
         viewModelScope.launch {
             getWalletUseCase.execute(walletId)
+                .map { WalletConfigState(it, mapSigners(it.wallet.signers)) }
                 .flowOn(Dispatchers.IO)
                 .onException { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
@@ -94,12 +97,16 @@ internal class WalletConfigViewModel @Inject constructor(
 
     fun handleEditCompleteEvent(walletName: String) {
         viewModelScope.launch {
-            updateWalletUseCase.execute(getState().wallet.copy(name = walletName), assistedWalletManager.isAssistedWallet(walletId))
+            val newWallet = getState().walletExtended.wallet.copy(name = walletName)
+            updateWalletUseCase.execute(
+                newWallet,
+                assistedWalletManager.isAssistedWallet(walletId)
+            )
                 .flowOn(Dispatchers.IO)
                 .onException { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
                 .collect {
-                    updateState { copy(wallet = wallet.copy(name = walletName)) }
+                    updateState { copy(walletExtended = walletExtended.copy(wallet = newWallet)) }
                     event(UpdateNameSuccessEvent)
                 }
         }
@@ -110,7 +117,7 @@ internal class WalletConfigViewModel @Inject constructor(
     }
 
     private suspend fun leaveRoom(onDone: suspend () -> Unit) {
-        val roomId = getState().roomWallet?.roomId
+        val roomId = getState().walletExtended.roomWallet?.roomId
         if (roomId == null) {
             onDone()
             return
@@ -134,12 +141,23 @@ internal class WalletConfigViewModel @Inject constructor(
         }
     }
 
-    fun isSharedWallet() = getState().isShared
+    fun isSharedWallet() = getState().walletExtended.isShared
 
-    fun mapSigners(singleSigners: List<SingleSigner>): List<SignerModel> {
+    private suspend fun mapSigners(singleSigners: List<SingleSigner>): List<SignerModel> {
         return singleSigners.map { it.toModel(isPrimaryKey = isPrimaryKey(it.masterSignerId)) }
+            .map { signer ->
+                if (signer.type == SignerType.NFC) signer.copy(
+                    cardId = getTapSignerStatusByIdUseCase(
+                        signer.id
+                    ).getOrNull()?.ident.orEmpty()
+                )
+                else signer
+            }
     }
 
     private fun isPrimaryKey(id: String) =
         accountManager.loginType() == SignInMode.PRIMARY_KEY.value && accountManager.getPrimaryKeyInfo()?.xfp == id
+
+    override val initialState: WalletConfigState
+        get() = WalletConfigState()
 }

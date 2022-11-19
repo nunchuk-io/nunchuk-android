@@ -4,7 +4,10 @@ import android.nfc.tech.IsoDep
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.domain.*
+import com.nunchuk.android.core.domain.BaseNfcUseCase
+import com.nunchuk.android.core.domain.GetAppSettingUseCase
+import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
+import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
 import com.nunchuk.android.core.domain.membership.GetServerWalletUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.mapper.MasterSignerMapper
@@ -14,7 +17,6 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.*
 import com.nunchuk.android.share.membership.MembershipStepManager
-import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
@@ -36,13 +38,10 @@ internal class WalletsViewModel @Inject constructor(
     private val masterSignerMapper: MasterSignerMapper,
     private val accountManager: AccountManager,
     private val getUserSubscriptionUseCase: GetUserSubscriptionUseCase,
-    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
     private val getServerWalletUseCase: GetServerWalletUseCase,
     private val assistedWalletManager: AssistedWalletManager,
     isShowNfcUniversalUseCase: IsShowNfcUniversalUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
-
-    private val tapSignerCardIds = hashMapOf<String, String>()
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
 
     val isShownNfcUniversal = isShowNfcUniversalUseCase(Unit)
@@ -83,7 +82,9 @@ internal class WalletsViewModel @Inject constructor(
                 updateState {
                     copy(
                         isPremiumUser = isPremiumUser,
-                        hasCreatedWallet = getServerWalletResult.getOrThrow().planWalletCreated.contains(subscription.slug),
+                        hasCreatedWallet = getServerWalletResult.getOrThrow().planWalletCreated.contains(
+                            subscription.slug
+                        ),
                     )
                 }
             } else {
@@ -121,17 +122,18 @@ internal class WalletsViewModel @Inject constructor(
         viewModelScope.launch {
             getCompoundSignersUseCase.execute()
                 .zip(getWalletsUseCase.execute()) { p, wallets ->
-                    p.first.asSequence().filter { it.type == SignerType.NFC }.forEach {
-                        if (tapSignerCardIds.contains(it.id).not()) {
-                            tapSignerCardIds[it.id] =
-                                getTapSignerStatusByIdUseCase(it.id).getOrNull()?.ident.orEmpty()
-                        }
-                    }
                     Triple(p.first, p.second, wallets)
+                }
+                .map {
+                    mapSigners(it.second, it.first).sortedByDescending { signer ->
+                        isPrimaryKey(
+                            signer.id
+                        )
+                    } to it.third
                 }
                 .flowOn(Dispatchers.IO)
                 .onException {
-                    updateState { copy(signers = emptyList(), masterSigners = emptyList()) }
+                    updateState { copy(signers = emptyList()) }
                 }
                 .flowOn(Dispatchers.Main)
                 .onCompletion {
@@ -139,12 +141,9 @@ internal class WalletsViewModel @Inject constructor(
                     isRetrievingData.set(false)
                 }
                 .collect {
-                    val (masterSigners, signers, wallets) = it
-                    val newMasterSigner =
-                        masterSigners.sortedByDescending { signer -> isPrimaryKey(signer.id) }
+                    val (signers, wallets) = it
                     updateState {
                         copy(
-                            masterSigners = newMasterSigner,
                             signers = signers,
                             wallets = wallets
                         )
@@ -177,7 +176,7 @@ internal class WalletsViewModel @Inject constructor(
             }
     }
 
-    fun hasSigner() = getState().signers.isNotEmpty() || getState().masterSigners.isNotEmpty()
+    fun hasSigner() = getState().signers.isNotEmpty()
 
     fun hasWallet() = getState().wallets.isNotEmpty()
 
@@ -208,14 +207,13 @@ internal class WalletsViewModel @Inject constructor(
         }
     }
 
-    fun mapSigners(): List<SignerModel> {
-        val state = getState()
-        return state.masterSigners.map {
-            masterSignerMapper(
-                it,
-                cardId = tapSignerCardIds[it.id].orEmpty()
-            )
-        } + state.signers.map(SingleSigner::toModel)
+    private suspend fun mapSigners(
+        singleSigners: List<SingleSigner>,
+        masterSigners: List<MasterSigner>
+    ): List<SignerModel> {
+        return masterSigners.map {
+            masterSignerMapper(it)
+        } + singleSigners.map(SingleSigner::toModel)
     }
 
     fun getGroupStage(): MembershipStage = when {

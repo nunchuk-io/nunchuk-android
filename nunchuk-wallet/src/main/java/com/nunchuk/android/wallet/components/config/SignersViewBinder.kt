@@ -25,7 +25,6 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableDrawable
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.wallet.core.databinding.ItemAssignSignerBinding
 import com.nunchuk.android.wallet.databinding.ItemWalletConfigSignerBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
@@ -51,8 +50,7 @@ internal class SignersViewBinder(
         binding.ivSignerType.isVisible = true
         binding.ivSignerType.setImageDrawable(model.type.toReadableDrawable(context))
         binding.signerName.text = model.name
-        val xfpValue = "XFP: ${model.fingerPrint}"
-        binding.xpf.text = xfpValue
+        binding.xpf.text = model.getXfpOrCardIdLabel()
         binding.signerPrimaryKeyType.isVisible = model.isPrimaryKey
         binding.tvBip32Path.isVisible = model.derivationPath.isNotEmpty() && isServerKey.not()
         binding.tvBip32Path.text = "BIP32 path: ${model.derivationPath}"
