@@ -27,7 +27,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class SheetOption(
-    val type: Int,
+    val type: Int = 0,
     @DrawableRes val resId: Int = 0,
     @StringRes val stringId: Int = 0,
     val isDeleted: Boolean = false,

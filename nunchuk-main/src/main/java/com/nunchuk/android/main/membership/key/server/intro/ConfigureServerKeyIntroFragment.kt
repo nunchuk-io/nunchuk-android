@@ -25,6 +25,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.R
@@ -48,7 +49,14 @@ class ConfigureServerKeyIntroFragment : MembershipFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) {
-            findNavController().navigate(ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigureServerKeySettingFragment())
+            when (viewModel.plan) {
+                MembershipPlan.IRON_HAND -> findNavController().navigate(
+                    ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigureServerKeySettingFragment()
+                )
+                MembershipPlan.HONEY_BADGER -> findNavController().navigate(
+                    ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigSpendingLimitFragment()
+                )
+            }
         }
     }
 }

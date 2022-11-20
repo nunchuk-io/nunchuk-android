@@ -28,4 +28,5 @@
     <string name="nc_tapsigner">TAPSIGNER</string>
     <string name="nc_coldcard">COLDCARD</string>
     <string name="nc_add_coldcard_via_nfc">Add COLDCARD via NFC</string>
+    <string name="nc_cosigning_spending_limit">Co-signing spending limit</string>
 </resources>

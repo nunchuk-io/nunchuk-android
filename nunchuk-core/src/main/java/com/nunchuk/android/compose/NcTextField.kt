@@ -41,11 +41,10 @@ fun NcTextField(
     val interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
     Column(modifier = modifier) {
         if (title.isNotEmpty()) {
-            Text(text = title, style = NunchukTheme.typography.titleSmall)
+            Text(modifier = Modifier.padding(bottom = 4.dp), text = title, style = NunchukTheme.typography.titleSmall)
         }
         BasicTextField(
             modifier = Modifier
-                .padding(top = 4.dp)
                 .background(
                     color = if (hasError) colorResource(id = R.color.nc_red_tint_color) else MaterialTheme.colors.surface,
                     shape = RoundedCornerShape(8.dp)

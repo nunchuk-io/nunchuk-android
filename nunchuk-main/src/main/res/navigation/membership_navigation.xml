@@ -92,6 +92,14 @@
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
 
+        <action
+            android:id="@+id/action_configureServerKeyIntroFragment_to_configSpendingLimitFragment"
+            app:destination="@id/configSpendingLimitFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
     </fragment>
 
     <fragment
@@ -109,6 +117,12 @@
             android:name="xfp"
             android:defaultValue="@null"
             app:argType="string"
+            app:nullable="true" />
+
+        <argument
+            android:name="spending_limit"
+            app:argType="com.nunchuk.android.model.SpendingPolicy"
+            android:defaultValue="@null"
             app:nullable="true" />
 
     </fragment>
@@ -161,5 +175,17 @@
         <action
             android:id="@+id/action_tapSignerInheritanceIntroFragment_to_tapSignerListBottomSheetFragment"
             app:destination="@id/tapSignerListBottomSheetFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/configSpendingLimitFragment"
+        android:name="com.nunchuk.android.main.membership.key.server.limit.ConfigSpendingLimitFragment"
+        android:label="ConfigSpendingLimitFragment">
+        <action
+            android:id="@+id/action_configSpendingLimitFragment_to_configureServerKeySettingFragment"
+            app:destination="@id/configureServerKeySettingFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 </navigation>
