@@ -56,6 +56,7 @@ import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.Collections.emptyList
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -378,19 +379,21 @@ fun AddKeyCard(
                         .padding(start = 8.dp)
                 ) {
                     Text(
-                        text = item.type.getLabel(LocalContext.current),
+                        text = item.signer.name,
                         style = NunchukTheme.typography.body
                     )
-                    NcTag(
-                        modifier = Modifier.padding(top = 4.dp),
-                        label = stringResource(R.string.nc_verified_backup),
-                        backgroundColor = colorResource(
-                            id = R.color.nc_white_color
-                        ),
-                    )
+                    if (item.signer.type == SignerType.NFC) {
+                        NcTag(
+                            modifier = Modifier.padding(top = 4.dp),
+                            label = stringResource(R.string.nc_verified_backup),
+                            backgroundColor = colorResource(
+                                id = R.color.nc_white_color
+                            ),
+                        )
+                    }
                     Text(
                         modifier = Modifier.padding(top = 4.dp),
-                        text = "CardID: ...${item.signer.cardIdShorten()}",
+                        text = item.signer.getXfpOrCardIdLabel(),
                         style = NunchukTheme.typography.bodySmall
                     )
                 }

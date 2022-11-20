@@ -18,6 +18,7 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
+import com.nunchuk.android.usecase.GetRemoteSignerUseCase
 import com.nunchuk.android.usecase.GetRemoteSignersUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
@@ -36,6 +37,7 @@ class AddKeyListViewModel @Inject constructor(
     private val nfcFileManager: NfcFileManager,
     private val masterSignerMapper: MasterSignerMapper,
     private val getRemoteSignersUseCase: GetRemoteSignersUseCase,
+    private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
     private val gson: Gson,
 ) : ViewModel() {
@@ -94,14 +96,30 @@ class AddKeyListViewModel @Inject constructor(
                 val news = _keys.value.map { addKeyData ->
                     val info = getStepInfo(addKeyData.type)
                     if (addKeyData.signer == null && info.masterSignerId.isNotEmpty()) {
-                        val result = getMasterSignerUseCase(info.masterSignerId)
-                        if (result.isSuccess) {
-                            return@map addKeyData.copy(
-                                signer = masterSignerMapper(
-                                    result.getOrThrow(),
-                                ),
-                                isVerify = info.isVerify
+                        val extra = runCatching {
+                            gson.fromJson(
+                                info.extraData,
+                                SignerExtra::class.java
                             )
+                        }.getOrNull()
+                        if (extra?.signerType == SignerType.COLDCARD_NFC || extra?.signerType == SignerType.AIRGAP) {
+                            val result = getRemoteSignerUseCase(GetRemoteSignerUseCase.Data(info.masterSignerId, extra.derivationPath))
+                            if (result.isSuccess) {
+                                return@map addKeyData.copy(
+                                    signer = result.getOrThrow().toModel(),
+                                    isVerify = info.isVerify
+                                )
+                            }
+                        } else {
+                            val result = getMasterSignerUseCase(info.masterSignerId)
+                            if (result.isSuccess) {
+                                return@map addKeyData.copy(
+                                    signer = masterSignerMapper(
+                                        result.getOrThrow(),
+                                    ),
+                                    isVerify = info.isVerify
+                                )
+                            }
                         }
                     }
                     addKeyData.copy(isVerify = info.isVerify)
@@ -118,10 +136,16 @@ class AddKeyListViewModel @Inject constructor(
                 MembershipStepInfo(
                     step = membershipStepManager.currentStep
                         ?: throw IllegalArgumentException("Current step empty"),
-                    masterSignerId = signer.id,
+                    masterSignerId = signer.fingerPrint,
                     plan = membershipStepManager.plan,
                     isVerify = true,
-                    extraData = gson.toJson(SignerExtra(derivationPath = signer.derivationPath, isAddNew = false, signerType = signer.type))
+                    extraData = gson.toJson(
+                        SignerExtra(
+                            derivationPath = signer.derivationPath,
+                            isAddNew = false,
+                            signerType = signer.type
+                        )
+                    )
                 )
             )
         }

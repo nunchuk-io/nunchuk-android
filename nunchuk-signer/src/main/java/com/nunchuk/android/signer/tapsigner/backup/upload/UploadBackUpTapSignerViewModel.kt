@@ -3,6 +3,7 @@ package com.nunchuk.android.signer.tapsigner.backup.upload
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.KeyUpload
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -53,21 +54,27 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
                 )
             ).collect {
                 if (it.isSuccess) {
-                    val content = it.getOrThrow()
-                    if (content is KeyUpload.Progress) {
-                        _state.update { state ->
-                            state.copy(
-                                percent = content.value,
-                                isError = false
-                            )
+                    when (val content = it.getOrThrow()) {
+                        is KeyUpload.Progress -> {
+                            _state.update { state ->
+                                state.copy(
+                                    percent = content.value,
+                                    isError = false
+                                )
+                            }
                         }
-                    } else if (content is KeyUpload.Data) {
-                        _state.update { state ->
-                            state.copy(serverFilePath = content.filePath)
+                        is KeyUpload.Data -> {
+                            _state.update { state ->
+                                state.copy(serverFilePath = content.filePath)
+                            }
+                        }
+                        is KeyUpload.KeyVerified -> {
+                            _event.emit(UploadBackUpTapSignerEvent.KeyVerified(content.message))
                         }
                     }
                 } else {
                     _state.update { state -> state.copy(isError = true) }
+                    _event.emit(UploadBackUpTapSignerEvent.ShowError(it.exceptionOrNull()?.message.orUnknownError()))
                 }
             }
         }
@@ -95,4 +102,6 @@ data class UploadBackUpTapSignerState(
 
 sealed class UploadBackUpTapSignerEvent {
     object OnContinueClicked : UploadBackUpTapSignerEvent()
+    data class KeyVerified(val message: String) : UploadBackUpTapSignerEvent()
+    data class ShowError(val message: String) : UploadBackUpTapSignerEvent()
 }

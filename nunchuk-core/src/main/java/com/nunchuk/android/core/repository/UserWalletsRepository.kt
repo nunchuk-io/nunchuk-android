@@ -54,8 +54,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     plan = plan
                 )
             )
+        } else {
+            throw result.error
         }
-        throw result.error
     }
 
     override suspend fun createServerKeys(

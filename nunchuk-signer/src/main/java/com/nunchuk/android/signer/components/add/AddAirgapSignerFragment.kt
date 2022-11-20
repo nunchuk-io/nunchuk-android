@@ -130,15 +130,17 @@ class AddAirgapSignerFragment : BaseFragment<ActivityAddSignerBinding>(),
     private fun openSignerInfo(singleSigner: SingleSigner) {
         hideLoading()
         requireActivity().finish()
-        navigator.openSignerInfoScreen(
-            requireContext(),
-            id = singleSigner.masterSignerId,
-            masterFingerprint = singleSigner.masterFingerprint,
-            name = singleSigner.name,
-            type = singleSigner.type,
-            derivationPath = singleSigner.derivationPath,
-            justAdded = true
-        )
+        if ((requireActivity() as AddAirgapSignerActivity).isMembershipFlow.not()) {
+            navigator.openSignerInfoScreen(
+                requireContext(),
+                id = singleSigner.masterSignerId,
+                masterFingerprint = singleSigner.masterFingerprint,
+                name = singleSigner.name,
+                type = singleSigner.type,
+                derivationPath = singleSigner.derivationPath,
+                justAdded = true
+            )
+        }
     }
 
     private fun setupViews() {

@@ -74,12 +74,13 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         get() = _signers
 
     fun handleAddAirgapSigner(signerName: String, signerSpec: String, isMembershipFlow: Boolean) {
-        validateInput(signerName, signerSpec) {
-            if (isMembershipFlow) {
-                doAfterValidate("Hardware key", it, true)
-            } else {
-                doAfterValidate(signerName, it, false)
-            }
+        val newSignerName = if (isMembershipFlow) "Hardware key${
+            membershipStepManager.getNextKeySuffixByType(
+                SignerType.AIRGAP
+            )
+        }" else signerName
+        validateInput(newSignerName, signerSpec) {
+            doAfterValidate(newSignerName, it, isMembershipFlow)
         }
     }
 
@@ -106,7 +107,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                         MembershipStepInfo(
                             step = membershipStepManager.currentStep
                                 ?: throw IllegalArgumentException("Current step empty"),
-                            masterSignerId = airgap.masterSignerId,
+                            masterSignerId = airgap.masterFingerprint,
                             plan = membershipStepManager.plan,
                             isVerify = true,
                             extraData = gson.toJson(

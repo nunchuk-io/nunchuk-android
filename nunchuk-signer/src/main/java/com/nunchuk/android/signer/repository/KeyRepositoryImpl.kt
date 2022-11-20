@@ -1,16 +1,15 @@
 package com.nunchuk.android.signer.repository
 
+import com.google.gson.Gson
 import com.nunchuk.android.api.key.KeyApi
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.utils.NfcFileManager
-import com.nunchuk.android.model.KeyUpload
-import com.nunchuk.android.model.KeyVerifiedRequest
-import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.*
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.entity.MembershipStepEntity
 import com.nunchuk.android.persistence.updateOrInsert
 import com.nunchuk.android.repository.KeyRepository
+import com.nunchuk.android.type.SignerType
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -31,6 +30,7 @@ class KeyRepositoryImpl @Inject constructor(
     private val accountManager: AccountManager,
     private val membershipDao: MembershipStepDao,
     private val nfcFileManager: NfcFileManager,
+    private val gson: Gson,
 ) : KeyRepository {
     override fun uploadBackupKey(
         step: MembershipStep,
@@ -62,24 +62,35 @@ class KeyRepositoryImpl @Inject constructor(
                 keyXfp = keyXfp,
                 image = body
             )
-            if (result.isSuccess) {
+            if (result.isSuccess || result.error.code == 400) { // TODO Hai
+                val response = if (result.isSuccess) result.data else null
                 val email = accountManager.getAccount().email
                 val info = MembershipStepEntity(
                     email = email,
                     step = step,
                     masterSignerId = xfp,
-                    keyIdInServer = result.data.keyId,
-                    checkSum = result.data.keyCheckSum,
-                    extraJson = isAddNewKey.toString(),
+                    keyIdInServer = response?.keyId.orEmpty(),
+                    checkSum = response?.keyCheckSum.orEmpty(),
+                    extraJson = gson.toJson(
+                        SignerExtra(
+                            derivationPath = "",
+                            isAddNew = isAddNewKey,
+                            signerType = SignerType.NFC
+                        )
+                    ),
                     plan = plan
                 )
                 membershipDao.updateOrInsert(info)
-                val serverKeyFilePath = nfcFileManager.storeServerBackupKeyToFile(
-                    result.data.keyId,
-                    result.data.keyBackUpBase64
-                )
                 send(KeyUpload.Progress(100))
-                send(KeyUpload.Data(serverKeyFilePath))
+                if (result.isSuccess) {
+                    val serverKeyFilePath = nfcFileManager.storeServerBackupKeyToFile(
+                        result.data.keyId,
+                        result.data.keyBackUpBase64
+                    )
+                    send(KeyUpload.Data(serverKeyFilePath))
+                } else {
+                    send(KeyUpload.KeyVerified(result.error.message))
+                }
                 file.delete()
             } else {
                 throw result.error

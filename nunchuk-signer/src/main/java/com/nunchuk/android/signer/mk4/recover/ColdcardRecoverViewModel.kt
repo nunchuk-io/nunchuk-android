@@ -66,7 +66,9 @@ class ColdcardRecoverViewModel @Inject constructor(
                 val signer = parseResult.getOrThrow().first()
                 val createSignerResult = createSignerUseCase(
                     CreateSignerUseCase.Params(
-                        name = COLDCARD_DEFAULT_KEY_NAME,
+                        name = "$COLDCARD_DEFAULT_KEY_NAME${
+                            membershipStepManager.getNextKeySuffixByType(SignerType.COLDCARD_NFC)
+                        }",
                         xpub = signer.xpub,
                         derivationPath = signer.derivationPath,
                         masterFingerprint = signer.masterFingerprint,
@@ -82,7 +84,7 @@ class ColdcardRecoverViewModel @Inject constructor(
                     MembershipStepInfo(
                         step = membershipStepManager.currentStep
                             ?: throw IllegalArgumentException("Current step empty"),
-                        masterSignerId = coldcardSigner.masterSignerId,
+                        masterSignerId = coldcardSigner.masterFingerprint,
                         plan = membershipStepManager.plan,
                         isVerify = true,
                         extraData = gson.toJson(

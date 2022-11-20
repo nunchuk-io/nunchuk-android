@@ -1,7 +1,11 @@
 package com.nunchuk.android.share.membership
 
+import com.google.gson.Gson
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.MembershipStepInfo
+import com.nunchuk.android.model.SignerExtra
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -17,6 +21,7 @@ import javax.inject.Singleton
 class MembershipStepManager @Inject constructor(
     private val getMembershipStepUseCase: GetMembershipStepUseCase,
     private val applicationScope: CoroutineScope,
+    private val gson: Gson,
 ) {
     private var job: Job? = null
 
@@ -32,6 +37,8 @@ class MembershipStepManager @Inject constructor(
 
     private val _remainingTime = MutableStateFlow(0)
     val remainingTime = _remainingTime.asStateFlow()
+
+    private val stepInfo = MutableStateFlow<List<MembershipStepInfo>>(emptyList())
 
     init {
         initStep()
@@ -60,6 +67,7 @@ class MembershipStepManager @Inject constructor(
             getMembershipStepUseCase(plan)
                 .map { it.getOrElse { emptyList() } }
                 .collect { steps ->
+                    stepInfo.value = steps
                     if (steps.isEmpty()) {
                         initStep()
                     } else {
@@ -137,7 +145,7 @@ class MembershipStepManager @Inject constructor(
     }
 
     fun isConfigRecoverKeyDone(): Boolean {
-        return isConfigKeyDone() && _stepDone.value.contains(MembershipStep.ADD_SEVER_KEY)
+        return isConfigKeyDone() && _stepDone.value.contains(MembershipStep.SETUP_KEY_RECOVERY)
     }
 
     fun isCreatedAssistedWalletDone() =
@@ -145,6 +153,18 @@ class MembershipStepManager @Inject constructor(
 
     fun getRemainTimeBySteps(querySteps: List<MembershipStep>) =
         calculateRemainTime(steps.filter { it.key in querySteps }.values)
+
+    fun getNextKeySuffixByType(type: SignerType): String {
+        val index = stepInfo.value.asSequence().mapNotNull {
+            runCatching {
+                gson.fromJson(
+                    it.extraData,
+                    SignerExtra::class.java
+                )
+            }.getOrNull()
+        }.count { it.signerType == type }.inc()
+        return if (index == 1) "" else " #${index}"
+    }
 
     private fun updateRemainTime() {
         _remainingTime.update {

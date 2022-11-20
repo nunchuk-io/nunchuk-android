@@ -196,7 +196,7 @@ fun AddKeyStepContent(
             }
             StepWithEstTime(
                 2,
-                stringResource(R.string.nc_set_up_key_recover),
+                stringResource(R.string.nc_setup_key_recovery),
                 groupRemainTime[1],
                 isSetupRecoverKeyDone,
                 isConfigKeyDone && isSetupRecoverKeyDone.not()
@@ -254,8 +254,9 @@ fun StepWithEstTime(
         if (isCompleted) {
             Text(
                 modifier = Modifier
-                    .background(
-                        color = colorResource(id = R.color.nc_green_color),
+                    .border(
+                        width = 1.dp,
+                        color = colorResource(id = R.color.nc_whisper_color),
                         shape = RoundedCornerShape(20.dp)
                     )
                     .padding(horizontal = 10.dp, vertical = 4.dp),

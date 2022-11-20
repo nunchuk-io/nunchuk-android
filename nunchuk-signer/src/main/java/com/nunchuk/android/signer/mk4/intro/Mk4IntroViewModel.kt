@@ -14,6 +14,7 @@ import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -51,16 +52,31 @@ class Mk4IntroViewModel @Inject constructor(
                     val signer = sortedSigner.find { it.derivationPath == SIGNER_PATH } ?: run {
                         sortedSigner.find { it.derivationPath.contains(SIGNER_PATH_PREFIX) }
                     } ?: throw NullPointerException("Can not find signer")
-                    val createSignerResult = createMk4SignerUseCase(signer.copy(name = COLDCARD_DEFAULT_KEY_NAME))
+                    val createSignerResult = createMk4SignerUseCase(
+                        signer.copy(
+                            name = "$COLDCARD_DEFAULT_KEY_NAME${
+                                membershipStepManager.getNextKeySuffixByType(SignerType.COLDCARD_NFC)
+                            }"
+                        )
+                    )
                     if (createSignerResult.isSuccess) {
                         val coldcardSigner = createSignerResult.getOrThrow()
-                        saveMembershipStepUseCase(MembershipStepInfo(
-                            step = membershipStepManager.currentStep ?: throw IllegalArgumentException("Current step empty"),
-                            masterSignerId = coldcardSigner.masterSignerId,
-                            plan = membershipStepManager.plan,
-                            isVerify = true,
-                            extraData = gson.toJson(SignerExtra(derivationPath = coldcardSigner.derivationPath, isAddNew = true, signerType = coldcardSigner.type))
-                        ))
+                        saveMembershipStepUseCase(
+                            MembershipStepInfo(
+                                step = membershipStepManager.currentStep
+                                    ?: throw IllegalArgumentException("Current step empty"),
+                                masterSignerId = coldcardSigner.masterFingerprint,
+                                plan = membershipStepManager.plan,
+                                isVerify = true,
+                                extraData = gson.toJson(
+                                    SignerExtra(
+                                        derivationPath = coldcardSigner.derivationPath,
+                                        isAddNew = true,
+                                        signerType = coldcardSigner.type
+                                    )
+                                )
+                            )
+                        )
                         _event.emit(Mk4IntroViewEvent.OnCreateSignerSuccess)
                     } else {
                         _event.emit(Mk4IntroViewEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))

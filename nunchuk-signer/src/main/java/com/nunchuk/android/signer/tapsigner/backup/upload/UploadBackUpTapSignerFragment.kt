@@ -32,6 +32,8 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showWarning
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.R
@@ -72,6 +74,11 @@ class UploadBackUpTapSignerFragment : MembershipFragment() {
                             args.masterSignerId
                         )
                     )
+                }
+                is UploadBackUpTapSignerEvent.ShowError -> showError(it.message)
+                is UploadBackUpTapSignerEvent.KeyVerified -> {
+                    showWarning(it.message)
+                    requireActivity().finish()
                 }
             }
         }
