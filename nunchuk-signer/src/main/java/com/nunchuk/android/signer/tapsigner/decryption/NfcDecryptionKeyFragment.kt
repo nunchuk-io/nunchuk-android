@@ -7,12 +7,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.nfc.NfcViewModel
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.signer.R
@@ -39,16 +37,12 @@ class NfcDecryptionKeyFragment : BaseFragment<FragmentDecryptionKeyBinding>() {
     }
 
     private fun observer() {
-        lifecycleScope.launchWhenStarted {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.event.collect {
-                    showOrHideLoading(it is NfcDecryptionKeyEvent.Loading)
-                    when (it) {
-                        is NfcDecryptionKeyEvent.ImportTapSignerFailed -> showError(it.e)
-                        is NfcDecryptionKeyEvent.ImportTapSignerSuccess -> handleImportSuccess(it.masterSigner)
-                        else -> {}
-                    }
-                }
+        flowObserver(viewModel.event) {
+            showOrHideLoading(it is NfcDecryptionKeyEvent.Loading)
+            when (it) {
+                is NfcDecryptionKeyEvent.ImportTapSignerFailed -> showError(it.e)
+                is NfcDecryptionKeyEvent.ImportTapSignerSuccess -> handleImportSuccess(it.masterSigner)
+                else -> {}
             }
         }
     }
@@ -67,13 +61,13 @@ class NfcDecryptionKeyFragment : BaseFragment<FragmentDecryptionKeyBinding>() {
     private fun initViews() {
         binding.inputDecryptionKey.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_120))
         binding.toolbar.setNavigationOnClickListener {
-            activity?.onBackPressed()
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
     }
 
     private fun registerEvents() {
         binding.btnContinue.setOnClickListener {
-            if (binding.inputDecryptionKey.getEditText().isNullOrEmpty()) {
+            if (binding.inputDecryptionKey.getEditText().isEmpty()) {
                 binding.inputDecryptionKey.setError(getString(R.string.nc_text_required))
                 return@setOnClickListener
             }

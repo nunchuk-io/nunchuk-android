@@ -51,6 +51,17 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             else -> intent.extras
         }
         navHostFragment.navController.setGraph(graph, extras)
+        navHostFragment.navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.nfcKeyRecoverInfoFragment,
+                R.id.recoverNfcKeyGuideFragment,
+                R.id.nfcDecryptionKeyFragment,
+                R.id.addNfcNameFragment,
+                R.id.setupChainCodeFragment,
+                R.id.changeNfcCvcFragment -> WindowCompat.setDecorFitsSystemWindows(window, true)
+                else -> WindowCompat.setDecorFitsSystemWindows(window, false)
+            }
+        }
     }
 
     val setUpAction: Int

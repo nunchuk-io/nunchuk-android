@@ -68,6 +68,7 @@ class UploadBackUpTapSignerFragment : MembershipFragment() {
         flowObserver(viewModel.event) {
             when (it) {
                 UploadBackUpTapSignerEvent.OnContinueClicked -> {
+                    findNavController().popBackStack(findNavController().graph.startDestinationId, true)
                     findNavController().navigate(
                         UploadBackUpTapSignerFragmentDirections.actionUploadBackUpTapSignerFragmentToTapSignerBackUpExplainFragment(
                             viewModel.getServerFilePath(),

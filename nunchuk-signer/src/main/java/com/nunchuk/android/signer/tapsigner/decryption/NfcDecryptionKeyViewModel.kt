@@ -10,8 +10,8 @@ import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.utils.CrashlyticsReporter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -23,21 +23,26 @@ class NfcDecryptionKeyViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val application: Application
 ) : ViewModel() {
-    private val _event = MutableStateFlow<NfcDecryptionKeyEvent?>(null)
-    val event = _event.filterIsInstance<NfcDecryptionKeyEvent>()
+    private val _event = MutableSharedFlow<NfcDecryptionKeyEvent>()
+    val event = _event.asSharedFlow()
 
     fun decryptBackUpKey(backUpFileUri: Uri, decryptionKey: String) {
-        _event.value = NfcDecryptionKeyEvent.Loading
         viewModelScope.launch {
+            _event.emit(NfcDecryptionKeyEvent.Loading)
             withContext(ioDispatcher) {
                 getFileFromUri(backUpFileUri, application.cacheDir)
             }?.let { file ->
-                val result = importTapSignerUseCase(ImportTapSignerUseCase.Data(file.absolutePath, decryptionKey))
+                val result = importTapSignerUseCase(
+                    ImportTapSignerUseCase.Data(
+                        file.absolutePath,
+                        decryptionKey
+                    )
+                )
                 runCatching { file.delete() }
                 if (result.isSuccess) {
-                    _event.value = NfcDecryptionKeyEvent.ImportTapSignerSuccess(result.getOrThrow())
+                    _event.emit(NfcDecryptionKeyEvent.ImportTapSignerSuccess(result.getOrThrow()))
                 } else {
-                    _event.value = NfcDecryptionKeyEvent.ImportTapSignerFailed(result.exceptionOrNull())
+                    _event.emit(NfcDecryptionKeyEvent.ImportTapSignerFailed(result.exceptionOrNull()))
                 }
             }
         }
@@ -58,6 +63,6 @@ class NfcDecryptionKeyViewModel @Inject constructor(
 
 sealed class NfcDecryptionKeyEvent {
     object Loading : NfcDecryptionKeyEvent()
-    class ImportTapSignerSuccess(val masterSigner: MasterSigner): NfcDecryptionKeyEvent()
-    class ImportTapSignerFailed(val e: Throwable?): NfcDecryptionKeyEvent()
+    class ImportTapSignerSuccess(val masterSigner: MasterSigner) : NfcDecryptionKeyEvent()
+    class ImportTapSignerFailed(val e: Throwable?) : NfcDecryptionKeyEvent()
 }

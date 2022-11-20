@@ -49,7 +49,6 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(requireActivity().window, true)
         membershipStepManager.updateStep(true)
         registerEvents()
         initViews()
@@ -58,7 +57,6 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
 
     override fun onDestroyView() {
         membershipStepManager.updateStep(false)
-        WindowCompat.setDecorFitsSystemWindows(requireActivity().window, false)
         super.onDestroyView()
     }
 
