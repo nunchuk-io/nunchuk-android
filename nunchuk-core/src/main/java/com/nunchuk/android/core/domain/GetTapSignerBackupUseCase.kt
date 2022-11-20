@@ -40,6 +40,7 @@ class GetTapSignerBackupUseCase @Inject constructor(
             cvc = parameters.cvc,
             masterSignerId = parameters.masterSignerId
         )
+        if (tapStatus.backupKey?.isEmpty() == true) throw IllegalArgumentException("Can not get back up key")
         return nfcFileManager.storeBackupKeyToFile(tapStatus)
     }
 

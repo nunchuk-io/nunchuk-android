@@ -78,6 +78,7 @@ class KeyRepositoryImpl @Inject constructor(
                             signerType = SignerType.NFC
                         )
                     ),
+                    isVerify = result.error.code == 400,
                     plan = plan
                 )
                 membershipDao.updateOrInsert(info)

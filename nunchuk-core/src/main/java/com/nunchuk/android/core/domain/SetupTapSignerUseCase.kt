@@ -45,6 +45,7 @@ class SetupTapSignerUseCase @Inject constructor(
             tapSignerStatus.set(tapStatus)
         }
         val masterSigner = nunchukNativeSdk.createTapSigner(parameters.isoDep, parameters.newCvc, NFC_DEFAULT_NAME)
+        if (tapSignerStatus.get()?.backupKey?.isEmpty() == true) throw IllegalArgumentException("Can not get back up key")
         val filePath = nfcFileManager.storeBackupKeyToFile(tapSignerStatus.get()!!)
         return Result(filePath, masterSigner)
     }
