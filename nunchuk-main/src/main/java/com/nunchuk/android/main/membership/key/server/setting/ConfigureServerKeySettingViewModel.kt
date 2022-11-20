@@ -58,7 +58,8 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
                     name = SERVER_KEY_NAME,
                     keyPolicy = KeyPolicy(
                         autoBroadcastTransaction = state.autoBroadcastSwitched,
-                        signingDelayInHour = signingDelayInHour
+                        signingDelayInHour = signingDelayInHour,
+                        spendingPolicy = args.spendingLimit
                     ),
                     plan = membershipStepManager.plan
                 )
@@ -69,7 +70,8 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
                     name = SERVER_KEY_NAME,
                     keyPolicy = KeyPolicy(
                         autoBroadcastTransaction = state.autoBroadcastSwitched,
-                        signingDelayInHour = signingDelayInHour
+                        signingDelayInHour = signingDelayInHour,
+                        args.spendingLimit
                     ),
                     keyIdOrXfp = args.xfp.orEmpty()
                 )

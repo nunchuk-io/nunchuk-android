@@ -66,10 +66,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     ): KeyPolicy {
         val data = userWalletsApi.createServerKey(
             CreateServerKeysPayload(
-                name = name, keyPoliciesDtoPayload = KeyPoliciesDto(
-                    autoBroadcastTransaction = keyPolicy.autoBroadcastTransaction,
-                    signingDelaySeconds = keyPolicy.signingDelayInHour * 60 * 60
-                )
+                name = name, keyPoliciesDtoPayload = keyPolicy.toDto()
             )
         ).data
         val key = data.key ?: throw NullPointerException("Response from server empty")
@@ -111,10 +108,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             keyIdOrXfp,
             UpdateServerKeysPayload(
                 name = name,
-                keyPoliciesDtoPayload = KeyPoliciesDto(
-                    autoBroadcastTransaction = policy.autoBroadcastTransaction,
-                    signingDelaySeconds = policy.signingDelayInHour * 60 * 60
-                )
+                keyPoliciesDtoPayload = policy.toDto()
             )
         )
         val serverPolicy =
