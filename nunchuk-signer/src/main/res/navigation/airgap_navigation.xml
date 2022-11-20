@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/airgap_navigation"
     app:startDestination="@id/airgapIntroFragment">
 
@@ -19,6 +20,7 @@
 
     <fragment
         android:id="@+id/addAirgapSignerFragment"
+        tools:layout="@layout/fragment_add_signer"
         android:name="com.nunchuk.android.signer.components.add.AddAirgapSignerFragment"
         android:label="AddAirgapSignerFragment" />
 

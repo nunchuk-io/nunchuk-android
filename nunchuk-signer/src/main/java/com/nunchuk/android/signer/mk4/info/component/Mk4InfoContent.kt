@@ -19,6 +19,7 @@ internal fun Mk4InfoContent(
     remainTime: Int = 0,
     onContinueClicked: () -> Unit = {},
     onOpenGuideClicked: () -> Unit = {},
+    isMembershipFlow: Boolean = true,
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -31,7 +32,10 @@ internal fun Mk4InfoContent(
             ) {
                 NcImageAppBar(
                     backgroundRes = R.drawable.nc_bg_tap_signer_chip,
-                    title = stringResource(id = R.string.nc_estimate_remain_time, remainTime)
+                    title = if (isMembershipFlow) stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    ) else ""
                 )
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),

@@ -6,6 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -140,7 +142,9 @@ private fun CheckBackUpByAppContent(
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
+                    .fillMaxHeight()
                     .padding(innerPadding)
+                    .verticalScroll(rememberScrollState())
                     .navigationBarsPadding()
             ) {
                 NcImageAppBar(

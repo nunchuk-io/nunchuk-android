@@ -26,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.signer.R
@@ -34,18 +35,20 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class ColdcardRecoverFragment : Fragment() {
     private val viewModel: ColdcardRecoverViewModel by viewModels()
+    private val args: ColdcardRecoverFragmentArgs by navArgs()
 
     private val launcher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
             viewModel.parseColdcardSigner(uri)
         }
     }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                ColdcardRecoverScreen(viewModel)
+                ColdcardRecoverScreen(viewModel, args.isMembershipFlow)
             }
         }
     }
@@ -55,7 +58,7 @@ class ColdcardRecoverFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
-                    when(event) {
+                    when (event) {
                         ColdcardRecoverEvent.OnOpenGuide -> requireActivity().openExternalLink(
                             COLDCARD_GUIDE_URL
                         )
@@ -70,12 +73,16 @@ class ColdcardRecoverFragment : Fragment() {
 }
 
 @Composable
-private fun ColdcardRecoverScreen(viewModel: ColdcardRecoverViewModel = viewModel()) {
+private fun ColdcardRecoverScreen(
+    viewModel: ColdcardRecoverViewModel = viewModel(),
+    isMembershipFlow: Boolean
+) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     ColdcardRecoverContent(
         remainTime = remainTime,
         onContinueClicked = viewModel::onContinueClicked,
-        onOpenGuideClicked = viewModel::onOpenGuideClicked
+        onOpenGuideClicked = viewModel::onOpenGuideClicked,
+        isMembershipFlow = isMembershipFlow,
     )
 }
 
@@ -84,6 +91,7 @@ private fun ColdcardRecoverContent(
     remainTime: Int = 0,
     onContinueClicked: () -> Unit = {},
     onOpenGuideClicked: () -> Unit = {},
+    isMembershipFlow: Boolean = false,
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -96,7 +104,10 @@ private fun ColdcardRecoverContent(
             ) {
                 NcImageAppBar(
                     backgroundRes = R.drawable.nc_bg_tap_signer_chip,
-                    title = stringResource(id = R.string.nc_estimate_remain_time, remainTime)
+                    title = if (isMembershipFlow) stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    ) else ""
                 )
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),

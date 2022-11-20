@@ -25,7 +25,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.view.WindowCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseFragment
@@ -38,7 +37,7 @@ import com.nunchuk.android.core.util.showWarning
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.add.AddSignerEvent.*
-import com.nunchuk.android.signer.databinding.ActivityAddSignerBinding
+import com.nunchuk.android.signer.databinding.FragmentAddSignerBinding
 import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.heightExtended
@@ -47,7 +46,7 @@ import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class AddAirgapSignerFragment : BaseFragment<ActivityAddSignerBinding>(),
+class AddAirgapSignerFragment : BaseFragment<FragmentAddSignerBinding>(),
     BottomSheetOptionListener {
 
     private val viewModel: AddAirgapSignerViewModel by viewModels()
@@ -70,24 +69,14 @@ class AddAirgapSignerFragment : BaseFragment<ActivityAddSignerBinding>(),
     override fun initializeBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
-    ): ActivityAddSignerBinding {
-        return ActivityAddSignerBinding.inflate(inflater, container, false)
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(requireActivity().window, true)
+    ): FragmentAddSignerBinding {
+        return FragmentAddSignerBinding.inflate(inflater, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupViews()
         observeEvent()
-    }
-
-    override fun onDestroy() {
-        WindowCompat.setDecorFitsSystemWindows(requireActivity().window, false)
-        super.onDestroy()
     }
 
     override fun onOptionClicked(option: SheetOption) {

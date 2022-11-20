@@ -5,8 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -36,10 +34,11 @@ class AirgapIntroFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
+        val isMembershipFlow = (requireActivity() as AddAirgapSignerActivity).isMembershipFlow
         return ComposeView(requireContext()).apply {
             setContent {
                 val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
-                AirgapIntroContent(remainTime) {
+                AirgapIntroContent(remainTime, isMembershipFlow) {
                     findNavController().navigate(AirgapIntroFragmentDirections.actionAirgapIntroFragmentToAddAirgapSignerFragment())
                 }
             }
@@ -50,20 +49,22 @@ class AirgapIntroFragment : Fragment() {
 @Composable
 private fun AirgapIntroContent(
     remainTime: Int = 0,
+    isMembershipFlow: Boolean = true,
     onContinueClicked: () -> Unit = {},
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .fillMaxHeight()
                     .padding(innerPadding)
                     .navigationBarsPadding()
-                    .verticalScroll(rememberScrollState())
             ) {
                 NcImageAppBar(
                     backgroundRes = R.drawable.bg_airgap_intro,
-                    title = stringResource(id = R.string.nc_estimate_remain_time, remainTime)
+                    title = if (isMembershipFlow) stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    ) else ""
                 )
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
@@ -114,7 +115,5 @@ private fun AirgapIntroContent(
 @Preview
 @Composable
 private fun AirgapIntroScreenPreview() {
-    AirgapIntroContent(
-
-    )
+    AirgapIntroContent()
 }

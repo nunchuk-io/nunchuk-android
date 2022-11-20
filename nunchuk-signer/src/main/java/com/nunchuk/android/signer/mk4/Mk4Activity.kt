@@ -48,11 +48,17 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
             (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.mk4_navigation)
-        when(intent.serializable<ColdcardAction>(EXTRA_ACTION)!!) {
+        when (intent.serializable<ColdcardAction>(EXTRA_ACTION)!!) {
             ColdcardAction.CREATE -> graph.setStartDestination(R.id.mk4InfoFragment)
             ColdcardAction.RECOVER -> graph.setStartDestination(R.id.coldcardRecoverFragment)
         }
         navHostFragment.navController.setGraph(graph, intent.extras)
+        navHostFragment.navController.addOnDestinationChangedListener { _, destination, _ ->
+            WindowCompat.setDecorFitsSystemWindows(
+                window,
+                destination.id == R.id.addMk4NameFragment
+            )
+        }
     }
 
     companion object {

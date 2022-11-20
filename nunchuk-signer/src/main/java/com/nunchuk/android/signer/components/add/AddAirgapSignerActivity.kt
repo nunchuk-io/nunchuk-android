@@ -38,6 +38,12 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
         val navHostFragment =
             (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
         navHostFragment.navController.setGraph(R.navigation.airgap_navigation)
+        navHostFragment.navController.addOnDestinationChangedListener { _, destination, _ ->
+            when(destination.id) {
+                R.id.addAirgapSignerFragment ->  WindowCompat.setDecorFitsSystemWindows(window, true)
+                else ->  WindowCompat.setDecorFitsSystemWindows(window, false)
+            }
+        }
     }
 
     val isMembershipFlow : Boolean by lazy { intent.getBooleanExtra(EXTRA_IS_MEMBERSHIP_FLOW, false) }

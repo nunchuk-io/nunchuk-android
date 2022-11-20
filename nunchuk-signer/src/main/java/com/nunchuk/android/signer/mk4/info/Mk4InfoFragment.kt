@@ -65,7 +65,8 @@ class Mk4InfoFragment : Fragment() {
                     },
                     onOpenGuideClicked = {
                         requireActivity().openExternalLink(COLDCARD_GUIDE_URL)
-                    }
+                    },
+                    isMembershipFlow = args.isMembershipFlow
                 )
             }
         }

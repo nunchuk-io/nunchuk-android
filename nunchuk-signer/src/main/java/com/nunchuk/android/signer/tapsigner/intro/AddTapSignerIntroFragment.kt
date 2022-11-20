@@ -36,7 +36,6 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.tapsigner.BaseChangeTapSignerNameFragment
-import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.signer.util.handleTapSignerStatus
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
@@ -51,7 +50,7 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                AddTapSignerIntroScreen(viewModel, membershipStepManager)
+                AddTapSignerIntroScreen(viewModel, membershipStepManager, args.isMembershipFlow)
             }
         }
     }
@@ -119,7 +118,7 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
     }
 
     private fun handleCreateSigner() {
-        if ((requireActivity() as NfcSetupActivity).fromMembershipFlow) {
+        if (isMembershipFlow) {
             (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_NFC_ADD_KEY)
         } else {
             findNavController().navigate(AddTapSignerIntroFragmentDirections.actionAddTapSignerIntroFragmentToAddNfcNameFragment())
@@ -136,13 +135,18 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
 private fun AddTapSignerIntroScreen(
     viewModel: AddTapSignerIntroViewModel = viewModel(),
     membershipStepManager: MembershipStepManager,
+    isMembershipFlow: Boolean,
 ) {
     val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
-    AddTapSignerIntroScreenContent(viewModel::onContinueClicked, remainTime)
+    AddTapSignerIntroScreenContent(viewModel::onContinueClicked, remainTime, isMembershipFlow)
 }
 
 @Composable
-fun AddTapSignerIntroScreenContent(onContinueClicked: () -> Unit = {}, remainTime: Int = 0) {
+fun AddTapSignerIntroScreenContent(
+    onContinueClicked: () -> Unit = {},
+    remainTime: Int = 0,
+    isMembershipFlow: Boolean = true,
+) {
     NunchukTheme {
         Scaffold { innerPadding ->
             Column(
@@ -152,7 +156,10 @@ fun AddTapSignerIntroScreenContent(onContinueClicked: () -> Unit = {}, remainTim
             ) {
                 NcImageAppBar(
                     backgroundRes = R.drawable.nc_bg_tap_signer_chip,
-                    title = stringResource(id = R.string.nc_estimate_remain_time, remainTime)
+                    title = if (isMembershipFlow) stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    ) else ""
                 )
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
@@ -181,5 +188,5 @@ fun AddTapSignerIntroScreenContent(onContinueClicked: () -> Unit = {}, remainTim
 @Preview
 @Composable
 private fun AddTapSignerIntroScreenPreview() {
-    AddTapSignerIntroScreenContent()
+    AddTapSignerIntroScreenContent(isMembershipFlow = true)
 }

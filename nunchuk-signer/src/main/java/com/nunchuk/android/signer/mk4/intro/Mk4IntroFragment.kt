@@ -14,7 +14,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -22,6 +21,7 @@ import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
@@ -43,13 +43,14 @@ import kotlinx.coroutines.flow.filter
 class Mk4IntroFragment : Fragment(), BottomSheetOptionListener {
     private val nfcViewModel by activityViewModels<NfcViewModel>()
     private val viewModel by viewModels<Mk4IntroViewModel>()
+    private val args: Mk4IntroFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                Mk4IntroScreen(viewModel)
+                Mk4IntroScreen(viewModel, args.isMembershipFlow)
             }
         }
     }
@@ -99,46 +100,57 @@ class Mk4IntroFragment : Fragment(), BottomSheetOptionListener {
     }
 }
 
-
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
-private fun Mk4IntroScreen(viewModel: Mk4IntroViewModel = viewModel()) = NunchukTheme {
+private fun Mk4IntroScreen(viewModel: Mk4IntroViewModel = viewModel(), isMembershipFlow: Boolean) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
+    Mk4IntroContent(remainTime, isMembershipFlow, viewModel::onContinueClicked)
+}
+
+@Composable
+private fun Mk4IntroContent(
+    remainTime: Int = 0,
+    isMembershipFlow: Boolean = true,
+    onContinueClicked: () -> Unit = {}
+) =
     NunchukTheme {
-        Scaffold { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .navigationBarsPadding()
-            ) {
-                NcImageAppBar(
-                    backgroundRes = R.drawable.nc_bg_coldcard_intro,
-                    title = stringResource(id = R.string.nc_estimate_remain_time, remainTime)
-                )
-                Text(
-                    modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_coldcard_nfc_tip),
-                    style = NunchukTheme.typography.heading
-                )
-                Text(
-                    modifier = Modifier.padding(16.dp),
-                    text = stringResource(R.string.nc_coldcard_nfc_intro_desc),
-                    style = NunchukTheme.typography.body
-                )
-                Spacer(modifier = Modifier.weight(1.0f))
-                NcPrimaryDarkButton(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                    onClick = { viewModel.onContinueClicked() }) {
-                    Text(text = stringResource(id = R.string.nc_text_continue))
+        NunchukTheme {
+            Scaffold { innerPadding ->
+                Column(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .navigationBarsPadding()
+                ) {
+                    NcImageAppBar(
+                        backgroundRes = R.drawable.nc_bg_coldcard_intro,
+                        title = if (isMembershipFlow) stringResource(id = R.string.nc_estimate_remain_time, remainTime) else ""
+                    )
+                    Text(
+                        modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
+                        text = stringResource(R.string.nc_coldcard_nfc_tip),
+                        style = NunchukTheme.typography.heading
+                    )
+                    Text(
+                        modifier = Modifier.padding(16.dp),
+                        text = stringResource(R.string.nc_coldcard_nfc_intro_desc),
+                        style = NunchukTheme.typography.body
+                    )
+                    Spacer(modifier = Modifier.weight(1.0f))
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        onClick = onContinueClicked,
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_text_continue))
+                    }
                 }
             }
         }
     }
-}
 
 @Preview
 @Composable
 private fun Mk4IntroScreenPreview() {
-    Mk4IntroScreen()
+    Mk4IntroContent()
 }
