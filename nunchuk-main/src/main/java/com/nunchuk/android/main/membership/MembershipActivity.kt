@@ -5,18 +5,18 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
-import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.key.server.setting.ConfigureServerKeySettingFragmentArgs
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
+import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MembershipActivity : BaseActivity<ActivityNavigationBinding>() {
+class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

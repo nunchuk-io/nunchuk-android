@@ -76,6 +76,8 @@ class MembershipStepManager @Inject constructor(
                             else addRequireStep(step.step)
                         }
                     }
+
+                    _stepDone.value = steps.filter { it.isVerifyOrAddKey }.map { it.step }.toSet()
                 }
         }
     }
@@ -91,21 +93,14 @@ class MembershipStepManager @Inject constructor(
     }
 
     private fun markStepDone(step: MembershipStep) {
-        if (_stepDone.value.contains(step)) return
         val stepInfo = steps[step] ?: throw IllegalArgumentException("Not support $step")
         stepInfo.currentStep = stepInfo.totalStep
-        _stepDone.value = _stepDone.value.toMutableSet().apply {
-            add(step)
-        }
         updateRemainTime()
     }
 
     private fun addRequireStep(step: MembershipStep) {
         val stepInfo = steps[step] ?: throw IllegalArgumentException("Not support $step")
         stepInfo.currentStep = 0
-        _stepDone.value = _stepDone.value.toMutableSet().apply {
-            remove(step)
-        }
         updateRemainTime()
     }
 

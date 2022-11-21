@@ -29,4 +29,5 @@
     <string name="nc_coldcard">COLDCARD</string>
     <string name="nc_add_coldcard_via_nfc">Add COLDCARD via NFC</string>
     <string name="nc_cosigning_spending_limit">Co-signing spending limit</string>
+    <string name="nc_cosigning_limit_hint">If you have configured a co-signing spending limit for the server key, it is safe to carry one key with you. Use two of your own keys when you want to withdraw more than the limit.</string>
 </resources>

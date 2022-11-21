@@ -38,11 +38,12 @@ import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent
 import com.nunchuk.android.widget.NCToastMessage
 import kotlinx.coroutines.flow.filter
 
-abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity<Binding>(), BottomSheetOptionListener {
+abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity<Binding>(),
+    BottomSheetOptionListener {
     protected val sharedViewModel by viewModels<SharedWalletConfigurationViewModel>()
 
     override fun onOptionClicked(option: SheetOption) {
-        when(option.type) {
+        when (option.type) {
             SheetOptionType.EXPORT_COLDCARD_VIA_NFC -> handleColdcardExportToNfc()
             SheetOptionType.EXPORT_COLDCARD_VIA_FILE -> handleColdcardExportToFile()
             SheetOptionType.TYPE_EXPORT_KEYSTONE_QR -> sharedViewModel.handleExportWalletQR()
@@ -74,21 +75,39 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
 
     protected fun showSubOptionsExportQr() {
         val options = listOf(
-            SheetOption(SheetOptionType.TYPE_EXPORT_KEYSTONE_QR, R.drawable.ic_qr, R.string.nc_export_as_qr_keystone),
-            SheetOption(SheetOptionType.TYPE_EXPORT_PASSPORT_QR, R.drawable.ic_qr, R.string.nc_export_as_passport),
+            SheetOption(
+                type = SheetOptionType.TYPE_EXPORT_KEYSTONE_QR,
+                resId = R.drawable.ic_qr,
+                stringId = R.string.nc_export_as_qr_keystone
+            ),
+            SheetOption(
+                type = SheetOptionType.TYPE_EXPORT_PASSPORT_QR,
+                resId = R.drawable.ic_qr,
+                stringId = R.string.nc_export_as_passport
+            ),
         )
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(supportFragmentManager, "BottomSheetOption")
     }
 
-    protected fun showExportColdcardOptions() {
-        BottomSheetOption.newInstance(listOf(
-            SheetOption(SheetOptionType.EXPORT_COLDCARD_VIA_NFC, resId = R.drawable.ic_qr, stringId = R.string.nc_export_via_nfc),
-            SheetOption(SheetOptionType.EXPORT_COLDCARD_VIA_FILE, resId = R.drawable.ic_qr, stringId = R.string.nc_export_via_file)
-        )).show(supportFragmentManager, "BottomSheetOption")
+    fun showExportColdcardOptions() {
+        BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    type = SheetOptionType.EXPORT_COLDCARD_VIA_NFC,
+                    resId = R.drawable.ic_nfc_indicator_small,
+                    stringId = R.string.nc_export_via_nfc
+                ),
+                SheetOption(
+                    type = SheetOptionType.EXPORT_COLDCARD_VIA_FILE,
+                    resId = R.drawable.ic_export,
+                    stringId = R.string.nc_export_via_file
+                )
+            )
+        ).show(supportFragmentManager, "BottomSheetOption")
     }
 
-    protected fun openDynamicQRScreen(event: UploadConfigurationEvent.OpenDynamicQRScreen) {
+    private fun openDynamicQRScreen(event: UploadConfigurationEvent.OpenDynamicQRScreen) {
         navigator.openDynamicQRScreen(this, event.values)
     }
 

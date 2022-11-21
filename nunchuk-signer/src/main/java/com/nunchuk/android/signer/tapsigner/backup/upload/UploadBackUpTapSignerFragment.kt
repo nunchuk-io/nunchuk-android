@@ -25,6 +25,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcImageAppBar
@@ -72,9 +73,9 @@ class UploadBackUpTapSignerFragment : MembershipFragment() {
                         UploadBackUpTapSignerFragmentDirections.actionUploadBackUpTapSignerFragmentToTapSignerBackUpExplainFragment(
                             viewModel.getServerFilePath(),
                             args.masterSignerId
-                        )
+                        ),
+                        NavOptions.Builder().setPopUpTo(findNavController().graph.startDestinationId, true).build()
                     )
-                    findNavController().popBackStack(findNavController().graph.startDestinationId, true)
                 }
                 is UploadBackUpTapSignerEvent.ShowError -> showError(it.message)
                 is UploadBackUpTapSignerEvent.KeyVerified -> {

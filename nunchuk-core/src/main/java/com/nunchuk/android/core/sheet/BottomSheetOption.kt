@@ -33,16 +33,19 @@ class BottomSheetOption : BaseBottomSheet<FragmentSheetOptionBinding>() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        listener = if (context is BottomSheetOptionListener) {
-            context
-        } else if (parentFragment is BottomSheetOptionListener) {
+        listener = if (parentFragment is BottomSheetOptionListener) {
             parentFragment as BottomSheetOptionListener
+        } else if (context is BottomSheetOptionListener) {
+            context
         } else {
             throw IllegalArgumentException("Activity or parent fragment should implement BottomSheetOptionListener")
         }
     }
 
-    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentSheetOptionBinding {
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentSheetOptionBinding {
         return FragmentSheetOptionBinding.inflate(inflater, container, false)
     }
 
@@ -62,7 +65,7 @@ class BottomSheetOption : BaseBottomSheet<FragmentSheetOptionBinding>() {
         private const val EXTRA_TITLE = "extra_title"
         private const val EXTRA_OPTIONS = "extra_options"
 
-        fun newInstance(options: List<SheetOption>, title: String? = null, ): BottomSheetOption {
+        fun newInstance(options: List<SheetOption>, title: String? = null): BottomSheetOption {
             return BottomSheetOption().apply {
                 arguments = Bundle().apply {
                     putString(EXTRA_TITLE, title)

@@ -115,7 +115,7 @@
     <string name="nc_add_coldcard_mk4">Add COLDCARD</string>
     <string name="nc_add_key">Add key</string>
     <string name="nc_export_via_nfc">Export via NFC</string>
-    <string name="nc_export_via_file">Export via file</string>
+    <string name="nc_export_via_file">Export via file (Advanced)</string>
     <string name="nc_transaction_exported">Transaction has been exported</string>
     <string name="nc_export_transaction">Export transaction</string>
     <string name="nc_import_signature">Import signature</string>
@@ -272,5 +272,8 @@
     <string name="nc_monthly">Monthly</string>
     <string name="nc_weekly">Weekly</string>
     <string name="nc_yearly">Yearly</string>
+    <string name="nc_register_wallet_to_coldcard">Please register this wallet with your COLDCARD</string>
+    <string name="nc_register_wallet_to_coldcard_desc">You must register this wallet with your COLDCARD before you can use it to sign transactions.</string>
+    <string name="nc_select_your_export_method">Select your export method</string>
 
 </resources>
