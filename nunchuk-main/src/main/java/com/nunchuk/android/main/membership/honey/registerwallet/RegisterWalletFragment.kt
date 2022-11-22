@@ -38,7 +38,6 @@ import com.nunchuk.android.wallet.components.upload.SharedWalletConfigurationVie
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent
 import dagger.hilt.android.AndroidEntryPoint
 
-// TODO Hai navigate after create wallet
 @AndroidEntryPoint
 class RegisterWalletFragment : Fragment() {
     private val viewModel: RegisterWalletViewModel by viewModels()

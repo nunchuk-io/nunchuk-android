@@ -52,6 +52,11 @@ class Mk4IntroViewModel @Inject constructor(
                     val signer = sortedSigner.find { it.derivationPath == SIGNER_PATH } ?: run {
                         sortedSigner.find { it.derivationPath.contains(SIGNER_PATH_PREFIX) }
                     } ?: throw NullPointerException("Can not find signer")
+                    if (membershipStepManager.isKeyExisted(signer.masterFingerprint)) {
+                        _event.emit(Mk4IntroViewEvent.OnSignerExistInAssistedWallet)
+                        _event.emit(Mk4IntroViewEvent.Loading(false))
+                        return@launch
+                    }
                     val createSignerResult = createMk4SignerUseCase(
                         signer.copy(
                             name = "$COLDCARD_DEFAULT_KEY_NAME${

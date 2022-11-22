@@ -84,6 +84,7 @@ class Mk4IntroFragment : Fragment(), BottomSheetOptionListener {
                     BaseNfcActivity.REQUEST_MK4_ADD_KEY
                 )
                 Mk4IntroViewEvent.OnCreateSignerSuccess -> requireActivity().finish()
+                Mk4IntroViewEvent.OnSignerExistInAssistedWallet -> showError(getString(R.string.nc_error_add_same_key))
             }
         }
     }

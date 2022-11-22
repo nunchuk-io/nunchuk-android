@@ -64,6 +64,10 @@ class ColdcardRecoverViewModel @Inject constructor(
                     return@launch
                 }
                 val signer = parseResult.getOrThrow().first()
+                if (membershipStepManager.isKeyExisted(signer.masterFingerprint)) {
+                    _event.emit(ColdcardRecoverEvent.AddSameKey)
+                    return@launch
+                }
                 val createSignerResult = createSignerUseCase(
                     CreateSignerUseCase.Params(
                         name = "$COLDCARD_DEFAULT_KEY_NAME${
@@ -109,4 +113,5 @@ sealed class ColdcardRecoverEvent {
     object OnOpenGuide : ColdcardRecoverEvent()
     object OnContinue : ColdcardRecoverEvent()
     object CreateSignerSuccess : ColdcardRecoverEvent()
+    object AddSameKey : ColdcardRecoverEvent()
 }

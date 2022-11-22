@@ -7,9 +7,8 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.KeyUpload
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.share.membership.MembershipStepManager
-import com.nunchuk.android.signer.util.TAPSIGNER_KEY_1_NAME
-import com.nunchuk.android.signer.util.TAPSIGNER_KEY_2_NAME
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.UploadBackupFileKeyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -20,6 +19,7 @@ import javax.inject.Inject
 class UploadBackUpTapSignerViewModel @Inject constructor(
     private val uploadBackupFileKeyUseCase: UploadBackupFileKeyUseCase,
     private val membershipStepManager: MembershipStepManager,
+    private val getMasterSignerUseCase: GetMasterSignerUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val args = UploadBackUpTapSignerFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -36,16 +36,12 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
     }
 
     fun upload() {
-        val keyName = if (membershipStepManager.currentStep == MembershipStep.ADD_TAP_SIGNER_1) {
-            TAPSIGNER_KEY_1_NAME
-        } else {
-            TAPSIGNER_KEY_2_NAME
-        }
         viewModelScope.launch {
+            val result = getMasterSignerUseCase(args.masterSignerId)
             uploadBackupFileKeyUseCase(
                 UploadBackupFileKeyUseCase.Param(
                     step = membershipStepManager.currentStep ?: MembershipStep.ADD_TAP_SIGNER_1,
-                    keyName = keyName,
+                    keyName = result.getOrNull()?.name.orEmpty(),
                     keyType = SignerType.NFC.name,
                     xfp = args.masterSignerId,
                     filePath = args.filePath,

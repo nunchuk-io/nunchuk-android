@@ -214,7 +214,7 @@
     <string name="nc_welcome_assisted_wallet_desc">We’ll walk you through the entire process to get your multisig wallet set up.\n\nIt will take a few minutes—so find somewhere private, make yourself comfortable and let’s get started!\n\nP.S: You’ll need an active Internet connection.</string>
     <string name="nc_est_time_in_mins">Est. time: %1$d minutes</string>
     <string name="nc_create_your_wallet">Create your wallet</string>
-    <string name="nc_error_add_same_tap_signer">Two keys cannot share the same master fingerprint (XFP)</string>
+    <string name="nc_error_add_same_key">You have already added this key.</string>
     <string name="nc_let_s_get_you_started">Let’s get you started</string>
     <string name="nc_start_wizard">Start wizard</string>
     <string name="nc_configure_server_key_intro_question">What is the Nunchuk server key?</string>

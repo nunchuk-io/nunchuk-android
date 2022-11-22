@@ -34,7 +34,7 @@ import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.share.membership.MembershipStepManager
-import com.nunchuk.android.signer.components.add.AddSignerEvent.*
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.*
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreatePassportSignersUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
@@ -64,7 +64,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val gson: Gson,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : NunchukViewModel<Unit, AddSignerEvent>() {
+) : NunchukViewModel<Unit, AddAirgapSignerEvent>() {
     private val qrDataList = HashSet<String>()
     private var isProcessing = false
     override val initialState = Unit
@@ -90,7 +90,11 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         isMembershipFlow: Boolean
     ) {
         viewModelScope.launch {
-            setEvent(LoadingEvent(true))
+            if (membershipStepManager.isKeyExisted(signerInput.derivationPath) && isMembershipFlow) {
+                setEvent(AddSameKey)
+                return@launch
+            }
+            setEvent(LoadingEventAirgap(true))
             val result = createSignerUseCase(
                 CreateSignerUseCase.Params(
                     name = signerName,
@@ -120,11 +124,11 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                         )
                     )
                 }
-                setEvent(AddSignerSuccessEvent(result.getOrThrow()))
+                setEvent(AddAirgapSignerSuccessEvent(result.getOrThrow()))
             } else {
-                setEvent(AddSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+                setEvent(AddAirgapSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
             }
-            setEvent(LoadingEvent(false))
+            setEvent(LoadingEventAirgap(false))
         }
     }
 
@@ -134,13 +138,13 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         doAfterValidate: (SignerInput) -> Unit = {}
     ) {
         if (signerName.isEmpty()) {
-            event(SignerNameRequiredEvent)
+            event(AirgapSignerNameRequiredEvent)
         } else {
             try {
                 doAfterValidate(signerSpec.toSigner())
             } catch (e: InvalidSignerFormatException) {
                 CrashlyticsReporter.recordException(e)
-                event(InvalidSignerSpecEvent)
+                event(InvalidAirgapSignerSpecEvent)
             }
         }
     }
@@ -158,7 +162,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     .onCompletion { isProcessing = false }
                     .collect {
                         Timber.tag(TAG).d("add passport signer successful::$it")
-                        event(ParseKeystoneSignerSuccess(it))
+                        event(ParseKeystoneAirgapSignerSuccess(it))
                     }
             }
         }
@@ -166,7 +170,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
 
     fun parseAirgapSigner(uri: Uri) {
         viewModelScope.launch {
-            setEvent(LoadingEvent(true))
+            setEvent(LoadingEventAirgap(true))
             withContext(ioDispatcher) {
                 getFileFromUri(application.contentResolver, uri, application.cacheDir)?.readText()
             }?.let { content ->
@@ -178,12 +182,12 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                         clear()
                         addAll(result.getOrThrow())
                     }
-                    setEvent(ParseKeystoneSignerSuccess(result.getOrThrow()))
+                    setEvent(ParseKeystoneAirgapSignerSuccess(result.getOrThrow()))
                 } else {
-                    setEvent(AddSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+                    setEvent(AddAirgapSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
                 }
             }
-            setEvent(LoadingEvent(false))
+            setEvent(LoadingEventAirgap(false))
         }
     }
 

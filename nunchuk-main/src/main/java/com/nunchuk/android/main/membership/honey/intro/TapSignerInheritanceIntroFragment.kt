@@ -90,7 +90,7 @@ class TapSignerInheritanceIntroFragment : Fragment() {
     }
 
     private fun showSameSignerAdded() {
-        showError(getString(R.string.nc_error_add_same_tap_signer))
+        showError(getString(R.string.nc_error_add_same_key))
     }
 
     private fun handleAddTapSigner() {

@@ -37,6 +37,7 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.tapsigner.BaseChangeTapSignerNameFragment
 import com.nunchuk.android.signer.util.handleTapSignerStatus
+import com.nunchuk.android.signer.util.showNfcAlreadyAdded
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 
@@ -92,12 +93,20 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                     onCreateSigner = ::handleCreateSigner,
                     onSetupNfc = ::handleSetupTapSigner,
                     onSignerExisted = {
-                        findNavController().navigate(
-                            AddTapSignerIntroFragmentDirections.actionAddTapSignerIntroFragmentToTapSignerIdFragment(
-                                masterSignerId = it.status.masterSignerId.orEmpty(),
-                                isExisted = true
-                            )
-                        )
+                        if (args.isMembershipFlow) {
+                            if (viewModel.isKeyAddedToAssistedWallet(it.status.masterSignerId.orEmpty())) {
+                                showError(getString(R.string.nc_error_add_same_key))
+                            } else {
+                                findNavController().navigate(
+                                    AddTapSignerIntroFragmentDirections.actionAddTapSignerIntroFragmentToTapSignerIdFragment(
+                                        masterSignerId = it.status.masterSignerId.orEmpty(),
+                                        isExisted = true
+                                    )
+                                )
+                            }
+                        } else {
+                            requireActivity().showNfcAlreadyAdded()
+                        }
                     }
                 )
                 is AddTapSignerIntroEvent.Loading -> showOrHideLoading(

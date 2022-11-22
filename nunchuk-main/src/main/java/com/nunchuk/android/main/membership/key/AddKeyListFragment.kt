@@ -245,7 +245,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     private fun showSameSignerAdded() {
-        showError(getString(R.string.nc_error_add_same_tap_signer))
+        showError(getString(R.string.nc_error_add_same_key))
     }
 }
 

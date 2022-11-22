@@ -46,7 +46,7 @@ class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
 
     private fun observer() {
         viewModel.event.observe(this) {
-            if (it is AddSignerEvent.ParseKeystoneSignerSuccess) {
+            if (it is AddAirgapSignerEvent.ParseKeystoneAirgapSignerSuccess) {
                 setResult(Activity.RESULT_OK, Intent().apply {
                     putParcelableArrayListExtra(PASSPORT_EXTRA_KEYS, ArrayList(it.signers))
                 })

@@ -44,6 +44,8 @@ class CreateWalletViewModel @Inject constructor(
     private val _state = MutableStateFlow(CreateWalletState.EMPTY)
     val state = _state.asStateFlow()
 
+    val plan = membershipStepManager.plan
+
     init {
         viewModelScope.launch {
             getMembershipStepUseCase(membershipStepManager.plan)

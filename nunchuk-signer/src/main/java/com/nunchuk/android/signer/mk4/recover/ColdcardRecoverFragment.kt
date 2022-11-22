@@ -66,6 +66,7 @@ class ColdcardRecoverFragment : Fragment() {
                         ColdcardRecoverEvent.CreateSignerSuccess -> requireActivity().finish()
                         is ColdcardRecoverEvent.LoadingEvent -> showOrHideLoading(event.isLoading)
                         is ColdcardRecoverEvent.ShowError -> showError(event.message)
+                        ColdcardRecoverEvent.AddSameKey -> showError(getString(R.string.nc_error_add_same_key))
                     }
                 }
         }

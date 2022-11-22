@@ -132,22 +132,26 @@ class AddKeyListViewModel @Inject constructor(
     // COLDCARD or Airgap
     fun onSelectedExistingHardwareSigner(signer: SignerModel) {
         viewModelScope.launch {
-            saveMembershipStepUseCase(
-                MembershipStepInfo(
-                    step = membershipStepManager.currentStep
-                        ?: throw IllegalArgumentException("Current step empty"),
-                    masterSignerId = signer.fingerPrint,
-                    plan = membershipStepManager.plan,
-                    isVerify = true,
-                    extraData = gson.toJson(
-                        SignerExtra(
-                            derivationPath = signer.derivationPath,
-                            isAddNew = false,
-                            signerType = signer.type
+            if (isSignerExist(signer.fingerPrint)) {
+                _event.emit(AddKeyListEvent.OnAddSameKey)
+            } else {
+                saveMembershipStepUseCase(
+                    MembershipStepInfo(
+                        step = membershipStepManager.currentStep
+                            ?: throw IllegalArgumentException("Current step empty"),
+                        masterSignerId = signer.fingerPrint,
+                        plan = membershipStepManager.plan,
+                        isVerify = true,
+                        extraData = gson.toJson(
+                            SignerExtra(
+                                derivationPath = signer.derivationPath,
+                                isAddNew = false,
+                                signerType = signer.type
+                            )
                         )
                     )
                 )
-            )
+            }
         }
     }
 
@@ -159,7 +163,7 @@ class AddKeyListViewModel @Inject constructor(
         }
     }
 
-    fun isSignerExist(masterSignerId: String) = _keys.value.any { it.signer?.id == masterSignerId }
+    fun isSignerExist(masterSignerId: String) = membershipStepManager.isKeyExisted(masterSignerId)
 
     fun onVerifyClicked(data: AddKeyData) {
         data.signer?.let { signer ->

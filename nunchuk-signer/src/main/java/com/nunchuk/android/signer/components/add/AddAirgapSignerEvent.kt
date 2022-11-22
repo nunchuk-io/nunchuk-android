@@ -21,12 +21,13 @@ package com.nunchuk.android.signer.components.add
 
 import com.nunchuk.android.model.SingleSigner
 
-sealed class AddSignerEvent {
-    data class AddSignerSuccessEvent(val singleSigner: SingleSigner) : AddSignerEvent()
-    data class ParseKeystoneSignerSuccess(val signers: List<SingleSigner>) : AddSignerEvent()
-    data class AddSignerErrorEvent(val message: String) : AddSignerEvent()
-    object InvalidSignerSpecEvent : AddSignerEvent()
-    object SignerNameRequiredEvent : AddSignerEvent()
-    data class ParseKeystoneSigner(val signers: List<SingleSigner>) : AddSignerEvent()
-    data class LoadingEvent(val isLoading: Boolean) : AddSignerEvent()
+sealed class AddAirgapSignerEvent {
+    data class AddAirgapSignerSuccessEvent(val singleSigner: SingleSigner) : AddAirgapSignerEvent()
+    data class ParseKeystoneAirgapSignerSuccess(val signers: List<SingleSigner>) : AddAirgapSignerEvent()
+    data class AddAirgapSignerErrorEvent(val message: String) : AddAirgapSignerEvent()
+    object InvalidAirgapSignerSpecEvent : AddAirgapSignerEvent()
+    object AirgapSignerNameRequiredEvent : AddAirgapSignerEvent()
+    object AddSameKey : AddAirgapSignerEvent()
+    data class ParseKeystoneAirgapSigner(val signers: List<SingleSigner>) : AddAirgapSignerEvent()
+    data class LoadingEventAirgap(val isLoading: Boolean) : AddAirgapSignerEvent()
 }

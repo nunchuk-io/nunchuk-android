@@ -121,8 +121,8 @@
 
         <argument
             android:name="spending_limit"
-            app:argType="com.nunchuk.android.model.SpendingPolicy"
             android:defaultValue="@null"
+            app:argType="com.nunchuk.android.model.SpendingPolicy"
             app:nullable="true" />
 
     </fragment>
@@ -158,6 +158,9 @@
         <action
             android:id="@+id/action_createWalletFragment_to_createWalletSuccessFragment"
             app:destination="@id/createWalletSuccessFragment" />
+        <action
+            android:id="@+id/action_createWalletFragment_to_registerWalletFragment"
+            app:destination="@id/registerWalletFragment" />
     </fragment>
     <fragment
         android:id="@+id/createWalletSuccessFragment"
@@ -191,8 +194,7 @@
     <fragment
         android:id="@+id/registerWalletFragment"
         android:name="com.nunchuk.android.main.membership.honey.registerwallet.RegisterWalletFragment"
-        android:label="RegisterWalletFragment" >
-
+        android:label="RegisterWalletFragment">
 
         <action
             android:id="@+id/action_registerWalletFragment_to_createWalletSuccessFragment"

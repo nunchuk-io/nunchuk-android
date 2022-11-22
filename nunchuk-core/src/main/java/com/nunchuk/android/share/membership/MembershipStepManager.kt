@@ -161,6 +161,8 @@ class MembershipStepManager @Inject constructor(
         return if (index == 1) "" else " #${index}"
     }
 
+    fun isKeyExisted(masterSignerId: String) = stepInfo.value.any { it.masterSignerId == masterSignerId }
+
     private fun updateRemainTime() {
         _remainingTime.update {
             calculateRemainTime(steps.filter { isStepInThisPlan(it.key, plan) }.values)

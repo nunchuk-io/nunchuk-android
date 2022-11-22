@@ -8,4 +8,5 @@ sealed class Mk4IntroViewEvent {
     data class ShowError(val message: String) : Mk4IntroViewEvent()
     object OnContinueClicked : Mk4IntroViewEvent()
     object OnCreateSignerSuccess : Mk4IntroViewEvent()
+    object OnSignerExistInAssistedWallet : Mk4IntroViewEvent()
 }

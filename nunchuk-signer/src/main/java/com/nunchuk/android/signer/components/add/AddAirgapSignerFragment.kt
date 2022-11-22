@@ -32,11 +32,12 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showWarning
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.signer.R
-import com.nunchuk.android.signer.components.add.AddSignerEvent.*
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.*
 import com.nunchuk.android.signer.databinding.FragmentAddSignerBinding
 import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.widget.util.addTextChangedCallback
@@ -88,13 +89,14 @@ class AddAirgapSignerFragment : BaseFragment<FragmentAddSignerBinding>(),
     private fun observeEvent() {
         viewModel.event.observe(viewLifecycleOwner) {
             when (it) {
-                is AddSignerSuccessEvent -> openSignerInfo(it.singleSigner)
-                InvalidSignerSpecEvent -> binding.signerSpec.setError(getString(R.string.nc_error_invalid_signer_spec))
-                is AddSignerErrorEvent -> onAddAirSignerError(it.message)
-                SignerNameRequiredEvent -> binding.signerName.setError(getString(R.string.nc_text_required))
-                is LoadingEvent -> showOrHideLoading(it.isLoading)
-                is ParseKeystoneSignerSuccess -> handleResult(it.signers)
-                is ParseKeystoneSigner -> openSignerSheet(it.signers)
+                is AddAirgapSignerSuccessEvent -> openSignerInfo(it.singleSigner)
+                InvalidAirgapSignerSpecEvent -> binding.signerSpec.setError(getString(R.string.nc_error_invalid_signer_spec))
+                is AddAirgapSignerErrorEvent -> onAddAirSignerError(it.message)
+                AirgapSignerNameRequiredEvent -> binding.signerName.setError(getString(R.string.nc_text_required))
+                is LoadingEventAirgap -> showOrHideLoading(it.isLoading)
+                is ParseKeystoneAirgapSignerSuccess -> handleResult(it.signers)
+                is ParseKeystoneAirgapSigner -> openSignerSheet(it.signers)
+                AddSameKey -> showError(getString(R.string.nc_error_add_same_key))
             }
         }
     }
