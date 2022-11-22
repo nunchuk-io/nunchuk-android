@@ -24,13 +24,18 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.nunchuk.android.core.databinding.ActivityDynamicQrBinding
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.widget.util.setLightStatusBar
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class DynamicQRCodeActivity : AppCompatActivity() {
 
     private val args: DynamicQRCodeArgs by lazy { DynamicQRCodeArgs.deserializeFrom(intent) }
+    private val viewModel: DynamicQRCodeViewModel by viewModels()
 
     private lateinit var bitmaps: List<Bitmap>
 
@@ -47,6 +52,9 @@ class DynamicQRCodeActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupViews()
+        flowObserver(viewModel.getWalletName(args.walletId)) {
+            binding.toolbarTitle.text = it
+        }
     }
 
     private val updateTextTask = object : Runnable {
@@ -86,9 +94,10 @@ class DynamicQRCodeActivity : AppCompatActivity() {
 
         private var handler = Handler(Looper.getMainLooper())
 
-        fun start(activityContext: Context, values: List<String>) {
-            activityContext.startActivity(DynamicQRCodeArgs(values).buildIntent(activityContext))
-        }
+        fun buildIntent(activityContext: Context, walletId: String, values: List<String>) =
+            DynamicQRCodeArgs(walletId, values).buildIntent(
+                activityContext
+            )
     }
 
 }

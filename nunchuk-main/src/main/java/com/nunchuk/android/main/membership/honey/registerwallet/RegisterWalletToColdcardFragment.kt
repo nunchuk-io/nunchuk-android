@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,7 +26,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcImageAppBar
@@ -39,11 +39,16 @@ import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class RegisterWalletFragment : Fragment() {
-    private val viewModel: RegisterWalletViewModel by viewModels()
+class RegisterWalletToColdcardFragment : Fragment() {
+    private val viewModel: RegisterWalletToColdcardViewModel by viewModels()
     private val sharedViewModel by activityViewModels<SharedWalletConfigurationViewModel>()
 
-    private val args: RegisterWalletFragmentArgs by navArgs()
+    private val launcher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            openNextScreen()
+        }
+
+    private val args: RegisterWalletToColdcardFragmentArgs by navArgs()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,7 +60,7 @@ class RegisterWalletFragment : Fragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                RegisterWalletScreen(viewModel)
+                RegisterWalletToColdcardScreen(viewModel)
             }
         }
     }
@@ -66,7 +71,7 @@ class RegisterWalletFragment : Fragment() {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
                     when (event) {
-                        RegisterWalletEvent.ExportWalletToColdcard -> (requireActivity() as BaseWalletConfigActivity<*>).showExportColdcardOptions()
+                        RegisterWalletToColdcardEvent.ExportWalletToColdcard -> (requireActivity() as BaseWalletConfigActivity<*>).showExportColdcardOptions()
                     }
                 }
         }
@@ -74,32 +79,46 @@ class RegisterWalletFragment : Fragment() {
         sharedViewModel.event.observe(viewLifecycleOwner) {
             if (it is UploadConfigurationEvent.ExportColdcardSuccess) {
                 if (it.filePath.isNullOrEmpty()) {
-                    findNavController().navigate(
-                        RegisterWalletFragmentDirections.actionRegisterWalletFragmentToCreateWalletSuccessFragment(
-                            args.walletId
-                        ),
-                        NavOptions.Builder().setPopUpTo(findNavController().graph.startDestinationId, true).build()
-                    )
+                    openNextScreen()
                 } else {
-                    IntentSharingController.from(requireActivity()).shareFile(it.filePath.orEmpty())
+                    IntentSharingController.from(
+                        activityContext = requireActivity(),
+                        launcher = launcher
+                    ).shareFile(it.filePath.orEmpty())
                 }
             }
+        }
+    }
+
+    private fun openNextScreen() {
+        if (args.hasAirgap) {
+            findNavController().navigate(
+                RegisterWalletToColdcardFragmentDirections.actionRegisterWalletToColdcardFragmentToRegisterWalletToAirgapFragment(
+                    args.walletId
+                ),
+            )
+        } else {
+            findNavController().navigate(
+                RegisterWalletToColdcardFragmentDirections.actionRegisterWalletFragmentToCreateWalletSuccessFragment(
+                    args.walletId
+                ),
+            )
         }
     }
 }
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
-private fun RegisterWalletScreen(viewModel: RegisterWalletViewModel = viewModel()) {
+private fun RegisterWalletToColdcardScreen(viewModel: RegisterWalletToColdcardViewModel = viewModel()) {
     val remainingTime by viewModel.remainTime.collectAsStateWithLifecycle()
-    RegisterWalletContent(
+    RegisterWalletToColdcardContent(
         remainingTime = remainingTime,
         onExportToColdcardClicked = viewModel::onExportColdcardClicked
     )
 }
 
 @Composable
-private fun RegisterWalletContent(
+private fun RegisterWalletToColdcardContent(
     remainingTime: Int = 0,
     onExportToColdcardClicked: () -> Unit = {}
 ) {
@@ -137,5 +156,5 @@ private fun RegisterWalletContent(
 @Preview
 @Composable
 private fun RegisterWalletScreenPreview() {
-    RegisterWalletContent()
+    RegisterWalletToColdcardContent()
 }

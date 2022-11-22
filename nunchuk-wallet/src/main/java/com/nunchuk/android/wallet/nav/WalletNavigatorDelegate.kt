@@ -97,7 +97,12 @@ interface WalletNavigatorDelegate : WalletNavigator {
         )
     }
 
-    override fun openBackupWalletScreen(activityContext: Context, walletId: String, numberOfSignKey: Int, isQuickWallet: Boolean) {
+    override fun openBackupWalletScreen(
+        activityContext: Context,
+        walletId: String,
+        numberOfSignKey: Int,
+        isQuickWallet: Boolean
+    ) {
         BackupWalletActivity.start(
             activityContext = activityContext,
             walletId = walletId,
@@ -115,7 +120,13 @@ interface WalletNavigatorDelegate : WalletNavigator {
         walletId: String,
         keyPolicy: KeyPolicy?
     ) {
-        activityContext.startActivity(WalletConfigActivity.buildIntent(activityContext, walletId, keyPolicy))
+        activityContext.startActivity(
+            WalletConfigActivity.buildIntent(
+                activityContext,
+                walletId,
+                keyPolicy
+            )
+        )
     }
 
     override fun openWalletConfigScreen(
@@ -127,8 +138,13 @@ interface WalletNavigatorDelegate : WalletNavigator {
         launcher.launch(WalletConfigActivity.buildIntent(activityContext, walletId, keyPolicy))
     }
 
-    override fun openDynamicQRScreen(activityContext: Context, values: List<String>) {
-        DynamicQRCodeActivity.start(activityContext, values)
+    override fun openDynamicQRScreen(
+        activityContext: Context,
+        launcher: ActivityResultLauncher<Intent>,
+        walletId: String,
+        values: List<String>
+    ) {
+        launcher.launch(DynamicQRCodeActivity.buildIntent(activityContext, walletId, values))
     }
 
     override fun openWalletDetailsScreen(activityContext: Context, walletId: String) {
@@ -161,7 +177,15 @@ interface WalletNavigatorDelegate : WalletNavigator {
         requireSigns: Int,
         signers: List<SingleSigner>
     ) {
-        ReviewSharedWalletActivity.start(activityContext, walletName, walletType, addressType, totalSigns, requireSigns, signers)
+        ReviewSharedWalletActivity.start(
+            activityContext,
+            walletName,
+            walletType,
+            addressType,
+            totalSigns,
+            requireSigns,
+            signers
+        )
     }
 
     override fun openAssignSignerSharedWalletScreen(
@@ -173,7 +197,15 @@ interface WalletNavigatorDelegate : WalletNavigator {
         requireSigns: Int,
         signers: List<SingleSigner>
     ) {
-        AssignSignerSharedWalletActivity.start(activityContext, walletName, walletType, addressType, totalSigns, requireSigns, signers)
+        AssignSignerSharedWalletActivity.start(
+            activityContext,
+            walletName,
+            walletType,
+            addressType,
+            totalSigns,
+            requireSigns,
+            signers
+        )
     }
 
     override fun openSharedWalletConfigScreen(

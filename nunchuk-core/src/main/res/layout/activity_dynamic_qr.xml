@@ -18,8 +18,7 @@
             android:id="@+id/toolbarTitle"
             style="@style/NCToolbar.Text"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/nc_export_as_qr_keystone" />
+            android:layout_height="wrap_content" />
     </androidx.appcompat.widget.Toolbar>
 
     <ImageView
@@ -41,7 +40,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
-        android:text="@string/nc_text_close"
+        android:text="@string/nc_done_scanning"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 

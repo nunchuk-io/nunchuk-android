@@ -29,7 +29,6 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
-import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -59,16 +58,25 @@ class CreateWalletFragment : MembershipFragment() {
         }
     }
 
-    private fun handleCreateWalletSuccess(it: CreateWalletEvent.OnCreateWalletSuccess) {
-        if (viewModel.plan == MembershipPlan.IRON_HAND) {
+    private fun handleCreateWalletSuccess(event: CreateWalletEvent.OnCreateWalletSuccess) {
+        if (event.hasColdcard) {
             findNavController().navigate(
-                CreateWalletFragmentDirections.actionCreateWalletFragmentToCreateWalletSuccessFragment(
-                    it.walletId
+                CreateWalletFragmentDirections.actionCreateWalletFragmentToRegisterWalletToColdcardFragment(
+                    event.walletId,
+                    event.hasAirgap
+                )
+            )
+        } else if (event.hasAirgap) {
+            findNavController().navigate(
+                CreateWalletFragmentDirections.actionCreateWalletFragmentToRegisterWalletToAirgapFragment(
+                    event.walletId,
                 )
             )
         } else {
             findNavController().navigate(
-                CreateWalletFragmentDirections.actionCreateWalletFragmentToRegisterWalletFragment(it.walletId)
+                CreateWalletFragmentDirections.actionCreateWalletFragmentToCreateWalletSuccessFragment(
+                    event.walletId
+                )
             )
         }
     }

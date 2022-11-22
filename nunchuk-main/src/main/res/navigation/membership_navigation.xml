@@ -157,10 +157,25 @@
         android:label="CreateWalletFragment">
         <action
             android:id="@+id/action_createWalletFragment_to_createWalletSuccessFragment"
-            app:destination="@id/createWalletSuccessFragment" />
+            app:destination="@id/createWalletSuccessFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <action
-            android:id="@+id/action_createWalletFragment_to_registerWalletFragment"
-            app:destination="@id/registerWalletFragment" />
+            android:id="@+id/action_createWalletFragment_to_registerWalletToColdcardFragment"
+            app:destination="@id/registerWalletToColdcardFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_createWalletFragment_to_registerWalletToAirgapFragment"
+            app:destination="@id/registerWalletToAirgapFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
     <fragment
         android:id="@+id/createWalletSuccessFragment"
@@ -192,9 +207,9 @@
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
     <fragment
-        android:id="@+id/registerWalletFragment"
-        android:name="com.nunchuk.android.main.membership.honey.registerwallet.RegisterWalletFragment"
-        android:label="RegisterWalletFragment">
+        android:id="@+id/registerWalletToColdcardFragment"
+        android:name="com.nunchuk.android.main.membership.honey.registerwallet.RegisterWalletToColdcardFragment"
+        android:label="RegisterWalletToColdcardFragment">
 
         <action
             android:id="@+id/action_registerWalletFragment_to_createWalletSuccessFragment"
@@ -202,9 +217,48 @@
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@+id/registerWalletToColdcardFragment"
+            app:popUpToInclusive="true" />
+
+        <action
+            android:id="@+id/action_registerWalletToColdcardFragment_to_registerWalletToAirgapFragment"
+            app:destination="@id/registerWalletToAirgapFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@+id/registerWalletToColdcardFragment"
+            app:popUpToInclusive="true" />
+
         <argument
             android:name="wallet_id"
             app:argType="string" />
+
+        <argument
+            android:name="has_airgap"
+            app:argType="boolean" />
+
     </fragment>
+    <fragment
+        android:id="@+id/registerWalletToAirgapFragment"
+        android:name="com.nunchuk.android.main.membership.honey.registerwallet.RegisterWalletToAirgapFragment"
+        android:label="RegisterWalletToAirgapFragment">
+
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_registerWalletToAirgapFragment_to_createWalletSuccessFragment"
+            app:destination="@id/createWalletSuccessFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@+id/registerWalletToAirgapFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+
 </navigation>

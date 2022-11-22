@@ -23,17 +23,20 @@ import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 
-data class DynamicQRCodeArgs(val values: List<String>) : ActivityArgs {
+data class DynamicQRCodeArgs(val walletId: String, val values: List<String>) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, DynamicQRCodeActivity::class.java).apply {
         putExtra(EXTRA_WALLET_VALUES, values.joinToString(separator = ","))
+        putExtra(EXTRA_WALLET_ID, walletId)
     }
 
     companion object {
         private const val EXTRA_WALLET_VALUES = "EXTRA_WALLET_VALUES"
+        private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
 
         fun deserializeFrom(intent: Intent): DynamicQRCodeArgs = DynamicQRCodeArgs(
-            intent.extras?.getString(EXTRA_WALLET_VALUES, "").orEmpty().split(",")
+            intent.extras?.getString(EXTRA_WALLET_ID, "").orEmpty(),
+            intent.extras?.getString(EXTRA_WALLET_VALUES, "").orEmpty().split(","),
         )
     }
 }

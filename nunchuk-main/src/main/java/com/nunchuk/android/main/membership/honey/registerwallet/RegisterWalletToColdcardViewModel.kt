@@ -10,21 +10,21 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class RegisterWalletViewModel @Inject constructor(
+class RegisterWalletToColdcardViewModel @Inject constructor(
     membershipStepManager: MembershipStepManager
 ) : ViewModel() {
-    private val _event = MutableSharedFlow<RegisterWalletEvent>()
+    private val _event = MutableSharedFlow<RegisterWalletToColdcardEvent>()
     val event = _event.asSharedFlow()
 
     val remainTime = membershipStepManager.remainingTime
 
     fun onExportColdcardClicked() {
         viewModelScope.launch {
-            _event.emit(RegisterWalletEvent.ExportWalletToColdcard)
+            _event.emit(RegisterWalletToColdcardEvent.ExportWalletToColdcard)
         }
     }
 }
 
-sealed class RegisterWalletEvent {
-    object ExportWalletToColdcard : RegisterWalletEvent()
+sealed class RegisterWalletToColdcardEvent {
+    object ExportWalletToColdcard : RegisterWalletToColdcardEvent()
 }

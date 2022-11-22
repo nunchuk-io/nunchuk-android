@@ -26,10 +26,14 @@ import android.app.PendingIntent.*
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import androidx.activity.result.ActivityResultLauncher
 import androidx.core.content.FileProvider
 import java.io.File
 
-class IntentSharingController private constructor(val activityContext: Activity) {
+class IntentSharingController private constructor(
+    private val activityContext: Activity,
+    private val launcher: ActivityResultLauncher<Intent>? = null,
+) {
 
     private val receiver: Intent = Intent(activityContext, IntentSharingReceiver::class.java)
 
@@ -66,7 +70,7 @@ class IntentSharingController private constructor(val activityContext: Activity)
             intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         val createChooser = Intent.createChooser(intent, "Nunchuk")
-        activityContext.startActivity(createChooser)
+        launcher?.launch(createChooser) ?: activityContext.startActivity(createChooser)
     }
 
     fun shareText(text: String) {
@@ -77,7 +81,9 @@ class IntentSharingController private constructor(val activityContext: Activity)
     }
 
     companion object {
-        fun from(activityContext: Activity) = IntentSharingController(activityContext)
+        fun from(
+            activityContext: Activity,
+            launcher: ActivityResultLauncher<Intent>? = null
+        ) = IntentSharingController(activityContext, launcher)
     }
-
 }

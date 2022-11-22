@@ -19,8 +19,10 @@
 
 package com.nunchuk.android.wallet.components.base
 
+import android.app.Activity
 import android.nfc.tech.Ndef
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.CallSuper
 import androidx.viewbinding.ViewBinding
@@ -41,6 +43,12 @@ import kotlinx.coroutines.flow.filter
 abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity<Binding>(),
     BottomSheetOptionListener {
     protected val sharedViewModel by viewModels<SharedWalletConfigurationViewModel>()
+
+    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            sharedViewModel.doneScanQr()
+        }
+    }
 
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
@@ -73,7 +81,7 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
         }
     }
 
-    protected fun showSubOptionsExportQr() {
+    fun showSubOptionsExportQr() {
         val options = listOf(
             SheetOption(
                 type = SheetOptionType.TYPE_EXPORT_KEYSTONE_QR,
@@ -108,7 +116,7 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
     }
 
     private fun openDynamicQRScreen(event: UploadConfigurationEvent.OpenDynamicQRScreen) {
-        navigator.openDynamicQRScreen(this, event.values)
+        navigator.openDynamicQRScreen(this, launcher, event.walletId, event.values)
     }
 
     protected fun showError(event: UploadConfigurationEvent.ShowError) {

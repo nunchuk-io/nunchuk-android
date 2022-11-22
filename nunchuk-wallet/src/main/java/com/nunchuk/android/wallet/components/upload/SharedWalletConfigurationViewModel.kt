@@ -81,23 +81,13 @@ class SharedWalletConfigurationViewModel @Inject constructor(
         }
     }
 
-    fun handleShowQREvent() {
-        viewModelScope.launch {
-            exportKeystoneWalletUseCase.execute(walletId)
-                .flowOn(IO)
-                .onException { event(ShowError(it.message.orUnknownError())) }
-                .flowOn(Main)
-                .collect { event(OpenDynamicQRScreen(it)) }
-        }
-    }
-
     fun handleExportWalletQR() {
         viewModelScope.launch {
             exportKeystoneWalletUseCase.execute(walletId)
                 .flowOn(IO)
                 .onException { showError(it) }
                 .flowOn(Main)
-                .collect { event(OpenDynamicQRScreen(it)) }
+                .collect { event(OpenDynamicQRScreen(it, walletId)) }
         }
     }
 
@@ -107,9 +97,11 @@ class SharedWalletConfigurationViewModel @Inject constructor(
                 .flowOn(IO)
                 .onException { showError(it) }
                 .flowOn(Main)
-                .collect { event(OpenDynamicQRScreen(it)) }
+                .collect { event(OpenDynamicQRScreen(it, walletId)) }
         }
     }
+
+    fun doneScanQr() = setEvent(DoneScanQr)
 
     private fun exportWallet(walletId: String, filePath: String) {
         viewModelScope.launch {

@@ -179,7 +179,13 @@ class CreateWalletViewModel @Inject constructor(
                     _event.emit(CreateWalletEvent.ShowError(it.message.orUnknownError()))
                 }
                 .collect {
-                    _event.emit(CreateWalletEvent.OnCreateWalletSuccess(it.id))
+                    _event.emit(
+                        CreateWalletEvent.OnCreateWalletSuccess(
+                            walletId = it.id,
+                            hasColdcard = signers.any { signer -> signer.value.signerType == SignerType.COLDCARD_NFC },
+                            hasAirgap = signers.any { signer -> signer.value.signerType == SignerType.AIRGAP }
+                        )
+                    )
                 }
         }
     }
