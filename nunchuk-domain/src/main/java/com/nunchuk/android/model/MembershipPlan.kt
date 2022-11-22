@@ -1,5 +1,5 @@
 package com.nunchuk.android.model
 
 enum class MembershipPlan {
-    IRON_HAND, HONEY_BADGER
+    NONE, IRON_HAND, HONEY_BADGER
 }

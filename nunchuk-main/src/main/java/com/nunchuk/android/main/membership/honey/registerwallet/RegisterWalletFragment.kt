@@ -45,6 +45,11 @@ class RegisterWalletFragment : Fragment() {
 
     private val args: RegisterWalletFragmentArgs by navArgs()
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        sharedViewModel.init(args.walletId)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {

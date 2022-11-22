@@ -23,6 +23,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
+import com.nunchuk.android.model.MembershipPlan
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -41,6 +42,7 @@ class NcDataStore @Inject constructor(
     private val syncEnableKey = booleanPreferencesKey("sync_enable")
     private val isShowNfcUniversalKey = booleanPreferencesKey("show_nfc_universal")
     private val assistedWalletLocalIdKey = stringSetPreferencesKey("assisted_wallet_id")
+    private val membershipPlanKey = intPreferencesKey("membership_plan")
 
     val btcPriceFlow: Flow<Double>
         get() = context.dataStore.data.map { it[btcPriceKey] ?: 45000.0 }
@@ -63,6 +65,12 @@ class NcDataStore @Inject constructor(
     val assistedWalletIds: Flow<Set<String>>
         get() = context.dataStore.data.map {
             it[assistedWalletLocalIdKey].orEmpty()
+        }
+
+    val membershipPlan: Flow<MembershipPlan>
+        get() = context.dataStore.data.map {
+            val ordinal = it[membershipPlanKey] ?: 0
+            MembershipPlan.values()[ordinal]
         }
 
     suspend fun updateTurnOnNotification(turnOn: Boolean) {
@@ -92,6 +100,12 @@ class NcDataStore @Inject constructor(
     suspend fun setAssistedWalletIds(ids: Set<String>) {
         context.dataStore.edit { settings ->
             settings[assistedWalletLocalIdKey] = ids
+        }
+    }
+
+    suspend fun setMembershipPlan(plan: MembershipPlan) {
+        context.dataStore.edit {
+            it[membershipPlanKey] = plan.ordinal
         }
     }
 

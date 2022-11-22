@@ -23,11 +23,8 @@ interface MembershipStepDao : BaseDao<MembershipStepEntity> {
         masterSignerId: String
     ): MembershipStepEntity?
 
-    @Query("SELECT * FROM $TABLE_MEMBERSHIP_STEP WHERE key_id_in_server = :keyId")
-    suspend fun getStepByKeyId(keyId: String): MembershipStepEntity?
-
-    @Query("DELETE FROM $TABLE_MEMBERSHIP_STEP WHERE master_signer_id = :masterSignerId")
-    suspend fun deleteByMasterSignerId(masterSignerId: String)
+    @Query("DELETE FROM $TABLE_MEMBERSHIP_STEP WHERE email = :email AND master_signer_id = :masterSignerId")
+    suspend fun deleteByMasterSignerId(email: String, masterSignerId: String)
 
     @Query("DELETE FROM $TABLE_MEMBERSHIP_STEP WHERE email = :email")
     suspend fun deleteStepByEmail(email: String)

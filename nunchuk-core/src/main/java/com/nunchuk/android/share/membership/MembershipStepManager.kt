@@ -1,6 +1,7 @@
 package com.nunchuk.android.share.membership
 
 import com.google.gson.Gson
+import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
@@ -22,12 +23,12 @@ class MembershipStepManager @Inject constructor(
     private val getMembershipStepUseCase: GetMembershipStepUseCase,
     private val applicationScope: CoroutineScope,
     private val gson: Gson,
+    ncDataStore: NcDataStore
 ) {
     private var job: Job? = null
-
-    // TODO Hai Save instance state
-    var plan = MembershipPlan.IRON_HAND
-        private set
+    private val _plan = MutableStateFlow(MembershipPlan.NONE)
+    val plan: MembershipPlan
+        get() = _plan.value
     private val steps = hashMapOf<MembershipStep, MembershipStepFlow>()
     private val _stepDone = MutableStateFlow<Set<MembershipStep>>(emptySet())
     val stepDone = _stepDone.asStateFlow()
@@ -41,7 +42,13 @@ class MembershipStepManager @Inject constructor(
     private val stepInfo = MutableStateFlow<List<MembershipStepInfo>>(emptyList())
 
     init {
-        initStep()
+        applicationScope.launch {
+            ncDataStore.membershipPlan.collect {
+                _plan.value = it
+                initStep()
+                observerStep(plan)
+            }
+        }
     }
 
     private fun initStep() {
@@ -80,12 +87,6 @@ class MembershipStepManager @Inject constructor(
                     _stepDone.value = steps.filter { it.isVerifyOrAddKey }.map { it.step }.toSet()
                 }
         }
-    }
-
-    fun setCurrentPlan(plan: MembershipPlan) {
-        this.plan = plan
-        initStep()
-        observerStep(plan)
     }
 
     fun setCurrentStep(step: MembershipStep) {
@@ -161,7 +162,8 @@ class MembershipStepManager @Inject constructor(
         return if (index == 1) "" else " #${index}"
     }
 
-    fun isKeyExisted(masterSignerId: String) = stepInfo.value.any { it.masterSignerId == masterSignerId }
+    fun isKeyExisted(masterSignerId: String) =
+        stepInfo.value.any { it.masterSignerId == masterSignerId }
 
     private fun updateRemainTime() {
         _remainingTime.update {
@@ -186,6 +188,7 @@ class MembershipStepManager @Inject constructor(
                         || step == MembershipStep.HONEY_ADD_HARDWARE_KEY_1
                         || step == MembershipStep.HONEY_ADD_HARDWARE_KEY_2
                         || step == MembershipStep.SETUP_INHERITANCE
+            MembershipPlan.NONE -> false
         }
     }
 }

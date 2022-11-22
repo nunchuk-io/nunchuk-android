@@ -3,6 +3,7 @@ package com.nunchuk.android.main.repository
 import com.google.gson.Gson
 import com.nunchuk.android.api.key.MembershipApi
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.model.MemberSubscription
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStepInfo
@@ -25,6 +26,7 @@ class MembershipRepositoryImpl @Inject constructor(
     private val membershipApi: MembershipApi,
     private val nativeSdk: NunchukNativeSdk,
     private val gson: Gson,
+    private val ncDataStore: NcDataStore,
 ) : MembershipRepository {
     override fun getSteps(plan: MembershipPlan): Flow<List<MembershipStepInfo>> {
         return membershipStepDao.getSteps(accountManager.getAccount().email, plan)
@@ -49,13 +51,21 @@ class MembershipRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteStepBySignerId(masterSignerId: String) {
-        membershipStepDao.deleteByMasterSignerId(masterSignerId)
+        membershipStepDao.deleteByMasterSignerId(accountManager.getAccount().email, masterSignerId)
     }
 
     override suspend fun getSubscription(): MemberSubscription {
         val result = membershipApi.getCurrentSubscription()
         if (result.isSuccess) {
             val data = result.data
+            val plan = if (data.plan?.slug == IRON_HAND_PLAN) {
+                MembershipPlan.IRON_HAND
+            } else if (data.plan?.slug == HONEY_BADGER_PLAN) {
+                MembershipPlan.HONEY_BADGER
+            } else {
+                MembershipPlan.NONE
+            }
+            ncDataStore.setMembershipPlan(plan)
             return MemberSubscription(data.subscriptionId, data.plan?.slug)
         } else {
             throw result.error
@@ -77,5 +87,11 @@ class MembershipRepositoryImpl @Inject constructor(
                 }
         }
         membershipStepDao.deleteStepByEmail(accountManager.getAccount().email)
+    }
+
+
+    companion object {
+        private const val IRON_HAND_PLAN = "iron_hand"
+        private const val HONEY_BADGER_PLAN = "honey_badger"
     }
 }

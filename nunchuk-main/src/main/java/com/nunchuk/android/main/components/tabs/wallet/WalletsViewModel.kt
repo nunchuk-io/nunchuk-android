@@ -74,11 +74,6 @@ internal class WalletsViewModel @Inject constructor(
                 }
                 keyPolicyMap.clear()
                 keyPolicyMap.putAll(getServerWalletResult.getOrNull()?.keyPolicyMap.orEmpty())
-                if (subscription.slug == IRON_HAND_PLAN) {
-                    membershipStepManager.setCurrentPlan(MembershipPlan.IRON_HAND)
-                } else if (subscription.slug == HONEY_BADGER_PLAN) {
-                    membershipStepManager.setCurrentPlan(MembershipPlan.HONEY_BADGER)
-                }
                 updateState {
                     copy(
                         isPremiumUser = isPremiumUser,
@@ -224,9 +219,4 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     fun getKeyPolicy(walletId: String) = keyPolicyMap[walletId]
-
-    companion object {
-        private const val IRON_HAND_PLAN = "iron_hand"
-        private const val HONEY_BADGER_PLAN = "honey_badger"
-    }
 }

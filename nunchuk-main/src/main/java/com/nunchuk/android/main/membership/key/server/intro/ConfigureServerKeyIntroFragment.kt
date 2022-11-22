@@ -56,6 +56,7 @@ class ConfigureServerKeyIntroFragment : MembershipFragment() {
                 MembershipPlan.HONEY_BADGER -> findNavController().navigate(
                     ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigSpendingLimitFragment()
                 )
+                MembershipPlan.NONE -> Unit
             }
         }
     }

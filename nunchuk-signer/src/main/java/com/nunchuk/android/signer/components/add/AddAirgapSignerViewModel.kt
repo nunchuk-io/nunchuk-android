@@ -90,7 +90,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         isMembershipFlow: Boolean
     ) {
         viewModelScope.launch {
-            if (membershipStepManager.isKeyExisted(signerInput.derivationPath) && isMembershipFlow) {
+            if (membershipStepManager.isKeyExisted(signerInput.fingerPrint) && isMembershipFlow) {
                 setEvent(AddSameKey)
                 return@launch
             }
