@@ -154,13 +154,13 @@ fun AddKeyStepContent(
     openContactUs: (mail: String) -> Unit = {},
     plan: MembershipPlan = MembershipPlan.HONEY_BADGER,
 ) = NunchukTheme {
-    val imageBannerId = if (isSetupRecoverKeyDone) {
-        R.drawable.bg_create_a_wallet
-    } else if (isConfigKeyDone) {
-        R.drawable.bg_setup_recovery_key
-    } else {
-        R.drawable.nc_bg_let_s_add_keys
-    }
+    val imageBannerId =
+        when {
+            isCreateWalletDone -> R.drawable.bg_inheritance
+            isSetupRecoverKeyDone -> R.drawable.bg_create_a_wallet
+            isConfigKeyDone -> R.drawable.bg_setup_recovery_key
+            else -> R.drawable.nc_bg_let_s_add_keys
+        }
 
     Scaffold { innerPadding ->
         Column(
@@ -289,5 +289,5 @@ fun StepWithEstTime(
 @Preview
 @Composable
 fun AddKeyStepScreenPreview() {
-    AddKeyStepContent(isSetupRecoverKeyDone = true, isConfigKeyDone = true)
+    AddKeyStepContent(isSetupRecoverKeyDone = false, isConfigKeyDone = false, isCreateWalletDone = true)
 }

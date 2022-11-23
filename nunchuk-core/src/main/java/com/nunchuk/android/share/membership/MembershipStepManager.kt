@@ -45,25 +45,28 @@ class MembershipStepManager @Inject constructor(
         applicationScope.launch {
             ncDataStore.membershipPlan.collect {
                 _plan.value = it
-                initStep()
+                initStep(plan)
                 observerStep(plan)
             }
         }
     }
 
-    private fun initStep() {
-        steps[MembershipStep.ADD_TAP_SIGNER_1] = MembershipStepFlow(totalStep = 8)
-        steps[MembershipStep.ADD_TAP_SIGNER_2] = MembershipStepFlow(totalStep = 8)
-        steps[MembershipStep.HONEY_ADD_TAP_SIGNER] = MembershipStepFlow(totalStep = 8)
-        steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
-        steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 1)
-        steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
-
-        // TODO Hai
-        steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_1] = MembershipStepFlow(totalStep = 2)
-        steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_2] = MembershipStepFlow(totalStep = 2)
-        steps[MembershipStep.SETUP_INHERITANCE] = MembershipStepFlow(totalStep = 2)
-
+    private fun initStep(plan: MembershipPlan) {
+        if (plan == MembershipPlan.IRON_HAND) {
+            steps[MembershipStep.ADD_TAP_SIGNER_1] = MembershipStepFlow(totalStep = 8)
+            steps[MembershipStep.ADD_TAP_SIGNER_2] = MembershipStepFlow(totalStep = 8)
+            steps[MembershipStep.HONEY_ADD_TAP_SIGNER] = MembershipStepFlow(totalStep = 8)
+            steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
+            steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 1)
+            steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
+        } else if (plan == MembershipPlan.HONEY_BADGER) {
+            steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_1] = MembershipStepFlow(totalStep = 8)
+            steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_2] = MembershipStepFlow(totalStep = 8)
+            steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
+            steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 2)
+            steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
+            steps[MembershipStep.SETUP_INHERITANCE] = MembershipStepFlow(totalStep = 2)
+        }
         _remainingTime.value = steps.values.sumOf { it.totalStep * 2 }
         _stepDone.value = emptySet()
     }
@@ -76,7 +79,7 @@ class MembershipStepManager @Inject constructor(
                 .collect { steps ->
                     stepInfo.value = steps
                     if (steps.isEmpty()) {
-                        initStep()
+                        initStep(_plan.value)
                     } else {
                         steps.forEach { step ->
                             if (step.isVerifyOrAddKey) markStepDone(step.step)
@@ -94,20 +97,20 @@ class MembershipStepManager @Inject constructor(
     }
 
     private fun markStepDone(step: MembershipStep) {
-        val stepInfo = steps[step] ?: throw IllegalArgumentException("Not support $step")
+        val stepInfo = steps[step] ?: return
         stepInfo.currentStep = stepInfo.totalStep
         updateRemainTime()
     }
 
     private fun addRequireStep(step: MembershipStep) {
-        val stepInfo = steps[step] ?: throw IllegalArgumentException("Not support $step")
+        val stepInfo = steps[step] ?: return
         stepInfo.currentStep = 0
         updateRemainTime()
     }
 
     fun updateStep(isForward: Boolean) {
         val step = currentStep ?: return
-        val stepInfo = steps[step] ?: throw IllegalArgumentException("Not support $step")
+        val stepInfo = steps[step] ?: return
         if (_stepDone.value.contains(step)) return
         if (isForward) {
             stepInfo.currentStep = stepInfo.currentStep.inc().coerceAtMost(stepInfo.totalStep)

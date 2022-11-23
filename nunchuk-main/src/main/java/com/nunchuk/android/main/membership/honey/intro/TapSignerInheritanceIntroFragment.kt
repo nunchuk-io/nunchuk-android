@@ -140,7 +140,7 @@ private fun TapSignerInheritanceIntroContent(
                     .navigationBarsPadding()
             ) {
                 NcImageAppBar(
-                    backgroundRes = R.drawable.bg_inheritancekey,
+                    backgroundRes = R.drawable.bg_inheritance_key,
                     title = stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
