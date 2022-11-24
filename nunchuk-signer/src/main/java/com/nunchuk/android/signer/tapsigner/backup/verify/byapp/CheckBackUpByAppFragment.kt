@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalFoundationApi::class, ExperimentalLifecycleComposeApi::class)
+
 package com.nunchuk.android.signer.tapsigner.backup.verify.byapp
 
 import android.nfc.tech.IsoDep
@@ -5,13 +7,18 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
@@ -41,7 +48,9 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.widget.NCWarningVerticalDialog
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class CheckBackUpByAppFragment : MembershipFragment() {
@@ -53,7 +62,11 @@ class CheckBackUpByAppFragment : MembershipFragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                CheckBackUpByAppScreen(viewModel, membershipStepManager, nfcViewModel.masterSignerId)
+                CheckBackUpByAppScreen(
+                    viewModel,
+                    membershipStepManager,
+                    nfcViewModel.masterSignerId
+                )
             }
         }
     }
@@ -66,7 +79,9 @@ class CheckBackUpByAppFragment : MembershipFragment() {
                     when (event) {
                         CheckBackUpByAppEvent.OnVerifyBackUpKeySuccess -> handleBackUpKeySuccess()
                         CheckBackUpByAppEvent.OnVerifyFailedTooMuch -> handleVerifyFailedTooMuch()
-                        is CheckBackUpByAppEvent.ShowError -> if (nfcViewModel.handleNfcError(event.e).not()) {
+                        is CheckBackUpByAppEvent.ShowError -> if (nfcViewModel.handleNfcError(event.e)
+                                .not()
+                        ) {
                             showError(event.e?.message?.orUnknownError())
                         }
                         is CheckBackUpByAppEvent.GetTapSignerBackupKeyEvent -> {
@@ -110,7 +125,6 @@ class CheckBackUpByAppFragment : MembershipFragment() {
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 private fun CheckBackUpByAppScreen(
     viewModel: CheckBackUpByAppViewModel = viewModel(),
@@ -138,14 +152,17 @@ private fun CheckBackUpByAppContent(
     remainingTime: Int = 0,
     masterSignerId: String = "",
 ) {
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val coroutineScope = rememberCoroutineScope()
     NunchukTheme {
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .fillMaxHeight()
                     .padding(innerPadding)
-                    .verticalScroll(rememberScrollState())
                     .navigationBarsPadding()
+                    .imePadding()
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
             ) {
                 NcImageAppBar(
                     backgroundRes = R.drawable.nc_bg_tap_signer_explain,
@@ -165,6 +182,14 @@ private fun CheckBackUpByAppContent(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth(),
+                    onFocusEvent = { focusState ->
+                        if (focusState.isFocused) {
+                            coroutineScope.launch {
+                                delay(500L)
+                                bringIntoViewRequester.bringIntoView()
+                            }
+                        }
+                    },
                     error = errorMessage,
                     title = stringResource(id = R.string.nc_decryption_key),
                     value = decryptionKey,
@@ -174,6 +199,7 @@ private fun CheckBackUpByAppContent(
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .padding(16.dp)
+                        .bringIntoViewRequester(bringIntoViewRequester)
                         .fillMaxWidth(),
                     onClick = { onContinueClicked(masterSignerId) }
                 ) {

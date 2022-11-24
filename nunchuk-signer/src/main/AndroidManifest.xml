@@ -32,12 +32,6 @@
         </activity>
 
         <activity
-            android:name=".AirSignerIntroActivity"
-            android:label="@string/nc_signer_before_start_title"
-            android:screenOrientation="portrait"
-            android:theme="@style/NunchukNoActionBar.Light" />
-
-        <activity
             android:name=".components.add.ScanDynamicQRActivity"
             android:label="Add passport signers"
             android:screenOrientation="portrait"

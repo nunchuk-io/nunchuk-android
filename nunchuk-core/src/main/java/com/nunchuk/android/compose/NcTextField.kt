@@ -13,6 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -35,6 +37,7 @@ fun NcTextField(
     singleLine: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
     colors: TextFieldColors = TextFieldDefaults.textFieldColors(),
+    onFocusEvent: (FocusState) -> Unit = {},
     onValueChange: (value: String) -> Unit,
 ) {
     val hasError = error != null && error.isNotEmpty()
@@ -49,6 +52,7 @@ fun NcTextField(
                     color = if (hasError) colorResource(id = R.color.nc_red_tint_color) else MaterialTheme.colors.surface,
                     shape = RoundedCornerShape(8.dp)
                 )
+                .onFocusEvent(onFocusEvent)
                 .defaultMinSize(
                     minWidth = TextFieldDefaults.MinWidth,
                 ).fillMaxWidth(),
