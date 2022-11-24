@@ -12,10 +12,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CheckBackUpBySelfViewModel @Inject constructor(
-   private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
-   savedStateHandle: SavedStateHandle
+    private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val args : CheckBackUpBySelfFragmentArgs = CheckBackUpBySelfFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    private val args: CheckBackUpBySelfFragmentArgs =
+        CheckBackUpBySelfFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _event = MutableSharedFlow<CheckBackUpBySelfEvent>()
     val event = _event.asSharedFlow()
 
@@ -27,7 +28,8 @@ class CheckBackUpBySelfViewModel @Inject constructor(
 
     fun setKeyVerified() {
         viewModelScope.launch {
-            val result = setKeyVerifiedUseCase(args.masterSignerId)
+            val result =
+                setKeyVerifiedUseCase(SetKeyVerifiedUseCase.Param(args.masterSignerId, false))
             if (result.isSuccess) {
                 _event.emit(OnExitSelfCheck)
             } else {

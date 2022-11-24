@@ -41,20 +41,23 @@ class CheckBackUpByAppViewModel @Inject constructor(
     fun onContinueClicked(masterSignerId: String) {
         viewModelScope.launch {
             val result =
-                verifyTapSignerBackupUseCase(VerifyTapSignerBackupUseCase.Data(
-                    masterSignerId = masterSignerId,
-                    backUpKey = args.filePath,
-                    decryptionKey = decryptionKey
-                ))
+                verifyTapSignerBackupUseCase(
+                    VerifyTapSignerBackupUseCase.Data(
+                        masterSignerId = masterSignerId,
+                        backUpKey = args.filePath,
+                        decryptionKey = decryptionKey
+                    )
+                )
             if (result.isSuccess && result.getOrThrow()) {
-                val apiResult = setKeyVerifiedUseCase(masterSignerId)
+                val apiResult =
+                    setKeyVerifiedUseCase(SetKeyVerifiedUseCase.Param(masterSignerId, true))
                 if (apiResult.isSuccess) {
                     _event.emit(CheckBackUpByAppEvent.OnVerifyBackUpKeySuccess)
                 } else {
                     _event.emit(CheckBackUpByAppEvent.ShowError(apiResult.exceptionOrNull()))
                 }
             } else {
-                tryCount ++
+                tryCount++
                 errorMessage = application.getString(R.string.nc_decryption_failed_try_again)
                 if (tryCount == MAX_TRY) {
                     _event.emit(CheckBackUpByAppEvent.OnVerifyFailedTooMuch)
@@ -63,10 +66,16 @@ class CheckBackUpByAppViewModel @Inject constructor(
         }
     }
 
-    fun getTapSignerBackup(isoDep: IsoDep,  masterSignerId: String, cvc: String) {
+    fun getTapSignerBackup(isoDep: IsoDep, masterSignerId: String, cvc: String) {
         viewModelScope.launch {
             _event.emit(CheckBackUpByAppEvent.NfcLoading(true))
-            val result = getTapSignerBackupUseCase(GetTapSignerBackupUseCase.Data(isoDep, cvc, masterSignerId))
+            val result = getTapSignerBackupUseCase(
+                GetTapSignerBackupUseCase.Data(
+                    isoDep,
+                    cvc,
+                    masterSignerId
+                )
+            )
             _event.emit(CheckBackUpByAppEvent.NfcLoading(false))
             if (result.isSuccess) {
                 _event.emit(CheckBackUpByAppEvent.GetTapSignerBackupKeyEvent(result.getOrThrow()))

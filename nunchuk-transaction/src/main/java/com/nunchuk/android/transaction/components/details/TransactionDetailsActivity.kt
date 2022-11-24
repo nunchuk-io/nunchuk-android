@@ -47,7 +47,6 @@ import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
 import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeArgs
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
-import com.nunchuk.android.transaction.components.utils.returnActiveRoom
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
@@ -437,7 +436,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             fragmentManager = supportFragmentManager,
             isPending = event.isPendingTransaction,
             isPendingConfirm = event.isPendingConfirm,
-            isRejected = event.isRejected
+            isRejected = event.isRejected,
+            isAssistedWallet = viewModel.isAssistedWallet()
         ).setListener {
             when (it) {
                 CANCEL -> promptCancelTransactionConfirmation()

@@ -32,4 +32,9 @@
     <string name="nc_cosigning_limit_hint">If you have configured a co-signing spending limit for the server key, it is safe to carry one key with you. Use two of your own keys when you want to withdraw more than the limit.</string>
     <string name="nc_register_wallet_to_airgap_title">Please register this wallet with your air-gapped device</string>
     <string name="nc_register_wallet_to_airgap_desc">You must register this wallet with your air-gapped device before you can use it to sign transactions.\n\nPlease do so by scanning the QR code on the next screen using your device.</string>
+    <string name="nc_inheritance_claim_trustee">The inheritance can be claimed directly by the Beneficiary or indirectly through a third-party Trustee.</string>
+    <string name="nc_plan_overview">Plan overview</string>
+    <string name="nc_plan_overview_desc">The inheritance plan will have these main components:</string>
+    <string name="nc_activation_date">An activation date</string>
+    <string name="nc_plan_overview_bottom_desc">We will now go through these steps one-by-one.</string>
 </resources>

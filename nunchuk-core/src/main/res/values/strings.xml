@@ -277,5 +277,10 @@
     <string name="nc_select_your_export_method">Select your export method</string>
     <string name="nc_show_wallet_qr">Show wallet QR code</string>
     <string name="nc_done_scanning">Done scanning</string>
+    <string name="nc_schedule_broadcast">Schedule broadcast</string>
+    <string name="nc_setup_inheritance_plan_intro_title">Set up inheritance plan</string>
+    <string name="nc_setup_inheritance_plan_intro_desc">The Nunchuk inheritance plan allows you to safely pass along your bitcoin to your loved ones, while not affecting the security of your day-to-day wallet usage.\n\nBefore we begin, here are some definitions.</string>
+    <string name="nc_magical_phrase">A Magical Phrase</string>
+    <string name="nc_backup_password">A Backup Password</string>
 
 </resources>

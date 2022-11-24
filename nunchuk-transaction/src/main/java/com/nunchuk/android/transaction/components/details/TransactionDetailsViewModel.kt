@@ -29,7 +29,10 @@ import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -387,18 +390,19 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private fun signPersonalTransaction(device: Device, signerId: String) {
         viewModelScope.launch {
+            val isAssistedWallet = assistedWalletManager.isAssistedWallet(walletId)
             val result = signTransactionUseCase(
                 SignTransactionUseCase.Param(
                     walletId = walletId,
                     txId = txId,
                     device = device,
                     signerId = signerId,
-                    isAssistedWallet = assistedWalletManager.isAssistedWallet(walletId)
+                    isAssistedWallet = isAssistedWallet
                 )
             )
             if (result.isSuccess) {
                 updateTransaction(result.getOrThrow())
-                setEvent(SignTransactionSuccess())
+                setEvent(SignTransactionSuccess(isAssistedWallet = isAssistedWallet, status = result.getOrThrow().status))
             } else {
                 fireSignError(result.exceptionOrNull())
             }
@@ -469,13 +473,14 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private fun signPersonTapSignerTransaction(isoDep: IsoDep, inputCvc: String) {
         viewModelScope.launch {
             setEvent(NfcLoadingEvent())
+            val isAssistedWallet = assistedWalletManager.isAssistedWallet(walletId)
             val result = signTransactionByTapSignerUseCase(
                 SignTransactionByTapSignerUseCase.Data(
                     isoDep = isoDep,
                     cvc = inputCvc,
                     walletId = walletId,
                     txId = txId,
-                    isAssistedWallet = assistedWalletManager.isAssistedWallet(walletId)
+                    isAssistedWallet = isAssistedWallet
                 )
             )
             if (result.isSuccess) {
@@ -492,4 +497,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
         setEvent(TransactionDetailsError(message, e))
         CrashlyticsReporter.recordException(TransactionException(message))
     }
+
+    fun isAssistedWallet() = assistedWalletManager.isAssistedWallet(walletId)
 }

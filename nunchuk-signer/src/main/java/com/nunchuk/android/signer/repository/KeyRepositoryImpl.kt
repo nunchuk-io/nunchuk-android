@@ -62,7 +62,7 @@ class KeyRepositoryImpl @Inject constructor(
                 keyXfp = keyXfp,
                 image = body
             )
-            if (result.isSuccess || result.error.code == 400) { // TODO Hai
+            if (result.isSuccess || result.error.code == ALREADY_VERIFIED_CODE) {
                 val response = if (result.isSuccess) result.data else null
                 val email = accountManager.getAccount().email
                 val info = MembershipStepEntity(
@@ -78,7 +78,7 @@ class KeyRepositoryImpl @Inject constructor(
                             signerType = SignerType.NFC
                         )
                     ),
-                    isVerify = result.error.code == 400,
+                    isVerify = result.error.code == ALREADY_VERIFIED_CODE,
                     plan = plan
                 )
                 membershipDao.updateOrInsert(info)
@@ -100,12 +100,18 @@ class KeyRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun setKeyVerified(masterSignerId: String) {
+    override suspend fun setKeyVerified(masterSignerId: String, isAppVerify: Boolean) {
         val stepInfo =
             membershipDao.getStepByMasterSignerId(accountManager.getAccount().email, masterSignerId)
                 ?: throw NullPointerException("Can not mark key verified $masterSignerId")
         val response =
-            keyApi.setKeyVerified(stepInfo.keyIdInServer, KeyVerifiedRequest(stepInfo.checkSum))
+            keyApi.setKeyVerified(
+                stepInfo.keyIdInServer,
+                KeyVerifiedRequest(
+                    stepInfo.checkSum,
+                    if (isAppVerify) "APP_VERIFIED" else "SELF_VERIFIED"
+                )
+            )
         if (response.isSuccess) {
             membershipDao.updateOrInsert(stepInfo.copy(isVerify = true))
         } else {
@@ -142,5 +148,9 @@ class KeyRepositoryImpl @Inject constructor(
                 }
             }
         }
+    }
+
+    companion object {
+        private const val ALREADY_VERIFIED_CODE = 409
     }
 }

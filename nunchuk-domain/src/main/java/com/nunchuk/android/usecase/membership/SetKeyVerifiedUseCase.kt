@@ -9,8 +9,10 @@ import javax.inject.Inject
 class SetKeyVerifiedUseCase @Inject constructor(
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val repository: KeyRepository
-) : UseCase<String, Unit>(dispatcher) {
-    override suspend fun execute(parameters: String) {
-        repository.setKeyVerified(parameters)
+) : UseCase<SetKeyVerifiedUseCase.Param, Unit>(dispatcher) {
+    override suspend fun execute(parameters: Param) {
+        repository.setKeyVerified(parameters.masterSignerId, parameters.isAppVerified)
     }
+
+    data class Param(val masterSignerId: String, val isAppVerified: Boolean)
 }

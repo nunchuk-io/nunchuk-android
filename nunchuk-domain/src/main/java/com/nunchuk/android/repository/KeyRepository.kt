@@ -17,6 +17,7 @@ interface KeyRepository {
     ): Flow<KeyUpload>
 
     suspend fun setKeyVerified(
-        masterSignerId: String
+        masterSignerId: String,
+        isAppVerify: Boolean,
     )
 }

@@ -127,10 +127,11 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
         private fun newInstance(
             isPending: Boolean,
             isPendingConfirm: Boolean,
-            isRejected: Boolean
+            isRejected: Boolean,
+            isAssistedWallet: Boolean
         ) = TransactionOptionsBottomSheet().apply {
             arguments =
-                TransactionOptionsArgs(isPending, isPendingConfirm, isRejected).buildBundle()
+                TransactionOptionsArgs(isPending, isPendingConfirm, isRejected, isAssistedWallet).buildBundle()
         }
 
 
@@ -138,12 +139,14 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             fragmentManager: FragmentManager,
             isPending: Boolean,
             isPendingConfirm: Boolean,
-            isRejected: Boolean
+            isRejected: Boolean,
+            isAssistedWallet: Boolean,
         ): TransactionOptionsBottomSheet {
             return newInstance(
                 isPending,
                 isPendingConfirm,
-                isRejected
+                isRejected,
+                isAssistedWallet,
             ).apply { show(fragmentManager, TAG) }
         }
     }
@@ -153,24 +156,28 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
 data class TransactionOptionsArgs(
     val isPending: Boolean,
     val isPendingConfirm: Boolean,
-    val isRejected: Boolean
+    val isRejected: Boolean,
+    val isAssistedWallet: Boolean,
 ) : FragmentArgs {
 
     override fun buildBundle() = Bundle().apply {
         putBoolean(EXTRA_IS_PENDING, isPending)
         putBoolean(EXTRA_IS_PENDING_CONFIRM, isPendingConfirm)
         putBoolean(EXTRA_IS_REJECTED, isRejected)
+        putBoolean(EXTRA_IS_ASSISTED_WALLET, isAssistedWallet)
     }
 
     companion object {
         private const val EXTRA_IS_PENDING = "EXTRA_IS_PENDING"
         private const val EXTRA_IS_PENDING_CONFIRM = "EXTRA_IS_PENDING_CONFIRM"
         private const val EXTRA_IS_REJECTED = "EXTRA_IS_REJECTED"
+        private const val EXTRA_IS_ASSISTED_WALLET = "EXTRA_IS_ASSISTED_WALLET"
 
         fun deserializeFrom(data: Bundle?) = TransactionOptionsArgs(
             data?.getBooleanValue(EXTRA_IS_PENDING).orFalse(),
             data?.getBooleanValue(EXTRA_IS_PENDING_CONFIRM).orFalse(),
             data?.getBooleanValue(EXTRA_IS_REJECTED).orFalse(),
+            data?.getBooleanValue(EXTRA_IS_ASSISTED_WALLET).orFalse(),
         )
     }
 }

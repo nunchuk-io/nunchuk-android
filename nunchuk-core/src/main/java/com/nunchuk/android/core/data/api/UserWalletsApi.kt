@@ -2,9 +2,6 @@ package com.nunchuk.android.core.data.api
 
 import com.nunchuk.android.core.data.model.*
 import com.nunchuk.android.core.data.model.membership.*
-import com.nunchuk.android.core.data.model.membership.CreateOrUpdateWalletResponse
-import com.nunchuk.android.core.data.model.membership.CreateWalletRequest
-import com.nunchuk.android.core.data.model.membership.GetWalletResponse
 import com.nunchuk.android.core.network.Data
 import retrofit2.http.*
 
