@@ -4,13 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Icon
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -23,7 +24,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -50,6 +50,7 @@ import com.nunchuk.android.main.membership.model.getButtonText
 import com.nunchuk.android.main.membership.model.getLabel
 import com.nunchuk.android.main.membership.model.resId
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -257,9 +258,7 @@ fun AddKeyListScreen(
 ) {
     val keys by viewModel.key.collectAsStateWithLifecycle()
     val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
-    val onBackPressedDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
     AddKeyListContent(
-        onBackClicked = { onBackPressedDispatcher?.onBackPressed() },
         onContinueClicked = viewModel::onContinueClicked,
         onAddClicked = viewModel::onAddKeyClicked,
         onVerifyClicked = viewModel::onVerifyClicked,
@@ -270,7 +269,6 @@ fun AddKeyListScreen(
 
 @Composable
 fun AddKeyListContent(
-    onBackClicked: () -> Unit = {},
     onAddClicked: (data: AddKeyData) -> Unit = {},
     onVerifyClicked: (data: AddKeyData) -> Unit = {},
     onContinueClicked: () -> Unit = {},
@@ -278,38 +276,22 @@ fun AddKeyListContent(
     remainingTime: Int,
 ) {
     NunchukTheme {
-        Scaffold(modifier = Modifier
-            .statusBarsPadding()
-            .navigationBarsPadding(),
-            topBar = {
-                TopAppBar(title = {
-                    Text(
-                        text = stringResource(id = R.string.nc_estimate_remain_time, remainingTime),
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1
-                    )
-                }, navigationIcon = {
-                    IconButton(onClick = onBackClicked) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_back),
-                            contentDescription = "Back Icon"
-                        )
-                    }
-                }, backgroundColor = MaterialTheme.colors.surface)
-            }) { innerPadding ->
+        Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .padding(horizontal = 16.dp)
+                    .statusBarsPadding()
+                    .navigationBarsPadding()
             ) {
+                NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainingTime))
                 Text(
-                    modifier = Modifier.padding(top = 16.dp),
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_let_add_your_keys),
                     style = NunchukTheme.typography.heading
                 )
                 Text(
-                    modifier = Modifier.padding(top = 16.dp),
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     text = buildAnnotatedString {
                         append(stringResource(id = R.string.nc_add_key_list_desc_one))
                         append(" ")
@@ -323,7 +305,8 @@ fun AddKeyListContent(
                 LazyColumn(
                     modifier = Modifier
                         .weight(1.0f)
-                        .padding(top = 24.dp),
+                        .padding(top = 24.dp)
+                        .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(keys) { key ->
@@ -358,7 +341,7 @@ fun AddKeyCard(
     if (item.signer != null) {
         Box(
             modifier = Modifier.background(
-                color = if (item.isVerify)
+                color = if (item.verifyType == VerifyType.NONE)
                     colorResource(id = R.color.nc_green_color)
                 else
                     colorResource(id = R.color.nc_beeswax_tint),
@@ -383,11 +366,16 @@ fun AddKeyCard(
                         style = NunchukTheme.typography.body
                     )
                     if (item.signer.type == SignerType.NFC) {
+                        val label = when (item.verifyType) {
+                            VerifyType.NONE -> stringResource(id = R.string.nc_un_verify_backup)
+                            VerifyType.APP_VERIFIED -> stringResource(id = R.string.nc_verified_backup)
+                            VerifyType.SELF_VERIFIED -> stringResource(id = R.string.nc_un_verify_backup)
+                        }
                         NcTag(
                             modifier = Modifier.padding(top = 4.dp),
-                            label = stringResource(R.string.nc_verified_backup),
+                            label = label,
                             backgroundColor = colorResource(
-                                id = R.color.nc_white_color
+                                id = R.color.nc_whisper_color
                             ),
                         )
                     }
@@ -397,7 +385,7 @@ fun AddKeyCard(
                         style = NunchukTheme.typography.bodySmall
                     )
                 }
-                if (item.isVerify) {
+                if (item.verifyType != VerifyType.NONE) {
                     Icon(
                         painter = painterResource(id = R.drawable.nc_circle_checked),
                         contentDescription = "Checked icon"
@@ -419,7 +407,7 @@ fun AddKeyCard(
             }
         }
     } else {
-        if (item.isVerify) {
+        if (item.verifyType != VerifyType.NONE) {
             Box(
                 modifier = Modifier.background(
                     colorResource(id = R.color.nc_green_color),
@@ -484,12 +472,13 @@ fun AddKeyListScreenPreview() {
         keys = listOf(
             AddKeyData(
                 type = MembershipStep.ADD_TAP_SIGNER_1,
-                SignerModel("123", "My Key", "", fingerPrint = "123456")
+                SignerModel(id = "123", type = SignerType.NFC, name = "My Key", derivationPath = "", fingerPrint = "123456"),
+                verifyType = VerifyType.APP_VERIFIED
             ),
             AddKeyData(
                 type = MembershipStep.ADD_TAP_SIGNER_2,
-                signer = SignerModel("123", "My Key", "", fingerPrint = "123456"),
-                isVerify = true
+                signer = SignerModel(id = "123", type = SignerType.NFC, name = "My Key", derivationPath = "", fingerPrint = "123456"),
+                verifyType = VerifyType.NONE
             ),
             AddKeyData(type = MembershipStep.ADD_SEVER_KEY),
         ),

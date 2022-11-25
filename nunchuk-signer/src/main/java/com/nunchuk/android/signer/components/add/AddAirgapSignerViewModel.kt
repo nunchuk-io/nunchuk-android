@@ -33,6 +33,7 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.*
 import com.nunchuk.android.type.SignerType
@@ -113,7 +114,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                                 ?: throw IllegalArgumentException("Current step empty"),
                             masterSignerId = airgap.masterFingerprint,
                             plan = membershipStepManager.plan,
-                            isVerify = true,
+                            verifyType = VerifyType.APP_VERIFIED,
                             extraData = gson.toJson(
                                 SignerExtra(
                                     derivationPath = airgap.derivationPath,

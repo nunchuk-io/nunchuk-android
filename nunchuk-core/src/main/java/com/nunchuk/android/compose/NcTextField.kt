@@ -29,6 +29,7 @@ fun NcTextField(
     modifier: Modifier = Modifier,
     title: String,
     value: String,
+    rightText: String? = null,
     error: String? = null,
     placeholder: @Composable (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -44,53 +45,71 @@ fun NcTextField(
     val interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
     Column(modifier = modifier) {
         if (title.isNotEmpty()) {
-            Text(modifier = Modifier.padding(bottom = 4.dp), text = title, style = NunchukTheme.typography.titleSmall)
+            Text(
+                modifier = Modifier.padding(bottom = 4.dp),
+                text = title,
+                style = NunchukTheme.typography.titleSmall
+            )
         }
-        BasicTextField(
-            modifier = Modifier
-                .background(
-                    color = if (hasError) colorResource(id = R.color.nc_red_tint_color) else MaterialTheme.colors.surface,
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .onFocusEvent(onFocusEvent)
-                .defaultMinSize(
-                    minWidth = TextFieldDefaults.MinWidth,
-                ).fillMaxWidth(),
-            value = value,
-            textStyle = NunchukTheme.typography.body,
-            keyboardOptions = keyboardOptions,
-            keyboardActions = keyboardActions,
-            maxLines = maxLines,
-            enabled = enabled,
-            onValueChange = onValueChange,
-            decorationBox = @Composable { innerTextField ->
-                // places leading icon, text field with label and placeholder, trailing icon
-                TextFieldDefaults.OutlinedTextFieldDecorationBox(
-                    value = value,
-                    visualTransformation = VisualTransformation.None,
-                    innerTextField = innerTextField,
-                    placeholder = placeholder,
-                    label = null,
-                    leadingIcon = null,
-                    trailingIcon = null,
-                    singleLine = singleLine,
-                    enabled = enabled,
-                    isError = false,
-                    interactionSource = interactionSource,
-                    colors = colors,
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp),
-                    border = {
-                        Box(
-                            Modifier.border(
-                                width = 1.dp,
-                                color = if (hasError) colorResource(id = R.color.nc_orange_color) else Color(0xFFDEDEDE),
-                                shape = RoundedCornerShape(8.dp),
+        Box {
+            BasicTextField(
+                modifier = Modifier
+                    .background(
+                        color = if (hasError) colorResource(id = R.color.nc_red_tint_color) else MaterialTheme.colors.surface,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .onFocusEvent(onFocusEvent)
+                    .defaultMinSize(
+                        minWidth = TextFieldDefaults.MinWidth,
+                    )
+                    .fillMaxWidth(),
+                value = value,
+                textStyle = NunchukTheme.typography.body,
+                keyboardOptions = keyboardOptions,
+                keyboardActions = keyboardActions,
+                maxLines = maxLines,
+                enabled = enabled,
+                onValueChange = onValueChange,
+                decorationBox = @Composable { innerTextField ->
+                    // places leading icon, text field with label and placeholder, trailing icon
+                    TextFieldDefaults.OutlinedTextFieldDecorationBox(
+                        value = value,
+                        visualTransformation = VisualTransformation.None,
+                        innerTextField = innerTextField,
+                        placeholder = placeholder,
+                        label = null,
+                        leadingIcon = null,
+                        trailingIcon = null,
+                        singleLine = singleLine,
+                        enabled = enabled,
+                        isError = false,
+                        interactionSource = interactionSource,
+                        colors = colors,
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp),
+                        border = {
+                            Box(
+                                Modifier.border(
+                                    width = 1.dp,
+                                    color = if (hasError) colorResource(id = R.color.nc_orange_color) else Color(
+                                        0xFFDEDEDE
+                                    ),
+                                    shape = RoundedCornerShape(8.dp),
+                                )
                             )
-                        )
-                    }
+                        }
+                    )
+                },
+            )
+            if (rightText.isNullOrEmpty().not()) {
+                Text(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 12.dp),
+                    text = rightText.orEmpty(),
+                    style = NunchukTheme.typography.body
                 )
             }
-        )
+        }
         if (hasError) {
             Row(
                 modifier = Modifier.padding(top = 4.dp),
@@ -139,7 +158,8 @@ fun NcTextFieldErrorPreview() {
             NcTextField(
                 title = "Title here",
                 value = "Value here",
-                error = "Decryption key is invalid"
+                error = "Decryption key is invalid",
+                rightText = "Hours"
             ) {
 
             }

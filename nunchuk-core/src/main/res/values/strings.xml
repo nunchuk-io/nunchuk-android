@@ -183,8 +183,8 @@
     <string name="nc_coldcard_nfc_intro_desc">On the next screen, bring your phone as close as possible to the COLDCARD’s NFC chip, which is centered around number 8 on the keypad.</string>
     <string name="nc_universal_nfc_intro_desc">Interacting with NFC devices will require bringing them as close as possible to the phone’s NFC chip. Please take a moment to locate where the chip is. If you are unsure, refer to your device manual.</string>
     <string name="nc_back_up_tap_signer_desc">An encrypted backup for the TAPSIGNER will be stored on our server.</string>
-    <string name="nc_verify_back_up_app_desc">Enter your decryption key below and the app will check it for you.\n\nAll verification data will stay locally on the device and will be erased immediately afterward.</string>
-    <string name="nc_tap_signer_back_up_explain_desc">The encrypted backup that we just saved will be used to recover the TAPSIGNER’s private key in case you lose the card, or the card malfunctions.\n\nIn order to unlock the backup later, you will need the decryption key printed on the back of the card.</string>
+    <string name="nc_verify_back_up_app_desc">Enter your Backup Password below and the app will check it for you.\n\nAll verification data will stay locally on the device and will be erased immediately afterward.</string>
+    <string name="nc_tap_signer_back_up_explain_desc">The encrypted backup that we just saved will be used to recover the TAPSIGNER’s private key in case you lose the card, or the card malfunctions.\n\nIn order to unlock the backup later, you will need the Backup Password printed on the back of the card (listed under “Backup key”).</string>
     <string name="nc_coldcard_nfc_tip">COLDCARD NFC tip</string>
     <string name="nc_locate_phone_nfc">Locate phone’s NFC chip</string>
     <string name="nc_back_up_tapsigner">Backing up TAPSIGNER</string>
@@ -194,13 +194,14 @@
     <string name="nc_take_me_to_add_new_key">Take me to add a new key</string>
     <string name="nc_added">Added</string>
     <string name="nc_verified_backup">Verified backup</string>
+    <string name="nc_self_verified_backup">Self-verified backup</string>
     <string name="nc_what_is_the_tap_signer_backup">What is the TAPSIGNER backup for?</string>
     <string name="nc_verify_your_backup">Verify your backup</string>
     <string name="nc_your_back_up_is_healthy">Your backup is healthy</string>
     <string name="nc_backup_has_been_verified">Your backup has been successfully been verified</string>
     <string name="nc_decryption_failed_try_again">Decryption failed, please try again.</string>
     <string name="nc_error">Error</string>
-    <string name="nc_keep_try_different_keys">Keep trying different keys</string>
+    <string name="nc_keep_try_different_keys">Try different passwords</string>
     <string name="nc_verify_the_backup_yourself">Verify the backup yourself</string>
     <string name="nc_download_backup_file">Download backup file</string>
     <string name="nc_i_have_verified">I have verified the backup</string>
@@ -208,6 +209,7 @@
     <string name="nc_confirmation">Confirmation</string>
     <string name="nc_confirm_verify_backup_by_self_desc">Are you sure you have verified the backup? Key recovery might fail with an unverified backup.</string>
     <string name="nc_verify_backup">Verify backup</string>
+    <string name="nc_un_verify_backup">Unverified backup</string>
     <string name="nc_try_again">Try again</string>
     <string name="nc_upload_failed">Upload failed</string>
     <string name="nc_welcome_assisted_wallet_title">Welcome! Let’s create an assisted wallet</string>
@@ -281,6 +283,6 @@
     <string name="nc_setup_inheritance_plan_intro_title">Set up inheritance plan</string>
     <string name="nc_setup_inheritance_plan_intro_desc">The Nunchuk inheritance plan allows you to safely pass along your bitcoin to your loved ones, while not affecting the security of your day-to-day wallet usage.\n\nBefore we begin, here are some definitions.</string>
     <string name="nc_magical_phrase">A Magical Phrase</string>
-    <string name="nc_backup_password">A Backup Password</string>
+    <string name="nc_a_backup_password">A Backup Password</string>
 
 </resources>

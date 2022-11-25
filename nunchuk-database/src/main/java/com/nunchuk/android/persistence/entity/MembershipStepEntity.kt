@@ -6,6 +6,7 @@ import androidx.room.PrimaryKey
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
+import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.persistence.TABLE_MEMBERSHIP_STEP
 
 @Entity(tableName = TABLE_MEMBERSHIP_STEP)
@@ -26,7 +27,7 @@ data class MembershipStepEntity(
     @ColumnInfo(name = "extra_json_data")
     val extraJson: String = "",
     @ColumnInfo(name = "is_verify")
-    val isVerify: Boolean = false,
+    val verifyType: VerifyType = VerifyType.NONE,
     @ColumnInfo(name = "plan")
     val plan: MembershipPlan
 )
@@ -35,7 +36,7 @@ fun MembershipStepEntity.toModel() = MembershipStepInfo(
     id = id,
     step = step,
     masterSignerId = masterSignerId,
-    isVerify = isVerify,
+    verifyType = verifyType,
     keyIdInServer = keyIdInServer,
     extraData = extraJson,
     plan = plan

@@ -47,7 +47,9 @@ private val LightColors = lightColors(
     primary = PrimaryColor,
     onPrimary = Color.White,
     secondary = SecondaryColor,
-    error = ErrorColor
+    onSecondary = Color.White,
+    error = ErrorColor,
+    secondaryVariant = PrimaryColor
 )
 
 @Immutable

@@ -13,6 +13,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
@@ -72,7 +73,7 @@ class Mk4IntroViewModel @Inject constructor(
                                     ?: throw IllegalArgumentException("Current step empty"),
                                 masterSignerId = coldcardSigner.masterFingerprint,
                                 plan = membershipStepManager.plan,
-                                isVerify = true,
+                                verifyType = VerifyType.APP_VERIFIED,
                                 extraData = gson.toJson(
                                     SignerExtra(
                                         derivationPath = coldcardSigner.derivationPath,

@@ -5,10 +5,10 @@ data class MembershipStepInfo(
     val step: MembershipStep,
     val masterSignerId: String = "",
     val keyIdInServer: String = "",
-    val isVerify: Boolean = false,
+    val verifyType: VerifyType = VerifyType.NONE,
     val extraData: String = "",
     val plan: MembershipPlan,
 ) {
     val isVerifyOrAddKey: Boolean
-        get() = isVerify || masterSignerId.isNotEmpty()
+        get() = verifyType != VerifyType.NONE || masterSignerId.isNotEmpty()
 }

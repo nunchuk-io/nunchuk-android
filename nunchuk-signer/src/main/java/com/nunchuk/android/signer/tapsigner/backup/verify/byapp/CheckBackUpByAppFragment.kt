@@ -191,7 +191,7 @@ private fun CheckBackUpByAppContent(
                         }
                     },
                     error = errorMessage,
-                    title = stringResource(id = R.string.nc_decryption_key),
+                    title = stringResource(id = R.string.nc_backup_password),
                     value = decryptionKey,
                     onValueChange = onValueChange
                 )

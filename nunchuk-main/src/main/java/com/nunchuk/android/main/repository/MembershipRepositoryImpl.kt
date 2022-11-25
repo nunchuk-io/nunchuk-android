@@ -41,7 +41,7 @@ class MembershipRepositoryImpl @Inject constructor(
                 email = accountManager.getAccount().email,
                 step = info.step,
                 masterSignerId = info.masterSignerId,
-                isVerify = info.isVerify,
+                verifyType = info.verifyType,
                 id = info.id,
                 extraJson = info.extraData,
                 keyIdInServer = info.keyIdInServer,

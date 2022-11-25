@@ -48,4 +48,3 @@ internal abstract class NunchukDatabase : RoomDatabase() {
     abstract fun membershipDao(): MembershipStepDao
     abstract fun syncEventDao(): SyncEventDao
 }
-

@@ -4,14 +4,15 @@ import android.content.Context
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.VerifyType
 
 data class AddKeyData(
     val type: MembershipStep,
     val signer: SignerModel? = null,
-    val isVerify: Boolean = false
+    val verifyType: VerifyType = VerifyType.NONE
 ) {
     val isVerifyOrAddKey: Boolean
-        get() = signer != null || isVerify
+        get() = signer != null || verifyType != VerifyType.NONE
 }
 
 val MembershipStep.resId: Int

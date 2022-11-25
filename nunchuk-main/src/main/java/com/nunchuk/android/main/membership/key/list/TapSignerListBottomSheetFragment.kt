@@ -138,7 +138,7 @@ private fun TapSignerListContent(
             )
         }
         Text(
-            modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp),
             text = stringResource(
                 R.string.nc_do_you_want_add_existing_key
             ),

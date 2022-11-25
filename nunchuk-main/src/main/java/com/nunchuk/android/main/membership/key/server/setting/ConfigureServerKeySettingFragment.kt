@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Switch
+import androidx.compose.material.SwitchDefaults
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -137,7 +138,10 @@ fun ConfigureServerKeySettingScreenContent(
                     )
                     Switch(
                         checked = state.autoBroadcastSwitched,
-                        onCheckedChange = onAutoBroadcastSwitchedChange
+                        onCheckedChange = onAutoBroadcastSwitchedChange,
+                        colors = SwitchDefaults.colors(
+
+                        )
                     )
                 }
                 Row(
@@ -175,6 +179,7 @@ fun ConfigureServerKeySettingScreenContent(
                         title = stringResource(id = R.string.nc_cosigning_delay),
                         value = state.cosigningText,
                         onValueChange = onCoSigningDelaTextChange,
+                        rightText = stringResource(id = R.string.nc_hours),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
                 }

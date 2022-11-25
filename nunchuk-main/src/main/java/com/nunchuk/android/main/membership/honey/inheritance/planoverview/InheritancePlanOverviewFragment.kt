@@ -98,7 +98,7 @@ private fun InheritancePlanOverviewContent(
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 2,
-                    label = stringResource(R.string.nc_backup_password),
+                    label = stringResource(R.string.nc_a_backup_password),
                 )
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),

@@ -50,7 +50,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             membershipRepository.saveStepInfo(
                 MembershipStepInfo(
                     step = MembershipStep.SETUP_KEY_RECOVERY,
-                    isVerify = true,
+                    verifyType = VerifyType.APP_VERIFIED,
                     plan = plan
                 )
             )
@@ -73,7 +73,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         membershipRepository.saveStepInfo(
             MembershipStepInfo(
                 step = MembershipStep.ADD_SEVER_KEY,
-                isVerify = true,
+                verifyType = VerifyType.APP_VERIFIED,
                 keyIdInServer = key.id.orEmpty(),
                 extraData = gson.toJson(
                     ServerKeyExtra(
@@ -172,7 +172,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             membershipRepository.saveStepInfo(
                 MembershipStepInfo(
                     step = MembershipStep.CREATE_WALLET,
-                    isVerify = true,
+                    verifyType = VerifyType.APP_VERIFIED,
                     plan = plan
                 )
             )

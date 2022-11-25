@@ -65,6 +65,8 @@ class KeyRepositoryImpl @Inject constructor(
             if (result.isSuccess || result.error.code == ALREADY_VERIFIED_CODE) {
                 val response = if (result.isSuccess) result.data else null
                 val email = accountManager.getAccount().email
+                val verifyType =
+                    if (result.error.code == ALREADY_VERIFIED_CODE) VerifyType.APP_VERIFIED else VerifyType.NONE
                 val info = MembershipStepEntity(
                     email = email,
                     step = step,
@@ -78,7 +80,7 @@ class KeyRepositoryImpl @Inject constructor(
                             signerType = SignerType.NFC
                         )
                     ),
-                    isVerify = result.error.code == ALREADY_VERIFIED_CODE,
+                    verifyType = verifyType,
                     plan = plan
                 )
                 membershipDao.updateOrInsert(info)
@@ -113,7 +115,7 @@ class KeyRepositoryImpl @Inject constructor(
                 )
             )
         if (response.isSuccess) {
-            membershipDao.updateOrInsert(stepInfo.copy(isVerify = true))
+            membershipDao.updateOrInsert(stepInfo.copy(verifyType = if (isAppVerify) VerifyType.APP_VERIFIED else VerifyType.SELF_VERIFIED))
         } else {
             throw response.error
         }

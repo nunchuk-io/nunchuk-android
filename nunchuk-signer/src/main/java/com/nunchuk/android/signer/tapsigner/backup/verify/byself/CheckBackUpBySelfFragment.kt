@@ -144,7 +144,7 @@ private fun CheckBackUpBySelfContent(
                 Spacer(modifier = Modifier.weight(1.0f))
                 NcHintMessage(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    messages = listOf(ClickAbleText(content = "For a Nunchuk-provided tool, check out nunchuk.io/offlinool")),
+                    messages = listOf(ClickAbleText(content = stringResource(R.string.nc_self_verify_hint))),
                     type = HighlightMessageType.HINT,
                 )
                 NcPrimaryDarkButton(

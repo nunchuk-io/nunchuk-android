@@ -10,10 +10,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.SIGNER_PATH_PREFIX
 import com.nunchuk.android.main.membership.model.AddKeyData
-import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.model.MembershipStep
-import com.nunchuk.android.model.MembershipStepInfo
-import com.nunchuk.android.model.SignerExtra
+import com.nunchuk.android.model.*
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
@@ -107,7 +104,7 @@ class AddKeyListViewModel @Inject constructor(
                             if (result.isSuccess) {
                                 return@map addKeyData.copy(
                                     signer = result.getOrThrow().toModel(),
-                                    isVerify = info.isVerify
+                                    verifyType = info.verifyType
                                 )
                             }
                         } else {
@@ -117,12 +114,12 @@ class AddKeyListViewModel @Inject constructor(
                                     signer = masterSignerMapper(
                                         result.getOrThrow(),
                                     ),
-                                    isVerify = info.isVerify
+                                    verifyType = info.verifyType
                                 )
                             }
                         }
                     }
-                    addKeyData.copy(isVerify = info.isVerify)
+                    addKeyData.copy(verifyType = info.verifyType)
                 }
                 _keys.value = news
             }
@@ -141,7 +138,7 @@ class AddKeyListViewModel @Inject constructor(
                             ?: throw IllegalArgumentException("Current step empty"),
                         masterSignerId = signer.fingerPrint,
                         plan = membershipStepManager.plan,
-                        isVerify = true,
+                        verifyType = VerifyType.APP_VERIFIED,
                         extraData = gson.toJson(
                             SignerExtra(
                                 derivationPath = signer.derivationPath,
