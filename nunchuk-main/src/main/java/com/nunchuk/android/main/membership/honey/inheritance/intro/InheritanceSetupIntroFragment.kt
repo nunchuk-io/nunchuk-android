@@ -123,7 +123,7 @@ private fun InheritanceSetupIntroContent(
                         .padding(16.dp),
                     onClick = onContinueClicked,
                 ) {
-                    Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
+                    Text(text = stringResource(id = R.string.nc_text_continue))
                 }
             }
         }
