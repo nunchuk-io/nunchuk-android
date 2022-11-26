@@ -20,7 +20,7 @@ val MembershipStep.resId: Int
         return when (this) {
             MembershipStep.ADD_TAP_SIGNER_1 -> R.drawable.ic_nfc_card
             MembershipStep.ADD_TAP_SIGNER_2 -> R.drawable.ic_nfc_card
-            MembershipStep.ADD_SEVER_KEY -> R.drawable.ic_logo_dark_small
+            MembershipStep.ADD_SEVER_KEY -> R.drawable.ic_server_key_dark
             MembershipStep.HONEY_ADD_TAP_SIGNER -> R.drawable.ic_nfc_card
             MembershipStep.HONEY_ADD_HARDWARE_KEY_1 -> R.drawable.ic_hardware_key
             MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> R.drawable.ic_hardware_key

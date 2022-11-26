@@ -32,13 +32,14 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.key.AddKeyListViewModel
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class TapSignerInheritanceIntroFragment : Fragment() {
+class TapSignerInheritanceIntroFragment : MembershipFragment() {
     private val viewModel: TapSignerInheritanceIntroViewModel by viewModels()
     private val addKeyViewModel: AddKeyListViewModel by activityViewModels()
 

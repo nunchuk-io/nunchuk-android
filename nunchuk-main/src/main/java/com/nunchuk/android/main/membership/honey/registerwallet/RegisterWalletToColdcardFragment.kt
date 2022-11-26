@@ -18,7 +18,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
@@ -33,13 +32,14 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.main.R
+import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
 import com.nunchuk.android.wallet.components.upload.SharedWalletConfigurationViewModel
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class RegisterWalletToColdcardFragment : Fragment() {
+class RegisterWalletToColdcardFragment : MembershipFragment() {
     private val viewModel: RegisterWalletToColdcardViewModel by viewModels()
     private val sharedViewModel by activityViewModels<SharedWalletConfigurationViewModel>()
 

@@ -243,8 +243,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 nunchukNativeSdk.updateWallet(wallet)
             }
         }
-        val planWalletCreated = mutableSetOf<String>()
-        result.data.wallets.forEach { planWalletCreated.add(it.slug.orEmpty()) }
+        val planWalletCreated = hashMapOf<String, String>()
+        result.data.wallets.forEach { planWalletCreated[it.slug.orEmpty()] = it.localId.orEmpty() }
         return WalletServerSync(
             planWalletCreated = planWalletCreated,
             keyPolicyMap = keyPolicyMap,
@@ -311,6 +311,28 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (response.isSuccess.not()) {
             throw response.error
         }
+    }
+
+    override suspend fun getInheritance(walletId: String): Inheritance {
+        val response = userWalletsApi.getInheritance(walletId)
+        val inheritanceDto =
+            response.data.inheritance ?: throw NullPointerException("Can not get inheritance")
+        val status = when(inheritanceDto.status) {
+            "ACTIVE" -> InheritanceStatus.ACTIVE
+            "CLAIMED" -> InheritanceStatus.CLAIMED
+            else -> InheritanceStatus.PENDING_CREATION
+        }
+        return Inheritance(
+            walletId = inheritanceDto.walletId.orEmpty(),
+            walletLocalId = inheritanceDto.walletLocalId.orEmpty(),
+            magic = inheritanceDto.magic.orEmpty(),
+            note = inheritanceDto.note.orEmpty(),
+            notificationEmails = inheritanceDto.notificationEmails,
+            status = status,
+            activationTimeMilis = inheritanceDto.activationTimeMilis,
+            createdTimeMilis = inheritanceDto.createdTimeMilis,
+            lastModifiedTimeMilis = inheritanceDto.lastModifiedTimeMilis,
+        )
     }
 
     companion object {

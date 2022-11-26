@@ -58,15 +58,19 @@ class MembershipRepositoryImpl @Inject constructor(
         val result = membershipApi.getCurrentSubscription()
         if (result.isSuccess) {
             val data = result.data
-            val plan = if (data.plan?.slug == IRON_HAND_PLAN) {
-                MembershipPlan.IRON_HAND
-            } else if (data.plan?.slug == HONEY_BADGER_PLAN) {
-                MembershipPlan.HONEY_BADGER
-            } else {
-                MembershipPlan.NONE
+            val plan = when (data.plan?.slug) {
+                IRON_HAND_PLAN -> {
+                    MembershipPlan.IRON_HAND
+                }
+                HONEY_BADGER_PLAN -> {
+                    MembershipPlan.HONEY_BADGER
+                }
+                else -> {
+                    MembershipPlan.NONE
+                }
             }
             ncDataStore.setMembershipPlan(plan)
-            return MemberSubscription(data.subscriptionId, data.plan?.slug)
+            return MemberSubscription(data.subscriptionId, data.plan?.slug, plan)
         } else {
             throw result.error
         }

@@ -63,4 +63,7 @@ internal interface UserWalletsApi {
         @Path("transaction_id") transactionId: String,
         @Body payload: SignServerTransactionRequest
     ): Data<TransactionResponse>
+
+    @GET("/v1.1/user-wallets/inheritance")
+    suspend fun getInheritance(@Query("wallet") wallet: String) : Data<InheritanceResponse>
 }

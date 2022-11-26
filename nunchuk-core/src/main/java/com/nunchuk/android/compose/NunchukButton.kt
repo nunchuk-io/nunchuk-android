@@ -60,7 +60,7 @@ fun NcPrimaryButton(
 
 @Composable
 fun NcPrimaryDarkButton(
-    modifier: Modifier = Modifier.fillMaxWidth(),
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
     enabled: Boolean = true,
     content: @Composable RowScope.() -> Unit
@@ -79,7 +79,7 @@ fun NcPrimaryDarkButton(
         shape = RoundedCornerShape(48.dp),
         colors = ButtonDefaults.buttonColors(
             backgroundColor = color,
-            disabledBackgroundColor = colorResource(id = R.color.nc_grey_dark_color)
+            disabledBackgroundColor = colorResource(id = R.color.nc_whisper_color)
         )
     )
 }

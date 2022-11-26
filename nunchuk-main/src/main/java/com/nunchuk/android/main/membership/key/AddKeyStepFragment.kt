@@ -72,8 +72,15 @@ class AddKeyStepFragment : Fragment(), BottomSheetOptionListener {
                 AddKeyStepEvent.OpenCreateWallet -> handleOpenCreateWallet()
                 AddKeyStepEvent.OnMoreClicked -> handleShowMore()
                 AddKeyStepEvent.RestartWizardSuccess -> requireActivity().finish()
+                AddKeyStepEvent.OpenInheritanceSetup -> handleOpenInheritanceSetup()
             }
         }
+    }
+
+    private fun handleOpenInheritanceSetup() {
+        findNavController().navigate(
+            AddKeyStepFragmentDirections.actionAddKeyStepFragmentToInheritanceSetupIntroFragment()
+        )
     }
 
     private fun handleShowMore() {
@@ -212,7 +219,7 @@ fun AddKeyStepContent(
                 StepWithEstTime(
                     4,
                     stringResource(R.string.nc_set_up_inheritance_plan),
-                    groupRemainTime[2],
+                    groupRemainTime[3],
                     false,
                     isCreateWalletDone
                 )

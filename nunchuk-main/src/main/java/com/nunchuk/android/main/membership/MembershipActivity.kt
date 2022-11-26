@@ -34,6 +34,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
                 R.id.addKeyStepFragment
             )
             MembershipStage.CONFIG_SERVER_KEY -> graph.setStartDestination(R.id.configureServerKeySettingFragment)
+            MembershipStage.SETUP_INHERITANCE -> graph.setStartDestination(R.id.inheritanceSetupIntroFragment)
             else -> Unit
         }
         val bundle = when (stage) {

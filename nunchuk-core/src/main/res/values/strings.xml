@@ -258,6 +258,7 @@
     <string name="nc_assisted">Assisted</string>
     <string name="nc_your_inheritance_key">Your inheritance key</string>
     <string name="nc_inheritance_intro_desc">This TAPSIGNER will be your designated inheritance key. Once you have set up an inheritance plan, a Beneficiary or Trustee will be able to recover this TAPSIGNER’s private key at a later date to access your wallet and claim the inheritance.Please take a moment to mark or label this key.</string>
+    <string name="nc_inheritance_key_tip_desc">[B]The inheritance key is designed to be used exclusively for the purpose of inheritance[/B]. The TAPSIGNER designated as the inheritance key should be locked and put away in a safe place, until it is needed.\n\nFor day-to-day spending, we recommend that you use the other keys in the wallet.</string>
     <string name="nc_set_up_inheritance_plan">Set up an inheritance plan</string>
     <string name="nc_add_coldcard_via_file">Add COLDCARD via a file (Advanced)</string>
     <string name="nc_export_xpubs_from_coldcard">Export XPUBs from COLDCARD</string>
@@ -282,6 +283,7 @@
     <string name="nc_schedule_broadcast">Schedule broadcast</string>
     <string name="nc_setup_inheritance_plan_intro_title">Set up inheritance plan</string>
     <string name="nc_setup_inheritance_plan_intro_desc">The Nunchuk inheritance plan allows you to safely pass along your bitcoin to your loved ones, while not affecting the security of your day-to-day wallet usage.\n\nBefore we begin, here are some definitions.</string>
+    <string name="nc_magical_phrase_desc">Your inheritance plan is uniquely identified by a Magical Phrase. The phrase can be used to look up your plan later.\n\n[B]Make note of this Magical Phrase[/B]. You will need to share it with the Beneficiary or Trustee.</string>
     <string name="nc_magical_phrase">A Magical Phrase</string>
     <string name="nc_a_backup_password">A Backup Password</string>
 

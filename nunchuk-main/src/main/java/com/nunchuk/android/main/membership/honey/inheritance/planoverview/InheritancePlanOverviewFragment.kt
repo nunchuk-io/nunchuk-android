@@ -14,22 +14,23 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
+import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class InheritancePlanOverviewFragment : Fragment() {
+class InheritancePlanOverviewFragment : MembershipFragment() {
     private val viewModel: InheritancePlanOverviewViewModel by viewModels()
 
     override fun onCreateView(
@@ -48,7 +49,9 @@ class InheritancePlanOverviewFragment : Fragment() {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
                     when(event) {
-                        InheritancePlanOverviewEvent.OnContinueClicked -> TODO()
+                        InheritancePlanOverviewEvent.OnContinueClicked -> findNavController().navigate(
+                            InheritancePlanOverviewFragmentDirections.actionInheritancePlanOverviewFragmentToMagicalPhraseIntroFragment()
+                        )
                     }
                 }
         }
@@ -72,6 +75,7 @@ private fun InheritancePlanOverviewContent(
             Column(
                 Modifier
                     .padding(innerPadding)
+                    .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
                 NcTopAppBar(

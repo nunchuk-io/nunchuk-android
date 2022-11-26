@@ -17,21 +17,20 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.nunchuk.android.compose.NcImageAppBar
-import com.nunchuk.android.compose.NcPrimaryDarkButton
-import com.nunchuk.android.compose.NunchukTheme
+import androidx.navigation.fragment.findNavController
+import com.nunchuk.android.compose.*
 import com.nunchuk.android.main.R
+import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class InheritanceSetupIntroFragment : Fragment() {
+class InheritanceSetupIntroFragment : MembershipFragment() {
     private val viewModel: InheritanceSetupIntroViewModel by viewModels()
 
     override fun onCreateView(
@@ -49,8 +48,10 @@ class InheritanceSetupIntroFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
-                    when(event) {
-                        InheritanceSetupIntroEvent.OnContinueClicked -> TODO()
+                    when (event) {
+                        InheritanceSetupIntroEvent.OnContinueClicked -> findNavController().navigate(
+                            InheritanceSetupIntroFragmentDirections.actionInheritanceSetupIntroFragmentToInheritancePlanOverviewFragment()
+                        )
                     }
                 }
         }
@@ -61,7 +62,7 @@ class InheritanceSetupIntroFragment : Fragment() {
 @Composable
 private fun InheritanceSetupIntroScreen(viewModel: InheritanceSetupIntroViewModel = viewModel()) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
-    InheritanceSetupIntroContent(remainTime)
+    InheritanceSetupIntroContent(remainTime, viewModel::onContinueClicked)
 }
 
 @Composable
@@ -103,12 +104,10 @@ private fun InheritanceSetupIntroContent(
                             shape = RoundedCornerShape(12.dp)
                         )
                 ) {
-                    Text(
+                    NcHighlightText(
                         modifier = Modifier.padding(12.dp),
                         style = NunchukTheme.typography.body,
-                        text = "Beneficiary: an individual who will inherit your bitcoin.\n" +
-                                "\n" +
-                                "Trustee: an individual who will help manage and distribute your bitcoin to the Beneficiary."
+                        text = stringResource(id = R.string.nc_set_up_inheritance_hint)
                     )
                 }
                 Text(

@@ -33,7 +33,7 @@ internal data class WalletsState(
     val chain: Chain = Chain.MAIN,
     val isPremiumUser: Boolean? = null,
     val remainingTime: Int = 0,
-    val hasCreatedWallet: Boolean = false,
+    val isCompletedMembershipFlow: Boolean = false,
     val assistedWalletIds: Set<String> = emptySet(),
 )
 

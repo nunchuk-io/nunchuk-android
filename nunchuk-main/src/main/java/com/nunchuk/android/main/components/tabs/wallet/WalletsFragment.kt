@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
@@ -108,17 +109,17 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         navigator.openSignerIntroScreen(requireActivity())
     }
 
-    private fun showAssistedWalletStart(remainingTime: Int, hasCreatedWallet: Boolean) {
+    private fun showAssistedWalletStart(remainingTime: Int, isCompletedMembershipFlow: Boolean) {
         val stage = walletsViewModel.getGroupStage()
-        val isVisible = stage != MembershipStage.DONE && hasCreatedWallet.not()
-        binding.introContainer.isVisible = isVisible
+        val isGone = stage == MembershipStage.DONE || isCompletedMembershipFlow
+        binding.introContainer.isGone = isGone
         if (isVisible.not()) return
         binding.introContainer.setBackgroundResource(R.drawable.nc_rounded_denim_background)
         binding.ivIntro.setImageResource(R.drawable.ic_assisted_wallet_intro)
         if (stage == MembershipStage.NONE) {
             binding.tvIntroTitle.text = getString(R.string.nc_let_s_get_you_started)
             binding.tvIntroDesc.text =
-                getString(R.string.nc_assisted_wallet_intro_desc, remainingTime)
+                getString(R.string.nc_assisted_wallet_intro_desc)
             binding.tvIntroAction.text = getString(R.string.nc_start_wizard)
         } else if (stage != MembershipStage.DONE) {
             binding.tvIntroTitle.text = getString(R.string.nc_you_almost_done)
@@ -302,7 +303,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             when {
                 state.isPremiumUser -> showAssistedWalletStart(
                     state.remainingTime,
-                    state.hasCreatedWallet
+                    state.isCompletedMembershipFlow
                 )
                 else -> showNonSubscriberIntro()
             }

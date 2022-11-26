@@ -8,25 +8,29 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
+import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @AndroidEntryPoint
-class FindBackupPasswordFragment : Fragment() {
+class FindBackupPasswordFragment : MembershipFragment() {
     private val viewModel: FindBackupPasswordViewModel by viewModels()
 
     override fun onCreateView(
@@ -34,7 +38,12 @@ class FindBackupPasswordFragment : Fragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                FindBackupPasswordScreen(viewModel)
+                val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
+                FindBackupPasswordContent(remainTime) {
+                    findNavController().navigate(
+                        FindBackupPasswordFragmentDirections.actionFindBackupPasswordFragmentToInheritanceKeyTipFragment()
+                    )
+                }
             }
         }
     }
@@ -48,11 +57,6 @@ class FindBackupPasswordFragment : Fragment() {
                 }
         }
     }
-}
-
-@Composable
-private fun FindBackupPasswordScreen(viewModel: FindBackupPasswordViewModel = viewModel()) {
-    FindBackupPasswordContent()
 }
 
 @Composable

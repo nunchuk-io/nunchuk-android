@@ -65,7 +65,7 @@ class MembershipStepManager @Inject constructor(
             steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
             steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 2)
             steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
-            steps[MembershipStep.SETUP_INHERITANCE] = MembershipStepFlow(totalStep = 2)
+            steps[MembershipStep.SETUP_INHERITANCE] = MembershipStepFlow(totalStep = 12)
         }
         _remainingTime.value = steps.values.sumOf { it.totalStep * 2 }
         _stepDone.value = emptySet()

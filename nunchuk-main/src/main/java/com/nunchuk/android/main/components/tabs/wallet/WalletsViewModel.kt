@@ -19,6 +19,7 @@ import com.nunchuk.android.model.*
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
+import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,6 +41,7 @@ internal class WalletsViewModel @Inject constructor(
     private val getUserSubscriptionUseCase: GetUserSubscriptionUseCase,
     private val getServerWalletUseCase: GetServerWalletUseCase,
     private val assistedWalletManager: AssistedWalletManager,
+    private val getInheritanceUseCase: GetInheritanceUseCase,
     isShowNfcUniversalUseCase: IsShowNfcUniversalUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -69,17 +71,22 @@ internal class WalletsViewModel @Inject constructor(
                 val subscription = result.getOrThrow()
                 val isPremiumUser = subscription.subscriptionId.isNullOrEmpty().not()
                 val getServerWalletResult = getServerWalletUseCase(Unit)
+                if (getServerWalletResult.isFailure) return@launch
                 if (getServerWalletResult.isSuccess && getServerWalletResult.getOrThrow().isNeedReload) {
                     retrieveData()
                 }
                 keyPolicyMap.clear()
                 keyPolicyMap.putAll(getServerWalletResult.getOrNull()?.keyPolicyMap.orEmpty())
+                val walletLocalId = getServerWalletResult.getOrThrow().planWalletCreated[subscription.slug].orEmpty()
+                var isSetupInheritance = subscription.plan != MembershipPlan.HONEY_BADGER
+                if (walletLocalId.isNotEmpty() && subscription.plan == MembershipPlan.HONEY_BADGER) {
+                    val inheritanceResult = getInheritanceUseCase(walletLocalId)
+                    isSetupInheritance = inheritanceResult.isSuccess && inheritanceResult.getOrThrow().status != InheritanceStatus.PENDING_CREATION
+                }
                 updateState {
                     copy(
                         isPremiumUser = isPremiumUser,
-                        hasCreatedWallet = getServerWalletResult.getOrThrow().planWalletCreated.contains(
-                            subscription.slug
-                        ),
+                        isCompletedMembershipFlow = walletLocalId.isNotEmpty() && isSetupInheritance,
                     )
                 }
             } else {
@@ -213,8 +220,7 @@ internal class WalletsViewModel @Inject constructor(
 
     fun getGroupStage(): MembershipStage = when {
         membershipStepManager.isNotConfig() -> MembershipStage.NONE
-        membershipStepManager.isCreatedAssistedWalletDone() -> MembershipStage.DONE
-        membershipStepManager.isConfigKeyDone() -> MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
+        membershipStepManager.plan == MembershipPlan.IRON_HAND && membershipStepManager.isCreatedAssistedWalletDone() -> MembershipStage.DONE
         else -> MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
     }
 

@@ -42,8 +42,8 @@ class AddKeyListViewModel @Inject constructor(
     private val _event = MutableSharedFlow<AddKeyListEvent>()
     val event = _event.asSharedFlow()
 
-    private val currentAddKeyType =
-        savedStateHandle.getStateFlow<MembershipStep?>(KEY_CURRENT_KEY, null)
+    private val currentStep =
+        savedStateHandle.getStateFlow<MembershipStep?>(KEY_CURRENT_STEP, null)
 
     private val membershipStepState = getMembershipStepUseCase(membershipStepManager.plan)
         .map { it.getOrElse { emptyList() } }
@@ -54,7 +54,7 @@ class AddKeyListViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            currentAddKeyType.filterNotNull().collect {
+            currentStep.filterNotNull().collect {
                 membershipStepManager.setCurrentStep(it)
             }
         }
@@ -154,8 +154,7 @@ class AddKeyListViewModel @Inject constructor(
 
     fun onAddKeyClicked(data: AddKeyData) {
         viewModelScope.launch {
-            savedStateHandle[KEY_CURRENT_KEY] = data.type
-            membershipStepManager.setCurrentStep(data.type)
+            savedStateHandle[KEY_CURRENT_STEP] = data.type
             _event.emit(AddKeyListEvent.OnAddKey(data))
         }
     }
@@ -164,7 +163,7 @@ class AddKeyListViewModel @Inject constructor(
 
     fun onVerifyClicked(data: AddKeyData) {
         data.signer?.let { signer ->
-            savedStateHandle[KEY_CURRENT_KEY] = data.type
+            savedStateHandle[KEY_CURRENT_STEP] = data.type
             viewModelScope.launch {
                 val stepInfo = getStepInfo(data.type)
                 _event.emit(
@@ -198,7 +197,7 @@ class AddKeyListViewModel @Inject constructor(
     fun getAirgap() = _state.value.signers.filter { it.type == SignerType.AIRGAP }
 
     companion object {
-        private const val KEY_CURRENT_KEY = "current_key"
+        private const val KEY_CURRENT_STEP = "current_step"
     }
 }
 

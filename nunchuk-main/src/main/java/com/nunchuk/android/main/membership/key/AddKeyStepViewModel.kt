@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.membership.key
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.model.MembershipPlan
@@ -14,10 +15,14 @@ import javax.inject.Inject
 @HiltViewModel
 class AddKeyStepViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
-    private val restartWizardUseCase: RestartWizardUseCase
+    private val restartWizardUseCase: RestartWizardUseCase,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _event = MutableSharedFlow<AddKeyStepEvent>()
     val event = _event.asSharedFlow()
+
+    private val currentStep =
+        savedStateHandle.getStateFlow<MembershipStep?>(KEY_CURRENT_STEP, null)
 
     val plan = membershipStepManager.plan
 
@@ -51,7 +56,15 @@ class AddKeyStepViewModel @Inject constructor(
                 membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.CREATE_WALLET)),
                 membershipStepManager.getRemainTimeBySteps(listOf(MembershipStep.SETUP_INHERITANCE)),
             )
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, IntArray(3))
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, IntArray(4))
+
+    init {
+        viewModelScope.launch {
+            currentStep.filterNotNull().collect {
+                membershipStepManager.setCurrentStep(it)
+            }
+        }
+    }
 
     fun openContactUs(email: String) {
         viewModelScope.launch {
@@ -61,9 +74,14 @@ class AddKeyStepViewModel @Inject constructor(
 
     fun onContinueClicked() {
         viewModelScope.launch {
-            if (isSetupRecoverKeyDone.value) {
+            if (isCreateWalletDone.value) {
+                savedStateHandle[KEY_CURRENT_STEP] = MembershipStep.SETUP_INHERITANCE
+                _event.emit(AddKeyStepEvent.OpenInheritanceSetup)
+            } else if (isSetupRecoverKeyDone.value) {
+                savedStateHandle[KEY_CURRENT_STEP] = MembershipStep.CREATE_WALLET
                 _event.emit(AddKeyStepEvent.OpenCreateWallet)
             } else if (isConfigKeyDone.value) {
+                savedStateHandle[KEY_CURRENT_STEP] = MembershipStep.SETUP_KEY_RECOVERY
                 _event.emit(AddKeyStepEvent.OpenRecoveryQuestion)
             } else {
                 _event.emit(AddKeyStepEvent.OpenAddKeyList)
@@ -85,6 +103,10 @@ class AddKeyStepViewModel @Inject constructor(
             }
         }
     }
+
+    companion object {
+        private const val KEY_CURRENT_STEP = "current_step"
+    }
 }
 
 sealed class AddKeyStepEvent {
@@ -94,4 +116,5 @@ sealed class AddKeyStepEvent {
     object OpenCreateWallet : AddKeyStepEvent()
     object OnMoreClicked : AddKeyStepEvent()
     object RestartWizardSuccess : AddKeyStepEvent()
+    object OpenInheritanceSetup : AddKeyStepEvent()
 }

@@ -170,6 +170,7 @@ class CreateWalletViewModel @Inject constructor(
                 )
                 if (result.isFailure) {
                     deleteWalletUseCase.execute(it.id)
+                    throw result.exceptionOrNull() ?: RuntimeException("Can not create wallet")
                 }
                 it
             }.flowOn(Dispatchers.IO)
