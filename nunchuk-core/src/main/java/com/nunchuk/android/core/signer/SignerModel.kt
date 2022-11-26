@@ -66,7 +66,7 @@ data class SignerModel(
         "XFP: $fingerPrint"
     } else ""
 
-    fun cardIdShorten() = cardId.takeLast(5)
+    private fun cardIdShorten() = cardId.takeLast(5)
 }
 
 fun SingleSigner.toModel(isPrimaryKey: Boolean = false) = SignerModel(

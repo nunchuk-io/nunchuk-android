@@ -202,7 +202,7 @@ private fun SignerCard(
             Text(text = signer.name, style = NunchukTheme.typography.body)
             Text(
                 modifier = Modifier.padding(top = 4.dp),
-                text = "XFP: ${signer.fingerPrint}",
+                text = signer.getXfpOrCardIdLabel(),
                 style = NunchukTheme.typography.bodySmall.copy(
                     color = colorResource(
                         id = R.color.nc_grey_dark_color

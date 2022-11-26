@@ -341,7 +341,7 @@ fun AddKeyCard(
     if (item.signer != null) {
         Box(
             modifier = Modifier.background(
-                color = if (item.verifyType == VerifyType.NONE)
+                color = if (item.verifyType != VerifyType.NONE)
                     colorResource(id = R.color.nc_green_color)
                 else
                     colorResource(id = R.color.nc_beeswax_tint),
@@ -369,7 +369,7 @@ fun AddKeyCard(
                         val label = when (item.verifyType) {
                             VerifyType.NONE -> stringResource(id = R.string.nc_un_verify_backup)
                             VerifyType.APP_VERIFIED -> stringResource(id = R.string.nc_verified_backup)
-                            VerifyType.SELF_VERIFIED -> stringResource(id = R.string.nc_un_verify_backup)
+                            VerifyType.SELF_VERIFIED -> stringResource(id = R.string.nc_self_verified_backup)
                         }
                         NcTag(
                             modifier = Modifier.padding(top = 4.dp),

@@ -164,7 +164,7 @@ private fun TapSignerVerifyBackUpOptionContent(
             Spacer(modifier = Modifier.weight(1.0f))
             NcHintMessage(
                 modifier = Modifier.padding(horizontal = 16.dp),
-                messages = listOf(ClickAbleText(content = stringResource(R.string.nc_back_up_tap_signer_hint))),
+                messages = listOf(ClickAbleText(content = stringResource(R.string.nc_verify_backup_hint))),
                 type = HighlightMessageType.WARNING,
             )
             NcPrimaryDarkButton(
