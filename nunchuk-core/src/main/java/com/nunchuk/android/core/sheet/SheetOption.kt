@@ -32,7 +32,8 @@ data class SheetOption(
     @StringRes val stringId: Int = 0,
     val isDeleted: Boolean = false,
     val label: String? = null,
-    val id: String? = null
+    val id: String? = null,
+    val isSelected: Boolean = false
 ) : Parcelable
 
 object SheetOptionType {

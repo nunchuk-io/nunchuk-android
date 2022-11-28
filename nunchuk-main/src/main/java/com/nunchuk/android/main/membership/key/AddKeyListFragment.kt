@@ -197,7 +197,9 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                     type = SignerType.AIRGAP.ordinal,
                     label = getString(R.string.nc_signer_air_gapped)
                 ),
-            )
+            ),
+            title = getString(R.string.nc_what_type_of_hardware_want_to_add),
+            showClosedIcon = true,
         ).show(childFragmentManager, "BottomSheetOption")
     }
 

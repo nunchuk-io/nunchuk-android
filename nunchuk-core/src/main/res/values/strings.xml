@@ -289,4 +289,5 @@
     <string name="nc_give_app_permission">Please give app the permission</string>
     <string name="nc_start">Start</string>
     <string name="nc_among_three_key_select_inheritance">Among your three keys, select one key to be the inheritance key. It must be a TAPSIGNER.</string>
+    <string name="nc_what_type_of_hardware_want_to_add">What type of hardware key do you want to add?</string>
 </resources>

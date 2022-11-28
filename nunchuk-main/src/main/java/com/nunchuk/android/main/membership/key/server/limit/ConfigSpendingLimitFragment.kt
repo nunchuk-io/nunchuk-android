@@ -80,7 +80,8 @@ class ConfigSpendingLimitFragment : Fragment(), BottomSheetOptionListener {
             SpendingCurrencyUnit.values().map {
                 SheetOption(
                     type = OFFSET + it.ordinal,
-                    label = it.toLabel(requireContext())
+                    label = it.toLabel(requireContext()),
+                    isSelected = it == viewModel.state.value.currencyUnit
                 )
             }
         ).show(childFragmentManager, "BottomSheetOption")
@@ -91,7 +92,8 @@ class ConfigSpendingLimitFragment : Fragment(), BottomSheetOptionListener {
             SpendingTimeUnit.values().map {
                 SheetOption(
                     type = it.ordinal,
-                    label = it.toLabel(requireContext())
+                    label = it.toLabel(requireContext()),
+                    isSelected = it == viewModel.state.value.timeUnit
                 )
             }
         ).show(childFragmentManager, "BottomSheetOption")

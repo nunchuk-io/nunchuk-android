@@ -27,6 +27,7 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.databinding.FragmentSheetOptionBinding
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 
 class BottomSheetOption : BaseBottomSheet<FragmentSheetOptionBinding>() {
     private lateinit var listener: BottomSheetOptionListener
@@ -51,12 +52,16 @@ class BottomSheetOption : BaseBottomSheet<FragmentSheetOptionBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val title = arguments?.getString(EXTRA_TITLE).orEmpty()
+        val title = requireArguments().getString(EXTRA_TITLE).orEmpty()
         binding.title.text = title
         binding.title.isVisible = title.isNotEmpty()
-        val options = arguments?.getParcelableArrayList<SheetOption>(EXTRA_OPTIONS).orEmpty()
+        val options = requireArguments().getParcelableArrayList<SheetOption>(EXTRA_OPTIONS).orEmpty()
         binding.recyclerView.adapter = SheetOptionAdapter(options) {
             listener.onOptionClicked(it)
+            dismissAllowingStateLoss()
+        }
+        binding.ivClose.isVisible = requireArguments().getBoolean(EXTRA_SHOW_CLOSE_ICON, false)
+        binding.ivClose.setOnDebounceClickListener {
             dismissAllowingStateLoss()
         }
     }
@@ -64,11 +69,13 @@ class BottomSheetOption : BaseBottomSheet<FragmentSheetOptionBinding>() {
     companion object {
         private const val EXTRA_TITLE = "extra_title"
         private const val EXTRA_OPTIONS = "extra_options"
+        private const val EXTRA_SHOW_CLOSE_ICON = "show_close_icon"
 
-        fun newInstance(options: List<SheetOption>, title: String? = null): BottomSheetOption {
+        fun newInstance(options: List<SheetOption>, title: String? = null, showClosedIcon: Boolean = false): BottomSheetOption {
             return BottomSheetOption().apply {
                 arguments = Bundle().apply {
                     putString(EXTRA_TITLE, title)
+                    putBoolean(EXTRA_SHOW_CLOSE_ICON, showClosedIcon)
                     putParcelableArrayList(EXTRA_OPTIONS, ArrayList(options))
                 }
             }

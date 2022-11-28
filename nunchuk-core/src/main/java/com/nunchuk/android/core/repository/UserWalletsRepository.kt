@@ -154,7 +154,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     derivationPath = it.derivationPath,
                     xpub = it.xpub,
                     pubkey = it.publicKey,
-                    type = SignerType.SERVER.name,
+                    type = it.type.name,
                 )
             }
         }
