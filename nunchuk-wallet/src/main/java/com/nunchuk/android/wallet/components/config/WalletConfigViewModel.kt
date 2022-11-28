@@ -158,6 +158,8 @@ internal class WalletConfigViewModel @Inject constructor(
     private fun isPrimaryKey(id: String) =
         accountManager.loginType() == SignInMode.PRIMARY_KEY.value && accountManager.getPrimaryKeyInfo()?.xfp == id
 
+    fun isAssistedWallet() = assistedWalletManager.isAssistedWallet(walletId)
+
     override val initialState: WalletConfigState
         get() = WalletConfigState()
 }

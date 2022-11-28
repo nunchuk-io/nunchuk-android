@@ -180,7 +180,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     }
 
     private fun showMoreOptions() {
-        val options = listOf(
+        val options = mutableListOf(
             SheetOption(
                 SheetOptionType.TYPE_EXPORT_AS_QR,
                 R.drawable.ic_qr,
@@ -191,13 +191,17 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 R.drawable.ic_export,
                 R.string.nc_wallet_export_coldcard
             ),
-            SheetOption(
-                SheetOptionType.TYPE_DELETE_WALLET,
-                R.drawable.ic_delete_red,
-                R.string.nc_wallet_delete_wallet,
-                isDeleted = true
-            ),
         )
+        if (viewModel.isAssistedWallet().not()) {
+            options.add(
+                SheetOption(
+                    SheetOptionType.TYPE_DELETE_WALLET,
+                    R.drawable.ic_delete_red,
+                    R.string.nc_wallet_delete_wallet,
+                    isDeleted = true
+                ),
+            )
+        }
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(supportFragmentManager, "BottomSheetOption")
     }

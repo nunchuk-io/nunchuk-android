@@ -286,5 +286,5 @@
     <string name="nc_magical_phrase_desc">Your inheritance plan is uniquely identified by a Magical Phrase. The phrase can be used to look up your plan later.\n\n[B]Make note of this Magical Phrase[/B]. You will need to share it with the Beneficiary or Trustee.</string>
     <string name="nc_magical_phrase">A Magical Phrase</string>
     <string name="nc_a_backup_password">A Backup Password</string>
-
+    <string name="nc_give_app_permission">Please give app the permission</string>
 </resources>
