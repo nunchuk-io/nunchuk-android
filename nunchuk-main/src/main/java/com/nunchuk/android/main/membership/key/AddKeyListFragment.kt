@@ -42,6 +42,7 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
@@ -293,12 +294,16 @@ fun AddKeyListContent(
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     text = buildAnnotatedString {
-                        append(stringResource(id = R.string.nc_add_key_list_desc_one))
+                        append(stringResource(id = R.string.nc_add_key_list_desc_one, keys.size))
                         append(" ")
                         withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
                             append(stringResource(id = R.string.nc_add_key_list_desc_two))
                         }
                         append(stringResource(id = R.string.nc_add_key_list_desc_three))
+                        if (keys.size > 3) {
+                            append("\n\n")
+                            append(stringResource(R.string.nc_among_three_key_select_inheritance))
+                        }
                     },
                     style = NunchukTheme.typography.body
                 )
@@ -353,7 +358,7 @@ fun AddKeyCard(
                 modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically
             ) {
                 NcCircleImage(
-                    resId = item.type.resId,
+                    resId = item.signer.type.toReadableDrawableResId(),
                     color = colorResource(id = R.color.nc_white_color)
                 )
                 Column(
@@ -467,7 +472,7 @@ private fun ConfigItem(
 
 @Preview
 @Composable
-fun AddKeyListScreenPreview() {
+fun AddKeyListScreenIronHandPreview() {
     AddKeyListContent(
         keys = listOf(
             AddKeyData(
@@ -479,6 +484,30 @@ fun AddKeyListScreenPreview() {
                 type = MembershipStep.ADD_TAP_SIGNER_2,
                 signer = SignerModel(id = "123", type = SignerType.NFC, name = "My Key", derivationPath = "", fingerPrint = "123456"),
                 verifyType = VerifyType.NONE
+            ),
+            AddKeyData(type = MembershipStep.ADD_SEVER_KEY),
+        ),
+        remainingTime = 0,
+    )
+}
+
+@Preview
+@Composable
+fun AddKeyListScreenHoneyBadgerPreview() {
+    AddKeyListContent(
+        keys = listOf(
+            AddKeyData(
+                type = MembershipStep.HONEY_ADD_TAP_SIGNER,
+                SignerModel(id = "123", type = SignerType.NFC, name = "My Key", derivationPath = "", fingerPrint = "123456"),
+                verifyType = VerifyType.APP_VERIFIED
+            ),
+            AddKeyData(
+                type = MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
+                signer = SignerModel(id = "123", type = SignerType.COLDCARD_NFC, name = "TAPSIGNER", derivationPath = "", fingerPrint = "123456"),
+                verifyType = VerifyType.NONE
+            ),
+            AddKeyData(
+                type = MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
             ),
             AddKeyData(type = MembershipStep.ADD_SEVER_KEY),
         ),

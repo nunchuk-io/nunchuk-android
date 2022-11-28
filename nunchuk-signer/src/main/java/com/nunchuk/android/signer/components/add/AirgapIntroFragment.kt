@@ -79,7 +79,8 @@ private fun AirgapIntroContent(
                 LabelNumberAndDesc(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                     index = 1,
-                    title = stringResource(id = R.string.nc_signer_before_start_initialize)
+                    title = stringResource(id = R.string.nc_signer_before_start_initialize),
+                    titleStyle = NunchukTheme.typography.title
                 ) {
                     Text(
                         modifier = Modifier.padding(top = 8.dp, start = 36.dp),
@@ -90,7 +91,8 @@ private fun AirgapIntroContent(
                 LabelNumberAndDesc(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                     index = 2,
-                    title = stringResource(id = R.string.nc_signer_before_start_device_unlock)
+                    title = stringResource(id = R.string.nc_signer_before_start_device_unlock),
+                    titleStyle = NunchukTheme.typography.title
                 ) {
                     Text(
                         modifier = Modifier.padding(top = 8.dp, start = 36.dp),

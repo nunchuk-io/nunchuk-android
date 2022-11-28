@@ -41,7 +41,7 @@ private val ErrorColor = Color(0xffCF4018)
 
 val montserratMedium = FontFamily(Font(R.font.montserrat_medium))
 val latoRegular = FontFamily(Font(R.font.lato_regular))
-val latoSemiBold = FontFamily(Font(R.font.lato_semibold))
+val latoBold = FontFamily(Font(R.font.lato_bold))
 
 private val LightColors = lightColors(
     primary = PrimaryColor,
@@ -90,11 +90,11 @@ fun NunchukTheme(
 ) {
     val nunchukTypography = NunchukTypography(
         body = TextStyle(fontSize = 16.sp, fontFamily = latoRegular, color = PrimaryColor),
-        title = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.SemiBold, fontFamily = latoSemiBold, color = PrimaryColor),
-        bold = TextStyle(fontWeight = FontWeight.SemiBold, fontFamily = latoSemiBold, color = PrimaryColor),
+        title = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = latoBold, color = PrimaryColor),
+        bold = TextStyle(fontWeight = FontWeight.Bold, fontFamily = latoBold, color = PrimaryColor),
         heading = TextStyle(fontSize = 24.sp, fontFamily = montserratMedium, color = PrimaryColor),
-        titleLarge = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.SemiBold, fontFamily = latoSemiBold, color = PrimaryColor),
-        titleSmall = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, fontFamily = latoSemiBold, color = PrimaryColor),
+        titleLarge = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold, fontFamily = latoBold, color = PrimaryColor),
+        titleSmall = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, fontFamily = latoBold, color = PrimaryColor),
         bodySmall = TextStyle(fontSize = 12.sp, fontFamily = latoRegular, color = PrimaryColor),
         caption = TextStyle(fontSize = 12.sp, fontFamily = latoRegular, color = PrimaryColor, fontWeight = FontWeight.Medium),
     )
@@ -105,7 +105,7 @@ fun NunchukTheme(
     ) {
         MaterialTheme(
             colors = LightColors,
-            typography = Typography(defaultFontFamily = latoSemiBold),
+            typography = Typography(defaultFontFamily = latoRegular),
             content = content,
         )
     }

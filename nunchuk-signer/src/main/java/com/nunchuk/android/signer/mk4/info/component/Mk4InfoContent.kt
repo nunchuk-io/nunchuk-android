@@ -31,7 +31,7 @@ internal fun Mk4InfoContent(
                     .verticalScroll(rememberScrollState())
             ) {
                 NcImageAppBar(
-                    backgroundRes = R.drawable.nc_bg_tap_signer_chip,
+                    backgroundRes = R.drawable.bg_add_coldcard_view_nfc_intro,
                     title = if (isMembershipFlow) stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
@@ -50,7 +50,8 @@ internal fun Mk4InfoContent(
                 LabelNumberAndDesc(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                     index = 1,
-                    title = stringResource(id = R.string.nc_init_coldcard)
+                    title = stringResource(id = R.string.nc_init_coldcard),
+                    titleStyle = NunchukTheme.typography.title,
                 ) {
                     NcClickableText(
                         modifier = Modifier.padding(top = 8.dp, start = 36.dp),
@@ -67,7 +68,8 @@ internal fun Mk4InfoContent(
                 LabelNumberAndDesc(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                     index = 2,
-                    title = stringResource(id = R.string.nc_unlock_coldcard)
+                    title = stringResource(id = R.string.nc_unlock_coldcard),
+                    titleStyle = NunchukTheme.typography.title,
                 ) {
                     Text(
                         modifier = Modifier.padding(top = 8.dp, start = 36.dp),
@@ -78,7 +80,8 @@ internal fun Mk4InfoContent(
                 LabelNumberAndDesc(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                     index = 3,
-                    title = stringResource(id = R.string.nc_enable_nfc)
+                    title = stringResource(id = R.string.nc_enable_nfc),
+                    titleStyle = NunchukTheme.typography.title,
                 ) {
                     Text(
                         modifier = Modifier.padding(top = 8.dp, start = 36.dp),

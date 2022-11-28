@@ -47,7 +47,11 @@ class ConfigureServerKeySettingFragment : MembershipFragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                ConfigureServerKeySettingScreen(viewModel, membershipStepManager)
+                ConfigureServerKeySettingScreen(
+                    viewModel,
+                    membershipStepManager,
+                    isCreateAssistedWalletFlow
+                )
             }
         }
     }
@@ -56,7 +60,9 @@ class ConfigureServerKeySettingFragment : MembershipFragment() {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) {
             when (it) {
-                is ConfigureServerKeySettingEvent.ConfigServerSuccess -> handleConfigServerKeySuccess(it.keyPolicy)
+                is ConfigureServerKeySettingEvent.ConfigServerSuccess -> handleConfigServerKeySuccess(
+                    it.keyPolicy
+                )
                 ConfigureServerKeySettingEvent.NoDelayInput -> showError(getString(R.string.nc_error_co_signing_delay_empty))
                 is ConfigureServerKeySettingEvent.ShowError -> showError(it.message)
                 ConfigureServerKeySettingEvent.DelaySigningInHourInvalid -> showError(getString(R.string.nc_delay_signing_invalid))
@@ -66,7 +72,7 @@ class ConfigureServerKeySettingFragment : MembershipFragment() {
     }
 
     private fun handleConfigServerKeySuccess(keyPolicy: KeyPolicy) {
-        if (args.xfp.isNullOrEmpty()) {
+        if (isCreateAssistedWalletFlow) {
             findNavController().popBackStack(
                 R.id.addKeyListFragment,
                 false
@@ -85,13 +91,17 @@ class ConfigureServerKeySettingFragment : MembershipFragment() {
             }
         }
     }
+
+    private val isCreateAssistedWalletFlow: Boolean
+        get() = args.xfp.isNullOrEmpty()
 }
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun ConfigureServerKeySettingScreen(
     viewModel: ConfigureServerKeySettingViewModel = viewModel(),
-    membershipStepManager: MembershipStepManager
+    membershipStepManager: MembershipStepManager,
+    isCreateAssistedWalletFlow: Boolean,
 ) {
     val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -99,6 +109,7 @@ fun ConfigureServerKeySettingScreen(
         state,
         viewModel::onContinueClicked,
         remainTime,
+        isCreateAssistedWalletFlow,
         viewModel::updateCoSigningDelayText,
         viewModel::updateAutoBroadcastSwitched,
         viewModel::updateEnableCoSigningSwitched
@@ -110,6 +121,7 @@ fun ConfigureServerKeySettingScreenContent(
     state: ConfigureServerKeySettingState = ConfigureServerKeySettingState.Empty,
     onContinueClicked: () -> Unit = {},
     remainTime: Int = 0,
+    isCreateAssistedWalletFlow: Boolean = false,
     onCoSigningDelaTextChange: (value: String) -> Unit = {},
     onAutoBroadcastSwitchedChange: (checked: Boolean) -> Unit = {},
     onEnableCoSigningSwitchedChange: (checked: Boolean) -> Unit = {},
@@ -122,7 +134,12 @@ fun ConfigureServerKeySettingScreenContent(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainTime))
+                NcTopAppBar(
+                    if (isCreateAssistedWalletFlow) stringResource(
+                        R.string.nc_estimate_remain_time,
+                        remainTime
+                    ) else "",
+                )
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_configure_server_key_setting_cosigning_delay),

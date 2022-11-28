@@ -11,12 +11,18 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun NCLabelWithIndex(modifier: Modifier = Modifier, index: Int, label: String) {
+fun NCLabelWithIndex(
+    modifier: Modifier = Modifier,
+    index: Int,
+    label: String,
+    style: TextStyle = NunchukTheme.typography.body,
+) {
     Row(modifier = modifier) {
         Box(
             modifier = Modifier
@@ -32,7 +38,7 @@ fun NCLabelWithIndex(modifier: Modifier = Modifier, index: Int, label: String) {
         Text(
             modifier = Modifier.padding(start = 12.dp),
             text = label,
-            style = NunchukTheme.typography.body
+            style = style
         )
     }
 }

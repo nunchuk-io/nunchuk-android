@@ -43,17 +43,25 @@ fun SignerType.toReadableString(context: Context, isPrimaryKey: Boolean): String
 fun SignerModel.toReadableSignerType(context: Context, isIgnorePrimary: Boolean = false) =
     type.toReadableString(context, if (isIgnorePrimary) false else isPrimaryKey)
 
-fun SignerType.toReadableDrawable(context: Context, isPrimaryKey: Boolean = false): Drawable? {
-    if (isPrimaryKey) return ContextCompat.getDrawable(context, R.drawable.ic_signer_type_primary_key_small)
+fun SignerType.toReadableDrawable(context: Context, isPrimaryKey: Boolean = false): Drawable {
+    return ContextCompat.getDrawable(
+        context,
+        toReadableDrawableResId(isPrimaryKey)
+    ) ?: throw NullPointerException("Nunchuk can not get drawable")
+}
+
+fun SignerType.toReadableDrawableResId(isPrimaryKey: Boolean = false): Int {
+    if (isPrimaryKey) return R.drawable.ic_signer_type_primary_key_small
     return when (this) {
-        AIRGAP, COLDCARD_NFC -> ContextCompat.getDrawable(context, R.drawable.ic_air_signer_small)
-        SOFTWARE -> ContextCompat.getDrawable(context, R.drawable.ic_logo_dark_small)
-        HARDWARE -> ContextCompat.getDrawable(context, R.drawable.ic_signer_type_wired)
-        FOREIGN_SOFTWARE -> ContextCompat.getDrawable(context, R.drawable.ic_logo_dark_small)
-        NFC -> ContextCompat.getDrawable(context, R.drawable.ic_nfc_card)
-        UNKNOWN -> ContextCompat.getDrawable(context, R.drawable.ic_air_signer_small)
-        SERVER -> ContextCompat.getDrawable(context, R.drawable.ic_server_key_dark)
+        AIRGAP, COLDCARD_NFC -> R.drawable.ic_air_signer_small
+        SOFTWARE -> R.drawable.ic_logo_dark_small
+        HARDWARE -> R.drawable.ic_signer_type_wired
+        FOREIGN_SOFTWARE -> R.drawable.ic_logo_dark_small
+        NFC -> R.drawable.ic_nfc_card
+        UNKNOWN -> R.drawable.ic_air_signer_small
+        SERVER -> R.drawable.ic_server_key_dark
     }
 }
 
-fun SignerModel.toReadableSignerTypeDrawable(context: Context, isPrimaryKey: Boolean = false) = type.toReadableDrawable(context, isPrimaryKey)
+fun SignerModel.toReadableSignerTypeDrawable(context: Context, isPrimaryKey: Boolean = false) =
+    type.toReadableDrawable(context, isPrimaryKey)

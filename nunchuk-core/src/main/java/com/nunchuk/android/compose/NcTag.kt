@@ -27,7 +27,7 @@ fun NcTag(modifier: Modifier = Modifier, label: String, backgroundColor: Color =
         text = label,
         style = TextStyle(
             color = MaterialTheme.colors.primary,
-            fontSize = 10.sp, fontWeight = FontWeight.W900, fontFamily = latoSemiBold
+            fontSize = 10.sp, fontWeight = FontWeight.W900, fontFamily = latoBold
         )
     )
 }

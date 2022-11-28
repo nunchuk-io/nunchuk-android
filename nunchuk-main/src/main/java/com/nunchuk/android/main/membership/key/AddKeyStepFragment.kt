@@ -231,7 +231,7 @@ fun AddKeyStepContent(
                     .padding(16.dp),
                 onClick = onContinueClicked
             ) {
-                Text(text = stringResource(id = R.string.nc_text_continue))
+                Text(text = if (isConfigKeyDone.not()) stringResource(R.string.nc_start) else stringResource(id = R.string.nc_text_continue))
             }
         }
     }

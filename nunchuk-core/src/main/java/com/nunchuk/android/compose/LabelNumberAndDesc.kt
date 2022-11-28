@@ -9,6 +9,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
@@ -17,10 +18,11 @@ fun LabelNumberAndDesc(
     modifier: Modifier = Modifier,
     index: Int,
     title: String,
+    titleStyle: TextStyle = NunchukTheme.typography.body,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Column(modifier = modifier) {
-        NCLabelWithIndex(index = index, label = title)
+        NCLabelWithIndex(index = index, label = title, style = titleStyle)
         content()
     }
 }
