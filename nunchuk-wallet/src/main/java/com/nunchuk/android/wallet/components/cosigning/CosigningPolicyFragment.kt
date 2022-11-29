@@ -20,7 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,8 +37,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.SpendingCurrencyUnit
+import com.nunchuk.android.model.SpendingPolicy
+import com.nunchuk.android.model.SpendingTimeUnit
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.wallet.R
 import dagger.hilt.android.AndroidEntryPoint
@@ -75,14 +79,18 @@ class CosigningPolicyFragment : Fragment() {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
                     when (event) {
-                        CosigningPolicyEvent.OnEditClicked -> navigator.openMembershipActivity(
+                        CosigningPolicyEvent.OnEditSingingDelayClicked -> navigator.openMembershipActivity(
                             launcher = launcher,
                             activityContext = requireActivity(),
                             groupStep = MembershipStage.CONFIG_SERVER_KEY,
-                            keyPolicy = KeyPolicy(
-                                autoBroadcastTransaction = viewModel.state.value.isAutoBroadcast,
-                                signingDelayInHour = viewModel.state.value.delayCosigningInHour
-                            ),
+                            keyPolicy = viewModel.state.value.keyPolicy,
+                            xfp = args.xfp
+                        )
+                        CosigningPolicyEvent.OnEditSpendingLimitClicked -> navigator.openMembershipActivity(
+                            launcher = launcher,
+                            activityContext = requireActivity(),
+                            groupStep = MembershipStage.CONFIG_SPENDING_LIMIT,
+                            keyPolicy = viewModel.state.value.keyPolicy,
                             xfp = args.xfp
                         )
                     }
@@ -96,9 +104,11 @@ class CosigningPolicyFragment : Fragment() {
 private fun CosigningPolicyScreen(viewModel: CosigningPolicyViewModel = viewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     CosigningPolicyContent(
-        isAutoBroadcast = state.isAutoBroadcast,
-        delayCosigningInHour = state.delayCosigningInHour,
-        onEditClicked = viewModel::onEditClicked,
+        isAutoBroadcast = state.keyPolicy.autoBroadcastTransaction,
+        delayCosigningInHour = state.keyPolicy.signingDelayInHour,
+        spendingPolicy = state.keyPolicy.spendingPolicy,
+        onEditSingingDelayClicked = viewModel::onEditSigningDelayClicked,
+        onEditSpendingLimitClicked = viewModel::onEditSpendingLimitClicked,
     )
 }
 
@@ -106,7 +116,9 @@ private fun CosigningPolicyScreen(viewModel: CosigningPolicyViewModel = viewMode
 private fun CosigningPolicyContent(
     isAutoBroadcast: Boolean = true,
     delayCosigningInHour: Int = 0,
-    onEditClicked: () -> Unit = {},
+    spendingPolicy: SpendingPolicy? = null,
+    onEditSpendingLimitClicked: () -> Unit = {},
+    onEditSingingDelayClicked: () -> Unit = {},
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -122,10 +134,67 @@ private fun CosigningPolicyContent(
                     text = stringResource(R.string.nc_cosigning_policies),
                     style = NunchukTheme.typography.heading
                 )
+                if (spendingPolicy != null) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, end = 16.dp, top = 24.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = stringResource(R.string.nc_spending_limit),
+                            style = NunchukTheme.typography.title
+                        )
+                        Text(
+                            modifier = Modifier.clickable(onClick = onEditSpendingLimitClicked),
+                            text = stringResource(R.string.nc_edit),
+                            style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
+                        )
+                    }
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                            .background(
+                                color = colorResource(id = R.color.nc_grey_light),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                modifier = Modifier.weight(1.0f),
+                                text = stringResource(R.string.nc_cosigning_spending_limit),
+                                style = NunchukTheme.typography.body
+                            )
+                            Text(
+                                modifier = Modifier.weight(1.0f),
+                                textAlign = TextAlign.End,
+                                text = "${spendingPolicy.limit} ${spendingPolicy.currencyUnit.name}/${
+                                    spendingPolicy.timeUnit.name.lowercase()
+                                        .capitalize(Locale.current)
+                                }",
+                                style = NunchukTheme.typography.title.copy(fontWeight = FontWeight.Bold)
+                            )
+                        }
+                    }
+
+                    Divider(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp)
+                            .padding(horizontal = 16.dp)
+                    )
+                }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, top = 24.dp),
+                        .padding(start = 16.dp, end = 16.dp, top = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
@@ -133,7 +202,7 @@ private fun CosigningPolicyContent(
                         style = NunchukTheme.typography.title
                     )
                     Text(
-                        modifier = Modifier.clickable(onClick = onEditClicked),
+                        modifier = Modifier.clickable(onClick = onEditSingingDelayClicked),
                         text = stringResource(R.string.nc_edit),
                         style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
                     )
@@ -206,6 +275,7 @@ private fun CosigningPolicyContent(
 private fun CosigningPolicyScreenPreview() {
     CosigningPolicyContent(
         isAutoBroadcast = true,
-        delayCosigningInHour = 2
+        delayCosigningInHour = 2,
+        spendingPolicy = SpendingPolicy(5000, SpendingTimeUnit.DAILY, SpendingCurrencyUnit.USD)
     )
 }

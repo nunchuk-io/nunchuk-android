@@ -1,6 +1,7 @@
 package com.nunchuk.android.main.membership.key.server.limit
 
 import android.content.Context
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.main.R
@@ -15,8 +16,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ConfigSpendingLimitViewModel @Inject constructor(
-    private val membershipStepManager: MembershipStepManager,
+    membershipStepManager: MembershipStepManager,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+    private val args = ConfigSpendingLimitFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _event = MutableSharedFlow<ConfigSpendingLimitEvent>()
     val event = _event.asSharedFlow()
 
@@ -24,6 +27,15 @@ class ConfigSpendingLimitViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     val remainTime = membershipStepManager.remainingTime
+
+    init {
+        _state.update {
+            it.copy(
+                timeUnit = args.keyPolicy?.spendingPolicy?.timeUnit ?: SpendingTimeUnit.DAILY,
+                currencyUnit = args.keyPolicy?.spendingPolicy?.currencyUnit ?: SpendingCurrencyUnit.USD
+            )
+        }
+    }
 
     fun showTimeUnitOption() {
         viewModelScope.launch {

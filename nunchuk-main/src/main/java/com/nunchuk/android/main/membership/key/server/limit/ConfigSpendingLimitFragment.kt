@@ -23,14 +23,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
@@ -41,18 +40,20 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.SpendingCurrencyUnit
 import com.nunchuk.android.model.SpendingTimeUnit
+import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class ConfigSpendingLimitFragment : Fragment(), BottomSheetOptionListener {
+class ConfigSpendingLimitFragment : MembershipFragment(), BottomSheetOptionListener {
     private val viewModel: ConfigSpendingLimitViewModel by viewModels()
+    private val args: ConfigSpendingLimitFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                ConfigSpendingLimitScreen(viewModel)
+                ConfigSpendingLimitScreen(viewModel, args)
             }
         }
     }
@@ -116,7 +117,10 @@ class ConfigSpendingLimitFragment : Fragment(), BottomSheetOptionListener {
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
-private fun ConfigSpendingLimitScreen(viewModel: ConfigSpendingLimitViewModel = viewModel()) {
+private fun ConfigSpendingLimitScreen(
+    viewModel: ConfigSpendingLimitViewModel,
+    args: ConfigSpendingLimitFragmentArgs
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     ConfigSpendingLimitContent(
@@ -126,6 +130,10 @@ private fun ConfigSpendingLimitScreen(viewModel: ConfigSpendingLimitViewModel = 
         onShowCurrencyUnitOption = viewModel::showCurrencyUnitOption,
         onShowTimeUnitOption = viewModel::showTimeUnitOption,
         onContinueClicked = viewModel::onContinueClicked,
+        spendingLimit = remember {
+            mutableStateOf(args.keyPolicy?.spendingPolicy?.limit?.toString() ?: "5000")
+        },
+        isEditMode = args.keyPolicy != null
     )
 }
 
@@ -137,8 +145,9 @@ private fun ConfigSpendingLimitContent(
     onContinueClicked: (value: Long) -> Unit = {},
     onShowTimeUnitOption: () -> Unit = {},
     onShowCurrencyUnitOption: () -> Unit = {},
+    spendingLimit: MutableState<String> = mutableStateOf("5000"),
+    isEditMode: Boolean = false,
 ) {
-    var spendingLimit by remember { mutableStateOf("") }
     NunchukTheme {
         Scaffold { innerPadding ->
             Column(
@@ -147,7 +156,7 @@ private fun ConfigSpendingLimitContent(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainTime))
+                NcTopAppBar(if (isEditMode) "" else stringResource(R.string.nc_estimate_remain_time, remainTime))
                 Text(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     text = stringResource(R.string.nc_config_cosiging_spending_limit),
@@ -174,9 +183,9 @@ private fun ConfigSpendingLimitContent(
                             .weight(1.0f)
                             .padding(end = 16.dp),
                         title = "",
-                        value = spendingLimit,
+                        value = spendingLimit.value,
                         onValueChange = {
-                            spendingLimit = it.take(15)
+                            spendingLimit.value = it.take(15)
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
@@ -228,15 +237,15 @@ private fun ConfigSpendingLimitContent(
                 }
                 Spacer(modifier = Modifier.weight(1.0f))
                 NcPrimaryDarkButton(
-                    enabled = spendingLimit.isNotEmpty(),
+                    enabled = spendingLimit.value.isNotEmpty(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
                     onClick = {
-                        onContinueClicked(spendingLimit.toLongOrNull() ?: 0L)
+                        onContinueClicked(spendingLimit.value.toLongOrNull() ?: 0L)
                     },
                 ) {
-                    Text(text = stringResource(id = R.string.nc_text_continue))
+                    Text(text = if (isEditMode) stringResource(R.string.nc_update_spending_limit) else stringResource(id = R.string.nc_text_continue))
                 }
             }
         }

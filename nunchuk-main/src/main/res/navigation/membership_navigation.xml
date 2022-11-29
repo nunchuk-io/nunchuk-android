@@ -212,6 +212,7 @@
         android:id="@+id/configSpendingLimitFragment"
         android:name="com.nunchuk.android.main.membership.key.server.limit.ConfigSpendingLimitFragment"
         android:label="ConfigSpendingLimitFragment">
+
         <action
             android:id="@+id/action_configSpendingLimitFragment_to_configureServerKeySettingFragment"
             app:destination="@id/configureServerKeySettingFragment"
@@ -219,6 +220,12 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <argument
+            android:name="key_policy"
+            app:argType="com.nunchuk.android.model.KeyPolicy"
+            android:defaultValue="@null"
+            app:nullable="true" />
     </fragment>
     <fragment
         android:id="@+id/registerWalletToColdcardFragment"

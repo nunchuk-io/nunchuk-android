@@ -106,13 +106,13 @@ fun ConfigureServerKeySettingScreen(
     val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
     ConfigureServerKeySettingScreenContent(
-        state,
-        viewModel::onContinueClicked,
-        remainTime,
-        isCreateAssistedWalletFlow,
-        viewModel::updateCoSigningDelayText,
-        viewModel::updateAutoBroadcastSwitched,
-        viewModel::updateEnableCoSigningSwitched
+        state = state,
+        onContinueClicked = viewModel::onContinueClicked,
+        remainTime = remainTime,
+        isCreateAssistedWalletFlow = isCreateAssistedWalletFlow,
+        onCoSigningDelaTextChange = viewModel::updateCoSigningDelayText,
+        onAutoBroadcastSwitchedChange = viewModel::updateAutoBroadcastSwitched,
+        onEnableCoSigningSwitchedChange = viewModel::updateEnableCoSigningSwitched,
     )
 }
 
@@ -211,7 +211,11 @@ fun ConfigureServerKeySettingScreenContent(
                         .padding(16.dp),
                     onClick = onContinueClicked,
                 ) {
-                    Text(text = stringResource(id = R.string.nc_text_continue))
+                    Text(
+                        text = if (isCreateAssistedWalletFlow)
+                            stringResource(R.string.nc_text_continue)
+                        else stringResource(R.string.nc_update_cosigning_delay)
+                    )
                 }
             }
         }

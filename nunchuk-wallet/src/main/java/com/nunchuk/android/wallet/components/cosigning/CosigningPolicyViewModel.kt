@@ -21,10 +21,7 @@ class CosigningPolicyViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
     private val _state = MutableStateFlow(
-        CosigningPolicyState(
-            args.keyPolicy?.autoBroadcastTransaction ?: false,
-            args.keyPolicy?.signingDelayInHour ?: 0
-        )
+        CosigningPolicyState(args.keyPolicy ?: KeyPolicy())
     )
     val state = _state.asStateFlow()
 
@@ -41,21 +38,27 @@ class CosigningPolicyViewModel @Inject constructor(
         keyPolicy ?: return
         _state.update {
             it.copy(
-                isAutoBroadcast = keyPolicy.autoBroadcastTransaction,
-                delayCosigningInHour = keyPolicy.signingDelayInHour
+                keyPolicy = keyPolicy
             )
         }
     }
 
-    fun onEditClicked() {
+    fun onEditSpendingLimitClicked() {
         viewModelScope.launch {
-            _event.emit(CosigningPolicyEvent.OnEditClicked)
+            _event.emit(CosigningPolicyEvent.OnEditSpendingLimitClicked)
+        }
+    }
+
+    fun onEditSigningDelayClicked() {
+        viewModelScope.launch {
+            _event.emit(CosigningPolicyEvent.OnEditSingingDelayClicked)
         }
     }
 }
 
-data class CosigningPolicyState(val isAutoBroadcast: Boolean, val delayCosigningInHour: Int)
+data class CosigningPolicyState(val keyPolicy: KeyPolicy = KeyPolicy())
 
 sealed class CosigningPolicyEvent {
-    object OnEditClicked : CosigningPolicyEvent()
+    object OnEditSpendingLimitClicked : CosigningPolicyEvent()
+    object OnEditSingingDelayClicked : CosigningPolicyEvent()
 }

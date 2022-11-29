@@ -48,4 +48,5 @@
     <string name="nc_import_psbt_via_qr">Import PSBT via QR</string>
     <string name="nc_show_as_qr_code">Show as QR code</string>
     <string name="nc_delete_collaborative_wallet">Deleting this collaborative wallet will also delete the corresponding chat. Are you sure you want to delete?</string>
+    <string name="nc_spending_limit">Spending limit</string>
 </resources>
