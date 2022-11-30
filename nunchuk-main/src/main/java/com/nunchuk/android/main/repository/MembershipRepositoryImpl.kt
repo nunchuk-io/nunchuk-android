@@ -4,10 +4,7 @@ import com.google.gson.Gson
 import com.nunchuk.android.api.key.MembershipApi
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.persistence.NcDataStore
-import com.nunchuk.android.model.MemberSubscription
-import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.model.MembershipStepInfo
-import com.nunchuk.android.model.SignerExtra
+import com.nunchuk.android.model.*
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.entity.MembershipStepEntity
@@ -58,17 +55,7 @@ class MembershipRepositoryImpl @Inject constructor(
         val result = membershipApi.getCurrentSubscription()
         if (result.isSuccess) {
             val data = result.data
-            val plan = when (data.plan?.slug) {
-                IRON_HAND_PLAN -> {
-                    MembershipPlan.IRON_HAND
-                }
-                HONEY_BADGER_PLAN -> {
-                    MembershipPlan.HONEY_BADGER
-                }
-                else -> {
-                    MembershipPlan.NONE
-                }
-            }
+            val plan = data.plan?.slug.toMembershipPlan()
             ncDataStore.setMembershipPlan(plan)
             return MemberSubscription(data.subscriptionId, data.plan?.slug, plan)
         } else {
@@ -91,11 +78,5 @@ class MembershipRepositoryImpl @Inject constructor(
                 }
         }
         membershipStepDao.deleteStepByEmail(accountManager.getAccount().email)
-    }
-
-
-    companion object {
-        private const val IRON_HAND_PLAN = "iron_hand"
-        private const val HONEY_BADGER_PLAN = "honey_badger"
     }
 }

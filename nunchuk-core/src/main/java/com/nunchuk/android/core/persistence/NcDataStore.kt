@@ -24,6 +24,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.toMembershipPlan
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -41,7 +42,20 @@ class NcDataStore @Inject constructor(
     private val turnOnNotificationKey = booleanPreferencesKey("turn_on_notification")
     private val syncEnableKey = booleanPreferencesKey("sync_enable")
     private val isShowNfcUniversalKey = booleanPreferencesKey("show_nfc_universal")
-    private val assistedWalletLocalIdKey = stringSetPreferencesKey("assisted_wallet_id")
+
+    /**
+     * Assisted wallet local id
+     */
+    private val assistedWalletLocalIdKey = stringPreferencesKey("assisted_wallet_local_id")
+
+    /**
+     * Plan of current assisted wallet
+     */
+    private val assistedWalletPlanKey = stringPreferencesKey("assisted_wallet_plan")
+
+    /**
+     * Current membership plan key
+     */
     private val membershipPlanKey = intPreferencesKey("membership_plan")
 
     val btcPriceFlow: Flow<Double>
@@ -62,9 +76,14 @@ class NcDataStore @Inject constructor(
             it[turnOnNotificationKey] ?: true
         }
 
-    val assistedWalletIds: Flow<Set<String>>
+    val assistedWalletId: Flow<String>
         get() = context.dataStore.data.map {
             it[assistedWalletLocalIdKey].orEmpty()
+        }
+
+    val assistedWalletPlan: Flow<MembershipPlan>
+        get() = context.dataStore.data.map {
+            it[assistedWalletPlanKey].toMembershipPlan()
         }
 
     val membershipPlan: Flow<MembershipPlan>
@@ -97,9 +116,15 @@ class NcDataStore @Inject constructor(
         }
     }
 
-    suspend fun setAssistedWalletIds(ids: Set<String>) {
+    suspend fun setAssistedWalletId(id: String) {
         context.dataStore.edit { settings ->
-            settings[assistedWalletLocalIdKey] = ids
+            settings[assistedWalletLocalIdKey] = id
+        }
+    }
+
+    suspend fun setAssistedWalletPlan(plan: String) {
+        context.dataStore.edit { settings ->
+            settings[assistedWalletPlanKey] = plan
         }
     }
 

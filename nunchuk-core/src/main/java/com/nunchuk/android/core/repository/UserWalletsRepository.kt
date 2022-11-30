@@ -183,7 +183,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun getServerWallet(): WalletServerSync {
         val result = userWalletsApi.getServerWallet()
 
-        ncDataStore.setAssistedWalletIds(result.data.wallets.map { it.localId.orEmpty() }.toSet())
+        result.data.wallets.find { it.status == WALLET_ACTIVE_STATUS }?.let {
+            ncDataStore.setAssistedWalletId(it.localId.orEmpty())
+            ncDataStore.setAssistedWalletPlan(it.slug.orEmpty())
+        }
         var isNeedReload = false
 
         val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -338,6 +341,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     companion object {
         private const val PENDING_SIGNING_STATUS = "PENDING_SIGNING"
         private const val PENDING_CONFIRMATION_STATUS = "PENDING_CONFIRMATION"
+        private const val WALLET_ACTIVE_STATUS = "ACTIVE"
     }
 }
 

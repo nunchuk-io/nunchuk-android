@@ -33,7 +33,7 @@ import com.nunchuk.android.widget.util.AbsViewBinder
 internal class WalletsViewBinder(
     container: ViewGroup,
     wallets: List<WalletExtended>,
-    val assistedWalletIds: Set<String>,
+    val assistedWalletId: String,
     val callback: (String) -> Unit = {}
 ) : AbsViewBinder<WalletExtended, ItemWalletBinding>(container, wallets) {
 
@@ -49,7 +49,7 @@ internal class WalletsViewBinder(
         binding.shareIcon.isVisible = model.isShared
         binding.config.bindWalletConfiguration(wallet)
         binding.root.setOnClickListener { callback(wallet.id) }
-        if (assistedWalletIds.contains(model.wallet.id)) {
+        if (assistedWalletId == model.wallet.id) {
             binding.root.setBackgroundResource(R.drawable.nc_gradient_premium_background)
         } else {
             binding.root.setBackgroundResource(R.drawable.nc_gradient_background)

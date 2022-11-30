@@ -34,7 +34,7 @@ internal data class WalletsState(
     val isPremiumUser: Boolean? = null,
     val remainingTime: Int = 0,
     val isCompletedMembershipFlow: Boolean = false,
-    val assistedWalletIds: Set<String> = emptySet(),
+    val assistedWalletId: String = "",
 )
 
 internal sealed class WalletsEvent {

@@ -26,13 +26,13 @@ import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.domain.GetAssistedWalletIdsFlowUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.listener.TransactionListener
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.RoomWallet
@@ -45,7 +45,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
@@ -67,7 +66,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val accountManager: AccountManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val selectedWalletUseCase: SetSelectedWalletUseCase,
-    private val getAssistedWalletIdsFlowUseCase: GetAssistedWalletIdsFlowUseCase
+    private val assistedWalletManager: AssistedWalletManager
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -87,14 +86,10 @@ internal class WalletDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             selectedWalletUseCase(args.walletId)
         }
-        viewModelScope.launch {
-            getAssistedWalletIdsFlowUseCase(Unit).collect {
-                updateState {
-                    copy(
-                        isAssistedWallet = it.getOrDefault(emptySet()).contains(args.walletId)
-                    )
-                }
-            }
+        updateState {
+            copy(
+                isAssistedWallet = assistedWalletManager.isAssistedWallet(args.walletId)
+            )
         }
     }
 
@@ -235,8 +230,4 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     val isLeaveRoom: Boolean
         get() = getState().isLeaveRoom
-
-    companion object {
-        private const val TIMEOUT_TO_RELOAD = 5000L
-    }
 }

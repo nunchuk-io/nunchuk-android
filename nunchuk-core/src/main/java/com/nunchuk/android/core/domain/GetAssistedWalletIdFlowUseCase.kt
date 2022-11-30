@@ -7,9 +7,9 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class GetAssistedWalletIdsFlowUseCase @Inject constructor(
+class GetAssistedWalletIdFlowUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val ncDataStore: NcDataStore
-) : FlowUseCase<Unit, Set<String>>(dispatcher) {
-    override fun execute(parameters: Unit): Flow<Set<String>> = ncDataStore.assistedWalletIds
+) : FlowUseCase<Unit, String>(dispatcher) {
+    override fun execute(parameters: Unit): Flow<String> = ncDataStore.assistedWalletId
 }

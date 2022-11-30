@@ -58,8 +58,8 @@ internal class WalletsViewModel @Inject constructor(
         checkMemberMembership()
 
         viewModelScope.launch {
-            assistedWalletManager.assistedWalletIds.collect {
-                updateState { copy(assistedWalletIds = it) }
+            assistedWalletManager.assistedWalletId.collect {
+                updateState { copy(assistedWalletId = it) }
             }
         }
     }

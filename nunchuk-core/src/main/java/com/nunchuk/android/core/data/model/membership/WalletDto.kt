@@ -10,5 +10,7 @@ internal data class WalletDto(
     @SerializedName("bsms") val bsms: String? = null,
     @SerializedName("slug") val slug: String? = null,
     @SerializedName("server_key") val serverKeyDto: ServerKeyDto? = null,
-    @SerializedName("signers") val signerServerDtos: List<SignerServerDto> = emptyList()
+    @SerializedName("signers") val signerServerDtos: List<SignerServerDto> = emptyList(),
+    @SerializedName("status") val status: String? = null,
+    @SerializedName("created_time_milis") val createdTimeMilis: Long = 0L,
 )
