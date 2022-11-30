@@ -1,5 +1,7 @@
 package com.nunchuk.android.main.membership.key.server.limit
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -41,6 +43,7 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.model.SpendingCurrencyUnit
 import com.nunchuk.android.model.SpendingTimeUnit
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyFragmentArgs
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -66,13 +69,30 @@ class ConfigSpendingLimitFragment : MembershipFragment(), BottomSheetOptionListe
                     when (event) {
                         ConfigSpendingLimitEvent.ShowCurrencyUnit -> showCurrencyUnitOption()
                         ConfigSpendingLimitEvent.ShowTimeUnit -> showTimeUnitOption()
-                        is ConfigSpendingLimitEvent.ContinueClicked -> findNavController().navigate(
-                            ConfigSpendingLimitFragmentDirections.actionConfigSpendingLimitFragmentToConfigureServerKeySettingFragment(
-                                spendingLimit = event.spendingPolicy
-                            )
-                        )
+                        is ConfigSpendingLimitEvent.ContinueClicked -> handleContinueClicked(event)
                     }
                 }
+        }
+    }
+
+    private fun handleContinueClicked(event: ConfigSpendingLimitEvent.ContinueClicked) {
+        val keyPolicy = args.keyPolicy
+        if (keyPolicy != null) {
+            // edit mode
+            val newArgs = CosigningPolicyFragmentArgs(keyPolicy.copy(spendingPolicy = event.spendingPolicy), "")
+            requireActivity().apply {
+                setResult(Activity.RESULT_OK, Intent().apply {
+                    putExtras(newArgs.toBundle())
+                })
+                finish()
+            }
+        } else {
+            // create mode
+            findNavController().navigate(
+                ConfigSpendingLimitFragmentDirections.actionConfigSpendingLimitFragmentToConfigureServerKeySettingFragment(
+                    spendingLimit = event.spendingPolicy
+                )
+            )
         }
     }
 

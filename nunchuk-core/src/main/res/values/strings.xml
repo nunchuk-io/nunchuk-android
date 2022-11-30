@@ -293,4 +293,5 @@
     <string name="nc_cosigning_spending_limit">Co-signing spending limit</string>
     <string name="nc_update_cosigning_delay">Update co-signing delay</string>
     <string name="nc_update_spending_limit">Update spending limit</string>
+    <string name="nc_are_you_sure_discard_the_change">Are you sure want to discard the changes?</string>
 </resources>

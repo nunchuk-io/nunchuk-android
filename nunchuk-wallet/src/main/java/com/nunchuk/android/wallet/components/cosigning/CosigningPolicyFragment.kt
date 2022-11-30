@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -35,6 +36,7 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.model.MembershipStage
@@ -43,6 +45,7 @@ import com.nunchuk.android.model.SpendingPolicy
 import com.nunchuk.android.model.SpendingTimeUnit
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -59,7 +62,7 @@ class CosigningPolicyFragment : Fragment() {
             val data = it.data?.extras
             if (it.resultCode == Activity.RESULT_OK && data != null) {
                 val args = CosigningPolicyFragmentArgs.fromBundle(data)
-                viewModel.updateState(args.keyPolicy)
+                viewModel.updateState(args.keyPolicy, true)
             }
         }
 
@@ -93,6 +96,14 @@ class CosigningPolicyFragment : Fragment() {
                             keyPolicy = viewModel.state.value.keyPolicy,
                             xfp = args.xfp
                         )
+                        CosigningPolicyEvent.OnDiscardChange -> TODO()
+                        CosigningPolicyEvent.OnSaveChange -> NCWarningDialog(requireActivity()).showDialog(
+                            title = getString(R.string.nc_confirmation),
+                            message = getString(R.string.nc_are_you_sure_discard_the_change),
+                            onYesClick = {
+                                requireActivity().finish()
+                            }
+                        )
                     }
                 }
         }
@@ -107,8 +118,11 @@ private fun CosigningPolicyScreen(viewModel: CosigningPolicyViewModel = viewMode
         isAutoBroadcast = state.keyPolicy.autoBroadcastTransaction,
         delayCosigningInHour = state.keyPolicy.signingDelayInHour,
         spendingPolicy = state.keyPolicy.spendingPolicy,
+        isUpdateFlow = state.isUpdateFlow,
         onEditSingingDelayClicked = viewModel::onEditSigningDelayClicked,
         onEditSpendingLimitClicked = viewModel::onEditSpendingLimitClicked,
+        onSaveChangeClicked = viewModel::onSaveChangeClicked,
+        onDiscardChangeClicked = viewModel::onDiscardChangeClicked
     )
 }
 
@@ -117,8 +131,11 @@ private fun CosigningPolicyContent(
     isAutoBroadcast: Boolean = true,
     delayCosigningInHour: Int = 0,
     spendingPolicy: SpendingPolicy? = null,
+    isUpdateFlow: Boolean = false,
     onEditSpendingLimitClicked: () -> Unit = {},
     onEditSingingDelayClicked: () -> Unit = {},
+    onSaveChangeClicked: () -> Unit = {},
+    onDiscardChangeClicked: () -> Unit = {},
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -265,6 +282,25 @@ private fun CosigningPolicyContent(
                         )
                     }
                 }
+                if (isUpdateFlow) {
+                    Spacer(modifier = Modifier.weight(1.0f))
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .fillMaxWidth(),
+                        onClick = onSaveChangeClicked,
+                    ) {
+                        Text(text = stringResource(R.string.nc_continue_save_changes))
+                    }
+                    TextButton(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        onClick = onDiscardChangeClicked,
+                    ) {
+                        Text(text = stringResource(R.string.nc_discard_changes))
+                    }
+                }
             }
         }
     }
@@ -276,6 +312,7 @@ private fun CosigningPolicyScreenPreview() {
     CosigningPolicyContent(
         isAutoBroadcast = true,
         delayCosigningInHour = 2,
+        isUpdateFlow = true,
         spendingPolicy = SpendingPolicy(5000, SpendingTimeUnit.DAILY, SpendingCurrencyUnit.USD)
     )
 }

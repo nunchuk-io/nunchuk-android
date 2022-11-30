@@ -4,11 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.CreateServerKeysUseCase
-import com.nunchuk.android.core.domain.membership.UpdateServerKeysUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.share.membership.MembershipStepManager
-import com.nunchuk.android.signer.util.SERVER_KEY_NAME
+import com.nunchuk.android.utils.SERVER_KEY_NAME
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -17,7 +16,6 @@ import javax.inject.Inject
 @HiltViewModel
 class ConfigureServerKeySettingViewModel @Inject constructor(
     private val createServerKeysUseCase: CreateServerKeysUseCase,
-    private val updateServerKeysUseCase: UpdateServerKeysUseCase,
     private val membershipStepManager: MembershipStepManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -51,9 +49,9 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
             _event.emit(ConfigureServerKeySettingEvent.DelaySigningInHourInvalid)
             return@launch
         }
-        _event.emit(ConfigureServerKeySettingEvent.Loading(true))
-        val result = if (args.xfp.isNullOrEmpty()) {
-            createServerKeysUseCase(
+        if (args.xfp.isNullOrEmpty()) {
+            _event.emit(ConfigureServerKeySettingEvent.Loading(true))
+            val result = createServerKeysUseCase(
                 CreateServerKeysUseCase.Param(
                     name = SERVER_KEY_NAME,
                     keyPolicy = KeyPolicy(
@@ -64,24 +62,18 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
                     plan = membershipStepManager.plan
                 )
             )
+            _event.emit(ConfigureServerKeySettingEvent.Loading(false))
+            if (result.isSuccess) {
+                _event.emit(ConfigureServerKeySettingEvent.ConfigServerSuccess(result.getOrThrow()))
+            } else {
+                _event.emit(ConfigureServerKeySettingEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
         } else {
-            updateServerKeysUseCase(
-                UpdateServerKeysUseCase.Param(
-                    name = SERVER_KEY_NAME,
-                    keyPolicy = KeyPolicy(
-                        autoBroadcastTransaction = state.autoBroadcastSwitched,
-                        signingDelayInHour = signingDelayInHour,
-                        args.spendingLimit
-                    ),
-                    keyIdOrXfp = args.xfp.orEmpty()
-                )
-            )
-        }
-        _event.emit(ConfigureServerKeySettingEvent.Loading(false))
-        if (result.isSuccess) {
-            _event.emit(ConfigureServerKeySettingEvent.ConfigServerSuccess(result.getOrThrow()))
-        } else {
-            _event.emit(ConfigureServerKeySettingEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            _event.emit(ConfigureServerKeySettingEvent.ConfigServerSuccess(KeyPolicy(
+                autoBroadcastTransaction = state.autoBroadcastSwitched,
+                signingDelayInHour = signingDelayInHour,
+                args.spendingLimit
+            )))
         }
     }
 
