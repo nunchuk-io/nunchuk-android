@@ -123,7 +123,7 @@
     <string name="nc_my_coldcard">My COLDCARD</string>
     <string name="nc_hold_device_near_the_coldcard">Hold your device near the COLDCARD.</string>
     <string name="nc_hint_add_mk4">On COLDCARD, go to Advanced/Tools → Export Wallet → Generic JSON → OK (x2) → Press 3.</string>
-    <string name="nc_hint_export_wallet_mk4">On COLDCARD, go to Settings → Multisig Wallets → Import from File → Press 3</string>
+    <string name="nc_hint_export_wallet_mk4">On COLDCARD, go to Settings → Multisig Wallets → Import via NFC → Press 3</string>
     <string name="nc_hint_export_trans_to_mk4">On COLDCARD, go to Ready To Sign → Press 3</string>
     <string name="nc_hint_import_signature_from_mk4">Ready to import signature.</string>
     <string name="nc_enable_nfc">Enable NFC</string>
@@ -294,4 +294,5 @@
     <string name="nc_update_cosigning_delay">Update co-signing delay</string>
     <string name="nc_update_spending_limit">Update spending limit</string>
     <string name="nc_are_you_sure_discard_the_change">Are you sure want to discard the changes?</string>
+    <string name="nc_backup_uploaded_successfully">The backup was uploaded successfully</string>
 </resources>

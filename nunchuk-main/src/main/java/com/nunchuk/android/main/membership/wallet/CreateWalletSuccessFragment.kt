@@ -15,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcHintMessage
@@ -56,7 +57,10 @@ class CreateWalletSuccessFragment : MembershipFragment() {
                 CreateWalletSuccessEvent.ContinueStepEvent -> {
                     if (viewModel.plan == MembershipPlan.HONEY_BADGER) {
                         findNavController().navigate(
-                            CreateWalletSuccessFragmentDirections.actionCreateWalletSuccessFragmentToAddKeyListFragment()
+                            CreateWalletSuccessFragmentDirections.actionCreateWalletSuccessFragmentToAddKeyStepFragment(),
+                            NavOptions.Builder()
+                                .setPopUpTo(findNavController().graph.startDestinationId, true)
+                                .build()
                         )
                     } else {
                         navigator.openWalletDetailsScreen(

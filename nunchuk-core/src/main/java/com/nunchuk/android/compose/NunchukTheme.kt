@@ -42,6 +42,7 @@ private val ErrorColor = Color(0xffCF4018)
 val montserratMedium = FontFamily(Font(R.font.montserrat_medium))
 val latoRegular = FontFamily(Font(R.font.lato_regular))
 val latoBold = FontFamily(Font(R.font.lato_bold))
+val latoSemiBold = FontFamily(Font(R.font.lato_semibold))
 
 private val LightColors = lightColors(
     primary = PrimaryColor,
@@ -105,7 +106,7 @@ fun NunchukTheme(
     ) {
         MaterialTheme(
             colors = LightColors,
-            typography = Typography(defaultFontFamily = latoRegular),
+            typography = Typography(defaultFontFamily = latoSemiBold),
             content = content,
         )
     }

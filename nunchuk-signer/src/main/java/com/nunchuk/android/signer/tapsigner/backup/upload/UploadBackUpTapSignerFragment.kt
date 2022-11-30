@@ -74,7 +74,8 @@ class UploadBackUpTapSignerFragment : MembershipFragment() {
                             viewModel.getServerFilePath(),
                             args.masterSignerId
                         ),
-                        NavOptions.Builder().setPopUpTo(findNavController().graph.startDestinationId, true).build()
+                        NavOptions.Builder()
+                            .setPopUpTo(findNavController().graph.startDestinationId, true).build()
                     )
                 }
                 is UploadBackUpTapSignerEvent.ShowError -> showError(it.message)
@@ -140,11 +141,16 @@ private fun UploadBackUpTapSignerContent(
                 color = MaterialTheme.colors.primary,
                 backgroundColor = colorResource(id = R.color.nc_whisper_color),
             )
+            val label = when {
+                isError -> stringResource(R.string.nc_upload_failed)
+                percentage == 100 -> stringResource(R.string.nc_backup_uploaded_successfully)
+                else -> "${percentage}%"
+            }
             Text(
                 modifier = Modifier
                     .padding(16.dp)
                     .align(alignment = Alignment.CenterHorizontally),
-                text = if (isError) stringResource(R.string.nc_upload_failed) else "${percentage}%",
+                text = label,
                 style = NunchukTheme.typography.body.copy(
                     color = if (isError) MaterialTheme.colors.error else MaterialTheme.colors.primary
                 )
@@ -176,4 +182,10 @@ private fun UploadBackUpTapSignerScreenPreview() {
 @Composable
 private fun UploadBackUpTapSignerScreenFailedPreview() {
     UploadBackUpTapSignerContent(percentage = 75, isError = true)
+}
+
+@Preview
+@Composable
+private fun UploadBackUpTapSignerScreen100Preview() {
+    UploadBackUpTapSignerContent(percentage = 100, isError = false)
 }

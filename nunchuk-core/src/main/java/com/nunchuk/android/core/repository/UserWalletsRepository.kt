@@ -158,7 +158,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 )
             }
         }
-        val bsms = nunchukNativeSdk.exportWalletToBsms(wallet.id)
+        val bsms = nunchukNativeSdk.exportWalletToBsms(wallet)
         val request = CreateWalletRequest(
             name = wallet.name,
             description = wallet.description,
@@ -176,6 +176,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     plan = plan
                 )
             )
+            ncDataStore.setAssistedWalletId(response.data.wallet.localId.orEmpty())
+            ncDataStore.setAssistedWalletPlan(plan.name.lowercase())
         }
         return SeverWallet(response.data.wallet.id.orEmpty())
     }
@@ -266,27 +268,23 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     ): Transaction? {
         val response = userWalletsApi.getTransaction(walletId, transactionId)
         val transaction = response.data.transaction
-        if (transaction != null && transaction.status != PENDING_SIGNING_STATUS) {
-            return nunchukNativeSdk.importPsbt(walletId, transaction.psbt.orEmpty())
-        }
-        return null
+        return handleServerTransaction(walletId, transactionId, transaction)
     }
 
     override suspend fun createServerTransaction(
         walletId: String,
         psbt: String,
-        note: String?
-    ): Transaction? {
+        note: String?,
+        txId: String
+    ) {
         val response = userWalletsApi.createTransaction(
             walletId, CreateServerTransactionRequest(
                 note = note, psbt = psbt
             )
         )
-        val transaction = response.data.transaction
-        if (transaction != null && transaction.status != PENDING_SIGNING_STATUS) {
-            return nunchukNativeSdk.importPsbt(walletId, transaction.psbt.orEmpty())
+        if (response.isSuccess.not()) {
+            throw response.error
         }
-        return null
     }
 
     override suspend fun signServerTransaction(
@@ -298,15 +296,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             walletId, txId, SignServerTransactionRequest(psbt = psbt)
         )
         val transaction = response.data.transaction
-        if (transaction != null && transaction.status != PENDING_SIGNING_STATUS) {
-            val newTransaction = nunchukNativeSdk.importPsbt(walletId, transaction.psbt.orEmpty())
-            return if (transaction.status == PENDING_CONFIRMATION_STATUS) {
-                newTransaction.copy(status = TransactionStatus.PENDING_CONFIRMATION)
-            } else {
-                newTransaction
-            }
-        }
-        return null
+        return handleServerTransaction(walletId, txId, transaction)
     }
 
     override suspend fun deleteServerTransaction(walletId: String, transactionId: String) {
@@ -338,9 +328,20 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
     }
 
+    private fun handleServerTransaction(walletId: String, transactionId: String, transaction: TransactionServer?) : Transaction? {
+        transaction ?: return null
+        return if (transaction.status == TransactionStatus.PENDING_CONFIRMATION.name
+            || transaction.status == TransactionStatus.CONFIRMED.name
+            || transaction.status == TransactionStatus.NETWORK_REJECTED.name
+        ) {
+            nunchukNativeSdk.importPsbt(walletId, transaction.psbt.orEmpty())
+            nunchukNativeSdk.updateTransaction(walletId, transactionId, transaction.transactionId.orEmpty(), transaction.hex.orEmpty(), transaction.rejectMsg.orEmpty())
+        } else {
+            nunchukNativeSdk.importPsbt(walletId, transaction.psbt.orEmpty())
+        }
+    }
+
     companion object {
-        private const val PENDING_SIGNING_STATUS = "PENDING_SIGNING"
-        private const val PENDING_CONFIRMATION_STATUS = "PENDING_CONFIRMATION"
         private const val WALLET_ACTIVE_STATUS = "ACTIVE"
     }
 }

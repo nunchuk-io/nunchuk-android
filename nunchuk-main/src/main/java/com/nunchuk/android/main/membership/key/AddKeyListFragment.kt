@@ -328,7 +328,7 @@ fun AddKeyListContent(
                     NcPrimaryDarkButton(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 16.dp),
+                            .padding(16.dp),
                         onClick = onContinueClicked,
                     ) {
                         Text(text = stringResource(id = R.string.nc_text_continue))

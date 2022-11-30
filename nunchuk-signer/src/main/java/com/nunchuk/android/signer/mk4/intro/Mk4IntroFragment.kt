@@ -14,7 +14,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
@@ -35,12 +34,13 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
-class Mk4IntroFragment : Fragment(), BottomSheetOptionListener {
+class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
     private val nfcViewModel by activityViewModels<NfcViewModel>()
     private val viewModel by viewModels<Mk4IntroViewModel>()
     private val args: Mk4IntroFragmentArgs by navArgs()

@@ -1,6 +1,8 @@
 package com.nunchuk.android.model
 
+import androidx.annotation.Keep
 
+@Keep
 enum class MembershipPlan {
     NONE, IRON_HAND, HONEY_BADGER
 }

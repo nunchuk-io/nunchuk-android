@@ -9,6 +9,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.ServerKeyExtra
 import com.nunchuk.android.model.SignerExtra
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
@@ -35,7 +36,6 @@ class CreateWalletViewModel @Inject constructor(
     private val createSignerUseCase: CreateSignerUseCase,
     private val gson: Gson,
     private val createServerWalletUseCase: CreateServerWalletUseCase,
-    private val deleteWalletUseCase: DeleteWalletUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
 ) : ViewModel() {
@@ -158,36 +158,44 @@ class CreateWalletViewModel @Inject constructor(
                 _event.emit(CreateWalletEvent.Loading(false))
                 return@launch
             }
-            createWalletUseCase.execute(
+            val wallet = Wallet(
                 name = _state.value.walletName,
                 totalRequireSigns = 2,
                 signers = getSingleSingerResult.getOrThrow() + remoteSignerResults.mapNotNull { it.getOrNull() } + createServerSignerResult.getOrThrow(),
                 addressType = addressType,
-                isEscrow = false
-            ).map {
-                val result = createServerWalletUseCase(
-                    CreateServerWalletUseCase.Params(it, serverKeyId, membershipStepManager.plan)
-                )
-                if (result.isFailure) {
-                    deleteWalletUseCase.execute(it.id)
-                    throw result.exceptionOrNull() ?: RuntimeException("Can not create wallet")
-                }
-                it
-            }.flowOn(Dispatchers.IO)
-                .flowOn(Dispatchers.Main)
-                .onCompletion { _event.emit(CreateWalletEvent.Loading(false)) }
-                .onException {
-                    _event.emit(CreateWalletEvent.ShowError(it.message.orUnknownError()))
-                }
-                .collect {
-                    _event.emit(
-                        CreateWalletEvent.OnCreateWalletSuccess(
-                            walletId = it.id,
-                            hasColdcard = signers.any { signer -> signer.value.signerType == SignerType.COLDCARD_NFC },
-                            hasAirgap = signers.any { signer -> signer.value.signerType == SignerType.AIRGAP }
+                escrow = false,
+            )
+            val result = createServerWalletUseCase(
+                CreateServerWalletUseCase.Params(wallet, serverKeyId, membershipStepManager.plan)
+            )
+            if (result.isSuccess) {
+                createWalletUseCase.execute(
+                    name = _state.value.walletName,
+                    totalRequireSigns = 2,
+                    signers = getSingleSingerResult.getOrThrow() + remoteSignerResults.mapNotNull { it.getOrNull() } + createServerSignerResult.getOrThrow(),
+                    addressType = addressType,
+                    isEscrow = false
+                ).flowOn(Dispatchers.IO)
+                    .flowOn(Dispatchers.Main)
+                    .onCompletion { _event.emit(CreateWalletEvent.Loading(false)) }
+                    .onException {
+                        _event.emit(CreateWalletEvent.ShowError(it.message.orUnknownError()))
+                    }
+                    .collect {
+                        _event.emit(
+                            CreateWalletEvent.OnCreateWalletSuccess(
+                                walletId = it.id,
+                                hasColdcard = signers.any { signer -> signer.value.signerType == SignerType.COLDCARD_NFC },
+                                hasAirgap = signers.any { signer -> signer.value.signerType == SignerType.AIRGAP }
+                            )
                         )
-                    )
-                }
+                    }
+            } else {
+                _event.emit(
+                    CreateWalletEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError())
+                )
+                _event.emit(CreateWalletEvent.Loading(false))
+            }
         }
     }
 }

@@ -64,7 +64,6 @@
                 <TextView
                     android:id="@+id/tv_intro_title"
                     style="@style/NCText.Title.Small"
-                    android:textStyle="bold"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/nc_padding_12"
@@ -75,7 +74,7 @@
 
                 <TextView
                     android:id="@+id/tv_intro_desc"
-                    style="@style/NCText.Title.Small"
+                    style="@style/NCText.Body.Small"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/nc_padding_12"
@@ -93,7 +92,6 @@
                     android:layout_marginStart="@dimen/nc_padding_12"
                     android:drawablePadding="@dimen/nc_padding_6"
                     android:gravity="center_vertical"
-                    android:textStyle="bold"
                     android:text="@string/nc_start_wizard"
                     app:drawableEndCompat="@drawable/ic_arrow"
                     app:layout_constraintBottom_toBottomOf="parent"

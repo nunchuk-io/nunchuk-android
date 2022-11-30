@@ -19,7 +19,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,11 +28,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.util.*
+import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class ColdcardRecoverFragment : Fragment() {
+class ColdcardRecoverFragment : MembershipFragment() {
     private val viewModel: ColdcardRecoverViewModel by viewModels()
     private val args: ColdcardRecoverFragmentArgs by navArgs()
 
@@ -104,7 +104,7 @@ private fun ColdcardRecoverContent(
                     .verticalScroll(rememberScrollState())
             ) {
                 NcImageAppBar(
-                    backgroundRes = R.drawable.nc_bg_tap_signer_chip,
+                    backgroundRes = R.drawable.bg_add_coldcard_view_nfc_intro,
                     title = if (isMembershipFlow) stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
@@ -123,7 +123,8 @@ private fun ColdcardRecoverContent(
                 LabelNumberAndDesc(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                     index = 1,
-                    title = stringResource(id = R.string.nc_init_coldcard)
+                    title = stringResource(id = R.string.nc_init_coldcard),
+                    titleStyle = NunchukTheme.typography.title,
                 ) {
                     NcClickableText(
                         modifier = Modifier.padding(top = 8.dp, start = 36.dp),
@@ -140,7 +141,8 @@ private fun ColdcardRecoverContent(
                 LabelNumberAndDesc(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                     index = 2,
-                    title = stringResource(id = R.string.nc_unlock_coldcard)
+                    title = stringResource(id = R.string.nc_unlock_coldcard),
+                    titleStyle = NunchukTheme.typography.title,
                 ) {
                     Text(
                         modifier = Modifier.padding(top = 8.dp, start = 36.dp),
@@ -151,7 +153,8 @@ private fun ColdcardRecoverContent(
                 LabelNumberAndDesc(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                     index = 3,
-                    title = stringResource(R.string.nc_export_xpubs_from_coldcard)
+                    title = stringResource(R.string.nc_export_xpubs_from_coldcard),
+                    titleStyle = NunchukTheme.typography.title,
                 ) {
                     Text(
                         modifier = Modifier.padding(top = 8.dp, start = 36.dp),
@@ -162,7 +165,8 @@ private fun ColdcardRecoverContent(
                 LabelNumberAndDesc(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                     index = 4,
-                    title = stringResource(R.string.nc_import_xpub_into_app)
+                    title = stringResource(R.string.nc_import_xpub_into_app),
+                    titleStyle = NunchukTheme.typography.title,
                 ) {
                     Text(
                         modifier = Modifier.padding(top = 8.dp, start = 36.dp),

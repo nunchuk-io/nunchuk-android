@@ -46,7 +46,8 @@ class CreateTransactionUseCase @Inject constructor(
             repository.createServerTransaction(
                 parameters.walletId,
                 transaction.psbt,
-                transaction.memo
+                transaction.memo,
+                transaction.txId
             )
         } catch (e: Exception) {
             nativeSdk.deleteTransaction(parameters.walletId, transaction.txId)
