@@ -32,11 +32,24 @@
     </fragment>
 
     <fragment
+        android:id="@+id/navigation_services"
+        android:name="com.nunchuk.android.main.components.tabs.services.ServicesTabFragment"
+        android:label="@string/nc_services_tab"
+        tools:layout="@layout/fragment_services_tab"/>
+
+    <fragment
         android:id="@+id/navigation_account"
         android:name="com.nunchuk.android.settings.AccountFragment"
         android:label="@string/nc_title_account"
-        tools:layout="@layout/fragment_account" />
+        tools:layout="@layout/fragment_services_tab" />
 
 
     <include app:graph="@navigation/wallet_detail_navigation" />
+
+
+    <fragment
+        android:id="@+id/walletDetailsFragment"
+        android:name="com.nunchuk.android.wallet.components.details.WalletDetailsFragment"
+        android:label="WalletDetailsFragment"
+        tools:layout="@layout/fragment_wallet_detail" />
 </navigation>

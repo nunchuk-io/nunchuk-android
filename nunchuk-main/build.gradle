@@ -19,6 +19,7 @@ dependencies {
     implementation project(':nunchuk-notifications')
     implementation project(':nunchuk-database')
     implementation project(':nunchuk-network')
+    implementation project(':nunchuk-auth')
     implementation nunchukDeps.nativeSdk
     implementation matrixDeps.matrixSdk
     implementation pluginsDeps.kotlinAndroidRuntime
@@ -29,6 +30,8 @@ dependencies {
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()
     implementation networkDeps.values()
+
+    implementation 'commons-codec:commons-codec:1.15'
 
     testImplementation otherTestDeps.junit
 }

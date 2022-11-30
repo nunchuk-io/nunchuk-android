@@ -29,13 +29,17 @@ import com.jakewharton.processphoenix.ProcessPhoenix
 import com.nunchuk.android.QuickWalletNavigationDirections
 import com.nunchuk.android.app.intro.GuestModeIntroActivity
 import com.nunchuk.android.app.intro.GuestModeMessageIntroActivity
-import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.app.splash.SplashActivity
 import com.nunchuk.android.app.wallet.QuickWalletActivity
 import com.nunchuk.android.auth.nav.AuthNavigatorDelegate
 import com.nunchuk.android.contact.nav.ContactNavigatorDelegate
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.main.MainActivity
+import com.nunchuk.android.main.components.tabs.services.emergencylockdown.EmergencyLockdownActivity
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
+import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoveryActivity
+import com.nunchuk.android.main.components.tabs.services.keyrecovery.checksignmessage.CheckSignMessageActivity
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
@@ -140,5 +144,27 @@ interface AppNavigatorDelegate : AppNavigator {
                 xfp = xfp
             )
         )
+    }
+
+    override fun openKeyRecoveryScreen(activityContext: Context) {
+        KeyRecoveryActivity.navigate(activityContext)
+    }
+
+    override fun openEmergencyLockdownScreen(activityContext: Context) {
+        EmergencyLockdownActivity.navigate(activityContext)
+    }
+
+    override fun openInheritancePlanningScreen(activityContext: Context) {
+        InheritancePlanningActivity.navigate(activityContext)
+    }
+
+    override fun openCheckSignMessageScreen(
+        walletId: String,
+        userData: String,
+        requiredSignatures: Int,
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Activity
+    ) {
+        CheckSignMessageActivity.start(walletId, userData, requiredSignatures, launcher, activityContext)
     }
 }

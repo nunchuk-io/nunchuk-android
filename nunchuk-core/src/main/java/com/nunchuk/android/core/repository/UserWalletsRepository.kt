@@ -14,6 +14,7 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import javax.inject.Inject
 
+
 internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val userWalletsApi: UserWalletsApi,
     private val membershipRepository: MembershipRepository,
@@ -22,11 +23,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val ncDataStore: NcDataStore
 ) : PremiumWalletRepository {
 
-    override suspend fun getSecurityQuestions(): List<SecurityQuestion> {
-        val questions = userWalletsApi.getSecurityQuestion().data.questions.map {
+    override suspend fun getSecurityQuestions(verifyToken: String?): List<SecurityQuestion> {
+        val questions = userWalletsApi.getSecurityQuestion(verifyToken).data.questions.map {
             SecurityQuestion(
-                it.id,
-                it.question
+                id = it.id, question = it.question, isAnswer = it.isAnswer ?: false
             )
         }
         return questions
@@ -40,11 +40,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             ConfigSecurityQuestionPayload(
                 questionsAndAnswerRequests = questions.map {
                     QuestionsAndAnswerRequest(
-                        questionId = it.questionId,
-                        answer = it.answer
+                        questionId = it.questionId, answer = it.answer
                     )
-                }
-            )
+                })
         )
         if (result.isSuccess) {
             membershipRepository.saveStepInfo(
@@ -60,9 +58,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun createServerKeys(
-        name: String,
-        keyPolicy: KeyPolicy,
-        plan: MembershipPlan
+        name: String, keyPolicy: KeyPolicy, plan: MembershipPlan
     ): KeyPolicy {
         val data = userWalletsApi.createServerKey(
             CreateServerKeysPayload(
@@ -100,15 +96,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateServerKeys(
-        keyIdOrXfp: String,
-        name: String,
-        policy: KeyPolicy
+        keyIdOrXfp: String, name: String, policy: KeyPolicy
     ): KeyPolicy {
         val response = userWalletsApi.updateServerKeys(
-            keyIdOrXfp,
-            UpdateServerKeysPayload(
-                name = name,
-                keyPoliciesDtoPayload = policy.toDto()
+            keyIdOrXfp, UpdateServerKeysPayload(
+                name = name, keyPoliciesDtoPayload = policy.toDto()
             )
         )
         val serverPolicy =
@@ -122,13 +114,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun createSecurityQuestion(question: String): SecurityQuestion {
         val response =
             userWalletsApi.createSecurityQuestion(CreateSecurityQuestionRequest(question)).data.question
-        return SecurityQuestion(id = response.id, question = response.question)
+        return SecurityQuestion(
+            id = response.id, question = response.question, isAnswer = response.isAnswer ?: true
+        )
     }
 
     override suspend fun createServerWallet(
-        wallet: Wallet,
-        serverKeyId: String,
-        plan: MembershipPlan
+        wallet: Wallet, serverKeyId: String, plan: MembershipPlan
     ): SeverWallet {
         val signers = wallet.signers.map {
             if (it.type == SignerType.NFC) {
@@ -263,12 +255,71 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getServerTransaction(
-        walletId: String,
-        transactionId: String
+        walletId: String, transactionId: String
     ): Transaction? {
         val response = userWalletsApi.getTransaction(walletId, transactionId)
         val transaction = response.data.transaction
         return handleServerTransaction(walletId, transactionId, transaction)
+    }
+
+    override suspend fun downloadBackup(
+        id: String, questions: List<QuestionsAndAnswer>, verifyToken: String
+    ): BackupKey {
+        val configSecurityQuestionPayload =
+            ConfigSecurityQuestionPayload(questionsAndAnswerRequests = questions.map {
+                QuestionsAndAnswerRequest(
+                    questionId = it.questionId, answer = it.answer
+                )
+            })
+        val response = userWalletsApi.downloadBackup(verifyToken, id, configSecurityQuestionPayload)
+        return BackupKey(
+            keyId = response.data.keyId,
+            keyCheckSum = response.data.keyCheckSum,
+            keyBackUpBase64 = response.data.keyBackUpBase64.orEmpty(),
+            keyChecksumAlgorithm = response.data.keyChecksumAlgorithm.orEmpty(),
+            keyName = response.data.keyName.orEmpty()
+        )
+    }
+
+    override suspend fun verifiedPasswordToken(targetAction: String, password: String): String? {
+        val response = userWalletsApi.verifiedPasswordToken(
+            targetAction, VerifiedPasswordTokenRequest(password)
+        )
+        return response.data.token.token
+    }
+
+    override suspend fun calculateRequiredSignaturesSecurityQuestions(
+        walletId: String, questions: List<QuestionsAndAnswer>
+    ): CalculateRequiredSignatures {
+        val request = CalculateRequiredSignaturesPayload(walletId = walletId,
+            questionsAndAnswerRequests = questions.map {
+                QuestionsAndAnswerRequest(
+                    questionId = it.questionId, answer = it.answer
+                )
+            })
+        val response = userWalletsApi.calculateRequiredSignaturesSecurityQuestions(request)
+        return CalculateRequiredSignatures(
+            type = response.data.result?.type.orEmpty(),
+            requiredSignatures = response.data.result?.requiredSignatures ?: 0
+        )
+    }
+
+    override suspend fun securityQuestionsUpdate(
+        authorizations: List<String>,
+        verifyToken: String,
+        userData: String
+    ) {
+        val request = gson.fromJson(userData, SecurityQuestionsUpdateRequest::class.java)
+        val headers = mutableMapOf<String, String>()
+        authorizations.forEachIndexed { index, value ->
+            headers["AuthorizationX-${index + 1}"] = value
+        }
+        headers["Verify-token"] = verifyToken
+        return userWalletsApi.securityQuestionsUpdate(headers, request)
+    }
+
+    override suspend fun getCurrentServerTime(): Long {
+        return userWalletsApi.getCurrentServerTime().data.utcMillis ?: 0
     }
 
     override suspend fun createServerTransaction(
@@ -288,9 +339,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun signServerTransaction(
-        walletId: String,
-        txId: String,
-        psbt: String
+        walletId: String, txId: String, psbt: String
     ): Transaction? {
         val response = userWalletsApi.signServerTransaction(
             walletId, txId, SignServerTransactionRequest(psbt = psbt)

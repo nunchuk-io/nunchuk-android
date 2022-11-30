@@ -43,4 +43,15 @@ interface AppNavigator {
         keyPolicy: KeyPolicy? = null,
         xfp: String? = null
     )
+
+    fun openKeyRecoveryScreen(activityContext: Context)
+    fun openEmergencyLockdownScreen(activityContext: Context)
+    fun openInheritancePlanningScreen(activityContext: Context)
+    fun openCheckSignMessageScreen(
+        walletId: String,
+        userData: String,
+        requiredSignatures: Int,
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Activity
+    )
 }

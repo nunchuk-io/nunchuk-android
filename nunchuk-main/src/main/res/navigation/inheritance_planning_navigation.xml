@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/inheritance_planning_navigation"
+    app:startDestination="@id/inheritanceReviewPlanFragment">
+
+    <fragment
+        android:id="@+id/inheritanceReviewPlanFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanFragment"
+        android:label="InheritanceReviewPlanFragment">
+        <action
+            android:id="@+id/action_inheritanceReviewPlanFragment_to_inheritanceActivationDateFragment"
+            app:destination="@id/inheritanceActivationDateFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/inheritanceActivationDateFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate.InheritanceActivationDateFragment"
+        android:label="InheritanceActivationDateFragment">
+        <action
+            android:id="@+id/action_inheritanceActivationDateFragment_to_inheritanceNoteFragment"
+            app:destination="@id/inheritanceNoteFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/inheritanceNoteFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note.InheritanceNoteFragment"
+        android:label="InheritanceNoteFragment">
+        <action
+            android:id="@+id/action_inheritanceNoteFragment_to_inheritanceNotifyPrefFragment"
+            app:destination="@id/inheritanceNotifyPrefFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/inheritanceNotifyPrefFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notifypref.InheritanceNotifyPrefFragment"
+        android:label="InheritanceNotifyPrefFragment">
+    </fragment>
+
+</navigation>

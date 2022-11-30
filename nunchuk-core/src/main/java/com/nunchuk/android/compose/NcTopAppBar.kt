@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -18,6 +19,7 @@ import com.nunchuk.android.core.R
 fun NcTopAppBar(
     title: String,
     hasAction: Boolean = false,
+    textStyle: TextStyle = NunchukTheme.typography.titleSmall,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
@@ -35,7 +37,7 @@ fun NcTopAppBar(
         title = {
             Text(
                 text = title,
-                style = NunchukTheme.typography.titleSmall,
+                style = textStyle,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(end = if (hasAction) 0.dp else LocalViewConfiguration.current.minimumTouchTargetSize.width).fillMaxWidth(),
             )

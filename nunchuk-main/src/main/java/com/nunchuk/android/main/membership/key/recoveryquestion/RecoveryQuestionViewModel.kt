@@ -1,10 +1,10 @@
 package com.nunchuk.android.main.membership.key.recoveryquestion
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.membership.ConfigSecurityQuestionUseCase
-import com.nunchuk.android.core.domain.membership.CreateSecurityQuestionUseCase
-import com.nunchuk.android.core.domain.membership.GetSecurityQuestionUseCase
+import com.nunchuk.android.core.domain.GetAssistedWalletIdFlowUseCase
+import com.nunchuk.android.core.domain.membership.*
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.SecurityQuestionModel
 import com.nunchuk.android.model.QuestionsAndAnswer
@@ -20,8 +20,16 @@ class RecoveryQuestionViewModel @Inject constructor(
     private val getSecurityQuestionUseCase: GetSecurityQuestionUseCase,
     private val configSecurityQuestionUseCase: ConfigSecurityQuestionUseCase,
     private val createSecurityQuestionUseCase: CreateSecurityQuestionUseCase,
-    private val membershipStepManager: MembershipStepManager
+    private val membershipStepManager: MembershipStepManager,
+    private val calculateRequiredSignaturesUseCase: CalculateRequiredSignaturesUseCase,
+    private val getAssistedWalletIdsFlowUseCase: GetAssistedWalletIdFlowUseCase,
+    private val getSecurityQuestionsUserDataUseCase: GetSecurityQuestionsUserDataUseCase,
+    private val securityQuestionsUpdateUseCase: SecurityQuestionsUpdateUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    private val args = RecoveryQuestionFragmentArgs.fromSavedStateHandle(savedStateHandle)
+
     private val _event = MutableSharedFlow<RecoveryQuestionEvent>()
     val event = _event.asSharedFlow()
 
@@ -32,7 +40,12 @@ class RecoveryQuestionViewModel @Inject constructor(
         viewModelScope.launch {
             delay(300L)
             _event.emit(RecoveryQuestionEvent.Loading(true))
-            val result = getSecurityQuestionUseCase(Unit)
+            val result = getSecurityQuestionUseCase(
+                GetSecurityQuestionUseCase.Param(
+                    isFilterAnswer = false,
+                    verifyToken = args.verifyToken
+                )
+            )
             _event.emit(RecoveryQuestionEvent.Loading(false))
             if (result.isSuccess) {
                 val questions = result.getOrThrow()
@@ -45,7 +58,7 @@ class RecoveryQuestionViewModel @Inject constructor(
     }
 
     fun getSecurityQuestionList(index: Int) = viewModelScope.launch {
-        val questions = state.value.securityQuestions
+        val questions = _state.value.securityQuestions
         if (questions.isNotEmpty()) {
             _state.update {
                 it.copy(interactQuestionIndex = index)
@@ -92,8 +105,86 @@ class RecoveryQuestionViewModel @Inject constructor(
         }
     }
 
+    private fun calculateRequiredSignatures() = viewModelScope.launch {
+        getAssistedWalletIdsFlowUseCase(Unit).collect { it ->
+            val walletId = it.getOrNull() ?: return@collect
+            val questionsAndAnswers = getQuestionsAndAnswers()
+            if (questionsAndAnswers.isEmpty()) return@collect
+            _event.emit(RecoveryQuestionEvent.Loading(true))
+            val resultCalculate = calculateRequiredSignaturesUseCase(
+                CalculateRequiredSignaturesUseCase.Param(
+                    walletId = walletId,
+                    questionsAndAnswers
+                )
+            )
+            val resultUserData = getSecurityQuestionsUserDataUseCase(
+                GetSecurityQuestionsUserDataUseCase.Param(
+                    walletId = walletId,
+                    questionsAndAnswers
+                )
+            )
+            val userData = resultUserData.getOrThrow()
+            _state.update {
+                it.copy(userData = userData)
+            }
+            _event.emit(RecoveryQuestionEvent.Loading(false))
+            if (resultCalculate.isSuccess) {
+                _event.emit(
+                    RecoveryQuestionEvent.CalculateRequiredSignaturesSuccess(
+                        walletId,
+                        userData,
+                        resultCalculate.getOrThrow().requiredSignatures
+                    )
+                )
+            } else {
+                _event.emit(RecoveryQuestionEvent.ShowError(resultCalculate.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun securityQuestionUpdate(signatures: HashMap<String, String>) = viewModelScope.launch {
+        val state = _state.value
+        val result = securityQuestionsUpdateUseCase(
+            SecurityQuestionsUpdateUseCase.Param(
+                signatures = signatures,
+                verifyToken = args.verifyToken,
+                userData = state.userData.orEmpty()
+            )
+        )
+        if (result.isSuccess) {
+            _event.emit(RecoveryQuestionEvent.RecoveryQuestionUpdateSuccess)
+        } else {
+            _event.emit(RecoveryQuestionEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+        }
+    }
+
     fun onContinueClicked() = viewModelScope.launch {
+        if (args.isRecoveryFlow) {
+            calculateRequiredSignatures()
+        } else {
+            configSecurityQuestion()
+        }
+    }
+
+    private fun configSecurityQuestion() = viewModelScope.launch {
         _event.emit(RecoveryQuestionEvent.Loading(true))
+        val questionsAndAnswers = getQuestionsAndAnswers()
+        if (questionsAndAnswers.isEmpty()) return@launch
+        val result = configSecurityQuestionUseCase(
+            ConfigSecurityQuestionUseCase.Param(
+                questionsAndAnswers,
+                membershipStepManager.plan
+            )
+        )
+        _event.emit(RecoveryQuestionEvent.Loading(false))
+        if (result.isSuccess) {
+            _event.emit(RecoveryQuestionEvent.ConfigRecoveryQuestionSuccess)
+        } else {
+            _event.emit(RecoveryQuestionEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+        }
+    }
+
+    private suspend fun getQuestionsAndAnswers(): List<QuestionsAndAnswer> {
         val questionsAndAnswers = state.value.recoveries.map {
             if (it.question.id == SecurityQuestionModel.CUSTOM_QUESTION_ID) {
                 val result = createSecurityQuestionUseCase(it.question.customQuestion.orEmpty())
@@ -102,7 +193,7 @@ class RecoveryQuestionViewModel @Inject constructor(
                 } else {
                     _event.emit(RecoveryQuestionEvent.Loading(false))
                     _event.emit(RecoveryQuestionEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
-                    return@launch
+                    return emptyList()
                 }
             } else {
                 QuestionsAndAnswer(answer = it.answer, questionId = it.question.id)
@@ -116,13 +207,7 @@ class RecoveryQuestionViewModel @Inject constructor(
         _state.update {
             it.copy(recoveries = newRecoveryQuestions)
         }
-        val result = configSecurityQuestionUseCase(ConfigSecurityQuestionUseCase.Param(questionsAndAnswers, membershipStepManager.plan))
-        _event.emit(RecoveryQuestionEvent.Loading(false))
-        if (result.isSuccess) {
-            _event.emit(RecoveryQuestionEvent.ConfigRecoveryQuestionSuccess)
-        } else {
-            _event.emit(RecoveryQuestionEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
-        }
+        return questionsAndAnswers
     }
 
 }

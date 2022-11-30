@@ -22,7 +22,7 @@ internal data class CreateSecurityQuestionResponse(
 )
 
 internal data class CreateServerKeyResponse(
-    @SerializedName("key" ) val key : ServerKeyDto? = null
+    @SerializedName("key") val key: ServerKeyDto? = null
 )
 
 internal data class UpdateServerKeysPayload(
@@ -47,11 +47,20 @@ data class SecurityQuestionResponse(
     val id: String = "",
     @SerializedName("question")
     val question: String? = null,
+    @SerializedName("is_answered")
+    val isAnswer: Boolean? = null,
 )
 
 data class ConfigSecurityQuestionPayload(
     @SerializedName("questions_and_answers")
     val questionsAndAnswerRequests: List<QuestionsAndAnswerRequest>,
+)
+
+data class CalculateRequiredSignaturesPayload(
+    @SerializedName("questions_and_answers")
+    val questionsAndAnswerRequests: List<QuestionsAndAnswerRequest>,
+    @SerializedName("wallet")
+    val walletId: String
 )
 
 data class QuestionsAndAnswerRequest(
@@ -61,6 +70,28 @@ data class QuestionsAndAnswerRequest(
     val questionId: String = "",
 )
 
+data class VerifiedPasswordTokenRequest(
+    @SerializedName("password")
+    val password: String? = null
+)
+
+data class SecurityQuestionsUpdateRequest(
+    @SerializedName("nonce")
+    val nonce: String? = null,
+    @SerializedName("iat")
+    val iat: Long? = null,
+    @SerializedName("exp")
+    val exp: Long? = null,
+    @SerializedName("body")
+    val body: QuestionsAndAnswerRequestBody? = null
+)
+
+data class QuestionsAndAnswerRequestBody(
+    @SerializedName("questions_and_answers")
+    val questionsAndAnswerRequests: List<QuestionsAndAnswerRequest>? = null,
+    @SerializedName("wallet")
+    val walletId: String? = null
+)
 
 
 

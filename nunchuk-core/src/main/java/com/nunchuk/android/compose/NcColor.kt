@@ -7,4 +7,7 @@ object NcColor {
     val boulder = Color(0xFF757575)
     val border = Color(0xFFDEDEDE)
     val whisper = Color(0xFFEAEAEA)
+    val denimTint = Color(0xFFD0E2FF)
+    val greyLight = Color(0xFFF5F5F5)
+    val denimDark = Color(0xFF2F466C)
 }

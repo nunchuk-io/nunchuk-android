@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/key_recovery_navigation"
+    app:startDestination="@id/keyRecoveryFragment">
+
+    <fragment
+        android:id="@+id/keyRecoveryFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoveryFragment"
+        android:label="KeyRecoveryFragment">
+        <action
+            android:id="@+id/action_keyRecoveryFragment_to_keyRecoveryIntroFragment"
+            app:destination="@id/keyRecoveryIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_keyRecoveryFragment_to_recoveryQuestionFragment"
+            app:destination="@id/recoveryQuestionFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/keyRecoveryIntroFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.keyrecovery.intro.KeyRecoveryIntroFragment"
+        android:label="KeyRecoveryIntroFragment">
+        <action
+            android:id="@+id/action_keyRecoveryIntroFragment_to_recoverTapSignerListBottomSheetFragment"
+            app:destination="@id/recoverTapSignerListBottomSheetFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <argument
+            android:name="verify_token"
+            app:argType="string" />
+        <!--        <action-->
+        <!--            android:id="@+id/action_keyRecoveryIntroFragment_to_answerSecurityQuestionFragment"-->
+        <!--            app:destination="@id/answerSecurityQuestionFragment"-->
+        <!--            app:enterAnim="@anim/nav_default_enter_anim"-->
+        <!--            app:exitAnim="@anim/nav_default_exit_anim"-->
+        <!--            app:popEnterAnim="@anim/nav_default_pop_enter_anim"-->
+        <!--            app:popExitAnim="@anim/nav_default_pop_exit_anim" />-->
+
+    </fragment>
+
+    <dialog
+        android:id="@+id/recoverTapSignerListBottomSheetFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.keyrecovery.intro.RecoveryTapSignerListBottomSheetFragment"
+        android:label="RecoveryTapSignerListBottomSheetFragment">
+
+        <argument
+            android:name="signers"
+            app:argType="com.nunchuk.android.core.signer.SignerModel[]" />
+
+        <argument
+            android:name="verify_token"
+            app:argType="string" />
+
+        <action
+            android:id="@+id/action_recoverTapSignerListBottomSheetFragment_to_answerSecurityQuestionFragment"
+            app:destination="@id/answerSecurityQuestionFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+    </dialog>
+
+    <fragment
+        android:id="@+id/answerSecurityQuestionFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.keyrecovery.securityquestionanswer.AnswerSecurityQuestionFragment"
+        android:label="AnswerSecurityQuestionFragment">
+        <action
+            android:id="@+id/action_answerSecurityQuestionFragment_to_backupDownloadFragment"
+            app:destination="@id/backupDownloadFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <argument
+            android:name="signer"
+            app:argType="com.nunchuk.android.core.signer.SignerModel" />
+        <argument
+            android:name="verify_token"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/backupDownloadFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.keyrecovery.backupdownload.BackupDownloadFragment"
+        android:label="BackupDownloadFragment">
+        <action
+            android:id="@+id/action_backupDownloadFragment_to_keyRecoverySuccessFragment"
+            app:destination="@id/keyRecoverySuccessFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <argument
+            android:name="signer"
+            app:argType="com.nunchuk.android.core.signer.SignerModel" />
+
+        <argument
+            android:name="backupKey"
+            app:argType="com.nunchuk.android.model.BackupKey" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/keyRecoverySuccessFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.keyrecovery.keyrecoverysuccess.KeyRecoverySuccessFragment"
+        android:label="KeyRecoverySuccessFragment">
+
+        <argument
+            android:name="signer"
+            app:argType="com.nunchuk.android.core.signer.SignerModel" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/recoveryQuestionFragment"
+        android:name="com.nunchuk.android.main.membership.key.recoveryquestion.RecoveryQuestionFragment"
+        android:label="RecoveryQuestionFragment">
+        <action
+            android:id="@+id/action_recoveryQuestionFragment_to_recoveryQuestionBottomSheetFragment"
+            app:destination="@id/recoveryQuestionBottomSheetFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_recoveryQuestionFragment_to_signSecurityQuestionFragment"
+            app:destination="@id/signSecurityQuestionFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <argument
+            android:name="isRecoveryFlow"
+            android:defaultValue="false"
+            app:argType="boolean" />
+        <argument
+            android:name="verifyToken"
+            android:defaultValue=""
+            app:argType="string" />
+    </fragment>
+
+    <dialog
+        android:id="@+id/recoveryQuestionBottomSheetFragment"
+        android:name="com.nunchuk.android.main.membership.key.recoveryquestion.RecoveryQuestionBottomSheetFragment"
+        android:label="RecoveryQuestionBottomSheetFragment">
+
+        <argument
+            android:name="questions"
+            app:argType="com.nunchuk.android.main.membership.model.SecurityQuestionModel[]" />
+    </dialog>
+
+    <fragment
+        android:id="@+id/signSecurityQuestionFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.keyrecovery.checksignmessage.KeyRecoverySignSecurityQuestionFragment"
+        android:label="SignSecurityQuestionFragment" />
+
+
+</navigation>
