@@ -40,6 +40,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.main.R
+import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.result.GlobalResultKey
 import dagger.hilt.android.AndroidEntryPoint
@@ -180,7 +181,7 @@ private fun SignerCard(
         modifier = Modifier.clickable { onSignerSelected(signer) },
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        NcCircleImage(resId = R.drawable.ic_nfc_card)
+        NcCircleImage(resId = signer.type.toReadableDrawableResId())
         Column(
             modifier = Modifier
                 .padding(start = 12.dp)
@@ -204,7 +205,7 @@ private fun SignerCard(
         }
         NcPrimaryDarkButton(
             modifier = Modifier
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 10.dp),
             height = 44.dp,
             onClick = { onSignerSelected(signer) },
         ) {

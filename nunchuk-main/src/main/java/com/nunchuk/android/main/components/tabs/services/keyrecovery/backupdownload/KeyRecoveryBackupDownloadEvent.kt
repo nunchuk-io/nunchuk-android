@@ -9,5 +9,7 @@ sealed class BackupDownloadEvent {
 }
 
 data class BackupDownloadState(
-    val password: String = "5246D9226D4D876B88FFCB94BEE10B3F"
+    val password: String = "5246D9226D4D876B88FFCB94BEE10B3F", // demo
+    val keyName: String = ""
+//    val password: String = ""
 )

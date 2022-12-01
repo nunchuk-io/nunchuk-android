@@ -14,7 +14,8 @@ class GetSecurityQuestionUseCase @Inject constructor(
     override suspend fun execute(parameters: Param): List<SecurityQuestion> {
         val questions = userWalletsRepository.getSecurityQuestions(parameters.verifyToken)
         if (parameters.isFilterAnswer) {
-            return questions.filter { it.isAnswer && it.id == "241188271403569152" }
+            return questions.filter { it.isAnswer && it.id == "241188271403569152" } // demo
+//            return questions.filter { it.isAnswer }
         }
         return questions
     }

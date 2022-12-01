@@ -7,9 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.ImportTapsignerMasterSignerContentUseCase
 import com.nunchuk.android.core.domain.VerifyTapSignerBackupContentUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
-import com.nunchuk.android.core.util.NFC_DEFAULT_NAME
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.main.R
 import com.nunchuk.android.main.util.ChecksumUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -37,29 +37,42 @@ class KeyRecoveryBackupDownloadViewModel @Inject constructor(
     fun onContinueClicked() = viewModelScope.launch(ioDispatcher) {
         val backupData = Base64.decode(args.backupKey.keyBackUpBase64, Base64.DEFAULT)
         if (ChecksumUtil.verifyChecksum(backupData, args.backupKey.keyCheckSum)) {
+            val stateValue = _state.value
             val resultVerify = verifyTapSignerBackupContentUseCase(
                 VerifyTapSignerBackupContentUseCase.Param(
                     content = backupData,
                     masterSignerId = args.signer.id,
-                    backUpKey = _state.value.password
+                    backUpKey = stateValue.password
                 )
             )
             if (resultVerify.isSuccess) {
                 val resultImport = importTapsignerMasterSignerContentUseCase(
                     ImportTapsignerMasterSignerContentUseCase.Param(
                         backupData,
-                        _state.value.password,
-                        args.backupKey.keyName
+                        stateValue.password,
+                        stateValue.keyName
                     )
                 )
                 if (resultImport.isSuccess) {
-                    _event.emit(BackupDownloadEvent.ImportTapsignerSuccess(masterSignerMapper(resultImport.getOrThrow())))
+                    _event.emit(
+                        BackupDownloadEvent.ImportTapsignerSuccess(
+                            masterSignerMapper(
+                                resultImport.getOrThrow()
+                            )
+                        )
+                    )
                 } else {
                     _event.emit(BackupDownloadEvent.ProcessFailure(resultImport.exceptionOrNull()?.message.orUnknownError()))
                 }
             } else {
                 _event.emit(BackupDownloadEvent.ProcessFailure(resultVerify.exceptionOrNull()?.message.orUnknownError()))
             }
+        }
+    }
+
+    fun setKeyName(keyName: String) = viewModelScope.launch {
+        _state.update {
+            it.copy(keyName = keyName)
         }
     }
 

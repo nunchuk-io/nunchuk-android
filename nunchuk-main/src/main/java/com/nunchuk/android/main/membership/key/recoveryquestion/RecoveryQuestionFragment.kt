@@ -18,14 +18,15 @@ import androidx.compose.material.Divider
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.*
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -39,6 +40,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
@@ -48,6 +50,7 @@ import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.parcelable
+import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -97,7 +100,7 @@ class RecoveryQuestionFragment : MembershipFragment() {
                     requireActivity()
                 )
                 RecoveryQuestionEvent.RecoveryQuestionUpdateSuccess -> {
-
+                    NCToastMessage(requireActivity()).show(message = getString(R.string.nc_key_recovery_questions_updated))
                 }
             }
         }
@@ -151,10 +154,10 @@ fun RecoveryQuestionScreen(
 ) {
     val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
-    RecoveryQuestionScreenContent(state,
+    RecoveryQuestionScreenContent(state = state,
         remainTime = remainTime,
         isRecoveryFlow = args.isRecoveryFlow,
-        viewModel::onContinueClicked,
+        onContinueClicked = viewModel::onContinueClicked,
         onQuestionClicked = {
             viewModel.getSecurityQuestionList(it)
         },
@@ -174,7 +177,7 @@ fun RecoveryQuestionScreenContent(
     onContinueClicked: () -> Unit = {},
     onQuestionClicked: (index: Int) -> Unit = {},
     onInputAnswerTextChange: (index: Int, value: String) -> Unit = { _, _ -> },
-    onInputCustomQuestionTextChange: (index: Int, value: String) -> Unit = { _, _ -> },
+    onInputCustomQuestionTextChange: (index: Int, value: String) -> Unit = { _, _ -> }
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -184,7 +187,7 @@ fun RecoveryQuestionScreenContent(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                val title = if (isRecoveryFlow) {
+                val title = if (isRecoveryFlow.not()) {
                     stringResource(R.string.nc_estimate_remain_time, remainTime)
                 } else {
                     ""
@@ -255,8 +258,10 @@ fun QuestionRow(
     answer: String = "Value Answer",
     onQuestionClicked: (index: Int) -> Unit = {},
     onInputAnswerTextChange: (value: String) -> Unit = {},
-    onInputCustomQuestionTextChange: (value: String) -> Unit = {},
+    onInputCustomQuestionTextChange: (value: String) -> Unit = {}
 ) {
+    var focusAnswerViewSate by rememberSaveable { mutableStateOf(false) }
+
     Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp)) {
         ConstraintLayout {
             val (title, input) = createRefs()
@@ -316,10 +321,52 @@ fun QuestionRow(
             title = stringResource(id = R.string.nc_answer),
             value = answer,
             enabled = question.isValidQuestion,
-            onValueChange = onInputAnswerTextChange
+            onValueChange = onInputAnswerTextChange,
+            visualTransformation = if (focusAnswerViewSate || answer.isBlank()) VisualTransformation.None else PasswordMaskTransformation(),
+            onFocusEvent = { focusState ->
+                if (focusAnswerViewSate != focusState.isFocused) {
+                    focusAnswerViewSate = focusState.isFocused
+                }
+            }
         )
 
         Divider(modifier = Modifier.padding(top = 16.dp), thickness = 1.dp, color = NcColor.whisper)
+    }
+}
+
+private class PasswordMaskTransformation(val mask: Char = '\u2022') : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val originalText = text.text
+        val formattedText = mask.toString().repeat(8)
+
+        val offsetMapping = object : OffsetMapping {
+
+            override fun originalToTransformed(offset: Int): Int {
+                return 8
+            }
+
+            override fun transformedToOriginal(offset: Int): Int {
+                return offset
+            }
+        }
+        return TransformedText(
+            text = AnnotatedString(formattedText),
+            offsetMapping
+        )
+
+    }
+
+
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PasswordVisualTransformation) return false
+        if (mask != other.mask) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return mask.hashCode()
     }
 }
 

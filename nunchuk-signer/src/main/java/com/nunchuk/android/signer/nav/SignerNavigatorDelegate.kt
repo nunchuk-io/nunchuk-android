@@ -60,7 +60,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
         justAdded: Boolean,
         setPassphrase: Boolean,
         isInWallet: Boolean,
-        isReplacePrimaryKey: Boolean
+        isReplacePrimaryKey: Boolean,
+        customMessage: String
     ) {
         SignerInfoActivity.start(
             activityContext = activityContext,
@@ -72,7 +73,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
             isInWallet = isInWallet,
             derivationPath = derivationPath,
             masterFingerprint = masterFingerprint,
-            isReplacePrimaryKey = isReplacePrimaryKey
+            isReplacePrimaryKey = isReplacePrimaryKey,
+            customMessage = customMessage
         )
     }
 

@@ -24,6 +24,7 @@ import android.app.Dialog
 import android.view.LayoutInflater
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.Window
+import androidx.core.view.isVisible
 import com.nunchuk.android.widget.databinding.NcInfoDialogBinding
 import javax.inject.Inject
 
@@ -35,7 +36,9 @@ class NCInfoDialog @Inject constructor(
         title: String = activity.getString(R.string.nc_text_info),
         message: String,
         btnYes: String = activity.getString(R.string.nc_text_got_it),
+        btnInfo: String = "",
         onYesClick: () -> Unit = {},
+        onInfoClick: () -> Unit = {},
         cancelable: Boolean = false
     ) = Dialog(activity).apply {
         window?.setBackgroundDrawableResource(android.R.color.transparent)
@@ -48,8 +51,14 @@ class NCInfoDialog @Inject constructor(
         binding.title.text = title
         binding.btnYes.text = btnYes
         binding.message.text = message
+        binding.btnInfo.isVisible = btnInfo.isNotBlank()
+        binding.btnInfo.text = btnInfo
         binding.btnYes.setOnClickListener {
             onYesClick()
+            dismiss()
+        }
+        binding.btnInfo.setOnClickListener {
+            onInfoClick()
             dismiss()
         }
         window?.setLayout(MATCH_PARENT, MATCH_PARENT)
@@ -59,7 +68,9 @@ class NCInfoDialog @Inject constructor(
         title: String = activity.getString(R.string.nc_text_info),
         message: String,
         btnYes: String = activity.getString(R.string.nc_text_got_it),
+        btnInfo: String = "",
         onYesClick: () -> Unit = {},
+        onInfoClick: () -> Unit = {},
         cancelable: Boolean = false
     ) = Dialog(activity).apply {
         window?.setBackgroundDrawableResource(android.R.color.transparent)
@@ -72,8 +83,14 @@ class NCInfoDialog @Inject constructor(
         binding.title.text = title
         binding.btnYes.text = btnYes
         binding.message.text = message
+        binding.btnInfo.isVisible = btnInfo.isNotBlank()
+        binding.btnInfo.text = btnInfo
         binding.btnYes.setOnClickListener {
             onYesClick()
+            dismiss()
+        }
+        binding.btnInfo.setOnClickListener {
+            onInfoClick()
             dismiss()
         }
         show()

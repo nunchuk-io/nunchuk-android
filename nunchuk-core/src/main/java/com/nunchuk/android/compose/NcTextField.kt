@@ -38,6 +38,7 @@ fun NcTextField(
     singleLine: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
     colors: TextFieldColors = TextFieldDefaults.textFieldColors(),
+    visualTransformation: VisualTransformation = VisualTransformation.None,
     onFocusEvent: (FocusState) -> Unit = {},
     onValueChange: (value: String) -> Unit,
 ) {
@@ -70,6 +71,7 @@ fun NcTextField(
                 maxLines = maxLines,
                 enabled = enabled,
                 onValueChange = onValueChange,
+                visualTransformation = visualTransformation,
                 decorationBox = @Composable { innerTextField ->
                     // places leading icon, text field with label and placeholder, trailing icon
                     TextFieldDefaults.OutlinedTextFieldDecorationBox(

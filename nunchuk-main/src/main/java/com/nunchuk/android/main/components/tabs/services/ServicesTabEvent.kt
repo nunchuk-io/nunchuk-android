@@ -2,11 +2,6 @@ package com.nunchuk.android.main.components.tabs.services
 
 import com.nunchuk.android.main.R
 
-sealed class ServicesTabEvent {
-    data class Loading(val isLoading: Boolean) : ServicesTabEvent()
-    data class ItemClick(val item: ServiceTabRowItem) : ServicesTabEvent()
-}
-
 data class ServicesTabState(
     val rowItems: List<Any> = initRowItems()
 )
