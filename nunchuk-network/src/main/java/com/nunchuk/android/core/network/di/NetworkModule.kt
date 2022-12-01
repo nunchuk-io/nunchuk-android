@@ -91,7 +91,6 @@ class NetworkModule @Inject constructor() {
         .baseUrl(BASE_URL_MATRIX)
         .client(client)
         .build()
-
     @Singleton
     @Provides
     @Named(APP_HTTP_CLIENT)
@@ -104,10 +103,11 @@ class NetworkModule @Inject constructor() {
         .readTimeout(HTTP_READ_TIMEOUT, TimeUnit.SECONDS)
         .writeTimeout(HTTP_WRITE_TIMEOUT, TimeUnit.SECONDS)
         .protocols(listOf(Protocol.HTTP_1_1))
-        .addInterceptor(loggingInterceptor)
         .addInterceptor(headerInterceptor)
+        .addInterceptor(loggingInterceptor)
         .connectionSpecs(connectionSpecs)
         .build()
+
 
     @Singleton
     @Provides

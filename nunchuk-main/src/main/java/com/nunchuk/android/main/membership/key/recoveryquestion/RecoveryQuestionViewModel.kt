@@ -21,7 +21,7 @@ class RecoveryQuestionViewModel @Inject constructor(
     private val configSecurityQuestionUseCase: ConfigSecurityQuestionUseCase,
     private val createSecurityQuestionUseCase: CreateSecurityQuestionUseCase,
     private val membershipStepManager: MembershipStepManager,
-    private val calculateRequiredSignaturesUseCase: CalculateRequiredSignaturesUseCase,
+    private val calculateRequiredSignaturesSecurityQuestionUseCase: CalculateRequiredSignaturesSecurityQuestionUseCase,
     private val getAssistedWalletIdsFlowUseCase: GetAssistedWalletIdFlowUseCase,
     private val getSecurityQuestionsUserDataUseCase: GetSecurityQuestionsUserDataUseCase,
     private val securityQuestionsUpdateUseCase: SecurityQuestionsUpdateUseCase,
@@ -111,8 +111,8 @@ class RecoveryQuestionViewModel @Inject constructor(
             val questionsAndAnswers = getQuestionsAndAnswers()
             if (questionsAndAnswers.isEmpty()) return@collect
             _event.emit(RecoveryQuestionEvent.Loading(true))
-            val resultCalculate = calculateRequiredSignaturesUseCase(
-                CalculateRequiredSignaturesUseCase.Param(
+            val resultCalculate = calculateRequiredSignaturesSecurityQuestionUseCase(
+                CalculateRequiredSignaturesSecurityQuestionUseCase.Param(
                     walletId = walletId,
                     questionsAndAnswers
                 )

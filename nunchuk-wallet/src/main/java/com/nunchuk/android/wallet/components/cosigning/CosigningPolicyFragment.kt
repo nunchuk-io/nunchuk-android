@@ -39,12 +39,17 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.SpendingCurrencyUnit
 import com.nunchuk.android.model.SpendingPolicy
 import com.nunchuk.android.model.SpendingTimeUnit
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -63,6 +68,17 @@ class CosigningPolicyFragment : Fragment() {
             if (it.resultCode == Activity.RESULT_OK && data != null) {
                 val args = CosigningPolicyFragmentArgs.fromBundle(data)
                 viewModel.updateState(args.keyPolicy, true)
+            }
+        }
+
+    private val signLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data?.extras
+            if (it.resultCode == Activity.RESULT_OK && data != null) {
+                data.serializable<HashMap<String, String>>(GlobalResultKey.SIGNATURE_EXTRA)
+                    ?.let { signatures ->
+                        viewModel.updateServerConfig(signatures)
+                    }
             }
         }
 
@@ -96,16 +112,37 @@ class CosigningPolicyFragment : Fragment() {
                             keyPolicy = viewModel.state.value.keyPolicy,
                             xfp = args.xfp
                         )
-                        CosigningPolicyEvent.OnDiscardChange -> TODO()
-                        CosigningPolicyEvent.OnSaveChange -> NCWarningDialog(requireActivity()).showDialog(
+                        CosigningPolicyEvent.OnDiscardChange -> NCWarningDialog(requireActivity()).showDialog(
                             title = getString(R.string.nc_confirmation),
                             message = getString(R.string.nc_are_you_sure_discard_the_change),
                             onYesClick = {
                                 requireActivity().finish()
                             }
                         )
+                        is CosigningPolicyEvent.OnSaveChange -> openWalletAuthentication(event)
+                        is CosigningPolicyEvent.Loading -> showOrHideLoading(event.isLoading)
+                        is CosigningPolicyEvent.ShowError -> showError(event.error)
+                        CosigningPolicyEvent.UpdateKeyPolicySuccess -> NCToastMessage(requireActivity()).showMessage(getString(
+                                                    R.string.nc_policy_updated))
                     }
                 }
+        }
+    }
+
+    private fun openWalletAuthentication(event: CosigningPolicyEvent.OnSaveChange) {
+        when (event.required.type) {
+            "SIGN_MESSAGE" -> navigator.openWalletAuthentication(
+                walletId = args.walletId,
+                userData = event.data,
+                requiredSignatures = event.required.requiredSignatures,
+                activityContext = requireActivity(),
+                launcher = signLauncher
+            )
+            "SIGN_DUMMY_TX" -> {
+                // TODO SIGN_DUMMY_TX
+                showError("Not Support Now")
+            }
+            "NONE" -> viewModel.updateServerConfig(emptyMap())
         }
     }
 }

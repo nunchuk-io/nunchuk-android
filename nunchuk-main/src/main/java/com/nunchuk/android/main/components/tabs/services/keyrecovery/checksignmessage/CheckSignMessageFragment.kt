@@ -2,6 +2,7 @@ package com.nunchuk.android.main.components.tabs.services.keyrecovery.checksignm
 
 import android.app.Activity
 import android.content.Intent
+import android.nfc.tech.Ndef
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -29,15 +30,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showOrHideNfcLoading
+import com.nunchuk.android.main.R
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.result.GlobalResultKey
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import javax.inject.Inject
@@ -68,31 +72,50 @@ class CheckSignMessageFragment : Fragment() {
                     when (event) {
                         is CheckSignMessageEvent.CheckSignMessageSuccess -> {
                             requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
-                                putExtra(CheckSignMessageActivity.SIGNATURE_EXTRA, event.signatures)
+                                putExtra(
+                                    GlobalResultKey.SIGNATURE_EXTRA,
+                                    event.signatures
+                                )
                             })
                             requireActivity().finish()
                         }
-                        is CheckSignMessageEvent.ContinueClick -> {
-
-                        }
-                        is CheckSignMessageEvent.GetSignersSuccess -> {
-
-                        }
                         is CheckSignMessageEvent.Loading -> showOrHideLoading(event.isLoading)
-                        is CheckSignMessageEvent.OpenScanDataTapsigner -> {
-                            (requireActivity() as CheckSignMessageActivity).startNfcFlow(
-                                BaseNfcActivity.REQUEST_NFC_SIGN_TRANSACTION
-                            )
-                        }
+                        is CheckSignMessageEvent.ScanTapSigner -> (requireActivity() as NfcActionListener).startNfcFlow(
+                            BaseNfcActivity.REQUEST_NFC_SIGN_TRANSACTION
+                        )
+                        CheckSignMessageEvent.ScanColdCard -> (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_GENERATE_HEAL_CHECK_MSG)
                         is CheckSignMessageEvent.ProcessFailure -> showError(event.message)
+                        CheckSignMessageEvent.GenerateColdcardHealthMessagesSuccess -> (requireActivity() as NfcActionListener).startNfcFlow(
+                            BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE
+                        )
+                        is CheckSignMessageEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading, event.isColdCard)
+                        is CheckSignMessageEvent.ShowError -> showError(event.message)
                     }
                 }
         }
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_SIGN_TRANSACTION }) { info ->
             viewModel.getInteractSingleSigner()?.let {
-                viewModel.handleSignCheckMessage(it, info, nfcViewModel.inputCvc.orEmpty())
+                viewModel.handleTapSignerSignCheckMessage(it, info, nfcViewModel.inputCvc.orEmpty())
             }
+            nfcViewModel.clearScanInfo()
+        }
+
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_GENERATE_HEAL_CHECK_MSG }) { scanInfo ->
+            viewModel.getInteractSingleSigner()?.let { signer ->
+                viewModel.generateColdcardHealthMessages(
+                    Ndef.get(scanInfo.tag),
+                    signer.derivationPath
+                )
+            }
+            nfcViewModel.clearScanInfo()
+        }
+
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE }) {
+            viewModel.getInteractSingleSigner()?.let { signer ->
+                viewModel.healthCheckColdCard(signer, it.records)
+            }
+            nfcViewModel.clearScanInfo()
         }
     }
 }
@@ -117,7 +140,6 @@ private fun CheckSignMessageScreen(
 private fun CheckSignMessageContent(
     signers: List<SignerModel> = emptyList(),
     onSignerSelected: (signer: SignerModel) -> Unit = {},
-    selectedSignerId: String = "",
 ) = NunchukTheme {
     Scaffold { innerPadding ->
         Column(
@@ -129,12 +151,12 @@ private fun CheckSignMessageContent(
             NcTopAppBar(title = "")
             Text(
                 modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                text = stringResource(com.nunchuk.android.signer.R.string.nc_finalize_changes),
+                text = stringResource(R.string.nc_finalize_changes),
                 style = NunchukTheme.typography.heading
             )
             Text(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                text = stringResource(com.nunchuk.android.signer.R.string.nc_finalize_changes_desc),
+                text = stringResource(R.string.nc_finalize_changes_desc),
                 style = NunchukTheme.typography.body,
             )
             LazyColumn(
@@ -142,7 +164,7 @@ private fun CheckSignMessageContent(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(signers) { signer ->
-                    SignerCard(signer, signer.id == selectedSignerId, onSignerSelected)
+                    SignerCard(signer, onSignerSelected)
                 }
             }
         }
@@ -152,41 +174,41 @@ private fun CheckSignMessageContent(
 @Composable
 private fun SignerCard(
     signer: SignerModel,
-    isSelected: Boolean,
     onSignerSelected: (signer: SignerModel) -> Unit = {},
 ) {
     Row(
         modifier = Modifier.clickable { onSignerSelected(signer) },
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        NcCircleImage(resId = com.nunchuk.android.signer.R.drawable.ic_nfc_card)
+        NcCircleImage(resId = R.drawable.ic_nfc_card)
         Column(
             modifier = Modifier
                 .padding(start = 12.dp)
                 .weight(1.0f)
         ) {
             Text(text = signer.name, style = NunchukTheme.typography.body)
-            Text(
-                modifier = Modifier.padding(top = 4.dp),
-                text = "XFP: ${signer.fingerPrint}",
-                style = NunchukTheme.typography.bodySmall.copy(
-                    color = colorResource(
-                        id = com.nunchuk.android.signer.R.color.nc_grey_dark_color
-                    )
-                ),
-            )
             NcTag(
                 modifier = Modifier
-                    .padding(top = 6.dp),
-                label = stringResource(id = com.nunchuk.android.signer.R.string.nc_nfc),
+                    .padding(top = 4.dp),
+                label = stringResource(id = R.string.nc_nfc),
+            )
+            Text(
+                modifier = Modifier.padding(top = 4.dp),
+                text = signer.getXfpOrCardIdLabel(),
+                style = NunchukTheme.typography.bodySmall.copy(
+                    color = colorResource(
+                        id = R.color.nc_grey_dark_color
+                    )
+                ),
             )
         }
         NcPrimaryDarkButton(
             modifier = Modifier
                 .padding(16.dp),
+            height = 44.dp,
             onClick = { onSignerSelected(signer) },
         ) {
-            Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_sign))
+            Text(text = stringResource(id = R.string.nc_sign))
         }
     }
 }

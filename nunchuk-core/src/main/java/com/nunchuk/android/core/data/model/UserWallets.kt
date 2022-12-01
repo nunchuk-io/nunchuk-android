@@ -8,7 +8,9 @@ internal data class CreateServerKeysPayload(
     @SerializedName("policies")
     val keyPoliciesDtoPayload: KeyPoliciesDto? = null,
     @SerializedName("name")
-    val name: String,
+    val name: String?,
+    @SerializedName("wallet")
+    val walletId: String? = null,
 )
 
 internal data class CreateSecurityQuestionRequest(
@@ -56,7 +58,7 @@ data class ConfigSecurityQuestionPayload(
     val questionsAndAnswerRequests: List<QuestionsAndAnswerRequest>,
 )
 
-data class CalculateRequiredSignaturesPayload(
+data class CalculateRequiredSignaturesSecurityQuestionPayload(
     @SerializedName("questions_and_answers")
     val questionsAndAnswerRequests: List<QuestionsAndAnswerRequest>,
     @SerializedName("wallet")

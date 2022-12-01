@@ -68,12 +68,15 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
             } else {
                 _event.emit(ConfigureServerKeySettingEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
             }
-        } else {
-            _event.emit(ConfigureServerKeySettingEvent.ConfigServerSuccess(KeyPolicy(
-                autoBroadcastTransaction = state.autoBroadcastSwitched,
-                signingDelayInHour = signingDelayInHour,
-                args.spendingLimit
-            )))
+        } else if (args.keyPolicy != null) {
+            _event.emit(
+                ConfigureServerKeySettingEvent.ConfigServerSuccess(
+                    args.keyPolicy!!.copy(
+                        autoBroadcastTransaction = state.autoBroadcastSwitched,
+                        signingDelayInHour = signingDelayInHour,
+                    )
+                )
+            )
         }
     }
 

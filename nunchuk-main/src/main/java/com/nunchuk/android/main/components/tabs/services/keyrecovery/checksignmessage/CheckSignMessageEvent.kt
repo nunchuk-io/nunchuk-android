@@ -6,12 +6,13 @@ import com.nunchuk.android.model.SingleSigner
 sealed class CheckSignMessageEvent {
     data class Loading(val isLoading: Boolean) : CheckSignMessageEvent()
     data class ProcessFailure(val message: String) : CheckSignMessageEvent()
-    data class GetSignersSuccess(val signers: List<SignerModel>) : CheckSignMessageEvent()
+    data class ShowError(val message: String) : CheckSignMessageEvent()
     data class CheckSignMessageSuccess(val signatures: HashMap<String, String>) :
         CheckSignMessageEvent()
-
-    object OpenScanDataTapsigner : CheckSignMessageEvent()
-    object ContinueClick : CheckSignMessageEvent()
+    class NfcLoading(val isLoading: Boolean, val isColdCard: Boolean = false) : CheckSignMessageEvent()
+    object ScanTapSigner : CheckSignMessageEvent()
+    object ScanColdCard : CheckSignMessageEvent()
+    object GenerateColdcardHealthMessagesSuccess : CheckSignMessageEvent()
 }
 
 data class CheckSignMessageState(

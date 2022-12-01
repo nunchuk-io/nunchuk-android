@@ -18,12 +18,11 @@ class CheckSignMessageTapsignerUseCase @Inject constructor(
     waitAutoCardUseCase
 ) {
     override suspend fun executeNfc(parameters: Param): String {
-        val messagesToSign = nunchukNativeSdk.getHealthCheckMessage(parameters.userData)
         return nunchukNativeSdk.signHealthCheckMessageTapSigner(
             isoDep = parameters.isoDep,
             cvc = parameters.cvc,
             signer = parameters.signer,
-            messagesToSign = messagesToSign
+            messagesToSign = parameters.messageToSign
         )
     }
 
@@ -31,8 +30,7 @@ class CheckSignMessageTapsignerUseCase @Inject constructor(
         isoDep: IsoDep,
         val signer: SingleSigner,
         val userData: String,
-        val cvc: String
+        val cvc: String,
+        val messageToSign: String
     ) : Data(isoDep)
-
-
 }

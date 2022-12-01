@@ -121,16 +121,18 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             is UpdateNameErrorEvent -> NCToastMessage(this).showWarning(event.message)
             WalletConfigEvent.DeleteWalletSuccess -> walletDeleted()
             is WalletConfigEvent.WalletDetailsError -> onGetWalletError(event)
-            is WalletConfigEvent.VerifyPasswordSuccess -> openServerKeyDetail(event.xfp)
+            is WalletConfigEvent.VerifyPasswordSuccess -> openServerKeyDetail(event)
             is WalletConfigEvent.Loading -> showOrHideLoading(event.isLoading)
         }
     }
 
-    private fun openServerKeyDetail(xfp: String) {
+    private fun openServerKeyDetail(event: WalletConfigEvent.VerifyPasswordSuccess) {
         CosigningPolicyActivity.start(
             activity = this,
             keyPolicy = args.keyPolicy,
-            xfp = xfp
+            xfp = event.xfp,
+            token = event.token,
+            walletId = args.walletId,
         )
     }
 
@@ -230,7 +232,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             isMaskInput = true,
             message = getString(R.string.nc_enter_your_password_desc),
             onConfirmed = { password ->
-                viewModel.signIn(password, fingerPrint)
+                viewModel.verifyPassword(password, fingerPrint)
             }
         )
     }

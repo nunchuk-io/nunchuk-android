@@ -79,7 +79,9 @@ class ConfigSpendingLimitFragment : MembershipFragment(), BottomSheetOptionListe
         val keyPolicy = args.keyPolicy
         if (keyPolicy != null) {
             // edit mode
-            val newArgs = CosigningPolicyFragmentArgs(keyPolicy.copy(spendingPolicy = event.spendingPolicy), "")
+            val newArgs = CosigningPolicyFragmentArgs(
+                keyPolicy.copy(spendingPolicy = event.spendingPolicy),
+            )
             requireActivity().apply {
                 setResult(Activity.RESULT_OK, Intent().apply {
                     putExtras(newArgs.toBundle())

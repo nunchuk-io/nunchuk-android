@@ -7,15 +7,12 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
-import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
-class CheckSignMessageActivity : BaseNfcActivity<ActivityNavigationBinding>() {
+class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>() {
     override fun initializeBinding(): ActivityNavigationBinding {
         return ActivityNavigationBinding.inflate(layoutInflater)
     }
@@ -36,7 +33,6 @@ class CheckSignMessageActivity : BaseNfcActivity<ActivityNavigationBinding>() {
     }
 
     companion object {
-        const val SIGNATURE_EXTRA = "SIGNATURE_EXTRA"
         fun start(
             walletId: String,
             userData: String,
@@ -45,7 +41,7 @@ class CheckSignMessageActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             activityContext: Activity
         ) {
             launcher.launch(
-                Intent(activityContext, CheckSignMessageActivity::class.java).apply {
+                Intent(activityContext, WalletAuthenticationActivity::class.java).apply {
                     putExtras(
                         CheckSignMessageFragmentArgs(
                             walletId = walletId,

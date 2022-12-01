@@ -35,5 +35,6 @@ class GenerateColdCardHealthCheckMessageUseCase @Inject constructor(
         return nativeSdk.generateColdCardHealthCheckMessage(parameters.derivationPath)
     }
 
-    class Data(val derivationPath: String, ndef: Ndef) : BaseMk4UseCase.Data(ndef)
+    class Data(val derivationPath: String, val message: String? = null, ndef: Ndef) :
+        BaseMk4UseCase.Data(ndef)
 }

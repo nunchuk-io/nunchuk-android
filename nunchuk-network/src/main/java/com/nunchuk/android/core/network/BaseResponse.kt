@@ -93,7 +93,7 @@ object ApiErrorCode {
     const val UNAUTHORIZED = 401
 }
 
-const val UNKNOWN_ERROR = "Unknown error"
+const val UNKNOWN_ERROR = "Unknown error, please try again!"
 const val CODE_SUCCESS = 0
 
 

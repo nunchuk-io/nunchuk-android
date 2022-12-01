@@ -21,9 +21,10 @@ package com.nunchuk.android.wallet.components.config
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.auth.domain.SignInUseCase
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
+import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
+import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -43,8 +44,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -55,7 +54,7 @@ internal class WalletConfigViewModel @Inject constructor(
     private val deleteWalletUseCase: DeleteWalletUseCase,
     private val leaveRoomUseCase: LeaveRoomUseCase,
     private val accountManager: AccountManager,
-    private val signInUseCase: SignInUseCase,
+    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
     private val assistedWalletManager: AssistedWalletManager,
     private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
 ) : NunchukViewModel<WalletConfigState, WalletConfigEvent>() {
@@ -78,20 +77,21 @@ internal class WalletConfigViewModel @Inject constructor(
         }
     }
 
-    fun signIn(password: String, xfp: String) {
-        val account = accountManager.getAccount()
+    fun verifyPassword(password: String, xfp: String) {
         viewModelScope.launch {
-            signInUseCase.execute(
-                email = account.email,
-                password = password,
-                staySignedIn = account.staySignedIn
-            ).onStart { setEvent(WalletConfigEvent.Loading(true)) }
-                .onCompletion { setEvent(WalletConfigEvent.Loading(false)) }
-                .onException {
-                    setEvent(WalletConfigEvent.WalletDetailsError(it.message.orUnknownError()))
-                }.collect {
-                    setEvent(WalletConfigEvent.VerifyPasswordSuccess(xfp))
-                }
+            setEvent(WalletConfigEvent.Loading(true))
+            val result = verifiedPasswordTokenUseCase(
+                VerifiedPasswordTokenUseCase.Param(
+                    VerifiedPasswordTargetAction.UPDATE_SERVER_KEY.name,
+                    password
+                )
+            )
+            setEvent(WalletConfigEvent.Loading(false))
+            if (result.isSuccess) {
+                setEvent(WalletConfigEvent.VerifyPasswordSuccess(result.getOrThrow().orEmpty(), xfp))
+            } else {
+                setEvent(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
         }
     }
 

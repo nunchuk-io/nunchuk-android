@@ -10,7 +10,12 @@ interface PremiumWalletRepository {
     ): KeyPolicy
 
     suspend fun getServerKey(xfp: String): KeyPolicy
-    suspend fun updateServerKeys(keyIdOrXfp: String, name: String, policy: KeyPolicy): KeyPolicy
+    suspend fun updateServerKeys(
+        signatures: Map<String, String>,
+        keyIdOrXfp: String,
+        token: String,
+        body: String,
+    ): KeyPolicy
     suspend fun createSecurityQuestion(question: String): SecurityQuestion
     suspend fun createServerWallet(
         wallet: Wallet, serverKeyId: String, plan: MembershipPlan
@@ -26,6 +31,8 @@ interface PremiumWalletRepository {
     suspend fun downloadBackup(id: String, questions: List<QuestionsAndAnswer>, verifyToken: String) : BackupKey
     suspend fun verifiedPasswordToken(targetAction: String, password: String): String?
     suspend fun calculateRequiredSignaturesSecurityQuestions(walletId: String, questions: List<QuestionsAndAnswer>): CalculateRequiredSignatures
+    suspend fun calculateRequiredSignaturesUpdateKeyPolicy(xfp: String, walletId: String, keyPolicy: KeyPolicy): CalculateRequiredSignatures
     suspend fun securityQuestionsUpdate(authorizations: List<String>, verifyToken: String, userData: String)
     suspend fun getCurrentServerTime(): Long
+    suspend fun generateUpdateServerKey(walletId: String, keyPolicy: KeyPolicy): String
 }

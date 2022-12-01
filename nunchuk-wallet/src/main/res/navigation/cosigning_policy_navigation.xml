@@ -15,6 +15,17 @@
 
         <argument
             android:name="xfp"
-            app:argType="string" />
+            app:argType="string"
+            android:defaultValue=""/>
+
+        <argument
+            android:name="walletId"
+            app:argType="string"
+            android:defaultValue=""/>
+
+        <argument
+            android:name="token"
+            app:argType="string"
+            android:defaultValue=""/>
     </fragment>
 </navigation>

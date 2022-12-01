@@ -38,7 +38,7 @@ import com.nunchuk.android.main.MainActivity
 import com.nunchuk.android.main.components.tabs.services.emergencylockdown.EmergencyLockdownActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoveryActivity
-import com.nunchuk.android.main.components.tabs.services.keyrecovery.checksignmessage.CheckSignMessageActivity
+import com.nunchuk.android.main.components.tabs.services.keyrecovery.checksignmessage.WalletAuthenticationActivity
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
 import com.nunchuk.android.model.KeyPolicy
@@ -158,13 +158,13 @@ interface AppNavigatorDelegate : AppNavigator {
         InheritancePlanningActivity.navigate(activityContext)
     }
 
-    override fun openCheckSignMessageScreen(
+    override fun openWalletAuthentication(
         walletId: String,
         userData: String,
         requiredSignatures: Int,
         launcher: ActivityResultLauncher<Intent>,
         activityContext: Activity
     ) {
-        CheckSignMessageActivity.start(walletId, userData, requiredSignatures, launcher, activityContext)
+        WalletAuthenticationActivity.start(walletId, userData, requiredSignatures, launcher, activityContext)
     }
 }

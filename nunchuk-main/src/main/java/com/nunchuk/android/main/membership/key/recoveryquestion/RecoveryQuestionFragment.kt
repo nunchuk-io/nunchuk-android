@@ -42,11 +42,11 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.tabs.services.keyrecovery.checksignmessage.CheckSignMessageActivity
 import com.nunchuk.android.main.membership.model.SecurityQuestionModel
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -65,7 +65,7 @@ class RecoveryQuestionFragment : MembershipFragment() {
             val data = it.data?.extras
             if (it.resultCode == Activity.RESULT_OK && data != null) {
                 val signatureMap =
-                    data.getSerializable(CheckSignMessageActivity.SIGNATURE_EXTRA) as HashMap<String, String>
+                    data.getSerializable(GlobalResultKey.SIGNATURE_EXTRA) as HashMap<String, String>
                 viewModel.securityQuestionUpdate(signatureMap)
             }
         }
@@ -89,7 +89,7 @@ class RecoveryQuestionFragment : MembershipFragment() {
                 is RecoveryQuestionEvent.Loading -> showOrHideLoading(it.isLoading)
                 is RecoveryQuestionEvent.ShowError -> showError(it.message)
                 is RecoveryQuestionEvent.ConfigRecoveryQuestionSuccess -> findNavController().popBackStack()
-                is RecoveryQuestionEvent.CalculateRequiredSignaturesSuccess -> navigator.openCheckSignMessageScreen(
+                is RecoveryQuestionEvent.CalculateRequiredSignaturesSuccess -> navigator.openWalletAuthentication(
                     walletId = it.walletId,
                     userData = it.userData,
                     requiredSignatures = it.requiredSignatures,

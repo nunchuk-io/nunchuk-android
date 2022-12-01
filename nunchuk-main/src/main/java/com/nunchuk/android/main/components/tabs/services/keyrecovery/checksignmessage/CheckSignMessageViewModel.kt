@@ -1,11 +1,17 @@
 package com.nunchuk.android.main.components.tabs.services.keyrecovery.checksignmessage
 
+import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
+import android.nfc.tech.Ndef
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.GenerateColdCardHealthCheckMessageUseCase
+import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
+import com.nunchuk.android.core.domain.HealthCheckColdCardUseCase
 import com.nunchuk.android.core.domain.membership.CheckSignMessageTapsignerUseCase
 import com.nunchuk.android.core.domain.membership.CheckSignMessageUseCase
+import com.nunchuk.android.core.domain.membership.GetHealthCheckMessageUseCase
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -26,6 +32,10 @@ class CheckSignMessageViewModel @Inject constructor(
     private val getWalletUseCase: GetWalletUseCase,
     private val checkSignMessageUseCase: CheckSignMessageUseCase,
     private val checkSignMessageTapsignerUseCase: CheckSignMessageTapsignerUseCase,
+    private val getHealthCheckMessageUseCase: GetHealthCheckMessageUseCase,
+    private val healthCheckColdCardUseCase: HealthCheckColdCardUseCase,
+    private val generateColdCardHealthCheckMessageUseCase: GenerateColdCardHealthCheckMessageUseCase,
+    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
     savedStateHandle: SavedStateHandle
 ) :
     ViewModel() {
@@ -38,50 +48,93 @@ class CheckSignMessageViewModel @Inject constructor(
     private val _state = MutableStateFlow(CheckSignMessageState())
     val state = _state.asStateFlow()
 
-    private val heathcheckableType =
-        setOf(SignerType.NFC, SignerType.SOFTWARE, SignerType.COLDCARD_NFC)
+    private val messageToSign = MutableStateFlow("")
 
     init {
         getWalletDetails()
+        viewModelScope.launch {
+            messageToSign.value = getHealthCheckMessageUseCase(args.userData).getOrThrow()
+        }
     }
 
     fun onSignerSelect(signerModel: SignerModel) = viewModelScope.launch {
         _state.update { it.copy(interactSingleSigner = null) }
         val singleSigner =
-            _state.value.singleSigners.firstOrNull { it.masterSignerId == signerModel.id }
+            _state.value.singleSigners.firstOrNull { it.masterSignerId == signerModel.id && it.derivationPath == signerModel.derivationPath }
                 ?: return@launch
-        if (signerModel.type == SignerType.NFC) {
-            _state.update { it.copy(interactSingleSigner = singleSigner) }
-            _event.emit(CheckSignMessageEvent.OpenScanDataTapsigner)
-            return@launch
+        _state.update { it.copy(interactSingleSigner = singleSigner) }
+        when (signerModel.type) {
+            SignerType.NFC -> _event.emit(CheckSignMessageEvent.ScanTapSigner)
+            SignerType.COLDCARD_NFC -> _event.emit(CheckSignMessageEvent.ScanColdCard)
+            SignerType.SOFTWARE -> handleSignCheckSoftware(singleSigner)
+            else -> {}
         }
-        handleSignCheckMessage(singleSigner)
     }
 
-    fun handleSignCheckMessage(
-        singleSigner: SingleSigner,
-        ncfScanInfo: NfcScanInfo? = null,
-        cvc: String? = null
-    ) = viewModelScope.launch {
-        _event.emit(CheckSignMessageEvent.Loading(true))
-        val result = if (singleSigner.type == SignerType.NFC) {
-            checkSignMessageTapsignerUseCase(
-                CheckSignMessageTapsignerUseCase.Param(
-                    signer = singleSigner,
-                    userData = args.userData,
-                    isoDep = IsoDep.get(ncfScanInfo?.tag),
-                    cvc = cvc!!
+    fun generateColdcardHealthMessages(ndef: Ndef?, derivationPath: String) {
+        ndef ?: return
+        viewModelScope.launch {
+            _event.emit(CheckSignMessageEvent.NfcLoading(isLoading = true, isColdCard = true))
+            val result = generateColdCardHealthCheckMessageUseCase(
+                GenerateColdCardHealthCheckMessageUseCase.Data(
+                    derivationPath = derivationPath,
+                    ndef = ndef
                 )
             )
-        } else {
-            checkSignMessageUseCase(
+            _event.emit(CheckSignMessageEvent.NfcLoading(false))
+            if (result.isSuccess) {
+                _event.emit(CheckSignMessageEvent.GenerateColdcardHealthMessagesSuccess)
+            } else {
+                _event.emit(CheckSignMessageEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun healthCheckColdCard(signer: SingleSigner, records: List<NdefRecord>) {
+        viewModelScope.launch {
+            _event.emit(CheckSignMessageEvent.NfcLoading(isLoading = true, isColdCard = true))
+            val result =
+                healthCheckColdCardUseCase(HealthCheckColdCardUseCase.Param(signer, records))
+            _event.emit(CheckSignMessageEvent.NfcLoading(false))
+            handleSignatureResult(result = result.map { it.signature }, singleSigner = signer)
+        }
+    }
+
+    fun handleTapSignerSignCheckMessage(
+        singleSigner: SingleSigner,
+        ncfScanInfo: NfcScanInfo?,
+        cvc: String
+    ) = viewModelScope.launch {
+        _event.emit(CheckSignMessageEvent.NfcLoading(isLoading = true, isColdCard = false))
+        val result = checkSignMessageTapsignerUseCase(
+            CheckSignMessageTapsignerUseCase.Param(
+                signer = singleSigner,
+                userData = args.userData,
+                isoDep = IsoDep.get(ncfScanInfo?.tag),
+                cvc = cvc,
+                messageToSign = messageToSign.value
+            )
+        )
+        _event.emit(CheckSignMessageEvent.Loading(false))
+        handleSignatureResult(result, singleSigner)
+    }
+
+    private fun handleSignCheckSoftware(singleSigner: SingleSigner) {
+        viewModelScope.launch {
+            val result = checkSignMessageUseCase(
                 CheckSignMessageUseCase.Param(
                     signer = singleSigner,
                     userData = args.userData,
                 )
             )
+            handleSignatureResult(result, singleSigner)
         }
-        _event.emit(CheckSignMessageEvent.Loading(false))
+    }
+
+    private suspend fun handleSignatureResult(
+        result: Result<String>,
+        singleSigner: SingleSigner
+    ) {
         if (result.isSuccess) {
             val signatures = _state.value.signatures
             signatures[singleSigner.masterFingerprint] = result.getOrThrow()
@@ -92,6 +145,8 @@ class CheckSignMessageViewModel @Inject constructor(
                     it.copy(signatures = signatures)
                 }
             }
+        } else {
+            _event.emit(CheckSignMessageEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 
@@ -107,15 +162,21 @@ class CheckSignMessageViewModel @Inject constructor(
                 .collect { walletExtended ->
                     _event.emit(CheckSignMessageEvent.Loading(false))
                     val signerModels =
-                        walletExtended.wallet.signers.filter { it.type in heathcheckableType }
-                            .map { it.toModel() }
+                        walletExtended.wallet.signers.filter {
+                            it.type == SignerType.SOFTWARE
+                                    || it.type == SignerType.HARDWARE
+                                    || it.type == SignerType.NFC
+                                    || it.type == SignerType.COLDCARD_NFC
+                        }.map {
+                            if (it.type == SignerType.NFC) it.toModel()
+                                .copy(cardId = getTapSignerStatusByIdUseCase(it.masterSignerId).getOrThrow().ident.orEmpty()) else it.toModel()
+                        }
                     _state.update {
                         it.copy(
                             signerModels = signerModels,
                             singleSigners = walletExtended.wallet.signers
                         )
                     }
-                    _event.emit(CheckSignMessageEvent.GetSignersSuccess(signerModels))
                 }
         }
     }

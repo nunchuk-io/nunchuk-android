@@ -361,4 +361,5 @@
     <string name="nc_inheritance_notify_pref_warning">You are still personally responsible for sharing the Magical Phrase and Backup Password with the Beneficiary or Trustee. The notification email won’t include these information.</string>
     <string name="nc_update_notification_preferences">Update notification preferences</string>
     <string name="nc_dont_want_any_notifications">I don’t want any notifications</string>
+    <string name="nc_policy_updated">Policies have been updated.</string>
 </resources>

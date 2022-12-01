@@ -29,6 +29,6 @@ sealed class WalletConfigEvent {
 
     object DeleteWalletSuccess : WalletConfigEvent()
 
-    data class VerifyPasswordSuccess(val xfp: String) : WalletConfigEvent()
+    data class VerifyPasswordSuccess(val token: String, val xfp: String) : WalletConfigEvent()
     class Loading(val isLoading: Boolean) : WalletConfigEvent()
 }

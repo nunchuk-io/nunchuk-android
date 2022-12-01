@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
 
@@ -63,6 +64,7 @@ fun NcPrimaryDarkButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
     enabled: Boolean = true,
+    height: Dp = 48.dp,
     content: @Composable RowScope.() -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -71,7 +73,7 @@ fun NcPrimaryDarkButton(
         if (isPressed) colorResource(id = R.color.nc_button_press_state_color) else colorResource(id = R.color.nc_primary_color)
     Button(
         enabled = enabled,
-        modifier = modifier.height(48.dp),
+        modifier = modifier.height(height),
         onClick = onClick,
         interactionSource = interactionSource,
         content = content,

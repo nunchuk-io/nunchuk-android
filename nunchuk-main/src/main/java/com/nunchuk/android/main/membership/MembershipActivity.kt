@@ -39,6 +39,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             else -> Unit
         }
         val bundle = when (stage) {
+            MembershipStage.CONFIG_SPENDING_LIMIT,
             MembershipStage.CONFIG_SERVER_KEY -> ConfigureServerKeySettingFragmentArgs(
                 keyPolicy = intent.parcelable(EXTRA_KEY_POLICY),
                 xfp = intent.getStringExtra(EXTRA_KEY_XFP)

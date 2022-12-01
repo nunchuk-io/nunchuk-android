@@ -12,6 +12,8 @@ import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.utils.SERVER_KEY_NAME
+import java.util.*
 import javax.inject.Inject
 
 
@@ -89,19 +91,36 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletsApi.getServerKey(xfp)
         val policy =
             response.data.key?.policies ?: throw NullPointerException("Can not find key policy")
+        val spendingLimit = policy.spendingLimit?.let {
+            SpendingPolicy(
+                limit = it.limit,
+                currencyUnit = runCatching { SpendingCurrencyUnit.valueOf(it.currency) }.getOrElse { SpendingCurrencyUnit.USD },
+                timeUnit = runCatching { SpendingTimeUnit.valueOf(it.interval) }.getOrElse { SpendingTimeUnit.DAILY }
+            )
+        }
         return KeyPolicy(
             autoBroadcastTransaction = policy.autoBroadcastTransaction,
-            signingDelayInHour = policy.signingDelaySeconds / ONE_HOUR_TO_SECONDS
+            signingDelayInHour = policy.signingDelaySeconds / ONE_HOUR_TO_SECONDS,
+            spendingPolicy = spendingLimit
         )
     }
 
     override suspend fun updateServerKeys(
-        keyIdOrXfp: String, name: String, policy: KeyPolicy
+        signatures: Map<String, String>,
+        keyIdOrXfp: String,
+        token: String,
+        body: String,
     ): KeyPolicy {
+        val headers = mutableMapOf("Verify-token" to token)
+        signatures.map { (masterFingerprint, signature) ->
+            nunchukNativeSdk.createRequestToken(signature, masterFingerprint)
+        }.forEachIndexed { index, signerToken ->
+            headers["AuthorizationX-${index + 1}"] = signerToken
+        }
         val response = userWalletsApi.updateServerKeys(
-            keyIdOrXfp, UpdateServerKeysPayload(
-                name = name, keyPoliciesDtoPayload = policy.toDto()
-            )
+            headers,
+            keyIdOrXfp,
+            gson.fromJson(body, KeyPolicyUpdateRequest::class.java)
         )
         val serverPolicy =
             response.data.key?.policies ?: throw NullPointerException("Can not find key policy")
@@ -275,7 +294,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return BackupKey(
             keyId = response.data.keyId,
             keyCheckSum = response.data.keyCheckSum,
-            keyBackUpBase64 = response.data.keyBackUpBase64.orEmpty(),
+            keyBackUpBase64 = response.data.keyBackUpBase64,
             keyChecksumAlgorithm = response.data.keyChecksumAlgorithm.orEmpty(),
             keyName = response.data.keyName.orEmpty()
         )
@@ -291,13 +310,32 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun calculateRequiredSignaturesSecurityQuestions(
         walletId: String, questions: List<QuestionsAndAnswer>
     ): CalculateRequiredSignatures {
-        val request = CalculateRequiredSignaturesPayload(walletId = walletId,
+        val request = CalculateRequiredSignaturesSecurityQuestionPayload(walletId = walletId,
             questionsAndAnswerRequests = questions.map {
                 QuestionsAndAnswerRequest(
                     questionId = it.questionId, answer = it.answer
                 )
             })
         val response = userWalletsApi.calculateRequiredSignaturesSecurityQuestions(request)
+        return CalculateRequiredSignatures(
+            type = response.data.result?.type.orEmpty(),
+            requiredSignatures = response.data.result?.requiredSignatures ?: 0
+        )
+    }
+
+    override suspend fun calculateRequiredSignaturesUpdateKeyPolicy(
+        xfp: String,
+        walletId: String,
+        keyPolicy: KeyPolicy
+    ): CalculateRequiredSignatures {
+        val response = userWalletsApi.calculateRequiredSignaturesUpdateServerKey(
+            xfp,
+            CreateServerKeysPayload(
+                walletId = walletId,
+                keyPoliciesDtoPayload = keyPolicy.toDto(),
+                name = null
+            )
+        )
         return CalculateRequiredSignatures(
             type = response.data.result?.type.orEmpty(),
             requiredSignatures = response.data.result?.requiredSignatures ?: 0
@@ -359,7 +397,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletsApi.getInheritance(walletId)
         val inheritanceDto =
             response.data.inheritance ?: throw NullPointerException("Can not get inheritance")
-        val status = when(inheritanceDto.status) {
+        val status = when (inheritanceDto.status) {
             "ACTIVE" -> InheritanceStatus.ACTIVE
             "CLAIMED" -> InheritanceStatus.CLAIMED
             else -> InheritanceStatus.PENDING_CREATION
@@ -377,17 +415,44 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
     }
 
-    private fun handleServerTransaction(walletId: String, transactionId: String, transaction: TransactionServer?) : Transaction? {
+    private fun handleServerTransaction(
+        walletId: String,
+        transactionId: String,
+        transaction: TransactionServer?
+    ): Transaction? {
         transaction ?: return null
         return if (transaction.status == TransactionStatus.PENDING_CONFIRMATION.name
             || transaction.status == TransactionStatus.CONFIRMED.name
             || transaction.status == TransactionStatus.NETWORK_REJECTED.name
         ) {
             nunchukNativeSdk.importPsbt(walletId, transaction.psbt.orEmpty())
-            nunchukNativeSdk.updateTransaction(walletId, transactionId, transaction.transactionId.orEmpty(), transaction.hex.orEmpty(), transaction.rejectMsg.orEmpty())
+            nunchukNativeSdk.updateTransaction(
+                walletId,
+                transactionId,
+                transaction.transactionId.orEmpty(),
+                transaction.hex.orEmpty(),
+                transaction.rejectMsg.orEmpty()
+            )
         } else {
             nunchukNativeSdk.importPsbt(walletId, transaction.psbt.orEmpty())
         }
+    }
+
+    override suspend fun generateUpdateServerKey(walletId: String, keyPolicy: KeyPolicy): String {
+        val currentServerTime = getCurrentServerTime()
+        val body = CreateServerKeysPayload(
+            walletId = walletId,
+            keyPoliciesDtoPayload = keyPolicy.toDto(),
+            name = SERVER_KEY_NAME
+        )
+        val nonce = UUID.randomUUID().toString()
+        val request = KeyPolicyUpdateRequest(
+            nonce = nonce,
+            iat = currentServerTime / 1000,
+            exp = currentServerTime / 1000 + 30 * 60,
+            body = body
+        )
+        return gson.toJson(request)
     }
 
     companion object {

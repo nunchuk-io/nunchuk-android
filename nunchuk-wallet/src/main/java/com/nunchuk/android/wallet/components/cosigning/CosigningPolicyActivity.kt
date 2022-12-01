@@ -26,13 +26,23 @@ class CosigningPolicyActivity : BaseActivity<ActivityNavigationBinding>() {
     private fun initStartDestination() {
         val navHostFragment =
             (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
-        navHostFragment.navController.setGraph(R.navigation.cosigning_policy_navigation, intent.extras)
+        navHostFragment.navController.setGraph(
+            R.navigation.cosigning_policy_navigation,
+            intent.extras
+        )
     }
 
     companion object {
-        fun start(activity: Activity, keyPolicy: KeyPolicy?, xfp: String) {
+        fun start(activity: Activity, walletId: String, token: String, keyPolicy: KeyPolicy?, xfp: String) {
             activity.startActivity(Intent(activity, CosigningPolicyActivity::class.java).apply {
-                putExtras(CosigningPolicyFragmentArgs(keyPolicy = keyPolicy, xfp = xfp).toBundle())
+                putExtras(
+                    CosigningPolicyFragmentArgs(
+                        keyPolicy = keyPolicy,
+                        xfp = xfp,
+                        token = token,
+                        walletId = walletId
+                    ).toBundle()
+                )
             })
         }
     }

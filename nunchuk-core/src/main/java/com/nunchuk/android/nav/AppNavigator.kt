@@ -47,7 +47,7 @@ interface AppNavigator {
     fun openKeyRecoveryScreen(activityContext: Context)
     fun openEmergencyLockdownScreen(activityContext: Context)
     fun openInheritancePlanningScreen(activityContext: Context)
-    fun openCheckSignMessageScreen(
+    fun openWalletAuthentication(
         walletId: String,
         userData: String,
         requiredSignatures: Int,

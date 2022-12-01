@@ -14,8 +14,9 @@ internal interface UserWalletsApi {
 
     @PUT("/v1.1/user-wallets/server-keys/{key_id_or_xfp}")
     suspend fun updateServerKeys(
+        @HeaderMap headers: Map<String, String>,
         @Path("key_id_or_xfp") keyId: String,
-        @Body payload: UpdateServerKeysPayload
+        @Body body: KeyPolicyUpdateRequest
     ): Data<CreateServerKeyResponse>
 
     @GET("/v1.1/user-wallets/security-questions")
@@ -82,7 +83,13 @@ internal interface UserWalletsApi {
 
     @POST("/v1.1/user-wallets/security-questions/calculate-required-signatures")
     suspend fun calculateRequiredSignaturesSecurityQuestions(
-        @Body payload: CalculateRequiredSignaturesPayload
+        @Body payload: CalculateRequiredSignaturesSecurityQuestionPayload
+    ) : Data<CalculateRequiredSignaturesResponse>
+
+    @POST("/v1.1/user-wallets/server-keys/{key_id_or_xfp}/calculate-required-signatures")
+    suspend fun calculateRequiredSignaturesUpdateServerKey(
+        @Path("key_id_or_xfp") id: String,
+        @Body payload: CreateServerKeysPayload
     ) : Data<CalculateRequiredSignaturesResponse>
 
     @PUT("/v1.1/user-wallets/security-questions/update")
