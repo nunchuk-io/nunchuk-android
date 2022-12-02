@@ -144,6 +144,7 @@ class RecoveryQuestionViewModel @Inject constructor(
 
     fun securityQuestionUpdate(signatures: HashMap<String, String>) = viewModelScope.launch {
         val state = _state.value
+        _event.emit(RecoveryQuestionEvent.Loading(true))
         val result = securityQuestionsUpdateUseCase(
             SecurityQuestionsUpdateUseCase.Param(
                 signatures = signatures,
@@ -151,6 +152,7 @@ class RecoveryQuestionViewModel @Inject constructor(
                 userData = state.userData.orEmpty()
             )
         )
+        _event.emit(RecoveryQuestionEvent.Loading(false))
         if (result.isSuccess) {
             _event.emit(RecoveryQuestionEvent.RecoveryQuestionUpdateSuccess)
         } else {

@@ -115,7 +115,7 @@ fun KeyRecoveryScreenContent(
                     .navigationBarsPadding()
             ) {
                 NcTopAppBar(
-                    title = stringResource(R.string.nc_services_tab),
+                    title = stringResource(R.string.nc_key_recovery),
                     textStyle = NunchukTheme.typography.titleLarge
                 )
 

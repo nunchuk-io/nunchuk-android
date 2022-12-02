@@ -42,6 +42,7 @@ class BackupDownloadFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
+        viewModel.setKeyName(getString(R.string.nc_recovered_key_name, args.backupKey.keyName))
         return ComposeView(requireContext()).apply {
             setContent {
                 BackupDownloadScreen(viewModel, args)

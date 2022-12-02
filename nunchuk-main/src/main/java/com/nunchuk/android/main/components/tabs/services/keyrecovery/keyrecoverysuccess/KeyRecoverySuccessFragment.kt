@@ -61,6 +61,7 @@ class KeyRecoverySuccessFragment : Fragment() {
                         type = args.signer.type,
                         derivationPath = args.signer.derivationPath,
                         justAdded = true,
+                        customMessage = getString(R.string.nc_tapsigner_has_been_recovered)
                     )
                     requireActivity().finish()
                 }

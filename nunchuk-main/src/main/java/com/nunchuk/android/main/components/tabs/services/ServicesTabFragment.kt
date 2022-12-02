@@ -6,7 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.main.R
 import com.nunchuk.android.main.databinding.FragmentServicesTabBinding
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -22,39 +24,52 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupViews()
-        setupData()
-        observeEvent()
-    }
-
-    private fun setupData() {
-
     }
 
     private fun setupViews() {
         adapter = ServicesTabAdapter {
-            viewModel.onItemClick(it)
+            onTabItemClick(it)
         }
         binding.recyclerView.adapter = adapter
         adapter.submitList(viewModel.getItems())
     }
 
-    private fun observeEvent() {
-        viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
+    private fun onTabItemClick(item: ServiceTabRowItem) {
+        when (item) {
+            ServiceTabRowItem.ClaimInheritance -> {}
+            ServiceTabRowItem.CoSigningPolicies -> {}
+            ServiceTabRowItem.EmergencyLockdown -> navigator.openEmergencyLockdownScreen(
+                requireContext()
+            )
+            ServiceTabRowItem.KeyRecovery -> navigator.openKeyRecoveryScreen(requireContext())
+            ServiceTabRowItem.ManageSubscription -> {
+                showManageSubscriptionDialog()
+            }
+            ServiceTabRowItem.OrderNewHardware -> {
+                showOrderNewHardwareDialog()
+            }
+            ServiceTabRowItem.RollOverAssistedWallet -> {}
+            ServiceTabRowItem.SetUpInheritancePlan -> navigator.openInheritancePlanningScreen(
+                requireContext()
+            )
+        }
     }
 
-    private fun handleEvent(event: ServicesTabEvent) {
-        when (event) {
-            is ServicesTabEvent.ItemClick -> when (event.item) {
-                ServiceTabRowItem.ClaimInheritance -> TODO()
-                ServiceTabRowItem.CoSigningPolicies -> TODO()
-                ServiceTabRowItem.EmergencyLockdown -> navigator.openEmergencyLockdownScreen(requireContext())
-                ServiceTabRowItem.KeyRecovery -> navigator.openKeyRecoveryScreen(requireContext())
-                ServiceTabRowItem.ManageSubscription -> TODO()
-                ServiceTabRowItem.OrderNewHardware -> TODO()
-                ServiceTabRowItem.RollOverAssistedWallet -> TODO()
-                ServiceTabRowItem.SetUpInheritancePlan -> navigator.openInheritancePlanningScreen(requireContext())
-            }
-            is ServicesTabEvent.Loading -> TODO()
-        }
+    private fun showManageSubscriptionDialog() {
+        NCInfoDialog(requireActivity()).showDialog(
+            btnInfo = getString(R.string.nc_take_me_to_the_website),
+            message = getString(R.string.nc_manage_subscription_desc),
+            onInfoClick = {
+
+            })
+    }
+
+    private fun showOrderNewHardwareDialog() {
+        NCInfoDialog(requireActivity()).showDialog(
+            btnInfo = getString(R.string.nc_take_me_to_the_website),
+            message = getString(R.string.nc_order_new_hardware_desc),
+            onInfoClick = {
+
+            })
     }
 }
