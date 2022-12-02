@@ -14,8 +14,8 @@ data class MembershipStepEntity(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
     val id: Long = 0,
-    @ColumnInfo(name = "email")
-    val email: String,
+    @ColumnInfo(name = "chat_id")
+    val chatId: String,
     @ColumnInfo(name = "step")
     val step: MembershipStep,
     @ColumnInfo(name = "master_signer_id")

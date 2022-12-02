@@ -1,6 +1,7 @@
 package com.nunchuk.android.core.repository
 
 import com.google.gson.Gson
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.data.api.UserWalletsApi
 import com.nunchuk.android.core.data.model.*
 import com.nunchuk.android.core.data.model.membership.*
@@ -8,6 +9,7 @@ import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.util.ONE_HOUR_TO_SECONDS
 import com.nunchuk.android.model.*
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.type.SignerType
@@ -22,7 +24,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val membershipRepository: MembershipRepository,
     private val gson: Gson,
     private val nunchukNativeSdk: NunchukNativeSdk,
-    private val ncDataStore: NcDataStore
+    private val ncDataStore: NcDataStore,
+    private val membershipStepDao: MembershipStepDao,
+    private val accountManager: AccountManager,
 ) : PremiumWalletRepository {
 
     override suspend fun getSecurityQuestions(verifyToken: String?): List<SecurityQuestion> {
@@ -141,6 +145,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun createServerWallet(
         wallet: Wallet, serverKeyId: String, plan: MembershipPlan
     ): SeverWallet {
+        val entity = membershipStepDao.getStep(accountManager.getAccount().chatId, MembershipStep.HONEY_ADD_TAP_SIGNER)
         val signers = wallet.signers.map {
             if (it.type == SignerType.NFC) {
                 val status = nunchukNativeSdk.getTapSignerStatusFromMasterSigner(it.masterSignerId)
@@ -155,7 +160,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         cardId = status.ident.orEmpty(),
                         version = status.version.orEmpty(),
                         birthHeight = status.birthHeight,
-                        isTestnet = status.isTestNet
+                        isTestnet = status.isTestNet,
+                        isInheritance = entity?.masterSignerId == it.masterSignerId
                     )
                 )
             } else {

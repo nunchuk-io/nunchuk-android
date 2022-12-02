@@ -64,11 +64,11 @@ class KeyRepositoryImpl @Inject constructor(
             )
             if (result.isSuccess || result.error.code == ALREADY_VERIFIED_CODE) {
                 val response = if (result.isSuccess) result.data else null
-                val email = accountManager.getAccount().email
+                val chatId = accountManager.getAccount().chatId
                 val verifyType =
                     if (result.error.code == ALREADY_VERIFIED_CODE) VerifyType.APP_VERIFIED else VerifyType.NONE
                 val info = MembershipStepEntity(
-                    email = email,
+                    chatId = chatId,
                     step = step,
                     masterSignerId = xfp,
                     keyIdInServer = response?.keyId.orEmpty(),
@@ -104,7 +104,7 @@ class KeyRepositoryImpl @Inject constructor(
 
     override suspend fun setKeyVerified(masterSignerId: String, isAppVerify: Boolean) {
         val stepInfo =
-            membershipDao.getStepByMasterSignerId(accountManager.getAccount().email, masterSignerId)
+            membershipDao.getStepByMasterSignerId(accountManager.getAccount().chatId, masterSignerId)
                 ?: throw NullPointerException("Can not mark key verified $masterSignerId")
         val response =
             keyApi.setKeyVerified(

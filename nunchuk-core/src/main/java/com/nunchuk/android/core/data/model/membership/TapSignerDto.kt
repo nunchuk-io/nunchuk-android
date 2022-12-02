@@ -11,4 +11,6 @@ internal data class TapSignerDto(
     val isTestnet: Boolean,
     @SerializedName("birth_height")
     val birthHeight: Int,
+    @SerializedName("is_inheritance")
+    val isInheritance: Boolean,
 )

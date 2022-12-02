@@ -26,7 +26,7 @@ class MembershipRepositoryImpl @Inject constructor(
     private val ncDataStore: NcDataStore,
 ) : MembershipRepository {
     override fun getSteps(plan: MembershipPlan): Flow<List<MembershipStepInfo>> {
-        return membershipStepDao.getSteps(accountManager.getAccount().email, plan)
+        return membershipStepDao.getSteps(accountManager.getAccount().chatId, plan)
             .map {
                 it.map { entity -> entity.toModel() }
             }
@@ -35,7 +35,7 @@ class MembershipRepositoryImpl @Inject constructor(
     override suspend fun saveStepInfo(info: MembershipStepInfo) {
         membershipStepDao.updateOrInsert(
             MembershipStepEntity(
-                email = accountManager.getAccount().email,
+                chatId = accountManager.getAccount().chatId,
                 step = info.step,
                 masterSignerId = info.masterSignerId,
                 verifyType = info.verifyType,
@@ -48,7 +48,7 @@ class MembershipRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteStepBySignerId(masterSignerId: String) {
-        membershipStepDao.deleteByMasterSignerId(accountManager.getAccount().email, masterSignerId)
+        membershipStepDao.deleteByMasterSignerId(accountManager.getAccount().chatId, masterSignerId)
     }
 
     override suspend fun getSubscription(): MemberSubscription {
@@ -77,6 +77,6 @@ class MembershipRepositoryImpl @Inject constructor(
                     }
                 }
         }
-        membershipStepDao.deleteStepByEmail(accountManager.getAccount().email)
+        membershipStepDao.deleteStepByEmail(accountManager.getAccount().chatId)
     }
 }
