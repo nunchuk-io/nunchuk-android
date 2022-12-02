@@ -33,8 +33,9 @@ internal data class WalletsState(
     val chain: Chain = Chain.MAIN,
     val isPremiumUser: Boolean? = null,
     val remainingTime: Int = 0,
-    val isCompletedMembershipFlow: Boolean = false,
+    val isCreatedAssistedWallet: Boolean = false,
     val assistedWalletId: String = "",
+    val isSetupInheritance: Boolean = false,
 )
 
 internal sealed class WalletsEvent {

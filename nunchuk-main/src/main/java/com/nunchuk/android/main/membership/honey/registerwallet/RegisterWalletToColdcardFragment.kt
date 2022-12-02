@@ -5,10 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -124,7 +121,9 @@ private fun RegisterWalletToColdcardContent(
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
-            Column(modifier = Modifier.padding(innerPadding)) {
+            Column(modifier = Modifier.padding(innerPadding)
+                .navigationBarsPadding()
+            ) {
                 NcImageAppBar(
                     backgroundRes = R.drawable.bg_register_coldcard,
                     title = stringResource(id = R.string.nc_estimate_remain_time, remainingTime),

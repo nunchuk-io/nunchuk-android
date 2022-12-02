@@ -6,7 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -24,7 +26,10 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
-import com.nunchuk.android.compose.*
+import com.nunchuk.android.compose.NcHighlightText
+import com.nunchuk.android.compose.NcImageAppBar
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -75,6 +80,8 @@ private fun InheritanceSetupIntroContent(
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
                     .navigationBarsPadding()
             ) {
                 NcImageAppBar(

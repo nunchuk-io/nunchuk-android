@@ -10,10 +10,7 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -43,43 +40,49 @@ class MembershipStepManager @Inject constructor(
 
     init {
         applicationScope.launch {
-            ncDataStore.membershipPlan.collect {
-                _plan.value = it
-                initStep(plan)
-                observerStep(plan)
+            ncDataStore.membershipPlan.zip(ncDataStore.assistedWalletPlan)
+            { currentPlan, assistedWalletPlan ->
+                currentPlan to assistedWalletPlan
+            }.collect {
+                _plan.value = it.first
+                initStep(it.first, it.second)
+                observerStep(it.first, it.second)
             }
         }
     }
-
-    private fun initStep(plan: MembershipPlan) {
-        if (plan == MembershipPlan.IRON_HAND) {
+    // Special case when set up wallet done and login in another device to setup inheritance we should mark all created wallet step to done
+    private fun initStep(currentPlan: MembershipPlan, assistedWalletPlan: MembershipPlan) {
+        steps.clear()
+        if (currentPlan == MembershipPlan.IRON_HAND && currentPlan != assistedWalletPlan) {
             steps[MembershipStep.ADD_TAP_SIGNER_1] = MembershipStepFlow(totalStep = 8)
             steps[MembershipStep.ADD_TAP_SIGNER_2] = MembershipStepFlow(totalStep = 8)
             steps[MembershipStep.HONEY_ADD_TAP_SIGNER] = MembershipStepFlow(totalStep = 8)
             steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
             steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 1)
             steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
-        } else if (plan == MembershipPlan.HONEY_BADGER) {
+        } else if (currentPlan == MembershipPlan.HONEY_BADGER && currentPlan != assistedWalletPlan) {
             steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_1] = MembershipStepFlow(totalStep = 8)
             steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_2] = MembershipStepFlow(totalStep = 8)
             steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
             steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 2)
             steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
+        }
+        if (currentPlan == MembershipPlan.HONEY_BADGER) {
             steps[MembershipStep.SETUP_INHERITANCE] = MembershipStepFlow(totalStep = 12)
         }
         _remainingTime.value = steps.values.sumOf { it.totalStep * 2 }
         _stepDone.value = emptySet()
     }
 
-    private fun observerStep(plan: MembershipPlan) {
+    private fun observerStep(currentPlan: MembershipPlan, assistedWalletPlan: MembershipPlan) {
         job?.cancel()
         job = applicationScope.launch {
-            getMembershipStepUseCase(plan)
+            getMembershipStepUseCase(currentPlan)
                 .map { it.getOrElse { emptyList() } }
                 .collect { steps ->
                     stepInfo.value = steps
                     if (steps.isEmpty()) {
-                        initStep(_plan.value)
+                        initStep(currentPlan, assistedWalletPlan)
                     } else {
                         steps.forEach { step ->
                             if (step.isVerifyOrAddKey) markStepDone(step.step)

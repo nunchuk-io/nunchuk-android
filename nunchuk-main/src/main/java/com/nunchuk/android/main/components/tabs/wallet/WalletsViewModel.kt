@@ -55,11 +55,15 @@ internal class WalletsViewModel @Inject constructor(
     override val initialState = WalletsState()
 
     init {
-        checkMemberMembership()
-
         viewModelScope.launch {
-            assistedWalletManager.assistedWalletId.collect {
+            assistedWalletManager.assistedWalletId.distinctUntilChanged().collect {
                 updateState { copy(assistedWalletId = it) }
+                checkMemberMembership()
+            }
+        }
+        viewModelScope.launch {
+            membershipStepManager.remainingTime.collect {
+                updateState { copy(remainingTime = it) }
             }
         }
     }
@@ -86,7 +90,8 @@ internal class WalletsViewModel @Inject constructor(
                 updateState {
                     copy(
                         isPremiumUser = isPremiumUser,
-                        isCompletedMembershipFlow = walletLocalId.isNotEmpty() && isSetupInheritance,
+                        isCreatedAssistedWallet = walletLocalId.isNotEmpty(),
+                        isSetupInheritance = isSetupInheritance
                     )
                 }
             } else {
@@ -95,11 +100,6 @@ internal class WalletsViewModel @Inject constructor(
                         isPremiumUser = false,
                     )
                 }
-            }
-        }
-        viewModelScope.launch {
-            membershipStepManager.remainingTime.collect {
-                updateState { copy(remainingTime = it) }
             }
         }
     }
@@ -218,10 +218,11 @@ internal class WalletsViewModel @Inject constructor(
         } + singleSigners.map(SingleSigner::toModel)
     }
 
-    fun getGroupStage(): MembershipStage = when {
-        membershipStepManager.isNotConfig() -> MembershipStage.NONE
-        membershipStepManager.plan == MembershipPlan.IRON_HAND && membershipStepManager.isCreatedAssistedWalletDone() -> MembershipStage.DONE
-        else -> MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
+    fun getGroupStage(): MembershipStage {
+        if (getState().isCreatedAssistedWallet && getState().isSetupInheritance) return MembershipStage.DONE
+        if (getState().isCreatedAssistedWallet && getState().isSetupInheritance.not()) return MembershipStage.SETUP_INHERITANCE
+        if (membershipStepManager.isNotConfig()) return MembershipStage.NONE
+        return MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
     }
 
     fun getKeyPolicy(walletId: String) = keyPolicyMap[walletId]

@@ -9,14 +9,20 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.key.server.setting.ConfigureServerKeySettingFragmentArgs
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>() {
+
+    @Inject
+    lateinit var membershipStepManager: MembershipStepManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,7 +41,10 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             )
             MembershipStage.CONFIG_SERVER_KEY -> graph.setStartDestination(R.id.configureServerKeySettingFragment)
             MembershipStage.CONFIG_SPENDING_LIMIT -> graph.setStartDestination(R.id.configSpendingLimitFragment)
-            MembershipStage.SETUP_INHERITANCE -> graph.setStartDestination(R.id.inheritanceSetupIntroFragment)
+            MembershipStage.SETUP_INHERITANCE -> {
+                membershipStepManager.setCurrentStep(MembershipStep.SETUP_INHERITANCE)
+                graph.setStartDestination(R.id.inheritanceSetupIntroFragment)
+            }
             else -> Unit
         }
         val bundle = when (stage) {

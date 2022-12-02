@@ -109,9 +109,13 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         navigator.openSignerIntroScreen(requireActivity())
     }
 
-    private fun showAssistedWalletStart(remainingTime: Int, isCompletedMembershipFlow: Boolean) {
+    private fun showAssistedWalletStart(
+        remainingTime: Int,
+        isCreatedAssistedWallet: Boolean,
+        setupInheritance: Boolean
+    ) {
         val stage = walletsViewModel.getGroupStage()
-        val isGone = stage == MembershipStage.DONE || isCompletedMembershipFlow
+        val isGone = stage == MembershipStage.DONE || (isCreatedAssistedWallet && setupInheritance)
         binding.introContainer.isGone = isGone
         if (isVisible.not()) return
         binding.introContainer.setBackgroundResource(R.drawable.nc_rounded_denim_background)
@@ -303,7 +307,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             when {
                 state.isPremiumUser -> showAssistedWalletStart(
                     state.remainingTime,
-                    state.isCompletedMembershipFlow
+                    state.isCreatedAssistedWallet,
+                    state.isSetupInheritance,
                 )
                 else -> showNonSubscriberIntro()
             }
