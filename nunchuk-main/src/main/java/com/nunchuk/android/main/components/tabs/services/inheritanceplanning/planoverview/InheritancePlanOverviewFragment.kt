@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.membership.honey.inheritance.findbackup
+package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.planoverview
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -19,31 +19,26 @@ import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
-import com.nunchuk.android.compose.NcHighlightText
-import com.nunchuk.android.compose.NcImageAppBar
+import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @AndroidEntryPoint
-class FindBackupPasswordFragment : MembershipFragment() {
-    private val viewModel: FindBackupPasswordViewModel by viewModels()
+class InheritancePlanOverviewFragment : MembershipFragment() {
+    private val viewModel: InheritancePlanOverviewViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
-                FindBackupPasswordContent(remainTime) {
-                    findNavController().navigate(
-                        FindBackupPasswordFragmentDirections.actionFindBackupPasswordFragmentToInheritanceKeyTipFragment()
-                    )
-                }
+                InheritancePlanOverviewScreen(viewModel)
             }
         }
     }
@@ -53,26 +48,37 @@ class FindBackupPasswordFragment : MembershipFragment() {
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
-
+                    when(event) {
+                        InheritancePlanOverviewEvent.OnContinueClicked -> findNavController().navigate(
+                            InheritancePlanOverviewFragmentDirections.actionInheritancePlanOverviewFragmentToMagicalPhraseIntroFragment()
+                        )
+                    }
                 }
         }
     }
 }
 
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
-private fun FindBackupPasswordContent(
+private fun InheritancePlanOverviewScreen(viewModel: InheritancePlanOverviewViewModel = viewModel()) {
+    val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
+    InheritancePlanOverviewContent(remainTime, viewModel::onContinueClicked)
+}
+
+@Composable
+private fun InheritancePlanOverviewContent(
     remainTime: Int = 0,
     onContinueClicked: () -> Unit = {},
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
             Column(
-                modifier = Modifier
+                Modifier
                     .padding(innerPadding)
+                    .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                NcImageAppBar(
-                    backgroundRes = R.drawable.nc_bg_tap_signer_explain,
+                NcTopAppBar(
                     title = stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
@@ -80,12 +86,32 @@ private fun FindBackupPasswordContent(
                 )
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_find_backup_password),
+                    text = stringResource(R.string.nc_plan_overview),
                     style = NunchukTheme.typography.heading
                 )
-                NcHighlightText(
+                Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_find_backup_password_desc),
+                    text = stringResource(R.string.nc_plan_overview_desc),
+                    style = NunchukTheme.typography.body
+                )
+                NCLabelWithIndex(
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                    index = 1,
+                    label = stringResource(R.string.nc_magical_phrase),
+                )
+                NCLabelWithIndex(
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                    index = 2,
+                    label = stringResource(R.string.nc_a_backup_password),
+                )
+                NCLabelWithIndex(
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                    index = 3,
+                    label = stringResource(R.string.nc_activation_date),
+                )
+                Text(
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                    text = stringResource(R.string.nc_plan_overview_bottom_desc),
                     style = NunchukTheme.typography.body
                 )
                 Spacer(modifier = Modifier.weight(1.0f))
@@ -104,8 +130,6 @@ private fun FindBackupPasswordContent(
 
 @Preview
 @Composable
-private fun FindBackupPasswordScreenPreview() {
-    FindBackupPasswordContent(
-
-    )
+private fun InheritancePlanOverviewScreenPreview() {
+    InheritancePlanOverviewContent()
 }

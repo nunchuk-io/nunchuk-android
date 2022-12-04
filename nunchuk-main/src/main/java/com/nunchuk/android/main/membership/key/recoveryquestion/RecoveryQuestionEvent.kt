@@ -19,13 +19,15 @@ sealed class RecoveryQuestionEvent {
 
     data class ShowError(val message: String) : RecoveryQuestionEvent()
     object RecoveryQuestionUpdateSuccess : RecoveryQuestionEvent()
+    object DiscardChangeClick : RecoveryQuestionEvent()
 }
 
 data class RecoveryQuestionState(
     val recoveries: List<RecoveryData> = recoveryListInitialize(),
     val securityQuestions: List<SecurityQuestionModel> = emptyList(),
     val interactQuestionIndex: Int = InitValue,
-    val userData: String? = null
+    val userData: String? = null,
+    val clearFocusRequest: Boolean = false
 ) {
     companion object {
         val Empty = RecoveryQuestionState()
@@ -45,4 +47,5 @@ data class RecoveryData(
     val index: Int,
     val question: SecurityQuestionModel = SecurityQuestionModel(),
     val answer: String = "",
+    val isShowMask: Boolean = false
 )

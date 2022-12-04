@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.membership.honey.inheritance.planoverview
+package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.intro
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,21 +10,21 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class InheritancePlanOverviewViewModel @Inject constructor(
-    membershipStepManager: MembershipStepManager
+class InheritanceSetupIntroViewModel @Inject constructor(
+    private val membershipStepManager: MembershipStepManager,
 ) : ViewModel() {
-    private val _event = MutableSharedFlow<InheritancePlanOverviewEvent>()
+    private val _event = MutableSharedFlow<InheritanceSetupIntroEvent>()
     val event = _event.asSharedFlow()
 
     val remainTime = membershipStepManager.remainingTime
 
     fun onContinueClicked() {
         viewModelScope.launch {
-            _event.emit(InheritancePlanOverviewEvent.OnContinueClicked)
+            _event.emit(InheritanceSetupIntroEvent.OnContinueClicked)
         }
     }
 }
 
-sealed class InheritancePlanOverviewEvent {
-    object OnContinueClicked : InheritancePlanOverviewEvent()
+sealed class InheritanceSetupIntroEvent {
+    object OnContinueClicked : InheritanceSetupIntroEvent()
 }

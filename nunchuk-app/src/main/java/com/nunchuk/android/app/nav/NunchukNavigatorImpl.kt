@@ -34,6 +34,7 @@ import com.nunchuk.android.app.wallet.QuickWalletActivity
 import com.nunchuk.android.auth.nav.AuthNavigatorDelegate
 import com.nunchuk.android.contact.nav.ContactNavigatorDelegate
 import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.main.MainActivity
 import com.nunchuk.android.main.components.tabs.services.emergencylockdown.EmergencyLockdownActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
@@ -154,8 +155,11 @@ interface AppNavigatorDelegate : AppNavigator {
         EmergencyLockdownActivity.navigate(activityContext)
     }
 
-    override fun openInheritancePlanningScreen(activityContext: Context) {
-        InheritancePlanningActivity.navigate(activityContext)
+    override fun openInheritancePlanningScreen(
+        activityContext: Context,
+        @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int
+    ) {
+        InheritancePlanningActivity.navigate(activityContext, flowInfo)
     }
 
     override fun openWalletAuthentication(
@@ -165,6 +169,12 @@ interface AppNavigatorDelegate : AppNavigator {
         launcher: ActivityResultLauncher<Intent>,
         activityContext: Activity
     ) {
-        WalletAuthenticationActivity.start(walletId, userData, requiredSignatures, launcher, activityContext)
+        WalletAuthenticationActivity.start(
+            walletId,
+            userData,
+            requiredSignatures,
+            launcher,
+            activityContext
+        )
     }
 }

@@ -110,7 +110,8 @@ fun ConfigureServerKeySettingScreen(
         onContinueClicked = viewModel::onContinueClicked,
         remainTime = remainTime,
         isCreateAssistedWalletFlow = isCreateAssistedWalletFlow,
-        onCoSigningDelaTextChange = viewModel::updateCoSigningDelayText,
+        onCoSigningDelaHourTextChange = viewModel::updateCoSigningDelayHourText,
+        onCoSigningDelaMinuteTextChange = viewModel::updateCoSigningDelayMinuteText,
         onAutoBroadcastSwitchedChange = viewModel::updateAutoBroadcastSwitched,
         onEnableCoSigningSwitchedChange = viewModel::updateEnableCoSigningSwitched,
     )
@@ -122,7 +123,8 @@ fun ConfigureServerKeySettingScreenContent(
     onContinueClicked: () -> Unit = {},
     remainTime: Int = 0,
     isCreateAssistedWalletFlow: Boolean = false,
-    onCoSigningDelaTextChange: (value: String) -> Unit = {},
+    onCoSigningDelaHourTextChange: (value: String) -> Unit = {},
+    onCoSigningDelaMinuteTextChange: (value: String) -> Unit = {},
     onAutoBroadcastSwitchedChange: (checked: Boolean) -> Unit = {},
     onEnableCoSigningSwitchedChange: (checked: Boolean) -> Unit = {},
 ) {
@@ -191,14 +193,24 @@ fun ConfigureServerKeySettingScreenContent(
                     )
                 }
                 AnimatedVisibility(visible = state.enableCoSigningSwitched) {
-                    NcTextField(
-                        modifier = Modifier.padding(16.dp),
-                        title = stringResource(id = R.string.nc_cosigning_delay),
-                        value = state.cosigningText,
-                        onValueChange = onCoSigningDelaTextChange,
-                        rightText = stringResource(id = R.string.nc_hours),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                    )
+                    Row(modifier = Modifier.padding(16.dp)) {
+                        NcTextField(
+                            modifier = Modifier.padding(end = 8.dp)
+                                .weight(1f),
+                            title = stringResource(id = R.string.nc_hours),
+                            value = state.cosigningTextHours,
+                            onValueChange = onCoSigningDelaHourTextChange,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        )
+                        NcTextField(
+                            modifier = Modifier.padding(start = 8.dp)
+                                .weight(1f),
+                            title = stringResource(id = R.string.nc_minutes),
+                            value = state.cosigningTextMinutes,
+                            onValueChange = onCoSigningDelaMinuteTextChange,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.weight(1.0f))
                 NcHintMessage(

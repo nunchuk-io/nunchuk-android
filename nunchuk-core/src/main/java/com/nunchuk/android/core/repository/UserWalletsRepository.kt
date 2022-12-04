@@ -104,7 +104,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
         return KeyPolicy(
             autoBroadcastTransaction = policy.autoBroadcastTransaction,
-            signingDelayInHour = policy.signingDelaySeconds / ONE_HOUR_TO_SECONDS,
+            signingDelayInSeconds = policy.signingDelaySeconds,
             spendingPolicy = spendingLimit
         )
     }
@@ -130,7 +130,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             response.data.key?.policies ?: throw NullPointerException("Can not find key policy")
         return KeyPolicy(
             autoBroadcastTransaction = serverPolicy.autoBroadcastTransaction,
-            signingDelayInHour = serverPolicy.signingDelaySeconds / ONE_HOUR_TO_SECONDS
+            signingDelayInSeconds = serverPolicy.signingDelaySeconds
         )
     }
 
@@ -364,6 +364,28 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun getCurrentServerTime(): Long {
         return userWalletsApi.getCurrentServerTime().data.utcMillis ?: 0
+    }
+
+    override suspend fun generateSecurityQuestionUserData(
+        walletId: String,
+        questions: List<QuestionsAndAnswer>
+    ): String {
+        val currentServerTime = getCurrentServerTime()
+        val questionsAndAnswerRequests = questions.map {
+            QuestionsAndAnswerRequest(
+                questionId = it.questionId,
+                answer = it.answer
+            )
+        }
+        val body = QuestionsAndAnswerRequestBody(questionsAndAnswerRequests, walletId = walletId)
+        val nonce = UUID.randomUUID().toString()
+        val request = SecurityQuestionsUpdateRequest(
+            nonce = nonce,
+            iat = currentServerTime / 1000,
+            exp = currentServerTime / 1000 + 30 * 60,
+            body = body
+        )
+        return gson.toJson(request)
     }
 
     override suspend fun createServerTransaction(

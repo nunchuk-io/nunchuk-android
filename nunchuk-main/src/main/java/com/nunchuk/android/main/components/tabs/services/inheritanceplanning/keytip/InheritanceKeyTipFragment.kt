@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.membership.honey.inheritance.magicalphrase
+package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.keytip
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -14,62 +14,40 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.flowWithLifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
-import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @AndroidEntryPoint
-class MagicalPhraseIntroFragment : MembershipFragment() {
-    private val viewModel: MagicalPhraseIntroViewModel by viewModels()
+class InheritanceKeyTipFragment : Fragment() {
+    private val viewModel: InheritanceKeyTipViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                MagicalPhraseIntroScreen(viewModel)
+                val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
+                InheritanceKeyTipContent(remainTime) {
+
+                }
             }
         }
     }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-            viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                .collect { event ->
-                    when(event) {
-                        MagicalPhraseIntroEvent.OnContinueClicked -> findNavController().navigate(
-                            MagicalPhraseIntroFragmentDirections.actionMagicalPhraseIntroFragmentToFindBackupPasswordFragment()
-                        )
-                    }
-                }
-        }
-    }
-}
-
-@ExperimentalLifecycleComposeApi
-@Composable
-private fun MagicalPhraseIntroScreen(viewModel: MagicalPhraseIntroViewModel = viewModel()) {
-    val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
-    MagicalPhraseIntroContent(remainTime, viewModel::onContinueClicked)
 }
 
 @Composable
-private fun MagicalPhraseIntroContent(
+private fun InheritanceKeyTipContent(
     remainTime: Int = 0,
-    onContinueClicked: () -> Unit = {},
+    onContinueClicked: () -> Unit = {}
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -79,20 +57,20 @@ private fun MagicalPhraseIntroContent(
                     .navigationBarsPadding()
             ) {
                 NcImageAppBar(
-                    backgroundRes = R.drawable.bg_magical_phrase,
+                    backgroundRes = R.drawable.bg_inheritance_key_tip,
                     title = stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
                     ),
                 )
                 Text(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_here_is_plan_magical_phrase),
+                    modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
+                    text = stringResource(R.string.nc_inheritance_key_tip),
                     style = NunchukTheme.typography.heading
                 )
                 NcHighlightText(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_magical_phrase_desc),
+                    modifier = Modifier.padding(16.dp),
+                    text = stringResource(R.string.nc_inheritance_key_tip_desc),
                     style = NunchukTheme.typography.body
                 )
                 Spacer(modifier = Modifier.weight(1.0f))
@@ -102,7 +80,7 @@ private fun MagicalPhraseIntroContent(
                         .padding(16.dp),
                     onClick = onContinueClicked,
                 ) {
-                    Text(text = stringResource(id = R.string.nc_text_continue))
+                    Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
                 }
             }
         }
@@ -111,8 +89,8 @@ private fun MagicalPhraseIntroContent(
 
 @Preview
 @Composable
-private fun MagicalPhraseIntroScreenPreview() {
-    MagicalPhraseIntroContent(
+private fun InheritanceKeyTipScreenPreview() {
+    InheritanceKeyTipContent(
 
     )
 }

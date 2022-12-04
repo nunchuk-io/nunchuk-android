@@ -281,7 +281,7 @@
 
     <fragment
         android:id="@+id/inheritanceSetupIntroFragment"
-        android:name="com.nunchuk.android.main.membership.honey.inheritance.intro.InheritanceSetupIntroFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.intro.InheritanceSetupIntroFragment"
         android:label="InheritanceSetupIntroFragment">
         <action
             android:id="@+id/action_inheritanceSetupIntroFragment_to_inheritancePlanOverviewFragment"
@@ -294,7 +294,7 @@
 
     <fragment
         android:id="@+id/inheritancePlanOverviewFragment"
-        android:name="com.nunchuk.android.main.membership.honey.inheritance.planoverview.InheritancePlanOverviewFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.planoverview.InheritancePlanOverviewFragment"
         android:label="InheritancePlanOverviewFragment">
         <action
             android:id="@+id/action_inheritancePlanOverviewFragment_to_magicalPhraseIntroFragment"
@@ -306,7 +306,7 @@
     </fragment>
     <fragment
         android:id="@+id/magicalPhraseIntroFragment"
-        android:name="com.nunchuk.android.main.membership.honey.inheritance.magicalphrase.MagicalPhraseIntroFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.magicalphrase.MagicalPhraseIntroFragment"
         android:label="MagicalPhraseIntroFragment">
         <action
             android:id="@+id/action_magicalPhraseIntroFragment_to_findBackupPasswordFragment"
@@ -318,7 +318,7 @@
     </fragment>
     <fragment
         android:id="@+id/findBackupPasswordFragment"
-        android:name="com.nunchuk.android.main.membership.honey.inheritance.findbackup.FindBackupPasswordFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.findbackup.FindBackupPasswordFragment"
         android:label="FindBackupPasswordFragment">
         <action
             android:id="@+id/action_findBackupPasswordFragment_to_inheritanceKeyTipFragment"
@@ -330,7 +330,7 @@
     </fragment>
     <fragment
         android:id="@+id/inheritanceKeyTipFragment"
-        android:name="com.nunchuk.android.main.membership.honey.inheritance.keytip.InheritanceKeyTipFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.keytip.InheritanceKeyTipFragment"
         android:label="InheritanceKeyTipFragment" />
 
 

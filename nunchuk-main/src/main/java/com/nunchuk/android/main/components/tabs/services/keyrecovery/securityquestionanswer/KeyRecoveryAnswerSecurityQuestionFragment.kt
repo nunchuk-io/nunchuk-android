@@ -81,6 +81,7 @@ fun AnswerSecurityQuestionScreen(
 
     AnswerSecurityQuestionScreenContent(answer = state.answer,
         question = state.question?.question.orEmpty(),
+        error = state.error,
         onContinueClick = {
             viewModel.downloadBackupKey()
         }, onTextChange = {
@@ -92,6 +93,7 @@ fun AnswerSecurityQuestionScreen(
 fun AnswerSecurityQuestionScreenContent(
     answer: String = "",
     question: String = "",
+    error: String = "",
     onContinueClick: () -> Unit = {},
     onTextChange: (value: String) -> Unit = {}
 ) {
@@ -127,6 +129,7 @@ fun AnswerSecurityQuestionScreenContent(
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     title = stringResource(id = R.string.nc_answer),
                     value = answer,
+                    error = error,
                     onValueChange = onTextChange
                 )
 

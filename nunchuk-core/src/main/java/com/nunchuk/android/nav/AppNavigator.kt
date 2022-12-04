@@ -23,6 +23,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
 
@@ -46,7 +47,10 @@ interface AppNavigator {
 
     fun openKeyRecoveryScreen(activityContext: Context)
     fun openEmergencyLockdownScreen(activityContext: Context)
-    fun openInheritancePlanningScreen(activityContext: Context)
+    fun openInheritancePlanningScreen(
+        activityContext: Context, @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int
+    )
+
     fun openWalletAuthentication(
         walletId: String,
         userData: String,

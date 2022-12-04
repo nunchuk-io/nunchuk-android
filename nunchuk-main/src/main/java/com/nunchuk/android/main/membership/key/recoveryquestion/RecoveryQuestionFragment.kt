@@ -23,6 +23,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -40,7 +41,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
@@ -50,6 +50,7 @@ import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.parcelable
+import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -68,7 +69,8 @@ class RecoveryQuestionFragment : MembershipFragment() {
             val data = it.data?.extras
             if (it.resultCode == Activity.RESULT_OK && data != null) {
                 val signatureMap =
-                    data.getSerializable(GlobalResultKey.SIGNATURE_EXTRA) as HashMap<String, String>
+                    data.serializable<HashMap<String, String>>(GlobalResultKey.SIGNATURE_EXTRA)
+                        ?: return@registerForActivityResult
                 viewModel.securityQuestionUpdate(signatureMap)
             }
         }
@@ -92,16 +94,19 @@ class RecoveryQuestionFragment : MembershipFragment() {
                 is RecoveryQuestionEvent.Loading -> showOrHideLoading(it.isLoading)
                 is RecoveryQuestionEvent.ShowError -> showError(it.message)
                 is RecoveryQuestionEvent.ConfigRecoveryQuestionSuccess -> findNavController().popBackStack()
-                is RecoveryQuestionEvent.CalculateRequiredSignaturesSuccess -> navigator.openWalletAuthentication(
-                    walletId = it.walletId,
-                    userData = it.userData,
-                    requiredSignatures = it.requiredSignatures,
-                    launcher,
-                    requireActivity()
-                )
+                is RecoveryQuestionEvent.CalculateRequiredSignaturesSuccess -> {
+                    navigator.openWalletAuthentication(
+                        walletId = it.walletId,
+                        userData = it.userData,
+                        requiredSignatures = it.requiredSignatures,
+                        launcher,
+                        requireActivity()
+                    )
+                }
                 RecoveryQuestionEvent.RecoveryQuestionUpdateSuccess -> {
                     NCToastMessage(requireActivity()).show(message = getString(R.string.nc_key_recovery_questions_updated))
                 }
+                RecoveryQuestionEvent.DiscardChangeClick -> findNavController().popBackStack()
             }
         }
     }
@@ -161,11 +166,17 @@ fun RecoveryQuestionScreen(
         onQuestionClicked = {
             viewModel.getSecurityQuestionList(it)
         },
+        onDiscardChangeClicked = {
+            viewModel.onDiscardChangeClick()
+        },
         onInputAnswerTextChange = { index, value ->
             viewModel.updateAnswer(index, value)
         },
         onInputCustomQuestionTextChange = { index, value ->
             viewModel.updateCustomQuestion(index, value)
+        },
+        onFocusChange = { index, _ ->
+            viewModel.updateMaskAnswer(index = index)
         })
 }
 
@@ -175,9 +186,11 @@ fun RecoveryQuestionScreenContent(
     remainTime: Int = 0,
     isRecoveryFlow: Boolean = true,
     onContinueClicked: () -> Unit = {},
+    onDiscardChangeClicked: () -> Unit = {},
     onQuestionClicked: (index: Int) -> Unit = {},
     onInputAnswerTextChange: (index: Int, value: String) -> Unit = { _, _ -> },
-    onInputCustomQuestionTextChange: (index: Int, value: String) -> Unit = { _, _ -> }
+    onInputCustomQuestionTextChange: (index: Int, value: String) -> Unit = { _, _ -> },
+    onFocusChange: (index: Int, focused: Boolean) -> Unit = { _, _ -> }
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -216,12 +229,18 @@ fun RecoveryQuestionScreenContent(
                         QuestionRow(index = recoverQuestion.index,
                             question = recoverQuestion.question,
                             answer = recoverQuestion.answer,
+                            isRecoveryFlow = isRecoveryFlow,
+                            isShowMask = recoverQuestion.isShowMask,
                             onQuestionClicked = onQuestionClicked,
+                            isRequestClearFocus = state.clearFocusRequest,
                             onInputAnswerTextChange = { value ->
                                 onInputAnswerTextChange(recoverQuestion.index, value)
                             },
                             onInputCustomQuestionTextChange = { value ->
                                 onInputCustomQuestionTextChange(recoverQuestion.index, value)
+                            },
+                            onFocusChange = {
+                                onFocusChange(recoverQuestion.index, it)
                             })
                     }
                 }
@@ -235,14 +254,15 @@ fun RecoveryQuestionScreenContent(
                     Text(text = stringResource(id = R.string.nc_text_continue))
                 }
                 if (isRecoveryFlow) {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth()
+                    NcOutlineButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = 16.dp)
+                            .height(48.dp),
+                        onClick = onDiscardChangeClicked,
                     ) {
-                        Text(
-                            text = stringResource(id = R.string.nc_discard_changes),
-                            style = NunchukTheme.typography.title
-                        )
+                        Text(text = stringResource(R.string.nc_discard_changes))
                     }
                 }
             }
@@ -256,12 +276,18 @@ fun QuestionRow(
     index: Int = 0,
     question: SecurityQuestionModel = SecurityQuestionModel(question = "Question"),
     answer: String = "Value Answer",
+    isRecoveryFlow: Boolean = false,
+    isShowMask: Boolean = false,
+    isRequestClearFocus: Boolean = false,
     onQuestionClicked: (index: Int) -> Unit = {},
     onInputAnswerTextChange: (value: String) -> Unit = {},
-    onInputCustomQuestionTextChange: (value: String) -> Unit = {}
+    onInputCustomQuestionTextChange: (value: String) -> Unit = {},
+    onFocusChange: (focused: Boolean) -> Unit = {}
 ) {
-    var focusAnswerViewSate by rememberSaveable { mutableStateOf(false) }
-
+    val focusManager = LocalFocusManager.current
+    if (isRequestClearFocus) {
+        focusManager.clearFocus()
+    }
     Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp)) {
         ConstraintLayout {
             val (title, input) = createRefs()
@@ -313,54 +339,56 @@ fun QuestionRow(
                 onValueChange = onInputCustomQuestionTextChange
             )
         }
-        NcTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp),
+        val vi =
+            if (isRecoveryFlow && isShowMask) {
+                MaskAnswerTransformation()
+            } else {
+                VisualTransformation.None
+            }
+        NcTextField(modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp),
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             title = stringResource(id = R.string.nc_answer),
             value = answer,
             enabled = question.isValidQuestion,
-            onValueChange = onInputAnswerTextChange,
-            visualTransformation = if (focusAnswerViewSate || answer.isBlank()) VisualTransformation.None else PasswordMaskTransformation(),
+            visualTransformation = vi,
+            onValueChange = { onInputAnswerTextChange(it) },
             onFocusEvent = { focusState ->
-                if (focusAnswerViewSate != focusState.isFocused) {
-                    focusAnswerViewSate = focusState.isFocused
+                if (isRecoveryFlow && isShowMask && focusState.isFocused) {
+                    onFocusChange(focusState.isFocused)
                 }
-            }
-        )
+            })
 
         Divider(modifier = Modifier.padding(top = 16.dp), thickness = 1.dp, color = NcColor.whisper)
     }
 }
 
-private class PasswordMaskTransformation(val mask: Char = '\u2022') : VisualTransformation {
-    override fun filter(text: AnnotatedString): TransformedText {
-        val originalText = text.text
-        val formattedText = mask.toString().repeat(8)
+private class MaskAnswerTransformation(val mask: Char = '\u2022') : VisualTransformation {
 
-        val offsetMapping = object : OffsetMapping {
+    private val formattedText = mask.toString().repeat(8)
 
-            override fun originalToTransformed(offset: Int): Int {
-                return 8
-            }
-
-            override fun transformedToOriginal(offset: Int): Int {
-                return offset
-            }
+    val offsetMapping = object : OffsetMapping {
+        override fun originalToTransformed(offset: Int): Int {
+            return 8
         }
+
+        override fun transformedToOriginal(offset: Int): Int {
+            return 0
+        }
+    }
+
+    override fun filter(text: AnnotatedString): TransformedText {
+
         return TransformedText(
             text = AnnotatedString(formattedText),
             offsetMapping
         )
-
     }
-
-
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is PasswordVisualTransformation) return false
+        if (other !is androidx.compose.ui.text.input.PasswordVisualTransformation) return false
         if (mask != other.mask) return false
         return true
     }

@@ -59,7 +59,9 @@ class KeyRecoveryAnswerSecurityQuestionViewModel @Inject constructor(
         if (result.isSuccess) {
             _event.emit(AnswerSecurityQuestionEvent.DownloadBackupKeySuccess(result.getOrThrow()))
         } else {
-            _event.emit(AnswerSecurityQuestionEvent.ProcessFailure(result.exceptionOrNull()?.message.orUnknownError()))
+            _state.update {
+                it.copy(error = result.exceptionOrNull()?.message.orUnknownError())
+            }
         }
     }
 

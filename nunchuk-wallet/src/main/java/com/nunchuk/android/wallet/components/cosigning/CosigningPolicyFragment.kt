@@ -41,10 +41,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.model.SpendingCurrencyUnit
-import com.nunchuk.android.model.SpendingPolicy
-import com.nunchuk.android.model.SpendingTimeUnit
+import com.nunchuk.android.model.*
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.serializable
@@ -153,7 +150,7 @@ private fun CosigningPolicyScreen(viewModel: CosigningPolicyViewModel = viewMode
     val state by viewModel.state.collectAsStateWithLifecycle()
     CosigningPolicyContent(
         isAutoBroadcast = state.keyPolicy.autoBroadcastTransaction,
-        delayCosigningInHour = state.keyPolicy.signingDelayInHour,
+        keyPolicy = state.keyPolicy,
         spendingPolicy = state.keyPolicy.spendingPolicy,
         isUpdateFlow = state.isUpdateFlow,
         onEditSingingDelayClicked = viewModel::onEditSigningDelayClicked,
@@ -166,7 +163,7 @@ private fun CosigningPolicyScreen(viewModel: CosigningPolicyViewModel = viewMode
 @Composable
 private fun CosigningPolicyContent(
     isAutoBroadcast: Boolean = true,
-    delayCosigningInHour: Int = 0,
+    keyPolicy: KeyPolicy = KeyPolicy(),
     spendingPolicy: SpendingPolicy? = null,
     isUpdateFlow: Boolean = false,
     onEditSpendingLimitClicked: () -> Unit = {},
@@ -314,7 +311,7 @@ private fun CosigningPolicyContent(
                         Text(
                             modifier = Modifier.weight(1.0f),
                             textAlign = TextAlign.End,
-                            text = "$delayCosigningInHour hours",
+                            text = "${keyPolicy.getSigningDelayInHours()} hours ${keyPolicy.getSigningDelayInMinutes()} minutes",
                             style = NunchukTheme.typography.title.copy(fontWeight = FontWeight.Bold)
                         )
                     }
@@ -348,7 +345,7 @@ private fun CosigningPolicyContent(
 private fun CosigningPolicyScreenPreview() {
     CosigningPolicyContent(
         isAutoBroadcast = true,
-        delayCosigningInHour = 2,
+        keyPolicy = KeyPolicy(),
         isUpdateFlow = true,
         spendingPolicy = SpendingPolicy(5000, SpendingTimeUnit.DAILY, SpendingCurrencyUnit.USD)
     )

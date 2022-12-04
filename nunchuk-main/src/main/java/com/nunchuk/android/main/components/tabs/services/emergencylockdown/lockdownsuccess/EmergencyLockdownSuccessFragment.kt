@@ -64,14 +64,18 @@ fun LockdownSuccessScreenContent(
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
                 NcTopAppBar(title = "")
-                Image(
-                    painter = painterResource(id = R.drawable.nc_green_stick),
-                    contentDescription = ""
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.nc_green_stick),
+                        contentDescription = ""
+                    )
+                }
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_emergency_lockdown_success_title),

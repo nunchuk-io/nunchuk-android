@@ -23,7 +23,7 @@ internal data class SpendingPolicyDto(
 
 internal fun KeyPolicy.toDto(): KeyPoliciesDto = KeyPoliciesDto(
     autoBroadcastTransaction = autoBroadcastTransaction,
-    signingDelaySeconds = signingDelayInHour * 60 * 60,
+    signingDelaySeconds = signingDelayInSeconds,
     spendingLimit = spendingPolicy?.let {
         SpendingPolicyDto(
             interval = it.timeUnit.name,

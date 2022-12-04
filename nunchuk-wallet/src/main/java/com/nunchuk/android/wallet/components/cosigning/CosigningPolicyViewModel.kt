@@ -120,6 +120,7 @@ data class CosigningPolicyState(
     val keyPolicy: KeyPolicy = KeyPolicy(),
     val isUpdateFlow: Boolean = false,
     val userData: String = "",
+    val signingDelayText: String = ""
 )
 
 sealed class CosigningPolicyEvent {

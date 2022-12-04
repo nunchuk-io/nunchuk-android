@@ -11,7 +11,8 @@ sealed class ConfigureServerKeySettingEvent {
 }
 
 data class ConfigureServerKeySettingState(
-    val cosigningText: String = "",
+    val cosigningTextHours: String = "",
+    val cosigningTextMinutes: String = "",
     val autoBroadcastSwitched: Boolean = false,
     val enableCoSigningSwitched: Boolean = false,
 ) {
