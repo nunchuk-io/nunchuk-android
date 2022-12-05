@@ -75,6 +75,7 @@ fun BackupDownloadScreen(
     BackupDownloadScreenContent(
         tapSignerName = args.signer.name,
         password = state.password,
+        error = state.error,
         onContinueClick = {
             viewModel.onContinueClicked()
         },
@@ -87,6 +88,7 @@ fun BackupDownloadScreen(
 fun BackupDownloadScreenContent(
     tapSignerName: String = "",
     password: String = "",
+    error: String = "",
     onContinueClick: () -> Unit = {},
     onTextChange: (value: String) -> Unit = {}
 ) {
@@ -121,6 +123,7 @@ fun BackupDownloadScreenContent(
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     title = stringResource(id = R.string.nc_backup_download),
                     value = password,
+                    error = error,
                     onValueChange = onTextChange
                 )
                 Spacer(modifier = Modifier.weight(1.0f))

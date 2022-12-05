@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.membership.honey.inheritance.keytip
+package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.findbackup
 
 import androidx.lifecycle.ViewModel
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -8,13 +8,13 @@ import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
 
 @HiltViewModel
-class InheritanceKeyTipViewModel @Inject constructor(
+class FindBackupPasswordViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager
 ) : ViewModel() {
-    private val _event = MutableSharedFlow<InheritanceKeyTipEvent>()
+    private val _event = MutableSharedFlow<FindBackupPasswordEvent>()
     val event = _event.asSharedFlow()
 
     val remainTime = membershipStepManager.remainingTime
 }
 
-sealed class InheritanceKeyTipEvent
+sealed class FindBackupPasswordEvent

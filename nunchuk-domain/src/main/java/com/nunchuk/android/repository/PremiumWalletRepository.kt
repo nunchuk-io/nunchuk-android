@@ -34,5 +34,6 @@ interface PremiumWalletRepository {
     suspend fun calculateRequiredSignaturesUpdateKeyPolicy(xfp: String, walletId: String, keyPolicy: KeyPolicy): CalculateRequiredSignatures
     suspend fun securityQuestionsUpdate(authorizations: List<String>, verifyToken: String, userData: String)
     suspend fun getCurrentServerTime(): Long
+    suspend fun generateSecurityQuestionUserData(walletId: String, questions: List<QuestionsAndAnswer>): String
     suspend fun generateUpdateServerKey(walletId: String, keyPolicy: KeyPolicy): String
 }

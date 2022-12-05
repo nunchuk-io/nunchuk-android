@@ -237,6 +237,7 @@
     <string name="nc_setup_key_recovery">Set up Key Recovery</string>
     <string name="nc_setup_key_recovery_desc">The Key Recovery procedure helps you recover the TAPSIGNERs’ private keys in case of loss or accidents.\n\nFill in the security questions and answers below. They will be used to prevent unauthorized access to Key Recovery. Answers are case-sensitive.</string>
     <string name="nc_hours">Hours</string>
+    <string name="nc_minutes">Minutes</string>
     <string name="nc_take_me_my_wallet">Take me to my wallet</string>
     <string name="nc_create_wallet_success">Congratulations! Your wallet has been created</string>
     <string name="nc_create_wallet_success_desc">For security, please keep your keys physically distributed as much as possible. Avoid storing two of them in the same location.</string>

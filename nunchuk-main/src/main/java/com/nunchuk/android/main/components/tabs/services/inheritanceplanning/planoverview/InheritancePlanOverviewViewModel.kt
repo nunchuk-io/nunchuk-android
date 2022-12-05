@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.membership.honey.inheritance.magicalphrase
+package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.planoverview
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,21 +10,21 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MagicalPhraseIntroViewModel @Inject constructor(
+class InheritancePlanOverviewViewModel @Inject constructor(
     membershipStepManager: MembershipStepManager
 ) : ViewModel() {
-    private val _event = MutableSharedFlow<MagicalPhraseIntroEvent>()
+    private val _event = MutableSharedFlow<InheritancePlanOverviewEvent>()
     val event = _event.asSharedFlow()
 
     val remainTime = membershipStepManager.remainingTime
 
     fun onContinueClicked() {
         viewModelScope.launch {
-            _event.emit(MagicalPhraseIntroEvent.OnContinueClicked)
+            _event.emit(InheritancePlanOverviewEvent.OnContinueClicked)
         }
     }
 }
 
-sealed class MagicalPhraseIntroEvent {
-    object OnContinueClicked : MagicalPhraseIntroEvent()
+sealed class InheritancePlanOverviewEvent {
+    object OnContinueClicked : InheritancePlanOverviewEvent()
 }

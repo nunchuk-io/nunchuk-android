@@ -31,24 +31,30 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
         _state.update {
             it.copy(
                 autoBroadcastSwitched = args.keyPolicy?.autoBroadcastTransaction ?: false,
-                cosigningText = args.keyPolicy?.signingDelayInHour?.toString().orEmpty(),
-                enableCoSigningSwitched = (args.keyPolicy?.signingDelayInHour ?: 0) > 0
+                cosigningTextHours = args.keyPolicy?.getSigningDelayInHours()?.toString().orEmpty(),
+                cosigningTextMinutes = args.keyPolicy?.getSigningDelayInMinutes()?.toString().orEmpty(),
+                enableCoSigningSwitched = (args.keyPolicy?.signingDelayInSeconds ?: 0) > 0
             )
         }
     }
 
     fun onContinueClicked() = viewModelScope.launch {
         val state = _state.value
-        if (state.enableCoSigningSwitched && state.cosigningText.isEmpty()) {
+        if (state.enableCoSigningSwitched && state.cosigningTextMinutes.isEmpty()) {
             _event.emit(ConfigureServerKeySettingEvent.NoDelayInput)
             return@launch
         }
         val signingDelayInHour =
-            if (state.enableCoSigningSwitched) (state.cosigningText.toIntOrNull() ?: 0) else 0
-        if (signingDelayInHour !in 0..MAX_DELAY_IN_HOUR) {
+            if (state.enableCoSigningSwitched) (state.cosigningTextHours.toIntOrNull() ?: 0) else 0
+        val signingDelayInMinute =
+            if (state.enableCoSigningSwitched) (state.cosigningTextMinutes.toIntOrNull()
+                ?: 0) else 0
+        val signingDelayInHourFinal = signingDelayInHour + signingDelayInMinute / ONE_MINUTE
+        if (signingDelayInHourFinal !in 0..MAX_DELAY_IN_HOUR) {
             _event.emit(ConfigureServerKeySettingEvent.DelaySigningInHourInvalid)
             return@launch
         }
+        val signingDelayInSeconds = signingDelayInHour * KeyPolicy.ONE_HOUR_TO_SECONDS + signingDelayInMinute * KeyPolicy.ONE_MINUTE_TO_SECONDS
         if (args.xfp.isNullOrEmpty()) {
             _event.emit(ConfigureServerKeySettingEvent.Loading(true))
             val result = createServerKeysUseCase(
@@ -56,7 +62,7 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
                     name = SERVER_KEY_NAME,
                     keyPolicy = KeyPolicy(
                         autoBroadcastTransaction = state.autoBroadcastSwitched,
-                        signingDelayInHour = signingDelayInHour,
+                        signingDelayInSeconds = signingDelayInSeconds,
                         spendingPolicy = args.spendingLimit
                     ),
                     plan = membershipStepManager.plan
@@ -73,16 +79,23 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
                 ConfigureServerKeySettingEvent.ConfigServerSuccess(
                     args.keyPolicy!!.copy(
                         autoBroadcastTransaction = state.autoBroadcastSwitched,
-                        signingDelayInHour = signingDelayInHour,
+                        signingDelayInSeconds = signingDelayInSeconds,
                     )
                 )
             )
         }
     }
 
-    fun updateCoSigningDelayText(cosigningText: String) {
+    fun updateCoSigningDelayHourText(hour: String) {
         _state.update {
-            it.copy(cosigningText = cosigningText.take(MAX_INPUT_HOUR_LENGTH))
+            it.copy(cosigningTextHours = hour.take(MAX_INPUT_HOUR_LENGTH))
+        }
+    }
+
+    fun updateCoSigningDelayMinuteText(minute: String) {
+        val minutes = minute.toIntOrNull() ?: return
+        _state.update {
+            it.copy(cosigningTextMinutes = minutes.coerceAtMost(MAX_DELAY_IN_MINUTE).toString())
         }
     }
 
@@ -101,6 +114,9 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
     companion object {
         const val MAX_INPUT_HOUR_LENGTH = 3
         const val MAX_DELAY_IN_HOUR = 168
+        const val MAX_DELAY_IN_MINUTE = 59
+        const val ONE_HOUR = 60 * 60
+        const val ONE_MINUTE = 60
     }
 }
 

@@ -57,8 +57,19 @@ class RecoveryQuestionViewModel @Inject constructor(
         }
     }
 
+    fun onDiscardChangeClick() = viewModelScope.launch {
+        _event.emit(RecoveryQuestionEvent.DiscardChangeClick)
+    }
+
     fun getSecurityQuestionList(index: Int) = viewModelScope.launch {
-        val questions = _state.value.securityQuestions
+        val value = _state.value
+        val selectedQuestionSet = hashSetOf<String>()
+        value.recoveries.forEach {
+            selectedQuestionSet.add(it.question.id)
+        }
+        val questions = value.securityQuestions.filter {
+            selectedQuestionSet.contains(it.id).not()
+        }
         if (questions.isNotEmpty()) {
             _state.update {
                 it.copy(interactQuestionIndex = index)
@@ -105,6 +116,16 @@ class RecoveryQuestionViewModel @Inject constructor(
         }
     }
 
+    fun updateMaskAnswer(index: Int) {
+        val newRecoveries = state.value.recoveries.toMutableList()
+        if (newRecoveries[index].isShowMask.not() || args.isRecoveryFlow.not()) return
+        val newRecovery = newRecoveries[index].copy(isShowMask = false)
+        newRecoveries[index] = newRecovery
+        _state.update {
+            it.copy(recoveries = newRecoveries)
+        }
+    }
+
     private fun calculateRequiredSignatures() = viewModelScope.launch {
         getAssistedWalletIdsFlowUseCase(Unit).collect { it ->
             val walletId = it.getOrNull() ?: return@collect
@@ -129,6 +150,7 @@ class RecoveryQuestionViewModel @Inject constructor(
             }
             _event.emit(RecoveryQuestionEvent.Loading(false))
             if (resultCalculate.isSuccess) {
+                _state.update { it.copy(clearFocusRequest = true) }
                 _event.emit(
                     RecoveryQuestionEvent.CalculateRequiredSignaturesSuccess(
                         walletId,
@@ -154,6 +176,12 @@ class RecoveryQuestionViewModel @Inject constructor(
         )
         _event.emit(RecoveryQuestionEvent.Loading(false))
         if (result.isSuccess) {
+            val newRecoveries = state.recoveries.map {
+                it.copy(answer = "", isShowMask = true)
+            }
+            _state.update {
+                it.copy(recoveries = newRecoveries, clearFocusRequest = false)
+            }
             _event.emit(RecoveryQuestionEvent.RecoveryQuestionUpdateSuccess)
         } else {
             _event.emit(RecoveryQuestionEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))

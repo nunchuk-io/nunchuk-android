@@ -1,15 +1,20 @@
 package com.nunchuk.android.main.components.tabs.services
 
+import android.content.res.Resources
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.updatePadding
 import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.databinding.FragmentServicesTabBinding
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
@@ -34,10 +39,22 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
         adapter.submitList(viewModel.getItems())
     }
 
+    private fun dp2px(dp: Float): Float {
+        val r = Resources.getSystem()
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.displayMetrics)
+    }
+
     private fun onTabItemClick(item: ServiceTabRowItem) {
         when (item) {
-            ServiceTabRowItem.ClaimInheritance -> {}
-            ServiceTabRowItem.CoSigningPolicies -> {}
+            ServiceTabRowItem.ClaimInheritance -> {
+                navigator.openInheritancePlanningScreen(
+                    requireContext(),
+                    InheritancePlanFlow.VIEW
+                )
+            }
+            ServiceTabRowItem.CoSigningPolicies -> {
+
+            }
             ServiceTabRowItem.EmergencyLockdown -> navigator.openEmergencyLockdownScreen(
                 requireContext()
             )
@@ -49,9 +66,12 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 showOrderNewHardwareDialog()
             }
             ServiceTabRowItem.RollOverAssistedWallet -> {}
-            ServiceTabRowItem.SetUpInheritancePlan -> navigator.openInheritancePlanningScreen(
-                requireContext()
-            )
+            ServiceTabRowItem.SetUpInheritancePlan -> {
+                navigator.openInheritancePlanningScreen(
+                    requireContext(),
+                    InheritancePlanFlow.SETUP
+                )
+            }
         }
     }
 

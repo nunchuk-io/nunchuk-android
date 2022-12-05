@@ -35,9 +35,10 @@ class KeyRecoveryBackupDownloadViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     fun onContinueClicked() = viewModelScope.launch(ioDispatcher) {
+        val stateValue = _state.value
+        if (stateValue.password.isBlank()) return@launch
         val backupData = Base64.decode(args.backupKey.keyBackUpBase64, Base64.DEFAULT)
         if (ChecksumUtil.verifyChecksum(backupData, args.backupKey.keyCheckSum)) {
-            val stateValue = _state.value
             val resultVerify = verifyTapSignerBackupContentUseCase(
                 VerifyTapSignerBackupContentUseCase.Param(
                     content = backupData,
@@ -65,7 +66,9 @@ class KeyRecoveryBackupDownloadViewModel @Inject constructor(
                     _event.emit(BackupDownloadEvent.ProcessFailure(resultImport.exceptionOrNull()?.message.orUnknownError()))
                 }
             } else {
-                _event.emit(BackupDownloadEvent.ProcessFailure(resultVerify.exceptionOrNull()?.message.orUnknownError()))
+                _state.update {
+                    it.copy(error = resultVerify.exceptionOrNull()?.message.orUnknownError())
+                }
             }
         }
     }
@@ -81,5 +84,4 @@ class KeyRecoveryBackupDownloadViewModel @Inject constructor(
             it.copy(password = password)
         }
     }
-
 }

@@ -12,5 +12,6 @@ sealed class AnswerSecurityQuestionEvent {
 
 data class AnswerSecurityQuestionState(
     val question: SecurityQuestion? = null,
-    val answer: String = ""
+    val answer: String = "",
+    val error: String = "",
 )

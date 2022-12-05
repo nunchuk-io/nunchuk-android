@@ -18,8 +18,7 @@ class EmergencyLockdownActivity : BaseActivity<ActivityNavigationBinding>() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        val navHostFragment =
-            (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.emergency_lockdown_navigation)
         graph.setStartDestination(R.id.emergencyLockdownIntroFragment)

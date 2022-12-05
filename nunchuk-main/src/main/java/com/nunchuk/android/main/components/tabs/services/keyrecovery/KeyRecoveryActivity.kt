@@ -18,8 +18,7 @@ class KeyRecoveryActivity : BaseActivity<ActivityNavigationBinding>() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        val navHostFragment =
-            (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.key_recovery_navigation)
         graph.setStartDestination(R.id.keyRecoveryFragment)
