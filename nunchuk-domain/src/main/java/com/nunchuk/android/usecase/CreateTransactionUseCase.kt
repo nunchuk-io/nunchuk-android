@@ -42,16 +42,18 @@ class CreateTransactionUseCase @Inject constructor(
             feeRate = parameters.feeRate,
             subtractFeeFromAmount = parameters.subtractFeeFromAmount
         )
-        try {
-            repository.createServerTransaction(
-                parameters.walletId,
-                transaction.psbt,
-                transaction.memo,
-                transaction.txId
-            )
-        } catch (e: Exception) {
-            nativeSdk.deleteTransaction(parameters.walletId, transaction.txId)
-            throw e
+        if (parameters.isAssistedWallet) {
+            try {
+                repository.createServerTransaction(
+                    parameters.walletId,
+                    transaction.psbt,
+                    transaction.memo,
+                    transaction.txId
+                )
+            } catch (e: Exception) {
+                nativeSdk.deleteTransaction(parameters.walletId, transaction.txId)
+                throw e
+            }
         }
         return transaction
     }
