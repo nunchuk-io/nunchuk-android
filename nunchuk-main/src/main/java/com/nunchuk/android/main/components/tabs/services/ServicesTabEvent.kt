@@ -1,8 +1,24 @@
 package com.nunchuk.android.main.components.tabs.services
 
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.SingleSigner
+
+sealed class ServicesTabEvent {
+    data class ProcessFailure(val message: String) : ServicesTabEvent()
+    data class GetServerKeySuccess(
+        val signer: SingleSigner,
+        val walletId: String,
+        val token: String
+    ) : ServicesTabEvent()
+
+    data class Loading(val loading: Boolean) : ServicesTabEvent()
+    data class CheckPasswordSuccess(val token: String, val item: ServiceTabRowItem) : ServicesTabEvent()
+}
 
 data class ServicesTabState(
+    val isPremiumUser: Boolean = false,
+    val plan: MembershipPlan = MembershipPlan.NONE,
     val rowItems: List<Any> = initRowItems()
 )
 
@@ -17,35 +33,63 @@ private fun initRowItems(): List<Any> {
     return items
 }
 
-sealed class ServiceTabRowCategory(val title: Int, val drawableId: Int, val items: List<ServiceTabRowItem>) {
+sealed class ServiceTabRowCategory(
+    val title: Int,
+    val drawableId: Int,
+    val items: List<ServiceTabRowItem>
+) {
     object Emergency :
-        ServiceTabRowCategory(R.string.nc_emergency, R.drawable.ic_emergency, mutableListOf<ServiceTabRowItem>().apply {
-            add(ServiceTabRowItem.EmergencyLockdown)
-            add(ServiceTabRowItem.KeyRecovery)
-        })
+        ServiceTabRowCategory(
+            R.string.nc_emergency,
+            R.drawable.ic_emergency,
+            mutableListOf<ServiceTabRowItem>().apply {
+                add(ServiceTabRowItem.EmergencyLockdown)
+                add(ServiceTabRowItem.KeyRecovery)
+            })
 
     object Inheritance :
-        ServiceTabRowCategory(R.string.nc_inheritance_planning, R.drawable.ic_inheritance_planning, mutableListOf<ServiceTabRowItem>().apply {
-            add(ServiceTabRowItem.SetUpInheritancePlan)
-            add(ServiceTabRowItem.ClaimInheritance)
-        })
+        ServiceTabRowCategory(
+            R.string.nc_inheritance_planning,
+            R.drawable.ic_inheritance_planning,
+            mutableListOf<ServiceTabRowItem>().apply {
+                add(ServiceTabRowItem.SetUpInheritancePlan)
+                add(ServiceTabRowItem.ClaimInheritance)
+            })
 
     object Subscription :
-        ServiceTabRowCategory(R.string.nc_your_subscription, R.drawable.ic_subscription, mutableListOf<ServiceTabRowItem>().apply {
-            add(ServiceTabRowItem.CoSigningPolicies)
-            add(ServiceTabRowItem.OrderNewHardware)
-            add(ServiceTabRowItem.ManageSubscription)
-            add(ServiceTabRowItem.RollOverAssistedWallet)
-        })
+        ServiceTabRowCategory(
+            R.string.nc_your_subscription,
+            R.drawable.ic_subscription,
+            mutableListOf<ServiceTabRowItem>().apply {
+                add(ServiceTabRowItem.CoSigningPolicies)
+                add(ServiceTabRowItem.OrderNewHardware)
+                add(ServiceTabRowItem.ManageSubscription)
+                add(ServiceTabRowItem.RollOverAssistedWallet)
+            })
 }
 
 sealed class ServiceTabRowItem(val category: ServiceTabRowCategory, val title: Int) {
-    object EmergencyLockdown : ServiceTabRowItem(ServiceTabRowCategory.Emergency, R.string.nc_emergency_lockdown)
-    object KeyRecovery : ServiceTabRowItem(ServiceTabRowCategory.Emergency, R.string.nc_key_recovery)
-    object SetUpInheritancePlan : ServiceTabRowItem(ServiceTabRowCategory.Inheritance, R.string.nc_set_up_inheritance_plan)
-    object ClaimInheritance : ServiceTabRowItem(ServiceTabRowCategory.Inheritance, R.string.nc_claim_inheritance)
-    object CoSigningPolicies : ServiceTabRowItem(ServiceTabRowCategory.Subscription, R.string.nc_co_signing_policies)
-    object OrderNewHardware : ServiceTabRowItem(ServiceTabRowCategory.Subscription, R.string.nc_order_new_hardware)
-    object ManageSubscription : ServiceTabRowItem(ServiceTabRowCategory.Subscription, R.string.nc_manage_subscription)
-    object RollOverAssistedWallet : ServiceTabRowItem(ServiceTabRowCategory.Subscription, R.string.nc_roll_over_assisted_wallet)
+    object EmergencyLockdown :
+        ServiceTabRowItem(ServiceTabRowCategory.Emergency, R.string.nc_emergency_lockdown)
+
+    object KeyRecovery :
+        ServiceTabRowItem(ServiceTabRowCategory.Emergency, R.string.nc_key_recovery)
+
+    object SetUpInheritancePlan :
+        ServiceTabRowItem(ServiceTabRowCategory.Inheritance, R.string.nc_set_up_inheritance_plan)
+
+    object ClaimInheritance :
+        ServiceTabRowItem(ServiceTabRowCategory.Inheritance, R.string.nc_claim_inheritance)
+
+    object CoSigningPolicies :
+        ServiceTabRowItem(ServiceTabRowCategory.Subscription, R.string.nc_co_signing_policies)
+
+    object OrderNewHardware :
+        ServiceTabRowItem(ServiceTabRowCategory.Subscription, R.string.nc_order_new_hardware)
+
+    object ManageSubscription :
+        ServiceTabRowItem(ServiceTabRowCategory.Subscription, R.string.nc_manage_subscription)
+
+    object RollOverAssistedWallet :
+        ServiceTabRowItem(ServiceTabRowCategory.Subscription, R.string.nc_roll_over_assisted_wallet)
 }

@@ -32,7 +32,8 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
             it.copy(
                 autoBroadcastSwitched = args.keyPolicy?.autoBroadcastTransaction ?: false,
                 cosigningTextHours = args.keyPolicy?.getSigningDelayInHours()?.toString().orEmpty(),
-                cosigningTextMinutes = args.keyPolicy?.getSigningDelayInMinutes()?.toString().orEmpty(),
+                cosigningTextMinutes = args.keyPolicy?.getSigningDelayInMinutes()?.toString()
+                    .orEmpty(),
                 enableCoSigningSwitched = (args.keyPolicy?.signingDelayInSeconds ?: 0) > 0
             )
         }
@@ -54,7 +55,8 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
             _event.emit(ConfigureServerKeySettingEvent.DelaySigningInHourInvalid)
             return@launch
         }
-        val signingDelayInSeconds = signingDelayInHour * KeyPolicy.ONE_HOUR_TO_SECONDS + signingDelayInMinute * KeyPolicy.ONE_MINUTE_TO_SECONDS
+        val signingDelayInSeconds =
+            signingDelayInHour * KeyPolicy.ONE_HOUR_TO_SECONDS + signingDelayInMinute * KeyPolicy.ONE_MINUTE_TO_SECONDS
         if (args.xfp.isNullOrEmpty()) {
             _event.emit(ConfigureServerKeySettingEvent.Loading(true))
             val result = createServerKeysUseCase(
@@ -93,9 +95,15 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
     }
 
     fun updateCoSigningDelayMinuteText(minute: String) {
-        val minutes = minute.toIntOrNull() ?: return
-        _state.update {
-            it.copy(cosigningTextMinutes = minutes.coerceAtMost(MAX_DELAY_IN_MINUTE).toString())
+        val minutes = minute.toIntOrNull()
+        if (minutes == null) {
+            _state.update {
+                it.copy(cosigningTextMinutes = "")
+            }
+        } else {
+            _state.update {
+                it.copy(cosigningTextMinutes = minutes.coerceAtMost(MAX_DELAY_IN_MINUTE).toString())
+            }
         }
     }
 

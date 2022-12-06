@@ -38,19 +38,21 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.util.CONTACT_EMAIL
-import com.nunchuk.android.core.util.ClickAbleText
-import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.sendEmail
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class AddKeyStepFragment : Fragment(), BottomSheetOptionListener {
     private val viewModel by viewModels<AddKeyStepViewModel>()
+
+    @Inject
+    lateinit var nunchukNavigator: NunchukNavigator
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -78,9 +80,7 @@ class AddKeyStepFragment : Fragment(), BottomSheetOptionListener {
     }
 
     private fun handleOpenInheritanceSetup() {
-        findNavController().navigate(
-            AddKeyStepFragmentDirections.actionAddKeyStepFragmentToInheritanceSetupIntroFragment()
-        )
+        nunchukNavigator.openInheritancePlanningScreen(requireContext(), InheritancePlanFlow.SETUP)
     }
 
     private fun handleShowMore() {

@@ -101,6 +101,14 @@
     <fragment
         android:id="@+id/inheritanceKeyTipFragment"
         android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.keytip.InheritanceKeyTipFragment"
-        android:label="InheritanceKeyTipFragment" />
+        android:label="InheritanceKeyTipFragment">
+        <action
+            android:id="@+id/action_inheritanceKeyTipFragment_to_inheritanceActivationDateFragment"
+            app:destination="@id/inheritanceActivationDateFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
 
 </navigation>
