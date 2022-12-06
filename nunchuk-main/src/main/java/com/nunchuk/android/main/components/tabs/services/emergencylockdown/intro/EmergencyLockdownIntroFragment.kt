@@ -50,7 +50,6 @@ class EmergencyLockdownIntroFragment : Fragment() {
                 is EmergencyLockdownIntroEvent.Loading -> {
 
                 }
-                else -> {}
             }
         }
     }
@@ -78,7 +77,7 @@ fun EmergencyLockdownIntroScreenContent(
                     .verticalScroll(rememberScrollState())
             ) {
                 NcImageAppBar(
-                    backgroundRes = R.drawable.nc_bg_key_recovery
+                    backgroundRes = R.drawable.nc_bg_emergency_lockdown
                 )
                 Text(
                     modifier = Modifier.padding(

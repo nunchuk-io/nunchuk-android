@@ -6,15 +6,20 @@ import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.updatePadding
 import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoveryActionItem
 import com.nunchuk.android.main.databinding.FragmentServicesTabBinding
+import com.nunchuk.android.wallet.components.config.WalletConfigEvent
+import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
 import com.nunchuk.android.widget.NCInfoDialog
+import com.nunchuk.android.widget.NCInputDialog
 import dagger.hilt.android.AndroidEntryPoint
-import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
@@ -29,6 +34,27 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupViews()
+
+        flowObserver(viewModel.event) { event ->
+            when (event) {
+                is ServicesTabEvent.GetServerKeySuccess -> openServerKeyDetail(event)
+                is ServicesTabEvent.ProcessFailure -> showError(message = event.message)
+                is ServicesTabEvent.Loading -> showOrHideLoading(loading = event.loading)
+                is ServicesTabEvent.CheckPasswordSuccess -> handleCheckPasswordSuccess(event)
+            }
+        }
+    }
+
+    private fun handleCheckPasswordSuccess(event: ServicesTabEvent.CheckPasswordSuccess) {
+        when(event.item) {
+            ServiceTabRowItem.CoSigningPolicies -> {
+                viewModel.getServiceKey(event.token)
+            }
+            ServiceTabRowItem.EmergencyLockdown -> {
+                navigator.openEmergencyLockdownScreen(requireContext())
+            }
+            else -> {}
+        }
     }
 
     private fun setupViews() {
@@ -39,11 +65,6 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
         adapter.submitList(viewModel.getItems())
     }
 
-    private fun dp2px(dp: Float): Float {
-        val r = Resources.getSystem()
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.displayMetrics)
-    }
-
     private fun onTabItemClick(item: ServiceTabRowItem) {
         when (item) {
             ServiceTabRowItem.ClaimInheritance -> {
@@ -52,19 +73,10 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     InheritancePlanFlow.VIEW
                 )
             }
-            ServiceTabRowItem.CoSigningPolicies -> {
-
-            }
-            ServiceTabRowItem.EmergencyLockdown -> navigator.openEmergencyLockdownScreen(
-                requireContext()
-            )
+            ServiceTabRowItem.CoSigningPolicies, ServiceTabRowItem.EmergencyLockdown -> enterPasswordDialog(item)
             ServiceTabRowItem.KeyRecovery -> navigator.openKeyRecoveryScreen(requireContext())
-            ServiceTabRowItem.ManageSubscription -> {
-                showManageSubscriptionDialog()
-            }
-            ServiceTabRowItem.OrderNewHardware -> {
-                showOrderNewHardwareDialog()
-            }
+            ServiceTabRowItem.ManageSubscription -> showManageSubscriptionDialog()
+            ServiceTabRowItem.OrderNewHardware -> showOrderNewHardwareDialog()
             ServiceTabRowItem.RollOverAssistedWallet -> {}
             ServiceTabRowItem.SetUpInheritancePlan -> {
                 navigator.openInheritancePlanningScreen(
@@ -73,6 +85,26 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 )
             }
         }
+    }
+
+    private fun enterPasswordDialog(item: ServiceTabRowItem) {
+        NCInputDialog(requireContext()).showDialog(
+            title = getString(R.string.nc_re_enter_your_password),
+            descMessage = getString(R.string.nc_re_enter_your_password_dialog_desc),
+            onConfirmed = {
+                viewModel.confirmPassword(it, item)
+            }
+        )
+    }
+
+    private fun openServerKeyDetail(event: ServicesTabEvent.GetServerKeySuccess) {
+        CosigningPolicyActivity.start(
+            activity = requireActivity(),
+            keyPolicy = null,
+            xfp = event.signer.masterFingerprint,
+            token = event.token,
+            walletId = event.walletId,
+        )
     }
 
     private fun showManageSubscriptionDialog() {

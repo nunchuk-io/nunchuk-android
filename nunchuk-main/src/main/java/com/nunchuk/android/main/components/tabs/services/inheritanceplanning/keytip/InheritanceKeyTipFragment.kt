@@ -18,11 +18,18 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.keyrecovery.backupdownload.BackupDownloadEvent
+import com.nunchuk.android.main.components.tabs.services.keyrecovery.backupdownload.BackupDownloadFragmentDirections
+import com.nunchuk.android.main.components.tabs.services.keyrecovery.intro.KeyRecoveryIntroFragmentDirections
 import dagger.hilt.android.AndroidEntryPoint
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
@@ -37,7 +44,20 @@ class InheritanceKeyTipFragment : Fragment() {
             setContent {
                 val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
                 InheritanceKeyTipContent(remainTime) {
+                    viewModel.onContinueClick()
+                }
+            }
+        }
+    }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        flowObserver(viewModel.event) {
+            when (it) {
+                InheritanceKeyTipEvent.ContinueClickEvent -> {
+                    findNavController().navigate(
+                        InheritanceKeyTipFragmentDirections.actionInheritanceKeyTipFragmentToInheritanceActivationDateFragment()
+                    )
                 }
             }
         }
