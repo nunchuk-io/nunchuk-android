@@ -29,18 +29,21 @@ import com.nunchuk.android.utils.serializable
 data class ExportTransactionArgs(
     val walletId: String,
     val txId: String,
+    val txToSign: String,
     val transactionOption: TransactionOption
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, ExportTransactionActivity::class.java).apply {
         putExtra(EXTRA_WALLET_ID, walletId)
         putExtra(EXTRA_TRANSACTION_ID, txId)
+        putExtra(EXTRA_TX_TO_SIGN, txToSign)
         putExtra(EXTRA_TRANSACTION_OPTION, transactionOption)
     }
 
     companion object {
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
         private const val EXTRA_TRANSACTION_ID = "EXTRA_TRANSACTION_ID"
+        private const val EXTRA_TX_TO_SIGN = "EXTRA_TX_TO_SIGN"
         private const val EXTRA_TRANSACTION_OPTION = "EXTRA_TRANSACTION_OPTION"
 
         fun deserializeFrom(intent: Intent): ExportTransactionArgs {
@@ -48,7 +51,8 @@ data class ExportTransactionArgs(
             return ExportTransactionArgs(
                 walletId = extras.getStringValue(EXTRA_WALLET_ID),
                 txId = extras.getStringValue(EXTRA_TRANSACTION_ID),
-                transactionOption = extras?.serializable(EXTRA_TRANSACTION_OPTION) ?: TransactionOption.EXPORT
+                txToSign = extras.getStringValue(EXTRA_TX_TO_SIGN),
+                transactionOption = extras?.serializable(EXTRA_TRANSACTION_OPTION) ?: TransactionOption.EXPORT_KEYSTONE
             )
         }
     }

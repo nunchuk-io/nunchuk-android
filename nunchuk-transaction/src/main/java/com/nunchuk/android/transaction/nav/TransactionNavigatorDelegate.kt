@@ -30,6 +30,7 @@ import com.nunchuk.android.nav.TransactionNavigator
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.transaction.components.details.TransactionDetailsActivity
 import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeActivity
+import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.imports.ImportTransactionActivity
 import com.nunchuk.android.transaction.components.receive.ReceiveTransactionActivity
 import com.nunchuk.android.transaction.components.receive.address.details.AddressDetailsActivity
@@ -206,6 +207,22 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             transactionOption = transactionOption,
             masterFingerPrint = masterFingerPrint,
             initEventId = initEventId
+        )
+    }
+
+    override fun openExportTransactionScreen(
+        activityContext: Activity,
+        walletId: String,
+        txId: String,
+        txToSign: String,
+        transactionOption: TransactionOption
+    ) {
+        ExportTransactionActivity.start(
+            activityContext = activityContext,
+            walletId = walletId,
+            txId = txId,
+            txToSign = txToSign,
+            transactionOption = transactionOption
         )
     }
 

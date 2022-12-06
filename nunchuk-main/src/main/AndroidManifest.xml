@@ -30,7 +30,7 @@
             android:theme="@style/NunchukNoActionBar.Light"/>
 
         <activity
-            android:name=".components.tabs.services.keyrecovery.checksignmessage.WalletAuthenticationActivity"
+            android:name=".membership.authentication.WalletAuthenticationActivity"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light"/>
     </application>

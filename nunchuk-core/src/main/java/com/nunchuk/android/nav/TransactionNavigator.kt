@@ -113,6 +113,14 @@ interface TransactionNavigator {
         initEventId: String = ""
     )
 
+    fun openExportTransactionScreen(
+        activityContext: Activity,
+        walletId: String = "",
+        txId: String = "",
+        txToSign: String,
+        transactionOption: TransactionOption,
+    )
+
     fun openReplaceTransactionFee(
         launcher: ActivityResultLauncher<Intent>, context: Context, walletId: String, transaction: Transaction
     )

@@ -71,7 +71,7 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
 
         binding.btnExport.isVisible = args.isPending
         binding.btnExport.setOnClickListener {
-            listener(EXPORT)
+            listener(EXPORT_KEYSTONE)
             dismiss()
         }
 

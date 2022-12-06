@@ -57,7 +57,7 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
         setLightStatusBar()
         setupViews()
         observeEvent()
-        viewModel.init(walletId = args.walletId, txId = args.txId, transactionOption = args.transactionOption)
+        viewModel.init(args)
     }
 
     private fun bindQrCodes() {
@@ -123,11 +123,18 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
 
     companion object {
 
-        fun start(activityContext: Activity, walletId: String, txId: String, transactionOption: TransactionOption) {
+        fun start(
+            activityContext: Activity,
+            walletId: String,
+            txId: String,
+            txToSign: String = "",
+            transactionOption: TransactionOption,
+        ) {
             activityContext.startActivity(
                 ExportTransactionArgs(
                     walletId = walletId,
                     txId = txId,
+                    txToSign = txToSign,
                     transactionOption = transactionOption
                 ).buildIntent(activityContext)
             )

@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/check_sign_message_navigation"
-    app:startDestination="@id/checkSignMessageFragment">
+    android:id="@+id/check_sign_message_navigation">
 
     <fragment
         android:id="@+id/checkSignMessageFragment"
-        android:name="com.nunchuk.android.main.components.tabs.services.keyrecovery.checksignmessage.CheckSignMessageFragment"
-        android:label="CheckSignMessageFragment">
+        android:name="com.nunchuk.android.main.membership.authentication.message.CheckSignMessageFragment"
+        android:label="CheckSignMessageFragment" />
+    <fragment
+        android:id="@+id/dummyTransactionDetailsFragment"
+        android:name="com.nunchuk.android.main.membership.authentication.dummytx.DummyTransactionDetailsFragment"
+        android:label="DummyTransactionDetailsFragment" />
+    <activity
+        android:id="@+id/walletAuthenticationActivity"
+        android:name="com.nunchuk.android.main.membership.authentication.WalletAuthenticationActivity"
+        android:label="WalletAuthenticationActivity">
+
         <argument
             android:name="wallet_id"
             app:argType="string" />
@@ -19,5 +27,11 @@
         <argument
             android:name="required_signatures"
             app:argType="integer" />
-    </fragment>
+
+        <argument
+            android:name="type"
+            app:argType="string" />
+    </activity>
+
+
 </navigation>

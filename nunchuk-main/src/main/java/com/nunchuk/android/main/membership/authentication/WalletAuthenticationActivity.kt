@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.components.tabs.services.keyrecovery.checksignmessage
+package com.nunchuk.android.main.membership.authentication
 
 import android.app.Activity
 import android.content.Intent
@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.navArgs
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.main.R
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
@@ -13,6 +14,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>() {
+    private val args: WalletAuthenticationActivityArgs by navArgs()
     override fun initializeBinding(): ActivityNavigationBinding {
         return ActivityNavigationBinding.inflate(layoutInflater)
     }
@@ -26,27 +28,36 @@ class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>(
     private fun initStartDestination() {
         val navHostFragment =
             (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
-        navHostFragment.navController.setGraph(
-            R.navigation.check_sign_message_navigation,
-            intent.extras
-        )
+        val inflater = navHostFragment.navController.navInflater
+        val graph = inflater.inflate(R.navigation.check_sign_message_navigation)
+
+        when (args.type) {
+            SIGN_TEMP_MESSAGE -> graph.setStartDestination(R.id.checkSignMessageFragment)
+            SIGN_DUMMY_TX -> graph.setStartDestination(R.id.dummyTransactionDetailsFragment)
+        }
+        navHostFragment.navController.setGraph(graph, intent.extras)
     }
 
     companion object {
+        internal const val SIGN_TEMP_MESSAGE = "SIGN_MESSAGE"
+        internal const val SIGN_DUMMY_TX = "SIGN_DUMMY_TX"
+
         fun start(
             walletId: String,
             userData: String,
             requiredSignatures: Int,
+            type: String,
             launcher: ActivityResultLauncher<Intent>,
             activityContext: Activity
         ) {
             launcher.launch(
                 Intent(activityContext, WalletAuthenticationActivity::class.java).apply {
                     putExtras(
-                        CheckSignMessageFragmentArgs(
+                        WalletAuthenticationActivityArgs(
                             walletId = walletId,
                             userData = userData,
-                            requiredSignatures = requiredSignatures
+                            requiredSignatures = requiredSignatures,
+                            type = type,
                         ).toBundle()
                     )
                 }

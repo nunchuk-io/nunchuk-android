@@ -50,21 +50,17 @@ internal class ExportTransactionViewModel @Inject constructor(
     private val exportKeystoneTransactionUseCase: ExportKeystoneTransactionUseCase,
 ) : NunchukViewModel<ExportTransactionState, ExportTransactionEvent>() {
 
-    private lateinit var walletId: String
-    private lateinit var txId: String
-    private lateinit var transactionOption: TransactionOption
+    private lateinit var args: ExportTransactionArgs
 
     override val initialState = ExportTransactionState()
 
-    fun init(walletId: String, txId: String, transactionOption: TransactionOption) {
-        this.walletId = walletId
-        this.txId = txId
-        this.transactionOption = transactionOption
+    fun init(args: ExportTransactionArgs) {
+        this.args = args
         handleExportTransactionQRs()
     }
 
     private fun handleExportTransactionQRs() {
-        if (transactionOption == TransactionOption.EXPORT_PASSPORT) {
+        if (args.transactionOption == TransactionOption.EXPORT_PASSPORT) {
             exportPassportTransaction()
         } else {
             exportTransactionToQRs()
@@ -74,7 +70,7 @@ internal class ExportTransactionViewModel @Inject constructor(
     fun exportTransactionToFile() {
         viewModelScope.launch {
             event(LoadingEvent)
-            when (val result = createShareFileUseCase.execute("${walletId}_${txId}")) {
+            when (val result = createShareFileUseCase.execute("${args.walletId}_${args.txId}")) {
                 is Success -> exportTransaction(result.data)
                 is Error -> event(ExportTransactionError(result.exception.messageOrUnknownError()))
             }
@@ -83,7 +79,7 @@ internal class ExportTransactionViewModel @Inject constructor(
 
     private fun exportTransaction(filePath: String) {
         viewModelScope.launch {
-            when (val result = exportTransactionUseCase.execute(walletId, txId, filePath)) {
+            when (val result = exportTransactionUseCase.execute(args.walletId, args.txId, filePath)) {
                 is Success -> event(ExportToFileSuccess(filePath))
                 is Error -> event(ExportTransactionError(result.exception.messageOrUnknownError()))
             }
@@ -93,7 +89,7 @@ internal class ExportTransactionViewModel @Inject constructor(
     private fun exportTransactionToQRs() {
         val qrSize = getQrSize()
         viewModelScope.launch {
-            exportKeystoneTransactionUseCase.execute(walletId, txId)
+            exportKeystoneTransactionUseCase.execute(args.walletId, args.txId)
                 .map { it.mapNotNull { qrCode -> qrCode.convertToQRCode(qrSize, qrSize) } }
                 .flowOn(IO)
                 .onException { event(ExportTransactionError(it.message.orUnknownError())) }
@@ -105,7 +101,7 @@ internal class ExportTransactionViewModel @Inject constructor(
     private fun exportPassportTransaction() {
         val qrSize = getQrSize()
         viewModelScope.launch {
-            exportPassportTransactionUseCase.execute(walletId, txId)
+            exportPassportTransactionUseCase.execute(args.walletId, args.txId)
                 .map { it.mapNotNull { qrCode -> qrCode.convertToQRCode(qrSize, qrSize) } }
                 .flowOn(IO)
                 .onException { event(ExportTransactionError(it.message.orUnknownError())) }

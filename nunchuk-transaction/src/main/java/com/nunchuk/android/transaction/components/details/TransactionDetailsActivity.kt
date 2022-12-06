@@ -441,7 +441,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         ).setListener {
             when (it) {
                 CANCEL -> promptCancelTransactionConfirmation()
-                EXPORT -> openExportTransactionScreen(EXPORT)
+                EXPORT_KEYSTONE -> openExportTransactionScreen(EXPORT_KEYSTONE)
                 IMPORT_KEYSTONE -> openImportTransactionScreen(
                     IMPORT_KEYSTONE,
                     event.masterFingerPrint

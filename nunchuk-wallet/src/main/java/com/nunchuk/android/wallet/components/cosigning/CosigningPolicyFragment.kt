@@ -119,27 +119,30 @@ class CosigningPolicyFragment : Fragment() {
                         is CosigningPolicyEvent.OnSaveChange -> openWalletAuthentication(event)
                         is CosigningPolicyEvent.Loading -> showOrHideLoading(event.isLoading)
                         is CosigningPolicyEvent.ShowError -> showError(event.error)
-                        CosigningPolicyEvent.UpdateKeyPolicySuccess -> NCToastMessage(requireActivity()).showMessage(getString(
-                                                    R.string.nc_policy_updated))
+                        CosigningPolicyEvent.UpdateKeyPolicySuccess -> NCToastMessage(
+                            requireActivity()
+                        ).showMessage(
+                            getString(
+                                R.string.nc_policy_updated
+                            )
+                        )
                     }
                 }
         }
     }
 
     private fun openWalletAuthentication(event: CosigningPolicyEvent.OnSaveChange) {
-        when (event.required.type) {
-            "SIGN_MESSAGE" -> navigator.openWalletAuthentication(
+        if (event.required.type == "NONE") {
+            viewModel.updateServerConfig(emptyMap())
+        } else {
+            navigator.openWalletAuthentication(
                 walletId = args.walletId,
                 userData = event.data,
                 requiredSignatures = event.required.requiredSignatures,
-                activityContext = requireActivity(),
-                launcher = signLauncher
+                type = event.required.type,
+                launcher = signLauncher,
+                activityContext = requireActivity()
             )
-            "SIGN_DUMMY_TX" -> {
-                // TODO SIGN_DUMMY_TX
-                showError("Not Support Now")
-            }
-            "NONE" -> viewModel.updateServerConfig(emptyMap())
         }
     }
 }

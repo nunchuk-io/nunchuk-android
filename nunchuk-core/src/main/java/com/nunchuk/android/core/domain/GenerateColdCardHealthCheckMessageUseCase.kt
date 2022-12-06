@@ -32,7 +32,7 @@ class GenerateColdCardHealthCheckMessageUseCase @Inject constructor(
 ) : BaseMk4UseCase<GenerateColdCardHealthCheckMessageUseCase.Data>(dispatcher) {
 
     override suspend fun executeNfc(parameters: Data): Array<NdefRecord> {
-        return nativeSdk.generateColdCardHealthCheckMessage(parameters.derivationPath)
+        return nativeSdk.generateColdCardHealthCheckMessage(parameters.derivationPath, parameters.message)
     }
 
     class Data(val derivationPath: String, val message: String? = null, ndef: Ndef) :

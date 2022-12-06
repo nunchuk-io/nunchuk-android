@@ -155,7 +155,8 @@ class RecoveryQuestionViewModel @Inject constructor(
                     RecoveryQuestionEvent.CalculateRequiredSignaturesSuccess(
                         walletId,
                         userData,
-                        resultCalculate.getOrThrow().requiredSignatures
+                        resultCalculate.getOrThrow().requiredSignatures,
+                        resultCalculate.getOrThrow().type,
                     )
                 )
             } else {

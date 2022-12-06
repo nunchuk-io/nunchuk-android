@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.components.tabs.services.keyrecovery.checksignmessage
+package com.nunchuk.android.main.membership.authentication
 
 import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
@@ -19,6 +19,8 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.membership.GetDummyTxFromMessage
+import com.nunchuk.android.usecase.membership.GetTxToSignMessage
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +30,7 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class CheckSignMessageViewModel @Inject constructor(
+class WalletAuthenticationViewModel @Inject constructor(
     private val getWalletUseCase: GetWalletUseCase,
     private val checkSignMessageUseCase: CheckSignMessageUseCase,
     private val checkSignMessageTapsignerUseCase: CheckSignMessageTapsignerUseCase,
@@ -36,24 +38,35 @@ class CheckSignMessageViewModel @Inject constructor(
     private val healthCheckColdCardUseCase: HealthCheckColdCardUseCase,
     private val generateColdCardHealthCheckMessageUseCase: GenerateColdCardHealthCheckMessageUseCase,
     private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
+    private val getDummyTxFromMessage: GetDummyTxFromMessage,
+    private val getTxToSignMessage: GetTxToSignMessage,
     savedStateHandle: SavedStateHandle
-) :
-    ViewModel() {
+) : ViewModel() {
 
-    private val args = CheckSignMessageFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    private val args = WalletAuthenticationActivityArgs.fromSavedStateHandle(savedStateHandle)
 
-    private val _event = MutableSharedFlow<CheckSignMessageEvent>()
+    private val _event = MutableSharedFlow<WalletAuthenticationEvent>()
     val event = _event.asSharedFlow()
 
-    private val _state = MutableStateFlow(CheckSignMessageState())
+    private val _state = MutableStateFlow(WalletAuthenticationState())
     val state = _state.asStateFlow()
 
-    private val messageToSign = MutableStateFlow("")
+    private val dataToSign = MutableStateFlow("")
 
     init {
         getWalletDetails()
         viewModelScope.launch {
-            messageToSign.value = getHealthCheckMessageUseCase(args.userData).getOrThrow()
+            if (args.type == WalletAuthenticationActivity.SIGN_DUMMY_TX) {
+                val txToSignResult =
+                    getTxToSignMessage(GetTxToSignMessage.Param(args.walletId, args.userData))
+                dataToSign.value = txToSignResult.getOrNull().orEmpty()
+                getDummyTxFromMessage(GetDummyTxFromMessage.Param(args.walletId, dataToSign.value)).getOrNull()
+                    ?.let { transition ->
+                        _state.update { it.copy(transaction = transition) }
+                    }
+            } else {
+                dataToSign.value = getHealthCheckMessageUseCase(args.userData).getOrThrow()
+            }
         }
     }
 
@@ -64,9 +77,11 @@ class CheckSignMessageViewModel @Inject constructor(
                 ?: return@launch
         _state.update { it.copy(interactSingleSigner = singleSigner) }
         when (signerModel.type) {
-            SignerType.NFC -> _event.emit(CheckSignMessageEvent.ScanTapSigner)
-            SignerType.COLDCARD_NFC -> _event.emit(CheckSignMessageEvent.ScanColdCard)
-            SignerType.SOFTWARE -> handleSignCheckSoftware(singleSigner)
+            SignerType.NFC -> _event.emit(WalletAuthenticationEvent.ScanTapSigner)
+            SignerType.COLDCARD_NFC -> _event.emit(WalletAuthenticationEvent.ScanColdCard)
+            SignerType.SOFTWARE,
+            SignerType.HARDWARE -> handleSignCheckSoftware(singleSigner)
+            SignerType.AIRGAP ->  _event.emit(WalletAuthenticationEvent.ShowAirgapOption)
             else -> {}
         }
     }
@@ -74,28 +89,28 @@ class CheckSignMessageViewModel @Inject constructor(
     fun generateColdcardHealthMessages(ndef: Ndef?, derivationPath: String) {
         ndef ?: return
         viewModelScope.launch {
-            _event.emit(CheckSignMessageEvent.NfcLoading(isLoading = true, isColdCard = true))
+            _event.emit(WalletAuthenticationEvent.NfcLoading(isLoading = true, isColdCard = true))
             val result = generateColdCardHealthCheckMessageUseCase(
                 GenerateColdCardHealthCheckMessageUseCase.Data(
                     derivationPath = derivationPath,
                     ndef = ndef
                 )
             )
-            _event.emit(CheckSignMessageEvent.NfcLoading(false))
+            _event.emit(WalletAuthenticationEvent.NfcLoading(false))
             if (result.isSuccess) {
-                _event.emit(CheckSignMessageEvent.GenerateColdcardHealthMessagesSuccess)
+                _event.emit(WalletAuthenticationEvent.GenerateColdcardHealthMessagesSuccess)
             } else {
-                _event.emit(CheckSignMessageEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+                _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
             }
         }
     }
 
     fun healthCheckColdCard(signer: SingleSigner, records: List<NdefRecord>) {
         viewModelScope.launch {
-            _event.emit(CheckSignMessageEvent.NfcLoading(isLoading = true, isColdCard = true))
+            _event.emit(WalletAuthenticationEvent.NfcLoading(isLoading = true, isColdCard = true))
             val result =
                 healthCheckColdCardUseCase(HealthCheckColdCardUseCase.Param(signer, records))
-            _event.emit(CheckSignMessageEvent.NfcLoading(false))
+            _event.emit(WalletAuthenticationEvent.NfcLoading(false))
             handleSignatureResult(result = result.map { it.signature }, singleSigner = signer)
         }
     }
@@ -105,17 +120,17 @@ class CheckSignMessageViewModel @Inject constructor(
         ncfScanInfo: NfcScanInfo?,
         cvc: String
     ) = viewModelScope.launch {
-        _event.emit(CheckSignMessageEvent.NfcLoading(isLoading = true, isColdCard = false))
+        _event.emit(WalletAuthenticationEvent.NfcLoading(isLoading = true, isColdCard = false))
         val result = checkSignMessageTapsignerUseCase(
             CheckSignMessageTapsignerUseCase.Param(
                 signer = singleSigner,
                 userData = args.userData,
                 isoDep = IsoDep.get(ncfScanInfo?.tag),
                 cvc = cvc,
-                messageToSign = messageToSign.value
+                messageToSign = dataToSign.value
             )
         )
-        _event.emit(CheckSignMessageEvent.Loading(false))
+        _event.emit(WalletAuthenticationEvent.Loading(false))
         handleSignatureResult(result, singleSigner)
     }
 
@@ -125,6 +140,7 @@ class CheckSignMessageViewModel @Inject constructor(
                 CheckSignMessageUseCase.Param(
                     signer = singleSigner,
                     userData = args.userData,
+                    messageToSign = dataToSign.value,
                 )
             )
             handleSignatureResult(result, singleSigner)
@@ -139,45 +155,52 @@ class CheckSignMessageViewModel @Inject constructor(
             val signatures = _state.value.signatures
             signatures[singleSigner.masterFingerprint] = result.getOrThrow()
             if (signatures.size == args.requiredSignatures) {
-                _event.emit(CheckSignMessageEvent.CheckSignMessageSuccess(signatures))
+                _event.emit(WalletAuthenticationEvent.WalletAuthenticationSuccess(signatures))
             } else {
                 _state.update {
                     it.copy(signatures = signatures)
                 }
             }
         } else {
-            _event.emit(CheckSignMessageEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 
     fun getInteractSingleSigner() = _state.value.interactSingleSigner
 
+    fun getDataToSign() = dataToSign.value
+
     private fun getWalletDetails() {
         viewModelScope.launch {
             getWalletUseCase.execute(args.walletId)
-                .onStart { _event.emit(CheckSignMessageEvent.Loading(true)) }
+                .onStart { _event.emit(WalletAuthenticationEvent.Loading(true)) }
                 .flowOn(Dispatchers.IO)
-                .onException { _event.emit(CheckSignMessageEvent.ProcessFailure(it.message.orUnknownError())) }
+                .onException { _event.emit(WalletAuthenticationEvent.ProcessFailure(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
                 .collect { walletExtended ->
-                    _event.emit(CheckSignMessageEvent.Loading(false))
+                    _event.emit(WalletAuthenticationEvent.Loading(false))
                     val signerModels =
                         walletExtended.wallet.signers.filter {
-                            it.type == SignerType.SOFTWARE
-                                    || it.type == SignerType.HARDWARE
-                                    || it.type == SignerType.NFC
-                                    || it.type == SignerType.COLDCARD_NFC
+                            isValidSigner(it.type, args.type)
                         }.map {
                             if (it.type == SignerType.NFC) it.toModel()
                                 .copy(cardId = getTapSignerStatusByIdUseCase(it.masterSignerId).getOrThrow().ident.orEmpty()) else it.toModel()
                         }
                     _state.update {
                         it.copy(
-                            signerModels = signerModels,
+                            walletSigner = signerModels,
                             singleSigners = walletExtended.wallet.signers
                         )
                     }
                 }
         }
+    }
+
+    private fun isValidSigner(type: SignerType, authenticationType: String) : Boolean {
+        if (authenticationType == WalletAuthenticationActivity.SIGN_DUMMY_TX && type == SignerType.AIRGAP) return true
+        return type == SignerType.SOFTWARE
+                || type == SignerType.HARDWARE
+                || type == SignerType.NFC
+                || type == SignerType.COLDCARD_NFC
     }
 }

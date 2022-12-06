@@ -369,4 +369,21 @@
     <string name="nc_manage_subscription_desc">Please manage your subscription through our website. Sign in and navigate to the Plan and Invoices page.</string>
     <string name="nc_order_new_hardware_desc">You can order new hardware by using the referral links on our website. Sign in and navigate to the Hardware Replacement page</string>
     <string name="nc_take_me_to_the_website">Take me to the website</string>
+
+    <string name="nc_transaction_details">Transaction details</string>
+    <string name="nc_transaction_sending_to">Sending to</string>
+    <string name="nc_transaction_more_details">More details</string>
+    <string name="nc_transaction_send_to_address">Send to address</string>
+    <string name="nc_transaction_estimate_fee">Estimated fee</string>
+    <string name="nc_transaction_total_amount">Total amount</string>
+    <string name="nc_transaction_change_address">Change address</string>
+    <string name="nc_transaction_private_note_off_chain_data">Private note (off-chain data)</string>
+    <string name="nc_transaction_member_signers">Member keys</string>
+    <string name="nc_transaction_enough_signers">Enough signatures have been collected</string>
+    <string name="nc_transaction_broadcast">Broadcast transaction</string>
+    <string name="nc_transaction_less_details">Less details</string>
+    <string name="nc_transaction_export_transaction">Export to Keystone/SeedSigner/Jade</string>
+    <string name="nc_transaction_export_passport_transaction">Export to Passport</string>
+    <string name="nc_transaction_import_signature">Import from Keystone/SeedSigner/Jade</string>
+    <string name="nc_transaction_import_passport_signature">Import from Passport</string>
 </resources>

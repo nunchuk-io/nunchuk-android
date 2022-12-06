@@ -55,6 +55,7 @@ interface AppNavigator {
         walletId: String,
         userData: String,
         requiredSignatures: Int,
+        type: String,
         launcher: ActivityResultLauncher<Intent>,
         activityContext: Activity
     )

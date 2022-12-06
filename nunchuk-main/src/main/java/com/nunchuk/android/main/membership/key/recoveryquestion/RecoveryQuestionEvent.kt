@@ -14,7 +14,8 @@ sealed class RecoveryQuestionEvent {
     data class CalculateRequiredSignaturesSuccess(
         val walletId: String,
         val userData: String,
-        val requiredSignatures: Int
+        val requiredSignatures: Int,
+        val type: String,
     ) : RecoveryQuestionEvent()
 
     data class ShowError(val message: String) : RecoveryQuestionEvent()

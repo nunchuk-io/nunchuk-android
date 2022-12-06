@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.components.tabs.services.keyrecovery.checksignmessage
+package com.nunchuk.android.main.membership.authentication.message
 
 import android.app.Activity
 import android.content.Intent
@@ -24,7 +24,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
@@ -35,12 +34,10 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.core.util.showOrHideNfcLoading
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.R
-import com.nunchuk.android.core.util.toReadableDrawableResId
+import com.nunchuk.android.main.membership.authentication.WalletAuthenticationEvent
+import com.nunchuk.android.main.membership.authentication.WalletAuthenticationViewModel
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.result.GlobalResultKey
 import dagger.hilt.android.AndroidEntryPoint
@@ -52,7 +49,7 @@ class CheckSignMessageFragment : Fragment() {
     @Inject
     lateinit var navigator: NunchukNavigator
 
-    private val viewModel: CheckSignMessageViewModel by viewModels()
+    private val walletAuthenticationViewModel: WalletAuthenticationViewModel by activityViewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
 
     override fun onCreateView(
@@ -60,7 +57,7 @@ class CheckSignMessageFragment : Fragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                CheckSignMessageScreen(viewModel)
+                CheckSignMessageScreen(walletAuthenticationViewModel)
             }
         }
     }
@@ -68,10 +65,10 @@ class CheckSignMessageFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-            viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
+            walletAuthenticationViewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
                     when (event) {
-                        is CheckSignMessageEvent.CheckSignMessageSuccess -> {
+                        is WalletAuthenticationEvent.WalletAuthenticationSuccess -> {
                             requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
                                 putExtra(
                                     GlobalResultKey.SIGNATURE_EXTRA,
@@ -80,31 +77,32 @@ class CheckSignMessageFragment : Fragment() {
                             })
                             requireActivity().finish()
                         }
-                        is CheckSignMessageEvent.Loading -> showOrHideLoading(event.isLoading)
-                        is CheckSignMessageEvent.ScanTapSigner -> (requireActivity() as NfcActionListener).startNfcFlow(
+                        is WalletAuthenticationEvent.Loading -> showOrHideLoading(event.isLoading)
+                        is WalletAuthenticationEvent.ScanTapSigner -> (requireActivity() as NfcActionListener).startNfcFlow(
                             BaseNfcActivity.REQUEST_NFC_SIGN_TRANSACTION
                         )
-                        CheckSignMessageEvent.ScanColdCard -> (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_GENERATE_HEAL_CHECK_MSG)
-                        is CheckSignMessageEvent.ProcessFailure -> showError(event.message)
-                        CheckSignMessageEvent.GenerateColdcardHealthMessagesSuccess -> (requireActivity() as NfcActionListener).startNfcFlow(
+                        WalletAuthenticationEvent.ScanColdCard -> (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_GENERATE_HEAL_CHECK_MSG)
+                        is WalletAuthenticationEvent.ProcessFailure -> showError(event.message)
+                        WalletAuthenticationEvent.GenerateColdcardHealthMessagesSuccess -> (requireActivity() as NfcActionListener).startNfcFlow(
                             BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE
                         )
-                        is CheckSignMessageEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading, event.isColdCard)
-                        is CheckSignMessageEvent.ShowError -> showError(event.message)
+                        is WalletAuthenticationEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading, event.isColdCard)
+                        is WalletAuthenticationEvent.ShowError -> showError(event.message)
+                        WalletAuthenticationEvent.ShowAirgapOption -> {}
                     }
                 }
         }
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_SIGN_TRANSACTION }) { info ->
-            viewModel.getInteractSingleSigner()?.let {
-                viewModel.handleTapSignerSignCheckMessage(it, info, nfcViewModel.inputCvc.orEmpty())
+            walletAuthenticationViewModel.getInteractSingleSigner()?.let {
+                walletAuthenticationViewModel.handleTapSignerSignCheckMessage(it, info, nfcViewModel.inputCvc.orEmpty())
             }
             nfcViewModel.clearScanInfo()
         }
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_GENERATE_HEAL_CHECK_MSG }) { scanInfo ->
-            viewModel.getInteractSingleSigner()?.let { signer ->
-                viewModel.generateColdcardHealthMessages(
+            walletAuthenticationViewModel.getInteractSingleSigner()?.let { signer ->
+                walletAuthenticationViewModel.generateColdcardHealthMessages(
                     Ndef.get(scanInfo.tag),
                     signer.derivationPath
                 )
@@ -113,8 +111,8 @@ class CheckSignMessageFragment : Fragment() {
         }
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE }) {
-            viewModel.getInteractSingleSigner()?.let { signer ->
-                viewModel.healthCheckColdCard(signer, it.records)
+            walletAuthenticationViewModel.getInteractSingleSigner()?.let { signer ->
+                walletAuthenticationViewModel.healthCheckColdCard(signer, it.records)
             }
             nfcViewModel.clearScanInfo()
         }
@@ -125,12 +123,12 @@ class CheckSignMessageFragment : Fragment() {
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 private fun CheckSignMessageScreen(
-    viewModel: CheckSignMessageViewModel = viewModel()
+    viewModel: WalletAuthenticationViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     CheckSignMessageContent(
-        state.signerModels,
+        state.walletSigner,
         onSignerSelected = {
             viewModel.onSignerSelect(it)
         }
