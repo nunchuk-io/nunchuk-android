@@ -15,36 +15,38 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <argument
+            android:name="verifyToken"
+            android:defaultValue=""
+            app:argType="string" />
     </fragment>
 
     <fragment
         android:id="@+id/lockdownPeriodFragment"
         android:name="com.nunchuk.android.main.components.tabs.services.emergencylockdown.lockdownperiod.EmergencyLockdownPeriodFragment"
         android:label="LockdownPeriodFragment">
-        <action
-            android:id="@+id/action_lockdownPeriodFragment_to_lockdownConfirmFragment"
-            app:destination="@id/lockdownConfirmFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-    </fragment>
 
-    <fragment
-        android:id="@+id/lockdownConfirmFragment"
-        android:name="com.nunchuk.android.main.components.tabs.services.emergencylockdown.lockdownconfirm.EmergencyLockdownConfirmFragment"
-        android:label="LockdownConfirmFragment">
         <action
-            android:id="@+id/action_lockdownConfirmFragment_to_lockdownSuccessFragment"
+            android:id="@+id/action_lockdownPeriodFragment_to_lockdownSuccessFragment"
             app:destination="@id/lockdownSuccessFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <argument
+            android:name="verifyToken"
+            android:defaultValue=""
+            app:argType="string" />
     </fragment>
 
     <fragment
         android:id="@+id/lockdownSuccessFragment"
         android:name="com.nunchuk.android.main.components.tabs.services.emergencylockdown.lockdownsuccess.LockdownSuccessFragment"
-        android:label="LockdownSuccessFragment"/>
+        android:label="LockdownSuccessFragment">
+        <argument
+            android:name="period"
+            android:defaultValue=""
+            app:argType="string" />
+    </fragment>
 </navigation>

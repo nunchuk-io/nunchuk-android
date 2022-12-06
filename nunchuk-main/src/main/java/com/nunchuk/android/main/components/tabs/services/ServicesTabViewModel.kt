@@ -3,9 +3,14 @@ package com.nunchuk.android.main.components.tabs.services
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetAssistedWalletIdFlowUseCase
+import com.nunchuk.android.core.domain.membership.GetServerWalletUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.InheritanceStatus
+import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
@@ -21,13 +26,16 @@ class ServicesTabViewModel @Inject constructor(
     private val getUserSubscriptionUseCase: GetUserSubscriptionUseCase,
     private val getWalletUseCase: GetWalletUseCase,
     private val getAssistedWalletIdsFlowUseCase: GetAssistedWalletIdFlowUseCase,
-    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase
+    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
+    private val membershipStepManager: MembershipStepManager,
+    private val getServerWalletUseCase: GetServerWalletUseCase,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<ServicesTabEvent>()
     val event = _event.asSharedFlow()
 
     private val _state = MutableStateFlow(ServicesTabState())
+    val state = _state.asStateFlow()
 
     init {
         getUserSubscription()
@@ -37,9 +45,22 @@ class ServicesTabViewModel @Inject constructor(
         val result = getUserSubscriptionUseCase(Unit)
         if (result.isSuccess) {
             val subscription = result.getOrThrow()
+            val getServerWalletResult = getServerWalletUseCase(Unit)
+            if (getServerWalletResult.isFailure) return@launch
+            val walletLocalId =
+                getServerWalletResult.getOrThrow().planWalletCreated[subscription.slug].orEmpty()
             val isPremiumUser = subscription.subscriptionId.isNullOrEmpty().not()
             _state.update {
-                it.copy(isPremiumUser = isPremiumUser, plan = subscription.plan)
+                it.copy(
+                    isCreatedAssistedWallet = walletLocalId.isNotEmpty(),
+                    isPremiumUser = isPremiumUser,
+                    plan = subscription.plan,
+                    rowItems = it.initRowItems(subscription.plan)
+                )
+            }
+        } else {
+            _state.update {
+                it.copy(rowItems = it.initRowItems(MembershipPlan.NONE))
             }
         }
     }
@@ -102,5 +123,9 @@ class ServicesTabViewModel @Inject constructor(
         }
     }
 
-    fun getItems() = _state.value.rowItems
+    fun getGroupStage(): MembershipStage {
+        if (_state.value.isCreatedAssistedWallet) return MembershipStage.DONE
+        if (membershipStepManager.isNotConfig()) return MembershipStage.NONE
+        return MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
+    }
 }

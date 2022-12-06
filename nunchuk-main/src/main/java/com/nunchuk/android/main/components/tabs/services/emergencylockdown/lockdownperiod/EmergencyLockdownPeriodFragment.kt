@@ -1,9 +1,11 @@
 package com.nunchuk.android.main.components.tabs.services.emergencylockdown.lockdownperiod
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -27,12 +28,35 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.utils.serializable
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class EmergencyLockdownPeriodFragment : Fragment() {
+
+    @Inject
+    lateinit var navigator: NunchukNavigator
+
     private val viewModel: EmergencyLockdownPeriodViewModel by viewModels()
+
+    private val launcher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data?.extras
+            if (it.resultCode == Activity.RESULT_OK && data != null) {
+                val signatureMap =
+                    data.serializable<HashMap<String, String>>(GlobalResultKey.SIGNATURE_EXTRA)
+                        ?: return@registerForActivityResult
+                val securityQuestionToken =
+                    data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
+                viewModel.lockdownUpdate(signatureMap, securityQuestionToken)
+            }
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -47,11 +71,24 @@ class EmergencyLockdownPeriodFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) { event ->
-            when(event) {
-                is LockdownPeriodEvent.ContinueClick -> {
-                    findNavController().navigate(EmergencyLockdownPeriodFragmentDirections.actionLockdownPeriodFragmentToLockdownConfirmFragment())
+            when (event) {
+                is LockdownPeriodEvent.Loading -> showOrHideLoading(loading = event.isLoading)
+                is LockdownPeriodEvent.ProcessFailure -> showError(message = event.message)
+                is LockdownPeriodEvent.CalculateRequiredSignaturesSuccess -> navigator.openWalletAuthentication(
+                    walletId = event.walletId,
+                    userData = event.userData,
+                    requiredSignatures = event.requiredSignatures,
+                    type = event.type,
+                    launcher = launcher,
+                    activityContext = requireActivity()
+                )
+                is LockdownPeriodEvent.LockdownUpdateSuccess -> {
+                    findNavController().navigate(
+                        EmergencyLockdownPeriodFragmentDirections.actionLockdownPeriodFragmentToLockdownSuccessFragment(
+                            period = event.period
+                        )
+                    )
                 }
-                is LockdownPeriodEvent.Loading -> TODO()
             }
         }
     }
@@ -66,13 +103,15 @@ private fun LockdownPeriodScreen(
 
     LockdownPeriodContent(
         state.options,
-        onContinueClicked = viewModel::onContinueClicked
+        onOptionClick = viewModel::onOptionClick,
+        onContinueClicked = viewModel::calculateRequiredSignatures
     )
 }
 
 @Composable
 private fun LockdownPeriodContent(
     options: List<PeriodOption> = emptyList(),
+    onOptionClick: (String) -> Unit = {},
     onContinueClicked: () -> Unit = {}
 ) = NunchukTheme {
     Scaffold { innerPadding ->
@@ -101,9 +140,9 @@ private fun LockdownPeriodContent(
                     OptionItem(
                         modifier = Modifier.fillMaxWidth(),
                         isSelected = item.isSelected,
-                        label = item.title
+                        label = item.period.displayName
                     ) {
-
+                        onOptionClick(item.period.id)
                     }
                 }
             }
@@ -112,7 +151,7 @@ private fun LockdownPeriodContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-//                enabled = options.any { it.isSelected },
+                enabled = options.any { it.isSelected },
                 onClick = onContinueClicked,
             ) {
                 Text(text = stringResource(id = R.string.nc_text_continue))
@@ -140,24 +179,5 @@ private fun OptionItem(
             RadioButton(selected = isSelected, onClick = onClick)
             Text(text = label, style = NunchukTheme.typography.title)
         }
-    }
-}
-
-@Preview
-@Composable
-private fun UploadBackUpTapSignerScreenPreview() {
-    NunchukTheme {
-        LockdownPeriodContent(
-            options = listOf(
-                PeriodOption(
-                    "1 day",
-                    false
-                ),
-                PeriodOption(
-                    "3 days",
-                    false
-                ),
-            )
-        )
     }
 }

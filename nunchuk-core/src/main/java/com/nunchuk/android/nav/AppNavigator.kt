@@ -46,7 +46,7 @@ interface AppNavigator {
     )
 
     fun openKeyRecoveryScreen(activityContext: Context)
-    fun openEmergencyLockdownScreen(activityContext: Context)
+    fun openEmergencyLockdownScreen(activityContext: Context, verifyToken: String)
     fun openInheritancePlanningScreen(
         activityContext: Context, @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int
     )

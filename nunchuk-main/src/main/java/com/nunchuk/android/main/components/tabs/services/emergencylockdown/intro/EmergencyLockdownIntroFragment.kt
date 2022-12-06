@@ -19,6 +19,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -29,6 +30,7 @@ import com.nunchuk.android.main.R
 class EmergencyLockdownIntroFragment : Fragment() {
 
     private val viewModel: EmergencyLockdownIntroViewModel by viewModels()
+    private val args: EmergencyLockdownIntroFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -45,7 +47,11 @@ class EmergencyLockdownIntroFragment : Fragment() {
         flowObserver(viewModel.event) {
             when (it) {
                 is EmergencyLockdownIntroEvent.ContinueClick -> {
-                    findNavController().navigate(EmergencyLockdownIntroFragmentDirections.actionEmergencyLockdownIntroFragmentToLockdownPeriodFragment())
+                    findNavController().navigate(
+                        EmergencyLockdownIntroFragmentDirections.actionEmergencyLockdownIntroFragmentToLockdownPeriodFragment(
+                            verifyToken = args.verifyToken
+                        )
+                    )
                 }
                 is EmergencyLockdownIntroEvent.Loading -> {
 

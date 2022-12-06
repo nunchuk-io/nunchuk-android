@@ -88,5 +88,23 @@ data class QuestionsAndAnswerRequestBody(
     val walletId: String? = null
 )
 
+data class LockdownUpdateRequest(
+    @SerializedName("nonce")
+    val nonce: String? = null,
+    @SerializedName("iat")
+    val iat: Long? = null,
+    @SerializedName("exp")
+    val exp: Long? = null,
+    @SerializedName("body")
+    val body: LockdownUpdateRequestBody? = null
+)
+
+data class LockdownUpdateRequestBody(
+    @SerializedName("period_id")
+    val periodId: String? = null,
+    @SerializedName("wallet")
+    val walletId: String? = null
+)
+
 
 

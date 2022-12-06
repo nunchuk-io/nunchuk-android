@@ -151,8 +151,8 @@ interface AppNavigatorDelegate : AppNavigator {
         KeyRecoveryActivity.navigate(activityContext)
     }
 
-    override fun openEmergencyLockdownScreen(activityContext: Context) {
-        EmergencyLockdownActivity.navigate(activityContext)
+    override fun openEmergencyLockdownScreen(activityContext: Context, verifyToken: String) {
+        EmergencyLockdownActivity.navigate(activityContext, verifyToken)
     }
 
     override fun openInheritancePlanningScreen(

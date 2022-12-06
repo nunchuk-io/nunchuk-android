@@ -8,6 +8,7 @@ import com.nunchuk.android.core.domain.membership.*
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.SecurityQuestionModel
 import com.nunchuk.android.model.QuestionsAndAnswer
+import com.nunchuk.android.model.SecurityQuestion
 import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -49,12 +50,41 @@ class RecoveryQuestionViewModel @Inject constructor(
             _event.emit(RecoveryQuestionEvent.Loading(false))
             if (result.isSuccess) {
                 val questions = result.getOrThrow()
+                val questionModels = questions
                     .map { SecurityQuestionModel(id = it.id, question = it.question) }
                 _state.update {
-                    it.copy(securityQuestions = questions)
+                    it.copy(
+                        securityQuestions = questionModels,
+                        recoveries = recoveryListInitialize(questions)
+                    )
                 }
             }
         }
+    }
+
+    private fun recoveryListInitialize(questions: List<SecurityQuestion> = emptyList()): List<RecoveryData> {
+        val recoveryList = mutableListOf<RecoveryData>()
+        if (args.isRecoveryFlow) {
+            val answeredQuestions = questions.filter { it.isAnswer }
+            (0..2).forEach {
+                val question = answeredQuestions[it]
+                recoveryList.add(
+                    RecoveryData(
+                        index = it,
+                        question = SecurityQuestionModel(
+                            id = question.id,
+                            question = question.question
+                        ),
+                        isShowMask = true
+                    )
+                )
+            }
+        } else {
+            (0..2).forEach {
+                recoveryList.add(RecoveryData(index = it))
+            }
+        }
+        return recoveryList
     }
 
     fun onDiscardChangeClick() = viewModelScope.launch {
@@ -87,6 +117,10 @@ class RecoveryQuestionViewModel @Inject constructor(
         _state.update {
             it.copy(recoveries = newRecoveries)
         }
+    }
+
+    fun updateClearFocus(focus: Boolean) {
+        _state.update { it.copy(clearFocusRequest = focus) }
     }
 
     fun updateCustomQuestion(index: Int, question: String) {
@@ -150,7 +184,6 @@ class RecoveryQuestionViewModel @Inject constructor(
             }
             _event.emit(RecoveryQuestionEvent.Loading(false))
             if (resultCalculate.isSuccess) {
-                _state.update { it.copy(clearFocusRequest = true) }
                 _event.emit(
                     RecoveryQuestionEvent.CalculateRequiredSignaturesSuccess(
                         walletId,
@@ -165,29 +198,31 @@ class RecoveryQuestionViewModel @Inject constructor(
         }
     }
 
-    fun securityQuestionUpdate(signatures: HashMap<String, String>) = viewModelScope.launch {
-        val state = _state.value
-        _event.emit(RecoveryQuestionEvent.Loading(true))
-        val result = securityQuestionsUpdateUseCase(
-            SecurityQuestionsUpdateUseCase.Param(
-                signatures = signatures,
-                verifyToken = args.verifyToken,
-                userData = state.userData.orEmpty()
+    fun securityQuestionUpdate(signatures: HashMap<String, String>, securityQuestionToken: String) =
+        viewModelScope.launch {
+            val state = _state.value
+            _event.emit(RecoveryQuestionEvent.Loading(true))
+            val result = securityQuestionsUpdateUseCase(
+                SecurityQuestionsUpdateUseCase.Param(
+                    signatures = signatures,
+                    verifyToken = args.verifyToken,
+                    userData = state.userData.orEmpty(),
+                    securityQuestionToken = securityQuestionToken
+                )
             )
-        )
-        _event.emit(RecoveryQuestionEvent.Loading(false))
-        if (result.isSuccess) {
-            val newRecoveries = state.recoveries.map {
-                it.copy(answer = "", isShowMask = true)
+            _event.emit(RecoveryQuestionEvent.Loading(false))
+            if (result.isSuccess) {
+                val newRecoveries = state.recoveries.map {
+                    it.copy(answer = "", isShowMask = true)
+                }
+                _state.update {
+                    it.copy(recoveries = newRecoveries)
+                }
+                _event.emit(RecoveryQuestionEvent.RecoveryQuestionUpdateSuccess)
+            } else {
+                _event.emit(RecoveryQuestionEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
             }
-            _state.update {
-                it.copy(recoveries = newRecoveries, clearFocusRequest = false)
-            }
-            _event.emit(RecoveryQuestionEvent.RecoveryQuestionUpdateSuccess)
-        } else {
-            _event.emit(RecoveryQuestionEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
         }
-    }
 
     fun onContinueClicked() = viewModelScope.launch {
         if (args.isRecoveryFlow) {

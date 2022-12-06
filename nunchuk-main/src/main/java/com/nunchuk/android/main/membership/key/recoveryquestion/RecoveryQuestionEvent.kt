@@ -24,7 +24,7 @@ sealed class RecoveryQuestionEvent {
 }
 
 data class RecoveryQuestionState(
-    val recoveries: List<RecoveryData> = recoveryListInitialize(),
+    val recoveries: List<RecoveryData> = emptyList(),
     val securityQuestions: List<SecurityQuestionModel> = emptyList(),
     val interactQuestionIndex: Int = InitValue,
     val userData: String? = null,
@@ -34,14 +34,6 @@ data class RecoveryQuestionState(
         val Empty = RecoveryQuestionState()
         const val InitValue = -1
     }
-}
-
-private fun recoveryListInitialize(): List<RecoveryData> {
-    val recoveryList = mutableListOf<RecoveryData>()
-    (0..2).forEach {
-        recoveryList.add(RecoveryData(index = it))
-    }
-    return recoveryList
 }
 
 data class RecoveryData(

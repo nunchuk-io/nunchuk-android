@@ -58,7 +58,7 @@ fun DummyTransactionIntroContent(
                 NcTopAppBar(title = "")
                 Text(
                     modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_answer_security_question),
+                    text = stringResource(R.string.nc_two_signatures_required),
                     style = NunchukTheme.typography.heading
                 )
                 NcHighlightText(

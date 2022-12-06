@@ -331,7 +331,7 @@
     <string name="nc_emergency_lockdown_period_title">Select your lockdown period</string>
     <string name="nc_emergency_lockdown_period_desc">Your access will be automatically re-enabled once the lockdown period ends.</string>
     <string name="nc_emergency_lockdown_success_title">Your account is now under lockdown</string>
-    <string name="nc_emergency_lockdown_success_info">The lockdown will last %1$d.</string>
+    <string name="nc_emergency_lockdown_success_info">The lockdown will last %1$s.</string>
     <string name="nc_emergency_lockdown_confirm_title">Confirm the lockdown</string>
     <string name="nc_emergency_lockdown_confirm_desc">For confirmation, please sign a test message using one of the keys below.</string>
     <string name="nc_sign">Sign</string>
@@ -369,7 +369,7 @@
     <string name="nc_manage_subscription_desc">Please manage your subscription through our website. Sign in and navigate to the Plan and Invoices page.</string>
     <string name="nc_order_new_hardware_desc">You can order new hardware by using the referral links on our website. Sign in and navigate to the Hardware Replacement page</string>
     <string name="nc_take_me_to_the_website">Take me to the website</string>
-
+    <string name="nc_lockdown_period_expired_desc">Your lockdown period extends beyond your current subscription. Please renew your subscription first on our website.</string>
     <string name="nc_transaction_details">Transaction details</string>
     <string name="nc_transaction_sending_to">Sending to</string>
     <string name="nc_transaction_more_details">More details</string>
@@ -395,4 +395,24 @@
     <string name="nc_transaction_signed">Signed</string>
     <string name="nc_transaction_sign">Sign</string>
     <string name="nc_broadcast_has_been_scheduled">Broadcast has been scheduled</string>
+    <string name="nc_get_assisted_wallet_title">Get more out of Nunchuk with an assisted wallet</string>
+    <string name="nc_get_assisted_wallet_desc">Here are some of the things that you can do with an assisted wallet:</string>
+    <string name="nc_no_single_point_failure">No single point of failure</string>
+    <string name="nc_no_single_point_failure_desc">Eliminate single points of failure by using multisig: two keys are always required for spending. The loss of any one key will not compromise your funds.</string>
+    <string name="nc_inheritance_planning_desc">Plan your inheritance in a non-custodial way and ensure that your bitcoin can be safely passed on to your loved ones. Compatible with existing estate plans.</string>
+    <string name="nc_emergency_lockdown_desc">Lock your wallet access when there is a security threat or when you go off the grid.</string>
+    <string name="nc_flexible_spending_policies">Flexible spending policies</string>
+    <string name="nc_flexible_spending_policies_desc">Set up scheduled payments, extra security measures for withdrawing large amounts of bitcoin, and more.</string>
+    <string name="nc_cloud_backups_assisted_recovery">Cloud backups and assisted recovery</string>
+    <string name="nc_cloud_backups_assisted_recovery_desc">Have peace of mind knowing that your wallet backups are encrypted and stored securely in the cloud. Assisted recovery is a breeze.</string>
+    <string name="nc_in_app_chat_support">In-app chat support</string>
+    <string name="nc_support">Support</string>
+    <string name="nc_tell_me_more">Tell me more</string>
+    <string name="nc_or_visit_our_website">Or visit our website</string>
+    <string name="nc_in_app_chat_support_desc">Chat to an expert directly within the app when you run into issues.</string>
+    <string name="nc_hardware_discounts">Hardware discounts</string>
+    <string name="nc_hardware_discounts_desc">Get exclusive discounts when purchasing signing devices from our partners.</string>
+    <string name="nc_two_signatures_required">Two signatures required</string>
+    <string name="nc_feature_assisted_wallet_inform_desc">This feature is only available with an assisted wallet. Please create one first.</string>
+    <string name="nc_continue_setting_up_wallet">Continue setting up wallet</string>
 </resources>
