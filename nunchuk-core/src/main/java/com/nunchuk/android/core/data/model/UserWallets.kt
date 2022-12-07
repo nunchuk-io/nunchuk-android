@@ -27,13 +27,6 @@ internal data class CreateServerKeyResponse(
     @SerializedName("key") val key: ServerKeyDto? = null
 )
 
-internal data class UpdateServerKeysPayload(
-    @SerializedName("policies")
-    val keyPoliciesDtoPayload: KeyPoliciesDto,
-    @SerializedName("name")
-    val name: String,
-)
-
 internal data class UpdateWalletPayload(
     @SerializedName("name")
     val name: String? = null,

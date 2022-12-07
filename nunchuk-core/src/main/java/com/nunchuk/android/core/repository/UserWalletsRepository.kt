@@ -38,6 +38,17 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return questions
     }
 
+    override suspend fun verifySecurityQuestions(questions: List<QuestionsAndAnswer>): String {
+        return userWalletsApi.verifySecurityQuestion(
+            ConfigSecurityQuestionPayload(
+                questionsAndAnswerRequests = questions.map {
+                    QuestionsAndAnswerRequest(
+                        questionId = it.questionId, answer = it.answer
+                    )
+                })
+        ).data.token?.token.orEmpty()
+    }
+
     override suspend fun configSecurityQuestions(
         questions: List<QuestionsAndAnswer>,
         plan: MembershipPlan,
@@ -113,9 +124,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         signatures: Map<String, String>,
         keyIdOrXfp: String,
         token: String,
+        securityQuestionToken: String,
         body: String,
     ): KeyPolicy {
         val headers = mutableMapOf("Verify-token" to token)
+        if (securityQuestionToken.isNotEmpty()) {
+            headers["Security-Question-token"] = securityQuestionToken
+        }
         signatures.map { (masterFingerprint, signature) ->
             nunchukNativeSdk.createRequestToken(signature, masterFingerprint)
         }.forEachIndexed { index, signerToken ->
@@ -145,7 +160,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun createServerWallet(
         wallet: Wallet, serverKeyId: String, plan: MembershipPlan
     ): SeverWallet {
-        val entity = membershipStepDao.getStep(accountManager.getAccount().chatId, MembershipStep.HONEY_ADD_TAP_SIGNER)
+        val entity = membershipStepDao.getStep(
+            accountManager.getAccount().chatId,
+            MembershipStep.HONEY_ADD_TAP_SIGNER
+        )
         val signers = wallet.signers.map {
             if (it.type == SignerType.NFC) {
                 val status = nunchukNativeSdk.getTapSignerStatusFromMasterSigner(it.masterSignerId)
@@ -351,7 +369,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun securityQuestionsUpdate(
         authorizations: List<String>,
         verifyToken: String,
-        userData: String
+        userData: String,
     ) {
         val request = gson.fromJson(userData, SecurityQuestionsUpdateRequest::class.java)
         val headers = mutableMapOf<String, String>()
@@ -364,6 +382,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun getCurrentServerTime(): Long {
         return userWalletsApi.getCurrentServerTime().data.utcMillis ?: 0
+    }
+
+    override suspend fun getNonce(): String {
+        return userWalletsApi.getNonce().data.nonce?.nonce.orEmpty()
     }
 
     override suspend fun generateSecurityQuestionUserData(
@@ -467,17 +489,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun generateUpdateServerKey(walletId: String, keyPolicy: KeyPolicy): String {
-        val currentServerTime = getCurrentServerTime()
         val body = CreateServerKeysPayload(
             walletId = walletId,
             keyPoliciesDtoPayload = keyPolicy.toDto(),
             name = SERVER_KEY_NAME
         )
-        val nonce = UUID.randomUUID().toString()
+        val nonce = getNonce()
         val request = KeyPolicyUpdateRequest(
             nonce = nonce,
-            iat = currentServerTime / 1000,
-            exp = currentServerTime / 1000 + 30 * 60,
             body = body
         )
         return gson.toJson(request)

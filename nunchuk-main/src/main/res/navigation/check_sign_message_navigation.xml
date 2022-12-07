@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/check_sign_message_navigation">
+    android:id="@+id/check_sign_message_navigation"
+    app:startDestination="@id/answerSecurityQuestionFragment2">
 
     <fragment
         android:id="@+id/checkSignMessageFragment"
@@ -32,6 +33,9 @@
             android:name="type"
             app:argType="string" />
     </activity>
-
+    <fragment
+        android:id="@+id/answerSecurityQuestionFragment2"
+        android:name="com.nunchuk.android.main.components.tabs.services.keyrecovery.securityquestionanswer.AnswerSecurityQuestionFragment"
+        android:label="AnswerSecurityQuestionFragment" />
 
 </navigation>

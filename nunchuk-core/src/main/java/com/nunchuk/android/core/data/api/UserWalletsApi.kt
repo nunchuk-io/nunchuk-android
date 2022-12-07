@@ -22,6 +22,9 @@ internal interface UserWalletsApi {
     @GET("/v1.1/user-wallets/security-questions")
     suspend fun getSecurityQuestion(@Header("Verify-token") verifyToken: String?): Data<SecurityQuestionDataResponse>
 
+    @POST("/v1.1/user-wallets/security-questions/verify-answer")
+    suspend fun verifySecurityQuestion(@Body request: ConfigSecurityQuestionPayload): Data<VerifySecurityQuestionResponse>
+
     @POST("/v1.1/user-wallets/security-questions")
     suspend fun createSecurityQuestion(@Body request: CreateSecurityQuestionRequest): Data<CreateSecurityQuestionResponse>
 
@@ -100,4 +103,7 @@ internal interface UserWalletsApi {
 
     @GET("/v1.1/app/time/utc")
     suspend fun getCurrentServerTime(): Data<GetCurrentServerTimeResponse>
+
+    @GET("/v1.1/user-wallets/nonce")
+    suspend fun getNonce(): Data<GetNonceResponse>
 }

@@ -5,19 +5,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.DownloadBackupKeyUseCase
 import com.nunchuk.android.core.domain.membership.GetSecurityQuestionUseCase
+import com.nunchuk.android.core.domain.membership.VerifySecurityQuestionUseCase
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.QuestionsAndAnswer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class KeyRecoveryAnswerSecurityQuestionViewModel @Inject constructor(
+class AnswerSecurityQuestionViewModel @Inject constructor(
     private val getSecurityQuestionUseCase: GetSecurityQuestionUseCase,
     private val downloadBackupKeyUseCase: DownloadBackupKeyUseCase,
+    private val verifySecurityQuestionUseCase: VerifySecurityQuestionUseCase,
     savedStateHandle: SavedStateHandle
-) :
-    ViewModel() {
+) : ViewModel() {
 
     private val args = AnswerSecurityQuestionFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
@@ -31,6 +34,14 @@ class KeyRecoveryAnswerSecurityQuestionViewModel @Inject constructor(
         getSecurityQuestion()
     }
 
+    fun onContinueClicked() {
+        if (args.signer != null && args.verifyToken.isNotEmpty()) {
+            downloadBackupKey(args.signer ?: return)
+        } else {
+            verifySecurityQuestion()
+        }
+    }
+
     private fun getSecurityQuestion() = viewModelScope.launch {
         val result =
             getSecurityQuestionUseCase(GetSecurityQuestionUseCase.Param(isFilterAnswer = true))
@@ -38,10 +49,33 @@ class KeyRecoveryAnswerSecurityQuestionViewModel @Inject constructor(
             _state.update {
                 it.copy(question = result.getOrThrow().random())
             }
+        } else {
+            _event.emit(AnswerSecurityQuestionEvent.ProcessFailure(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 
-    fun downloadBackupKey() = viewModelScope.launch {
+    private fun verifySecurityQuestion() {
+        viewModelScope.launch {
+            val state = _state.value
+            if (state.question == null || state.answer.isBlank()) {
+                return@launch
+            }
+            val result = verifySecurityQuestionUseCase(
+                listOf(
+                    QuestionsAndAnswer(state.question.id, state.answer)
+                )
+            )
+            if (result.isSuccess) {
+                _event.emit(AnswerSecurityQuestionEvent.OnVerifySuccess(result.getOrThrow()))
+            } else {
+                _state.update {
+                    it.copy(error = result.exceptionOrNull()?.message.orUnknownError())
+                }
+            }
+        }
+    }
+
+    private fun downloadBackupKey(signer: SignerModel) = viewModelScope.launch {
         val state = _state.value
         if (state.question == null || state.answer.isBlank()) {
             return@launch
@@ -49,7 +83,7 @@ class KeyRecoveryAnswerSecurityQuestionViewModel @Inject constructor(
         _event.emit(AnswerSecurityQuestionEvent.Loading(true))
         val result = downloadBackupKeyUseCase(
             DownloadBackupKeyUseCase.Param(
-                id = args.signer.fingerPrint,
+                id = signer.fingerPrint,
                 questionId = state.question.id,
                 answer = state.answer,
                 verifyToken = args.verifyToken
@@ -57,7 +91,12 @@ class KeyRecoveryAnswerSecurityQuestionViewModel @Inject constructor(
         )
         _event.emit(AnswerSecurityQuestionEvent.Loading(false))
         if (result.isSuccess) {
-            _event.emit(AnswerSecurityQuestionEvent.DownloadBackupKeySuccess(result.getOrThrow()))
+            _event.emit(
+                AnswerSecurityQuestionEvent.DownloadBackupKeySuccess(
+                    signer,
+                    result.getOrThrow()
+                )
+            )
         } else {
             _state.update {
                 it.copy(error = result.exceptionOrNull()?.message.orUnknownError())
@@ -72,5 +111,4 @@ class KeyRecoveryAnswerSecurityQuestionViewModel @Inject constructor(
             }
         }
     }
-
 }

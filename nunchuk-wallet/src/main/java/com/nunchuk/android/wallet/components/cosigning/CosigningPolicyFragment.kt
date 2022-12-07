@@ -72,10 +72,11 @@ class CosigningPolicyFragment : Fragment() {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             val data = it.data?.extras
             if (it.resultCode == Activity.RESULT_OK && data != null) {
-                data.serializable<HashMap<String, String>>(GlobalResultKey.SIGNATURE_EXTRA)
-                    ?.let { signatures ->
-                        viewModel.updateServerConfig(signatures)
-                    }
+                val signatures =
+                    data.serializable<HashMap<String, String>>(GlobalResultKey.SIGNATURE_EXTRA)
+                        .orEmpty()
+                val token = data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
+                viewModel.updateServerConfig(signatures, token)
             }
         }
 
@@ -133,7 +134,7 @@ class CosigningPolicyFragment : Fragment() {
 
     private fun openWalletAuthentication(event: CosigningPolicyEvent.OnSaveChange) {
         if (event.required.type == "NONE") {
-            viewModel.updateServerConfig(emptyMap())
+            viewModel.updateServerConfig()
         } else {
             navigator.openWalletAuthentication(
                 walletId = args.walletId,

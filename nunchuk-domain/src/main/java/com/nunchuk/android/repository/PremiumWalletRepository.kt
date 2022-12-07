@@ -4,6 +4,7 @@ import com.nunchuk.android.model.*
 
 interface PremiumWalletRepository {
     suspend fun getSecurityQuestions(verifyToken: String?): List<SecurityQuestion>
+    suspend fun verifySecurityQuestions(questions: List<QuestionsAndAnswer>): String
     suspend fun configSecurityQuestions(questions: List<QuestionsAndAnswer>, plan: MembershipPlan)
     suspend fun createServerKeys(
         name: String, keyPolicy: KeyPolicy, plan: MembershipPlan
@@ -14,8 +15,10 @@ interface PremiumWalletRepository {
         signatures: Map<String, String>,
         keyIdOrXfp: String,
         token: String,
+        securityQuestionToken: String,
         body: String,
     ): KeyPolicy
+
     suspend fun createSecurityQuestion(question: String): SecurityQuestion
     suspend fun createServerWallet(
         wallet: Wallet, serverKeyId: String, plan: MembershipPlan
@@ -28,12 +31,36 @@ interface PremiumWalletRepository {
     suspend fun getServerTransaction(walletId: String, transactionId: String): Transaction?
     suspend fun deleteServerTransaction(walletId: String, transactionId: String)
     suspend fun getInheritance(walletId: String): Inheritance
-    suspend fun downloadBackup(id: String, questions: List<QuestionsAndAnswer>, verifyToken: String) : BackupKey
+    suspend fun downloadBackup(
+        id: String,
+        questions: List<QuestionsAndAnswer>,
+        verifyToken: String
+    ): BackupKey
+
     suspend fun verifiedPasswordToken(targetAction: String, password: String): String?
-    suspend fun calculateRequiredSignaturesSecurityQuestions(walletId: String, questions: List<QuestionsAndAnswer>): CalculateRequiredSignatures
-    suspend fun calculateRequiredSignaturesUpdateKeyPolicy(xfp: String, walletId: String, keyPolicy: KeyPolicy): CalculateRequiredSignatures
-    suspend fun securityQuestionsUpdate(authorizations: List<String>, verifyToken: String, userData: String)
+    suspend fun calculateRequiredSignaturesSecurityQuestions(
+        walletId: String,
+        questions: List<QuestionsAndAnswer>
+    ): CalculateRequiredSignatures
+
+    suspend fun calculateRequiredSignaturesUpdateKeyPolicy(
+        xfp: String,
+        walletId: String,
+        keyPolicy: KeyPolicy
+    ): CalculateRequiredSignatures
+
+    suspend fun securityQuestionsUpdate(
+        authorizations: List<String>,
+        verifyToken: String,
+        userData: String,
+    )
+
     suspend fun getCurrentServerTime(): Long
-    suspend fun generateSecurityQuestionUserData(walletId: String, questions: List<QuestionsAndAnswer>): String
+    suspend fun getNonce(): String
+    suspend fun generateSecurityQuestionUserData(
+        walletId: String,
+        questions: List<QuestionsAndAnswer>
+    ): String
+
     suspend fun generateUpdateServerKey(walletId: String, keyPolicy: KeyPolicy): String
 }

@@ -52,7 +52,10 @@ class CosigningPolicyViewModel @Inject constructor(
         }
     }
 
-    fun updateServerConfig(signatures: Map<String, String>) {
+    fun updateServerConfig(
+        signatures: Map<String, String> = emptyMap(),
+        securityQuestionToken: String = "",
+    ) {
         viewModelScope.launch {
             _event.emit(CosigningPolicyEvent.Loading(true))
             val result = updateServerKeysUseCase(
@@ -60,6 +63,7 @@ class CosigningPolicyViewModel @Inject constructor(
                     body = state.value.userData,
                     keyIdOrXfp = args.xfp,
                     signatures = signatures,
+                    securityQuestionToken = securityQuestionToken,
                     token = args.token
                 )
             )
@@ -91,10 +95,12 @@ class CosigningPolicyViewModel @Inject constructor(
             )
             _event.emit(CosigningPolicyEvent.Loading(false))
             if (result.isSuccess) {
-                val data = getKeyPolicyUserDataUseCase(GetKeyPolicyUserDataUseCase.Param(
-                    args.walletId,
-                    state.value.keyPolicy
-                )).getOrThrow()
+                val data = getKeyPolicyUserDataUseCase(
+                    GetKeyPolicyUserDataUseCase.Param(
+                        args.walletId,
+                        state.value.keyPolicy
+                    )
+                ).getOrThrow()
                 _state.update { it.copy(userData = data) }
                 _event.emit(CosigningPolicyEvent.OnSaveChange(result.getOrThrow(), data))
             } else {
@@ -126,7 +132,9 @@ data class CosigningPolicyState(
 sealed class CosigningPolicyEvent {
     class Loading(val isLoading: Boolean) : CosigningPolicyEvent()
     class ShowError(val error: String) : CosigningPolicyEvent()
-    class OnSaveChange(val required: CalculateRequiredSignatures, val data: String) : CosigningPolicyEvent()
+    class OnSaveChange(val required: CalculateRequiredSignatures, val data: String) :
+        CosigningPolicyEvent()
+
     object OnEditSpendingLimitClicked : CosigningPolicyEvent()
     object OnEditSingingDelayClicked : CosigningPolicyEvent()
     object OnDiscardChange : CosigningPolicyEvent()

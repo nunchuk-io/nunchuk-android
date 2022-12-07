@@ -34,6 +34,7 @@ class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>(
         when (args.type) {
             SIGN_TEMP_MESSAGE -> graph.setStartDestination(R.id.checkSignMessageFragment)
             SIGN_DUMMY_TX -> graph.setStartDestination(R.id.dummyTransactionDetailsFragment)
+            SECURITY_QUESTION -> graph.setStartDestination(R.id.answerSecurityQuestionFragment2)
         }
         navHostFragment.navController.setGraph(graph, intent.extras)
     }
@@ -41,6 +42,7 @@ class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>(
     companion object {
         internal const val SIGN_TEMP_MESSAGE = "SIGN_MESSAGE"
         internal const val SIGN_DUMMY_TX = "SIGN_DUMMY_TX"
+        internal const val SECURITY_QUESTION = "SECURITY_QUESTION"
 
         fun start(
             walletId: String,

@@ -85,9 +85,12 @@
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <argument
             android:name="signer"
-            app:argType="com.nunchuk.android.core.signer.SignerModel" />
+            android:defaultValue="@null"
+            app:argType="com.nunchuk.android.core.signer.SignerModel"
+            app:nullable="true" />
         <argument
             android:name="verify_token"
+            android:defaultValue=""
             app:argType="string" />
     </fragment>
 

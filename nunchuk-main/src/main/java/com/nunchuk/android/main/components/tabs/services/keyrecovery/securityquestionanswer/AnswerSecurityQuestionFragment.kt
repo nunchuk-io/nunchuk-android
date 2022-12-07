@@ -1,5 +1,7 @@
 package com.nunchuk.android.main.components.tabs.services.keyrecovery.securityquestionanswer
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -22,7 +24,6 @@ import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
@@ -31,13 +32,13 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
+import com.nunchuk.android.share.result.GlobalResultKey
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class AnswerSecurityQuestionFragment : Fragment() {
 
-    private val viewModel: KeyRecoveryAnswerSecurityQuestionViewModel by viewModels()
-    private val args: AnswerSecurityQuestionFragmentArgs by navArgs()
+    private val viewModel: AnswerSecurityQuestionViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -59,13 +60,23 @@ class AnswerSecurityQuestionFragment : Fragment() {
                 is AnswerSecurityQuestionEvent.DownloadBackupKeySuccess -> {
                     findNavController().navigate(
                         AnswerSecurityQuestionFragmentDirections.actionAnswerSecurityQuestionFragmentToBackupDownloadFragment(
-                            signer = args.signer,
+                            signer = event.signer,
                             backupKey = event.backupKey
                         )
                     )
                 }
                 is AnswerSecurityQuestionEvent.ProcessFailure -> {
                     showError(message = event.message)
+                }
+                is AnswerSecurityQuestionEvent.OnVerifySuccess -> {
+                    requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
+                        putExtra(
+                            GlobalResultKey.SIGNATURE_EXTRA,
+                            HashMap<String, String>()
+                        )
+                        putExtra(GlobalResultKey.SECURITY_QUESTION_TOKEN, event.token)
+                    })
+                    requireActivity().finish()
                 }
             }
         }
@@ -75,7 +86,7 @@ class AnswerSecurityQuestionFragment : Fragment() {
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun AnswerSecurityQuestionScreen(
-    viewModel: KeyRecoveryAnswerSecurityQuestionViewModel = viewModel()
+    viewModel: AnswerSecurityQuestionViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -83,7 +94,7 @@ fun AnswerSecurityQuestionScreen(
         question = state.question?.question.orEmpty(),
         error = state.error,
         onContinueClick = {
-            viewModel.downloadBackupKey()
+            viewModel.onContinueClicked()
         }, onTextChange = {
             viewModel.onAnswerTextChange(it)
         })
@@ -116,28 +127,31 @@ fun AnswerSecurityQuestionScreenContent(
                     text = stringResource(id = R.string.nc_answer_security_question_desc),
                     style = NunchukTheme.typography.body
                 )
-                Text(
-                    modifier = Modifier.padding(start = 16.dp, top = 24.dp, end = 16.dp),
-                    text = question,
-                    style = NunchukTheme.typography.title
-                )
+                if (question.isNotEmpty()) {
+                    Text(
+                        modifier = Modifier.padding(start = 16.dp, top = 24.dp, end = 16.dp),
+                        text = question,
+                        style = NunchukTheme.typography.title
+                    )
 
-                NcTextField(
-                    modifier = Modifier
-                        .padding(top = 16.dp)
-                        .padding(horizontal = 16.dp),
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                    title = stringResource(id = R.string.nc_answer),
-                    value = answer,
-                    error = error,
-                    onValueChange = onTextChange
-                )
+                    NcTextField(
+                        modifier = Modifier
+                            .padding(top = 16.dp)
+                            .padding(horizontal = 16.dp),
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                        title = stringResource(id = R.string.nc_answer),
+                        value = answer,
+                        error = error,
+                        onValueChange = onTextChange
+                    )
+                }
 
                 Spacer(modifier = Modifier.weight(1.0f))
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
+                    enabled = answer.isNotEmpty(),
                     onClick = onContinueClick,
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))

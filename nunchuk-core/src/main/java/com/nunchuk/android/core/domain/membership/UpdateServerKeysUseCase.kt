@@ -14,16 +14,18 @@ class UpdateServerKeysUseCase @Inject constructor(
     override suspend fun execute(parameters: Param) : KeyPolicy {
         return userWalletsRepository.updateServerKeys(
             signatures = parameters.signatures,
-            token = parameters.token,
             keyIdOrXfp = parameters.keyIdOrXfp,
+            token = parameters.token,
             body = parameters.body,
+            securityQuestionToken = parameters.securityQuestionToken
         )
     }
 
     data class Param(
         val body: String,
         val keyIdOrXfp: String,
-        val signatures: Map<String, String>,
+        val signatures: Map<String, String> = emptyMap(),
         val token: String,
+        val securityQuestionToken: String = "",
     )
 }

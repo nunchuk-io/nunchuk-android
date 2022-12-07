@@ -1,7 +1,6 @@
 package com.nunchuk.android.core.domain.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.QuestionsAndAnswer
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
@@ -22,13 +21,13 @@ class SecurityQuestionsUpdateUseCase @Inject constructor(
         return userWalletRepository.securityQuestionsUpdate(
             authorizations = authorizations,
             verifyToken = parameters.verifyToken,
-            userData =  parameters.userData
+            userData = parameters.userData,
         )
     }
 
     class Param(
-        val signatures: Map<String, String>,
+        val signatures: Map<String, String> = emptyMap(),
         val userData: String,
-        val verifyToken: String
+        val verifyToken: String,
     )
 }
