@@ -20,6 +20,7 @@
 package com.nunchuk.android.transaction.components.details
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
@@ -571,7 +572,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     companion object {
         fun buildIntent(
-            activityContext: Activity,
+            activityContext: Context,
             walletId: String,
             txId: String,
             initEventId: String = "",

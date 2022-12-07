@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.*
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.*
@@ -29,10 +31,7 @@ import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -60,7 +59,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getWalletUseCase: GetWalletUseCase,
     private val accountManager: AccountManager,
     private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
-    private val assistedWalletManager: AssistedWalletManager
+    private val assistedWalletManager: AssistedWalletManager,
+    private val pushEventManager: PushEventManager,
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
 
     private var walletId: String = ""
@@ -87,6 +87,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
             TransactionListener.transactionUpdateFlow.collect {
                 if (it.txId == txId) {
                     getTransactionInfo()
+                }
+            }
+        }
+        viewModelScope.launch {
+            pushEventManager.event.filterIsInstance<PushEvent.CosigningEvent>().collect {
+                if (it.transactionId == txId) {
+                    getTransaction()
                 }
             }
         }

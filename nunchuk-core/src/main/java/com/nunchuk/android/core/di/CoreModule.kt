@@ -28,6 +28,8 @@ import com.nunchuk.android.core.matrix.MatrixInterceptor
 import com.nunchuk.android.core.matrix.MatrixInterceptorImpl
 import com.nunchuk.android.core.network.NetworkVerifier
 import com.nunchuk.android.core.network.NetworkVerifierImpl
+import com.nunchuk.android.core.push.PushEventManager
+import com.nunchuk.android.core.push.PushEventManagerImpl
 import com.nunchuk.android.utils.DeviceManager
 import dagger.Binds
 import dagger.Module
@@ -58,4 +60,8 @@ internal interface CoreModule {
     @Binds
     @Singleton
     fun bindNetworkVerifier(network: NetworkVerifierImpl): NetworkVerifier
+
+    @Binds
+    @Singleton
+    fun bindPushEventManager(impl: PushEventManagerImpl): PushEventManager
 }
