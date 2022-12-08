@@ -271,7 +271,7 @@
     <string name="nc_signer_before_start_device_unlock">Unlock the device</string>
     <string name="nc_signer_before_start_device_unlock_content">To unlock the device, you might need to enter a PIN and/or a PASSPHRASE directly on the device screen.</string>
     <string name="nc_config_cosiging_spending_limit">Configure co-signing spending limit</string>
-    <string name="nc_cosigning_pending_limit_desc">The server key will co-sign transactions as long as the total amount spent stays below the spending limit for a given period.</string>
+    <string name="nc_cosigning_pending_limit_desc">The server key will only co-sign transactions if the total amount spent has not exceeded the spending limit.</string>
     <string name="nc_daily">Daily</string>
     <string name="nc_monthly">Monthly</string>
     <string name="nc_weekly">Weekly</string>
