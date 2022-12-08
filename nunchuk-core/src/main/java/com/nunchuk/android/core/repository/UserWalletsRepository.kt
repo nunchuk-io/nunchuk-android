@@ -15,7 +15,6 @@ import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.SERVER_KEY_NAME
-import java.util.*
 import javax.inject.Inject
 
 
@@ -380,10 +379,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return userWalletsApi.securityQuestionsUpdate(headers, request)
     }
 
-    override suspend fun getCurrentServerTime(): Long {
-        return userWalletsApi.getCurrentServerTime().data.utcMillis ?: 0
-    }
-
     override suspend fun getNonce(): String {
         return userWalletsApi.getNonce().data.nonce?.nonce.orEmpty()
     }
@@ -392,7 +387,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         walletId: String,
         questions: List<QuestionsAndAnswer>
     ): String {
-        val currentServerTime = getCurrentServerTime()
         val questionsAndAnswerRequests = questions.map {
             QuestionsAndAnswerRequest(
                 questionId = it.questionId,
@@ -400,11 +394,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             )
         }
         val body = QuestionsAndAnswerRequestBody(questionsAndAnswerRequests, walletId = walletId)
-        val nonce = UUID.randomUUID().toString()
+        val nonce = getNonce()
         val request = SecurityQuestionsUpdateRequest(
             nonce = nonce,
-            iat = currentServerTime / 1000,
-            exp = currentServerTime / 1000 + 30 * 60,
             body = body
         )
         return gson.toJson(request)

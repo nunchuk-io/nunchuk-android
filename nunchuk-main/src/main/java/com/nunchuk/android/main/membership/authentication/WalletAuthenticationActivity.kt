@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.result.ActivityResultLauncher
-import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navArgs
 import com.nunchuk.android.core.nfc.BaseNfcActivity
@@ -21,7 +20,6 @@ class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>(
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
         initStartDestination()
     }
 
@@ -33,7 +31,7 @@ class WalletAuthenticationActivity : BaseNfcActivity<ActivityNavigationBinding>(
 
         when (args.type) {
             SIGN_TEMP_MESSAGE -> graph.setStartDestination(R.id.checkSignMessageFragment)
-            SIGN_DUMMY_TX -> graph.setStartDestination(R.id.dummyTransactionDetailsFragment)
+            SIGN_DUMMY_TX -> graph.setStartDestination(R.id.dummyTransactionIntroFragment)
             SECURITY_QUESTION -> graph.setStartDestination(R.id.answerSecurityQuestionFragment2)
         }
         navHostFragment.navController.setGraph(graph, intent.extras)

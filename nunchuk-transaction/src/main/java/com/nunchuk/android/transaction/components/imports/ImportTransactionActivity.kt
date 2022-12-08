@@ -25,10 +25,13 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import com.google.zxing.client.android.Intents
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.CHOOSE_FILE_REQUEST_CODE
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.openSelectFileChooser
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.share.model.TransactionOption
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionError
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionSuccess
@@ -50,12 +53,7 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-        viewModel.init(
-            walletId = args.walletId,
-            transactionOption = args.transactionOption,
-            masterFingerPrint = args.masterFingerPrint,
-            initEventId = args.initEventId
-        )
+        viewModel.init(args)
         setupViews()
         observeEvent()
     }
@@ -76,13 +74,18 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
     private fun handleEvent(event: ImportTransactionEvent) {
         when (event) {
             is ImportTransactionError -> onImportTransactionError(event)
-            ImportTransactionSuccess -> onImportTransactionSuccess()
+            is ImportTransactionSuccess -> onImportTransactionSuccess(event)
         }
     }
 
-    private fun onImportTransactionSuccess() {
+    private fun onImportTransactionSuccess(event: ImportTransactionSuccess) {
+        if (event.signature.isNotEmpty()) {
+            setResult(Activity.RESULT_OK, Intent().apply {
+                putExtra(GlobalResultKey.SIGNATURE_EXTRA, event.signature)
+            })
+        }
         hideLoading()
-        NCToastMessage(this).showMessage(getString(R.string.nc_transaction_imported))
+        NcToastManager.scheduleShowMessage(getString(R.string.nc_transaction_imported))
         finish()
     }
 
@@ -111,18 +114,21 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
     }
 
     companion object {
-
-        fun start(activityContext: Activity, walletId: String, transactionOption: TransactionOption, masterFingerPrint: String, initEventId: String) {
-            activityContext.startActivity(
-                ImportTransactionArgs(
-                    walletId = walletId,
-                    transactionOption = transactionOption,
-                    masterFingerPrint = masterFingerPrint,
-                    initEventId = initEventId
-                ).buildIntent(activityContext)
-            )
+        fun buildIntent(
+            activityContext: Activity,
+            walletId: String = "",
+            transactionOption: TransactionOption,
+            masterFingerPrint: String = "",
+            initEventId: String = "",
+            signer: SingleSigner? = null,
+        ): Intent {
+            return ImportTransactionArgs(
+                walletId = walletId,
+                transactionOption = transactionOption,
+                masterFingerPrint = masterFingerPrint,
+                initEventId = initEventId,
+                signer = signer
+            ).buildIntent(activityContext)
         }
-
     }
-
 }

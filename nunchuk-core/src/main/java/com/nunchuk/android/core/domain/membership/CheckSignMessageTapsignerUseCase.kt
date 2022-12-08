@@ -29,7 +29,6 @@ class CheckSignMessageTapsignerUseCase @Inject constructor(
     class Param(
         isoDep: IsoDep,
         val signer: SingleSigner,
-        val userData: String,
         val cvc: String,
         val messageToSign: String
     ) : Data(isoDep)

@@ -40,7 +40,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
     private val getDummyTxFromMessage: GetDummyTxFromMessage,
     private val getTxToSignMessage: GetTxToSignMessage,
-    savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val args = WalletAuthenticationActivityArgs.fromSavedStateHandle(savedStateHandle)
@@ -54,13 +54,21 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val dataToSign = MutableStateFlow("")
 
     init {
+        savedStateHandle.get<SingleSigner>(EXTRA_CURRENT_INTERACT_SIGNER)?.let { signer ->
+            _state.update { it.copy(interactSingleSigner = signer) }
+        }
         getWalletDetails()
         viewModelScope.launch {
             if (args.type == WalletAuthenticationActivity.SIGN_DUMMY_TX) {
                 val txToSignResult =
                     getTxToSignMessage(GetTxToSignMessage.Param(args.walletId, args.userData))
                 dataToSign.value = txToSignResult.getOrNull().orEmpty()
-                getDummyTxFromMessage(GetDummyTxFromMessage.Param(args.walletId, dataToSign.value)).getOrNull()
+                getDummyTxFromMessage(
+                    GetDummyTxFromMessage.Param(
+                        args.walletId,
+                        dataToSign.value
+                    )
+                ).getOrNull()
                     ?.let { transition ->
                         _state.update { it.copy(transaction = transition) }
                     }
@@ -75,13 +83,14 @@ class WalletAuthenticationViewModel @Inject constructor(
         val singleSigner =
             _state.value.singleSigners.firstOrNull { it.masterSignerId == signerModel.id && it.derivationPath == signerModel.derivationPath }
                 ?: return@launch
+        savedStateHandle[EXTRA_CURRENT_INTERACT_SIGNER] = singleSigner
         _state.update { it.copy(interactSingleSigner = singleSigner) }
         when (signerModel.type) {
             SignerType.NFC -> _event.emit(WalletAuthenticationEvent.ScanTapSigner)
             SignerType.COLDCARD_NFC -> _event.emit(WalletAuthenticationEvent.ScanColdCard)
             SignerType.SOFTWARE,
             SignerType.HARDWARE -> handleSignCheckSoftware(singleSigner)
-            SignerType.AIRGAP ->  _event.emit(WalletAuthenticationEvent.ShowAirgapOption)
+            SignerType.AIRGAP -> _event.emit(WalletAuthenticationEvent.ShowAirgapOption)
             else -> {}
         }
     }
@@ -124,7 +133,6 @@ class WalletAuthenticationViewModel @Inject constructor(
         val result = checkSignMessageTapsignerUseCase(
             CheckSignMessageTapsignerUseCase.Param(
                 signer = singleSigner,
-                userData = args.userData,
                 isoDep = IsoDep.get(ncfScanInfo?.tag),
                 cvc = cvc,
                 messageToSign = dataToSign.value
@@ -139,7 +147,6 @@ class WalletAuthenticationViewModel @Inject constructor(
             val result = checkSignMessageUseCase(
                 CheckSignMessageUseCase.Param(
                     signer = singleSigner,
-                    userData = args.userData,
                     messageToSign = dataToSign.value,
                 )
             )
@@ -147,12 +154,12 @@ class WalletAuthenticationViewModel @Inject constructor(
         }
     }
 
-    private suspend fun handleSignatureResult(
+    suspend fun handleSignatureResult(
         result: Result<String>,
         singleSigner: SingleSigner
     ) {
         if (result.isSuccess) {
-            val signatures = _state.value.signatures
+            val signatures = _state.value.signatures.toMutableMap()
             signatures[singleSigner.masterFingerprint] = result.getOrThrow()
             if (signatures.size == args.requiredSignatures) {
                 _event.emit(WalletAuthenticationEvent.WalletAuthenticationSuccess(signatures))
@@ -196,11 +203,15 @@ class WalletAuthenticationViewModel @Inject constructor(
         }
     }
 
-    private fun isValidSigner(type: SignerType, authenticationType: String) : Boolean {
+    private fun isValidSigner(type: SignerType, authenticationType: String): Boolean {
         if (authenticationType == WalletAuthenticationActivity.SIGN_DUMMY_TX && type == SignerType.AIRGAP) return true
         return type == SignerType.SOFTWARE
                 || type == SignerType.HARDWARE
                 || type == SignerType.NFC
                 || type == SignerType.COLDCARD_NFC
+    }
+
+    companion object {
+        private const val EXTRA_CURRENT_INTERACT_SIGNER = "EXTRA_CURRENT_INTERACT_SIGNER"
     }
 }

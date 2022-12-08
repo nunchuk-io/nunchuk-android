@@ -13,7 +13,8 @@ class ParsePassportDummyTransaction @Inject constructor(
 ) : UseCase<ParsePassportDummyTransaction.Param, String>(ioDispatcher) {
 
     override suspend fun execute(parameters: Param): String {
-        return nativeSdk.parsePassportDummyTransaction(parameters.signer, parameters.qrs)
+        val psbt = nativeSdk.parsePassportDummyTransaction(parameters.qrs)
+        return nativeSdk.getDummyTransactionSignature(parameters.signer, psbt)
     }
 
     data class Param(val signer: SingleSigner, val qrs: List<String>)

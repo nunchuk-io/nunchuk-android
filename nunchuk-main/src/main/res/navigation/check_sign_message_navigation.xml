@@ -4,6 +4,7 @@
     android:id="@+id/check_sign_message_navigation"
     app:startDestination="@id/answerSecurityQuestionFragment2">
 
+
     <fragment
         android:id="@+id/checkSignMessageFragment"
         android:name="com.nunchuk.android.main.membership.authentication.message.CheckSignMessageFragment"
@@ -37,5 +38,20 @@
         android:id="@+id/answerSecurityQuestionFragment2"
         android:name="com.nunchuk.android.main.components.tabs.services.keyrecovery.securityquestionanswer.AnswerSecurityQuestionFragment"
         android:label="AnswerSecurityQuestionFragment" />
+    <fragment
+        android:id="@+id/dummyTransactionIntroFragment"
+        android:name="com.nunchuk.android.main.membership.authentication.dummytx.DummyTransactionIntroFragment"
+        android:label="DummyTransactionIntroFragment">
+
+        <action
+            android:id="@+id/action_dummyTransactionIntro_to_dummyTransactionDetailsFragment"
+            app:destination="@id/dummyTransactionDetailsFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@id/dummyTransactionIntroFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
 
 </navigation>

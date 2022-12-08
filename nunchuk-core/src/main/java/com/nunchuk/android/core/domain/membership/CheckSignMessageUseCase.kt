@@ -17,7 +17,6 @@ class CheckSignMessageUseCase @Inject constructor(
 
     class Param(
         val signer: SingleSigner,
-        val userData: String,
         val messageToSign: String,
     )
 }

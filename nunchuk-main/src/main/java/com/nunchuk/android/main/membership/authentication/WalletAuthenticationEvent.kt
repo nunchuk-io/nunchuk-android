@@ -8,7 +8,7 @@ sealed class WalletAuthenticationEvent {
     data class Loading(val isLoading: Boolean) : WalletAuthenticationEvent()
     data class ProcessFailure(val message: String) : WalletAuthenticationEvent()
     data class ShowError(val message: String) : WalletAuthenticationEvent()
-    data class WalletAuthenticationSuccess(val signatures: HashMap<String, String>) :
+    data class WalletAuthenticationSuccess(val signatures: Map<String, String>) :
         WalletAuthenticationEvent()
 
     class NfcLoading(val isLoading: Boolean, val isColdCard: Boolean = false) :
@@ -23,7 +23,7 @@ sealed class WalletAuthenticationEvent {
 data class WalletAuthenticationState(
     val walletSigner: List<SignerModel> = emptyList(),
     val singleSigners: List<SingleSigner> = emptyList(),
-    val signatures: HashMap<String, String> = HashMap(),
+    val signatures: Map<String, String> = emptyMap(),
     val transaction: Transaction? = null,
     val interactSingleSigner: SingleSigner? = null
 )

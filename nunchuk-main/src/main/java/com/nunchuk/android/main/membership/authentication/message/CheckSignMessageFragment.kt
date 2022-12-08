@@ -72,7 +72,7 @@ class CheckSignMessageFragment : Fragment() {
                             requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
                                 putExtra(
                                     GlobalResultKey.SIGNATURE_EXTRA,
-                                    event.signatures
+                                    HashMap(event.signatures)
                                 )
                             })
                             requireActivity().finish()

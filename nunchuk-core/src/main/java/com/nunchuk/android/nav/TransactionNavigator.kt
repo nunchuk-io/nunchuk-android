@@ -25,6 +25,7 @@ import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.share.model.TransactionOption
 
@@ -113,11 +114,18 @@ interface TransactionNavigator {
         initEventId: String = ""
     )
 
+    fun openImportTransactionScreen(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Activity,
+        transactionOption: TransactionOption,
+        signer: SingleSigner,
+    )
+
     fun openExportTransactionScreen(
         activityContext: Activity,
         walletId: String = "",
         txId: String = "",
-        txToSign: String,
+        txToSign: String = "",
         transactionOption: TransactionOption,
     )
 

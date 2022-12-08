@@ -23,77 +23,133 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionError
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionSuccess
 import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCase
 import com.nunchuk.android.usecase.ImportPassportTransactionUseCase
 import com.nunchuk.android.usecase.ImportTransactionUseCase
+import com.nunchuk.android.usecase.membership.GetDummyTransactionSignatureUseCase
+import com.nunchuk.android.usecase.membership.ParseKeystoneDummyTransaction
+import com.nunchuk.android.usecase.membership.ParsePassportDummyTransaction
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
 internal class ImportTransactionViewModel @Inject constructor(
     private val importTransactionUseCase: ImportTransactionUseCase,
     private val importKeystoneTransactionUseCase: ImportKeystoneTransactionUseCase,
-    private val importPassportTransactionUseCase: ImportPassportTransactionUseCase
+    private val importPassportTransactionUseCase: ImportPassportTransactionUseCase,
+    private val parseKeystoneDummyTransaction: ParseKeystoneDummyTransaction,
+    private val parsePassportDummyTransaction: ParsePassportDummyTransaction,
+    private val getDummyTransactionSignatureUseCase: GetDummyTransactionSignatureUseCase,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<Unit, ImportTransactionEvent>() {
 
-    private lateinit var walletId: String
-    private lateinit var transactionOption: TransactionOption
-    private lateinit var masterFingerPrint: String
-    private lateinit var initEventId: String
+    private lateinit var args: ImportTransactionArgs
     private var isProcessing = false
 
     private val qrDataList = HashSet<String>()
 
     override val initialState = Unit
 
-    fun init(walletId: String, transactionOption: TransactionOption, masterFingerPrint: String, initEventId: String) {
-        this.walletId = walletId
-        this.transactionOption = transactionOption
-        this.masterFingerPrint = masterFingerPrint
-        this.initEventId = initEventId
+    fun init(args: ImportTransactionArgs) {
+        this.args = args
     }
 
     fun importTransactionViaFile(filePath: String) {
         viewModelScope.launch {
-            importTransactionUseCase.execute(walletId, filePath)
-                .flowOn(IO)
-                .onException { event(ImportTransactionError(it.readableMessage())) }
-                .flowOn(Main)
-                .collect { event(ImportTransactionSuccess) }
+            if (isDummyFlow) {
+                val signer = args.signer ?: return@launch
+                val psbt = withContext(ioDispatcher) {
+                    File(filePath).readText()
+                }
+                val result = getDummyTransactionSignatureUseCase(GetDummyTransactionSignatureUseCase.Param(signer, psbt))
+                if (result.isSuccess) {
+                    setEvent(ImportTransactionSuccess(result.getOrThrow()))
+                } else {
+                    setEvent(ImportTransactionError(result.exceptionOrNull()?.message.orUnknownError()))
+                }
+            } else {
+                importTransactionUseCase.execute(args.walletId, filePath)
+                    .flowOn(IO)
+                    .onException { event(ImportTransactionError(it.readableMessage())) }
+                    .flowOn(Main)
+                    .collect { event(ImportTransactionSuccess()) }
+            }
         }
     }
 
     fun importTransactionViaQR(qrData: String) {
         qrDataList.add(qrData)
-        Timber.d("[ImportTransaction]updateQRCode($qrData)")
+        if (isDummyFlow) {
+            parseDummyTransaction()
+        } else {
+            parseNormalTransaction()
+        }
+    }
+
+    private fun parseDummyTransaction() {
+        if (isProcessing) return
+        val signer = args.signer ?: return
+        viewModelScope.launch {
+            isProcessing = true
+            val result = if (args.transactionOption == TransactionOption.IMPORT_KEYSTONE) {
+                parseKeystoneDummyTransaction(ParseKeystoneDummyTransaction.Param(signer, qrDataList.toList()))
+            } else {
+                parsePassportDummyTransaction(ParsePassportDummyTransaction.Param(signer, qrDataList.toList()))
+            }
+            if (result.isSuccess) {
+                setEvent(ImportTransactionSuccess(result.getOrThrow()))
+            } else {
+                setEvent(ImportTransactionError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+            isProcessing = false
+        }
+    }
+
+    private fun parseNormalTransaction() {
         Timber.d("[ImportTransaction]isProcessing::$isProcessing")
         if (!isProcessing) {
             viewModelScope.launch {
-                Timber.d("[ImportTransaction]execute($walletId, $qrDataList)")
-                if (transactionOption == TransactionOption.IMPORT_PASSPORT) {
-                    importPassportTransactionUseCase.execute(walletId = walletId, qrData = qrDataList.toList(), initEventId = initEventId, masterFingerPrint = masterFingerPrint)
+                Timber.d("[ImportTransaction]execute($args.walletId, $qrDataList)")
+                if (args.transactionOption == TransactionOption.IMPORT_PASSPORT) {
+                    importPassportTransactionUseCase.execute(
+                        walletId = args.walletId,
+                        qrData = qrDataList.toList(),
+                        initEventId = args.initEventId,
+                        masterFingerPrint = args.masterFingerPrint
+                    )
                 } else {
-                    importKeystoneTransactionUseCase.execute(walletId = walletId, qrData = qrDataList.toList(), initEventId = initEventId, masterFingerPrint = masterFingerPrint)
+                    importKeystoneTransactionUseCase.execute(
+                        walletId = args.walletId,
+                        qrData = qrDataList.toList(),
+                        initEventId = args.initEventId,
+                        masterFingerPrint = args.masterFingerPrint
+                    )
                 }
                     .onStart { isProcessing = true }
                     .flowOn(IO)
                     .onException { setEvent(ImportTransactionError(it.message.orUnknownError())) }
                     .flowOn(Main)
                     .onCompletion { isProcessing = false }
-                    .collect { event(ImportTransactionSuccess) }
+                    .collect { event(ImportTransactionSuccess()) }
             }
         }
     }
 
+    private val isDummyFlow: Boolean
+        get() = args.signer != null
 }

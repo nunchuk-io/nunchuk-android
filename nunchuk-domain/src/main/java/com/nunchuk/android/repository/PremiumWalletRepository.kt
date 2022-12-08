@@ -55,7 +55,6 @@ interface PremiumWalletRepository {
         userData: String,
     )
 
-    suspend fun getCurrentServerTime(): Long
     suspend fun getNonce(): String
     suspend fun generateSecurityQuestionUserData(
         walletId: String,
