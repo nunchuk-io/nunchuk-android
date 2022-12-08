@@ -26,6 +26,7 @@ import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -48,7 +49,9 @@ class CheckBackUpBySelfFragment : MembershipFragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                CheckBackUpBySelfScreen(viewModel, membershipStepManager)
+                CheckBackUpBySelfScreen(viewModel, membershipStepManager) {
+                    requireActivity().openExternalLink("https://nunchuk.io/start")
+                }
             }
         }
     }
@@ -81,12 +84,14 @@ class CheckBackUpBySelfFragment : MembershipFragment() {
 @Composable
 private fun CheckBackUpBySelfScreen(
     viewModel: CheckBackUpBySelfViewModel = viewModel(),
-    membershipStepManager: MembershipStepManager
+    membershipStepManager: MembershipStepManager,
+    onLinkClicked: () -> Unit,
 ) {
     val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
     CheckBackUpBySelfContent(
         onBtnClicked = viewModel::onBtnClicked,
         remainingTime = remainingTime,
+        onLinkClicked = onLinkClicked,
     )
 }
 
@@ -94,6 +99,7 @@ private fun CheckBackUpBySelfScreen(
 private fun CheckBackUpBySelfContent(
     remainingTime: Int = 0,
     onBtnClicked: (event: CheckBackUpBySelfEvent) -> Unit = {},
+    onLinkClicked: () -> Unit = {},
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -143,8 +149,13 @@ private fun CheckBackUpBySelfContent(
                 )
                 Spacer(modifier = Modifier.weight(1.0f))
                 NcHintMessage(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    messages = listOf(ClickAbleText(content = stringResource(R.string.nc_self_verify_hint))),
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth(),
+                    messages = listOf(
+                        ClickAbleText(content = stringResource(R.string.nc_self_verify_hint)),
+                        ClickAbleText(content = "nunchuk.io/start", onLinkClicked)
+                    ),
                     type = HighlightMessageType.HINT,
                 )
                 NcPrimaryDarkButton(
