@@ -21,6 +21,7 @@ fun NcTopAppBar(
     hasAction: Boolean = false,
     textStyle: TextStyle = NunchukTheme.typography.titleSmall,
     actions: @Composable RowScope.() -> Unit = {},
+    isBack: Boolean = true,
 ) {
     val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
     TopAppBar(
@@ -29,7 +30,7 @@ fun NcTopAppBar(
         navigationIcon = {
             IconButton(onClick = { onBackPressOwner?.onBackPressedDispatcher?.onBackPressed() }) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_back),
+                    painter = painterResource(id = if (isBack) R.drawable.ic_back else R.drawable.ic_close),
                     contentDescription = "Back"
                 )
             }
@@ -39,7 +40,9 @@ fun NcTopAppBar(
                 text = title,
                 style = textStyle,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(end = if (hasAction) 0.dp else LocalViewConfiguration.current.minimumTouchTargetSize.width).fillMaxWidth(),
+                modifier = Modifier
+                    .padding(end = if (hasAction) 0.dp else LocalViewConfiguration.current.minimumTouchTargetSize.width)
+                    .fillMaxWidth(),
             )
         },
         actions = actions

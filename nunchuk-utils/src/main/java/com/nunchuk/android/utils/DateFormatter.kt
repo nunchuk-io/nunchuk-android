@@ -17,12 +17,13 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.messages.util
+package com.nunchuk.android.utils
 
 import java.text.SimpleDateFormat
 import java.util.*
 
 val SIMPLE_DATE = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
+val SIMPLE_GLOBAL_DATE = SimpleDateFormat("MM/dd/yyyy", Locale.ENGLISH)
 
 fun Date.formatMessageDate(showToday: Boolean = false): String {
     val messageDate: Calendar = Calendar.getInstance()
@@ -59,4 +60,6 @@ fun Date.formatByHour(): String = SimpleDateFormat("hh:mm a", Locale.ENGLISH).fo
 
 fun Date.simpleDateFormat(): String = SIMPLE_DATE.format(this)
 
-internal fun String.simpleDateFormat(): Date = SIMPLE_DATE.parse(this) ?: Date()
+fun Date.simpleGlobalDateFormat(): String = SIMPLE_GLOBAL_DATE.format(this)
+
+fun String.simpleDateFormat(): Date = SIMPLE_DATE.parse(this) ?: Date()

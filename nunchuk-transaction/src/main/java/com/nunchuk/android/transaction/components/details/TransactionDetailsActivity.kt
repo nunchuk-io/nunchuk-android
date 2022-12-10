@@ -48,6 +48,7 @@ import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
 import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeArgs
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
+import com.nunchuk.android.transaction.components.schedule.ScheduleBroadcastTransactionActivity
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
@@ -74,7 +75,15 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 
-    private val launcher =
+    private val scheduleBroadcastLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data
+            if (data != null && it.resultCode == Activity.RESULT_OK) {
+
+            }
+        }
+
+    private val replaceByFeeLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             val data = it.data
             if (it.resultCode == Activity.RESULT_OK && data != null) {
@@ -456,13 +465,20 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 REPLACE_BY_FEE -> handleOpenEditFee()
                 COPY_TRANSACTION_ID -> handleCopyContent(args.txId)
                 REMOVE_TRANSACTION -> viewModel.handleDeleteTransactionEvent(false)
+                SCHEDULE_BROADCAST -> scheduleBroadcastLauncher.launch(
+                    ScheduleBroadcastTransactionActivity.buildIntent(
+                        this,
+                        args.walletId,
+                        args.txId,
+                    )
+                )
             }
         }
     }
 
     private fun handleOpenEditFee() {
         navigator.openReplaceTransactionFee(
-            launcher, this,
+            replaceByFeeLauncher, this,
             walletId = args.walletId,
             transaction = viewModel.getTransaction()
         )

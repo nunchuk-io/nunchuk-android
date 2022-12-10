@@ -2,6 +2,7 @@ package com.nunchuk.android.compose
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,8 +31,9 @@ fun NcTextField(
     modifier: Modifier = Modifier,
     title: String,
     value: String,
-    rightText: String? = null,
+    rightContent: @Composable BoxScope.() -> Unit = {},
     error: String? = null,
+    onClick : () -> Unit = {},
     placeholder: @Composable (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions(),
@@ -64,6 +66,7 @@ fun NcTextField(
                     .defaultMinSize(
                         minWidth = TextFieldDefaults.MinWidth,
                     )
+                    .clickable(enabled = enabled.not(), onClick = onClick)
                     .fillMaxWidth(),
                 value = value,
                 textStyle = NunchukTheme.typography.body,
@@ -103,15 +106,7 @@ fun NcTextField(
                     )
                 },
             )
-            if (rightText.isNullOrEmpty().not()) {
-                Text(
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 12.dp),
-                    text = rightText.orEmpty(),
-                    style = NunchukTheme.typography.body
-                )
-            }
+            rightContent()
         }
         if (hasError) {
             Row(
@@ -144,7 +139,7 @@ fun NcTextField(
     modifier: Modifier = Modifier,
     title: String,
     value: TextFieldValue,
-    rightText: String? = null,
+    rightContent: @Composable BoxScope.() -> Unit = {},
     error: String? = null,
     placeholder: @Composable (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -217,16 +212,8 @@ fun NcTextField(
                     )
                 },
 
-            )
-            if (rightText.isNullOrEmpty().not()) {
-                Text(
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 12.dp),
-                    text = rightText.orEmpty(),
-                    style = NunchukTheme.typography.body
                 )
-            }
+            rightContent()
         }
         if (hasError) {
             Row(
@@ -277,7 +264,15 @@ fun NcTextFieldErrorPreview() {
                 title = "Title here",
                 value = "Value here",
                 error = "Decryption key is invalid",
-                rightText = "Hours"
+                rightContent = {
+                    Icon(
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .padding(end = 12.dp),
+                        painter = painterResource(id = R.drawable.ic_arrow),
+                        contentDescription = ""
+                    )
+                }
             ) {
 
             }

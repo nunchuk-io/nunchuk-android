@@ -45,7 +45,6 @@ internal class GetTransactionUseCaseImpl @Inject constructor(
         val tx = nativeSdk.getTransaction(walletId = walletId, txId = txId)
         emit(tx.copy(height = tx.getConfirmations(chainTip)))
         if (isAssistedWallet && tx.signers.any { it.value } && tx.status.isPending() ) {
-            // TODO Hai whether need to call sign tx
             repository.getServerTransaction(walletId, txId)?.let { transaction ->
                 emit(
                     transaction.copy(

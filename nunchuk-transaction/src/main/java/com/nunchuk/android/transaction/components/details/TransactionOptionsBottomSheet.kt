@@ -30,12 +30,20 @@ import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.util.checkCameraPermission
 import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.model.TransactionOption.*
 import com.nunchuk.android.transaction.databinding.DialogTransactionSignBottomSheetBinding
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBottomSheetBinding>() {
+
+    @Inject
+    lateinit var membershipStepManager: MembershipStepManager
 
     private lateinit var listener: (TransactionOption) -> Unit
 
@@ -115,6 +123,13 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             listener(REMOVE_TRANSACTION)
             dismiss()
         }
+
+        binding.btnScheduleBroadcast.isVisible =
+            args.isPending && membershipStepManager.plan == MembershipPlan.HONEY_BADGER
+        binding.btnScheduleBroadcast.setOnDebounceClickListener {
+            listener(SCHEDULE_BROADCAST)
+            dismiss()
+        }
     }
 
     fun setListener(listener: (TransactionOption) -> Unit) {
@@ -131,7 +146,12 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             isAssistedWallet: Boolean
         ) = TransactionOptionsBottomSheet().apply {
             arguments =
-                TransactionOptionsArgs(isPending, isPendingConfirm, isRejected, isAssistedWallet).buildBundle()
+                TransactionOptionsArgs(
+                    isPending,
+                    isPendingConfirm,
+                    isRejected,
+                    isAssistedWallet
+                ).buildBundle()
         }
 
 

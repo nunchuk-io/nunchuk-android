@@ -494,6 +494,20 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return gson.toJson(request)
     }
 
+    override suspend fun scheduleTransaction(
+        walletId: String,
+        transactionId: String,
+        scheduleTime: Long
+    ): Long {
+        val transaction = nunchukNativeSdk.getTransaction(walletId, transactionId)
+        val response = userWalletsApi.scheduleTransaction(
+            walletId,
+            transactionId,
+            ScheduleTransactionRequest(scheduleTime, transaction.psbt)
+        )
+        return response.data.transaction?.broadCastTimeMillis ?: 0L
+    }
+
     companion object {
         private const val WALLET_ACTIVE_STATUS = "ACTIVE"
     }

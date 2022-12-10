@@ -59,4 +59,6 @@
     <string name="nc_address_detected_please_enter_amount">Address detected. Please enter a send amount.</string>
     <string name="nc_server_key_signed">The server key has signed this transaction</string>
     <string name="nc_transaction_has_succesfully_broadcast">The transaction has successfully been broadcast</string>
+    <string name="nc_schedule_broadcast_hint">The transaction must have enough signatures before it can be broadcast. If the wallet has been configured to automatically broadcast after co-signing, this action will override the policy.</string>
+    <string name="nc_error_schedule_broadcast_out_of_range">Scheduled broadcast must happen within a year.</string>
 </resources>

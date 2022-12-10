@@ -19,10 +19,8 @@
 
 package com.nunchuk.android.messages.components.detail
 
-import com.nunchuk.android.messages.util.simpleDateFormat
+import com.nunchuk.android.utils.simpleDateFormat
 import java.util.*
-import kotlin.collections.LinkedHashMap
-import kotlin.collections.LinkedHashSet
 
 internal fun List<Message>.groupByDate(): List<AbsChatModel> {
     val grouping: LinkedHashMap<String, Set<Message>> = LinkedHashMap()

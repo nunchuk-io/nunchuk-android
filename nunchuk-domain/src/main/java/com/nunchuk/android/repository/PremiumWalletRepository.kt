@@ -62,4 +62,6 @@ interface PremiumWalletRepository {
     ): String
 
     suspend fun generateUpdateServerKey(walletId: String, keyPolicy: KeyPolicy): String
+
+    suspend fun scheduleTransaction(walletId: String, transactionId: String, scheduleTime: Long) : Long
 }

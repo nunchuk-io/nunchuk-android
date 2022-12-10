@@ -17,5 +17,12 @@ data class TransactionServer(
     @SerializedName("reject_msg") val rejectMsg: String? = null,
     @SerializedName("created_time_milis") val createdTimeMilis: Long = 0,
     @SerializedName("sign_time_milis") val signedAtMilis: Long = 0,
-    @SerializedName("last_modified_time_milis") val lastModifiedTimeMilis: Long = 0
+    @SerializedName("last_modified_time_milis") val lastModifiedTimeMilis: Long = 0L,
+    @SerializedName("broadcast_time_milis") val broadCastTimeMillis: Long = 0L,
+    @SerializedName("spending_limit_reached") val spendingLimitReach: SpendingLimitReach? = null
+)
+
+data class SpendingLimitReach(
+    @SerializedName("message")
+    val message: String? = null
 )

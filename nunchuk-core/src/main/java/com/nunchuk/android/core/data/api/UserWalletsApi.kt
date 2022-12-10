@@ -101,9 +101,13 @@ internal interface UserWalletsApi {
         @Body payload: SecurityQuestionsUpdateRequest
     )
 
-    @GET("/v1.1/app/time/utc")
-    suspend fun getCurrentServerTime(): Data<GetCurrentServerTimeResponse>
-
     @GET("/v1.1/user-wallets/nonce")
     suspend fun getNonce(): Data<GetNonceResponse>
+
+    @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}/schedule")
+    suspend fun scheduleTransaction(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("transaction_id") transactionId: String,
+        @Body payload: ScheduleTransactionRequest,
+    ): Data<TransactionResponse>
 }

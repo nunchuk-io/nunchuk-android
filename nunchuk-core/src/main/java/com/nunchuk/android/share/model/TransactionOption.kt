@@ -29,4 +29,5 @@ enum class TransactionOption {
     REPLACE_BY_FEE,
     COPY_TRANSACTION_ID,
     REMOVE_TRANSACTION,
+    SCHEDULE_BROADCAST,
 }
