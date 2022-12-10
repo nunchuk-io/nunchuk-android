@@ -27,6 +27,7 @@ import com.nunchuk.android.core.util.hadBroadcast
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.transaction.databinding.ItemTransactionSignerBinding
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.widget.util.AbsViewBinder
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
@@ -64,7 +65,7 @@ internal class TransactionSignersViewBinder(
             binding.signed.isVisible = false
             binding.signNotAvailable.isVisible = true
         } else {
-            binding.btnSign.isVisible = true
+            binding.btnSign.isVisible = model.type != SignerType.SERVER
             binding.signed.isVisible = false
             binding.signNotAvailable.isVisible = false
         }
