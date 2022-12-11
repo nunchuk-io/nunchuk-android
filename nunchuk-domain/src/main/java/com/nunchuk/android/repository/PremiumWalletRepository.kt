@@ -55,6 +55,7 @@ interface PremiumWalletRepository {
         authorizations: List<String>,
         verifyToken: String,
         userData: String,
+        securityQuestionToken: String
     )
 
     suspend fun getNonce(): String
@@ -66,4 +67,22 @@ interface PremiumWalletRepository {
     suspend fun generateUpdateServerKey(walletId: String, keyPolicy: KeyPolicy): String
 
     suspend fun scheduleTransaction(walletId: String, transactionId: String, scheduleTime: Long) : ServerTransaction
+
+    suspend fun getLockdownPeriod(): List<LockdownPeriod>
+    suspend fun lockdownUpdate(
+        authorizations: List<String>,
+        verifyToken: String,
+        userData: String,
+        securityQuestionToken: String
+    )
+
+    suspend fun generateLockdownUserData(
+        walletId: String,
+        periodId: String
+    ): String
+
+    suspend fun calculateRequiredSignaturesLockdown(
+        walletId: String,
+        periodId: String
+    ): CalculateRequiredSignatures
 }

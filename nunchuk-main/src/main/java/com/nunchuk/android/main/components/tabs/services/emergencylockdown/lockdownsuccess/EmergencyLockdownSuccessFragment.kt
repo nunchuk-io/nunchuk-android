@@ -19,44 +19,61 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
+import com.nunchuk.android.nav.NunchukNavigator
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class LockdownSuccessFragment : Fragment() {
 
+    @Inject
+    lateinit var navigator: NunchukNavigator
+
     private val viewModel: EmergencyLockdownSuccessViewModel by viewModels()
+    private val args: LockdownSuccessFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                LockdownSuccessScreen(viewModel)
+                LockdownSuccessScreen(viewModel, args.period)
             }
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        flowObserver(viewModel.event) {
-            when (it) {
-
+        flowObserver(viewModel.event) { event ->
+            when (event) {
+                is EmergencyLockdownSuccessEvent.Loading -> showOrHideLoading(loading = event.isLoading)
+                is EmergencyLockdownSuccessEvent.SignOut -> {
+                    showOrHideLoading(loading = false)
+                    navigator.restartApp(requireActivity())
+                }
             }
         }
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun LockdownSuccessScreen(
-    viewModel: EmergencyLockdownSuccessViewModel = viewModel()
+    viewModel: EmergencyLockdownSuccessViewModel = viewModel(),
+    period: String = ""
 ) {
-    LockdownSuccessScreenContent()
+    LockdownSuccessScreenContent(period) {
+        viewModel.onContinueClicked()
+    }
 }
 
 @Composable
 fun LockdownSuccessScreenContent(
+    period: String = "",
     onGotItClick: () -> Unit = {},
 ) {
     NunchukTheme {
@@ -64,6 +81,7 @@ fun LockdownSuccessScreenContent(
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
+                    .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
                 NcTopAppBar(title = "")
@@ -83,7 +101,7 @@ fun LockdownSuccessScreenContent(
                 )
                 Text(
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
-                    text = stringResource(id = R.string.nc_emergency_lockdown_success_info),
+                    text = stringResource(id = R.string.nc_emergency_lockdown_success_info, period),
                     style = NunchukTheme.typography.body
                 )
 

@@ -13,25 +13,51 @@ sealed class ServicesTabEvent {
     ) : ServicesTabEvent()
 
     data class Loading(val loading: Boolean) : ServicesTabEvent()
-    data class CheckPasswordSuccess(val token: String, val item: ServiceTabRowItem) : ServicesTabEvent()
+    data class CheckPasswordSuccess(val token: String, val item: ServiceTabRowItem) :
+        ServicesTabEvent()
 }
 
 data class ServicesTabState(
-    val isPremiumUser: Boolean = false,
+    val isPremiumUser: Boolean? = null,
+    val isCreatedAssistedWallet: Boolean = false,
     val plan: MembershipPlan = MembershipPlan.NONE,
-    val rowItems: List<Any> = initRowItems()
-)
-
-private fun initRowItems(): List<Any> {
-    val items = mutableListOf<Any>()
-    items.add(ServiceTabRowCategory.Emergency)
-    items.addAll(ServiceTabRowCategory.Emergency.items)
-    items.add(ServiceTabRowCategory.Inheritance)
-    items.addAll(ServiceTabRowCategory.Inheritance.items)
-    items.add(ServiceTabRowCategory.Subscription)
-    items.addAll(ServiceTabRowCategory.Subscription.items)
-    return items
+    val rowItems: List<Any> = emptyList()
+) {
+    fun initRowItems(plan: MembershipPlan): List<Any> {
+        val items = mutableListOf<Any>()
+        when (plan) {
+            MembershipPlan.NONE -> {
+                items.add(NonSubHeader)
+                items.add(NonSubRow(drawableId = R.drawable.ic_mulitsig_dark, title = R.string.nc_no_single_point_failure, desc = R.string.nc_no_single_point_failure_desc))
+                items.add(NonSubRow(drawableId = R.drawable.ic_inheritance_planning, title = R.string.nc_inheritance_planning, desc = R.string.nc_inheritance_planning_desc))
+                items.add(NonSubRow(drawableId = R.drawable.ic_emergency_lockdown_dark, title = R.string.nc_emergency_lockdown, desc = R.string.nc_emergency_lockdown_desc))
+                items.add(NonSubRow(drawableId = R.drawable.ic_signing_policy, title = R.string.nc_flexible_spending_policies, desc = R.string.nc_flexible_spending_policies_desc))
+                items.add(NonSubRow(drawableId = R.drawable.ic_key_recovery, title = R.string.nc_cloud_backups_assisted_recovery, desc = R.string.nc_cloud_backups_assisted_recovery_desc))
+                items.add(NonSubRow(drawableId = R.drawable.ic_contact_support_dark, title = R.string.nc_in_app_chat_support, desc = R.string.nc_in_app_chat_support_desc))
+                items.add(NonSubRow(drawableId = R.drawable.ic_member_discount, title = R.string.nc_hardware_discounts, desc = R.string.nc_hardware_discounts_desc))
+            }
+            MembershipPlan.IRON_HAND -> {
+                items.add(ServiceTabRowCategory.Emergency)
+                items.add(ServiceTabRowItem.KeyRecovery)
+                items.add(ServiceTabRowCategory.Subscription)
+                items.addAll(ServiceTabRowCategory.Subscription.items)
+            }
+            MembershipPlan.HONEY_BADGER -> {
+                items.add(ServiceTabRowCategory.Emergency)
+                items.addAll(ServiceTabRowCategory.Emergency.items)
+                items.add(ServiceTabRowCategory.Inheritance)
+                items.addAll(ServiceTabRowCategory.Inheritance.items)
+                items.add(ServiceTabRowCategory.Subscription)
+                items.addAll(ServiceTabRowCategory.Subscription.items)
+            }
+        }
+        return items
+    }
 }
+
+data class NonSubRow(val drawableId: Int, val title: Int, val desc: Int)
+
+object NonSubHeader
 
 sealed class ServiceTabRowCategory(
     val title: Int,

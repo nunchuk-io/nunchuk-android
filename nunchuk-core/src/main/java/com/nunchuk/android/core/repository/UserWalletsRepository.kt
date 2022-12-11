@@ -7,6 +7,8 @@ import com.nunchuk.android.core.data.model.*
 import com.nunchuk.android.core.data.model.membership.*
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.util.ONE_HOUR_TO_SECONDS
+import com.nunchuk.android.core.util.orDefault
+import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
@@ -128,14 +130,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         securityQuestionToken: String,
         body: String,
     ): KeyPolicy {
-        val headers = mutableMapOf("Verify-token" to token)
+        val headers = mutableMapOf(VERIFY_TOKEN to token)
         if (securityQuestionToken.isNotEmpty()) {
-            headers["Security-Question-token"] = securityQuestionToken
+            headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
         }
         signatures.map { (masterFingerprint, signature) ->
             nunchukNativeSdk.createRequestToken(signature, masterFingerprint)
         }.forEachIndexed { index, signerToken ->
-            headers["AuthorizationX-${index + 1}"] = signerToken
+            headers["$AUTHORIZATION_X-${index + 1}"] = signerToken
         }
         val response = userWalletsApi.updateServerKeys(
             headers,
@@ -375,22 +377,56 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
     }
 
+    override suspend fun calculateRequiredSignaturesLockdown(
+        walletId: String,
+        periodId: String
+    ): CalculateRequiredSignatures {
+        val response = userWalletsApi.calculateRequiredSignaturesLockdown(
+            LockdownUpdateRequestBody(
+                walletId = walletId,
+                periodId = periodId
+            )
+        )
+        return CalculateRequiredSignatures(
+            type = response.data.result?.type.orEmpty(),
+            requiredSignatures = response.data.result?.requiredSignatures ?: 0
+        )
+    }
+
     override suspend fun securityQuestionsUpdate(
         authorizations: List<String>,
         verifyToken: String,
         userData: String,
+        securityQuestionToken: String
     ) {
         val request = gson.fromJson(userData, SecurityQuestionsUpdateRequest::class.java)
         val headers = mutableMapOf<String, String>()
         authorizations.forEachIndexed { index, value ->
-            headers["AuthorizationX-${index + 1}"] = value
+            headers["$AUTHORIZATION_X-${index + 1}"] = value
         }
-        headers["Verify-token"] = verifyToken
+        headers[VERIFY_TOKEN] = verifyToken
+        headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
         return userWalletsApi.securityQuestionsUpdate(headers, request)
     }
 
     override suspend fun getNonce(): String {
         return userWalletsApi.getNonce().data.nonce?.nonce.orEmpty()
+    }
+
+    override suspend fun lockdownUpdate(
+        authorizations: List<String>,
+        verifyToken: String,
+        userData: String,
+        securityQuestionToken: String
+    ) {
+        val request = gson.fromJson(userData, LockdownUpdateRequest::class.java)
+        val headers = mutableMapOf<String, String>()
+        authorizations.forEachIndexed { index, value ->
+            headers["$AUTHORIZATION_X-${index + 1}"] = value
+        }
+        headers[VERIFY_TOKEN] = verifyToken
+        headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
+        return userWalletsApi.lockdownUpdate(headers, request)
     }
 
     override suspend fun generateSecurityQuestionUserData(
@@ -406,6 +442,16 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val body = QuestionsAndAnswerRequestBody(questionsAndAnswerRequests, walletId = walletId)
         val nonce = getNonce()
         val request = SecurityQuestionsUpdateRequest(
+            nonce = nonce,
+            body = body
+        )
+        return gson.toJson(request)
+    }
+
+    override suspend fun generateLockdownUserData(walletId: String, periodId: String): String {
+        val body = LockdownUpdateRequestBody(periodId = periodId, walletId = walletId)
+        val nonce = getNonce()
+        val request = LockdownUpdateRequest(
             nonce = nonce,
             body = body
         )
@@ -525,8 +571,24 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return response.data.toServerTransaction()
     }
 
+    override suspend fun getLockdownPeriod(): List<LockdownPeriod> {
+        val response = userWalletsApi.getLockdownPeriod()
+        return response.data.periods?.map {
+            LockdownPeriod(
+                id = it.id.orEmpty(),
+                interval = it.interval.orEmpty(),
+                intervalCount = it.intervalCount.orDefault(0),
+                enabled = it.enabled.orFalse(),
+                displayName = it.displayName.orEmpty()
+            )
+        }.orEmpty()
+    }
+
     companion object {
         private const val WALLET_ACTIVE_STATUS = "ACTIVE"
+        private const val VERIFY_TOKEN = "Verify-token"
+        private const val SECURITY_QUESTION_TOKEN = "Security-Question-token"
+        private const val AUTHORIZATION_X = "AuthorizationX"
     }
 }
 

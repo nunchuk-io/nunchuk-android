@@ -74,7 +74,8 @@ class RecoveryQuestionFragment : MembershipFragment() {
                 val signatureMap =
                     data.serializable<HashMap<String, String>>(GlobalResultKey.SIGNATURE_EXTRA)
                         ?: return@registerForActivityResult
-                viewModel.securityQuestionUpdate(signatureMap)
+                val securityQuestionToken = data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
+                viewModel.securityQuestionUpdate(signatureMap, securityQuestionToken)
             }
         }
 
@@ -113,6 +114,16 @@ class RecoveryQuestionFragment : MembershipFragment() {
                 RecoveryQuestionEvent.DiscardChangeClick -> findNavController().popBackStack()
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.updateClearFocus(false)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        viewModel.updateClearFocus(true)
     }
 
     private fun handleShowSecurityQuestion(event: RecoveryQuestionEvent.GetSecurityQuestionSuccess) {
@@ -163,7 +174,8 @@ fun RecoveryQuestionScreen(
 ) {
     val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
-    RecoveryQuestionScreenContent(state = state,
+    RecoveryQuestionScreenContent(recoveries = state.recoveries,
+        clearFocusRequest = state.clearFocusRequest,
         remainTime = remainTime,
         isRecoveryFlow = args.isRecoveryFlow,
         onContinueClicked = viewModel::onContinueClicked,
@@ -186,7 +198,8 @@ fun RecoveryQuestionScreen(
 
 @Composable
 fun RecoveryQuestionScreenContent(
-    state: RecoveryQuestionState = RecoveryQuestionState.Empty,
+    recoveries: List<RecoveryData> = emptyList(),
+    clearFocusRequest: Boolean = false,
     remainTime: Int = 0,
     isRecoveryFlow: Boolean = true,
     onContinueClicked: () -> Unit = {},
@@ -229,14 +242,14 @@ fun RecoveryQuestionScreenContent(
                             style = NunchukTheme.typography.body
                         )
                     }
-                    items(state.recoveries) { recoverQuestion ->
+                    items(recoveries) { recoverQuestion ->
                         QuestionRow(index = recoverQuestion.index,
                             question = recoverQuestion.question,
                             answer = recoverQuestion.answer,
                             isRecoveryFlow = isRecoveryFlow,
                             isShowMask = recoverQuestion.isShowMask,
                             onQuestionClicked = onQuestionClicked,
-                            isRequestClearFocus = state.clearFocusRequest,
+                            isRequestClearFocus = clearFocusRequest,
                             onInputAnswerTextChange = { value ->
                                 onInputAnswerTextChange(recoverQuestion.index, value)
                             },
@@ -249,7 +262,7 @@ fun RecoveryQuestionScreenContent(
                     }
                 }
                 NcPrimaryDarkButton(
-                    enabled = state.recoveries.all { it.answer.isNotEmpty() },
+                    enabled = recoveries.all { it.answer.isNotEmpty() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),

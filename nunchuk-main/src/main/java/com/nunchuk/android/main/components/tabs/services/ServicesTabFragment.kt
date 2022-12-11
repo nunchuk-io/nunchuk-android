@@ -1,11 +1,10 @@
 package com.nunchuk.android.main.components.tabs.services
 
-import android.content.res.Resources
 import android.os.Bundle
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.InheritancePlanFlow
@@ -13,9 +12,8 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoveryActionItem
 import com.nunchuk.android.main.databinding.FragmentServicesTabBinding
-import com.nunchuk.android.wallet.components.config.WalletConfigEvent
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
@@ -43,15 +41,22 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 is ServicesTabEvent.CheckPasswordSuccess -> handleCheckPasswordSuccess(event)
             }
         }
+        flowObserver(viewModel.state) { state ->
+            adapter.submitList(state.rowItems)
+            state.isPremiumUser?.let {
+                binding.supportFab.isVisible = state.isPremiumUser
+                binding.actionGroup.isVisible = state.isPremiumUser.not()
+            }
+        }
     }
 
     private fun handleCheckPasswordSuccess(event: ServicesTabEvent.CheckPasswordSuccess) {
-        when(event.item) {
+        when (event.item) {
             ServiceTabRowItem.CoSigningPolicies -> {
                 viewModel.getServiceKey(event.token)
             }
             ServiceTabRowItem.EmergencyLockdown -> {
-                navigator.openEmergencyLockdownScreen(requireContext())
+                navigator.openEmergencyLockdownScreen(requireContext(), event.token)
             }
             else -> {}
         }
@@ -62,10 +67,27 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             onTabItemClick(it)
         }
         binding.recyclerView.adapter = adapter
-        adapter.submitList(viewModel.getItems())
     }
 
     private fun onTabItemClick(item: ServiceTabRowItem) {
+        if (item is ServiceTabRowItem.CoSigningPolicies ||
+            item is ServiceTabRowItem.EmergencyLockdown ||
+            item is ServiceTabRowItem.RollOverAssistedWallet ||
+            item is ServiceTabRowItem.KeyRecovery
+        ) {
+            val textAction =
+                if (viewModel.getGroupStage() == MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS) {
+                    getString(R.string.nc_continue_setting_up_wallet)
+                } else if (viewModel.getGroupStage() == MembershipStage.NONE) {
+                    getString(R.string.nc_start_wizard)
+                } else {
+                    ""
+                }
+            if (textAction.isNotBlank()) {
+                showFeatureAssistedWalletInformDialog(textAction)
+                return
+            }
+        }
         when (item) {
             ServiceTabRowItem.ClaimInheritance -> {
                 navigator.openInheritancePlanningScreen(
@@ -85,6 +107,20 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 )
             }
         }
+    }
+
+    private fun showFeatureAssistedWalletInformDialog(textAction: String) {
+        NCInfoDialog(requireActivity()).showDialog(
+            message = getString(R.string.nc_feature_assisted_wallet_inform_desc),
+            btnYes = textAction,
+            btnInfo = getString(R.string.nc_text_got_it),
+            onInfoClick = {
+
+            },
+            onYesClick = {
+
+            }
+        )
     }
 
     private fun enterPasswordDialog(item: ServiceTabRowItem) {

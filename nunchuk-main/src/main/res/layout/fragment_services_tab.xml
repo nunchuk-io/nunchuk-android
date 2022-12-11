@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/parent_main"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
+
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -30,27 +32,57 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="@dimen/nc_padding_8"
-            android:paddingVertical="@dimen/nc_padding_8"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
-    </androidx.appcompat.widget.LinearLayoutCompat>
+            android:layout_height="0dp"
+            android:clipToPadding="true"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:layout_constraintBottom_toTopOf="@+id/action_group"
+            app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/action_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/nc_padding_16"
+            android:paddingTop="@dimen/nc_padding_16"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:visibility="visible">
+
+            <com.nunchuk.android.widget.NCFontButton
+                android:id="@+id/signUp"
+                style="@style/NCPrimaryButton.Dark"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/nc_padding_16"
+                android:text="@string/nc_tell_me_more" />
+
+            <com.nunchuk.android.widget.NCFontButton
+                android:id="@+id/signIn"
+                style="@style/NCPrimaryButton.Light"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/nc_or_visit_our_website" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/extended_fab"
+        android:id="@+id/support_fab"
+        style="@style/NCText.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:layout_margin="@dimen/nc_padding_16"
+        android:contentDescription=""
         android:paddingHorizontal="@dimen/nc_padding_16"
         android:paddingVertical="@dimen/nc_padding_14"
-        android:layout_gravity="bottom|right"
-        android:contentDescription=""
-        android:text="Support"
-        app:iconTint="@color/nc_white_color"
-        android:textColor="@color/nc_white_color"
-        app:backgroundTint="@color/nc_black_color"
+        android:text="@string/nc_support"
         android:textAllCaps="false"
-        android:layout_margin="@dimen/nc_padding_16"
-        style="@style/NCText.Title"
-        app:icon="@drawable/ic_nc_contact_support"/>
+        android:textColor="@color/nc_white_color"
+        android:visibility="gone"
+        app:backgroundTint="@color/nc_black_color"
+        app:icon="@drawable/ic_nc_contact_support"
+        app:iconTint="@color/nc_white_color"
+        tools:visibility="visible" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

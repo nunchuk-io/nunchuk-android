@@ -110,4 +110,18 @@ internal interface UserWalletsApi {
         @Path("transaction_id") transactionId: String,
         @Body payload: ScheduleTransactionRequest,
     ): Data<TransactionResponse>
+
+    @GET("/v1.1/user-wallets/lockdown/period")
+    suspend fun getLockdownPeriod(): Data<LockdownPeriodResponse>
+
+    @POST("/v1.1/user-wallets/lockdown/lock")
+    suspend fun lockdownUpdate(
+        @HeaderMap headers: Map<String, String>,
+        @Body payload: LockdownUpdateRequest
+    )
+
+    @POST("/v1.1/user-wallets/lockdown/calculate-required-signatures")
+    suspend fun calculateRequiredSignaturesLockdown(
+        @Body payload: LockdownUpdateRequestBody
+    ) : Data<CalculateRequiredSignaturesResponse>
 }
