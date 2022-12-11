@@ -18,6 +18,7 @@ import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
+import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
 import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
@@ -194,10 +195,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
         setEvent(LoadingEvent)
         if (initTransaction != null) {
             getTransactionFromNetwork()
-        } else if (isSharedTransaction()) {
-            getSharedTransaction()
         } else {
-            getPersonalTransaction()
+            loadLocalTransaction()
         }
     }
 
@@ -224,7 +223,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun getPersonalTransaction() {
+    private fun loadLocalTransaction() {
         viewModelScope.launch {
             getTransactionUseCase.execute(
                 walletId,
@@ -233,23 +232,20 @@ internal class TransactionDetailsViewModel @Inject constructor(
             ).flowOn(IO)
                 .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }
                 .collect {
-                    updateTransaction(it)
+                    updateTransaction(it.transaction, it.serverTransaction)
                 }
         }
     }
 
-    private fun getSharedTransaction() {
-        viewModelScope.launch {
-            getTransactionUseCase.execute(walletId, txId, false)
-                .flowOn(IO)
-                .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }.collect {
-                    updateTransaction(it)
-                }
-        }
+    fun updateServerTransaction(serverTransaction: ServerTransaction?) {
+        updateState { copy(serverTransaction = serverTransaction) }
     }
 
-    private fun updateTransaction(transaction: Transaction) {
-        updateState { copy(transaction = transaction) }
+    private fun updateTransaction(
+        transaction: Transaction,
+        serverTransaction: ServerTransaction? = getState().serverTransaction
+    ) {
+        updateState { copy(transaction = transaction, serverTransaction = serverTransaction) }
     }
 
     fun handleViewMoreEvent() {
@@ -408,8 +404,17 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 )
             )
             if (result.isSuccess) {
-                updateTransaction(result.getOrThrow())
-                setEvent(SignTransactionSuccess(isAssistedWallet = isAssistedWallet, status = result.getOrThrow().status))
+                val extendedTransaction = result.getOrThrow()
+                updateTransaction(
+                    transaction = extendedTransaction.transaction,
+                    serverTransaction = extendedTransaction.serverTransaction,
+                )
+                setEvent(
+                    SignTransactionSuccess(
+                        isAssistedWallet = isAssistedWallet,
+                        status = extendedTransaction.transaction.status
+                    )
+                )
             } else {
                 fireSignError(result.exceptionOrNull())
             }
@@ -491,7 +496,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 )
             )
             if (result.isSuccess) {
-                updateTransaction(result.getOrThrow())
+                val extendedTransaction = result.getOrThrow()
+                updateTransaction(
+                    transaction = extendedTransaction.transaction,
+                    serverTransaction = extendedTransaction.serverTransaction,
+                )
                 setEvent(SignTransactionSuccess())
             } else {
                 fireSignError(result.exceptionOrNull())
@@ -506,4 +515,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun isAssistedWallet() = assistedWalletManager.isAssistedWallet(walletId)
+
+    fun isAtLeastSignedKey() = getState().transaction.signers.any { it.value }
 }

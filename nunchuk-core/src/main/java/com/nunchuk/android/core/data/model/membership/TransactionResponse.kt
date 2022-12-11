@@ -1,12 +1,13 @@
 package com.nunchuk.android.core.data.model.membership
 
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.model.transaction.ServerTransaction
 
-data class TransactionResponse(
-    @SerializedName("transaction") val transaction: TransactionServer? = null
+internal data class TransactionResponse(
+    @SerializedName("transaction") val transaction: TransactionServerDto? = null
 )
 
-data class TransactionServer(
+internal data class TransactionServerDto(
     @SerializedName("wallet_id") val walletId: String? = null,
     @SerializedName("wallet_local_id") val walletLocalId: String? = null,
     @SerializedName("transaction_id") val transactionId: String? = null,
@@ -14,6 +15,7 @@ data class TransactionServer(
     @SerializedName("hex") val hex: String? = null,
     @SerializedName("status") val status: String? = null,
     @SerializedName("note") val note: String? = null,
+    @SerializedName("type") val type: String? = null,
     @SerializedName("reject_msg") val rejectMsg: String? = null,
     @SerializedName("created_time_milis") val createdTimeMilis: Long = 0,
     @SerializedName("sign_time_milis") val signedAtMilis: Long = 0,
@@ -25,4 +27,10 @@ data class TransactionServer(
 data class SpendingLimitReach(
     @SerializedName("message")
     val message: String? = null
+)
+
+internal fun TransactionResponse.toServerTransaction() = ServerTransaction(
+    type = transaction?.type.orEmpty(),
+    broadcastTimeInMilis = transaction?.broadCastTimeMillis ?: 0L,
+    spendingLimitMessage = transaction?.spendingLimitReach?.message.orEmpty()
 )

@@ -24,6 +24,7 @@ import java.util.*
 
 val SIMPLE_DATE = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
 val SIMPLE_GLOBAL_DATE = SimpleDateFormat("MM/dd/yyyy", Locale.ENGLISH)
+val SIMPLE_WEEK_DAY_YEAR = SimpleDateFormat("MMM dd, yyyy", Locale.ENGLISH)
 
 fun Date.formatMessageDate(showToday: Boolean = false): String {
     val messageDate: Calendar = Calendar.getInstance()
@@ -59,6 +60,8 @@ fun Date.formatByDay(): String = SimpleDateFormat("EEEE", Locale.ENGLISH).format
 fun Date.formatByHour(): String = SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(this)
 
 fun Date.simpleDateFormat(): String = SIMPLE_DATE.format(this)
+
+fun Date.simpleWeekDayYearFormat(): String = SIMPLE_WEEK_DAY_YEAR.format(this)
 
 fun Date.simpleGlobalDateFormat(): String = SIMPLE_GLOBAL_DATE.format(this)
 

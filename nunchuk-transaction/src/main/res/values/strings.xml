@@ -36,8 +36,6 @@
 
     <string name="nc_transaction_sent_to">Sent to</string>
     <string name="nc_text_n_a">N/A</string>
-    <string name="nc_transaction_signed">Signed</string>
-    <string name="nc_transaction_sign">Sign</string>
     <string name="nc_transaction_view_blockchain">View on blockchain explorer</string>
     <string name="nc_transaction_enter_passphrase">Enter your passphrase</string>
     <string name="nc_transaction_export_transaction_as_file">Export PSBT</string>

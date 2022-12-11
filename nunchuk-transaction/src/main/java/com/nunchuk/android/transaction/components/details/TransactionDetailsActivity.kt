@@ -42,6 +42,8 @@ import com.nunchuk.android.core.sheet.input.InputBottomSheetListener
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.transaction.ServerTransaction
+import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.model.TransactionOption.*
 import com.nunchuk.android.transaction.R
@@ -53,6 +55,9 @@ import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBin
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.CrashlyticsReporter
+import com.nunchuk.android.utils.formatByHour
+import com.nunchuk.android.utils.parcelable
+import com.nunchuk.android.utils.simpleWeekDayYearFormat
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
@@ -62,6 +67,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import java.util.*
 
 
 @AndroidEntryPoint
@@ -79,7 +85,12 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             val data = it.data
             if (data != null && it.resultCode == Activity.RESULT_OK) {
-
+                viewModel.updateServerTransaction(
+                    data.parcelable(
+                        ScheduleBroadcastTransactionActivity.EXTRA_SCHEDULE_BROADCAST_TIME
+                    )
+                )
+                NCToastMessage(this).showMessage(getString(R.string.nc_broadcast_has_been_scheduled))
             }
         }
 
@@ -237,22 +248,45 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             bindSigners(
                 state.transaction.signers,
                 state.signers.sortedByDescending(SignerModel::localKey),
-                state.transaction.status
+                state.transaction.status,
+                state.serverTransaction
             )
         }
+        handleServerTransaction(state.transaction, state.serverTransaction)
         hideLoading()
+    }
+
+    private fun handleServerTransaction(
+        transaction: Transaction,
+        serverTransaction: ServerTransaction?
+    ) {
+        serverTransaction ?: return
+        if (transaction.status.canBroadCast() && serverTransaction.type == ServerTransactionType.SCHEDULED) {
+            binding.status.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                R.drawable.ic_schedule,
+                0,
+                0,
+                0
+            )
+            val broadcastTime = Date(serverTransaction.broadcastTimeInMilis)
+            binding.status.text = getString(R.string.nc_broadcast_on, broadcastTime.simpleWeekDayYearFormat(), broadcastTime.formatByHour())
+        } else {
+            binding.status.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
+        }
     }
 
     private fun bindSigners(
         signerMap: Map<String, Boolean>,
         signers: List<SignerModel>,
-        status: TransactionStatus
+        status: TransactionStatus,
+        serverTransaction: ServerTransaction?
     ) {
         TransactionSignersViewBinder(
             container = binding.signerListView,
             signerMap = signerMap,
             signers = signers,
             txStatus = status,
+            serverTransaction = serverTransaction,
             listener = { signer ->
                 viewModel.setCurrentSigner(signer)
                 when (signer.type) {
@@ -447,7 +481,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             isPending = event.isPendingTransaction,
             isPendingConfirm = event.isPendingConfirm,
             isRejected = event.isRejected,
-            isAssistedWallet = viewModel.isAssistedWallet()
+            isAssistedWallet = viewModel.isAssistedWallet(),
+            isAtLeastSignedKey = viewModel.isAtLeastSignedKey(),
         ).setListener {
             when (it) {
                 CANCEL -> promptCancelTransactionConfirmation()

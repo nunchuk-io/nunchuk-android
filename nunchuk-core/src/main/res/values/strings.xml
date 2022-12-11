@@ -391,4 +391,8 @@
     <string name="nc_date">Date</string>
     <string name="nc_time">Time</string>
     <string name="nc_time_zone">Time zone</string>
+    <string name="nc_broadcast_on">Broadcast on %1$s at %2$s</string>
+    <string name="nc_transaction_signed">Signed</string>
+    <string name="nc_transaction_sign">Sign</string>
+    <string name="nc_broadcast_has_been_scheduled">Broadcast has been scheduled</string>
 </resources>

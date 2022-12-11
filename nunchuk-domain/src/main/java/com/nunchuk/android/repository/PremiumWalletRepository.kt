@@ -1,6 +1,8 @@
 package com.nunchuk.android.repository
 
 import com.nunchuk.android.model.*
+import com.nunchuk.android.model.transaction.ExtendedTransaction
+import com.nunchuk.android.model.transaction.ServerTransaction
 
 interface PremiumWalletRepository {
     suspend fun getSecurityQuestions(verifyToken: String?): List<SecurityQuestion>
@@ -27,8 +29,8 @@ interface PremiumWalletRepository {
     suspend fun getServerWallet(): WalletServerSync
     suspend fun updateServerWallet(walletLocalId: String, name: String): SeverWallet
     suspend fun createServerTransaction(walletId: String, psbt: String, note: String?, txId: String)
-    suspend fun signServerTransaction(walletId: String, txId: String, psbt: String): Transaction?
-    suspend fun getServerTransaction(walletId: String, transactionId: String): Transaction?
+    suspend fun signServerTransaction(walletId: String, txId: String, psbt: String): ExtendedTransaction
+    suspend fun getServerTransaction(walletId: String, transactionId: String): ExtendedTransaction
     suspend fun deleteServerTransaction(walletId: String, transactionId: String)
     suspend fun getInheritance(walletId: String): Inheritance
     suspend fun downloadBackup(
@@ -63,5 +65,5 @@ interface PremiumWalletRepository {
 
     suspend fun generateUpdateServerKey(walletId: String, keyPolicy: KeyPolicy): String
 
-    suspend fun scheduleTransaction(walletId: String, transactionId: String, scheduleTime: Long) : Long
+    suspend fun scheduleTransaction(walletId: String, transactionId: String, scheduleTime: Long) : ServerTransaction
 }

@@ -21,7 +21,7 @@ package com.nunchuk.android.core.domain
 
 import android.nfc.tech.IsoDep
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
 import kotlinx.coroutines.CoroutineDispatcher
@@ -32,12 +32,12 @@ class SignTransactionByTapSignerUseCase @Inject constructor(
     private val nunchukNativeSdk: NunchukNativeSdk,
     private val repository: PremiumWalletRepository,
     waitAutoCardUseCase: WaitAutoCardUseCase
-) : BaseNfcUseCase<SignTransactionByTapSignerUseCase.Data, Transaction>(
+) : BaseNfcUseCase<SignTransactionByTapSignerUseCase.Data, ExtendedTransaction>(
     dispatcher,
     waitAutoCardUseCase
 ) {
 
-    override suspend fun executeNfc(parameters: Data): Transaction {
+    override suspend fun executeNfc(parameters: Data): ExtendedTransaction {
         val transaction = nunchukNativeSdk.signTransactionByTapSigner(
             isoDep = parameters.isoDep,
             cvc = parameters.cvc,
@@ -47,12 +47,12 @@ class SignTransactionByTapSignerUseCase @Inject constructor(
 
         return takeIf { parameters.isAssistedWallet }
             ?.let {
-                repository.signServerTransaction(
+                return repository.signServerTransaction(
                     walletId = parameters.walletId,
                     txId = parameters.txId,
                     psbt = transaction.psbt
                 )
-            } ?: transaction
+            } ?: ExtendedTransaction(transaction = transaction)
     }
 
     class Data(

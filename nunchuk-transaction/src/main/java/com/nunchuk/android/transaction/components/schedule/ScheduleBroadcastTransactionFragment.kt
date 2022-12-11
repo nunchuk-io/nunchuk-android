@@ -74,7 +74,7 @@ class ScheduleBroadcastTransactionFragment : Fragment() {
                             requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
                                 putExtra(
                                     ScheduleBroadcastTransactionActivity.EXTRA_SCHEDULE_BROADCAST_TIME,
-                                    event.time
+                                    event.serverTransaction
                                 )
                             })
                             requireActivity().finish()

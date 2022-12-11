@@ -124,8 +124,10 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             dismiss()
         }
 
-        binding.btnScheduleBroadcast.isVisible =
-            args.isPending && membershipStepManager.plan == MembershipPlan.HONEY_BADGER
+        binding.btnScheduleBroadcast.isVisible = args.isPending
+                && args.isAssistedWallet
+                && args.isAtLeastSignedKey
+                && membershipStepManager.plan == MembershipPlan.HONEY_BADGER
         binding.btnScheduleBroadcast.setOnDebounceClickListener {
             listener(SCHEDULE_BROADCAST)
             dismiss()
@@ -139,35 +141,25 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
     companion object {
         private const val TAG = "TransactionOptionsBottomSheet"
 
-        private fun newInstance(
-            isPending: Boolean,
-            isPendingConfirm: Boolean,
-            isRejected: Boolean,
-            isAssistedWallet: Boolean
-        ) = TransactionOptionsBottomSheet().apply {
-            arguments =
-                TransactionOptionsArgs(
-                    isPending,
-                    isPendingConfirm,
-                    isRejected,
-                    isAssistedWallet
-                ).buildBundle()
-        }
-
-
         fun show(
             fragmentManager: FragmentManager,
             isPending: Boolean,
             isPendingConfirm: Boolean,
             isRejected: Boolean,
             isAssistedWallet: Boolean,
+            isAtLeastSignedKey: Boolean
         ): TransactionOptionsBottomSheet {
-            return newInstance(
-                isPending,
-                isPendingConfirm,
-                isRejected,
-                isAssistedWallet,
-            ).apply { show(fragmentManager, TAG) }
+            return TransactionOptionsBottomSheet().apply {
+                arguments =
+                    TransactionOptionsArgs(
+                        isPending,
+                        isPendingConfirm,
+                        isRejected,
+                        isAssistedWallet,
+                        isAtLeastSignedKey
+                    ).buildBundle()
+                show(fragmentManager, TAG)
+            }
         }
     }
 
@@ -178,6 +170,7 @@ data class TransactionOptionsArgs(
     val isPendingConfirm: Boolean,
     val isRejected: Boolean,
     val isAssistedWallet: Boolean,
+    val isAtLeastSignedKey: Boolean,
 ) : FragmentArgs {
 
     override fun buildBundle() = Bundle().apply {
@@ -185,6 +178,7 @@ data class TransactionOptionsArgs(
         putBoolean(EXTRA_IS_PENDING_CONFIRM, isPendingConfirm)
         putBoolean(EXTRA_IS_REJECTED, isRejected)
         putBoolean(EXTRA_IS_ASSISTED_WALLET, isAssistedWallet)
+        putBoolean(EXTRA_IS_AT_LEAST_SIGNED_KEY, isAtLeastSignedKey)
     }
 
     companion object {
@@ -192,12 +186,14 @@ data class TransactionOptionsArgs(
         private const val EXTRA_IS_PENDING_CONFIRM = "EXTRA_IS_PENDING_CONFIRM"
         private const val EXTRA_IS_REJECTED = "EXTRA_IS_REJECTED"
         private const val EXTRA_IS_ASSISTED_WALLET = "EXTRA_IS_ASSISTED_WALLET"
+        private const val EXTRA_IS_AT_LEAST_SIGNED_KEY = "EXTRA_IS_AT_LEAST_SIGNED_KEY"
 
         fun deserializeFrom(data: Bundle?) = TransactionOptionsArgs(
             data?.getBooleanValue(EXTRA_IS_PENDING).orFalse(),
             data?.getBooleanValue(EXTRA_IS_PENDING_CONFIRM).orFalse(),
             data?.getBooleanValue(EXTRA_IS_REJECTED).orFalse(),
             data?.getBooleanValue(EXTRA_IS_ASSISTED_WALLET).orFalse(),
+            data?.getBooleanValue(EXTRA_IS_AT_LEAST_SIGNED_KEY).orFalse(),
         )
     }
 }

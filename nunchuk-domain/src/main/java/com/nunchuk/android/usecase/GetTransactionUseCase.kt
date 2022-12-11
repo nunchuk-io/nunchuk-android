@@ -19,7 +19,7 @@
 
 package com.nunchuk.android.usecase
 
-import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.type.TransactionStatus
@@ -28,7 +28,11 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface GetTransactionUseCase {
-    fun execute(walletId: String, txId: String, isAssistedWallet: Boolean): Flow<Transaction>
+    fun execute(
+        walletId: String,
+        txId: String,
+        isAssistedWallet: Boolean
+    ): Flow<ExtendedTransaction>
 }
 
 internal class GetTransactionUseCaseImpl @Inject constructor(
@@ -40,21 +44,20 @@ internal class GetTransactionUseCaseImpl @Inject constructor(
         walletId: String,
         txId: String,
         isAssistedWallet: Boolean
-    ): Flow<Transaction> = flow {
+    ): Flow<ExtendedTransaction> = flow {
         val chainTip = nativeSdk.getChainTip()
         val tx = nativeSdk.getTransaction(walletId = walletId, txId = txId)
-        emit(tx.copy(height = tx.getConfirmations(chainTip)))
-        if (isAssistedWallet && tx.signers.any { it.value } && tx.status.isPending() ) {
-            repository.getServerTransaction(walletId, txId)?.let { transaction ->
-                emit(
-                    transaction.copy(
-                        height = transaction.getConfirmations(chainTip)
-                    )
-                )
-            }
+        emit(ExtendedTransaction(transaction = tx.copy(height = tx.getConfirmations(chainTip))))
+        if (isAssistedWallet && tx.signers.any { it.value } && tx.status.isPending()) {
+            val extendedTransaction = repository.getServerTransaction(walletId, txId)
+            val transaction = extendedTransaction.transaction.copy(
+                height = extendedTransaction.transaction.getConfirmations(chainTip)
+            )
+            emit(extendedTransaction.copy(transaction = transaction))
         }
     }
 
-    private fun TransactionStatus.isPending() = this == TransactionStatus.PENDING_SIGNATURES || this == TransactionStatus.READY_TO_BROADCAST
+    private fun TransactionStatus.isPending() =
+        this == TransactionStatus.PENDING_SIGNATURES || this == TransactionStatus.READY_TO_BROADCAST
 }
 

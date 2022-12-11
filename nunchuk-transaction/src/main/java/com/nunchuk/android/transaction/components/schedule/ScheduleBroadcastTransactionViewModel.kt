@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.ScheduleBroadcastTransactionUseCase
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.schedule.timezone.TimeZoneDetail
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -107,5 +108,5 @@ sealed class ScheduleBroadcastTransactionEvent {
     object OnSelectTimeZoneEvent : ScheduleBroadcastTransactionEvent()
     data class ShowError(val message: String) : ScheduleBroadcastTransactionEvent()
     data class Loading(val isLoading: Boolean) : ScheduleBroadcastTransactionEvent()
-    data class ScheduleBroadcastSuccess(val time: Long) : ScheduleBroadcastTransactionEvent()
+    data class ScheduleBroadcastSuccess(val serverTransaction: ServerTransaction) : ScheduleBroadcastTransactionEvent()
 }

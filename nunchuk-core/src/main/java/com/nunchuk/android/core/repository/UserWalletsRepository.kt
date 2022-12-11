@@ -8,6 +8,8 @@ import com.nunchuk.android.core.data.model.membership.*
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.util.ONE_HOUR_TO_SECONDS
 import com.nunchuk.android.model.*
+import com.nunchuk.android.model.transaction.ExtendedTransaction
+import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.repository.MembershipRepository
@@ -298,10 +300,18 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun getServerTransaction(
         walletId: String, transactionId: String
-    ): Transaction? {
+    ): ExtendedTransaction {
         val response = userWalletsApi.getTransaction(walletId, transactionId)
-        val transaction = response.data.transaction
-        return handleServerTransaction(walletId, transactionId, transaction)
+        val transaction =
+            response.data.transaction ?: throw NullPointerException("Transaction from server null")
+        return ExtendedTransaction(
+            transaction = handleServerTransaction(
+                walletId,
+                transactionId,
+                transaction
+            ),
+            serverTransaction = response.data.toServerTransaction(),
+        )
     }
 
     override suspend fun downloadBackup(
@@ -420,12 +430,20 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun signServerTransaction(
         walletId: String, txId: String, psbt: String
-    ): Transaction? {
+    ): ExtendedTransaction {
         val response = userWalletsApi.signServerTransaction(
             walletId, txId, SignServerTransactionRequest(psbt = psbt)
         )
-        val transaction = response.data.transaction
-        return handleServerTransaction(walletId, txId, transaction)
+        val transaction =
+            response.data.transaction ?: throw NullPointerException("transaction from server null")
+        return ExtendedTransaction(
+            transaction = handleServerTransaction(
+                walletId,
+                txId,
+                transaction
+            ),
+            serverTransaction = response.data.toServerTransaction(),
+        )
     }
 
     override suspend fun deleteServerTransaction(walletId: String, transactionId: String) {
@@ -460,9 +478,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     private fun handleServerTransaction(
         walletId: String,
         transactionId: String,
-        transaction: TransactionServer?
-    ): Transaction? {
-        transaction ?: return null
+        transaction: TransactionServerDto
+    ): Transaction {
         return if (transaction.status == TransactionStatus.PENDING_CONFIRMATION.name
             || transaction.status == TransactionStatus.CONFIRMED.name
             || transaction.status == TransactionStatus.NETWORK_REJECTED.name
@@ -498,14 +515,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         walletId: String,
         transactionId: String,
         scheduleTime: Long
-    ): Long {
+    ): ServerTransaction {
         val transaction = nunchukNativeSdk.getTransaction(walletId, transactionId)
         val response = userWalletsApi.scheduleTransaction(
             walletId,
             transactionId,
             ScheduleTransactionRequest(scheduleTime, transaction.psbt)
         )
-        return response.data.transaction?.broadCastTimeMillis ?: 0L
+        return response.data.toServerTransaction()
     }
 
     companion object {

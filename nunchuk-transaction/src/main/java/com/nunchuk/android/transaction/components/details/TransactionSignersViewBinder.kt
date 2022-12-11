@@ -20,15 +20,19 @@
 package com.nunchuk.android.transaction.components.details
 
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.core.view.get
+import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.hadBroadcast
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.toReadableSignerType
-import com.nunchuk.android.transaction.databinding.ItemTransactionSignerBinding
+import com.nunchuk.android.model.transaction.ServerTransaction
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.widget.databinding.ItemTransactionSignerBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 
@@ -37,7 +41,8 @@ internal class TransactionSignersViewBinder(
     private val signerMap: Map<String, Boolean>,
     signers: List<SignerModel>,
     private val txStatus: TransactionStatus,
-    val listener: (SignerModel) -> Unit = {}
+    private val listener: (SignerModel) -> Unit = {},
+    private val serverTransaction: ServerTransaction?,
 ) : AbsViewBinder<SignerModel, ItemTransactionSignerBinding>(container, signers) {
 
     override fun initializeBinding() =
@@ -47,7 +52,6 @@ internal class TransactionSignersViewBinder(
         val binding = ItemTransactionSignerBinding.bind(container[position])
         binding.avatar.text = model.name.shorten()
         binding.signerName.text = model.name
-        binding.xpf.text = model.getXfpOrCardIdLabel()
         binding.signerType.text = model.toReadableSignerType(context)
         binding.btnSign.setOnDebounceClickListener { listener(model) }
         val isSigned = model.isSigned()
@@ -68,6 +72,17 @@ internal class TransactionSignersViewBinder(
             binding.btnSign.isVisible = model.type != SignerType.SERVER
             binding.signed.isVisible = false
             binding.signNotAvailable.isVisible = false
+        }
+
+        binding.signerType.isVisible = model.type != SignerType.SERVER
+        if (model.type == SignerType.SERVER) {
+            binding.xpf.isGone = serverTransaction?.spendingLimitMessage.isNullOrEmpty()
+            binding.xpf.text = serverTransaction?.spendingLimitMessage
+            binding.xpf.setTextColor(ContextCompat.getColor(context, R.color.nc_beeswax_dark))
+        } else {
+            binding.xpf.isVisible = true
+            binding.xpf.setTextColor(ContextCompat.getColor(context, R.color.nc_grey_dark_color))
+            binding.xpf.text = model.getXfpOrCardIdLabel()
         }
     }
 

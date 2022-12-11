@@ -21,7 +21,7 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Device
-import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
 import kotlinx.coroutines.CoroutineDispatcher
@@ -31,9 +31,9 @@ class SignTransactionUseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
     private val repository: PremiumWalletRepository,
     @IoDispatcher private val isDispatcher: CoroutineDispatcher,
-) : UseCase<SignTransactionUseCase.Param, Transaction>(isDispatcher) {
+) : UseCase<SignTransactionUseCase.Param, ExtendedTransaction>(isDispatcher) {
 
-    override suspend fun execute(parameters: Param): Transaction {
+    override suspend fun execute(parameters: Param): ExtendedTransaction {
         val transaction = nativeSdk.signTransaction(
             walletId = parameters.walletId,
             txId = parameters.txId,
@@ -50,7 +50,7 @@ class SignTransactionUseCase @Inject constructor(
                     txId = parameters.txId,
                     psbt = transaction.psbt
                 )
-            } ?: transaction
+            } ?: ExtendedTransaction(transaction = transaction)
     }
 
     data class Param(
