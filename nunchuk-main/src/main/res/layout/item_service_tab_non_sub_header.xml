@@ -18,7 +18,7 @@
             style="@style/NCText.Title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/nc_claim_inheritance"
+            android:text="@string/nc_claim_an_inheritance"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

@@ -64,7 +64,7 @@
             android:textColor="@color/nc_black_color"
             android:textCursorDrawable="@null"
             android:textSize="@dimen/nc_text_size_16"
-            tools:text="[[timestamp], I am Tom and I want to sign in]" />
+            android:hint="On the Activation Date, would you like us to notify the Beneficiary or Trustee of the inheritance plan? If so, please provide an email address." />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/copyImage"

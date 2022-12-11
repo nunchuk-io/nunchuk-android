@@ -1,5 +1,7 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note
 
 sealed class InheritanceNoteEvent {
-    object ContinueClick : InheritanceNoteEvent()
+    data class ContinueClick(val note: String) : InheritanceNoteEvent()
 }
+
+data class InheritanceNoteState(val note: String = "")

@@ -11,7 +11,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class InheritancePlanOverviewViewModel @Inject constructor(
-    membershipStepManager: MembershipStepManager
+    membershipStepManager: MembershipStepManager,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<InheritancePlanOverviewEvent>()
     val event = _event.asSharedFlow()

@@ -32,6 +32,7 @@ dependencies {
     implementation networkDeps.values()
 
     implementation 'commons-codec:commons-codec:1.15'
+    implementation project(path: ':nunchuk-transaction')
 
     testImplementation otherTestDeps.junit
 }

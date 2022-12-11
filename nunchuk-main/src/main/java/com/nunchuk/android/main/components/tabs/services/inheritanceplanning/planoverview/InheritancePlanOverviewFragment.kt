@@ -49,9 +49,11 @@ class InheritancePlanOverviewFragment : MembershipFragment() {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
                     when(event) {
-                        InheritancePlanOverviewEvent.OnContinueClicked -> findNavController().navigate(
-                            InheritancePlanOverviewFragmentDirections.actionInheritancePlanOverviewFragmentToMagicalPhraseIntroFragment()
-                        )
+                        InheritancePlanOverviewEvent.OnContinueClicked -> {
+                            findNavController().navigate(
+                                InheritancePlanOverviewFragmentDirections.actionInheritancePlanOverviewFragmentToMagicalPhraseIntroFragment()
+                            )
+                        }
                     }
                 }
         }

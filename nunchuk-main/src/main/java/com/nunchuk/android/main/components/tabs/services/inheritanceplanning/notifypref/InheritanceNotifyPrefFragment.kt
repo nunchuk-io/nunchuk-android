@@ -4,146 +4,123 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Checkbox
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
+import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
+import androidx.core.widget.addTextChangedListener
+import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.nunchuk.android.compose.*
-import com.nunchuk.android.core.util.ClickAbleText
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.contact.components.add.EmailWithState
+import com.nunchuk.android.contact.components.add.EmailsViewBinder
+import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate.InheritanceActivationDateViewModel
+import com.nunchuk.android.main.databinding.FragmentInheritanceNotifyPrefBinding
+import com.nunchuk.android.utils.EmailValidator
+import com.nunchuk.android.widget.util.setOnEnterOrSpaceListener
+import dagger.hilt.android.AndroidEntryPoint
 
-class InheritanceNotifyPrefFragment : Fragment() {
+@AndroidEntryPoint
+class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPrefBinding>() {
 
     private val viewModel: InheritanceNotifyPrefViewModel by viewModels()
+    private val args: InheritanceNotifyPrefFragmentArgs by navArgs()
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
-    ): View {
-        return ComposeView(requireContext()).apply {
-            setContent {
-                InheritanceNotifyPrefScreen(viewModel)
-            }
-        }
-    }
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentInheritanceNotifyPrefBinding =
+        FragmentInheritanceNotifyPrefBinding.inflate(inflater, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        flowObserver(viewModel.event) {
-            when (it) {
-                InheritanceNotifyPrefEvent.ContinueClick -> {
+        setupViews()
 
+        flowObserver(viewModel.event) { event ->
+            when (event) {
+                is InheritanceNotifyPrefEvent.ContinueClick -> {
+                    openReviewPlanScreen(event.emails, event.isNotify)
                 }
+                InheritanceNotifyPrefEvent.AllEmailValidEvent -> showErrorMessage(false)
+                InheritanceNotifyPrefEvent.InvalidEmailEvent -> showErrorMessage(true)
             }
         }
-    }
-}
-
-@Composable
-fun InheritanceNotifyPrefScreen(
-    viewModel: InheritanceNotifyPrefViewModel = viewModel()
-) {
-    InheritanceNotifyPrefScreenContent(onContinueClick = {
-        viewModel.onContinueClicked()
-    })
-}
-
-@Composable
-fun InheritanceNotifyPrefScreenContent(
-    date: String = "",
-    checked: Boolean = false,
-    onContinueClick: () -> Unit = {},
-    onTextChange: (value: String) -> Unit = {},
-    onCheckedChange: (Boolean) -> Unit = {}
-) {
-    NunchukTheme {
-        Scaffold { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
-            ) {
-                NcTopAppBar(title = "")
-                Text(
-                    modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_notification_preferences),
-                    style = NunchukTheme.typography.heading
-                )
-                Text(
-                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_inheritance_notify_pref_desc),
-                    style = NunchukTheme.typography.body
-                )
-
-                NcTextField(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp)
-                        .padding(horizontal = 16.dp),
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                    title = stringResource(id = R.string.nc_beneficiary_trustee_email_address),
-                    value = date,
-                    onValueChange = onTextChange
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, top = 24.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.nc_notify_them_today),
-                        style = NunchukTheme.typography.body
-                    )
-                    Checkbox(checked = checked, onCheckedChange = onCheckedChange)
-                }
-                Spacer(modifier = Modifier.weight(1.0f))
-                NcHintMessage(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    messages = listOf(ClickAbleText(content = stringResource(R.string.nc_inheritance_notify_pref_warning))),
-                    type = HighlightMessageType.WARNING
-                )
-
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onContinueClick,
-                ) {
-                    Text(text = stringResource(id = R.string.nc_update_notification_preferences))
-                }
-                NcOutlineButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 16.dp)
-                        .height(48.dp),
-                    onClick = {},
-                ) {
-                    Text(text = stringResource(R.string.nc_dont_want_any_notifications),)
-                }
-            }
+        flowObserver(viewModel.state) { state ->
+            bindEmailList(state.emails)
         }
     }
-}
 
-@Preview
-@Composable
-private fun InheritanceNotifyPrefScreenPreview() {
-    InheritanceNotifyPrefScreenContent()
+    private fun openReviewPlanScreen(emails: List<String>, isNotify: Boolean) {
+        if (args.isUpdateRequest || args.planFlow == InheritancePlanFlow.VIEW) {
+            setFragmentResult(
+                REQUEST_KEY,
+                bundleOf(
+                    EXTRA_IS_NOTIFY to isNotify,
+                    EXTRA_EMAILS to emails
+                )
+            )
+            findNavController().popBackStack()
+        } else {
+            findNavController().navigate(
+                InheritanceNotifyPrefFragmentDirections.actionInheritanceNotifyPrefFragmentToInheritanceReviewPlanFragment(
+                    activationDate = args.activationDate,
+                    note = args.note,
+                    verifyToken = args.verifyToken,
+                    emails = emails.toTypedArray(),
+                    planFlow = args.planFlow,
+                    isNotify = isNotify,
+                    magicalPhrase = args.magicalPhrase
+                )
+            )
+        }
+    }
+
+    private fun showErrorMessage(show: Boolean) {
+        binding.tvErrorEmail.isVisible = show
+    }
+
+    private fun setupViews() {
+        binding.toolbar.setNavigationOnClickListener {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
+        binding.input.setOnEnterOrSpaceListener {
+            viewModel.handleAddEmail(binding.input.text.toString())
+            binding.input.setText("")
+        }
+        binding.input.addTextChangedListener { text ->
+            val currentText = text.toString()
+            if (currentText.isNotEmpty() && (currentText.last() == ',' || currentText.last() == ' ')) {
+                viewModel.handleAddEmail(currentText.dropLast(1))
+                binding.input.setText("")
+            }
+        }
+        binding.notifyCheck.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.updateIsNotify(isChecked)
+        }
+        binding.btnNotification.setOnClickListener {
+            openReviewPlanScreen(emptyList(), false)
+        }
+        binding.btnContinue.setOnClickListener {
+            viewModel.onContinueClicked()
+        }
+    }
+
+    private fun bindEmailList(emails: List<EmailWithState>) {
+        if (emails.isEmpty()) {
+            binding.emails.removeAllViews()
+        } else {
+            EmailsViewBinder(binding.emails, emails, viewModel::handleRemove).bindItems()
+        }
+        val isHasErrorEmail = emails.any { it.valid.not() && EmailValidator.valid(it.email) }
+        val isHasErrorUserName = emails.any { it.valid.not() && !EmailValidator.valid(it.email) }
+        binding.tvErrorEmail.isVisible = isHasErrorEmail
+        binding.tvErrorUserName.isVisible = isHasErrorUserName
+    }
+
+    companion object {
+        const val REQUEST_KEY = "InheritanceNotifyPrefFragment"
+        const val EXTRA_IS_NOTIFY = "EXTRA_IS_NOTIFY"
+        const val EXTRA_EMAILS = "EXTRA_EMAILS"
+    }
 }

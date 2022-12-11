@@ -93,7 +93,7 @@
         android:drawableTint="@color/nc_boulder_color"
         android:gravity="center_vertical"
         android:paddingVertical="@dimen/nc_padding_6"
-        android:text="@string/nc_text_n_a"
+        android:text="nc_text_n_a"
         android:textColor="@color/nc_primary_dark_color"
         android:textSize="@dimen/nc_text_size_14"
         android:visibility="gone"

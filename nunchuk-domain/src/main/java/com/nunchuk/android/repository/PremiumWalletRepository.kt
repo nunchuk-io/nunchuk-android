@@ -29,7 +29,12 @@ interface PremiumWalletRepository {
     suspend fun getServerWallet(): WalletServerSync
     suspend fun updateServerWallet(walletLocalId: String, name: String): SeverWallet
     suspend fun createServerTransaction(walletId: String, psbt: String, note: String?, txId: String)
-    suspend fun signServerTransaction(walletId: String, txId: String, psbt: String): ExtendedTransaction
+    suspend fun signServerTransaction(
+        walletId: String,
+        txId: String,
+        psbt: String
+    ): ExtendedTransaction
+
     suspend fun getServerTransaction(walletId: String, transactionId: String): ExtendedTransaction
     suspend fun deleteServerTransaction(walletId: String, transactionId: String)
     suspend fun getInheritance(walletId: String): Inheritance
@@ -66,7 +71,11 @@ interface PremiumWalletRepository {
 
     suspend fun generateUpdateServerKey(walletId: String, keyPolicy: KeyPolicy): String
 
-    suspend fun scheduleTransaction(walletId: String, transactionId: String, scheduleTime: Long) : ServerTransaction
+    suspend fun scheduleTransaction(
+        walletId: String,
+        transactionId: String,
+        scheduleTime: Long
+    ): ServerTransaction
 
     suspend fun getLockdownPeriod(): List<LockdownPeriod>
     suspend fun lockdownUpdate(
@@ -85,4 +94,28 @@ interface PremiumWalletRepository {
         walletId: String,
         periodId: String
     ): CalculateRequiredSignatures
+
+    suspend fun generateInheritanceUserData(
+        note: String,
+        notificationEmails: List<String>,
+        notifyToday: Boolean,
+        activationTimeMilis: Long,
+        walletId: String
+    ): String
+
+    suspend fun calculateRequiredSignaturesInheritance(
+        note: String,
+        notificationEmails: List<String>,
+        notifyToday: Boolean,
+        activationTimeMilis: Long,
+        walletId: String
+    ): CalculateRequiredSignatures
+
+    suspend fun createUpdateInheritance(
+        authorizations: List<String>,
+        verifyToken: String,
+        userData: String,
+        securityQuestionToken: String,
+        isUpdate: Boolean
+    ): Inheritance
 }

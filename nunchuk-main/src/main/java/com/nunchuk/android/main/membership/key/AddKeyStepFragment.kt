@@ -80,7 +80,7 @@ class AddKeyStepFragment : Fragment(), BottomSheetOptionListener {
     }
 
     private fun handleOpenInheritanceSetup() {
-        nunchukNavigator.openInheritancePlanningScreen(requireContext(), InheritancePlanFlow.SETUP)
+        nunchukNavigator.openInheritancePlanningScreen(requireContext(), flowInfo = InheritancePlanFlow.SETUP)
     }
 
     private fun handleShowMore() {

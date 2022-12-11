@@ -73,10 +73,6 @@ data class VerifiedPasswordTokenRequest(
 data class SecurityQuestionsUpdateRequest(
     @SerializedName("nonce")
     val nonce: String? = null,
-    @SerializedName("iat")
-    val iat: Long? = null,
-    @SerializedName("exp")
-    val exp: Long? = null,
     @SerializedName("body")
     val body: QuestionsAndAnswerRequestBody? = null
 )
@@ -91,10 +87,6 @@ data class QuestionsAndAnswerRequestBody(
 data class LockdownUpdateRequest(
     @SerializedName("nonce")
     val nonce: String? = null,
-    @SerializedName("iat")
-    val iat: Long? = null,
-    @SerializedName("exp")
-    val exp: Long? = null,
     @SerializedName("body")
     val body: LockdownUpdateRequestBody? = null
 )
@@ -106,5 +98,74 @@ data class LockdownUpdateRequestBody(
     val walletId: String? = null
 )
 
+data class CreateUpdateInheritancePlanRequest(
+    @SerializedName("nonce")
+    val nonce: String? = null,
+    @SerializedName("body")
+    val body: CreateUpdateInheritancePlanRequestBody? = null
+)
+
+data class CreateUpdateInheritancePlanRequestBody(
+    @SerializedName("note")
+    val note: String? = null,
+    @SerializedName("notification_emails")
+    val notificationEmails: List<String>? = null,
+    @SerializedName("notify_today")
+    val notifyToday: Boolean? = null,
+    @SerializedName("activation_time_milis")
+    val activationTimeMilis: Long? = null,
+    @SerializedName("wallet")
+    val walletId: String? = null,
+)
+
+data class InheritanceClaimStatusRequest(
+    @SerializedName("nonce")
+    val nonce: String? = null,
+    @SerializedName("body")
+    val body: Body? = null
+) {
+    data class Body(
+        @SerializedName("magic")
+        val magic: String? = null,
+    )
+}
+
+data class InheritanceClaimDownloadBackupRequest(
+    @SerializedName("magic")
+    val magic: String? = null
+)
+
+data class InheritanceClaimCheckValidRequest(
+    @SerializedName("magic")
+    val magic: String? = null
+)
+
+data class InheritanceClaimCheckValidResponse(
+    @SerializedName("is_valid")
+    val isValid: Boolean? = null
+)
+
+data class InheritanceClaimClaimRequest(
+    @SerializedName("magic")
+    val magic: String? = null,
+    @SerializedName("psbt")
+    val psbt: String? = null
+)
+
+data class InheritanceClaimCreateTransactionRequest(
+    @SerializedName("nonce")
+    val nonce: String? = null,
+    @SerializedName("body")
+    val body: Body? = null
+) {
+    data class Body(
+        @SerializedName("magic")
+        val magic: String? = null,
+        @SerializedName("magic")
+        val address: String? = null,
+        @SerializedName("fee_rate")
+        val feeRate: Float? = null,
+    )
+}
 
 

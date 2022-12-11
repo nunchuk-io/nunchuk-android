@@ -12,5 +12,13 @@ data class KeyResponse(
     @SerializedName("key_checksum_algorithm")
     val keyChecksumAlgorithm: String? = null,
     @SerializedName("key_name")
-    val keyName: String? = null
+    val keyName: String? = null,
+    @SerializedName("key_xfp")
+    val keyXfp: String? = null,
+    @SerializedName("card_id")
+    val cardId: String? = null,
+    @SerializedName("verification_type")
+    val verificationType: String? = null,
+    @SerializedName("verified_time_milis")
+    val verifiedTimeMilis: String? = null,
 )

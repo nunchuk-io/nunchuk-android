@@ -4,42 +4,47 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
-import com.nunchuk.android.compose.*
-import com.nunchuk.android.core.util.ClickAbleText
+import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate.InheritanceActivationDateViewModel
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanFragmentDirections
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanViewModel
+import com.nunchuk.android.share.membership.MembershipFragment
+import dagger.hilt.android.AndroidEntryPoint
 
-class InheritanceNoteFragment : Fragment() {
+@AndroidEntryPoint
+class InheritanceNoteFragment : MembershipFragment() {
 
     private val viewModel: InheritanceNoteViewModel by viewModels()
+    private val args: InheritanceNoteFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -53,30 +58,54 @@ class InheritanceNoteFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        flowObserver(viewModel.event) {
-            when (it) {
-                InheritanceNoteEvent.ContinueClick -> findNavController().navigate(
-                    InheritanceNoteFragmentDirections.actionInheritanceNoteFragmentToInheritanceNotifyPrefFragment()
-                )
+        flowObserver(viewModel.event) { event ->
+            when (event) {
+                is InheritanceNoteEvent.ContinueClick -> {
+                    if (args.isUpdateRequest || args.planFlow == InheritancePlanFlow.VIEW) {
+                        setFragmentResult(
+                            REQUEST_KEY, bundleOf(EXTRA_NOTE to event.note)
+                        )
+                        findNavController().popBackStack()
+                    } else {
+                        findNavController().navigate(
+                            InheritanceNoteFragmentDirections.actionInheritanceNoteFragmentToInheritanceNotifyPrefFragment(
+                                activationDate = args.activationDate,
+                                verifyToken = args.verifyToken,
+                                note = event.note,
+                                magicalPhrase = args.magicalPhrase,
+                                planFlow = args.planFlow
+                            )
+                        )
+                    }
+                }
             }
         }
     }
+
+    companion object {
+        const val REQUEST_KEY = "InheritanceNoteFragment"
+        const val EXTRA_NOTE = "EXTRA_NOTE"
+    }
 }
 
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun InheritanceNoteScreen(
     viewModel: InheritanceNoteViewModel = viewModel()
 ) {
-    InheritanceNoteScreenContent(onContinueClick = {
-        viewModel.onContinueClicked()
-    })
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    InheritanceNoteScreenContent(
+        note = state.note,
+        onContinueClick = viewModel::onContinueClicked,
+        onTextChange = viewModel::updateNote
+    )
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun InheritanceNoteScreenContent(
-    date: String = "",
-    onContinueClick: () -> Unit = {},
-    onTextChange: (value: String) -> Unit = {}
+    note: String = "", onContinueClick: () -> Unit = {}, onTextChange: (value: String) -> Unit = {}
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -98,16 +127,60 @@ fun InheritanceNoteScreenContent(
                     style = NunchukTheme.typography.body
                 )
 
-                NcTextField(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp)
-                        .padding(horizontal = 16.dp),
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                    title = stringResource(id = R.string.nc_note),
-                    value = date,
-                    onValueChange = onTextChange
-                )
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Text(
+                        modifier = Modifier.padding(bottom = 4.dp),
+                        text = stringResource(id = R.string.nc_note),
+                        style = NunchukTheme.typography.titleSmall
+                    )
+                    Text(
+                        modifier = Modifier.padding(bottom = 4.dp, start = 4.dp),
+                        text = stringResource(id = R.string.nc_optional),
+                        style = NunchukTheme.typography.bodySmall
+                    )
+                }
+
+                val interactionSource: MutableInteractionSource =
+                    remember { MutableInteractionSource() }
+
+                BasicTextField(value = note,
+                    onValueChange = onTextChange,
+                    keyboardOptions = KeyboardOptions.Default,
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colors.surface, shape = RoundedCornerShape(8.dp)
+                        )
+                        .height(145.dp)
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth(),
+                    decorationBox = @Composable { innerTextField ->
+                        TextFieldDefaults.OutlinedTextFieldDecorationBox(value = note,
+                            visualTransformation = VisualTransformation.None,
+                            label = null,
+                            innerTextField = innerTextField,
+                            leadingIcon = null,
+                            trailingIcon = null,
+                            enabled = true,
+                            isError = false,
+                            singleLine = false,
+                            interactionSource = interactionSource,
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp),
+                            border = {
+                                Box(
+                                    Modifier.border(
+                                        width = 1.dp,
+                                        color = Color(0xFFDEDEDE),
+                                        shape = RoundedCornerShape(8.dp),
+                                    )
+                                )
+                            })
+                    })
+
                 Spacer(modifier = Modifier.weight(1.0f))
 
                 NcPrimaryDarkButton(
