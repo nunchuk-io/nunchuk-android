@@ -260,8 +260,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         transaction: Transaction,
         serverTransaction: ServerTransaction?
     ) {
-        serverTransaction ?: return
-        if (transaction.status.canBroadCast() && serverTransaction.type == ServerTransactionType.SCHEDULED) {
+        if (serverTransaction != null && transaction.status.canBroadCast() && serverTransaction.type == ServerTransactionType.SCHEDULED) {
             binding.status.setCompoundDrawablesRelativeWithIntrinsicBounds(
                 R.drawable.ic_schedule,
                 0,

@@ -37,8 +37,10 @@ import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.membership.GetServerTransactionUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -66,14 +68,17 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val accountManager: AccountManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val selectedWalletUseCase: SetSelectedWalletUseCase,
-    private val assistedWalletManager: AssistedWalletManager
+    private val assistedWalletManager: AssistedWalletManager,
+    private val getServerTransactionUseCase: GetServerTransactionUseCase,
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
-    private var transactions: List<Transaction> = ArrayList()
+    private val transactions = mutableListOf<Transaction>()
 
     override val initialState = WalletDetailsState()
+
+    private val serverTransactions = hashMapOf<String, ServerTransaction?>()
 
     init {
         viewModelScope.launch {
@@ -97,7 +102,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     fun getRoomWallet() = getState().walletExtended.roomWallet
 
     fun syncData() {
-        transactions = ArrayList()
+        transactions.clear()
         getWalletDetails()
     }
 
@@ -145,8 +150,13 @@ internal class WalletDetailsViewModel @Inject constructor(
             getTransactionHistoryUseCase.execute(args.walletId).flowOn(IO)
                 .onException { event(WalletDetailsError(it.message.orUnknownError())) }.flowOn(Main)
                 .collect {
-                    transactions =
-                        it.sortedWith(compareBy(Transaction::status).thenByDescending(Transaction::blockTime))
+                    transactions.addAll(
+                        it.sortedWith(
+                            compareBy(Transaction::status).thenByDescending(
+                                Transaction::blockTime
+                            )
+                        )
+                    )
                     onRetrievedTransactionHistory()
                 }
         }
@@ -154,7 +164,15 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     fun paginateTransactions() =
         Pager(config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
-            pagingSourceFactory = { TransactionPagingSource(transactions) }).flow.cachedIn(
+            pagingSourceFactory = {
+                TransactionPagingSource(
+                    transactions = transactions,
+                    getServerTransactionUseCase = getServerTransactionUseCase,
+                    isAssistedWallet = assistedWalletManager.isAssistedWallet(args.walletId),
+                    walletId = args.walletId,
+                    serverTransactions = serverTransactions
+                )
+            }).flow.cachedIn(
             viewModelScope
         ).flowOn(IO)
 
