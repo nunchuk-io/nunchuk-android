@@ -27,13 +27,14 @@ import android.view.Window
 import android.view.WindowManager
 import androidx.core.view.isVisible
 import com.nunchuk.android.widget.databinding.NcVerticalInputDialogBinding
+import javax.inject.Inject
 
-class NCVerticalInputDialog(
-    context: Context
-) : Dialog(context) {
+class NCVerticalInputDialog @Inject constructor(
+    private val context: Context
+) {
     private val binding = NcVerticalInputDialogBinding.inflate(LayoutInflater.from(context))
 
-    fun buildDialog(
+    fun showDialog(
         title: String,
         descMessage: String? = null,
         isMaskedInput: Boolean = false,
@@ -45,7 +46,7 @@ class NCVerticalInputDialog(
         negativeText: String? = null,
         defaultInput: String? = null,
         onNegativeClicked: () -> Unit = {}
-    ) = apply {
+    ) = Dialog(context).apply {
         window?.setBackgroundDrawableResource(android.R.color.transparent)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         if (cancellable) {
@@ -87,13 +88,6 @@ class NCVerticalInputDialog(
             setLayout(MATCH_PARENT, MATCH_PARENT)
             setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
         }
-    }
-
-    fun updateErrorMessage(errorMessage: String?) {
-        if (!errorMessage.isNullOrEmpty()) {
-            binding.message.setError(errorMessage)
-        } else {
-            binding.message.hideError()
-        }
+        show()
     }
 }

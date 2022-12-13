@@ -48,20 +48,6 @@ import dagger.hilt.android.AndroidEntryPoint
 class NonSubscriberIntroFragment : Fragment() {
     private val viewModel: NonSubscriberIntroViewModel by viewModels()
 
-    private val dialog by lazy {
-        NCVerticalInputDialog(requireContext()).buildDialog(
-            title = getString(R.string.nc_enter_your_email),
-            positiveText = getString(R.string.nc_send_me_the_info),
-            negativeText = getString(R.string.nc_or_visit_our_website),
-            defaultInput = viewModel.getEmail(),
-            cancellable = true,
-            onPositiveClicked = {
-                viewModel.submitEmail(it)
-            },
-            onNegativeClicked = ::handleGoOurWebsite
-        )
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -89,7 +75,17 @@ class NonSubscriberIntroFragment : Fragment() {
     }
 
     private fun showTellMeMoreDialog() {
-        dialog.show()
+        NCVerticalInputDialog(requireContext()).showDialog(
+            title = getString(R.string.nc_enter_your_email),
+            positiveText = getString(R.string.nc_send_me_the_info),
+            negativeText = getString(R.string.nc_or_visit_our_website),
+            defaultInput = viewModel.getEmail(),
+            cancellable = true,
+            onPositiveClicked = {
+                viewModel.submitEmail(it)
+            },
+            onNegativeClicked = ::handleGoOurWebsite
+        )
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -101,9 +97,7 @@ class NonSubscriberIntroFragment : Fragment() {
                         is NonSubscriberIntroEvent.Loading -> showOrHideLoading(event.isLoading)
                         is NonSubscriberIntroEvent.ShowError -> showError(event.message)
                         is NonSubscriberIntroEvent.OnSubmitEmailSuccess -> showSuccess("We sent an email to ${event.email}")
-                        NonSubscriberIntroEvent.EmailInvalid -> dialog.updateErrorMessage(
-                            getString(R.string.nc_text_email_invalid),
-                        )
+                        NonSubscriberIntroEvent.EmailInvalid -> showError(getString(R.string.nc_text_email_invalid))
                     }
                 }
         }

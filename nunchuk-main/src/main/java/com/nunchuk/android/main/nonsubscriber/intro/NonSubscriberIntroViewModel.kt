@@ -56,12 +56,14 @@ class NonSubscriberIntroViewModel @Inject constructor(
         viewModelScope.launch {
             if (EmailValidator.valid(email).not()) {
                 _event.emit(NonSubscriberIntroEvent.EmailInvalid)
+                return@launch
             }
             _event.emit(NonSubscriberIntroEvent.Loading(true))
             val result = submitEmailUseCase(SubmitEmailUseCase.Param(
                 bannerId = email,
                 email = args.bannerId,
             ))
+            _event.emit(NonSubscriberIntroEvent.Loading(false))
             if (result.isSuccess) {
                 _event.emit(NonSubscriberIntroEvent.OnSubmitEmailSuccess(email))
             } else {
