@@ -15,6 +15,7 @@ import com.nunchuk.android.type.SignerType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.util.*
 import javax.inject.Inject
 
 class MembershipRepositoryImpl @Inject constructor(
@@ -55,7 +56,7 @@ class MembershipRepositoryImpl @Inject constructor(
         val result = membershipApi.getCurrentSubscription()
         if (result.isSuccess) {
             val data = result.data
-            val plan = data.plan?.slug.toMembershipPlan()
+            val plan = if (Calendar.getInstance().timeInMillis < data.validUntilUtcMillis) data.plan?.slug.toMembershipPlan() else MembershipPlan.NONE
             ncDataStore.setMembershipPlan(plan)
             return MemberSubscription(data.subscriptionId, data.plan?.slug, plan)
         } else {

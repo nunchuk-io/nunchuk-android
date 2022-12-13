@@ -10,9 +10,9 @@ data class MembershipSubscription(
     @SerializedName("plan") val plan: Plan? = null,
 //    @SerializedName("payment_method") val paymentMethod: String? = null,
 //    @SerializedName("valid_from_utc_millis") val validFromUtcMillis: Long = 0,
-//    @SerializedName("valid_until_utc_millis") val validUntilUtcMillis: Long = 0,
-//    @SerializedName("ended_at_utc_millis") val endedAtUtcMillis: Long = 0,
-//    @SerializedName("status") val status: String? = null,
+    @SerializedName("valid_until_utc_millis") val validUntilUtcMillis: Long = 0,
+    @SerializedName("ended_at_utc_millis") val endedAtUtcMillis: Long = 0,
+    @SerializedName("status") val status: String? = null,
 //    @SerializedName("payment_details") val paymentDetails: PaymentDetails? = null
 )
 

@@ -23,11 +23,14 @@ import com.nunchuk.android.core.data.api.BannerApi
 import com.nunchuk.android.core.data.api.PriceConverterAPI
 import com.nunchuk.android.core.data.api.TransactionApi
 import com.nunchuk.android.core.data.api.UserWalletsApi
+import com.nunchuk.android.network.util.TEST_NET_RETROFIT
+import com.nunchuk.android.network.util.TEST_NET_USER_WALLET_API
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
@@ -49,6 +52,12 @@ internal object NetworkModule {
     @Singleton
     @Provides
     fun provideUserWalletsApi(retrofit: Retrofit): UserWalletsApi =
+        retrofit.create(UserWalletsApi::class.java)
+
+    @Singleton
+    @Provides
+    @Named(TEST_NET_USER_WALLET_API)
+    fun provideTestNetUserWalletsApi(@Named(TEST_NET_RETROFIT) retrofit: Retrofit): UserWalletsApi =
         retrofit.create(UserWalletsApi::class.java)
 
     @Singleton

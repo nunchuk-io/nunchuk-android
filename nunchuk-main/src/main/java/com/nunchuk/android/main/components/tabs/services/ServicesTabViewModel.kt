@@ -7,7 +7,6 @@ import com.nunchuk.android.core.domain.membership.GetServerWalletUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -49,7 +48,7 @@ class ServicesTabViewModel @Inject constructor(
             if (getServerWalletResult.isFailure) return@launch
             val walletLocalId =
                 getServerWalletResult.getOrThrow().planWalletCreated[subscription.slug].orEmpty()
-            val isPremiumUser = subscription.subscriptionId.isNullOrEmpty().not()
+            val isPremiumUser = subscription.subscriptionId.isNullOrEmpty().not() && subscription.plan != MembershipPlan.NONE
             _state.update {
                 it.copy(
                     isCreatedAssistedWallet = walletLocalId.isNotEmpty(),

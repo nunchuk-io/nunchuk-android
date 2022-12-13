@@ -2,9 +2,9 @@ package com.nunchuk.android.core.repository
 
 import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.data.api.UserWalletsApi
 import com.nunchuk.android.core.data.model.*
 import com.nunchuk.android.core.data.model.membership.*
+import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.util.ONE_HOUR_TO_SECONDS
 import com.nunchuk.android.core.util.orDefault
@@ -21,9 +21,8 @@ import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.SERVER_KEY_NAME
 import javax.inject.Inject
 
-
 internal class PremiumWalletRepositoryImpl @Inject constructor(
-    private val userWalletsApi: UserWalletsApi,
+    private val userWalletApiManager: UserWalletApiManager,
     private val membershipRepository: MembershipRepository,
     private val gson: Gson,
     private val nunchukNativeSdk: NunchukNativeSdk,
@@ -33,7 +32,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 ) : PremiumWalletRepository {
 
     override suspend fun getSecurityQuestions(verifyToken: String?): List<SecurityQuestion> {
-        val questions = userWalletsApi.getSecurityQuestion(verifyToken).data.questions.map {
+        val questions = userWalletApiManager.walletApi.getSecurityQuestion(verifyToken).data.questions.map {
             SecurityQuestion(
                 id = it.id, question = it.question, isAnswer = it.isAnswer ?: false
             )
@@ -42,7 +41,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun verifySecurityQuestions(questions: List<QuestionsAndAnswer>): String {
-        return userWalletsApi.verifySecurityQuestion(
+        return userWalletApiManager.walletApi.verifySecurityQuestion(
             ConfigSecurityQuestionPayload(
                 questionsAndAnswerRequests = questions.map {
                     QuestionsAndAnswerRequest(
@@ -56,7 +55,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         questions: List<QuestionsAndAnswer>,
         plan: MembershipPlan,
     ) {
-        val result = userWalletsApi.configSecurityQuestion(
+        val result = userWalletApiManager.walletApi.configSecurityQuestion(
             ConfigSecurityQuestionPayload(
                 questionsAndAnswerRequests = questions.map {
                     QuestionsAndAnswerRequest(
@@ -80,7 +79,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun createServerKeys(
         name: String, keyPolicy: KeyPolicy, plan: MembershipPlan
     ): KeyPolicy {
-        val data = userWalletsApi.createServerKey(
+        val data = userWalletApiManager.walletApi.createServerKey(
             CreateServerKeysPayload(
                 name = name, keyPoliciesDtoPayload = keyPolicy.toDto()
             )
@@ -106,7 +105,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getServerKey(xfp: String): KeyPolicy {
-        val response = userWalletsApi.getServerKey(xfp)
+        val response = userWalletApiManager.walletApi.getServerKey(xfp)
         val policy =
             response.data.key?.policies ?: throw NullPointerException("Can not find key policy")
         val spendingLimit = policy.spendingLimit?.let {
@@ -139,7 +138,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }.forEachIndexed { index, signerToken ->
             headers["$AUTHORIZATION_X-${index + 1}"] = signerToken
         }
-        val response = userWalletsApi.updateServerKeys(
+        val response = userWalletApiManager.walletApi.updateServerKeys(
             headers,
             keyIdOrXfp,
             gson.fromJson(body, KeyPolicyUpdateRequest::class.java)
@@ -154,7 +153,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun createSecurityQuestion(question: String): SecurityQuestion {
         val response =
-            userWalletsApi.createSecurityQuestion(CreateSecurityQuestionRequest(question)).data.question
+            userWalletApiManager.walletApi.createSecurityQuestion(CreateSecurityQuestionRequest(question)).data.question
         return SecurityQuestion(
             id = response.id, question = response.question, isAnswer = response.isAnswer ?: true
         )
@@ -205,7 +204,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             localId = wallet.id,
             serverKeyId = serverKeyId
         )
-        val response = userWalletsApi.createWallet(request)
+        val response = userWalletApiManager.walletApi.createWallet(request)
         if (response.isSuccess) {
             membershipRepository.saveStepInfo(
                 MembershipStepInfo(
@@ -221,7 +220,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getServerWallet(): WalletServerSync {
-        val result = userWalletsApi.getServerWallet()
+        val result = userWalletApiManager.walletApi.getServerWallet()
 
         result.data.wallets.find { it.status == WALLET_ACTIVE_STATUS }?.let {
             ncDataStore.setAssistedWalletId(it.localId.orEmpty())
@@ -296,14 +295,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateServerWallet(walletLocalId: String, name: String): SeverWallet {
-        val response = userWalletsApi.updateWallet(walletLocalId, UpdateWalletPayload(name = name))
+        val response = userWalletApiManager.walletApi.updateWallet(walletLocalId, UpdateWalletPayload(name = name))
         return SeverWallet(response.data.wallet.id.orEmpty())
     }
 
     override suspend fun getServerTransaction(
         walletId: String, transactionId: String
     ): ExtendedTransaction {
-        val response = userWalletsApi.getTransaction(walletId, transactionId)
+        val response = userWalletApiManager.walletApi.getTransaction(walletId, transactionId)
         val transaction =
             response.data.transaction ?: throw NullPointerException("Transaction from server null")
         return ExtendedTransaction(
@@ -325,7 +324,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     questionId = it.questionId, answer = it.answer
                 )
             })
-        val response = userWalletsApi.downloadBackup(verifyToken, id, configSecurityQuestionPayload)
+        val response = userWalletApiManager.walletApi.downloadBackup(verifyToken, id, configSecurityQuestionPayload)
         return BackupKey(
             keyId = response.data.keyId,
             keyCheckSum = response.data.keyCheckSum,
@@ -336,7 +335,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun verifiedPasswordToken(targetAction: String, password: String): String? {
-        val response = userWalletsApi.verifiedPasswordToken(
+        val response = userWalletApiManager.walletApi.verifiedPasswordToken(
             targetAction, VerifiedPasswordTokenRequest(password)
         )
         return response.data.token.token
@@ -351,7 +350,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     questionId = it.questionId, answer = it.answer
                 )
             })
-        val response = userWalletsApi.calculateRequiredSignaturesSecurityQuestions(request)
+        val response = userWalletApiManager.walletApi.calculateRequiredSignaturesSecurityQuestions(request)
         return CalculateRequiredSignatures(
             type = response.data.result?.type.orEmpty(),
             requiredSignatures = response.data.result?.requiredSignatures ?: 0
@@ -363,7 +362,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         walletId: String,
         keyPolicy: KeyPolicy
     ): CalculateRequiredSignatures {
-        val response = userWalletsApi.calculateRequiredSignaturesUpdateServerKey(
+        val response = userWalletApiManager.walletApi.calculateRequiredSignaturesUpdateServerKey(
             xfp,
             CreateServerKeysPayload(
                 walletId = walletId,
@@ -381,7 +380,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         walletId: String,
         periodId: String
     ): CalculateRequiredSignatures {
-        val response = userWalletsApi.calculateRequiredSignaturesLockdown(
+        val response = userWalletApiManager.walletApi.calculateRequiredSignaturesLockdown(
             LockdownUpdateRequestBody(
                 walletId = walletId,
                 periodId = periodId
@@ -406,11 +405,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
         headers[VERIFY_TOKEN] = verifyToken
         headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
-        return userWalletsApi.securityQuestionsUpdate(headers, request)
+        return userWalletApiManager.walletApi.securityQuestionsUpdate(headers, request)
     }
 
     override suspend fun getNonce(): String {
-        return userWalletsApi.getNonce().data.nonce?.nonce.orEmpty()
+        return userWalletApiManager.walletApi.getNonce().data.nonce?.nonce.orEmpty()
     }
 
     override suspend fun lockdownUpdate(
@@ -426,7 +425,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
         headers[VERIFY_TOKEN] = verifyToken
         headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
-        return userWalletsApi.lockdownUpdate(headers, request)
+        return userWalletApiManager.walletApi.lockdownUpdate(headers, request)
     }
 
     override suspend fun generateSecurityQuestionUserData(
@@ -464,7 +463,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         note: String?,
         txId: String
     ) {
-        val response = userWalletsApi.createTransaction(
+        val response = userWalletApiManager.walletApi.createTransaction(
             walletId, CreateServerTransactionRequest(
                 note = note, psbt = psbt
             )
@@ -477,7 +476,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun signServerTransaction(
         walletId: String, txId: String, psbt: String
     ): ExtendedTransaction {
-        val response = userWalletsApi.signServerTransaction(
+        val response = userWalletApiManager.walletApi.signServerTransaction(
             walletId, txId, SignServerTransactionRequest(psbt = psbt)
         )
         val transaction =
@@ -493,14 +492,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteServerTransaction(walletId: String, transactionId: String) {
-        val response = userWalletsApi.deleteTransaction(walletId, transactionId)
+        val response = userWalletApiManager.walletApi.deleteTransaction(walletId, transactionId)
         if (response.isSuccess.not()) {
             throw response.error
         }
     }
 
     override suspend fun getInheritance(walletId: String): Inheritance {
-        val response = userWalletsApi.getInheritance(walletId)
+        val response = userWalletApiManager.walletApi.getInheritance(walletId)
         val inheritanceDto =
             response.data.inheritance ?: throw NullPointerException("Can not get inheritance")
         val status = when (inheritanceDto.status) {
@@ -563,7 +562,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         scheduleTime: Long
     ): ServerTransaction {
         val transaction = nunchukNativeSdk.getTransaction(walletId, transactionId)
-        val response = userWalletsApi.scheduleTransaction(
+        val response = userWalletApiManager.walletApi.scheduleTransaction(
             walletId,
             transactionId,
             ScheduleTransactionRequest(scheduleTime, transaction.psbt)
@@ -572,7 +571,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getLockdownPeriod(): List<LockdownPeriod> {
-        val response = userWalletsApi.getLockdownPeriod()
+        val response = userWalletApiManager.walletApi.getLockdownPeriod()
         return response.data.periods?.map {
             LockdownPeriod(
                 id = it.id.orEmpty(),

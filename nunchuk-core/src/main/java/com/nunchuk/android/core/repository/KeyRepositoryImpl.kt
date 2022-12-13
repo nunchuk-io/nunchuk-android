@@ -1,9 +1,9 @@
-package com.nunchuk.android.signer.repository
+package com.nunchuk.android.core.repository
 
 import com.google.gson.Gson
-import com.nunchuk.android.api.key.KeyApi
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.utils.NfcFileManager
+import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.model.*
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.entity.MembershipStepEntity
@@ -25,8 +25,8 @@ import java.io.FileInputStream
 import javax.inject.Inject
 
 
-class KeyRepositoryImpl @Inject constructor(
-    private val keyApi: KeyApi,
+internal class KeyRepositoryImpl @Inject constructor(
+    private val userWalletApiManager: UserWalletApiManager,
     private val accountManager: AccountManager,
     private val membershipDao: MembershipStepDao,
     private val nfcFileManager: NfcFileManager,
@@ -56,7 +56,7 @@ class KeyRepositoryImpl @Inject constructor(
             val keyTypeBody: RequestBody =
                 keyType.toRequestBody("multipart/form-data".toMediaTypeOrNull())
             val keyXfp: RequestBody = xfp.toRequestBody("multipart/form-data".toMediaTypeOrNull())
-            val result = keyApi.uploadBackupKey(
+            val result = userWalletApiManager.walletApi.uploadBackupKey(
                 keyName = keyNameBody,
                 keyType = keyTypeBody,
                 keyXfp = keyXfp,
@@ -107,7 +107,7 @@ class KeyRepositoryImpl @Inject constructor(
             membershipDao.getStepByMasterSignerId(accountManager.getAccount().chatId, masterSignerId)
                 ?: throw NullPointerException("Can not mark key verified $masterSignerId")
         val response =
-            keyApi.setKeyVerified(
+            userWalletApiManager.walletApi.setKeyVerified(
                 stepInfo.keyIdInServer,
                 KeyVerifiedRequest(
                     stepInfo.checkSum,
