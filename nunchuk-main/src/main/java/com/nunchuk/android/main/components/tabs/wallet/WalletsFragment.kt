@@ -14,6 +14,7 @@ import androidx.core.view.isVisible
 import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
@@ -29,8 +30,10 @@ import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
 import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
 import com.nunchuk.android.main.intro.UniversalNfcIntroActivity
+import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.WalletExtended
+import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.signer.satscard.SatsCardActivity
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.signer.util.handleTapSignerStatus
@@ -93,11 +96,10 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             return@setOnMenuItemClickListener false
         }
         binding.tvIntroAction.setOnDebounceClickListener {
-            if (walletsViewModel.isPremiumUser() == true) {
-                navigator.openMembershipActivity(requireActivity(), walletsViewModel.getGroupStage())
-            } else {
-                // TODO Hai
-            }
+            navigator.openMembershipActivity(requireActivity(), walletsViewModel.getGroupStage())
+        }
+        binding.containerNonSubscriber.setOnDebounceClickListener {
+            NonSubscriberActivity.start(requireActivity(), it.tag as String)
         }
     }
 
@@ -118,8 +120,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         val isGone = stage == MembershipStage.DONE || (isCreatedAssistedWallet && setupInheritance)
         binding.introContainer.isGone = isGone
         if (isVisible.not()) return
-        binding.introContainer.setBackgroundResource(R.drawable.nc_rounded_denim_background)
-        binding.ivIntro.setImageResource(R.drawable.ic_assisted_wallet_intro)
         if (stage == MembershipStage.NONE) {
             binding.tvIntroTitle.text = getString(R.string.nc_let_s_get_you_started)
             binding.tvIntroDesc.text =
@@ -302,7 +302,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun showIntro(state: WalletsState) {
-        binding.introContainer.isVisible = state.isPremiumUser != null
+        binding.introContainer.isVisible = state.isPremiumUser == true
+        binding.containerNonSubscriber.isVisible = state.isPremiumUser == false
         if (state.isPremiumUser != null) {
             when {
                 state.isPremiumUser -> showAssistedWalletStart(
@@ -310,17 +311,21 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     state.isCreatedAssistedWallet,
                     state.isSetupInheritance,
                 )
-                else -> showNonSubscriberIntro()
+                else -> showNonSubscriberIntro(state.banner)
             }
         }
     }
 
-    private fun showNonSubscriberIntro() {
-        binding.introContainer.setBackgroundResource(R.drawable.nc_rounded_beeswax_tint_radius_small)
-        binding.ivIntro.setImageResource(R.drawable.ic_protect_bitcoin)
-        binding.tvIntroTitle.text = getString(R.string.nc_inheritance_plan_title)
-        binding.tvIntroDesc.text = "" // TODO Hai
-        binding.tvIntroAction.text = getString(R.string.nc_check_out_assisted_wallet)
+    private fun showNonSubscriberIntro(banner: Banner?) {
+        binding.containerNonSubscriber.isVisible = banner != null
+        if (banner != null) {
+            binding.containerNonSubscriber.tag = banner.id
+            Glide.with(binding.ivNonSubscriber)
+                .load(banner.url)
+                .override(binding.ivNonSubscriber.width)
+                .into(binding.ivNonSubscriber)
+            binding.tvNonSubscriber.text = banner.title
+        }
     }
 
     private fun showWallets(wallets: List<WalletExtended>, assistedWalletId: String) {

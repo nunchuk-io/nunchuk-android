@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.core.di
 
+import com.nunchuk.android.core.data.api.BannerApi
 import com.nunchuk.android.core.data.api.PriceConverterAPI
 import com.nunchuk.android.core.data.api.TransactionApi
 import com.nunchuk.android.core.data.api.UserWalletsApi
@@ -36,14 +37,21 @@ internal object NetworkModule {
     @Singleton
     @Provides
     fun providePriceConverterAPI(retrofit: Retrofit): PriceConverterAPI = retrofit.create(
-        PriceConverterAPI::class.java)
+        PriceConverterAPI::class.java
+    )
 
     @Singleton
     @Provides
     fun provideTransactionAPI(retrofit: Retrofit): TransactionApi = retrofit.create(
-        TransactionApi::class.java)
+        TransactionApi::class.java
+    )
 
     @Singleton
     @Provides
-    fun provideUserWalletsApi(retrofit: Retrofit): UserWalletsApi = retrofit.create(UserWalletsApi::class.java)
+    fun provideUserWalletsApi(retrofit: Retrofit): UserWalletsApi =
+        retrofit.create(UserWalletsApi::class.java)
+
+    @Singleton
+    @Provides
+    fun provideBannerApi(retrofit: Retrofit): BannerApi = retrofit.create(BannerApi::class.java)
 }

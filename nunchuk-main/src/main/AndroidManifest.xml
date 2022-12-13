@@ -17,22 +17,27 @@
         <activity
             android:name=".components.tabs.services.keyrecovery.KeyRecoveryActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukNoActionBar.Light"/>
+            android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
             android:name=".components.tabs.services.emergencylockdown.EmergencyLockdownActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukNoActionBar.Light"/>
+            android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
             android:name=".components.tabs.services.inheritanceplanning.InheritancePlanningActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukNoActionBar.Light"/>
+            android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
             android:name=".membership.authentication.WalletAuthenticationActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukNoActionBar.Light"/>
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".nonsubscriber.NonSubscriberActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
     </application>
 
 </manifest>

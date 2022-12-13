@@ -64,6 +64,7 @@ dependencies {
     implementation lifecycleDeps.lifeCycleRuntime
 
     implementation imageLoaderDeps.glide
+    implementation imageLoaderDeps.compose
     implementation composeDeps.values()
     kapt imageLoaderDeps.processor
 }

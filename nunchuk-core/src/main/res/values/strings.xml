@@ -415,4 +415,8 @@
     <string name="nc_two_signatures_required">Two signatures required</string>
     <string name="nc_feature_assisted_wallet_inform_desc">This feature is only available with an assisted wallet. Please create one first.</string>
     <string name="nc_continue_setting_up_wallet">Continue setting up wallet</string>
+    <string name="nc_show_me_how">Show me how</string>
+    <string name="nc_try_assisted_wallet">Try assisted wallet on testnet</string>
+    <string name="nc_enter_your_email">Enter your email</string>
+    <string name="nc_send_me_the_info">Send me the info</string>
 </resources>

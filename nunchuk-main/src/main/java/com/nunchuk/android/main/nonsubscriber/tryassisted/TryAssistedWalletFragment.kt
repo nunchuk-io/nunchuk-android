@@ -1,0 +1,90 @@
+package com.nunchuk.android.main.nonsubscriber.tryassisted
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.fragment.app.Fragment
+import com.nunchuk.android.compose.NcHintMessage
+import com.nunchuk.android.compose.NcImageAppBar
+import com.nunchuk.android.compose.NcOutlineButton
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.core.util.openExternalLink
+import com.nunchuk.android.main.BuildConfig
+import com.nunchuk.android.main.R
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
+class TryAssistedWalletFragment : Fragment() {
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setContent {
+                TryAssistedWalletContent {
+                    val link = if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/try-on-testnet" else "https://nunchuk.io/try-on-testnet"
+                    requireActivity().openExternalLink(link)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TryAssistedWalletContent(
+    onShowMeHowClicked: () -> Unit = {},
+) {
+    NunchukTheme {
+        Scaffold { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .navigationBarsPadding()
+            ) {
+                NcImageAppBar(backgroundRes = R.drawable.bg_try_assisted_wallet)
+                Text(
+                    modifier = Modifier.padding(16.dp),
+                    text = stringResource(R.string.nc_try_assisted_wallet),
+                    style = NunchukTheme.typography.heading,
+                )
+                Text(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    text = stringResource(R.string.nc_try_assisted_wallet_desc),
+                    style = NunchukTheme.typography.body,
+                )
+                Spacer(modifier = Modifier.weight(1.0f))
+                NcHintMessage(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    messages = listOf(ClickAbleText(stringResource(R.string.nc_try_assisted_wallet_hint)))
+                )
+                NcOutlineButton(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    onClick = onShowMeHowClicked,
+                ) {
+                    Text(text = stringResource(R.string.nc_show_me_how))
+                }
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun TryAssistedWalletScreenPreview() {
+    TryAssistedWalletContent(
+
+    )
+}

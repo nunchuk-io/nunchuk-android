@@ -23,6 +23,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.model.WalletExtended
+import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 
@@ -36,6 +37,7 @@ internal data class WalletsState(
     val isCreatedAssistedWallet: Boolean = false,
     val assistedWalletId: String = "",
     val isSetupInheritance: Boolean = false,
+    val banner: Banner? = null,
 )
 
 internal sealed class WalletsEvent {

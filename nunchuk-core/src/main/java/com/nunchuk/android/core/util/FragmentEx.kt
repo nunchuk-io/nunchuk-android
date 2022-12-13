@@ -40,6 +40,12 @@ fun Fragment.showError(message: String?) {
     }
 }
 
+fun Fragment.showSuccess(message: String?) {
+    if (message.isNullOrEmpty().not()) {
+        NCToastMessage(requireActivity()).show(message.orEmpty())
+    }
+}
+
 fun Fragment.showWarning(message: String?) {
     if (message.isNullOrEmpty().not()) {
         NCToastMessage(requireActivity()).showWarning(message.orEmpty())

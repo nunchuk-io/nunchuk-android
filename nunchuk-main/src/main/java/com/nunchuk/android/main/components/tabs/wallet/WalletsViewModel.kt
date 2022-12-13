@@ -19,6 +19,7 @@ import com.nunchuk.android.model.*
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
+import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
 import com.nunchuk.android.utils.onException
@@ -42,6 +43,7 @@ internal class WalletsViewModel @Inject constructor(
     private val getServerWalletUseCase: GetServerWalletUseCase,
     private val assistedWalletManager: AssistedWalletManager,
     private val getInheritanceUseCase: GetInheritanceUseCase,
+    private val getBannerUseCase: GetBannerUseCase,
     isShowNfcUniversalUseCase: IsShowNfcUniversalUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -81,11 +83,13 @@ internal class WalletsViewModel @Inject constructor(
                 }
                 keyPolicyMap.clear()
                 keyPolicyMap.putAll(getServerWalletResult.getOrNull()?.keyPolicyMap.orEmpty())
-                val walletLocalId = getServerWalletResult.getOrThrow().planWalletCreated[subscription.slug].orEmpty()
+                val walletLocalId =
+                    getServerWalletResult.getOrThrow().planWalletCreated[subscription.slug].orEmpty()
                 var isSetupInheritance = subscription.plan != MembershipPlan.HONEY_BADGER
                 if (walletLocalId.isNotEmpty() && subscription.plan == MembershipPlan.HONEY_BADGER) {
                     val inheritanceResult = getInheritanceUseCase(walletLocalId)
-                    isSetupInheritance = inheritanceResult.isSuccess && inheritanceResult.getOrThrow().status != InheritanceStatus.PENDING_CREATION
+                    isSetupInheritance =
+                        inheritanceResult.isSuccess && inheritanceResult.getOrThrow().status != InheritanceStatus.PENDING_CREATION
                 }
                 updateState {
                     copy(
@@ -99,6 +103,12 @@ internal class WalletsViewModel @Inject constructor(
                     copy(
                         isPremiumUser = false,
                     )
+                }
+            }
+            if (result.getOrNull()?.subscriptionId.isNullOrEmpty()) {
+                val bannerResult = getBannerUseCase(Unit)
+                updateState {
+                    copy(banner = bannerResult.getOrNull())
                 }
             }
         }

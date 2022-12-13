@@ -20,9 +20,10 @@
 package com.nunchuk.android.core.di
 
 import com.nunchuk.android.core.repository.*
+import com.nunchuk.android.repository.BannerRepository
+import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.repository.SettingRepository
 import com.nunchuk.android.repository.TransactionRepository
-import com.nunchuk.android.repository.PremiumWalletRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -47,4 +48,8 @@ internal interface DataModule {
     @Binds
     @Singleton
     fun bindUserWalletsRepository(repository: PremiumWalletRepositoryImpl): PremiumWalletRepository
+
+    @Binds
+    @Singleton
+    fun bindBannerRepository(repository: BannerRepositoryImpl): BannerRepository
 }
