@@ -109,7 +109,6 @@ internal class ConfigureWalletViewModel @Inject constructor(
                 ConfigureWalletState(
                     masterSigners = signerPair.first,
                     remoteSigners = signerPair.second,
-                    signers = mapSigners(signerPair.first, signerPair.second),
                 )
             }
             .flowOn(Dispatchers.IO)
@@ -243,7 +242,7 @@ internal class ConfigureWalletViewModel @Inject constructor(
         }
     }
 
-    private suspend fun mapSigners(
+    suspend fun mapSigners(
         masterSigners: List<MasterSigner>,
         remoteSigners: List<SingleSigner>
     ): List<SignerModel> {

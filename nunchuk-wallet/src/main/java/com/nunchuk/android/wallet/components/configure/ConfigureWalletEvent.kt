@@ -44,7 +44,6 @@ data class ConfigureWalletState(
     val totalRequireSigns: Int = 1,
     val masterSigners: List<MasterSigner> = emptyList(),
     val remoteSigners: List<SingleSigner> = emptyList(),
-    val signers: List<SignerModel> = emptyList(),
     val selectedSigners: Set<SignerModel> = emptySet(),
     val isShowPath: Boolean = false
 )

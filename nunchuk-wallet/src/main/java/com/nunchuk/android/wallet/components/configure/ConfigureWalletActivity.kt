@@ -49,6 +49,7 @@ import com.nunchuk.android.widget.NCWarningVerticalDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.runBlocking
 
 @AndroidEntryPoint
 class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(),
@@ -169,7 +170,12 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
         val requireSigns = state.totalRequireSigns
         val totalSigns = state.selectedSigners.size
         bindSigners(
-            state.signers,
+            runBlocking {
+                viewModel.mapSigners(
+                    masterSigners = state.masterSigners,
+                    remoteSigners = state.remoteSigners
+                )
+            },
             state.selectedSigners,
             state.isShowPath
         )

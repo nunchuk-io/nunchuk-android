@@ -125,7 +125,6 @@ internal class AssignSignerViewModel @AssistedInject constructor(
                     signerPair.first, walletType, addressType
                 ).map { signers ->
                     AssignSignerState(
-                        signers = mapSigners(signerPair.first, signerPair.second),
                         masterSigners = signerPair.first,
                         remoteSigners = signerPair.second,
                         masterSignerMap = signers.associateBy { it.masterSignerId }
@@ -138,7 +137,6 @@ internal class AssignSignerViewModel @AssistedInject constructor(
                     copy(
                         masterSigners = emptyList(),
                         remoteSigners = emptyList(),
-                        signers = emptyList()
                     )
                 }
             }.onEach { newState ->
@@ -147,7 +145,6 @@ internal class AssignSignerViewModel @AssistedInject constructor(
                         masterSigners = newState.masterSigners,
                         remoteSigners = newState.remoteSigners,
                         masterSignerMap = newState.masterSignerMap,
-                        signers = newState.signers
                     )
                 }
             }
@@ -223,7 +220,7 @@ internal class AssignSignerViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun mapSigners(
+    suspend fun mapSigners(
         masterSigners: List<MasterSigner>,
         remoteSigners: List<SingleSigner>
     ): List<SignerModel> {

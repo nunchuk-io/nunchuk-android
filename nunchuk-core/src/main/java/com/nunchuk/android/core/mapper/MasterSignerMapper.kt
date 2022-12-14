@@ -30,13 +30,13 @@ import javax.inject.Singleton
 
 @Singleton
 class MasterSignerMapper @Inject constructor(
-    private val accountManager: AccountManager,
+    accountManager: AccountManager,
     private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
 ) {
     private val tapSignerCardIds = hashMapOf<String, String>()
+    private val accountInfo = accountManager.getAccount()
 
     suspend operator fun invoke(from: MasterSigner, derivationPath: String = ""): SignerModel {
-        val accountInfo = accountManager.getAccount()
         val isPrimaryKey =
             accountInfo.loginType == SignInMode.PRIMARY_KEY.value && accountInfo.primaryKeyInfo?.xfp == from.device.masterFingerprint
         if (from.type == SignerType.NFC && tapSignerCardIds.contains(from.id).not()) {

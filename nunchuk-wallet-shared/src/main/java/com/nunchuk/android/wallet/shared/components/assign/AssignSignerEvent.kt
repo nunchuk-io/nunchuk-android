@@ -40,7 +40,6 @@ data class AssignSignerState(
     val totalRequireSigns: Int = 0,
     val masterSigners: List<MasterSigner> = emptyList(),
     val remoteSigners: List<SingleSigner> = emptyList(),
-    val signers: List<SignerModel> = emptyList(),
     val masterSignerMap: Map<String, SingleSigner> = emptyMap(),
     val selectedSigner: Set<SignerModel> = setOf(),
     val filterRecSigners: List<SingleSigner> = emptyList(),
