@@ -248,6 +248,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     private fun setupViews() {
         binding.transactionList.layoutManager =
             LinearLayoutManager(context, RecyclerView.VERTICAL, false)
+        binding.tvAssistedDowngradeHint.isVisible = viewModel.isInactiveAssistedWallet()
         binding.transactionList.isNestedScrollingEnabled = false
         binding.transactionList.setHasFixedSize(false)
         binding.transactionList.adapter = adapter

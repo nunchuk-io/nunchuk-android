@@ -228,7 +228,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             getTransactionUseCase.execute(
                 walletId,
                 txId,
-                assistedWalletManager.isAssistedWallet(walletId)
+                assistedWalletManager.isActiveAssistedWallet(walletId)
             ).flowOn(IO)
                 .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }
                 .collect {
@@ -303,7 +303,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 DeleteTransactionUseCase.Param(
                     walletId = walletId,
                     txId = txId,
-                    isAssistedWallet = assistedWalletManager.isAssistedWallet(walletId)
+                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId)
                 )
             )
             if (result.isSuccess) {
@@ -393,7 +393,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private fun signPersonalTransaction(device: Device, signerId: String) {
         viewModelScope.launch {
-            val isAssistedWallet = assistedWalletManager.isAssistedWallet(walletId)
+            val isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId)
             val result = signTransactionUseCase(
                 SignTransactionUseCase.Param(
                     walletId = walletId,
@@ -485,7 +485,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private fun signPersonTapSignerTransaction(isoDep: IsoDep, inputCvc: String) {
         viewModelScope.launch {
             setEvent(NfcLoadingEvent())
-            val isAssistedWallet = assistedWalletManager.isAssistedWallet(walletId)
+            val isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId)
             val result = signTransactionByTapSignerUseCase(
                 SignTransactionByTapSignerUseCase.Data(
                     isoDep = isoDep,
@@ -514,7 +514,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         CrashlyticsReporter.recordException(TransactionException(message))
     }
 
-    fun isAssistedWallet() = assistedWalletManager.isAssistedWallet(walletId)
+    fun isAssistedWallet() = assistedWalletManager.isActiveAssistedWallet(walletId)
 
     fun isAtLeastSignedKey() = getState().transaction.signers.any { it.value }
 }

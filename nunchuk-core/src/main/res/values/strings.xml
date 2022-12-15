@@ -446,4 +446,5 @@
     <string name="nc_inheritance_share_secret_info_dialog_desc">You can review these information again by navigating to Services → View inheritance plan.</string>
     <string name="nc_claim_inheritance">Claim inheritance</string>
     <string name="nc_claim_inheritance_desc">Please enter the Magical Phrase and Backup Password</string>
+    <string name="nc_inactive">Inactive</string>
 </resources>

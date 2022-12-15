@@ -78,9 +78,7 @@ class NcDataStore @Inject constructor(
 
     val assistedWalletId: Flow<String>
         get() = context.dataStore.data.map {
-            val ordinal = it[membershipPlanKey] ?: 0
-            val plan = MembershipPlan.values()[ordinal]
-            if (plan != MembershipPlan.NONE) it[assistedWalletLocalIdKey].orEmpty() else ""
+            it[assistedWalletLocalIdKey].orEmpty()
         }
 
     val assistedWalletPlan: Flow<MembershipPlan>

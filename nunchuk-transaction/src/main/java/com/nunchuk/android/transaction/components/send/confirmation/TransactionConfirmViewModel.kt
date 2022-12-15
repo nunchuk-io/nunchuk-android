@@ -174,7 +174,7 @@ class TransactionConfirmViewModel @Inject constructor(
                     subtractFeeFromAmount = subtractFeeFromAmount,
                     feeRate = manualFeeRate.toManualFeeRate(),
                     memo = privateNote,
-                    isAssistedWallet = assistedWalletManager.isAssistedWallet(walletId),
+                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId),
                 )
             )
             if (result.isSuccess) {

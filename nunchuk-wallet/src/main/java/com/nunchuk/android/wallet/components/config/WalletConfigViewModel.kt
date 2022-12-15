@@ -100,7 +100,7 @@ internal class WalletConfigViewModel @Inject constructor(
             val newWallet = getState().walletExtended.wallet.copy(name = walletName)
             updateWalletUseCase.execute(
                 newWallet,
-                assistedWalletManager.isAssistedWallet(walletId)
+                assistedWalletManager.isActiveAssistedWallet(walletId)
             )
                 .flowOn(Dispatchers.IO)
                 .onException { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
@@ -158,7 +158,9 @@ internal class WalletConfigViewModel @Inject constructor(
     private fun isPrimaryKey(id: String) =
         accountManager.loginType() == SignInMode.PRIMARY_KEY.value && accountManager.getPrimaryKeyInfo()?.xfp == id
 
-    fun isAssistedWallet() = assistedWalletManager.isAssistedWallet(walletId)
+    fun isAssistedWallet() = assistedWalletManager.isActiveAssistedWallet(walletId)
+
+    fun isInactiveAssistedWallet() = assistedWalletManager.isInactiveAssistedWallet(walletId)
 
     override val initialState: WalletConfigState
         get() = WalletConfigState()

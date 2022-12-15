@@ -25,6 +25,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableDrawable
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.ItemWalletConfigSignerBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
@@ -32,6 +33,7 @@ import com.nunchuk.android.widget.util.setOnDebounceClickListener
 internal class SignersViewBinder(
     container: ViewGroup,
     signers: List<SignerModel>,
+    private val isInactiveAssistedWallet: Boolean = false,
     private val onViewPolicy: (model: SignerModel) -> Unit = {},
 ) : AbsViewBinder<SignerModel, ItemWalletConfigSignerBinding>(container, signers) {
 
@@ -41,16 +43,20 @@ internal class SignersViewBinder(
         val binding = ItemWalletConfigSignerBinding.bind(container.getChildAt(position))
 
         val isServerKey = model.type == SignerType.SERVER
-        binding.btnViewKeyPolicy.isVisible = isServerKey
+        binding.btnViewKeyPolicy.isVisible = isServerKey && isInactiveAssistedWallet.not()
         binding.signerType.isVisible = isServerKey.not()
-        binding.xpf.isVisible = isServerKey.not()
+        binding.xpf.isVisible = isServerKey.not() || isInactiveAssistedWallet
         binding.btnViewKeyPolicy.setOnDebounceClickListener { onViewPolicy(model) }
 
         binding.signerType.text = model.toReadableSignerType(context, isIgnorePrimary = true)
         binding.ivSignerType.isVisible = true
         binding.ivSignerType.setImageDrawable(model.type.toReadableDrawable(context))
         binding.signerName.text = model.name
-        binding.xpf.text = model.getXfpOrCardIdLabel()
+        if (isServerKey) {
+            binding.xpf.text = context.getString(R.string.nc_inactive)
+        } else {
+            binding.xpf.text = model.getXfpOrCardIdLabel()
+        }
         binding.signerPrimaryKeyType.isVisible = model.isPrimaryKey
         binding.tvBip32Path.isVisible = model.derivationPath.isNotEmpty() && isServerKey.not()
         binding.tvBip32Path.text = "BIP32 path: ${model.derivationPath}"

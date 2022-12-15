@@ -162,7 +162,11 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             (if (wallet.escrow) WalletType.ESCROW else WalletType.MULTI_SIG).toReadableString(this)
         binding.addressType.text = wallet.addressType.toReadableString(this)
         binding.shareIcon.isVisible = state.walletExtended.isShared
-        SignersViewBinder(binding.signersContainer, state.signers) {
+        SignersViewBinder(
+            container = binding.signersContainer,
+            signers = state.signers,
+            isInactiveAssistedWallet = viewModel.isInactiveAssistedWallet()
+        ) {
             showReEnterPassword(it.fingerPrint)
         }.bindItems()
     }

@@ -93,7 +93,7 @@ internal class WalletDetailsViewModel @Inject constructor(
         }
         updateState {
             copy(
-                isAssistedWallet = assistedWalletManager.isAssistedWallet(args.walletId)
+                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
             )
         }
     }
@@ -168,7 +168,7 @@ internal class WalletDetailsViewModel @Inject constructor(
                 TransactionPagingSource(
                     transactions = transactions,
                     getServerTransactionUseCase = getServerTransactionUseCase,
-                    isAssistedWallet = assistedWalletManager.isAssistedWallet(args.walletId),
+                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId),
                     walletId = args.walletId,
                     serverTransactions = serverTransactions
                 )
@@ -248,4 +248,6 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     val isLeaveRoom: Boolean
         get() = getState().isLeaveRoom
+
+    fun isInactiveAssistedWallet() = assistedWalletManager.isInactiveAssistedWallet(args.walletId)
 }
