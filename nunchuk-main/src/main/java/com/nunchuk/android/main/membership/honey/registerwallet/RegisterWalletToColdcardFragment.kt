@@ -28,9 +28,11 @@ import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.share.membership.MembershipFragment
-import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
 import com.nunchuk.android.wallet.components.upload.SharedWalletConfigurationViewModel
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent
 import dagger.hilt.android.AndroidEntryPoint
@@ -68,7 +70,24 @@ class RegisterWalletToColdcardFragment : MembershipFragment() {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
                     when (event) {
-                        RegisterWalletToColdcardEvent.ExportWalletToColdcard -> (requireActivity() as BaseWalletConfigActivity<*>).showExportColdcardOptions()
+                        RegisterWalletToColdcardEvent.ExportWalletToColdcard -> {
+                            BottomSheetOption.newInstance(
+                                title = getString(R.string.nc_select_your_export_method),
+                                options = listOf(
+                                    SheetOption(
+                                        type = SheetOptionType.EXPORT_COLDCARD_VIA_NFC,
+                                        resId = R.drawable.ic_nfc_indicator_small,
+                                        stringId = R.string.nc_export_via_nfc
+                                    ),
+                                    SheetOption(
+                                        type = SheetOptionType.EXPORT_COLDCARD_VIA_FILE,
+                                        resId = R.drawable.ic_export,
+                                        stringId = R.string.nc_export_via_file
+                                    )
+                                ),
+                                showClosedIcon = true
+                            ).show(childFragmentManager, "BottomSheetOption")
+                        }
                     }
                 }
         }
@@ -121,8 +140,10 @@ private fun RegisterWalletToColdcardContent(
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
-            Column(modifier = Modifier.padding(innerPadding)
-                .navigationBarsPadding()
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .navigationBarsPadding()
             ) {
                 NcImageAppBar(
                     backgroundRes = R.drawable.bg_register_coldcard,

@@ -102,7 +102,7 @@ class WalletAuthenticationViewModel @Inject constructor(
             val transaction = _state.value.transaction ?: return@launch
             _event.emit(WalletAuthenticationEvent.NfcLoading(isLoading = true, isColdCard = true))
             val result = exportRawPsbtToMk4UseCase(ExportRawPsbtToMk4UseCase.Data(transaction.psbt, ndef))
-            _event.emit(WalletAuthenticationEvent.NfcLoading(isLoading = false, isColdCard = false))
+            _event.emit(WalletAuthenticationEvent.NfcLoading(isLoading = false, isColdCard = true))
             if (result.isSuccess) {
                 _event.emit(WalletAuthenticationEvent.ExportTransactionToColdcardSuccess)
             } else {
