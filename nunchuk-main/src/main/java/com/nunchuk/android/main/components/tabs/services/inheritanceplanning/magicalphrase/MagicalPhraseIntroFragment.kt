@@ -95,13 +95,19 @@ private fun MagicalPhraseIntroContent(
                     .padding(innerPadding)
                     .navigationBarsPadding()
             ) {
-                NcTopAppBar(
-                    backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
-                    title = stringResource(
-                        id = R.string.nc_estimate_remain_time,
-                        remainTime
-                    ),
-                )
+                Column(
+                    modifier = Modifier
+                        .background(colorResource(id = R.color.nc_denim_tint_color))
+                        .statusBarsPadding()
+                ) {
+                    NcTopAppBar(
+                        backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
+                        title = stringResource(
+                            id = R.string.nc_estimate_remain_time,
+                            remainTime
+                        ),
+                    )
+                }
                 Column(
                     modifier = Modifier
                         .background(color = colorResource(id = R.color.nc_denim_tint_color))

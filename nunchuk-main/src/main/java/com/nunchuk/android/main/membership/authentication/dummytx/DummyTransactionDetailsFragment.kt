@@ -164,7 +164,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentTransactionDetailsB
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE }) {
             walletAuthenticationViewModel.getInteractSingleSigner()?.let { signer ->
-                walletAuthenticationViewModel.healthCheckColdCard(signer, it.records)
+                walletAuthenticationViewModel.generateSignatureFromColdCardPsbt(signer, it.records)
             }
             nfcViewModel.clearScanInfo()
         }

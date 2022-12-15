@@ -13,6 +13,7 @@ import com.nunchuk.android.core.domain.coldcard.ExportRawPsbtToMk4UseCase
 import com.nunchuk.android.core.domain.membership.CheckSignMessageTapsignerUseCase
 import com.nunchuk.android.core.domain.membership.CheckSignMessageUseCase
 import com.nunchuk.android.core.domain.membership.GetHealthCheckMessageUseCase
+import com.nunchuk.android.core.domain.membership.GetSignatureFromColdCardPsbt
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -42,6 +43,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val getDummyTxFromMessage: GetDummyTxFromMessage,
     private val getTxToSignMessage: GetTxToSignMessage,
     private val exportRawPsbtToMk4UseCase: ExportRawPsbtToMk4UseCase,
+    private val getSignatureFromColdCardPsbt: GetSignatureFromColdCardPsbt,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -137,6 +139,16 @@ class WalletAuthenticationViewModel @Inject constructor(
                 healthCheckColdCardUseCase(HealthCheckColdCardUseCase.Param(signer, records))
             _event.emit(WalletAuthenticationEvent.NfcLoading(false))
             handleSignatureResult(result = result.map { it.signature }, singleSigner = signer)
+        }
+    }
+
+    fun generateSignatureFromColdCardPsbt(signer: SingleSigner, records: List<NdefRecord>) {
+        viewModelScope.launch {
+            _event.emit(WalletAuthenticationEvent.NfcLoading(isLoading = true, isColdCard = true))
+            val result =
+                getSignatureFromColdCardPsbt(GetSignatureFromColdCardPsbt.Data(signer, records))
+            _event.emit(WalletAuthenticationEvent.NfcLoading(false))
+            handleSignatureResult(result = result, singleSigner = signer)
         }
     }
 
