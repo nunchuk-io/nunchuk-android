@@ -73,7 +73,24 @@ internal interface UserWalletsApi {
     ): Data<TransactionResponse>
 
     @GET("/v1.1/user-wallets/inheritance")
-    suspend fun getInheritance(@Query("wallet") wallet: String) : Data<InheritanceResponse>
+    suspend fun getInheritance(@Query("wallet") wallet: String): Data<InheritanceResponse>
+
+    @POST("/v1.1/user-wallets/inheritance")
+    suspend fun createInheritance(
+        @HeaderMap headers: Map<String, String>,
+        @Body payload: CreateUpdateInheritancePlanRequest
+    ): Data<InheritanceResponse>
+
+    @PUT("/v1.1/user-wallets/inheritance")
+    suspend fun updateInheritance(
+        @HeaderMap headers: Map<String, String>,
+        @Body payload: CreateUpdateInheritancePlanRequest
+    ): Data<InheritanceResponse>
+
+    @POST("/v1.1/user-wallets/inheritance/calculate-required-signatures")
+    suspend fun calculateRequiredSignaturesInheritance(
+        @Body payload: CreateUpdateInheritancePlanRequestBody
+    ): Data<CalculateRequiredSignaturesResponse>
 
     @POST("/v1.1/user-wallets/user-keys/{key_id_or_xfp}/download-backup")
     suspend fun downloadBackup(
@@ -91,13 +108,13 @@ internal interface UserWalletsApi {
     @POST("/v1.1/user-wallets/security-questions/calculate-required-signatures")
     suspend fun calculateRequiredSignaturesSecurityQuestions(
         @Body payload: CalculateRequiredSignaturesSecurityQuestionPayload
-    ) : Data<CalculateRequiredSignaturesResponse>
+    ): Data<CalculateRequiredSignaturesResponse>
 
     @POST("/v1.1/user-wallets/server-keys/{key_id_or_xfp}/calculate-required-signatures")
     suspend fun calculateRequiredSignaturesUpdateServerKey(
         @Path("key_id_or_xfp") id: String,
         @Body payload: CreateServerKeysPayload
-    ) : Data<CalculateRequiredSignaturesResponse>
+    ): Data<CalculateRequiredSignaturesResponse>
 
     @PUT("/v1.1/user-wallets/security-questions/update")
     suspend fun securityQuestionsUpdate(
@@ -140,4 +157,30 @@ internal interface UserWalletsApi {
 
     @POST("/v1.1/user-wallets/user-keys/{key_id}/verify")
     suspend fun setKeyVerified(@Path("key_id") keyId: String, @Body payload: KeyVerifiedRequest) : Data<Unit>
+
+    @POST("/v1.1/user-wallets/inheritance/claiming/status")
+    suspend fun inheritanceClaimingStatus(
+        @HeaderMap headers: Map<String, String>,
+        @Body payload: InheritanceClaimStatusRequest
+    ): Data<InheritanceResponse>
+
+    @POST("/v1.1/user-wallets/inheritance/claiming/download-backup")
+    suspend fun inheritanceClaimingDownloadBackup(
+        @Body payload: InheritanceClaimDownloadBackupRequest
+    ): Data<KeyResponse>
+
+    @POST("/v1.1/user-wallets/inheritance/claiming/create-transaction")
+    suspend fun inheritanceClaimingCreateTransaction(
+        @Body payload: InheritanceClaimCreateTransactionRequest
+    ): Data<KeyResponse>
+
+    @POST("/v1.1/user-wallets/inheritance/claiming/claim")
+    suspend fun inheritanceClaimingClaim(
+        @Body payload: InheritanceClaimClaimRequest
+    ): Data<TransactionResponse>
+
+    @POST("/v1.1/user-wallets/inheritance/claiming/check-valid")
+    suspend fun inheritanceClaimingCheckValid(
+        @Body payload: InheritanceClaimCheckValidRequest
+    ): Data<InheritanceClaimCheckValidResponse>
 }

@@ -42,6 +42,7 @@ import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecovery
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationActivity
 import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
+import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.nav.AppNavigator
@@ -157,9 +158,16 @@ interface AppNavigatorDelegate : AppNavigator {
 
     override fun openInheritancePlanningScreen(
         activityContext: Context,
+        verifyToken: String?,
+        inheritance: Inheritance?,
         @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int
     ) {
-        InheritancePlanningActivity.navigate(activityContext, flowInfo)
+        InheritancePlanningActivity.navigate(
+            activityContext,
+            verifyToken = verifyToken,
+            flowInfo = flowInfo,
+            inheritance = inheritance
+        )
     }
 
     override fun openWalletAuthentication(

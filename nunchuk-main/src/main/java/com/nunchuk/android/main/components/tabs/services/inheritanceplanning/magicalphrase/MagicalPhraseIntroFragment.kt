@@ -4,14 +4,20 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Card
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
@@ -21,10 +27,9 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
-import com.nunchuk.android.compose.NcHighlightText
-import com.nunchuk.android.compose.NcImageAppBar
-import com.nunchuk.android.compose.NcPrimaryDarkButton
-import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.*
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -49,10 +54,16 @@ class MagicalPhraseIntroFragment : MembershipFragment() {
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
-                    when(event) {
-                        MagicalPhraseIntroEvent.OnContinueClicked -> findNavController().navigate(
-                            MagicalPhraseIntroFragmentDirections.actionMagicalPhraseIntroFragmentToFindBackupPasswordFragment()
-                        )
+                    when (event) {
+                        is MagicalPhraseIntroEvent.OnContinueClicked -> {
+                            findNavController().navigate(
+                                MagicalPhraseIntroFragmentDirections.actionMagicalPhraseIntroFragmentToFindBackupPasswordFragment(
+                                    event.magicalPhrase
+                                )
+                            )
+                        }
+                        is MagicalPhraseIntroEvent.Error -> showError(message = event.message)
+                        is MagicalPhraseIntroEvent.Loading -> showOrHideLoading(loading = event.loading)
                     }
                 }
         }
@@ -63,12 +74,18 @@ class MagicalPhraseIntroFragment : MembershipFragment() {
 @Composable
 private fun MagicalPhraseIntroScreen(viewModel: MagicalPhraseIntroViewModel = viewModel()) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
-    MagicalPhraseIntroContent(remainTime, viewModel::onContinueClicked)
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    MagicalPhraseIntroContent(
+        remainTime = remainTime,
+        magicalPhrase = state.magicalPhrase.orEmpty(),
+        viewModel::onContinueClicked
+    )
 }
 
 @Composable
 private fun MagicalPhraseIntroContent(
     remainTime: Int = 0,
+    magicalPhrase: String = "",
     onContinueClicked: () -> Unit = {},
 ) {
     NunchukTheme {
@@ -78,13 +95,41 @@ private fun MagicalPhraseIntroContent(
                     .padding(innerPadding)
                     .navigationBarsPadding()
             ) {
-                NcImageAppBar(
-                    backgroundRes = R.drawable.bg_magical_phrase,
+                NcTopAppBar(
+                    backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
                     title = stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
                     ),
                 )
+                Column(
+                    modifier = Modifier
+                        .background(color = colorResource(id = R.color.nc_denim_tint_color))
+                        .height(300.dp)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                modifier = Modifier.fillMaxWidth(),
+                                text = magicalPhrase,
+                                style = NunchukTheme.typography.body,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_here_is_plan_magical_phrase),

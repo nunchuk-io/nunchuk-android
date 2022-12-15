@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -22,10 +23,11 @@ fun NcTopAppBar(
     textStyle: TextStyle = NunchukTheme.typography.titleSmall,
     actions: @Composable RowScope.() -> Unit = {},
     isBack: Boolean = true,
+    backgroundColor: Color = MaterialTheme.colors.surface
 ) {
     val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
     TopAppBar(
-        backgroundColor = MaterialTheme.colors.surface,
+        backgroundColor = backgroundColor,
         elevation = 0.dp,
         navigationIcon = {
             IconButton(onClick = { onBackPressOwner?.onBackPressedDispatcher?.onBackPressed() }) {

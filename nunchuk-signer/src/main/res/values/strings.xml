@@ -112,4 +112,6 @@
     <string name="nc_export_xpub_coldcard_desc">Navigate to Advanced/Tools → Export Wallet → Generic JSON → OK.</string>
     <string name="nc_import_xpub_into_app_desc">Import the file from step 3 on the next screen.</string>
     <string name="nc_self_verify_hint">For a Nunchuk-provided tool, check out</string>
+    <string name="nc_share_your_secrets">Share your secrets</string>
+    <string name="nc_view_claiming_instructions">View claiming instructions</string>
 </resources>

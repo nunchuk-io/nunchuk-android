@@ -7,11 +7,13 @@ import com.nunchuk.android.core.domain.membership.GetServerWalletUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,6 +30,7 @@ class ServicesTabViewModel @Inject constructor(
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val getServerWalletUseCase: GetServerWalletUseCase,
+    private val getInheritanceUseCase: GetInheritanceUseCase
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<ServicesTabEvent>()
@@ -49,12 +52,20 @@ class ServicesTabViewModel @Inject constructor(
             val walletLocalId =
                 getServerWalletResult.getOrThrow().planWalletCreated[subscription.slug].orEmpty()
             val isPremiumUser = subscription.subscriptionId.isNullOrEmpty().not() && subscription.plan != MembershipPlan.NONE
+            var inheritance: Inheritance? = null
+            if (walletLocalId.isNotEmpty() && subscription.plan == MembershipPlan.HONEY_BADGER) {
+                val inheritanceResult = getInheritanceUseCase(walletLocalId)
+                if (inheritanceResult.isSuccess) {
+                    inheritance = inheritanceResult.getOrThrow()
+                }
+            }
             _state.update {
                 it.copy(
                     isCreatedAssistedWallet = walletLocalId.isNotEmpty(),
                     isPremiumUser = isPremiumUser,
                     plan = subscription.plan,
-                    rowItems = it.initRowItems(subscription.plan)
+                    rowItems = it.initRowItems(subscription.plan),
+                    inheritance = inheritance
                 )
             }
         } else {
@@ -75,6 +86,9 @@ class ServicesTabViewModel @Inject constructor(
             }
             is ServiceTabRowItem.CoSigningPolicies -> {
                 VerifiedPasswordTargetAction.UPDATE_SERVER_KEY.name
+            }
+            is ServiceTabRowItem.ViewInheritancePlan -> {
+                VerifiedPasswordTargetAction.UPDATE_INHERITANCE_PLAN.name
             }
             else -> {
                 throw IllegalArgumentException()
@@ -121,6 +135,8 @@ class ServicesTabViewModel @Inject constructor(
                 }
         }
     }
+
+    fun getInheritance() = _state.value.inheritance
 
     fun getGroupStage(): MembershipStage {
         if (_state.value.isCreatedAssistedWallet) return MembershipStage.DONE

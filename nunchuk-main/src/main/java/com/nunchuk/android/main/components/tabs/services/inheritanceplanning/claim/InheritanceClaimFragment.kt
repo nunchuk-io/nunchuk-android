@@ -1,48 +1,42 @@
-package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.keytip
+package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.NcHighlightText
-import com.nunchuk.android.compose.NcImageAppBar
-import com.nunchuk.android.compose.NcPrimaryDarkButton
-import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.keytip.InheritanceKeyTipEvent
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.keytip.InheritanceKeyTipViewModel
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @AndroidEntryPoint
-class InheritanceKeyTipFragment : MembershipFragment() {
+class InheritanceClaimFragment : MembershipFragment() {
     private val viewModel: InheritanceKeyTipViewModel by viewModels()
-    private val args: InheritanceKeyTipFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
-                InheritanceKeyTipContent(remainTime) {
+                InheritanceClaimContent {
                     viewModel.onContinueClick()
                 }
             }
@@ -53,23 +47,19 @@ class InheritanceKeyTipFragment : MembershipFragment() {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) {
             when (it) {
-                InheritanceKeyTipEvent.ContinueClickEvent -> {
-                    findNavController().navigate(
-                        InheritanceKeyTipFragmentDirections.actionInheritanceKeyTipFragmentToInheritanceActivationDateFragment(
-                            magicalPhrase = args.magicalPhrase,
-                            planFlow = InheritancePlanFlow.SETUP
-                        )
-                    )
-                }
+                InheritanceKeyTipEvent.ContinueClickEvent -> TODO()
             }
         }
     }
 }
 
 @Composable
-private fun InheritanceKeyTipContent(
-    remainTime: Int = 0,
-    onContinueClicked: () -> Unit = {}
+private fun InheritanceClaimContent(
+    onContinueClick: () -> Unit = {},
+    magicalPhrase: String = "",
+    backupDownload: String = "",
+    onMagicalPhraseTextChange: (String) -> Unit = {},
+    onBackupDownloadTextChange: (String) -> Unit = {},
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -79,28 +69,45 @@ private fun InheritanceKeyTipContent(
                     .navigationBarsPadding()
             ) {
                 NcImageAppBar(
-                    backgroundRes = R.drawable.bg_inheritance_key_tip,
-                    title = stringResource(
-                        id = R.string.nc_estimate_remain_time,
-                        remainTime
-                    ),
+                    backgroundRes = R.drawable.bg_claim_inheritance_illustration,
+                    title = "",
                 )
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_inheritance_key_tip),
+                    text = stringResource(R.string.nc_claim_inheritance),
                     style = NunchukTheme.typography.heading
                 )
-                NcHighlightText(
+                Text(
                     modifier = Modifier.padding(16.dp),
-                    text = stringResource(R.string.nc_inheritance_key_tip_desc),
+                    text = stringResource(R.string.nc_claim_inheritance_desc),
                     style = NunchukTheme.typography.body
+                )
+                NcTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                        .padding(horizontal = 16.dp),
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                    title = stringResource(id = R.string.nc_magical_phrase),
+                    value = magicalPhrase,
+                    onValueChange = onMagicalPhraseTextChange
+                )
+                NcTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                        .padding(horizontal = 16.dp),
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                    title = stringResource(id = R.string.nc_backup_download),
+                    value = backupDownload,
+                    onValueChange = onBackupDownloadTextChange
                 )
                 Spacer(modifier = Modifier.weight(1.0f))
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    onClick = onContinueClicked,
+                    onClick = onContinueClick,
                 ) {
                     Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
                 }
@@ -111,8 +118,8 @@ private fun InheritanceKeyTipContent(
 
 @Preview
 @Composable
-private fun InheritanceKeyTipScreenPreview() {
-    InheritanceKeyTipContent(
+private fun InheritanceClaimScreenPreview() {
+    InheritanceClaimContent(
 
     )
 }

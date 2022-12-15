@@ -231,6 +231,7 @@
     <string name="nc_answer">Answer</string>
     <string name="nc_question_data">Question #%1$d</string>
     <string name="nc_select_a_question">Select a question</string>
+    <string name="nc_activation_date_holder">MM/DD/YYYY</string>
     <string name="nc_let_create_your_wallet">Let’s create your wallet</string>
     <string name="nc_create_your_wallet_desc">What would you like to name this wallet?</string>
     <string name="nc_wallet_name">Wallet name</string>
@@ -261,6 +262,7 @@
     <string name="nc_inheritance_intro_desc">This TAPSIGNER will be your designated inheritance key. Once you have set up an inheritance plan, a Beneficiary or Trustee will be able to recover this TAPSIGNER’s private key at a later date to access your wallet and claim the inheritance.\n\nPlease take a moment to mark or label this key.</string>
     <string name="nc_inheritance_key_tip_desc">[B]The inheritance key is designed to be used exclusively for the purpose of inheritance[/B]. The TAPSIGNER designated as the inheritance key should be locked and put away in a safe place, until it is needed.\n\nFor day-to-day spending, we recommend that you use the other keys in the wallet.</string>
     <string name="nc_set_up_inheritance_plan">Set up an inheritance plan</string>
+    <string name="nc_view_inheritance_plan">View inheritance plan</string>
     <string name="nc_add_coldcard_via_file">Add COLDCARD via a file (Advanced)</string>
     <string name="nc_export_xpubs_from_coldcard">Export XPUBs from COLDCARD</string>
     <string name="nc_import_xpub_into_app">Import XPUBs into this app</string>
@@ -302,7 +304,7 @@
     <string name="nc_inheritance_planning">Inheritance planning</string>
     <string name="nc_your_subscription">Your subscription</string>
     <string name="nc_key_recovery">Key recovery</string>
-    <string name="nc_claim_inheritance">Claim an inheritance</string>
+    <string name="nc_claim_an_inheritance">Claim an inheritance</string>
     <string name="nc_co_signing_policies">Co-signing policies</string>
     <string name="nc_order_new_hardware">Order new hardware</string>
     <string name="nc_manage_subscription">Manage subscription</string>
@@ -357,6 +359,7 @@
     <string name="nc_inheritance_leave_message_desc">After the Beneficiary or Trustee claims the inheritance, they will be able to see this message.</string>
     <string name="nc_update_message">Update message</string>
     <string name="nc_note">Note</string>
+    <string name="nc_optional">(optional)</string>
     <string name="nc_inheritance_notify_pref_desc">On the activation date, would you like us to notify the Beneficiary or Trustee of the inheritance plan? If so, please provide an email address.</string>
     <string name="nc_notify_them_today">Also notify them today</string>
     <string name="nc_inheritance_notify_pref_warning">You are still personally responsible for sharing the Magical Phrase and Backup Password with the Beneficiary or Trustee. The notification email won’t include these information.</string>
@@ -419,4 +422,28 @@
     <string name="nc_try_assisted_wallet">Try assisted wallet on testnet</string>
     <string name="nc_enter_your_email">Enter your email</string>
     <string name="nc_send_me_the_info">Send me the info</string>
+    <string name="nc_wallet_subject_to_inheritance">Wallet subject to inheritance:</string>
+    <string name="nc_no_note">(No note)</string>
+    <string name="nc_no_listed">(None listed)</string>
+    <string name="nc_backup_password_desc">(The Backup Password is printed on the back of the inheritance key)</string>
+    <string name="nc_inheritance_notify_pref_hint">To include multiple email addresses, separate them by commas or spaces.</string>
+    <string name="nc_inheritance_create_success">Your inheritance plan has been set up!</string>
+    <string name="nc_share_your_secrets">Share your secrets</string>
+    <string name="nc_share_your_secrets_desc">The Magical Phrase and Backup Password must be shared with the party or parties eligible for the inheritance. Please select your option:</string>
+    <string name="nc_direct_inheritance">Direct inheritance</string>
+    <string name="nc_direct_inheritance_desc">The Beneficiary has full control over the inheritance. Upon the Activation Date, they can claim the inheritance for themselves.</string>
+    <string name="nc_indirect_inheritance">Indirect inheritance</string>
+    <string name="nc_indirect_inheritance_desc">A Trustee has full control over the inheritance. Upon the Activation Date, the Trustee can help the Beneficiary claim the inheritance on their behalf.</string>
+    <string name="nc_joint_control">Joint control</string>
+    <string name="nc_joint_control_desc">The Beneficiary and the Trustee have joint control over the inheritance. Upon the Activation Date, the Beneficiary and Trustee will need to combine their secrets in order to claim the inheritance.</string>
+    <string name="nc_plan_magical_phrase">The plan’s Magical Phrase.</string>
+    <string name="nc_inheritance_share_secret_info_warning">You are solely responsible for sharing the Magical Phrase and Backup Password with the Beneficiary. Failure to share will result in the inheritance being unclaimable.</string>
+    <string name="nc_inheritance_share_secret_info_2">The Backup Password for the encrypted backup, which can be found on the back of the TAPSIGNER designated for inheritance. (it might be listed under “Backup key”).</string>
+    <string name="nc_inheritance_share_secret_info_title_direct">Please share these two secrets with the Beneficiary:</string>
+    <string name="nc_inheritance_share_secret_info_title_indirect">Please share these two secrets with the Trustee:</string>
+    <string name="nc_inheritance_share_secret_info_title_joint_control">Please share one secret with the Beneficiary and the other secret with the Trustee. [B]Neither party should have both secrets.[/B]</string>
+    <string name="nc_continue_to_finalize_changes">Continue to finalize changes</string>
+    <string name="nc_inheritance_share_secret_info_dialog_desc">You can review these information again by navigating to Services → View inheritance plan.</string>
+    <string name="nc_claim_inheritance">Claim inheritance</string>
+    <string name="nc_claim_inheritance_desc">Please enter the Magical Phrase and Backup Password</string>
 </resources>

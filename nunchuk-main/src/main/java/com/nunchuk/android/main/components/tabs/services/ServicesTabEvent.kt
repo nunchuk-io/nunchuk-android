@@ -1,6 +1,8 @@
 package com.nunchuk.android.main.components.tabs.services
 
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.Inheritance
+import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SingleSigner
 
@@ -21,20 +23,63 @@ data class ServicesTabState(
     val isPremiumUser: Boolean? = null,
     val isCreatedAssistedWallet: Boolean = false,
     val plan: MembershipPlan = MembershipPlan.NONE,
-    val rowItems: List<Any> = emptyList()
+    val rowItems: List<Any> = emptyList(),
+    val inheritance: Inheritance? = null
 ) {
     fun initRowItems(plan: MembershipPlan): List<Any> {
         val items = mutableListOf<Any>()
         when (plan) {
             MembershipPlan.NONE -> {
                 items.add(NonSubHeader)
-                items.add(NonSubRow(drawableId = R.drawable.ic_mulitsig_dark, title = R.string.nc_no_single_point_failure, desc = R.string.nc_no_single_point_failure_desc))
-                items.add(NonSubRow(drawableId = R.drawable.ic_inheritance_planning, title = R.string.nc_inheritance_planning, desc = R.string.nc_inheritance_planning_desc))
-                items.add(NonSubRow(drawableId = R.drawable.ic_emergency_lockdown_dark, title = R.string.nc_emergency_lockdown, desc = R.string.nc_emergency_lockdown_desc))
-                items.add(NonSubRow(drawableId = R.drawable.ic_signing_policy, title = R.string.nc_flexible_spending_policies, desc = R.string.nc_flexible_spending_policies_desc))
-                items.add(NonSubRow(drawableId = R.drawable.ic_key_recovery, title = R.string.nc_cloud_backups_assisted_recovery, desc = R.string.nc_cloud_backups_assisted_recovery_desc))
-                items.add(NonSubRow(drawableId = R.drawable.ic_contact_support_dark, title = R.string.nc_in_app_chat_support, desc = R.string.nc_in_app_chat_support_desc))
-                items.add(NonSubRow(drawableId = R.drawable.ic_member_discount, title = R.string.nc_hardware_discounts, desc = R.string.nc_hardware_discounts_desc))
+                items.add(
+                    NonSubRow(
+                        drawableId = R.drawable.ic_mulitsig_dark,
+                        title = R.string.nc_no_single_point_failure,
+                        desc = R.string.nc_no_single_point_failure_desc
+                    )
+                )
+                items.add(
+                    NonSubRow(
+                        drawableId = R.drawable.ic_inheritance_planning,
+                        title = R.string.nc_inheritance_planning,
+                        desc = R.string.nc_inheritance_planning_desc
+                    )
+                )
+                items.add(
+                    NonSubRow(
+                        drawableId = R.drawable.ic_emergency_lockdown_dark,
+                        title = R.string.nc_emergency_lockdown,
+                        desc = R.string.nc_emergency_lockdown_desc
+                    )
+                )
+                items.add(
+                    NonSubRow(
+                        drawableId = R.drawable.ic_signing_policy,
+                        title = R.string.nc_flexible_spending_policies,
+                        desc = R.string.nc_flexible_spending_policies_desc
+                    )
+                )
+                items.add(
+                    NonSubRow(
+                        drawableId = R.drawable.ic_key_recovery,
+                        title = R.string.nc_cloud_backups_assisted_recovery,
+                        desc = R.string.nc_cloud_backups_assisted_recovery_desc
+                    )
+                )
+                items.add(
+                    NonSubRow(
+                        drawableId = R.drawable.ic_contact_support_dark,
+                        title = R.string.nc_in_app_chat_support,
+                        desc = R.string.nc_in_app_chat_support_desc
+                    )
+                )
+                items.add(
+                    NonSubRow(
+                        drawableId = R.drawable.ic_member_discount,
+                        title = R.string.nc_hardware_discounts,
+                        desc = R.string.nc_hardware_discounts_desc
+                    )
+                )
             }
             MembershipPlan.IRON_HAND -> {
                 items.add(ServiceTabRowCategory.Emergency)
@@ -46,7 +91,12 @@ data class ServicesTabState(
                 items.add(ServiceTabRowCategory.Emergency)
                 items.addAll(ServiceTabRowCategory.Emergency.items)
                 items.add(ServiceTabRowCategory.Inheritance)
-                items.addAll(ServiceTabRowCategory.Inheritance.items)
+                if (inheritance?.status == InheritanceStatus.PENDING_CREATION) {
+                    items.add(ServiceTabRowItem.SetUpInheritancePlan)
+                } else {
+                    items.add(ServiceTabRowItem.ViewInheritancePlan)
+                }
+                items.add(ServiceTabRowItem.ClaimInheritance)
                 items.add(ServiceTabRowCategory.Subscription)
                 items.addAll(ServiceTabRowCategory.Subscription.items)
             }
@@ -89,8 +139,8 @@ sealed class ServiceTabRowCategory(
             mutableListOf<ServiceTabRowItem>().apply {
                 add(ServiceTabRowItem.CoSigningPolicies)
                 add(ServiceTabRowItem.OrderNewHardware)
-                add(ServiceTabRowItem.ManageSubscription)
                 add(ServiceTabRowItem.RollOverAssistedWallet)
+                add(ServiceTabRowItem.ManageSubscription)
             })
 }
 
@@ -104,11 +154,14 @@ sealed class ServiceTabRowItem(val category: ServiceTabRowCategory, val title: I
     object SetUpInheritancePlan :
         ServiceTabRowItem(ServiceTabRowCategory.Inheritance, R.string.nc_set_up_inheritance_plan)
 
+    object ViewInheritancePlan :
+        ServiceTabRowItem(ServiceTabRowCategory.Inheritance, R.string.nc_view_inheritance_plan)
+
     object ClaimInheritance :
-        ServiceTabRowItem(ServiceTabRowCategory.Inheritance, R.string.nc_claim_inheritance)
+        ServiceTabRowItem(ServiceTabRowCategory.Inheritance, R.string.nc_claim_an_inheritance)
 
     object CoSigningPolicies :
-        ServiceTabRowItem(ServiceTabRowCategory.Subscription, R.string.nc_co_signing_policies)
+        ServiceTabRowItem(ServiceTabRowCategory.Subscription, R.string.nc_cosigning_policies)
 
     object OrderNewHardware :
         ServiceTabRowItem(ServiceTabRowCategory.Subscription, R.string.nc_order_new_hardware)

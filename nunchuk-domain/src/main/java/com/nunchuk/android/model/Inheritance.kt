@@ -1,5 +1,9 @@
 package com.nunchuk.android.model
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
 class Inheritance(
     val walletId: String,
     val walletLocalId: String,
@@ -10,4 +14,4 @@ class Inheritance(
     val activationTimeMilis: Long,
     val createdTimeMilis: Long,
     val lastModifiedTimeMilis: Long,
-)
+) : Parcelable

@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
@@ -22,7 +22,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
 
-    private val viewModel: ServicesTabViewModel by activityViewModels()
+    private val viewModel: ServicesTabViewModel by viewModels()
     private lateinit var adapter: ServicesTabAdapter
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -58,6 +58,14 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             ServiceTabRowItem.EmergencyLockdown -> {
                 navigator.openEmergencyLockdownScreen(requireContext(), event.token)
             }
+            ServiceTabRowItem.ViewInheritancePlan -> {
+                navigator.openInheritancePlanningScreen(
+                    requireContext(),
+                    verifyToken = event.token,
+                    inheritance = viewModel.getInheritance(),
+                    flowInfo = InheritancePlanFlow.VIEW
+                )
+            }
             else -> {}
         }
     }
@@ -92,10 +100,12 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             ServiceTabRowItem.ClaimInheritance -> {
                 navigator.openInheritancePlanningScreen(
                     requireContext(),
-                    InheritancePlanFlow.VIEW
+                    flowInfo = InheritancePlanFlow.CLAIM
                 )
             }
-            ServiceTabRowItem.CoSigningPolicies, ServiceTabRowItem.EmergencyLockdown -> enterPasswordDialog(item)
+            ServiceTabRowItem.CoSigningPolicies, ServiceTabRowItem.EmergencyLockdown -> enterPasswordDialog(
+                item
+            )
             ServiceTabRowItem.KeyRecovery -> navigator.openKeyRecoveryScreen(requireContext())
             ServiceTabRowItem.ManageSubscription -> showManageSubscriptionDialog()
             ServiceTabRowItem.OrderNewHardware -> showOrderNewHardwareDialog()
@@ -103,9 +113,10 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             ServiceTabRowItem.SetUpInheritancePlan -> {
                 navigator.openInheritancePlanningScreen(
                     requireContext(),
-                    InheritancePlanFlow.SETUP
+                    flowInfo = InheritancePlanFlow.SETUP
                 )
             }
+            ServiceTabRowItem.ViewInheritancePlan -> enterPasswordDialog(item)
         }
     }
 

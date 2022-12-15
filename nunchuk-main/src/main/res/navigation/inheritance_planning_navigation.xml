@@ -5,6 +5,11 @@
     app:startDestination="@id/inheritanceReviewPlanFragment">
 
     <fragment
+        android:id="@+id/inheritanceClaimFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.InheritanceClaimFragment"
+        android:label="InheritanceClaimFragment"/>
+
+    <fragment
         android:id="@+id/inheritanceReviewPlanFragment"
         android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanFragment"
         android:label="InheritanceReviewPlanFragment">
@@ -15,6 +20,63 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_inheritanceReviewPlanFragment_to_inheritanceNoteFragment"
+            app:destination="@id/inheritanceNoteFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_inheritanceReviewPlanFragment_to_inheritanceCreateSuccessFragment"
+            app:destination="@id/inheritanceCreateSuccessFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_inheritanceReviewPlanFragment_to_inheritanceNotifyPrefFragment"
+            app:destination="@id/inheritanceNotifyPrefFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_inheritanceReviewPlanFragment_to_inheritanceShareSecretFragment"
+            app:destination="@id/inheritanceShareSecretFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <argument
+            android:name="activation_date"
+            app:argType="long" />
+        <argument
+            android:name="note"
+            android:defaultValue=""
+            app:argType="string" />
+        <argument
+            android:name="verifyToken"
+            android:defaultValue=""
+            app:argType="string" />
+        <argument
+            android:name="emails"
+            app:argType="string[]" />
+        <argument
+            android:name="is_notify"
+            app:argType="boolean" />
+        <argument
+            android:name="magical_phrase"
+            app:argType="string" />
+        <argument
+            android:name="plan_flow"
+            android:defaultValue="0"
+            app:argType="integer" />
     </fragment>
 
     <fragment
@@ -28,6 +90,26 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <argument
+            android:name="verifyToken"
+            android:defaultValue=""
+            app:argType="string" />
+        <argument
+            android:name="magical_phrase"
+            android:defaultValue=""
+            app:argType="string" />
+        <argument
+            android:name="plan_flow"
+            android:defaultValue="0"
+            app:argType="integer" />
+        <argument
+            android:name="is_update_request"
+            android:defaultValue="false"
+            app:argType="boolean" />
+        <argument
+            android:name="selected_activation_date"
+            android:defaultValue="0L"
+            app:argType="long" />
     </fragment>
 
     <fragment
@@ -41,12 +123,79 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <argument
+            android:name="activation_date"
+            android:defaultValue="0L"
+            app:argType="long" />
+        <argument
+            android:name="verifyToken"
+            android:defaultValue=""
+            app:argType="string" />
+        <argument
+            android:name="magical_phrase"
+            android:defaultValue=""
+            app:argType="string" />
+        <argument
+            android:name="plan_flow"
+            android:defaultValue="0"
+            app:argType="integer" />
+        <argument
+            android:name="is_update_request"
+            android:defaultValue="false"
+            app:argType="boolean" />
+        <argument
+            android:name="pre_noted"
+            android:defaultValue=""
+            app:argType="string" />
     </fragment>
 
     <fragment
         android:id="@+id/inheritanceNotifyPrefFragment"
         android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notifypref.InheritanceNotifyPrefFragment"
         android:label="InheritanceNotifyPrefFragment">
+
+        <action
+            android:id="@+id/action_inheritanceNotifyPrefFragment_to_inheritanceReviewPlanFragment"
+            app:destination="@id/inheritanceReviewPlanFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <argument
+            android:name="activation_date"
+            android:defaultValue="0L"
+            app:argType="long" />
+        <argument
+            android:name="note"
+            android:defaultValue=""
+            app:argType="string" />
+        <argument
+            android:name="verifyToken"
+            android:defaultValue=""
+            app:argType="string" />
+        <argument
+            android:name="magical_phrase"
+            android:defaultValue=""
+            app:argType="string" />
+        <argument
+            android:name="plan_flow"
+            android:defaultValue="0"
+            app:argType="integer" />
+        <argument
+            android:name="is_update_request"
+            android:defaultValue="false"
+            app:argType="boolean" />
+        <argument
+            android:name="pre_is_notify"
+            android:defaultValue="false"
+            app:argType="boolean" />
+        <argument
+            android:name="pre_emails"
+            android:defaultValue="@null"
+            app:argType="string[]"
+            app:nullable="true" />
     </fragment>
 
     <fragment
@@ -60,6 +209,14 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <argument
+            android:name="verifyToken"
+            android:defaultValue=""
+            app:argType="string" />
+        <argument
+            android:name="plan_flow"
+            android:defaultValue="0"
+            app:argType="integer" />
     </fragment>
 
     <fragment
@@ -85,6 +242,10 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <argument
+            android:name="verifyToken"
+            android:defaultValue=""
+            app:argType="string" />
     </fragment>
     <fragment
         android:id="@+id/findBackupPasswordFragment"
@@ -97,6 +258,9 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <argument
+            android:name="magical_phrase"
+            app:argType="string" />
     </fragment>
     <fragment
         android:id="@+id/inheritanceKeyTipFragment"
@@ -109,6 +273,53 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <argument
+            android:name="magical_phrase"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/inheritanceCreateSuccessFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.createsuccess.InheritanceCreateSuccessFragment"
+        android:label="InheritanceCreateSuccessFragment">
+        <action
+            android:id="@+id/action_inheritanceCreateSuccessFragment_to_inheritanceShareSecretFragment"
+            app:destination="@id/inheritanceShareSecretFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <argument
+            android:name="magical_phrase"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/inheritanceShareSecretFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretFragment"
+        android:label="InheritanceShareSecretFragment">
+        <action
+            android:id="@+id/action_inheritanceShareSecretFragment_to_inheritanceShareSecretInfoFragment"
+            app:destination="@id/inheritanceShareSecretInfoFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <argument
+            android:name="magical_phrase"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/inheritanceShareSecretInfoFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecretinfo.InheritanceShareSecretInfoFragment"
+        android:label="InheritanceShareSecretInfoFragment">
+        <argument
+            android:name="magical_phrase"
+            app:argType="string" />
+        <argument
+            android:name="type"
+            app:argType="integer" />
     </fragment>
 
 </navigation>

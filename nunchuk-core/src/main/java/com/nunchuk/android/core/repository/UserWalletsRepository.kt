@@ -392,6 +392,85 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
     }
 
+    override suspend fun generateInheritanceUserData(
+        note: String,
+        notificationEmails: List<String>,
+        notifyToday: Boolean,
+        activationTimeMilis: Long,
+        walletId: String
+    ): String {
+        val body = CreateUpdateInheritancePlanRequestBody(
+            note = note,
+            notifyToday = notifyToday,
+            notificationEmails = notificationEmails,
+            activationTimeMilis = activationTimeMilis,
+            walletId = walletId
+        )
+        val nonce = getNonce()
+        val request = CreateUpdateInheritancePlanRequest(
+            nonce = nonce,
+            body = body
+        )
+        return gson.toJson(request)
+    }
+
+    override suspend fun calculateRequiredSignaturesInheritance(
+        note: String,
+        notificationEmails: List<String>,
+        notifyToday: Boolean,
+        activationTimeMilis: Long,
+        walletId: String
+    ): CalculateRequiredSignatures {
+        val response = userWalletApiManager.walletApi.calculateRequiredSignaturesInheritance(
+            CreateUpdateInheritancePlanRequestBody(
+                walletId = walletId,
+                note = note,
+                notificationEmails = notificationEmails,
+                notifyToday = notifyToday,
+                activationTimeMilis = activationTimeMilis
+            )
+        )
+        return CalculateRequiredSignatures(
+            type = response.data.result?.type.orEmpty(),
+            requiredSignatures = response.data.result?.requiredSignatures ?: 0
+        )
+    }
+
+    override suspend fun createUpdateInheritance(
+        authorizations: List<String>,
+        verifyToken: String,
+        userData: String,
+        securityQuestionToken: String,
+        isUpdate: Boolean
+    ): Inheritance {
+        val request = gson.fromJson(userData, CreateUpdateInheritancePlanRequest::class.java)
+        val headers = mutableMapOf<String, String>()
+        authorizations.forEachIndexed { index, value ->
+            headers["$AUTHORIZATION_X-${index + 1}"] = value
+        }
+        headers[VERIFY_TOKEN] = verifyToken
+        headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
+        val response = if (isUpdate) userWalletApiManager.walletApi.updateInheritance(headers, request) else userWalletApiManager.walletApi.createInheritance(headers, request)
+        val inheritanceDto =
+            response.data.inheritance ?: throw NullPointerException("Can not get inheritance")
+        val status = when (inheritanceDto.status) {
+            "ACTIVE" -> InheritanceStatus.ACTIVE
+            "CLAIMED" -> InheritanceStatus.CLAIMED
+            else -> InheritanceStatus.PENDING_CREATION
+        }
+        return Inheritance(
+            walletId = inheritanceDto.walletId.orEmpty(),
+            walletLocalId = inheritanceDto.walletLocalId.orEmpty(),
+            magic = inheritanceDto.magic.orEmpty(),
+            note = inheritanceDto.note.orEmpty(),
+            notificationEmails = inheritanceDto.notificationEmails,
+            status = status,
+            activationTimeMilis = inheritanceDto.activationTimeMilis,
+            createdTimeMilis = inheritanceDto.createdTimeMilis,
+            lastModifiedTimeMilis = inheritanceDto.lastModifiedTimeMilis,
+        )
+    }
+
     override suspend fun securityQuestionsUpdate(
         authorizations: List<String>,
         verifyToken: String,

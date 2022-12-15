@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -32,6 +33,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class FindBackupPasswordFragment : MembershipFragment() {
     private val viewModel: FindBackupPasswordViewModel by viewModels()
+    private val args: FindBackupPasswordFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -41,7 +43,9 @@ class FindBackupPasswordFragment : MembershipFragment() {
                 val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
                 FindBackupPasswordContent(remainTime) {
                     findNavController().navigate(
-                        FindBackupPasswordFragmentDirections.actionFindBackupPasswordFragmentToInheritanceKeyTipFragment()
+                        FindBackupPasswordFragmentDirections.actionFindBackupPasswordFragmentToInheritanceKeyTipFragment(
+                            magicalPhrase = args.magicalPhrase
+                        )
                     )
                 }
             }
