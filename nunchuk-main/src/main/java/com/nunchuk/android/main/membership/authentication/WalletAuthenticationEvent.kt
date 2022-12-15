@@ -18,6 +18,7 @@ sealed class WalletAuthenticationEvent {
     object ScanColdCard : WalletAuthenticationEvent()
     object GenerateColdcardHealthMessagesSuccess : WalletAuthenticationEvent()
     object ShowAirgapOption : WalletAuthenticationEvent()
+    object ExportTransactionToColdcardSuccess : WalletAuthenticationEvent()
 }
 
 data class WalletAuthenticationState(

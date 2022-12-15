@@ -15,6 +15,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.colorResource
@@ -185,7 +186,7 @@ private fun AssistedWalletPointWidget(modifier: Modifier = Modifier, point: Assi
             GlideImage(
                 model = point.iconUrl,
                 contentDescription = "",
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(24.dp).align(Alignment.Center),
             )
         }
         Column(

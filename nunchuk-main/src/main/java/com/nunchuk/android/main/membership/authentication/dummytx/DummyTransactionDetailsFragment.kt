@@ -125,7 +125,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentTransactionDetailsB
                             BaseNfcActivity.REQUEST_NFC_SIGN_TRANSACTION
                         )
                         WalletAuthenticationEvent.ScanColdCard -> (requireActivity() as NfcActionListener).startNfcFlow(
-                            BaseNfcActivity.REQUEST_GENERATE_HEAL_CHECK_MSG
+                            BaseNfcActivity.REQUEST_MK4_EXPORT_TRANSACTION
                         )
                         is WalletAuthenticationEvent.ProcessFailure -> showError(event.message)
                         WalletAuthenticationEvent.GenerateColdcardHealthMessagesSuccess -> (requireActivity() as NfcActionListener).startNfcFlow(
@@ -137,6 +137,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentTransactionDetailsB
                         )
                         is WalletAuthenticationEvent.ShowError -> showError(event.message)
                         WalletAuthenticationEvent.ShowAirgapOption -> handleMenuMore()
+                        WalletAuthenticationEvent.ExportTransactionToColdcardSuccess -> handleExportToColdcardSuccess()
                     }
                 }
         }
@@ -152,11 +153,10 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentTransactionDetailsB
             nfcViewModel.clearScanInfo()
         }
 
-        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_GENERATE_HEAL_CHECK_MSG }) { scanInfo ->
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_MK4_EXPORT_TRANSACTION }) { scanInfo ->
             walletAuthenticationViewModel.getInteractSingleSigner()?.let { signer ->
-                walletAuthenticationViewModel.generateColdcardHealthMessages(
+                walletAuthenticationViewModel.handleExportTransactionToMk4(
                     Ndef.get(scanInfo.tag),
-                    signer.derivationPath
                 )
             }
             nfcViewModel.clearScanInfo()
@@ -168,6 +168,11 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentTransactionDetailsB
             }
             nfcViewModel.clearScanInfo()
         }
+    }
+
+    private fun handleExportToColdcardSuccess() {
+        (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE)
+        showSuccess(getString(com.nunchuk.android.transaction.R.string.nc_transaction_exported))
     }
 
     private fun setupViews() {

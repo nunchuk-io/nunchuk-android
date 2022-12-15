@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GenerateColdCardHealthCheckMessageUseCase
 import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.domain.HealthCheckColdCardUseCase
+import com.nunchuk.android.core.domain.coldcard.ExportRawPsbtToMk4UseCase
 import com.nunchuk.android.core.domain.membership.CheckSignMessageTapsignerUseCase
 import com.nunchuk.android.core.domain.membership.CheckSignMessageUseCase
 import com.nunchuk.android.core.domain.membership.GetHealthCheckMessageUseCase
@@ -40,6 +41,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
     private val getDummyTxFromMessage: GetDummyTxFromMessage,
     private val getTxToSignMessage: GetTxToSignMessage,
+    private val exportRawPsbtToMk4UseCase: ExportRawPsbtToMk4UseCase,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -92,6 +94,20 @@ class WalletAuthenticationViewModel @Inject constructor(
             SignerType.HARDWARE -> handleSignCheckSoftware(singleSigner)
             SignerType.AIRGAP -> _event.emit(WalletAuthenticationEvent.ShowAirgapOption)
             else -> {}
+        }
+    }
+
+    fun handleExportTransactionToMk4(ndef: Ndef) {
+        viewModelScope.launch {
+            val transaction = _state.value.transaction ?: return@launch
+            _event.emit(WalletAuthenticationEvent.NfcLoading(isLoading = true, isColdCard = true))
+            val result = exportRawPsbtToMk4UseCase(ExportRawPsbtToMk4UseCase.Data(transaction.psbt, ndef))
+            _event.emit(WalletAuthenticationEvent.NfcLoading(isLoading = false, isColdCard = false))
+            if (result.isSuccess) {
+                _event.emit(WalletAuthenticationEvent.ExportTransactionToColdcardSuccess)
+            } else {
+                _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
         }
     }
 

@@ -88,7 +88,8 @@ class CheckSignMessageFragment : Fragment() {
                         )
                         is WalletAuthenticationEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading, event.isColdCard)
                         is WalletAuthenticationEvent.ShowError -> showError(event.message)
-                        WalletAuthenticationEvent.ShowAirgapOption -> {}
+                        WalletAuthenticationEvent.ShowAirgapOption -> Unit
+                        WalletAuthenticationEvent.ExportTransactionToColdcardSuccess -> Unit
                     }
                 }
         }

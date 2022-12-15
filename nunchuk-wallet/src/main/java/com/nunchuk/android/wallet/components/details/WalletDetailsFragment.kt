@@ -238,10 +238,11 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         binding.cashAmount.text = wallet.getUSDAmount()
         binding.btnSend.isClickable = wallet.balance.value > 0
 
-        binding.shareIcon.isVisible = state.walletExtended.isShared
+        binding.shareIcon.isVisible = state.walletExtended.isShared || state.isAssistedWallet
         if (state.isAssistedWallet) {
             binding.container.setBackgroundResource(R.drawable.nc_header_membership_gradient_background)
             requireActivity().window.statusBarColor =  ContextCompat.getColor(requireContext(), R.color.nc_wallet_premium_bg)
+            binding.shareIcon.text = getString(R.string.nc_assisted)
         }
     }
 

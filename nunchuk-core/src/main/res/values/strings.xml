@@ -7,7 +7,7 @@
     <string name="nc_title_account">Profile</string>
 
     <string name="nc_text_do_this_later">I’ll do this later</string>
-    <string name="nc_wallet_export_coldcard">Export wallet to Coldcard</string>
+    <string name="nc_wallet_export_coldcard">Export wallet to COLDCARD</string>
 
     <string name="nc_signer_type_air_gapped">Air-gapped</string>
     <string name="nc_signer_type_software">Software</string>
