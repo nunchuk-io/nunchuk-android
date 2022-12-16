@@ -56,7 +56,12 @@ class MembershipRepositoryImpl @Inject constructor(
         val result = membershipApi.getCurrentSubscription()
         if (result.isSuccess) {
             val data = result.data
-            val plan = if (Calendar.getInstance().timeInMillis < data.validUntilUtcMillis) data.plan?.slug.toMembershipPlan() else MembershipPlan.NONE
+            val plan = if (data.status == "PENDING"
+                || (data.status == "ACTIVE" && Calendar.getInstance().timeInMillis < data.validUntilUtcMillis)) {
+                data.plan?.slug.toMembershipPlan()
+            } else {
+                MembershipPlan.NONE
+            }
             ncDataStore.setMembershipPlan(plan)
             return MemberSubscription(data.subscriptionId, data.plan?.slug, plan)
         } else {

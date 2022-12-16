@@ -9,7 +9,6 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.key.server.setting.ConfigureServerKeySettingFragmentArgs
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
@@ -41,10 +40,6 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             )
             MembershipStage.CONFIG_SERVER_KEY -> graph.setStartDestination(R.id.configureServerKeySettingFragment)
             MembershipStage.CONFIG_SPENDING_LIMIT -> graph.setStartDestination(R.id.configSpendingLimitFragment)
-            MembershipStage.SETUP_INHERITANCE -> {
-                membershipStepManager.setCurrentStep(MembershipStep.SETUP_INHERITANCE)
-                graph.setStartDestination(R.id.inheritanceSetupIntroFragment)
-            }
             else -> Unit
         }
         val bundle = when (stage) {

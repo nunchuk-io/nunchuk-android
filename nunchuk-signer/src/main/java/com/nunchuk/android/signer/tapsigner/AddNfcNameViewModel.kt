@@ -32,11 +32,12 @@ class AddNfcNameViewModel @Inject constructor(
     ) {
         isoDep ?: return
         viewModelScope.launch {
+            _event.emit(AddNfcNameEvent.Loading(true))
             _state.value.signer?.takeIf { shouldCreateBackUp }?.let {
                 getBackUpTapSigner(isoDep, cvc, it)
+                _event.emit(AddNfcNameEvent.Loading(false))
                 return@launch
             }
-            _event.emit(AddNfcNameEvent.Loading(true))
             val createTapSignerKeyResult =
                 createTapSignerUseCase(CreateTapSignerUseCase.Data(isoDep, cvc, name))
             if (createTapSignerKeyResult.isSuccess) {
@@ -45,13 +46,12 @@ class AddNfcNameViewModel @Inject constructor(
                 if (shouldCreateBackUp) {
                     getBackUpTapSigner(isoDep, cvc, signer)
                 } else {
-                    _event.emit(AddNfcNameEvent.Loading(false))
                     _event.emit(AddNfcNameEvent.Success(signer))
                 }
             } else {
-                _event.emit(AddNfcNameEvent.Loading(false))
                 _event.emit(AddNfcNameEvent.Error(createTapSignerKeyResult.exceptionOrNull()))
             }
+            _event.emit(AddNfcNameEvent.Loading(false))
         }
     }
 
@@ -62,10 +62,8 @@ class AddNfcNameViewModel @Inject constructor(
             _event.emit(AddNfcNameEvent.BackUpSuccess(_state.value.filePath))
             return
         }
-        _event.emit(AddNfcNameEvent.Loading(true))
         val createBackUpKeyResult =
             getTapSignerBackupUseCase(GetTapSignerBackupUseCase.Data(isoDep, cvc, signer.id))
-        _event.emit(AddNfcNameEvent.Loading(false))
         if (createBackUpKeyResult.isSuccess) {
             _event.emit(AddNfcNameEvent.BackUpSuccess(createBackUpKeyResult.getOrThrow()))
             _state.update { it.copy(filePath = createBackUpKeyResult.getOrThrow()) }
