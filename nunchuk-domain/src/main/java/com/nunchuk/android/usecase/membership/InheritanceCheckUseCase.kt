@@ -17,34 +17,21 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.transaction.components.utils
+package com.nunchuk.android.usecase.membership
 
-import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.manager.ActivityManager
-import com.nunchuk.android.transaction.components.send.amount.InputAmountActivity
-import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.InheritanceCheck
+import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-fun BaseActivity<*>.showCreateTransactionError(message: String) {
-    hideLoading()
-    NCToastMessage(this).showError("Create transaction error due to $message")
-}
+class InheritanceCheckUseCase @Inject constructor(
+    private val repository: PremiumWalletRepository,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<String, InheritanceCheck>(ioDispatcher) {
 
-fun BaseActivity<*>.openTransactionDetailScreen(txId: String, walletId: String, roomId: String, isInheritanceClaimingFlow: Boolean) {
-    hideLoading()
-    ActivityManager.popUntil(InputAmountActivity::class.java, true)
-    navigator.openTransactionDetailsScreen(
-        activityContext = this,
-        walletId = walletId,
-        txId = txId,
-        roomId = roomId,
-        isInheritanceClaimingFlow = isInheritanceClaimingFlow
-    )
-    NCToastMessage(this).showMessage("Transaction created::$txId")
-}
-
-fun BaseActivity<*>.returnActiveRoom(roomId: String) {
-    hideLoading()
-    finish()
-    ActivityManager.popUntilRoot()
-    navigator.openRoomDetailActivity(this, roomId)
+    override suspend fun execute(parameters: String): InheritanceCheck {
+        return repository.inheritanceCheck(parameters)
+    }
 }

@@ -10,7 +10,8 @@ sealed class InheritanceReviewPlanEvent {
     ) : InheritanceReviewPlanEvent()
 
     data class ProcessFailure(val message: String) : InheritanceReviewPlanEvent()
-    object CreateInheritanceSuccess : InheritanceReviewPlanEvent()
+    object CreateOrUpdateInheritanceSuccess : InheritanceReviewPlanEvent()
+    object CancelInheritanceSuccess : InheritanceReviewPlanEvent()
 }
 
 data class InheritanceReviewPlanState(
@@ -18,5 +19,8 @@ data class InheritanceReviewPlanState(
     val note: String = "",
     val isNotifyToday: Boolean = false,
     val emails: List<String> = emptyList(),
-    val userData: String? = null
+    val userData: String? = null,
+    val walletId: String? = null,
+    val walletName: String? = null,
+    val isCreateOrUpdateFlow: Boolean = true
 )

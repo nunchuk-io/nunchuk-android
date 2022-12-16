@@ -20,5 +20,5 @@ data class KeyResponse(
     @SerializedName("verification_type")
     val verificationType: String? = null,
     @SerializedName("verified_time_milis")
-    val verifiedTimeMilis: String? = null,
+    val verifiedTimeMilis: Long? = null,
 )

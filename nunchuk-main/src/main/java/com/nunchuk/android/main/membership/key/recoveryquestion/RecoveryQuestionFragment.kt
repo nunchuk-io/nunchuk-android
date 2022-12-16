@@ -74,7 +74,8 @@ class RecoveryQuestionFragment : MembershipFragment() {
                 val signatureMap =
                     data.serializable<HashMap<String, String>>(GlobalResultKey.SIGNATURE_EXTRA)
                         ?: return@registerForActivityResult
-                val securityQuestionToken = data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
+                val securityQuestionToken =
+                    data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
                 viewModel.securityQuestionUpdate(signatureMap, securityQuestionToken)
             }
         }
@@ -142,12 +143,8 @@ class RecoveryQuestionFragment : MembershipFragment() {
     }
 
     private fun handleContinue() {
-        if (args.isRecoveryFlow) {
-            findNavController().navigate(RecoveryQuestionFragmentDirections.actionRecoveryQuestionFragmentToSignSecurityQuestionFragment())
-        } else {
-            setFragmentResult(REQUEST_KEY, Bundle())
-            findNavController().popBackStack(R.id.addKeyListFragment, false)
-        }
+        setFragmentResult(REQUEST_KEY, Bundle())
+        findNavController().popBackStack(R.id.addKeyListFragment, false)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

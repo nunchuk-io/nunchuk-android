@@ -170,7 +170,9 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             subtractFeeFromAmount = subtractFeeFromAmount,
             manualFeeRate = manualFeeRate,
             sweepType = args.sweepType,
-            slots = args.slots
+            slots = args.slots,
+            masterSignerId = args.masterSignerId,
+            magicalPhrase = args.magicalPhrase
         )
     }
 
@@ -185,7 +187,9 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             privateNote: String,
             subtractFeeFromAmount: Boolean = false,
             sweepType: SweepType = SweepType.NONE,
-            slots: List<SatsCardSlot>
+            slots: List<SatsCardSlot>,
+            masterSignerId: String = "",
+            magicalPhrase: String = ""
         ) {
             activityContext.startActivity(
                 EstimatedFeeArgs(
@@ -196,7 +200,9 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                     privateNote = privateNote,
                     subtractFeeFromAmount = subtractFeeFromAmount,
                     sweepType = sweepType,
-                    slots = slots
+                    slots = slots,
+                    masterSignerId = masterSignerId,
+                    magicalPhrase = magicalPhrase
                 ).buildIntent(activityContext)
             )
         }

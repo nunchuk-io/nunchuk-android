@@ -1,10 +1,7 @@
 package com.nunchuk.android.main.components.tabs.services
 
 import com.nunchuk.android.main.R
-import com.nunchuk.android.model.Inheritance
-import com.nunchuk.android.model.InheritanceStatus
-import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.*
 
 sealed class ServicesTabEvent {
     data class ProcessFailure(val message: String) : ServicesTabEvent()
@@ -20,6 +17,7 @@ sealed class ServicesTabEvent {
 
     data class LoadingEvent(val isLoading: Boolean) : ServicesTabEvent()
     data class CreateSupportRoomSuccess(val roomId: String) : ServicesTabEvent()
+    data class CheckInheritance(val inheritanceCheck: InheritanceCheck): ServicesTabEvent()
 }
 
 data class ServicesTabState(

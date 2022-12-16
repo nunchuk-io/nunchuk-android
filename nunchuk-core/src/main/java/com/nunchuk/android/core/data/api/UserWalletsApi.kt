@@ -89,7 +89,7 @@ internal interface UserWalletsApi {
 
     @POST("/v1.1/user-wallets/inheritance/calculate-required-signatures")
     suspend fun calculateRequiredSignaturesInheritance(
-        @Body payload: CreateUpdateInheritancePlanRequestBody
+        @Body payload: CreateUpdateInheritancePlanRequest.Body
     ): Data<CalculateRequiredSignaturesResponse>
 
     @POST("/v1.1/user-wallets/user-keys/{key_id_or_xfp}/download-backup")
@@ -137,7 +137,7 @@ internal interface UserWalletsApi {
 
     @POST("/v1.1/user-wallets/lockdown/calculate-required-signatures")
     suspend fun calculateRequiredSignaturesLockdown(
-        @Body payload: LockdownUpdateRequestBody
+        @Body payload: LockdownUpdateRequest.Body
     ) : Data<CalculateRequiredSignaturesResponse>
 
     @Multipart
@@ -156,7 +156,7 @@ internal interface UserWalletsApi {
     suspend fun inheritanceClaimingStatus(
         @HeaderMap headers: Map<String, String>,
         @Body payload: InheritanceClaimStatusRequest
-    ): Data<InheritanceResponse>
+    ): Data<InheritanceClaimStatusResponse>
 
     @POST("/v1.1/user-wallets/inheritance/claiming/download-backup")
     suspend fun inheritanceClaimingDownloadBackup(
@@ -165,8 +165,9 @@ internal interface UserWalletsApi {
 
     @POST("/v1.1/user-wallets/inheritance/claiming/create-transaction")
     suspend fun inheritanceClaimingCreateTransaction(
+        @HeaderMap headers: Map<String, String>,
         @Body payload: InheritanceClaimCreateTransactionRequest
-    ): Data<KeyResponse>
+    ): Data<TransactionAdditionalResponse>
 
     @POST("/v1.1/user-wallets/inheritance/claiming/claim")
     suspend fun inheritanceClaimingClaim(
@@ -177,4 +178,15 @@ internal interface UserWalletsApi {
     suspend fun inheritanceClaimingCheckValid(
         @Body payload: InheritanceClaimCheckValidRequest
     ): Data<InheritanceClaimCheckValidResponse>
+
+    @DELETE("/v1.1/user-wallets/inheritance")
+    suspend fun inheritanceCancel(
+        @HeaderMap headers: Map<String, String>,
+        @Body payload: InheritanceCancelRequest
+    ): Data<TransactionResponse>
+
+    @POST("/v1.1/user-wallets/inheritance/check")
+    suspend fun inheritanceCheck(
+        @Body payload: InheritanceCheckRequest
+    ): Data<InheritanceCheckResponse>
 }

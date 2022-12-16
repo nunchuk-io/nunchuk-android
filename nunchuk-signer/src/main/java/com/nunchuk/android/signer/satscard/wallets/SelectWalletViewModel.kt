@@ -19,9 +19,14 @@
 
 package com.nunchuk.android.signer.satscard.wallets
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.membership.InheritanceClaimCreateTransactionUseCase
+import com.nunchuk.android.core.util.SATOSHI_BTC_EXCHANGE_RATE
+import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.EstimateFeeRates
+import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.usecase.GetAddressesUseCase
@@ -39,7 +44,12 @@ class SelectWalletViewModel @Inject constructor(
     private val getAddressesUseCase: GetAddressesUseCase,
     private val newAddressUseCase: NewAddressUseCase,
     private val estimateFeeUseCase: EstimateFeeUseCase,
+    private val inheritanceClaimCreateTransactionUseCase: InheritanceClaimCreateTransactionUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    private val args = SelectWalletFragmentArgs.fromSavedStateHandle(savedStateHandle)
+
     private val _state = MutableStateFlow(SelectWalletState())
     private val _event = MutableSharedFlow<SelectWalletEvent>()
 
@@ -55,7 +65,12 @@ class SelectWalletViewModel @Inject constructor(
                 }
                 .onCompletion { _event.emit(SelectWalletEvent.Loading(false)) }
                 .collect { wallets ->
-                    _state.value = _state.value.copy(selectWallets = wallets.map { SelectableWallet(it.wallet, it.isShared) })
+                    _state.value = _state.value.copy(selectWallets = wallets.map {
+                        SelectableWallet(
+                            it.wallet,
+                            it.isShared
+                        )
+                    })
                 }
         }
     }
@@ -72,7 +87,8 @@ class SelectWalletViewModel @Inject constructor(
             getAddressesUseCase.execute(walletId = selectedWalletId)
                 .flatMapLatest {
                     if (it.isEmpty()) {
-                        return@flatMapLatest newAddressUseCase.execute(walletId = selectedWalletId).map { newAddress -> listOf(newAddress) }
+                        return@flatMapLatest newAddressUseCase.execute(walletId = selectedWalletId)
+                            .map { newAddress -> listOf(newAddress) }
                     }
                     return@flatMapLatest flowOf(it)
                 }.onException {
@@ -81,7 +97,12 @@ class SelectWalletViewModel @Inject constructor(
                 }
                 .collect {
                     _event.emit(SelectWalletEvent.Loading(false))
-                    _event.emit(SelectWalletEvent.GetAddressSuccess(it.first(), isCreateTransaction))
+                    _event.emit(
+                        SelectWalletEvent.GetAddressSuccess(
+                            it.first(),
+                            isCreateTransaction
+                        )
+                    )
                     _state.value = _state.value.copy(selectWalletAddress = it.first())
                 }
         }
@@ -101,6 +122,23 @@ class SelectWalletViewModel @Inject constructor(
         }
     }
 
+    fun createInheritanceTransaction() = viewModelScope.launch {
+        _event.emit(SelectWalletEvent.Loading(true))
+        val result = inheritanceClaimCreateTransactionUseCase(
+            InheritanceClaimCreateTransactionUseCase.Param(
+                address = _state.value.selectWalletAddress,
+                feeRate = manualFeeRate.toAmount(),
+                masterSignerId = args.masterSignerId,
+                magic = args.magicalPhrase
+            )
+        )
+        if (result.isSuccess) {
+            _event.emit(SelectWalletEvent.CreateTransactionSuccessEvent(result.getOrThrow()))
+        } else {
+            _event.emit(SelectWalletEvent.Error(result.exceptionOrNull()))
+        }
+    }
+
     val selectedWalletId: String
         get() = _state.value.selectedWalletId
 
@@ -116,6 +154,7 @@ sealed class SelectWalletEvent {
     data class GetFeeRateSuccess(val estimateFeeRates: EstimateFeeRates) : SelectWalletEvent()
     data class Loading(val isLoading: Boolean) : SelectWalletEvent()
     data class Error(val e: Throwable?) : SelectWalletEvent()
+    data class CreateTransactionSuccessEvent(val transaction: Transaction) : SelectWalletEvent()
 }
 
 data class SelectWalletState(

@@ -8,18 +8,18 @@ import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class CreateUpdateInheritanceUpdateUseCase @Inject constructor(
+class CreateOrUpdateInheritanceUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val userWalletRepository: PremiumWalletRepository,
     private val nunchukNativeSdk: NunchukNativeSdk
-) : UseCase<CreateUpdateInheritanceUpdateUseCase.Param, Inheritance>(dispatcher) {
+) : UseCase<CreateOrUpdateInheritanceUseCase.Param, Inheritance>(dispatcher) {
     override suspend fun execute(parameters: Param): Inheritance {
         val authorizations = mutableListOf<String>()
         parameters.signatures.forEach { (masterFingerprint, signature) ->
             val requestToken = nunchukNativeSdk.createRequestToken(signature, masterFingerprint)
             authorizations.add(requestToken)
         }
-        return userWalletRepository.createUpdateInheritance(
+        return userWalletRepository.createOrUpdateInheritance(
             authorizations = authorizations,
             verifyToken = parameters.verifyToken,
             userData = parameters.userData,

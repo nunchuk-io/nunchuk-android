@@ -437,7 +437,7 @@
     <string name="nc_joint_control">Joint control</string>
     <string name="nc_joint_control_desc">The Beneficiary and the Trustee have joint control over the inheritance. Upon the Activation Date, the Beneficiary and Trustee will need to combine their secrets in order to claim the inheritance.</string>
     <string name="nc_plan_magical_phrase">The plan’s Magical Phrase.</string>
-    <string name="nc_inheritance_share_secret_info_warning">You are solely responsible for sharing the Magical Phrase and Backup Password with the Beneficiary. Failure to share will result in the inheritance being unclaimable.</string>
+    <string name="nc_inheritance_share_secret_info_warning">You are solely responsible for sharing the Magical Phrase and Backup Password with the %s. Failure to share will result in the inheritance being unclaimable.</string>
     <string name="nc_inheritance_share_secret_info_2">The Backup Password for the encrypted backup, which can be found on the back of the TAPSIGNER designated for inheritance. (it might be listed under “Backup key”).</string>
     <string name="nc_inheritance_share_secret_info_title_direct">Please share these two secrets with the Beneficiary:</string>
     <string name="nc_inheritance_share_secret_info_title_indirect">Please share these two secrets with the Trustee:</string>
@@ -448,4 +448,20 @@
     <string name="nc_claim_inheritance_desc">Please enter the Magical Phrase and Backup Password</string>
     <string name="nc_inactive">Inactive</string>
     <string name="nc_need_support_chat_with_an_expert">Need support? Chat with an expert</string>
+    <string name="nc_inheritance_plan_cancelled_notify">The inheritance plan has been cancelled</string>
+    <string name="nc_inheritance_plan_updated_notify">The inheritance plan has been updated</string>
+    <string name="nc_cancel_inheritance_plan">Cancel inheritance plan</string>
+    <string name="nc_congratulation_unlocked_your_inheritance">Congratulations! You have unlocked your inheritance</string>
+    <string name="nc_you_have_a_message_below">You have a message below</string>
+    <string name="nc_your_inheritance">Your inheritance</string>
+    <string name="nc_withdraw_inheritance">Withdraw balance</string>
+    <string name="nc_expired_inheritance_subscription">It looks like the original subscription has expired for more than 3 years. To claim the inheritance, please reactivate the plan first by visiting nunchuk.io/claim.</string>
+    <string name="nc_take_me_reactivate_plan">Take me to reactivate the plan</string>
+    <string name="nc_your_inheritance_has_been_claimed">Your inheritance has been claimed.</string>
+    <string name="nc_congratulation">Congratulations!</string>
+    <string name="nc_unpaid_security_deposit">Please start the claiming process by visiting nunchuk.io/claim.</string>
+    <string name="nc_take_me_there">Take me there</string>
+    <string name="nc_beneficiary">Beneficiary</string>
+    <string name="nc_trustee">Trustee</string>
+    <string name="nc_beneficiary_trustee">Beneficiary and the Trustee</string>
 </resources>

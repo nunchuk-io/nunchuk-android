@@ -3,11 +3,11 @@ package com.nunchuk.android.core.data.model.membership
 import com.google.gson.annotations.SerializedName
 import com.nunchuk.android.model.transaction.ServerTransaction
 
-internal data class TransactionResponse(
+data class TransactionResponse(
     @SerializedName("transaction") val transaction: TransactionServerDto? = null
 )
 
-internal data class TransactionServerDto(
+data class TransactionServerDto(
     @SerializedName("wallet_id") val walletId: String? = null,
     @SerializedName("wallet_local_id") val walletLocalId: String? = null,
     @SerializedName("transaction_id") val transactionId: String? = null,

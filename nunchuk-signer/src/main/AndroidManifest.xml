@@ -54,6 +54,11 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light"/>
 
+        <activity android:name=".satscard.wallets.SelectWalletActivity"
+            android:label="Select Wallet Activity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"/>
+
     </application>
 
 </manifest>

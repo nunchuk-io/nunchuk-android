@@ -21,6 +21,7 @@ package com.nunchuk.android.transaction.components.send.confirmation
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.membership.InheritanceClaimCreateTransactionUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.orUnknownError
@@ -51,7 +52,8 @@ class TransactionConfirmViewModel @Inject constructor(
     private val initRoomTransactionUseCase: InitRoomTransactionUseCase,
     private val draftSatsCardTransactionUseCase: DraftSatsCardTransactionUseCase,
     private val sessionHolder: SessionHolder,
-    private val assistedWalletManager: AssistedWalletManager
+    private val assistedWalletManager: AssistedWalletManager,
+    private val inheritanceClaimCreateTransactionUseCase: InheritanceClaimCreateTransactionUseCase
 ) : NunchukViewModel<Unit, TransactionConfirmEvent>() {
 
     private var manualFeeRate: Int = -1
@@ -61,6 +63,8 @@ class TransactionConfirmViewModel @Inject constructor(
     private var subtractFeeFromAmount: Boolean = false
     private val slots = mutableListOf<SatsCardSlot>()
     private lateinit var privateNote: String
+    private var masterSignerId: String = ""
+    private var magicalPhrase: String = ""
 
     override val initialState = Unit
 
@@ -71,7 +75,9 @@ class TransactionConfirmViewModel @Inject constructor(
         subtractFeeFromAmount: Boolean,
         privateNote: String,
         manualFeeRate: Int,
-        slots: List<SatsCardSlot>
+        slots: List<SatsCardSlot>,
+        masterSignerId: String,
+        magicalPhrase: String,
     ) {
         this.walletId = walletId
         this.address = address
@@ -83,6 +89,8 @@ class TransactionConfirmViewModel @Inject constructor(
             clear()
             addAll(slots)
         }
+        this.masterSignerId = masterSignerId
+        this.magicalPhrase = magicalPhrase
         draftTransaction()
     }
 
@@ -160,9 +168,15 @@ class TransactionConfirmViewModel @Inject constructor(
         if (sessionHolder.hasActiveRoom()) {
             initRoomTransaction()
         } else {
-            createNewTransaction()
+            if (isInheritanceClaimingFlow()) {
+                createInheritanceTransaction()
+            } else {
+                createNewTransaction()
+            }
         }
     }
+
+    fun isInheritanceClaimingFlow() = masterSignerId.isEmpty() && magicalPhrase.isEmpty()
 
     private fun createNewTransaction() {
         viewModelScope.launch {
@@ -182,6 +196,23 @@ class TransactionConfirmViewModel @Inject constructor(
             } else {
                 event(CreateTxErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
             }
+        }
+    }
+
+    private fun createInheritanceTransaction() = viewModelScope.launch {
+        event(LoadingEvent)
+        val result = inheritanceClaimCreateTransactionUseCase(
+            InheritanceClaimCreateTransactionUseCase.Param(
+                address = address,
+                feeRate = manualFeeRate.toManualFeeRate(),
+                masterSignerId = masterSignerId,
+                magic = magicalPhrase
+            )
+        )
+        if (result.isSuccess) {
+            setEvent(CreateTxSuccessEvent(result.getOrThrow().txId))
+        } else {
+            event(CreateTxErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 

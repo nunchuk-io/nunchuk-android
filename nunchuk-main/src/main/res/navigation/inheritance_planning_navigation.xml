@@ -5,9 +5,62 @@
     app:startDestination="@id/inheritanceReviewPlanFragment">
 
     <fragment
-        android:id="@+id/inheritanceClaimFragment"
-        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.InheritanceClaimFragment"
-        android:label="InheritanceClaimFragment"/>
+        android:id="@+id/inheritanceClaimInputFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claiminput.InheritanceClaimInputFragment"
+        android:label="InheritanceClaimInputFragment">
+        <action
+            android:id="@+id/action_inheritanceClaimInputFragment_to_inheritanceClaimNoteFragment"
+            app:destination="@id/inheritanceClaimNoteFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/inheritanceClaimNoteFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claimnote.InheritanceClaimNoteFragment"
+        android:label="InheritanceClaimNoteFragment">
+
+        <argument
+            android:name="signer"
+            app:argType="com.nunchuk.android.core.signer.SignerModel" />
+        <argument
+            android:name="magic"
+            app:argType="string" />
+
+        <action
+            android:id="@+id/action_inheritanceClaimNoteFragment_to_selectWalletFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:destination="@id/select_wallet_navigation"
+            app:launchSingleTop="true" >
+
+            <argument
+                android:name="slots"
+                app:argType="com.nunchuk.android.model.SatsCardSlot[]" />
+            <argument
+                android:name="type"
+                app:argType="integer" />
+
+            <argument
+                android:name="wallet_balance"
+                android:defaultValue="0"
+                app:argType="float" />
+
+            <argument
+                android:name="master_signer_id"
+                android:defaultValue=""
+                app:argType="string" />
+
+            <argument
+                android:name="magical_phrase"
+                android:defaultValue=""
+                app:argType="string" />
+        </action>
+    </fragment>
 
     <fragment
         android:id="@+id/inheritanceReviewPlanFragment"
@@ -321,5 +374,7 @@
             android:name="type"
             app:argType="integer" />
     </fragment>
+
+    <include app:graph="@navigation/select_wallet_navigation" />
 
 </navigation>

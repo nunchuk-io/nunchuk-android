@@ -45,6 +45,16 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     event.roomId
                 )
                 is ServicesTabEvent.LoadingEvent -> showOrHideLoading(event.isLoading)
+                is ServicesTabEvent.CheckInheritance -> {
+                    if (event.inheritanceCheck.isPaid) {
+                        navigator.openInheritancePlanningScreen(
+                            requireContext(),
+                            flowInfo = InheritancePlanFlow.CLAIM
+                        )
+                    } else {
+                        showUnPaid()
+                    }
+                }
             }
         }
         flowObserver(viewModel.state) { state ->
@@ -107,10 +117,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
         }
         when (item) {
             ServiceTabRowItem.ClaimInheritance -> {
-                navigator.openInheritancePlanningScreen(
-                    requireContext(),
-                    flowInfo = InheritancePlanFlow.CLAIM
-                )
+                viewModel.checkInheritance()
             }
             ServiceTabRowItem.CoSigningPolicies, ServiceTabRowItem.EmergencyLockdown -> enterPasswordDialog(
                 item
@@ -127,6 +134,20 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             }
             ServiceTabRowItem.ViewInheritancePlan -> enterPasswordDialog(item)
         }
+    }
+
+    private fun showUnPaid() {
+        NCInfoDialog(requireActivity()).showDialog(
+            message = getString(R.string.nc_unpaid_security_deposit),
+            btnYes = getString(R.string.nc_take_me_there),
+            btnInfo = getString(R.string.nc_text_got_it),
+            onInfoClick = {
+
+            },
+            onYesClick = {
+
+            }
+        )
     }
 
     private fun showFeatureAssistedWalletInformDialog(textAction: String) {
