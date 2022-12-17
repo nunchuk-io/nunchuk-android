@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.messages.components.list
 
-import com.nunchuk.android.core.BuildConfig
 import com.nunchuk.android.messages.util.STATE_NUNCHUK_SYNC
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 
@@ -36,7 +35,7 @@ fun RoomSummary.getMembersCount() = otherMemberIds.size + 1
 
 fun RoomSummary.isDirectChat() = isDirect || getMembersCount() <= DIRECT_CHAT_MEMBERS_COUNT
 
-fun RoomSummary.shouldShow() = BuildConfig.DEBUG || (!isServerNotices() && !isSyncRoom())
+fun RoomSummary.shouldShow() = !isServerNotices() && !isSyncRoom()
 
 fun RoomSummary.isServerNotices() = name == SERVER_NOTICES
 

@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.roundToInt
 
 @Singleton
 class MembershipStepManager @Inject constructor(
@@ -70,7 +71,7 @@ class MembershipStepManager @Inject constructor(
         if (currentPlan == MembershipPlan.HONEY_BADGER) {
             steps[MembershipStep.SETUP_INHERITANCE] = MembershipStepFlow(totalStep = 12)
         }
-        _remainingTime.value = steps.values.sumOf { it.totalStep * 2 }
+        _remainingTime.value = calculateRemainTime(steps.values)
         _stepDone.value = emptySet()
     }
 
@@ -178,7 +179,7 @@ class MembershipStepManager @Inject constructor(
     }
 
     private fun calculateRemainTime(stepFlows: Collection<MembershipStepFlow>) =
-        stepFlows.sumOf { (it.totalStep - it.currentStep).coerceAtLeast(0) * 2 }
+        stepFlows.sumOf { (it.totalStep - it.currentStep).coerceAtLeast(0) * DURATION_EACH_STEP }.roundToInt()
 
     private fun isStepInThisPlan(step: MembershipStep, plan: MembershipPlan): Boolean {
         return when (plan) {
@@ -196,5 +197,9 @@ class MembershipStepManager @Inject constructor(
                         || step == MembershipStep.SETUP_INHERITANCE
             MembershipPlan.NONE -> false
         }
+    }
+
+    companion object {
+        private const val DURATION_EACH_STEP = 0.5
     }
 }

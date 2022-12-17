@@ -139,6 +139,8 @@ class NcDataStore @Inject constructor(
             it.remove(syncEnableKey)
             it.remove(turnOnNotificationKey)
             it.remove(assistedWalletLocalIdKey)
+            it.remove(assistedWalletPlanKey)
+            it.remove(membershipPlanKey)
         }
     }
 }

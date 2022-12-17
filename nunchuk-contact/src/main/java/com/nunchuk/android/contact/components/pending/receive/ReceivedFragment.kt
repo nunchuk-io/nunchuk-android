@@ -23,7 +23,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -65,7 +64,6 @@ internal class ReceivedFragment : BaseFragment<FragmentReceivedBinding>() {
 
     private fun handleState(state: ReceivedState) {
         adapter.items = state.contacts
-        binding.skeletonContainer.root.isVisible = state.contacts.isEmpty()
     }
 
     private fun handleEvent(event: ReceivedEvent) {

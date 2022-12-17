@@ -11,4 +11,5 @@ interface MembershipRepository {
     suspend fun deleteStepBySignerId(masterSignerId: String)
     suspend fun getSubscription() : MemberSubscription
     suspend fun restart(plan: MembershipPlan)
+    fun getLocalCurrentPlan(): Flow<MembershipPlan>
 }

@@ -447,4 +447,5 @@
     <string name="nc_claim_inheritance">Claim inheritance</string>
     <string name="nc_claim_inheritance_desc">Please enter the Magical Phrase and Backup Password</string>
     <string name="nc_inactive">Inactive</string>
+    <string name="nc_need_support_chat_with_an_expert">Need support? Chat with an expert</string>
 </resources>

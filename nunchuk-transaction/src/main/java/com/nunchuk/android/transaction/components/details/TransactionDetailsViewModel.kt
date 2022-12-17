@@ -454,7 +454,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     signer.fingerPrint
                 )
             )
-            val transaction = result.getOrThrow()
+            val transaction = result.getOrNull()
             if (result.isSuccess && transaction != null) {
                 updateState { copy(transaction = transaction) }
                 setEvent(ImportTransactionFromMk4Success)

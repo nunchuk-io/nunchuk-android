@@ -3,6 +3,7 @@ package com.nunchuk.android.main.repository
 import com.google.gson.Gson
 import com.nunchuk.android.api.key.MembershipApi
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.model.*
 import com.nunchuk.android.nativelib.NunchukNativeSdk
@@ -11,6 +12,7 @@ import com.nunchuk.android.persistence.entity.MembershipStepEntity
 import com.nunchuk.android.persistence.entity.toModel
 import com.nunchuk.android.persistence.updateOrInsert
 import com.nunchuk.android.repository.MembershipRepository
+import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -25,6 +27,7 @@ class MembershipRepositoryImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
     private val gson: Gson,
     private val ncDataStore: NcDataStore,
+    private val ncSharePreferences: NCSharePreferences,
 ) : MembershipRepository {
     override fun getSteps(plan: MembershipPlan): Flow<List<MembershipStepInfo>> {
         return membershipStepDao.getSteps(accountManager.getAccount().chatId, plan)
@@ -53,14 +56,24 @@ class MembershipRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getSubscription(): MemberSubscription {
-        val result = membershipApi.getCurrentSubscription()
+        val chain = gson.fromJson(
+            ncSharePreferences.appSettings,
+            AppSettings::class.java
+        )?.chain ?: Chain.MAIN
+        val result = if (chain == Chain.MAIN) {
+            membershipApi.getCurrentSubscription()
+        } else {
+            membershipApi.getTestnetCurrentSubscription()
+        }
         if (result.isSuccess) {
             val data = result.data
-            val plan = if (data.status == "PENDING"
-                || (data.status == "ACTIVE" && Calendar.getInstance().timeInMillis < data.validUntilUtcMillis)) {
+            val plan = if (chain == Chain.MAIN &&
+                (data.status == "PENDING"
+                        || (data.status == "ACTIVE" && Calendar.getInstance().timeInMillis < data.validUntilUtcMillis))
+            ) {
                 data.plan?.slug.toMembershipPlan()
             } else {
-                MembershipPlan.NONE
+                if (chain == Chain.MAIN) MembershipPlan.NONE else data.plan?.slug.toMembershipPlan()
             }
             ncDataStore.setMembershipPlan(plan)
             return MemberSubscription(data.subscriptionId, data.plan?.slug, plan)
@@ -85,4 +98,6 @@ class MembershipRepositoryImpl @Inject constructor(
         }
         membershipStepDao.deleteStepByEmail(accountManager.getAccount().chatId)
     }
+
+    override fun getLocalCurrentPlan(): Flow<MembershipPlan> = ncDataStore.membershipPlan
 }

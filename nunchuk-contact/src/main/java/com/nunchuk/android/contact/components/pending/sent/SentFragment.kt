@@ -66,7 +66,6 @@ internal class SentFragment : BaseFragment<FragmentSentBinding>() {
 
     private fun handleState(state: SentState) {
         adapter.items = state.contacts
-        binding.skeletonContainer.root.isVisible = state.contacts.isEmpty()
     }
 
     private fun handleEvent(event: SentEvent) {

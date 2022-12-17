@@ -119,7 +119,6 @@ private fun NonSubscriberIntroContent(
                     .padding(innerPadding)
                     .navigationBarsPadding()
             ) {
-                NcImageAppBar(backgroundRes = R.drawable.bg_assisted_wallet)
                 if (state.items.isNotEmpty()) {
                     LazyColumn(
                         modifier = Modifier.weight(1.0f),
@@ -127,6 +126,7 @@ private fun NonSubscriberIntroContent(
                         verticalArrangement = Arrangement.spacedBy(24.dp),
                     ) {
                         item {
+                            NcImageAppBar(backgroundRes = R.drawable.bg_assisted_wallet)
                             Text(
                                 modifier = Modifier.padding(top = 16.dp),
                                 text = state.title,

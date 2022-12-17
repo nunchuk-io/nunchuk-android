@@ -26,7 +26,6 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
-import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.matrix.UploadFileUseCase
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.profile.UpdateUseProfileUseCase
@@ -36,6 +35,7 @@ import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
@@ -131,15 +131,13 @@ internal class AccountViewModel @Inject constructor(
     }
 
     fun handleSignOutEvent() {
-        viewModelScope.launch {
+        appScope.launch {
             repository.signOut()
                 .flowOn(Dispatchers.IO)
                 .onException {
                     event(AccountEvent.LoadingEvent(false))
                 }
-                .collect {}
-        }
-        appScope.launch {
+                .first()
             event(AccountEvent.LoadingEvent(true))
             withContext(dispatcher) {
                 clearInfoSessionUseCase.invoke(Unit)

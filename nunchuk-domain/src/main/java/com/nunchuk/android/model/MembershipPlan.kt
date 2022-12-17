@@ -8,10 +8,10 @@ enum class MembershipPlan {
 }
 
 fun String?.toMembershipPlan() = when (this) {
-    IRON_HAND_PLAN -> {
+    IRON_HAND_PLAN, IRON_HAND_PLAN_TESTNET -> {
         MembershipPlan.IRON_HAND
     }
-    HONEY_BADGER_PLAN -> {
+    HONEY_BADGER_PLAN, HONEY_BADGER_PLAN_TESTNET -> {
         MembershipPlan.HONEY_BADGER
     }
     else -> {
@@ -20,4 +20,6 @@ fun String?.toMembershipPlan() = when (this) {
 }
 
 private const val IRON_HAND_PLAN = "iron_hand"
+private const val IRON_HAND_PLAN_TESTNET = "iron_hand_testnet"
+private const val HONEY_BADGER_PLAN_TESTNET = "honey_badger_testnet"
 private const val HONEY_BADGER_PLAN = "honey_badger"
