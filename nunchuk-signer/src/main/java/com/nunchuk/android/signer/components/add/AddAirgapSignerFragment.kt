@@ -49,7 +49,7 @@ class AddAirgapSignerFragment : BaseFragment<FragmentAddSignerBinding>(),
 
     private val viewModel: AddAirgapSignerViewModel by viewModels()
 
-    val requestPermissionLauncher =
+    private val requestPermissionLauncher =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { isGranted: Boolean ->

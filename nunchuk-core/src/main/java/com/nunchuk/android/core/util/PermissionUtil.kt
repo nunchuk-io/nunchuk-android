@@ -28,7 +28,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.nunchuk.android.utils.CrashlyticsReporter
 
-const val CAMERA_PERMISSION_REQUEST_CODE = 0x1024
 private const val READ_STORAGE_PERMISSION_REQUEST_CODE = 0x2048
 
 fun Activity.isPermissionGranted(permission: String) =
@@ -50,26 +49,10 @@ fun Activity.requestReadExternalPermission() = try {
     CrashlyticsReporter.recordException(e)
 }
 
-fun Activity.checkCameraPermission(): Boolean {
-    val isGranted = isPermissionGranted(CAMERA)
-    if (!isGranted) {
-        requestCameraPermission()
-    }
-    return isGranted
-}
-
 fun ActivityResultLauncher<String>.checkCameraPermission(activity: Activity): Boolean {
     val isGranted = activity.isPermissionGranted(CAMERA)
     if (!isGranted) {
         launch(CAMERA)
     }
     return isGranted
-}
-
-fun Activity.requestCameraPermission() = try {
-    ActivityCompat.requestPermissions(
-        this, arrayOf(CAMERA), CAMERA_PERMISSION_REQUEST_CODE
-    )
-} catch (e: Exception) {
-    CrashlyticsReporter.recordException(e)
 }

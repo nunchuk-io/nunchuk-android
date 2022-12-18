@@ -27,7 +27,6 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.arch.args.FragmentArgs
 import com.nunchuk.android.core.base.BaseBottomSheet
-import com.nunchuk.android.core.util.checkCameraPermission
 import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.model.MembershipPlan
@@ -91,26 +90,20 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
 
         binding.btnImport.isVisible = args.isPending
         binding.btnImport.setOnClickListener {
-            if (requireActivity().checkCameraPermission()) {
-                listener(IMPORT_KEYSTONE)
-                dismiss()
-            }
+            listener(IMPORT_KEYSTONE)
+            dismiss()
         }
 
         binding.btnImportPassport.isVisible = args.isPending
         binding.btnImportPassport.setOnClickListener {
-            if (requireActivity().checkCameraPermission()) {
-                listener(IMPORT_PASSPORT)
-                dismiss()
-            }
+            listener(IMPORT_PASSPORT)
+            dismiss()
         }
 
         binding.btnReplaceFee.isVisible = args.isPendingConfirm
         binding.btnReplaceFee.setOnClickListener {
-            if (requireActivity().checkCameraPermission()) {
-                listener(REPLACE_BY_FEE)
-                dismiss()
-            }
+            listener(REPLACE_BY_FEE)
+            dismiss()
         }
 
         binding.btnCopyTxId.setOnDebounceClickListener {
