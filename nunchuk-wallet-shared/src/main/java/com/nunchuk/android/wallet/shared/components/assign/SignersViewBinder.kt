@@ -45,6 +45,7 @@ internal class SignersViewBinder(
     override fun bindItem(position: Int, model: SignerModel) {
         val binding = ItemAssignSignerBinding.bind(container[position])
         binding.signerType.text = model.toReadableSignerType(context, isIgnorePrimary = true)
+        binding.avatar.isVisible = false
         binding.ivSignerType.isVisible = true
         binding.ivSignerType.setImageDrawable(model.type.toReadableDrawable(context))
         binding.signerName.text = model.name

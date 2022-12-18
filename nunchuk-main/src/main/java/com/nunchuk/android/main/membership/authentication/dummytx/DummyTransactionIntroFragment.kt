@@ -19,7 +19,9 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.*
+import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.Amount
 
 class DummyTransactionIntroFragment : Fragment() {
     override fun onCreateView(
@@ -63,7 +65,7 @@ fun DummyTransactionIntroContent(
                 )
                 NcHighlightText(
                     modifier = Modifier.padding( 16.dp),
-                    text = stringResource(R.string.nc_dummy_transaction_desc)
+                    text = stringResource(R.string.nc_dummy_transaction_desc, Amount(value = 10000).getUSDAmount())
                 )
                 Spacer(modifier = Modifier.weight(1.0f))
                 NcPrimaryDarkButton(

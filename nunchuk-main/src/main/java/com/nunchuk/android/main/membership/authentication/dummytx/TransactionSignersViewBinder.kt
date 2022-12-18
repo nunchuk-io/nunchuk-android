@@ -24,7 +24,7 @@ import androidx.core.view.get
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.hadBroadcast
-import com.nunchuk.android.core.util.shorten
+import com.nunchuk.android.core.util.toReadableDrawable
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.widget.databinding.ItemTransactionSignerBinding
@@ -44,7 +44,9 @@ internal class TransactionSignersViewBinder(
 
     override fun bindItem(position: Int, model: SignerModel) {
         val binding = ItemTransactionSignerBinding.bind(container[position])
-        binding.avatar.text = model.name.shorten()
+        binding.avatar.isVisible = false
+        binding.ivSignerType.isVisible = true
+        binding.ivSignerType.setImageDrawable(model.type.toReadableDrawable(context))
         binding.signerName.text = model.name
         binding.xpf.text = model.getXfpOrCardIdLabel()
         binding.signerType.text = model.toReadableSignerType(context)

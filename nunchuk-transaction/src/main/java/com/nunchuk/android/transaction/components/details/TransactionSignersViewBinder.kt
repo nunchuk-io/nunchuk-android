@@ -27,6 +27,7 @@ import androidx.core.view.isVisible
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.hadBroadcast
 import com.nunchuk.android.core.util.shorten
+import com.nunchuk.android.core.util.toReadableDrawable
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.transaction.R
@@ -50,7 +51,13 @@ internal class TransactionSignersViewBinder(
 
     override fun bindItem(position: Int, model: SignerModel) {
         val binding = ItemTransactionSignerBinding.bind(container[position])
-        binding.avatar.text = model.name.shorten()
+        binding.avatar.isGone = model.localKey
+        binding.ivSignerType.isVisible = model.localKey
+        if (model.localKey) {
+            binding.ivSignerType.setImageDrawable(model.type.toReadableDrawable(context))
+        } else {
+            binding.avatar.text = model.name.shorten()
+        }
         binding.signerName.text = model.name
         binding.signerType.text = model.toReadableSignerType(context)
         binding.btnSign.setOnDebounceClickListener { listener(model) }

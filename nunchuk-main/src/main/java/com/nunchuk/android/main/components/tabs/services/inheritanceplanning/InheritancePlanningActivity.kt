@@ -10,16 +10,23 @@ import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanFragmentArgs
 import com.nunchuk.android.model.Inheritance
+import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
 
+    @Inject
+    internal lateinit var membershipStepManager: MembershipStepManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        membershipStepManager.setCurrentStep(MembershipStep.SETUP_INHERITANCE)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val navHostFragment =

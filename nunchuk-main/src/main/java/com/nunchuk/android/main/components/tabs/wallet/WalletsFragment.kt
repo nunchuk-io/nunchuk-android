@@ -95,7 +95,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             }
             return@setOnMenuItemClickListener false
         }
-        binding.tvIntroAction.setOnDebounceClickListener {
+        binding.introContainer.setOnDebounceClickListener {
             val stage = walletsViewModel.getGroupStage()
             if (stage == MembershipStage.SETUP_INHERITANCE) {
                 navigator.openInheritancePlanningScreen(
