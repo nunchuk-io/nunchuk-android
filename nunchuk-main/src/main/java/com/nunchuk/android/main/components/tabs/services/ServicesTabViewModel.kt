@@ -7,6 +7,7 @@ import com.nunchuk.android.core.domain.membership.GetServerWalletUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCase
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
@@ -30,7 +31,8 @@ class ServicesTabViewModel @Inject constructor(
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val getServerWalletUseCase: GetServerWalletUseCase,
-    private val getInheritanceUseCase: GetInheritanceUseCase
+    private val getInheritanceUseCase: GetInheritanceUseCase,
+    private val getOrCreateSupportRoomUseCase: GetOrCreateSupportRoomUseCase,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<ServicesTabEvent>()
@@ -142,5 +144,18 @@ class ServicesTabViewModel @Inject constructor(
         if (_state.value.isCreatedAssistedWallet) return MembershipStage.DONE
         if (membershipStepManager.isNotConfig()) return MembershipStage.NONE
         return MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
+    }
+
+    fun getOrCreateSupportRom() {
+        viewModelScope.launch {
+            _event.emit(ServicesTabEvent.LoadingEvent(true))
+            val result = getOrCreateSupportRoomUseCase(Unit)
+            _event.emit(ServicesTabEvent.LoadingEvent(false))
+            if (result.isSuccess) {
+                _event.emit(ServicesTabEvent.CreateSupportRoomSuccess(result.getOrThrow().roomId))
+            } else {
+                _event.emit(ServicesTabEvent.ProcessFailure(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
     }
 }

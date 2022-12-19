@@ -122,18 +122,25 @@ private fun NonSubscriberIntroContent(
                 if (state.items.isNotEmpty()) {
                     LazyColumn(
                         modifier = Modifier.weight(1.0f),
-                        contentPadding = PaddingValues(vertical = 24.dp, horizontal = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(24.dp),
                     ) {
                         item {
                             NcImageAppBar(backgroundRes = R.drawable.bg_assisted_wallet)
                             Text(
-                                modifier = Modifier.padding(top = 16.dp),
+                                modifier = Modifier.padding(
+                                    top = 16.dp,
+                                    start = 16.dp,
+                                    end = 16.dp
+                                ),
                                 text = state.title,
                                 style = NunchukTheme.typography.heading
                             )
                             Text(
-                                modifier = Modifier.padding(top = 16.dp),
+                                modifier = Modifier.padding(
+                                    top = 16.dp,
+                                    start = 16.dp,
+                                    end = 16.dp
+                                ),
                                 text = state.desc,
                                 style = NunchukTheme.typography.body
                             )
@@ -145,7 +152,7 @@ private fun NonSubscriberIntroContent(
                         item {
                             NcPrimaryDarkButton(
                                 modifier = Modifier
-                                    .padding(top = 16.dp)
+                                    .padding(top = 16.dp, start = 16.dp, end = 16.dp)
                                     .fillMaxWidth(),
                                 onClick = { onTellMeMore() },
                             ) {
@@ -153,7 +160,7 @@ private fun NonSubscriberIntroContent(
                             }
                             NcOutlineButton(
                                 modifier = Modifier
-                                    .padding(top = 16.dp)
+                                    .padding(top = 16.dp, start = 16.dp, end = 16.dp)
                                     .fillMaxWidth(),
                                 onClick = { onTryOnTestNet() },
                             ) {
@@ -161,7 +168,7 @@ private fun NonSubscriberIntroContent(
                             }
                             NcOutlineButton(
                                 modifier = Modifier
-                                    .padding(top = 16.dp)
+                                    .padding(16.dp)
                                     .fillMaxWidth(),
                                 onClick = { onVisitOurWebsite() },
                             ) {
@@ -177,7 +184,11 @@ private fun NonSubscriberIntroContent(
 
 @Composable
 private fun AssistedWalletPointWidget(modifier: Modifier = Modifier, point: AssistedWalletPoint) {
-    Row(modifier = modifier.fillMaxWidth()) {
+    Row(
+        modifier = modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxWidth()
+    ) {
         Box(
             modifier = Modifier
                 .size(48.dp)
@@ -186,7 +197,9 @@ private fun AssistedWalletPointWidget(modifier: Modifier = Modifier, point: Assi
             GlideImage(
                 model = point.iconUrl,
                 contentDescription = "",
-                modifier = Modifier.size(24.dp).align(Alignment.Center),
+                modifier = Modifier
+                    .size(24.dp)
+                    .align(Alignment.Center),
             )
         }
         Column(

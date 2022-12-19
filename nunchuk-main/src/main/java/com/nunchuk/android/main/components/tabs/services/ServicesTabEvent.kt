@@ -17,6 +17,9 @@ sealed class ServicesTabEvent {
     data class Loading(val loading: Boolean) : ServicesTabEvent()
     data class CheckPasswordSuccess(val token: String, val item: ServiceTabRowItem) :
         ServicesTabEvent()
+
+    data class LoadingEvent(val isLoading: Boolean) : ServicesTabEvent()
+    data class CreateSupportRoomSuccess(val roomId: String) : ServicesTabEvent()
 }
 
 data class ServicesTabState(

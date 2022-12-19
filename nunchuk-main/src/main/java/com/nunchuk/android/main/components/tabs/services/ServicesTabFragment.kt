@@ -17,6 +17,7 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -39,6 +40,11 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 is ServicesTabEvent.ProcessFailure -> showError(message = event.message)
                 is ServicesTabEvent.Loading -> showOrHideLoading(loading = event.loading)
                 is ServicesTabEvent.CheckPasswordSuccess -> handleCheckPasswordSuccess(event)
+                is ServicesTabEvent.CreateSupportRoomSuccess -> navigator.openRoomDetailActivity(
+                    requireContext(),
+                    event.roomId
+                )
+                is ServicesTabEvent.LoadingEvent -> showOrHideLoading(event.isLoading)
             }
         }
         flowObserver(viewModel.state) { state ->
@@ -75,6 +81,9 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             onTabItemClick(it)
         }
         binding.recyclerView.adapter = adapter
+        binding.supportFab.setOnDebounceClickListener {
+            viewModel.getOrCreateSupportRom()
+        }
     }
 
     private fun onTabItemClick(item: ServiceTabRowItem) {

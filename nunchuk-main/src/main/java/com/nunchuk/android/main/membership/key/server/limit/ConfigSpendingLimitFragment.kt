@@ -153,7 +153,7 @@ private fun ConfigSpendingLimitScreen(
         onShowTimeUnitOption = viewModel::showTimeUnitOption,
         onContinueClicked = viewModel::onContinueClicked,
         spendingLimit = remember {
-            mutableStateOf(args.keyPolicy?.spendingPolicy?.limit?.toString() ?: "5000")
+            mutableStateOf(args.keyPolicy?.spendingPolicy?.limit?.toString() ?: "1000")
         },
         isEditMode = args.keyPolicy != null
     )

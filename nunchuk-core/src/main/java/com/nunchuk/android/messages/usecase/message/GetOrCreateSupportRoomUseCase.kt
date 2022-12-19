@@ -25,6 +25,7 @@ import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import org.matrix.android.sdk.api.session.room.Room
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomDirectoryVisibility
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomParams
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomPreset
@@ -40,14 +41,17 @@ class GetOrCreateSupportRoomUseCase @Inject constructor(
         val session = sessionHolder.getSafeActiveSession()
             ?: throw NullPointerException("Can not get active session")
         val roomId = session.roomService().getRoomSummaries(roomSummaryQueryParams {
-            includeType = listOf("Support")
-        }).firstOrNull()?.roomId ?: run {
+            includeType = listOf("io.nunchuk.support")
+        }).firstOrNull()?.takeIf {
+            session.roomService()
+                .getRoomMember("@support:nunchuk.io", it.roomId)?.membership == Membership.JOIN
+        }?.roomId ?: run {
             val params = CreateRoomParams().apply {
                 visibility = RoomDirectoryVisibility.PRIVATE
                 isDirect = true
                 this.invitedUserIds.addAll(listOf("@support:nunchuk.io"))
                 preset = CreateRoomPreset.PRESET_TRUSTED_PRIVATE_CHAT
-                roomType = "Support"
+                roomType = "io.nunchuk.support"
             }
             session.roomService().createRoom(params)
         }
