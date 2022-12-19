@@ -66,6 +66,8 @@ const val SIGNER_PATH_PREFIX = "m/48h"
 const val COLDCARD_GUIDE_URL = "https://coldcard.com/docs/quick"
 const val COLDCARD_DEFAULT_KEY_NAME = "COLDCARD"
 
+const val SUPPORT_ROOM_TYPE = "io.nunchuk.support"
+
 fun Long.formatDate(): String = SimpleDateFormat("MM/dd/yyyy 'at' HH:mm aaa", Locale.US).format(Date(this * 1000))
 
 fun Transaction.getFormatDate(): String = if (blockTime <= 0) "--/--/--" else (blockTime).formatDate()

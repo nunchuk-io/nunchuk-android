@@ -99,7 +99,8 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     fun initialize(roomId: String) {
-        sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(RoomNotFoundEvent)
+        sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomId)?.let(::onRetrievedRoom)
+            ?: event(RoomNotFoundEvent)
         getDeveloperSettings()
     }
 
@@ -136,7 +137,9 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun markRoomDisplayed(room: Room) {
         viewModelScope.launch(ioDispatcher) {
-            trySafe { sessionHolder.getSafeActiveSession()?.roomService()?.onRoomDisplayed(room.roomId) }
+            trySafe {
+                sessionHolder.getSafeActiveSession()?.roomService()?.onRoomDisplayed(room.roomId)
+            }
         }
         viewModelScope.launch(ioDispatcher) {
             trySafe { room.readService().markAsRead(ReadService.MarkAsReadParams.READ_RECEIPT) }
@@ -176,11 +179,18 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun initSendEventExecutor() {
         SendEventHelper.executor = object : SendEventExecutor {
-            override fun execute(roomId: String, type: String, content: String, ignoreError: Boolean): String {
+            override fun execute(
+                roomId: String,
+                type: String,
+                content: String,
+                ignoreError: Boolean
+            ): String {
                 Timber.d(" (${type}):  $content")
-                if (sessionHolder.hasActiveSession()) {
-                    sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomId)?.run {
-                        trySafe { sendService().sendEvent(type, content.toMatrixContent()) }
+                trySafe {
+                    if (sessionHolder.hasActiveSession()) {
+                        sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomId)?.run {
+                            sendService().sendEvent(type, content.toMatrixContent())
+                        }
                     }
                 }
                 return ""
@@ -196,18 +206,24 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun retrieveTimelineEvents() {
         updateState { copy(roomInfo = room.getRoomInfo(currentName)) }
-        timeline = room.timelineService().createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
-            removeListener(timelineListenerAdapter)
-            addListener(timelineListenerAdapter)
-            start()
+        trySafe {
+            timeline = room.timelineService()
+                .createTimeline(null, TimelineSettings(initialSize = PAGINATION, true)).apply {
+                    removeListener(timelineListenerAdapter)
+                    addListener(timelineListenerAdapter)
+                    start()
+                }
         }
     }
 
     private suspend fun handleTimelineEvents(events: List<TimelineEvent>) {
         Timber.tag(TAG).d("handleTimelineEvents:${events.size}")
         val displayableEvents =
-            events.filter(TimelineEvent::isDisplayable).filterNot { !debugMode && it.isNunchukErrorEvent() }.groupEvents(loadMore = ::handleLoadMore)
-        val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent).filterNot(TimelineEvent::isNunchukErrorEvent)
+            events.filter(TimelineEvent::isDisplayable)
+                .filterNot { !debugMode && it.isNunchukErrorEvent() }
+                .groupEvents(loadMore = ::handleLoadMore)
+        val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent)
+            .filterNot(TimelineEvent::isNunchukErrorEvent)
             .sortedByDescending(TimelineEvent::time)
         val consumableEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
             .filterNot(NunchukMatrixEvent::isLocalEvent)
@@ -225,7 +241,8 @@ class RoomDetailViewModel @Inject constructor(
             }
             .map { events ->
                 supervisorScope {
-                    val tasks = events.filterNot { it.eventId in consumedEventIds }.map { event -> async { consumeEventUseCase(event) } }
+                    val tasks = events.filterNot { it.eventId in consumedEventIds }
+                        .map { event -> async { consumeEventUseCase(event) } }
                     tasks.awaitAll()
                 }
                 consumedEventIds.addAll(events.map { event -> event.eventId })
@@ -283,8 +300,9 @@ class RoomDetailViewModel @Inject constructor(
         }
     }
 
-    private fun mapTransactionEvents(events: List<TimelineEvent>) = events.filter { it.isInitTransactionEvent() || it.isReceiveTransactionEvent() }
-        .map { it.eventId to it.isReceiveTransactionEvent() }
+    private fun mapTransactionEvents(events: List<TimelineEvent>) =
+        events.filter { it.isInitTransactionEvent() || it.isReceiveTransactionEvent() }
+            .map { it.eventId to it.isReceiveTransactionEvent() }
 
     fun handleSendMessage(content: String) {
         room.sendService().sendTextMessage(content)
@@ -362,7 +380,13 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun onGetWallet(wallet: Wallet) {
         if (wallet.balance.value > 0L) {
-            setEvent(CreateNewTransaction(roomId = room.roomId, walletId = wallet.id, availableAmount = wallet.balance.pureBTC()))
+            setEvent(
+                CreateNewTransaction(
+                    roomId = room.roomId,
+                    walletId = wallet.id,
+                    availableAmount = wallet.balance.pureBTC()
+                )
+            )
         }
     }
 
@@ -410,9 +434,22 @@ class RoomDetailViewModel @Inject constructor(
                     timelineListenerAdapter.getLastTimeEvents().filter(TimelineEvent::isDisplayable)
                         .filterNot { !debugMode && it.isNunchukErrorEvent() }
                         .groupEvents(loadMore = ::handleLoadMore)
-                displayableEvents.toMessages(currentId, roomWallet, transactions, isSelectedEnable, getState().selectedEventIds)
+                displayableEvents.toMessages(
+                    currentId,
+                    roomWallet,
+                    transactions,
+                    isSelectedEnable,
+                    getState().selectedEventIds
+                )
             }
-            updateState { copy(messages = newMessages, transactions = transactions, roomWallet = roomWallet, isSelectEnable = isSelectedEnable) }
+            updateState {
+                copy(
+                    messages = newMessages,
+                    transactions = transactions,
+                    roomWallet = roomWallet,
+                    isSelectEnable = isSelectedEnable
+                )
+            }
         }
     }
 

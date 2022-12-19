@@ -20,11 +20,13 @@
 package com.nunchuk.android.messages.usecase.message
 
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.util.SUPPORT_ROOM_TYPE
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import org.matrix.android.sdk.api.session.room.Room
+import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomDirectoryVisibility
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomParams
@@ -41,8 +43,9 @@ class GetOrCreateSupportRoomUseCase @Inject constructor(
         val session = sessionHolder.getSafeActiveSession()
             ?: throw NullPointerException("Can not get active session")
         val roomId = session.roomService().getRoomSummaries(roomSummaryQueryParams {
-            includeType = listOf("io.nunchuk.support")
-        }).firstOrNull()?.takeIf {
+            includeType = listOf(SUPPORT_ROOM_TYPE)
+            memberships = listOf(Membership.JOIN)
+        }, RoomSortOrder.ACTIVITY).firstOrNull()?.takeIf {
             session.roomService()
                 .getRoomMember("@support:nunchuk.io", it.roomId)?.membership == Membership.JOIN
         }?.roomId ?: run {
@@ -51,7 +54,7 @@ class GetOrCreateSupportRoomUseCase @Inject constructor(
                 isDirect = true
                 this.invitedUserIds.addAll(listOf("@support:nunchuk.io"))
                 preset = CreateRoomPreset.PRESET_TRUSTED_PRIVATE_CHAT
-                roomType = "io.nunchuk.support"
+                roomType = SUPPORT_ROOM_TYPE
             }
             session.roomService().createRoom(params)
         }
