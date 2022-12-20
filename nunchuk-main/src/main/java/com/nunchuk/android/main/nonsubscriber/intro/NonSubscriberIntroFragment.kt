@@ -79,7 +79,7 @@ class NonSubscriberIntroFragment : Fragment() {
         NCVerticalInputDialog(requireContext()).showDialog(
             title = getString(R.string.nc_enter_your_email),
             positiveText = getString(R.string.nc_send_me_the_info),
-            negativeText = getString(R.string.nc_or_visit_our_website),
+            negativeText = getString(R.string.nc_visit_our_website),
             defaultInput = viewModel.getEmail(),
             cancellable = true,
             onPositiveClicked = {

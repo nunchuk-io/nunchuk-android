@@ -62,7 +62,7 @@
                 style="@style/NCPrimaryButton.Light"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/nc_or_visit_our_website" />
+                android:text="@string/nc_visit_our_website" />
         </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
