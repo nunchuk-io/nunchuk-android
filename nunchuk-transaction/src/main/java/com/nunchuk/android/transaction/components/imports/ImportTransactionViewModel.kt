@@ -30,7 +30,7 @@ import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent
 import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCase
 import com.nunchuk.android.usecase.ImportPassportTransactionUseCase
 import com.nunchuk.android.usecase.ImportTransactionUseCase
-import com.nunchuk.android.usecase.membership.GetDummyTransactionSignatureUseCase
+import com.nunchuk.android.usecase.membership.GetDummyTxFromPsbt
 import com.nunchuk.android.usecase.membership.ParseKeystoneDummyTransaction
 import com.nunchuk.android.usecase.membership.ParsePassportDummyTransaction
 import com.nunchuk.android.utils.onException
@@ -54,7 +54,7 @@ internal class ImportTransactionViewModel @Inject constructor(
     private val importPassportTransactionUseCase: ImportPassportTransactionUseCase,
     private val parseKeystoneDummyTransaction: ParseKeystoneDummyTransaction,
     private val parsePassportDummyTransaction: ParsePassportDummyTransaction,
-    private val getDummyTransactionSignatureUseCase: GetDummyTransactionSignatureUseCase,
+    private val getDummyTxFromPsbt: GetDummyTxFromPsbt,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<Unit, ImportTransactionEvent>() {
 
@@ -72,11 +72,10 @@ internal class ImportTransactionViewModel @Inject constructor(
     fun importTransactionViaFile(filePath: String) {
         viewModelScope.launch {
             if (isDummyFlow) {
-                val signer = args.signer ?: return@launch
                 val psbt = withContext(ioDispatcher) {
                     File(filePath).readText()
                 }
-                val result = getDummyTransactionSignatureUseCase(GetDummyTransactionSignatureUseCase.Param(signer, psbt))
+                val result = getDummyTxFromPsbt(GetDummyTxFromPsbt.Param(args.walletId, psbt))
                 if (result.isSuccess) {
                     setEvent(ImportTransactionSuccess(result.getOrThrow()))
                 } else {
@@ -103,13 +102,12 @@ internal class ImportTransactionViewModel @Inject constructor(
 
     private fun parseDummyTransaction() {
         if (isProcessing) return
-        val signer = args.signer ?: return
         viewModelScope.launch {
             isProcessing = true
             val result = if (args.transactionOption == TransactionOption.IMPORT_KEYSTONE) {
-                parseKeystoneDummyTransaction(ParseKeystoneDummyTransaction.Param(signer, qrDataList.toList()))
+                parseKeystoneDummyTransaction(ParseKeystoneDummyTransaction.Param(args.walletId, qrDataList.toList()))
             } else {
-                parsePassportDummyTransaction(ParsePassportDummyTransaction.Param(signer, qrDataList.toList()))
+                parsePassportDummyTransaction(ParsePassportDummyTransaction.Param(args.walletId, qrDataList.toList()))
             }
             if (result.isSuccess) {
                 setEvent(ImportTransactionSuccess(result.getOrThrow()))
@@ -151,5 +149,5 @@ internal class ImportTransactionViewModel @Inject constructor(
     }
 
     private val isDummyFlow: Boolean
-        get() = args.signer != null
+        get() = args.isDummyTx
 }

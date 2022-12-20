@@ -7,14 +7,14 @@ import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class GetDummyTxFromMessage @Inject constructor(
+class GetDummyTxFromPsbt @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
      @IoDispatcher ioDispatcher: CoroutineDispatcher,
-) : UseCase<GetDummyTxFromMessage.Param, Transaction>(ioDispatcher) {
+) : UseCase<GetDummyTxFromPsbt.Param, Transaction>(ioDispatcher) {
 
     override suspend fun execute(parameters: Param): Transaction {
-        return nativeSdk.getDummyTx(parameters.walletId, parameters.message)
+        return nativeSdk.getDummyTx(parameters.walletId, parameters.psbt)
     }
 
-    data class Param(val walletId: String, val message: String)
+    data class Param(val walletId: String, val psbt: String)
 }

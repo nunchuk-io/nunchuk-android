@@ -31,7 +31,6 @@ import com.google.zxing.client.android.Intents
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.*
-import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.R
@@ -114,9 +113,9 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
     }
 
     private fun onImportTransactionSuccess(event: ImportTransactionSuccess) {
-        if (event.signature.isNotEmpty()) {
+        if (event.transaction != null) {
             setResult(Activity.RESULT_OK, Intent().apply {
-                putExtra(GlobalResultKey.SIGNATURE_EXTRA, event.signature)
+                putExtra(GlobalResultKey.TRANSACTION_EXTRA, event.transaction)
             })
         }
         hideLoading()
@@ -155,14 +154,14 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
             transactionOption: TransactionOption,
             masterFingerPrint: String = "",
             initEventId: String = "",
-            signer: SingleSigner? = null,
+            isDummyTx: Boolean = false,
         ): Intent {
             return ImportTransactionArgs(
                 walletId = walletId,
                 transactionOption = transactionOption,
                 masterFingerPrint = masterFingerPrint,
                 initEventId = initEventId,
-                signer = signer
+                isDummyTx = isDummyTx
             ).buildIntent(activityContext)
         }
     }

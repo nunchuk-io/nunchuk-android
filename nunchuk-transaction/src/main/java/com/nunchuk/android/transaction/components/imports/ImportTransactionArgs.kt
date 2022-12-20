@@ -23,16 +23,14 @@ import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.core.util.getStringValue
-import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.share.model.TransactionOption
-import com.nunchuk.android.utils.parcelable
 
 data class ImportTransactionArgs(
     val walletId: String,
     val transactionOption: TransactionOption,
     val masterFingerPrint: String,
     val initEventId: String,
-    val signer: SingleSigner?,
+    val isDummyTx: Boolean,
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, ImportTransactionActivity::class.java).apply {
@@ -40,7 +38,7 @@ data class ImportTransactionArgs(
         putExtra(EXTRA_TRANSACTION_OPTION, transactionOption)
         putExtra(EXTRA_MASTER_FINGER_PRINT, masterFingerPrint)
         putExtra(EXTRA_INIT_EVENT_ID, initEventId)
-        putExtra(EXTRA_SIGNER, signer)
+        putExtra(EXTRA_IS_DUMMY_TX, isDummyTx)
     }
 
     companion object {
@@ -48,7 +46,7 @@ data class ImportTransactionArgs(
         private const val EXTRA_TRANSACTION_OPTION = "b"
         private const val EXTRA_MASTER_FINGER_PRINT = "c"
         private const val EXTRA_INIT_EVENT_ID = "d"
-        private const val EXTRA_SIGNER = "e"
+        private const val EXTRA_IS_DUMMY_TX = "e"
 
         fun deserializeFrom(intent: Intent): ImportTransactionArgs {
             val extras = intent.extras
@@ -57,7 +55,7 @@ data class ImportTransactionArgs(
                 transactionOption = extras?.getSerializable(EXTRA_TRANSACTION_OPTION) as TransactionOption? ?: TransactionOption.IMPORT_KEYSTONE,
                 masterFingerPrint = extras.getStringValue(EXTRA_MASTER_FINGER_PRINT),
                 initEventId = extras.getStringValue(EXTRA_INIT_EVENT_ID),
-                signer = extras?.parcelable(EXTRA_SIGNER)
+                isDummyTx = extras?.getBoolean(EXTRA_IS_DUMMY_TX) ?: false
             )
         }
     }

@@ -51,10 +51,10 @@ import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class DummyTransactionDetailsFragment : BaseFragment<FragmentTransactionDetailsBinding>(),
@@ -67,15 +67,9 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentTransactionDetailsB
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             val data = it.data
             if (data != null && it.resultCode == Activity.RESULT_OK) {
-                val signature = data.getStringExtra(GlobalResultKey.SIGNATURE_EXTRA).orEmpty()
-                walletAuthenticationViewModel.getInteractSingleSigner()?.let { signer ->
-                    lifecycleScope.launch {
-                        walletAuthenticationViewModel.handleSignatureResult(
-                            Result.success(signature),
-                            signer
-                        )
-                    }
-                }
+                val transaction = data.parcelable<Transaction>(GlobalResultKey.TRANSACTION_EXTRA)
+                    ?: return@registerForActivityResult
+                walletAuthenticationViewModel.handleImportAirgapTransaction(transaction)
             }
         }
 
@@ -154,11 +148,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentTransactionDetailsB
         }
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_MK4_EXPORT_TRANSACTION }) { scanInfo ->
-            walletAuthenticationViewModel.getInteractSingleSigner()?.let { signer ->
-                walletAuthenticationViewModel.handleExportTransactionToMk4(
-                    Ndef.get(scanInfo.tag),
-                )
-            }
+            walletAuthenticationViewModel.handleExportTransactionToMk4(Ndef.get(scanInfo.tag))
             nfcViewModel.clearScanInfo()
         }
 
@@ -371,11 +361,11 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentTransactionDetailsB
     private fun openImportTransactionScreen(
         transactionOption: TransactionOption,
     ) {
-        navigator.openImportTransactionScreen(
+        navigator.openImportDummyTransactionScreen(
             launcher = importTxLauncher,
             activityContext = requireActivity(),
             transactionOption = transactionOption,
-            signer = walletAuthenticationViewModel.getInteractSingleSigner() ?: return
+            walletId = walletAuthenticationViewModel.getWalletId()
         )
     }
 

@@ -19,9 +19,11 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetWalletUseCase
-import com.nunchuk.android.usecase.membership.GetDummyTxFromMessage
+import com.nunchuk.android.usecase.membership.GetDummyTransactionSignatureUseCase
+import com.nunchuk.android.usecase.membership.GetDummyTxFromPsbt
 import com.nunchuk.android.usecase.membership.GetTxToSignMessage
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,10 +42,11 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val healthCheckColdCardUseCase: HealthCheckColdCardUseCase,
     private val generateColdCardHealthCheckMessageUseCase: GenerateColdCardHealthCheckMessageUseCase,
     private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
-    private val getDummyTxFromMessage: GetDummyTxFromMessage,
+    private val getDummyTxFromPsbt: GetDummyTxFromPsbt,
     private val getTxToSignMessage: GetTxToSignMessage,
     private val exportRawPsbtToMk4UseCase: ExportRawPsbtToMk4UseCase,
     private val getSignatureFromColdCardPsbt: GetSignatureFromColdCardPsbt,
+    private val getDummyTransactionSignatureUseCase: GetDummyTransactionSignatureUseCase,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -67,10 +70,10 @@ class WalletAuthenticationViewModel @Inject constructor(
                 val txToSignResult =
                     getTxToSignMessage(GetTxToSignMessage.Param(args.walletId, args.userData))
                 dataToSign.value = txToSignResult.getOrNull().orEmpty()
-                getDummyTxFromMessage(
-                    GetDummyTxFromMessage.Param(
-                        args.walletId,
-                        dataToSign.value
+                getDummyTxFromPsbt(
+                    GetDummyTxFromPsbt.Param(
+                        walletId = args.walletId,
+                        psbt = dataToSign.value
                     )
                 ).getOrNull()
                     ?.let { transition ->
@@ -103,7 +106,8 @@ class WalletAuthenticationViewModel @Inject constructor(
         viewModelScope.launch {
             val transaction = _state.value.transaction ?: return@launch
             _event.emit(WalletAuthenticationEvent.NfcLoading(isLoading = true, isColdCard = true))
-            val result = exportRawPsbtToMk4UseCase(ExportRawPsbtToMk4UseCase.Data(transaction.psbt, ndef))
+            val result =
+                exportRawPsbtToMk4UseCase(ExportRawPsbtToMk4UseCase.Data(transaction.psbt, ndef))
             _event.emit(WalletAuthenticationEvent.NfcLoading(isLoading = false, isColdCard = true))
             if (result.isSuccess) {
                 _event.emit(WalletAuthenticationEvent.ExportTransactionToColdcardSuccess)
@@ -170,6 +174,31 @@ class WalletAuthenticationViewModel @Inject constructor(
         handleSignatureResult(result, singleSigner)
     }
 
+    fun handleImportAirgapTransaction(transaction: Transaction) {
+        viewModelScope.launch {
+            if (transaction.txId != _state.value.transaction?.txId) {
+                val signatures = _state.value.signatures
+                val signedSigner = _state.value.singleSigners.filter {
+                    it.type == SignerType.AIRGAP
+                            && transaction.signers[it.masterSignerId] == true
+                            && signatures.contains(it.masterSignerId).not()
+                }.forEach {
+                    handleSignatureResult(
+                        getDummyTransactionSignatureUseCase(
+                            GetDummyTransactionSignatureUseCase.Param(
+                                it,
+                                transaction.psbt
+                            )
+                        ),
+                        it
+                    )
+                }
+            } else {
+                _event.emit(WalletAuthenticationEvent.ShowError("You import invalid transaction"))
+            }
+        }
+    }
+
     private fun handleSignCheckSoftware(singleSigner: SingleSigner) {
         viewModelScope.launch {
             val result = checkSignMessageUseCase(
@@ -204,6 +233,8 @@ class WalletAuthenticationViewModel @Inject constructor(
     fun getInteractSingleSigner() = _state.value.interactSingleSigner
 
     fun getDataToSign() = dataToSign.value
+
+    fun getWalletId() = args.walletId
 
     private fun getWalletDetails() {
         viewModelScope.launch {
