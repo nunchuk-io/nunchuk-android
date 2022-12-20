@@ -104,7 +104,8 @@ class RoomsViewModel @Inject constructor(
         // delete to avoid misunderstandings
         viewModelScope.launch(Dispatchers.IO) {
             val draftSyncRooms = summaries.filter {
-                it.displayName == TAG_SYNC && it.tags.isEmpty() || (it.roomType == SUPPORT_ROOM_TYPE && it.joinedMembersCount == 1)
+                it.displayName == TAG_SYNC && it.tags.isEmpty()
+                        || (it.roomType == SUPPORT_ROOM_TYPE && it.joinedMembersCount == 1 && it.latestPreviewableEvent != null)
             }
             draftSyncRooms.forEach {
                 leaveRoomUseCase.execute(it.roomId)
@@ -168,9 +169,10 @@ class RoomsViewModel @Inject constructor(
         }
     }
 
-    fun getVisibleRooms() = getState().rooms.filter{ it.shouldShow() }
+    fun getVisibleRooms() = getState().rooms.filter { it.shouldShow() }
 
-    private fun getRoom(roomSummary: RoomSummary) = sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomSummary.roomId)
+    private fun getRoom(roomSummary: RoomSummary) =
+        sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomSummary.roomId)
 
     companion object {
         private const val TAG_SYNC = "io.nunchuk.sync"

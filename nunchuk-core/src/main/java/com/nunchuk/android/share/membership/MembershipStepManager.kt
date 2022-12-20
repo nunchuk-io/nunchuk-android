@@ -71,7 +71,7 @@ class MembershipStepManager @Inject constructor(
         if (currentPlan == MembershipPlan.HONEY_BADGER) {
             steps[MembershipStep.SETUP_INHERITANCE] = MembershipStepFlow(totalStep = 12)
         }
-        _remainingTime.value = calculateRemainTime(steps.values)
+        _remainingTime.value = calculateRemainTime(steps.toMap().values)
         _stepDone.value = emptySet()
     }
 
@@ -155,7 +155,7 @@ class MembershipStepManager @Inject constructor(
         isConfigRecoverKeyDone() && _stepDone.value.contains(MembershipStep.CREATE_WALLET)
 
     fun getRemainTimeBySteps(querySteps: List<MembershipStep>) =
-        calculateRemainTime(steps.filter { it.key in querySteps }.values)
+        calculateRemainTime(steps.toMap().filter { it.key in querySteps }.values)
 
     fun getNextKeySuffixByType(type: SignerType): String {
         val index = stepInfo.value.asSequence().mapNotNull {
@@ -174,7 +174,7 @@ class MembershipStepManager @Inject constructor(
 
     private fun updateRemainTime() {
         _remainingTime.update {
-            calculateRemainTime(steps.filter { isStepInThisPlan(it.key, plan) }.values)
+            calculateRemainTime(steps.toMap().filter { isStepInThisPlan(it.key, plan) }.values)
         }
     }
 

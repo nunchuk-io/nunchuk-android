@@ -52,7 +52,7 @@ class Mk4IntroViewModel @Inject constructor(
                     val sortedSigner = result.getOrThrow().sortedBy { it.derivationPath }
                     val signer = sortedSigner.find { it.derivationPath == SIGNER_PATH } ?: run {
                         sortedSigner.find { it.derivationPath.contains(SIGNER_PATH_PREFIX) }
-                    } ?: throw NullPointerException("Can not find signer")
+                    } ?: return@launch
                     if (membershipStepManager.isKeyExisted(signer.masterFingerprint)) {
                         _event.emit(Mk4IntroViewEvent.OnSignerExistInAssistedWallet)
                         _event.emit(Mk4IntroViewEvent.Loading(false))
