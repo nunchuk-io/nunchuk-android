@@ -48,7 +48,7 @@ internal class GetTransactionUseCaseImpl @Inject constructor(
         val chainTip = nativeSdk.getChainTip()
         val tx = nativeSdk.getTransaction(walletId = walletId, txId = txId)
         emit(ExtendedTransaction(transaction = tx.copy(height = tx.getConfirmations(chainTip))))
-        if (isAssistedWallet && tx.signers.any { it.value } && tx.status.isPending()) {
+        if (isAssistedWallet && tx.status.isPending()) {
             val extendedTransaction = repository.getServerTransaction(walletId, txId)
             val transaction = extendedTransaction.transaction.copy(
                 height = extendedTransaction.transaction.getConfirmations(chainTip)

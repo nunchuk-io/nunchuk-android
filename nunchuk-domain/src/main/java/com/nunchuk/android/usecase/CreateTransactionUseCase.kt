@@ -51,7 +51,6 @@ class CreateTransactionUseCase @Inject constructor(
                     transaction.txId
                 )
             } catch (e: Exception) {
-                nativeSdk.deleteTransaction(parameters.walletId, transaction.txId)
                 throw e
             }
         }
