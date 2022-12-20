@@ -161,7 +161,12 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         binding.walletType.text =
             (if (wallet.escrow) WalletType.ESCROW else WalletType.MULTI_SIG).toReadableString(this)
         binding.addressType.text = wallet.addressType.toReadableString(this)
-        binding.shareIcon.isVisible = state.walletExtended.isShared
+        binding.shareIcon.isVisible = state.walletExtended.isShared || state.isAssistedWallet
+        if (state.isAssistedWallet) {
+            binding.shareIcon.text = getString(R.string.nc_assisted)
+        } else {
+            binding.shareIcon.text = getString(R.string.nc_text_shared)
+        }
         SignersViewBinder(
             container = binding.signersContainer,
             signers = state.signers,

@@ -81,7 +81,13 @@ internal class WalletConfigViewModel @Inject constructor(
                         loadContact()
                     }
                 }
-                .map { WalletConfigState(it, mapSigners(it.wallet.signers, it.roomWallet)) }
+                .map {
+                    WalletConfigState(
+                        walletExtended = it,
+                        signers = mapSigners(it.wallet.signers, it.roomWallet),
+                        isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId),
+                    )
+                }
                 .flowOn(Dispatchers.IO)
                 .onException { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
