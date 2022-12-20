@@ -24,6 +24,7 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.matrix.roomSummariesFlow
 import com.nunchuk.android.core.util.SUPPORT_ROOM_TYPE
+import com.nunchuk.android.core.util.SUPPORT_TEST_NET_ROOM_TYPE
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCase
@@ -105,7 +106,9 @@ class RoomsViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val draftSyncRooms = summaries.filter {
                 it.displayName == TAG_SYNC && it.tags.isEmpty()
-                        || (it.roomType == SUPPORT_ROOM_TYPE && it.joinedMembersCount == 1 && it.latestPreviewableEvent != null)
+                        || ((it.roomType == SUPPORT_ROOM_TYPE || it.roomType == SUPPORT_TEST_NET_ROOM_TYPE)
+                        && it.joinedMembersCount == 1
+                        && it.latestPreviewableEvent != null)
             }
             draftSyncRooms.forEach {
                 leaveRoomUseCase.execute(it.roomId)

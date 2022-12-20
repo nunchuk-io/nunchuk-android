@@ -45,10 +45,4 @@
 
 
     <include app:graph="@navigation/wallet_detail_navigation" />
-
-    <fragment
-        android:id="@+id/walletDetailsFragment"
-        android:name="com.nunchuk.android.wallet.components.details.WalletDetailsFragment"
-        android:label="WalletDetailsFragment"
-        tools:layout="@layout/fragment_wallet_detail" />
 </navigation>

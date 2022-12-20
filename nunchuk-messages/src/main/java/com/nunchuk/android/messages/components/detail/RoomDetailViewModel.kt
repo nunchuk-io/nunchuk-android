@@ -105,6 +105,9 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     private fun onRetrievedRoom(room: Room) {
+        updateState {
+            copy(isSupportRoom = room.getRoomMemberList().any { it.userId == SUPPORT_ROOM_USER_ID })
+        }
         markRoomDisplayed(room)
         storeRoom(room)
         joinRoom()
@@ -309,12 +312,16 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     fun handleTitleClick() {
+        if (getState().isSupportRoom) return
         if (room.isDirectChat()) {
             setEvent(OpenChatInfoEvent)
         } else {
             setEvent(OpenChatGroupInfoEvent)
         }
     }
+
+    val isSupportRoom: Boolean
+        get() = getState().isSupportRoom
 
     fun handleLoadMore() {
         if (!isConsumingEvents.get() && timeline?.hasMoreToLoad(BACKWARDS).orFalse()) {
