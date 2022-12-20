@@ -9,6 +9,7 @@ import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCase
 import com.nunchuk.android.model.Inheritance
+import com.nunchuk.android.model.InheritanceCheck
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -16,6 +17,7 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
+import com.nunchuk.android.usecase.membership.InheritanceCheckUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +35,7 @@ class ServicesTabViewModel @Inject constructor(
     private val getServerWalletUseCase: GetServerWalletUseCase,
     private val getInheritanceUseCase: GetInheritanceUseCase,
     private val getOrCreateSupportRoomUseCase: GetOrCreateSupportRoomUseCase,
+    private val inheritanceCheckUseCase: InheritanceCheckUseCase
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<ServicesTabEvent>()
@@ -135,6 +138,19 @@ class ServicesTabViewModel @Inject constructor(
                         )
                     }
                 }
+        }
+    }
+
+    fun checkInheritance() = viewModelScope.launch {
+        val magic = _state.value.inheritance?.magic
+        if (magic.isNullOrEmpty()) return@launch
+        _event.emit(ServicesTabEvent.Loading(true))
+        val result = inheritanceCheckUseCase(magic)
+        _event.emit(ServicesTabEvent.Loading(false))
+        if (result.isSuccess) {
+            _event.emit(ServicesTabEvent.CheckInheritance(result.getOrThrow()))
+        } else {
+            _event.emit(ServicesTabEvent.ProcessFailure(message = result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 

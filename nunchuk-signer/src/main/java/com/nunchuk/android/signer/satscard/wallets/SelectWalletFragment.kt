@@ -28,12 +28,15 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.share.satscard.SweepSatscardViewModel
 import com.nunchuk.android.share.satscard.observerSweepSatscard
 import com.nunchuk.android.signer.R
@@ -53,7 +56,10 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
         viewModel.setWalletSelected(it)
     }
 
-    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentSelectWalletSweepBinding {
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentSelectWalletSweepBinding {
         return FragmentSelectWalletSweepBinding.inflate(inflater, container, false)
     }
 
@@ -92,16 +98,26 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
     private fun observer() {
         flowObserver(viewModel.event, ::handleEvent)
         flowObserver(viewModel.state, ::handleState)
-        (activity as BaseNfcActivity<*>).observerSweepSatscard(sweepSatscardViewModel, nfcViewModel) { viewModel.selectedWalletId }
-        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_SATSCARD_SWEEP_SLOT }) {
-            val type = if (args.type == TYPE_UNSEAL_SWEEP_ACTIVE_SLOT) {
-                SweepType.UNSEAL_SWEEP_TO_NUNCHUK_WALLET
-            } else {
-                SweepType.SWEEP_TO_NUNCHUK_WALLET
+        if (isInheritanceWalletFlow().not()) {
+            (activity as BaseNfcActivity<*>).observerSweepSatscard(
+                sweepSatscardViewModel,
+                nfcViewModel
+            ) { viewModel.selectedWalletId }
+            flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_SATSCARD_SWEEP_SLOT }) {
+                val type = if (args.type == TYPE_UNSEAL_SWEEP_ACTIVE_SLOT) {
+                    SweepType.UNSEAL_SWEEP_TO_NUNCHUK_WALLET
+                } else {
+                    SweepType.SWEEP_TO_NUNCHUK_WALLET
+                }
+                sweepSatscardViewModel.init(viewModel.selectWalletAddress, viewModel.manualFeeRate)
+                sweepSatscardViewModel.handleSweepBalance(
+                    IsoDep.get(it.tag),
+                    nfcViewModel.inputCvc.orEmpty(),
+                    args.slots.toList(),
+                    type
+                )
+                nfcViewModel.clearScanInfo()
             }
-            sweepSatscardViewModel.init(viewModel.selectWalletAddress, viewModel.manualFeeRate)
-            sweepSatscardViewModel.handleSweepBalance(IsoDep.get(it.tag), nfcViewModel.inputCvc.orEmpty(), args.slots.toList(), type)
-            nfcViewModel.clearScanInfo()
         }
     }
 
@@ -118,13 +134,45 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
             } else {
                 navigateToEstimateFee(event.address)
             }
-            is SelectWalletEvent.GetFeeRateSuccess -> (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_SATSCARD_SWEEP_SLOT)
+            is SelectWalletEvent.GetFeeRateSuccess -> {
+                if (isInheritanceWalletFlow()) {
+                    viewModel.createInheritanceTransaction()
+                } else {
+                    (activity as NfcActionListener).startNfcFlow(
+                        BaseNfcActivity.REQUEST_SATSCARD_SWEEP_SLOT
+                    )
+                }
+            }
+            is SelectWalletEvent.CreateTransactionSuccessEvent -> {
+                navigateToTransactionDetail(event.transaction)
+            }
         }
     }
 
+    private fun navigateToTransactionDetail(transaction: Transaction) {
+        ActivityManager.popUntilRoot()
+        if (viewModel.selectedWalletId.isNotEmpty()) {
+            navigator.openWalletDetailsScreen(requireContext(), viewModel.selectedWalletId)
+        }
+        navigator.openTransactionDetailsScreen(
+            activityContext = requireActivity(),
+            walletId = viewModel.selectedWalletId,
+            txId = transaction.txId,
+            initEventId = "",
+            roomId = "",
+            transaction = transaction,
+            isInheritanceClaimingFlow = args.magicalPhrase.isNotBlank() && args.masterSignerId.isNotBlank()
+        )
+    }
+
     private fun navigateToEstimateFee(address: String) {
-        val totalBalance = args.slots.sumOf { it.balance.value }
-        val totalInBtc = Amount(value = totalBalance).pureBTC()
+        val totalBalance =
+            if (isInheritanceWalletFlow()) {
+                args.walletBalance * BTC_SATOSHI_EXCHANGE_RATE
+            } else {
+                args.slots.sumOf { it.balance.value }
+            }
+        val totalInBtc = Amount(value = totalBalance.toLong()).pureBTC()
         val type = if (args.type == TYPE_UNSEAL_SWEEP_ACTIVE_SLOT) {
             SweepType.UNSEAL_SWEEP_TO_NUNCHUK_WALLET
         } else {
@@ -139,9 +187,13 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
             "",
             subtractFeeFromAmount = true,
             sweepType = type,
-            slots = args.slots.toList()
+            slots = args.slots.toList(),
+            masterSignerId = args.masterSignerId,
+            magicalPhrase = args.magicalPhrase
         )
     }
+
+    private fun isInheritanceWalletFlow() = args.type == TYPE_INHERITANCE_WALLET
 
     private fun handleState(state: SelectWalletState) {
         adapter.submitList(state.selectWallets)
@@ -150,5 +202,6 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
     companion object {
         const val TYPE_UNSEAL_SWEEP_ACTIVE_SLOT = 1
         const val TYPE_SWEEP_UNSEAL_SLOT = 2
+        const val TYPE_INHERITANCE_WALLET = 3
     }
 }

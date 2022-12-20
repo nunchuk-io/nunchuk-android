@@ -103,6 +103,32 @@ interface PremiumWalletRepository {
         walletId: String
     ): String
 
+    suspend fun generateInheritanceClaimStatusUserData(
+        magic: String
+    ): String
+
+    suspend fun generateInheritanceClaimCreateTransactionUserData(
+        magic: String,
+        address: String,
+        feeRate: String
+    ): String
+
+    suspend fun inheritanceClaimStatus(
+        userData: String,
+        masterFingerprint: String,
+        signature: String
+    ): InheritanceAdditional
+
+    suspend fun inheritanceClaimCreateTransaction(
+        userData: String,
+        masterFingerprint: String,
+        signature: String
+    ): TransactionAdditional
+
+    suspend fun generateCancelInheritanceUserData(
+        walletId: String
+    ): String
+
     suspend fun calculateRequiredSignaturesInheritance(
         note: String,
         notificationEmails: List<String>,
@@ -111,11 +137,25 @@ interface PremiumWalletRepository {
         walletId: String
     ): CalculateRequiredSignatures
 
-    suspend fun createUpdateInheritance(
+    suspend fun createOrUpdateInheritance(
         authorizations: List<String>,
         verifyToken: String,
         userData: String,
         securityQuestionToken: String,
         isUpdate: Boolean
     ): Inheritance
+
+    suspend fun cancelInheritance(
+        authorizations: List<String>,
+        verifyToken: String,
+        userData: String,
+        securityQuestionToken: String,
+        walletId: String
+    )
+
+    suspend fun inheritanceClaimDownloadBackup(magic: String): BackupKey
+
+    suspend fun inheritanceClaimingClaim(magic: String, psbt: String): TransactionAdditional
+
+    suspend fun inheritanceCheck(magic: String): InheritanceCheck
 }

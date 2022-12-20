@@ -3,6 +3,7 @@ package com.nunchuk.android.core.data.model
 import com.google.gson.annotations.SerializedName
 import com.nunchuk.android.core.data.model.membership.KeyPoliciesDto
 import com.nunchuk.android.core.data.model.membership.ServerKeyDto
+import com.nunchuk.android.core.data.model.membership.TransactionServerDto
 
 internal data class CreateServerKeysPayload(
     @SerializedName("policies")
@@ -83,35 +84,36 @@ data class LockdownUpdateRequest(
     @SerializedName("nonce")
     val nonce: String? = null,
     @SerializedName("body")
-    val body: LockdownUpdateRequestBody? = null
-)
-
-data class LockdownUpdateRequestBody(
-    @SerializedName("period_id")
-    val periodId: String? = null,
-    @SerializedName("wallet")
-    val walletId: String? = null
-)
+    val body: Body? = null
+) {
+    data class Body(
+        @SerializedName("period_id")
+        val periodId: String? = null,
+        @SerializedName("wallet")
+        val walletId: String? = null
+    )
+}
 
 data class CreateUpdateInheritancePlanRequest(
     @SerializedName("nonce")
     val nonce: String? = null,
     @SerializedName("body")
-    val body: CreateUpdateInheritancePlanRequestBody? = null
-)
+    val body: Body? = null
+) {
+    data class Body(
+        @SerializedName("note")
+        val note: String? = null,
+        @SerializedName("notification_emails")
+        val notificationEmails: List<String>? = null,
+        @SerializedName("notify_today")
+        val notifyToday: Boolean? = null,
+        @SerializedName("activation_time_milis")
+        val activationTimeMilis: Long? = null,
+        @SerializedName("wallet")
+        val walletId: String? = null,
+    )
+}
 
-data class CreateUpdateInheritancePlanRequestBody(
-    @SerializedName("note")
-    val note: String? = null,
-    @SerializedName("notification_emails")
-    val notificationEmails: List<String>? = null,
-    @SerializedName("notify_today")
-    val notifyToday: Boolean? = null,
-    @SerializedName("activation_time_milis")
-    val activationTimeMilis: Long? = null,
-    @SerializedName("wallet")
-    val walletId: String? = null,
-)
 
 data class InheritanceClaimStatusRequest(
     @SerializedName("nonce")
@@ -147,6 +149,18 @@ data class InheritanceClaimClaimRequest(
     val psbt: String? = null
 )
 
+data class InheritanceCancelRequest(
+    @SerializedName("nonce")
+    val nonce: String? = null,
+    @SerializedName("body")
+    val body: Body? = null
+) {
+    data class Body(
+        @SerializedName("wallet")
+        val walletId: String? = null
+    )
+}
+
 data class InheritanceClaimCreateTransactionRequest(
     @SerializedName("nonce")
     val nonce: String? = null,
@@ -156,11 +170,33 @@ data class InheritanceClaimCreateTransactionRequest(
     data class Body(
         @SerializedName("magic")
         val magic: String? = null,
-        @SerializedName("magic")
+        @SerializedName("address")
         val address: String? = null,
         @SerializedName("fee_rate")
-        val feeRate: Float? = null,
+        val feeRate: String? = null,
     )
 }
 
+data class InheritanceCheckRequest(
+    @SerializedName("magic")
+    val magic: String? = null,
+    @SerializedName("environment")
+    val environment: String? = null,
+)
+
+data class InheritanceCheckResponse(
+    @SerializedName("is_valid")
+    val isValid: Boolean? = null,
+    @SerializedName("is_paid")
+    val isPaid: Boolean? = null,
+    @SerializedName("is_expired")
+    val isExpired: Boolean? = null,
+)
+
+data class TransactionAdditionalResponse(
+    @SerializedName("transaction") val transaction: TransactionServerDto? = null,
+    @SerializedName("tx_fee") val txFee: Double? = null,
+    @SerializedName("tx_fee_rate") val txFeeRate: Double? = null,
+    @SerializedName("sub_amount") val subAmount: Double? = null
+)
 

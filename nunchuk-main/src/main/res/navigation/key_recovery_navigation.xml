@@ -39,14 +39,6 @@
         <argument
             android:name="verify_token"
             app:argType="string" />
-        <!--        <action-->
-        <!--            android:id="@+id/action_keyRecoveryIntroFragment_to_answerSecurityQuestionFragment"-->
-        <!--            app:destination="@id/answerSecurityQuestionFragment"-->
-        <!--            app:enterAnim="@anim/nav_default_enter_anim"-->
-        <!--            app:exitAnim="@anim/nav_default_exit_anim"-->
-        <!--            app:popEnterAnim="@anim/nav_default_pop_enter_anim"-->
-        <!--            app:popExitAnim="@anim/nav_default_pop_exit_anim" />-->
-
     </fragment>
 
     <dialog
@@ -137,13 +129,6 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <action
-            android:id="@+id/action_recoveryQuestionFragment_to_signSecurityQuestionFragment"
-            app:destination="@id/signSecurityQuestionFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <argument
             android:name="isRecoveryFlow"
             android:defaultValue="false"
@@ -163,11 +148,5 @@
             android:name="questions"
             app:argType="com.nunchuk.android.main.membership.model.SecurityQuestionModel[]" />
     </dialog>
-
-    <fragment
-        android:id="@+id/signSecurityQuestionFragment"
-        android:name="com.nunchuk.android.main.components.tabs.services.keyrecovery.checksignmessage.KeyRecoverySignSecurityQuestionFragment"
-        android:label="SignSecurityQuestionFragment" />
-
 
 </navigation>

@@ -54,8 +54,6 @@ class AnswerSecurityQuestionFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) { event ->
             when (event) {
-                is AnswerSecurityQuestionEvent.ContinueClick -> {
-                }
                 is AnswerSecurityQuestionEvent.Loading -> showOrHideLoading(loading = event.isLoading)
                 is AnswerSecurityQuestionEvent.DownloadBackupKeySuccess -> {
                     findNavController().navigate(

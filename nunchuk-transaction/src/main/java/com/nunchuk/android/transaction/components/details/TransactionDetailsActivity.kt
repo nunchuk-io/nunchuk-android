@@ -58,6 +58,7 @@ import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.formatByHour
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.simpleWeekDayYearFormat
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
@@ -144,6 +145,17 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             roomId = args.roomId,
             transaction = args.transaction
         )
+
+        if (args.isInheritanceClaimingFlow) {
+            showInheritanceClaimingDialog()
+        }
+    }
+
+    private fun showInheritanceClaimingDialog() {
+        NCInfoDialog(this).showDialog(
+            title = getString(R.string.nc_congratulation),
+            message = getString(R.string.nc_your_inheritance_has_been_claimed),
+        ).show()
     }
 
     override fun onInputDone(newInput: String) {
@@ -627,14 +639,16 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             txId: String,
             initEventId: String = "",
             roomId: String = "",
-            transaction: Transaction? = null
+            transaction: Transaction? = null,
+            isInheritanceClaimingFlow: Boolean = false
         ): Intent {
             return TransactionDetailsArgs(
                 walletId = walletId,
                 txId = txId,
                 initEventId = initEventId,
                 roomId = roomId,
-                transaction = transaction
+                transaction = transaction,
+                isInheritanceClaimingFlow = isInheritanceClaimingFlow
             ).buildIntent(activityContext)
         }
     }

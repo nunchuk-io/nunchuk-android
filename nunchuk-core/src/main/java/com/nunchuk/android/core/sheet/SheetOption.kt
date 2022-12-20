@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.sheet
 
 import android.os.Parcelable
+import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import kotlinx.parcelize.Parcelize
@@ -71,4 +72,5 @@ object SheetOptionType {
     const val TYPE_EXIT_WIZARD = 21
     const val TYPE_ADD_COLDCARD_NFC = 22
     const val TYPE_ADD_COLDCARD_FILE = 23
+    const val TYPE_CANCEL = 24
 }

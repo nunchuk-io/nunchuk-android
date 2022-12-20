@@ -29,7 +29,6 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class InheritanceShareSecretInfoFragment : MembershipFragment() {
-    private val viewModel: InheritanceShareSecretInfoViewModel by viewModels()
     private val args: InheritanceShareSecretInfoFragmentArgs by navArgs()
 
     override fun onCreateView(
@@ -126,9 +125,15 @@ private fun InheritanceShareSecretInfoContent(
                         )
                     }
                 }
+                val warningDesc = when (type) {
+                    InheritanceShareSecretType.DIRECT.ordinal -> stringResource(id = R.string.nc_beneficiary)
+                    InheritanceShareSecretType.INDIRECT.ordinal -> stringResource(id = R.string.nc_trustee)
+                    InheritanceShareSecretType.JOINT_CONTROL.ordinal -> stringResource(id = R.string.nc_beneficiary_trustee)
+                    else -> ""
+                }
                 NcHintMessage(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    messages = listOf(ClickAbleText(content = stringResource(R.string.nc_inheritance_share_secret_info_warning))),
+                    messages = listOf(ClickAbleText(content = stringResource(R.string.nc_inheritance_share_secret_info_warning, warningDesc))),
                     type = HighlightMessageType.WARNING,
                 )
                 NcPrimaryDarkButton(

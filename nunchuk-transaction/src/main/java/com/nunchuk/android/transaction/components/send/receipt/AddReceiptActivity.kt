@@ -184,7 +184,8 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             is TransactionConfirmEvent.CreateTxSuccessEvent -> openTransactionDetailScreen(
                 event.txId,
                 args.walletId,
-                sessionHolder.getActiveRoomIdSafe()
+                sessionHolder.getActiveRoomIdSafe(),
+                transactionConfirmViewModel.isInheritanceClaimingFlow()
             )
             TransactionConfirmEvent.LoadingEvent -> showLoading()
             is TransactionConfirmEvent.InitRoomTransactionError -> showCreateTransactionError(event.message)
@@ -211,7 +212,9 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                 privateNote = state.privateNote,
                 subtractFeeFromAmount = subtractFeeFromAmount,
                 slots = args.slots,
-                manualFeeRate = event.estimateFeeRates.defaultRate
+                manualFeeRate = event.estimateFeeRates.defaultRate,
+                masterSignerId = args.masterSignerId,
+                magicalPhrase = args.magicalPhrase
             )
             transactionConfirmViewModel.handleConfirmEvent()
         }
@@ -255,7 +258,9 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             privateNote = privateNote,
             subtractFeeFromAmount = subtractFeeFromAmount,
             slots = args.slots,
-            sweepType = args.sweepType
+            sweepType = args.sweepType,
+            masterSignerId = args.masterSignerId,
+            magicalPhrase = args.magicalPhrase
         )
     }
 
@@ -271,7 +276,9 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             privateNote: String = "",
             subtractFeeFromAmount: Boolean = false,
             slots: List<SatsCardSlot> = emptyList(),
-            sweepType: SweepType = SweepType.NONE
+            sweepType: SweepType = SweepType.NONE,
+            masterSignerId: String = "",
+            magicalPhrase: String = ""
         ) {
             activityContext.startActivity(
                 AddReceiptArgs(
@@ -282,7 +289,9 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                     slots = slots,
                     address = address,
                     privateNote = privateNote,
-                    sweepType = sweepType
+                    sweepType = sweepType,
+                    masterSignerId = masterSignerId,
+                    magicalPhrase = magicalPhrase
                 ).buildIntent(activityContext)
             )
         }

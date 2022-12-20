@@ -12,10 +12,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -29,7 +26,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
@@ -38,10 +36,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
-import com.nunchuk.android.core.util.InheritancePlanFlow
-import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate.InheritanceActivationDateFragment
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note.InheritanceNoteFragment
@@ -57,7 +56,7 @@ import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class InheritanceReviewPlanFragment : MembershipFragment() {
+class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionListener {
 
     @Inject
     lateinit var navigator: NunchukNavigator
@@ -74,7 +73,7 @@ class InheritanceReviewPlanFragment : MembershipFragment() {
                         ?: return@registerForActivityResult
                 val securityQuestionToken =
                     data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
-                viewModel.createUpdateInheritance(signatureMap, securityQuestionToken)
+                viewModel.handleFlow(signatureMap, securityQuestionToken)
             }
         }
 
@@ -113,6 +112,10 @@ class InheritanceReviewPlanFragment : MembershipFragment() {
                             magicalPhrase = args.magicalPhrase
                         )
                     )
+                }, onActionTopBarClick = {
+                    if (args.planFlow == InheritancePlanFlow.VIEW) {
+                        showActionOptions()
+                    }
                 })
             }
         }
@@ -155,7 +158,7 @@ class InheritanceReviewPlanFragment : MembershipFragment() {
                         activityContext = requireActivity()
                     )
                 }
-                is InheritanceReviewPlanEvent.CreateInheritanceSuccess -> {
+                is InheritanceReviewPlanEvent.CreateOrUpdateInheritanceSuccess -> {
                     if (args.planFlow == InheritancePlanFlow.SETUP) {
                         findNavController().navigate(
                             InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceCreateSuccessFragment(
@@ -163,12 +166,37 @@ class InheritanceReviewPlanFragment : MembershipFragment() {
                             )
                         )
                     } else if (args.planFlow == InheritancePlanFlow.VIEW) {
-
+                        showSuccess(message = getString(R.string.nc_inheritance_plan_updated_notify))
                     }
                 }
                 is InheritanceReviewPlanEvent.Loading -> showOrHideLoading(loading = event.loading)
                 is InheritanceReviewPlanEvent.ProcessFailure -> showError(message = event.message)
+                is InheritanceReviewPlanEvent.CancelInheritanceSuccess -> {
+                    showSuccess(message = getString(R.string.nc_inheritance_plan_cancelled_notify))
+                    requireActivity().finish()
+                }
             }
+        }
+    }
+
+    private fun showActionOptions() {
+        (childFragmentManager.findFragmentByTag("BottomSheetOption") as? DialogFragment)?.dismiss()
+        val dialog = BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    SheetOptionType.TYPE_CANCEL,
+                    R.drawable.ic_close_red,
+                    R.string.nc_cancel_inheritance_plan,
+                    isDeleted = true
+                ),
+            )
+        )
+        dialog.show(childFragmentManager, "BottomSheetOption")
+    }
+
+    override fun onOptionClicked(option: SheetOption) {
+        if (option.type == SheetOptionType.TYPE_CANCEL) {
+            viewModel.calculateRequiredSignatures(isCreateOrUpdate = false)
         }
     }
 }
@@ -182,7 +210,8 @@ fun InheritanceReviewPlanScreen(
     onEditNoteClick: (note: String) -> Unit,
     onNotifyPrefClick: (isNotifyToday: Boolean, emails: List<String>) -> Unit,
     onDiscardChange: () -> Unit,
-    onShareSecretClicked: () -> Unit
+    onShareSecretClicked: () -> Unit,
+    onActionTopBarClick: () -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -193,7 +222,10 @@ fun InheritanceReviewPlanScreen(
         isNotifyToday = state.isNotifyToday,
         magicalPhrase = args.magicalPhrase,
         activationDate = state.activationDate,
-        onContinueClicked = viewModel::calculateRequiredSignatures,
+        walletName = state.walletName.orEmpty(),
+        onContinueClicked = {
+            viewModel.calculateRequiredSignatures(isCreateOrUpdate = true)
+        },
         onEditActivationDateClick = {
             onEditActivationDateClick(state.activationDate)
         },
@@ -204,7 +236,8 @@ fun InheritanceReviewPlanScreen(
             onNotifyPrefClick(state.isNotifyToday, state.emails)
         },
         onDiscardChange = onDiscardChange,
-        onShareSecretClicked = onShareSecretClicked
+        onShareSecretClicked = onShareSecretClicked,
+        onActionTopBarClick = onActionTopBarClick
     )
 }
 
@@ -217,27 +250,44 @@ fun InheritanceReviewPlanScreenContent(
     isNotifyToday: Boolean = false,
     emails: List<String> = emptyList(),
     activationDate: Long = 0,
+    walletName: String = "",
     onContinueClicked: () -> Unit = {},
     onShareSecretClicked: () -> Unit = {},
     onDiscardChange: () -> Unit = {},
     onEditActivationDateClick: () -> Unit = {},
     onEditNoteClick: () -> Unit = {},
     onNotifyPrefClick: () -> Unit = {},
+    onActionTopBarClick: () -> Unit = {}
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                NcTopAppBar(
-                    backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
-                    title = stringResource(
-                        id = R.string.nc_estimate_remain_time, remainTime
-                    ),
-                )
+                Column(
+                    modifier = Modifier
+                        .background(colorResource(id = R.color.nc_denim_tint_color))
+                        .statusBarsPadding()
+                ) {
+                    NcTopAppBar(
+                        backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
+                        title = stringResource(
+                            id = R.string.nc_estimate_remain_time, remainTime
+                        ),
+                        actions = {
+                            IconButton(onClick = {
+                                onActionTopBarClick()
+                            }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_more_horizontal),
+                                    contentDescription = "More"
+                                )
+                            }
+                        }
+                    )
+                }
                 LazyColumn(
                     modifier = Modifier.weight(1.0f),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -292,7 +342,7 @@ fun InheritanceReviewPlanScreenContent(
                                             Text(
                                                 modifier = Modifier.padding(top = 4.dp),
                                                 color = colorResource(id = R.color.nc_white_color),
-                                                text = "[Wallet Name]",
+                                                text = walletName,
                                                 style = NunchukTheme.typography.body
                                             )
                                         }

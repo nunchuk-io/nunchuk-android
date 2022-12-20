@@ -86,7 +86,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         privateNote: String,
         subtractFeeFromAmount: Boolean,
         slots: List<SatsCardSlot>,
-        sweepType: SweepType
+        sweepType: SweepType,
+        masterSignerId: String,
+        magicalPhrase: String
     ) {
         AddReceiptActivity.start(
             activityContext = activityContext,
@@ -97,7 +99,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             address = address,
             privateNote = privateNote,
             slots = slots,
-            sweepType = sweepType
+            sweepType = sweepType,
+            masterSignerId = masterSignerId,
+            magicalPhrase = magicalPhrase
         )
     }
 
@@ -110,7 +114,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         privateNote: String,
         subtractFeeFromAmount: Boolean,
         sweepType: SweepType,
-        slots: List<SatsCardSlot>
+        slots: List<SatsCardSlot>,
+        masterSignerId: String,
+        magicalPhrase: String
     ) {
         EstimatedFeeActivity.start(
             activityContext = activityContext,
@@ -121,7 +127,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             privateNote = privateNote,
             subtractFeeFromAmount = subtractFeeFromAmount,
             sweepType = sweepType,
-            slots = slots
+            slots = slots,
+            masterSignerId = masterSignerId,
+            magicalPhrase = magicalPhrase
         )
     }
 
@@ -136,7 +144,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         subtractFeeFromAmount: Boolean,
         manualFeeRate: Int,
         sweepType: SweepType,
-        slots: List<SatsCardSlot>
+        slots: List<SatsCardSlot>,
+        masterSignerId: String,
+        magicalPhrase: String
     ) {
         TransactionConfirmActivity.start(
             activityContext = activityContext,
@@ -149,7 +159,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             subtractFeeFromAmount = subtractFeeFromAmount,
             manualFeeRate = manualFeeRate,
             sweepType = sweepType,
-            slots = slots
+            slots = slots,
+            masterSignerId = masterSignerId,
+            magicalPhrase = magicalPhrase
         )
     }
 
@@ -159,7 +171,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         txId: String,
         initEventId: String,
         roomId: String,
-        transaction: Transaction?
+        transaction: Transaction?,
+        isInheritanceClaimingFlow: Boolean
     ) {
         activityContext.startActivity(
             TransactionDetailsActivity.buildIntent(
@@ -168,7 +181,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
                 txId = txId,
                 initEventId = initEventId,
                 roomId = roomId,
-                transaction = transaction
+                transaction = transaction,
+                isInheritanceClaimingFlow = isInheritanceClaimingFlow
             )
         )
     }

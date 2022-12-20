@@ -37,13 +37,13 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
         val planFlow = intent.getIntExtra(EXTRA_INHERITANCE_PLAN_FLOW, InheritancePlanFlow.NONE)
         when (planFlow) {
             InheritancePlanFlow.SETUP -> {
-                graph.setStartDestination(R.id.inheritancePlanOverviewFragment)
+                graph.setStartDestination(R.id.inheritanceSetupIntroFragment)
             }
             InheritancePlanFlow.VIEW -> {
                 graph.setStartDestination(R.id.inheritanceReviewPlanFragment)
             }
             InheritancePlanFlow.CLAIM -> {
-                graph.setStartDestination(R.id.inheritanceClaimFragment)
+                graph.setStartDestination(R.id.inheritanceClaimInputFragment)
             }
         }
         val bundle = when (planFlow) {
@@ -62,6 +62,12 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
             else -> null
         }
         navHostFragment.navController.setGraph(graph, bundle)
+        navHostFragment.navController.addOnDestinationChangedListener { _, destination, _ ->
+            when(destination.id) {
+                R.id.selectWalletFragment ->  WindowCompat.setDecorFitsSystemWindows(window, true)
+                else ->  WindowCompat.setDecorFitsSystemWindows(window, false)
+            }
+        }
     }
 
     override fun initializeBinding(): ActivityNavigationBinding {

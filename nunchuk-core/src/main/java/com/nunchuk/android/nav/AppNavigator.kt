@@ -48,6 +48,11 @@ interface AppNavigator {
 
     fun openKeyRecoveryScreen(activityContext: Context)
     fun openEmergencyLockdownScreen(activityContext: Context, verifyToken: String)
+
+    /**
+     * @param verifyToken for view/update inheritance [InheritancePlanFlow.VIEW]
+     * @param inheritance for view/update inheritance [InheritancePlanFlow.VIEW]
+     */
     fun openInheritancePlanningScreen(
         activityContext: Context,
         verifyToken: String? = null,

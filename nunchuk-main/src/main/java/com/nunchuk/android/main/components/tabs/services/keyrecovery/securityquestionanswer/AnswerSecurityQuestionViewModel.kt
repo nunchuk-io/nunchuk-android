@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.DownloadBackupKeyUseCase
 import com.nunchuk.android.core.domain.membership.GetSecurityQuestionUseCase
 import com.nunchuk.android.core.domain.membership.VerifySecurityQuestionUseCase
+import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.QuestionsAndAnswer
@@ -98,8 +99,13 @@ class AnswerSecurityQuestionViewModel @Inject constructor(
                 )
             )
         } else {
-            _state.update {
-                it.copy(error = result.exceptionOrNull()?.message.orUnknownError())
+            val exception = result.exceptionOrNull()
+            if (exception is NunchukApiException && exception.code == 400) {
+                _state.update {
+                    it.copy(error = result.exceptionOrNull()?.message.orUnknownError())
+                }
+            } else {
+                _event.emit(AnswerSecurityQuestionEvent.ProcessFailure(result.exceptionOrNull()?.message.orUnknownError()))
             }
         }
     }
