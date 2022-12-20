@@ -1,8 +1,8 @@
-package com.nunchuk.android.core.data.model.membership
+package com.nunchuk.android.model
 
 import com.google.gson.annotations.SerializedName
 
-internal class VerifiedPasswordTokenResponse(
+class VerifiedPasswordTokenResponse(
     @SerializedName("token")
     val token: Data
 ) {

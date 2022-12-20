@@ -32,18 +32,21 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.model.Result
+import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.joinKeys
+import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.DeleteWalletUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.utils.onException
+import com.nunchuk.android.utils.retrieveInfo
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameSuccessEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -57,9 +60,13 @@ internal class WalletConfigViewModel @Inject constructor(
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
     private val assistedWalletManager: AssistedWalletManager,
     private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
+    getContactsUseCase: GetContactsUseCase,
 ) : NunchukViewModel<WalletConfigState, WalletConfigEvent>() {
 
     lateinit var walletId: String
+
+    private val contacts = getContactsUseCase.execute()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     fun init(walletId: String) {
         this.walletId = walletId
@@ -69,11 +76,27 @@ internal class WalletConfigViewModel @Inject constructor(
     private fun getWalletDetails() {
         viewModelScope.launch {
             getWalletUseCase.execute(walletId)
-                .map { WalletConfigState(it, mapSigners(it.wallet.signers)) }
+                .onEach {
+                    if (it.roomWallet != null) {
+                        loadContact()
+                    }
+                }
+                .map { WalletConfigState(it, mapSigners(it.wallet.signers, it.roomWallet)) }
                 .flowOn(Dispatchers.IO)
                 .onException { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
                 .collect { updateState { it } }
+        }
+    }
+
+    private fun loadContact() {
+        viewModelScope.launch {
+            contacts.collect {
+                mapSigners(
+                    getState().walletExtended.wallet.signers,
+                    getState().walletExtended.roomWallet
+                )
+            }
         }
     }
 
@@ -88,7 +111,12 @@ internal class WalletConfigViewModel @Inject constructor(
             )
             setEvent(WalletConfigEvent.Loading(false))
             if (result.isSuccess) {
-                setEvent(WalletConfigEvent.VerifyPasswordSuccess(result.getOrThrow().orEmpty(), xfp))
+                setEvent(
+                    WalletConfigEvent.VerifyPasswordSuccess(
+                        result.getOrThrow().orEmpty(),
+                        xfp
+                    )
+                )
             } else {
                 setEvent(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
             }
@@ -143,16 +171,27 @@ internal class WalletConfigViewModel @Inject constructor(
 
     fun isSharedWallet() = getState().walletExtended.isShared
 
-    private suspend fun mapSigners(singleSigners: List<SingleSigner>): List<SignerModel> {
-        return singleSigners.map { it.toModel(isPrimaryKey = isPrimaryKey(it.masterSignerId)) }
-            .map { signer ->
-                if (signer.type == SignerType.NFC) signer.copy(
-                    cardId = getTapSignerStatusByIdUseCase(
-                        signer.id
-                    ).getOrNull()?.ident.orEmpty()
-                )
-                else signer
-            }
+    private suspend fun mapSigners(
+        singleSigners: List<SingleSigner>,
+        roomWallet: RoomWallet? = null
+    ): List<SignerModel> {
+        val account = accountManager.getAccount()
+        val signers =
+            singleSigners.map { it.toModel(isPrimaryKey = isPrimaryKey(it.masterSignerId)) }
+                .map { signer ->
+                    if (signer.type == SignerType.NFC) signer.copy(
+                        cardId = getTapSignerStatusByIdUseCase(
+                            signer.id
+                        ).getOrNull()?.ident.orEmpty()
+                    )
+                    else signer
+                }
+
+        return roomWallet?.joinKeys()?.map { key ->
+            key.retrieveInfo(
+                key.chatId == account.chatId, signers, contacts.value
+            )
+        } ?: signers
     }
 
     private fun isPrimaryKey(id: String) =

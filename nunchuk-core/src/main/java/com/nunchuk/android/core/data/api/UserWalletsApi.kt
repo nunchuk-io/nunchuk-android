@@ -97,13 +97,7 @@ internal interface UserWalletsApi {
         @Header("Verify-token") verifyToken: String,
         @Path("key_id_or_xfp") id: String,
         @Body payload: ConfigSecurityQuestionPayload
-    ): Data<com.nunchuk.android.model.KeyResponse>
-
-    @POST("/v1.1/passport/verified-password-token/{target_action}")
-    suspend fun verifiedPasswordToken(
-        @Path("target_action") targetAction: String,
-        @Body payload: VerifiedPasswordTokenRequest
-    ): Data<VerifiedPasswordTokenResponse>
+    ): Data<KeyResponse>
 
     @POST("/v1.1/user-wallets/security-questions/calculate-required-signatures")
     suspend fun calculateRequiredSignaturesSecurityQuestions(

@@ -1,6 +1,7 @@
 package com.nunchuk.android.core.repository
 
 import com.google.gson.Gson
+import com.nunchuk.android.api.key.MembershipApi
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.data.model.*
 import com.nunchuk.android.core.data.model.membership.*
@@ -29,6 +30,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val ncDataStore: NcDataStore,
     private val membershipStepDao: MembershipStepDao,
     private val accountManager: AccountManager,
+    private val membershipApi: MembershipApi,
 ) : PremiumWalletRepository {
 
     override suspend fun getSecurityQuestions(verifyToken: String?): List<SecurityQuestion> {
@@ -335,7 +337,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun verifiedPasswordToken(targetAction: String, password: String): String? {
-        val response = userWalletApiManager.walletApi.verifiedPasswordToken(
+        val response = membershipApi.verifiedPasswordToken(
             targetAction, VerifiedPasswordTokenRequest(password)
         )
         return response.data.token.token

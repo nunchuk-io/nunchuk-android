@@ -65,11 +65,6 @@ data class QuestionsAndAnswerRequest(
     val questionId: String = "",
 )
 
-data class VerifiedPasswordTokenRequest(
-    @SerializedName("password")
-    val password: String? = null
-)
-
 data class SecurityQuestionsUpdateRequest(
     @SerializedName("nonce")
     val nonce: String? = null,

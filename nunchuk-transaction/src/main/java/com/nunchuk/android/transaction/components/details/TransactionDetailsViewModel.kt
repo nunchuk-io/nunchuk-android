@@ -28,7 +28,9 @@ import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseC
 import com.nunchuk.android.usecase.room.transaction.GetPendingTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.SignRoomTransactionUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
+import com.nunchuk.android.utils.TransactionException
 import com.nunchuk.android.utils.onException
+import com.nunchuk.android.utils.retrieveInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main

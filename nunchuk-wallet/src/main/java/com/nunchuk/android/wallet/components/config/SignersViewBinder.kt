@@ -20,8 +20,10 @@
 package com.nunchuk.android.wallet.components.config
 
 import android.view.ViewGroup
+import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.toReadableDrawable
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.type.SignerType
@@ -49,8 +51,13 @@ internal class SignersViewBinder(
         binding.btnViewKeyPolicy.setOnDebounceClickListener { onViewPolicy(model) }
 
         binding.signerType.text = model.toReadableSignerType(context, isIgnorePrimary = true)
-        binding.ivSignerType.isVisible = true
-        binding.ivSignerType.setImageDrawable(model.type.toReadableDrawable(context))
+        binding.avatar.isGone = model.localKey
+        binding.ivSignerType.isVisible = model.localKey
+        if (model.localKey) {
+            binding.ivSignerType.setImageDrawable(model.type.toReadableDrawable(context))
+        } else {
+            binding.avatar.text = model.name.shorten()
+        }
         binding.signerName.text = model.name
         if (isServerKey) {
             binding.xpf.text = context.getString(R.string.nc_inactive)
