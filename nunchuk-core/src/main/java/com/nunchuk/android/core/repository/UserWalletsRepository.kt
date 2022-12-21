@@ -220,10 +220,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun getServerWallet(): WalletServerSync {
         val result = userWalletApiManager.walletApi.getServerWallet()
-
-        result.data.wallets.find { it.status == WALLET_ACTIVE_STATUS }?.let {
-            ncDataStore.setAssistedWalletId(it.localId.orEmpty())
-            ncDataStore.setAssistedWalletPlan(it.slug.orEmpty())
+        if (result.data.hasWalletCreated.not()) {
+            ncDataStore.setAssistedWalletPlan(MembershipPlan.NONE.name)
+        } else {
+            result.data.wallets.find { it.status == WALLET_ACTIVE_STATUS }?.let {
+                ncDataStore.setAssistedWalletId(it.localId.orEmpty())
+                ncDataStore.setAssistedWalletPlan(it.slug.orEmpty())
+            }
         }
         var isNeedReload = false
 

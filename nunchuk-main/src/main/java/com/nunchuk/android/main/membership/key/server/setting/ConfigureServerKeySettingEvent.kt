@@ -13,7 +13,7 @@ sealed class ConfigureServerKeySettingEvent {
 data class ConfigureServerKeySettingState(
     val cosigningTextHours: String = "",
     val cosigningTextMinutes: String = "",
-    val autoBroadcastSwitched: Boolean = false,
+    val autoBroadcastSwitched: Boolean = true,
     val enableCoSigningSwitched: Boolean = false,
 ) {
     companion object {

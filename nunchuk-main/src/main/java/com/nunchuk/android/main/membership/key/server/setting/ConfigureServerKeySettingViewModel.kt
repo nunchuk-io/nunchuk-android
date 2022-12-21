@@ -30,7 +30,7 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
     init {
         _state.update {
             it.copy(
-                autoBroadcastSwitched = args.keyPolicy?.autoBroadcastTransaction ?: false,
+                autoBroadcastSwitched = args.keyPolicy?.autoBroadcastTransaction ?: true,
                 cosigningTextHours = args.keyPolicy?.getSigningDelayInHours()?.toString().orEmpty(),
                 cosigningTextMinutes = args.keyPolicy?.getSigningDelayInMinutes()?.toString()
                     .orEmpty(),
