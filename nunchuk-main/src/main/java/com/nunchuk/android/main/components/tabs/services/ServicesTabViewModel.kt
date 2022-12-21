@@ -1,7 +1,9 @@
 package com.nunchuk.android.main.components.tabs.services
 
+import androidx.constraintlayout.motion.widget.Debug.getState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletIdFlowUseCase
 import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlanFlowUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
@@ -31,7 +33,8 @@ class ServicesTabViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val getInheritanceUseCase: GetInheritanceUseCase,
     private val getOrCreateSupportRoomUseCase: GetOrCreateSupportRoomUseCase,
-    private val inheritanceCheckUseCase: InheritanceCheckUseCase
+    private val inheritanceCheckUseCase: InheritanceCheckUseCase,
+    private val accountManager: AccountManager
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<ServicesTabEvent>()
@@ -44,11 +47,13 @@ class ServicesTabViewModel @Inject constructor(
         viewModelScope.launch {
             getLocalMembershipPlanFlowUseCase(Unit)
                 .map { it.getOrElse { MembershipPlan.NONE } }
-                .zip(getAssistedWalletIdsFlowUseCase(Unit).map { it.getOrElse { "" } }
+                .zip(getAssistedWalletIdsFlowUseCase(Unit)
+                    .map { it.getOrElse { "" } }
                     .distinctUntilChanged()) { plan, walletId ->
                     plan to walletId
-                }.collect { pair ->
-                    getInheritance(pair.second, pair.first)
+                }.collect { (plan, walletId) ->
+                    _state.update { it.copy(walletId = walletId) }
+                    getInheritance(walletId, plan)
                 }
         }
     }
@@ -59,10 +64,11 @@ class ServicesTabViewModel @Inject constructor(
             if (result.isSuccess) {
                 _state.update {
                     it.copy(
+                        isCreatedAssistedWallet = true,
                         plan = plan,
                         isPremiumUser = true,
-                        rowItems = it.initRowItems(plan, result.getOrThrow()),
-                        inheritance = result.getOrThrow(),
+                        rowItems = it.initRowItems(plan, result.getOrNull()),
+                        inheritance = result.getOrNull(),
                     )
                 }
             } else {
@@ -71,6 +77,7 @@ class ServicesTabViewModel @Inject constructor(
         } else {
             _state.update {
                 it.copy(
+                    isCreatedAssistedWallet = walletLocalId.isNotEmpty(),
                     plan = plan,
                     isPremiumUser = plan != MembershipPlan.NONE,
                     rowItems = it.initRowItems(plan),
@@ -114,35 +121,32 @@ class ServicesTabViewModel @Inject constructor(
 
     fun getServiceKey(token: String) = viewModelScope.launch {
         _event.emit(ServicesTabEvent.Loading(true))
-        getAssistedWalletIdsFlowUseCase(Unit).collect { it ->
-            val walletId = it.getOrNull() ?: return@collect
-            getWalletUseCase.execute(walletId)
-                .map { it.wallet.signers }
-                .map { signers -> signers.firstOrNull { it.type == SignerType.SERVER } }
-                .flowOn(Dispatchers.IO)
-                .onException {
-                    _event.emit(ServicesTabEvent.Loading(false))
-                    _event.emit(ServicesTabEvent.ProcessFailure(it.message.orUnknownError()))
-                }
-                .flowOn(Dispatchers.Main)
-                .collect {
-                    _event.emit(ServicesTabEvent.Loading(false))
-                    it?.let {
-                        _event.emit(
-                            ServicesTabEvent.GetServerKeySuccess(
-                                signer = it,
-                                walletId = walletId,
-                                token = token
-                            )
+        val walletId = _state.value.walletId ?: return@launch
+        getWalletUseCase.execute(walletId)
+            .map { it.wallet.signers }
+            .map { signers -> signers.firstOrNull { it.type == SignerType.SERVER } }
+            .flowOn(Dispatchers.IO)
+            .onException {
+                _event.emit(ServicesTabEvent.Loading(false))
+                _event.emit(ServicesTabEvent.ProcessFailure(it.message.orUnknownError()))
+            }
+            .flowOn(Dispatchers.Main)
+            .collect {
+                _event.emit(ServicesTabEvent.Loading(false))
+                it?.let {
+                    _event.emit(
+                        ServicesTabEvent.GetServerKeySuccess(
+                            signer = it,
+                            walletId = walletId,
+                            token = token
                         )
-                    }
+                    )
                 }
-        }
+            }
     }
 
     fun checkInheritance() = viewModelScope.launch {
         val magic = _state.value.inheritance?.magic
-        if (magic.isNullOrEmpty()) return@launch
         _event.emit(ServicesTabEvent.Loading(true))
         val result = inheritanceCheckUseCase(magic)
         _event.emit(ServicesTabEvent.Loading(false))
@@ -152,6 +156,8 @@ class ServicesTabViewModel @Inject constructor(
             _event.emit(ServicesTabEvent.ProcessFailure(message = result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
+
+    fun isLoggedIn() = accountManager.isAccountExisted()
 
     fun getInheritance() = _state.value.inheritance
 

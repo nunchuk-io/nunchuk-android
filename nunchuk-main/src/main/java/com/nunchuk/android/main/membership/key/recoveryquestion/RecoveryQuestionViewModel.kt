@@ -115,7 +115,7 @@ class RecoveryQuestionViewModel @Inject constructor(
 
     fun updateAnswer(index: Int, answer: String) {
         val newRecoveries = state.value.recoveries.toMutableList()
-        val newRecovery = newRecoveries[index].copy(answer = answer)
+        val newRecovery = newRecoveries[index].copy(answer = answer, change = answer.isNotBlank())
         newRecoveries[index] = newRecovery
         _state.update {
             it.copy(recoveries = newRecoveries)
@@ -164,7 +164,7 @@ class RecoveryQuestionViewModel @Inject constructor(
     }
 
     private fun calculateRequiredSignatures() = viewModelScope.launch {
-        val walletId = walletId.value
+        val walletId = walletId.value.ifBlank { return@launch }
         val questionsAndAnswers = getQuestionsAndAnswers()
         if (questionsAndAnswers.isEmpty()) return@launch
         _event.emit(RecoveryQuestionEvent.Loading(true))
@@ -256,14 +256,14 @@ class RecoveryQuestionViewModel @Inject constructor(
             if (it.question.id == SecurityQuestionModel.CUSTOM_QUESTION_ID) {
                 val result = createSecurityQuestionUseCase(it.question.customQuestion.orEmpty())
                 if (result.isSuccess) {
-                    QuestionsAndAnswer(answer = it.answer, questionId = result.getOrThrow().id)
+                    QuestionsAndAnswer(answer = it.answer, questionId = result.getOrThrow().id, change = it.change)
                 } else {
                     _event.emit(RecoveryQuestionEvent.Loading(false))
                     _event.emit(RecoveryQuestionEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
                     return emptyList()
                 }
             } else {
-                QuestionsAndAnswer(answer = it.answer, questionId = it.question.id)
+                QuestionsAndAnswer(answer = it.answer, questionId = it.question.id, change = it.change)
             }
         }
         val newRecoveryQuestions = state.value.recoveries.mapIndexed { index, recoveryData ->

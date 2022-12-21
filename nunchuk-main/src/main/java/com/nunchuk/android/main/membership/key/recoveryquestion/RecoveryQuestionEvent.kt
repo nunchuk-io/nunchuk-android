@@ -40,5 +40,6 @@ data class RecoveryData(
     val index: Int,
     val question: SecurityQuestionModel = SecurityQuestionModel(),
     val answer: String = "",
+    val change: Boolean = false,
     val isShowMask: Boolean = false
 )

@@ -72,8 +72,10 @@ private fun InheritanceShareSecretScreen(
     viewModel: InheritanceShareSecretViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
 
     InheritanceShareSecretContent(
+        remainTime = remainTime,
         options = state.options,
         onOptionClick = viewModel::onOptionClick,
         onContinueClicked = viewModel::onContinueClick
@@ -82,6 +84,7 @@ private fun InheritanceShareSecretScreen(
 
 @Composable
 private fun InheritanceShareSecretContent(
+    remainTime: Int = 0,
     options: List<InheritanceOption> = emptyList(),
     onOptionClick: (Int) -> Unit = {},
     onContinueClicked: () -> Unit = {}
@@ -94,7 +97,10 @@ private fun InheritanceShareSecretContent(
                 .statusBarsPadding()
                 .navigationBarsPadding(),
         ) {
-            NcTopAppBar(title = "")
+            NcTopAppBar(title = stringResource(
+                id = R.string.nc_estimate_remain_time,
+                remainTime
+            ))
             Text(
                 modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                 text = stringResource(R.string.nc_share_your_secrets),

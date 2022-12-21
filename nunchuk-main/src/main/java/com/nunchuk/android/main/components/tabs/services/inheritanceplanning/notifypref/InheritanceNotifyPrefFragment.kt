@@ -16,6 +16,7 @@ import com.nunchuk.android.contact.components.add.EmailsViewBinder
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.main.R
 import com.nunchuk.android.main.databinding.FragmentInheritanceNotifyPrefBinding
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.widget.util.setOnEnterOrSpaceListener
@@ -40,7 +41,7 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is InheritanceNotifyPrefEvent.ContinueClick -> {
-                    openReviewPlanScreen(event.emails, event.isNotify)
+                    openReviewPlanScreen(isDiscard = false, event.emails, event.isNotify)
                 }
                 InheritanceNotifyPrefEvent.AllEmailValidEvent -> showErrorMessage(false)
                 InheritanceNotifyPrefEvent.InvalidEmailEvent -> showErrorMessage(true)
@@ -48,18 +49,21 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
         }
         flowObserver(viewModel.state) { state ->
             bindEmailList(state.emails)
+            binding.notifyCheck.isChecked = state.isNotify
         }
     }
 
-    private fun openReviewPlanScreen(emails: List<String>, isNotify: Boolean) {
+    private fun openReviewPlanScreen(isDiscard: Boolean, emails: List<String>, isNotify: Boolean) {
         if (args.isUpdateRequest || args.planFlow == InheritancePlanFlow.VIEW) {
-            setFragmentResult(
-                REQUEST_KEY,
-                bundleOf(
-                    EXTRA_IS_NOTIFY to isNotify,
-                    EXTRA_EMAILS to emails
+            if (isDiscard.not()) {
+                setFragmentResult(
+                    REQUEST_KEY,
+                    bundleOf(
+                        EXTRA_IS_NOTIFY to isNotify,
+                        EXTRA_EMAILS to emails
+                    )
                 )
-            )
+            }
             findNavController().popBackStack()
         } else {
             findNavController().navigate(
@@ -81,6 +85,7 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
     }
 
     private fun setupViews() {
+        binding.toolbarTitle.text = String.format(getString(R.string.nc_estimate_remain_time), viewModel.remainTime.value)
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
@@ -99,7 +104,7 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
             viewModel.updateIsNotify(isChecked)
         }
         binding.btnNotification.setOnClickListener {
-            openReviewPlanScreen(emptyList(), false)
+            openReviewPlanScreen(isDiscard = true, emptyList(), false)
         }
         binding.btnContinue.setOnClickListener {
             viewModel.onContinueClicked()

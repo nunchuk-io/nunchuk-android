@@ -3,14 +3,20 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.no
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class InheritanceNoteViewModel @Inject constructor(savedStateHandle: SavedStateHandle) :
+class InheritanceNoteViewModel @Inject constructor(
+    private val membershipStepManager: MembershipStepManager,
+    savedStateHandle: SavedStateHandle
+) :
     ViewModel() {
+
+    val remainTime = membershipStepManager.remainingTime
 
     private val _event = MutableSharedFlow<InheritanceNoteEvent>()
     val event = _event.asSharedFlow()

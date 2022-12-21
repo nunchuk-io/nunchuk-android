@@ -310,7 +310,7 @@
     <string name="nc_manage_subscription">Manage subscription</string>
     <string name="nc_roll_over_assisted_wallet">Roll over to a new assisted wallet</string>
     <string name="nc_start_key_recovery">Start key recovery</string>
-    <string name="nc_update_recovery_question">Update recovery security questions</string>
+    <string name="nc_update_recovery_question">Update security questions</string>
     <string name="nc_key_recovery_intro_desc">If you lost a TAPSIGNER or the card malfunctions, this procedure will recover the TAPSIGNER’s private key using the encrypted backup from our server. Please note the following:</string>
     <string name="nc_key_recovery_intro_notice">The key recovery procedure currently only supports TAPSIGNER.</string>
     <string name="nc_key_recovery_intro_info_1">The Backup Password is required, please have it ready. The password is printed on the back of the TAPSIGNER. You should have had a copy of this when setting the TAPSIGNER up for the first time.</string>
@@ -354,7 +354,7 @@
     <string name="nc_set_up_activation_date">Set up an activation date</string>
     <string name="nc_update_activation_date">Update activation date</string>
     <string name="nc_set_up_activation_date_notice">Even with the correct Magical Phrase and Backup Password, one cannot claim the inheritance before this date.</string>
-    <string name="nc_set_up_activation_date_desc">Only on or after this date, a Beneficiary or Trustee can claim the inheritance.\n\nYou can change the activation date any time via the Services tab. Please note that once a date has been picked, any date change request will require two of your keys to sign off.</string>
+    <string name="nc_set_up_activation_date_desc">[B]Only on or after this date,[/B] a Beneficiary or Trustee can claim the inheritance.\n\nYou can change the activation date any time via the Services tab. Please note that once a date has been picked, any date change request will require two of your keys to sign off.</string>
     <string name="nc_inheritance_leave_message">Would you like to leave a message?</string>
     <string name="nc_inheritance_leave_message_desc">After the Beneficiary or Trustee claims the inheritance, they will be able to see this message.</string>
     <string name="nc_update_message">Update message</string>

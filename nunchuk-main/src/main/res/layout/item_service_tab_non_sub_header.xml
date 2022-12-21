@@ -6,6 +6,7 @@
     android:orientation="vertical">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/claim_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/nc_denim_tint_color"

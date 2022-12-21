@@ -31,15 +31,13 @@ class MagicalPhraseIntroViewModel @Inject constructor(
 
     private fun getInheritance() = viewModelScope.launch {
         _event.emit(MagicalPhraseIntroEvent.Loading(true))
-        getAssistedWalletIdsFlowUseCase(Unit).collect { it ->
-            val walletId = it.getOrNull() ?: return@collect
-            val result = getInheritanceUseCase(walletId)
-            _event.emit(MagicalPhraseIntroEvent.Loading(false))
-            if (result.isSuccess) {
-                _state.update { it.copy(magicalPhrase = result.getOrThrow().magic) }
-            } else {
-                _event.emit(MagicalPhraseIntroEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
-            }
+        val walletId = getAssistedWalletIdsFlowUseCase(Unit).firstOrNull()?.getOrNull() ?: return@launch
+        val result = getInheritanceUseCase(walletId)
+        _event.emit(MagicalPhraseIntroEvent.Loading(false))
+        if (result.isSuccess) {
+            _state.update { it.copy(magicalPhrase = result.getOrThrow().magic) }
+        } else {
+            _event.emit(MagicalPhraseIntroEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 

@@ -4,14 +4,17 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.contact.components.add.EmailWithState
+import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class InheritanceNotifyPrefViewModel @Inject constructor(savedStateHandle: SavedStateHandle) :
-    ViewModel() {
+class InheritanceNotifyPrefViewModel @Inject constructor(
+    private val membershipStepManager: MembershipStepManager,
+    savedStateHandle: SavedStateHandle
+) : ViewModel() {
 
     private val args = InheritanceNotifyPrefFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
@@ -21,10 +24,13 @@ class InheritanceNotifyPrefViewModel @Inject constructor(savedStateHandle: Saved
     private val _state = MutableStateFlow(InheritanceNotifyPrefState())
     val state = _state.asStateFlow()
 
+    val remainTime = membershipStepManager.remainingTime
+
     init {
         if (args.isUpdateRequest) {
             _state.update {
-                it.copy(isNotify = args.preIsNotify,
+                it.copy(
+                    isNotify = args.preIsNotify,
                     emails = args.preEmails?.map { email ->
                         EmailWithState(
                             email = email,
