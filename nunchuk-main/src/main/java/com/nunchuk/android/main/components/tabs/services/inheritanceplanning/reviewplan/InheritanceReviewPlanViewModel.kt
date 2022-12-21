@@ -112,14 +112,14 @@ class InheritanceReviewPlanViewModel @Inject constructor(
     private fun updateDataState() {
         _state.update {
             it.copy(
-                activationDate = 1671466534000, note = args.note,
+                activationDate = args.activationDate, note = args.note,
                 isNotifyToday = args.isNotify, emails = args.emails.toList()
             )
         }
     }
 
     fun updateActivationDate(time: Long) = viewModelScope.launch {
-        _state.update { it.copy(activationDate = 1671466534000) }
+        _state.update { it.copy(activationDate = time) }
     }
 
     fun updateNote(note: String) = viewModelScope.launch {
