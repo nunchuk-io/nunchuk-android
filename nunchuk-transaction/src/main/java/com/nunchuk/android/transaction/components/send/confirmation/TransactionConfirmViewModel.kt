@@ -176,7 +176,7 @@ class TransactionConfirmViewModel @Inject constructor(
         }
     }
 
-    fun isInheritanceClaimingFlow() = masterSignerId.isEmpty() && magicalPhrase.isEmpty()
+    fun isInheritanceClaimingFlow() = masterSignerId.isNotBlank() && magicalPhrase.isNotBlank()
 
     private fun createNewTransaction() {
         viewModelScope.launch {
