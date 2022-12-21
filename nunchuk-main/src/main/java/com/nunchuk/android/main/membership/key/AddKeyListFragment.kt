@@ -442,12 +442,25 @@ private fun ConfigItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         NcCircleImage(resId = item.type.resId)
-        Text(
-            modifier = Modifier.padding(start = 8.dp),
-            text = item.type.getLabel(LocalContext.current),
-            style = NunchukTheme.typography.body
-        )
-        Spacer(modifier = Modifier.weight(1.0f))
+        Column(
+            modifier = Modifier
+                .weight(1.0f)
+                .padding(start = 8.dp)
+        ) {
+            Text(
+                text = item.type.getLabel(LocalContext.current),
+                style = NunchukTheme.typography.body
+            )
+            if (item.type == MembershipStep.HONEY_ADD_TAP_SIGNER) {
+                NcTag(
+                    modifier = Modifier.padding(top = 4.dp),
+                    label = stringResource(R.string.nc_inheritance),
+                    backgroundColor = colorResource(
+                        id = R.color.nc_whisper_color
+                    ),
+                )
+            }
+        }
         if (onAddClicked != null) {
             NcOutlineButton(
                 modifier = Modifier.height(36.dp),
@@ -500,8 +513,7 @@ fun AddKeyListScreenHoneyBadgerPreview() {
         keys = listOf(
             AddKeyData(
                 type = MembershipStep.HONEY_ADD_TAP_SIGNER,
-                SignerModel(id = "123", type = SignerType.NFC, name = "My Key", derivationPath = "", fingerPrint = "123456"),
-                verifyType = VerifyType.APP_VERIFIED
+                verifyType = VerifyType.NONE
             ),
             AddKeyData(
                 type = MembershipStep.HONEY_ADD_HARDWARE_KEY_1,

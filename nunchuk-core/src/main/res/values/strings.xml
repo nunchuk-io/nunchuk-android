@@ -235,7 +235,7 @@
     <string name="nc_let_create_your_wallet">Let’s create your wallet</string>
     <string name="nc_create_your_wallet_desc">What would you like to name this wallet?</string>
     <string name="nc_wallet_name">Wallet name</string>
-    <string name="nc_setup_key_recovery">Set up Key Recovery</string>
+    <string name="nc_setup_key_recovery">Set up security questions</string>
     <string name="nc_setup_key_recovery_desc">The Key Recovery procedure helps you recover the TAPSIGNER’s private key in case of loss or accidents.\n\nFill in the security questions and answers below. They will be used to prevent unauthorized access to Key Recovery. Answers are case-sensitive.</string>
     <string name="nc_hours">Hours</string>
     <string name="nc_minutes">Minutes</string>
@@ -464,4 +464,5 @@
     <string name="nc_beneficiary">Beneficiary</string>
     <string name="nc_trustee">Trustee</string>
     <string name="nc_beneficiary_trustee">Beneficiary and the Trustee</string>
+    <string name="nc_inheritance">Inheritance</string>
 </resources>

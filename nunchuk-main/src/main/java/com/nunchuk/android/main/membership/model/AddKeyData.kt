@@ -2,6 +2,7 @@ package com.nunchuk.android.main.membership.model
 
 import android.content.Context
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.TAPSIGNER_INHERITANCE_NAME
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.VerifyType
@@ -35,7 +36,7 @@ fun MembershipStep.getLabel(context: Context): String {
         MembershipStep.ADD_TAP_SIGNER_1 -> "TAPSIGNER"
         MembershipStep.ADD_TAP_SIGNER_2 -> "TAPSIGNER #2"
         MembershipStep.ADD_SEVER_KEY -> context.getString(R.string.nc_server_key)
-        MembershipStep.HONEY_ADD_TAP_SIGNER -> "TAPSIGNER (inh.)"
+        MembershipStep.HONEY_ADD_TAP_SIGNER -> TAPSIGNER_INHERITANCE_NAME
         MembershipStep.HONEY_ADD_HARDWARE_KEY_1 -> "Hardware key #2"
         MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> "Hardware key #3"
         MembershipStep.SETUP_KEY_RECOVERY,

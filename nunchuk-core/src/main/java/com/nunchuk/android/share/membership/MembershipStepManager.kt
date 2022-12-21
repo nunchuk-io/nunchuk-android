@@ -2,6 +2,7 @@ package com.nunchuk.android.share.membership
 
 import com.google.gson.Gson
 import com.nunchuk.android.core.persistence.NcDataStore
+import com.nunchuk.android.core.util.TAPSIGNER_INHERITANCE_NAME
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
@@ -156,6 +157,8 @@ class MembershipStepManager @Inject constructor(
 
     fun getRemainTimeBySteps(querySteps: List<MembershipStep>) =
         calculateRemainTime(steps.toMap().filter { it.key in querySteps }.values)
+
+    fun getTapSignerName() = if (currentStep == MembershipStep.HONEY_ADD_TAP_SIGNER) TAPSIGNER_INHERITANCE_NAME else "TAPSIGNER${getNextKeySuffixByType(SignerType.NFC)}"
 
     fun getNextKeySuffixByType(type: SignerType): String {
         val index = stepInfo.value.asSequence().mapNotNull {

@@ -7,7 +7,6 @@ import com.nunchuk.android.core.domain.BaseNfcUseCase
 import com.nunchuk.android.core.domain.GetTapSignerStatusUseCase
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.share.membership.MembershipStepManager
-import com.nunchuk.android.type.SignerType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -46,7 +45,7 @@ class AddTapSignerIntroViewModel @Inject constructor(
 
     fun isKeyAddedToAssistedWallet(masterSignerId: String) = membershipStepManager.isKeyExisted(masterSignerId)
 
-    fun getSignerName() = "TAPSIGNER${membershipStepManager.getNextKeySuffixByType(SignerType.NFC)}"
+    fun getSignerName() = membershipStepManager.getTapSignerName()
 }
 
 sealed class AddTapSignerIntroEvent {

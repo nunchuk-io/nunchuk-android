@@ -15,16 +15,22 @@ import javax.inject.Inject
 @HiltViewModel
 class ChangeNfcCvcViewModel @Inject constructor(
     private val setupTapSignerUseCase: SetupTapSignerUseCase,
-    private val changeCvcTapSignerUseCase: ChangeCvcTapSignerUseCase
+    private val changeCvcTapSignerUseCase: ChangeCvcTapSignerUseCase,
 ) : ViewModel() {
     private val _event = MutableStateFlow<ChangeNfcCvcEvent?>(null)
     val event = _event.filterIsInstance<ChangeNfcCvcEvent>()
 
-    fun setUpCvc(isoDep: IsoDep?, oldCvc: String, newCvc: String, chainCode: String) {
+    fun setUpCvc(isoDep: IsoDep?, oldCvc: String, newCvc: String, chainCode: String, name: String) {
         isoDep ?: return
         _event.value = ChangeNfcCvcEvent.Loading
         viewModelScope.launch {
-            val result = setupTapSignerUseCase(SetupTapSignerUseCase.Data(isoDep, oldCvc, newCvc, chainCode))
+            val result = setupTapSignerUseCase(SetupTapSignerUseCase.Data(
+                isoDep = isoDep,
+                oldCvc = oldCvc,
+                newCvc = newCvc,
+                chainCode = chainCode,
+                name = name
+            ))
             if (result.isSuccess) {
                 val data = result.getOrThrow()
                 _event.value = ChangeNfcCvcEvent.SetupCvcSuccess(data.backUpKeyPath, data.masterSigner)

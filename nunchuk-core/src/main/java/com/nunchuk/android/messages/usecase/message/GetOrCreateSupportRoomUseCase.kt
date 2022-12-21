@@ -63,7 +63,9 @@ class GetOrCreateSupportRoomUseCase @Inject constructor(
                 preset = CreateRoomPreset.PRESET_TRUSTED_PRIVATE_CHAT
                 this.roomType = roomType
             }
-            session.roomService().createRoom(params)
+            session.roomService().createRoom(params).also {
+                session.roomService().getRoom(it)?.tagsService()?.addTag(SUPPORT_ROOM_USER_ID, 1.0)
+            }
         }
         val room = session.roomService().getRoom(roomId)
             ?: throw NullPointerException("Can not get room")
@@ -73,7 +75,7 @@ class GetOrCreateSupportRoomUseCase @Inject constructor(
 
     private suspend fun getRoomType(): String {
         val chain = getAppSettingUseCase.execute().firstOrNull()?.chain
-       return if (chain == Chain.MAIN) {
+        return if (chain == Chain.MAIN) {
             SUPPORT_ROOM_TYPE
         } else {
             SUPPORT_TEST_NET_ROOM_TYPE

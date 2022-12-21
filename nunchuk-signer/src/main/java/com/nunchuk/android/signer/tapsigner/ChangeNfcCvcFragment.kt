@@ -19,6 +19,7 @@ import com.nunchuk.android.core.nfc.NfcState
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.MAX_CVC_LENGTH
+import com.nunchuk.android.core.util.NFC_DEFAULT_NAME
 import com.nunchuk.android.core.util.isValidCvc
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -67,11 +68,14 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
                     .collect {
                         if (setUpAction == NfcSetupActivity.SETUP_TAP_SIGNER) {
                             val chainCode = arguments?.getString(EXTRA_CHAIN_CODE).orEmpty()
+                            val isMembershipFlow =
+                                (requireActivity() as NfcSetupActivity).fromMembershipFlow
                             viewModel.setUpCvc(
                                 IsoDep.get(it.tag),
                                 binding.editExistCvc.getEditText(),
                                 binding.editNewCvc.getEditText(),
-                                chainCode
+                                chainCode,
+                                if (isMembershipFlow) membershipStepManager.getTapSignerName() else NFC_DEFAULT_NAME
                             )
                         } else if (setUpAction == NfcSetupActivity.CHANGE_CVC) {
                             viewModel.changeCvc(
