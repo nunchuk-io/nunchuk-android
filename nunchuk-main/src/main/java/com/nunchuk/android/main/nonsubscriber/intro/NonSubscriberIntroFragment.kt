@@ -80,6 +80,7 @@ class NonSubscriberIntroFragment : Fragment() {
             title = getString(R.string.nc_enter_your_email),
             positiveText = getString(R.string.nc_send_me_the_info),
             negativeText = getString(R.string.nc_visit_our_website),
+            neutralText = getString(R.string.nc_text_do_this_later),
             defaultInput = viewModel.getEmail(),
             cancellable = true,
             onPositiveClicked = {

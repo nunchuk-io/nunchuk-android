@@ -44,6 +44,7 @@ class NCVerticalInputDialog @Inject constructor(
         positiveText: String? = null,
         cancellable: Boolean = false,
         negativeText: String? = null,
+        neutralText: String? = null,
         defaultInput: String? = null,
         onNegativeClicked: () -> Unit = {}
     ) = Dialog(context).apply {
@@ -71,6 +72,9 @@ class NCVerticalInputDialog @Inject constructor(
         }
         if (negativeText.isNullOrEmpty().not()) {
             binding.btnNegative.text = negativeText
+        }
+        if (neutralText.isNullOrEmpty().not()) {
+            binding.btnNeutral.text = neutralText
         }
         if (isMaskedInput) {
             binding.message.makeMaskedInput()
