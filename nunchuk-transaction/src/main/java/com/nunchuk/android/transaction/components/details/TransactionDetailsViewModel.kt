@@ -503,7 +503,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     transaction = extendedTransaction.transaction,
                     serverTransaction = extendedTransaction.serverTransaction,
                 )
-                setEvent(SignTransactionSuccess())
+                setEvent(SignTransactionSuccess(
+                    isAssistedWallet = isAssistedWallet,
+                    status = extendedTransaction.transaction.status
+                ))
             } else {
                 fireSignError(result.exceptionOrNull())
             }

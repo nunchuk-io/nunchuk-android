@@ -60,8 +60,8 @@ class NonSubscriberIntroViewModel @Inject constructor(
             }
             _event.emit(NonSubscriberIntroEvent.Loading(true))
             val result = submitEmailUseCase(SubmitEmailUseCase.Param(
-                bannerId = email,
-                email = args.bannerId,
+                email = email,
+                bannerId = args.bannerId,
             ))
             _event.emit(NonSubscriberIntroEvent.Loading(false))
             if (result.isSuccess) {
