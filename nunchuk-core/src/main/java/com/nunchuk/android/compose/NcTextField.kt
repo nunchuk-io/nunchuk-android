@@ -66,7 +66,7 @@ fun NcTextField(
                     .defaultMinSize(
                         minWidth = TextFieldDefaults.MinWidth,
                     )
-                    .clickable(enabled = enabled, onClick = onClick)
+                    .clickable(enabled = enabled.not(), onClick = onClick)
                     .fillMaxWidth(),
                 value = value,
                 textStyle = NunchukTheme.typography.body,
