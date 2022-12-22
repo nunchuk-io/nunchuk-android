@@ -24,7 +24,8 @@ class TapSignerVerifyBackUpOptionViewModel @Inject constructor(
         listOf(
             TsBackUpOption(
                 type = TsBackUpOptionType.BY_APP,
-                labelId = R.string.nc_verify_backup_via_the_app
+                labelId = R.string.nc_verify_backup_via_the_app,
+                isSelected = true
             ),
             TsBackUpOption(
                 type = TsBackUpOptionType.BY_MYSELF,

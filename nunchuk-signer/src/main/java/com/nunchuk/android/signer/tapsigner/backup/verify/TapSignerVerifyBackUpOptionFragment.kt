@@ -155,7 +155,8 @@ private fun TapSignerVerifyBackUpOptionContent(
                     TsVerifyBackUpOption(
                         modifier = Modifier.fillMaxWidth(),
                         isSelected = item.isSelected,
-                        label = stringResource(id = item.labelId)
+                        label = stringResource(id = item.labelId),
+                        isRecommend = item.type == TsBackUpOptionType.BY_APP
                     ) {
                         onItemClicked(item)
                     }
@@ -192,7 +193,7 @@ private fun UploadBackUpTapSignerScreenPreview() {
                     R.string.nc_verify_backup_via_the_app
                 ),
                 TsBackUpOption(
-                    type = TsBackUpOptionType.BY_APP,
+                    type = TsBackUpOptionType.BY_MYSELF,
                     false,
                     R.string.nc_verify_backup_myself
                 ),

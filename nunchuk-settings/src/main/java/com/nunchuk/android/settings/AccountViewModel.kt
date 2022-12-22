@@ -31,7 +31,9 @@ import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.profile.UpdateUseProfileUseCase
 import com.nunchuk.android.core.profile.UserProfileRepository
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SyncFileEventHelper
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
@@ -49,6 +51,7 @@ internal class AccountViewModel @Inject constructor(
     private val appScope: CoroutineScope,
     private val signInModeHolder: SignInModeHolder,
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
+    private val membershipStepManager: MembershipStepManager,
     @IoDispatcher private val dispatcher: CoroutineDispatcher
 ) : NunchukViewModel<AccountState, AccountEvent>() {
 
@@ -145,6 +148,9 @@ internal class AccountViewModel @Inject constructor(
             event(AccountEvent.SignOutEvent)
         }
     }
+
+    val plan: MembershipPlan
+        get() = membershipStepManager.plan
 
     override fun onCleared() {
         super.onCleared()

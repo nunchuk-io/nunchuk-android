@@ -1,6 +1,7 @@
 package com.nunchuk.android.signer.tapsigner.backup.verify.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NunchukTheme
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -22,6 +24,7 @@ fun TsVerifyBackUpOption(
     modifier: Modifier = Modifier,
     isSelected: Boolean,
     label: String,
+    isRecommend: Boolean,
     onClick: () -> Unit
 ) {
     Card(
@@ -33,7 +36,12 @@ fun TsVerifyBackUpOption(
     ) {
         Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
             RadioButton(selected = isSelected, onClick = onClick)
-            Text(text = label, style = NunchukTheme.typography.title)
+            Column {
+                Text(text = label, style = NunchukTheme.typography.title)
+                if (isRecommend) {
+                    NcTag(modifier = Modifier.padding(top = 4.dp), label = "Recommended")
+                }
+            }
         }
     }
 }
@@ -44,7 +52,8 @@ fun TsVerifyBackUpOptionPreview() {
     NunchukTheme {
         TsVerifyBackUpOption(
             isSelected = true,
-            label = "I’ll verify the backup via the app"
+            label = "I’ll verify the backup via the app",
+            isRecommend = true
         ) {
 
         }

@@ -89,7 +89,7 @@
     <string name="nc_mk4_signer_title">We found these keys from the device.\nWhich key do you want to use?</string>
     <string name="nc_enable_mk4_nfc_desc">Go to Settings → Hardware On/Off → NFC Sharing → Enable NFC.</string>
     <string name="nc_back_up_tap_signer_hint">We highly recommend that you keep a second copy of the Backup Password and store it somewhere safe.</string>
-    <string name="nc_verify_backup_hint">Only verify the backup via the app if you are sure that this device has not been jailbroken or tampered with.</string>
+    <string name="nc_verify_backup_hint">If you verify the backup via the app, please make sure that this device has not been jailbroken or tampered with.</string>
     <string name="nc_estimate_remain_time">Est. time remaining: %1$d minutes</string>
     <string name="nc_verify_back_up_desc">We recommend that you verify the backup to ensure that it works.\n\nPlease select how you want to proceed.</string>
     <string name="nc_verify_backup_via_the_app">I’ll verify the backup via the app</string>

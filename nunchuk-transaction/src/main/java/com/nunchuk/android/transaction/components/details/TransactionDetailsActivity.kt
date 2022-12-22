@@ -493,7 +493,6 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             isPendingConfirm = event.isPendingConfirm,
             isRejected = event.isRejected,
             isAssistedWallet = viewModel.isAssistedWallet(),
-            isAtLeastSignedKey = viewModel.isAtLeastSignedKey(),
         ).setListener {
             when (it) {
                 CANCEL -> promptCancelTransactionConfirmation()

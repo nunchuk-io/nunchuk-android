@@ -43,6 +43,7 @@ import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.guestmode.isPrimaryKey
 import com.nunchuk.android.core.util.*
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.settings.AccountEvent.SignOutEvent
 import com.nunchuk.android.settings.databinding.FragmentAccountBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -353,6 +354,10 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
         )
 
     private fun setupViews() {
+        binding.premiumBadge.isVisible = viewModel.plan != MembershipPlan.NONE
+        binding.premiumBadge.text =
+            if (viewModel.plan == MembershipPlan.HONEY_BADGER) getString(R.string.nc_honey_badger)
+            else getString(R.string.nc_iron_hand)
         binding.btnSignOut.setOnClickListener { viewModel.handleSignOutEvent() }
         binding.signIn.setOnClickListener {
             navigator.openSignInScreen(requireActivity(), isNeedNewTask = false)

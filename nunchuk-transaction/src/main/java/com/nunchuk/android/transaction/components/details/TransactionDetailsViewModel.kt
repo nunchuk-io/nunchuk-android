@@ -520,6 +520,4 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun isAssistedWallet() = assistedWalletManager.isActiveAssistedWallet(walletId)
-
-    fun isAtLeastSignedKey() = getState().transaction.signers.any { it.value }
 }
