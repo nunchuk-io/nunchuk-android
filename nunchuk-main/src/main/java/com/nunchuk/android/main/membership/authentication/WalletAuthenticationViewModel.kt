@@ -69,16 +69,22 @@ class WalletAuthenticationViewModel @Inject constructor(
             if (args.type == WalletAuthenticationActivity.SIGN_DUMMY_TX) {
                 val txToSignResult =
                     getTxToSignMessage(GetTxToSignMessage.Param(args.walletId, args.userData))
+                if (txToSignResult.isFailure) {
+                    _event.emit(WalletAuthenticationEvent.ShowError(txToSignResult.exceptionOrNull()?.message.orUnknownError()))
+                    return@launch
+                }
                 dataToSign.value = txToSignResult.getOrNull().orEmpty()
-                getDummyTxFromPsbt(
+                val result = getDummyTxFromPsbt(
                     GetDummyTxFromPsbt.Param(
                         walletId = args.walletId,
                         psbt = dataToSign.value
                     )
-                ).getOrNull()
-                    ?.let { transition ->
-                        _state.update { it.copy(transaction = transition) }
-                    }
+                )
+                if (result.isSuccess) {
+                    _state.update { it.copy(transaction = result.getOrThrow()) }
+                } else {
+                    _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+                }
             } else {
                 dataToSign.value = getHealthCheckMessageUseCase(args.userData).getOrThrow()
             }

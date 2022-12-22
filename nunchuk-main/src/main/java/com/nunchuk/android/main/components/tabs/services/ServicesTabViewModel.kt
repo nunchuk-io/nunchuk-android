@@ -3,20 +3,17 @@ package com.nunchuk.android.main.components.tabs.services
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetAssistedWalletIdFlowUseCase
-import com.nunchuk.android.core.domain.membership.GetServerWalletUseCase
+import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlanFlowUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCase
-import com.nunchuk.android.model.Inheritance
-import com.nunchuk.android.model.InheritanceCheck
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
-import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
 import com.nunchuk.android.usecase.membership.InheritanceCheckUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,12 +24,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ServicesTabViewModel @Inject constructor(
-    private val getUserSubscriptionUseCase: GetUserSubscriptionUseCase,
     private val getWalletUseCase: GetWalletUseCase,
     private val getAssistedWalletIdsFlowUseCase: GetAssistedWalletIdFlowUseCase,
+    private val getLocalMembershipPlanFlowUseCase: GetLocalMembershipPlanFlowUseCase,
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
     private val membershipStepManager: MembershipStepManager,
-    private val getServerWalletUseCase: GetServerWalletUseCase,
     private val getInheritanceUseCase: GetInheritanceUseCase,
     private val getOrCreateSupportRoomUseCase: GetOrCreateSupportRoomUseCase,
     private val inheritanceCheckUseCase: InheritanceCheckUseCase
@@ -45,37 +41,40 @@ class ServicesTabViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
-        getUserSubscription()
+        viewModelScope.launch {
+            getLocalMembershipPlanFlowUseCase(Unit)
+                .map { it.getOrElse { MembershipPlan.NONE } }
+                .zip(getAssistedWalletIdsFlowUseCase(Unit).map { it.getOrElse { "" } }
+                    .distinctUntilChanged()) { plan, walletId ->
+                    plan to walletId
+                }.collect { pair ->
+                    getInheritance(pair.second, pair.first)
+                }
+        }
     }
 
-    private fun getUserSubscription() = viewModelScope.launch {
-        val result = getUserSubscriptionUseCase(Unit)
-        if (result.isSuccess) {
-            val subscription = result.getOrThrow()
-            val getServerWalletResult = getServerWalletUseCase(Unit)
-            if (getServerWalletResult.isFailure) return@launch
-            val walletLocalId =
-                getServerWalletResult.getOrThrow().planWalletCreated[subscription.slug].orEmpty()
-            val isPremiumUser = subscription.subscriptionId.isNullOrEmpty().not() && subscription.plan != MembershipPlan.NONE
-            var inheritance: Inheritance? = null
-            if (walletLocalId.isNotEmpty() && subscription.plan == MembershipPlan.HONEY_BADGER) {
-                val inheritanceResult = getInheritanceUseCase(walletLocalId)
-                if (inheritanceResult.isSuccess) {
-                    inheritance = inheritanceResult.getOrThrow()
+    private suspend fun getInheritance(walletLocalId: String, plan: MembershipPlan) {
+        if (walletLocalId.isNotEmpty() && plan == MembershipPlan.HONEY_BADGER) {
+            val result = getInheritanceUseCase(walletLocalId)
+            if (result.isSuccess) {
+                _state.update {
+                    it.copy(
+                        plan = plan,
+                        isPremiumUser = true,
+                        rowItems = it.initRowItems(plan, result.getOrThrow()),
+                        inheritance = result.getOrThrow(),
+                    )
                 }
-            }
-            _state.update {
-                it.copy(
-                    isCreatedAssistedWallet = walletLocalId.isNotEmpty(),
-                    isPremiumUser = isPremiumUser,
-                    plan = subscription.plan,
-                    rowItems = it.initRowItems(subscription.plan),
-                    inheritance = inheritance
-                )
+            } else {
+                _event.emit(ServicesTabEvent.ProcessFailure(result.exceptionOrNull()?.message.orUnknownError()))
             }
         } else {
             _state.update {
-                it.copy(rowItems = it.initRowItems(MembershipPlan.NONE))
+                it.copy(
+                    plan = plan,
+                    isPremiumUser = plan != MembershipPlan.NONE,
+                    rowItems = it.initRowItems(plan),
+                )
             }
         }
     }

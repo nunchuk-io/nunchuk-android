@@ -27,7 +27,7 @@ data class ServicesTabState(
     val rowItems: List<Any> = emptyList(),
     val inheritance: Inheritance? = null
 ) {
-    fun initRowItems(plan: MembershipPlan): List<Any> {
+    fun initRowItems(plan: MembershipPlan, inheritance: Inheritance? = null): List<Any> {
         val items = mutableListOf<Any>()
         when (plan) {
             MembershipPlan.NONE -> {

@@ -23,13 +23,16 @@ class RecoveryQuestionViewModel @Inject constructor(
     private val createSecurityQuestionUseCase: CreateSecurityQuestionUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val calculateRequiredSignaturesSecurityQuestionUseCase: CalculateRequiredSignaturesSecurityQuestionUseCase,
-    private val getAssistedWalletIdsFlowUseCase: GetAssistedWalletIdFlowUseCase,
     private val getSecurityQuestionsUserDataUseCase: GetSecurityQuestionsUserDataUseCase,
     private val securityQuestionsUpdateUseCase: SecurityQuestionsUpdateUseCase,
+    getAssistedWalletIdsFlowUseCase: GetAssistedWalletIdFlowUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val args = RecoveryQuestionFragmentArgs.fromSavedStateHandle(savedStateHandle)
+
+    private val walletId = getAssistedWalletIdsFlowUseCase(Unit).map { it.getOrElse { "" } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     private val _event = MutableSharedFlow<RecoveryQuestionEvent>()
     val event = _event.asSharedFlow()
@@ -161,40 +164,38 @@ class RecoveryQuestionViewModel @Inject constructor(
     }
 
     private fun calculateRequiredSignatures() = viewModelScope.launch {
-        getAssistedWalletIdsFlowUseCase(Unit).collect { it ->
-            val walletId = it.getOrNull() ?: return@collect
-            val questionsAndAnswers = getQuestionsAndAnswers()
-            if (questionsAndAnswers.isEmpty()) return@collect
-            _event.emit(RecoveryQuestionEvent.Loading(true))
-            val resultCalculate = calculateRequiredSignaturesSecurityQuestionUseCase(
-                CalculateRequiredSignaturesSecurityQuestionUseCase.Param(
-                    walletId = walletId,
-                    questionsAndAnswers
+        val walletId = walletId.value
+        val questionsAndAnswers = getQuestionsAndAnswers()
+        if (questionsAndAnswers.isEmpty()) return@launch
+        _event.emit(RecoveryQuestionEvent.Loading(true))
+        val resultCalculate = calculateRequiredSignaturesSecurityQuestionUseCase(
+            CalculateRequiredSignaturesSecurityQuestionUseCase.Param(
+                walletId = walletId,
+                questionsAndAnswers
+            )
+        )
+        val resultUserData = getSecurityQuestionsUserDataUseCase(
+            GetSecurityQuestionsUserDataUseCase.Param(
+                walletId = walletId,
+                questionsAndAnswers
+            )
+        )
+        val userData = resultUserData.getOrThrow()
+        _state.update {
+            it.copy(userData = userData)
+        }
+        _event.emit(RecoveryQuestionEvent.Loading(false))
+        if (resultCalculate.isSuccess) {
+            _event.emit(
+                RecoveryQuestionEvent.CalculateRequiredSignaturesSuccess(
+                    walletId,
+                    userData,
+                    resultCalculate.getOrThrow().requiredSignatures,
+                    resultCalculate.getOrThrow().type,
                 )
             )
-            val resultUserData = getSecurityQuestionsUserDataUseCase(
-                GetSecurityQuestionsUserDataUseCase.Param(
-                    walletId = walletId,
-                    questionsAndAnswers
-                )
-            )
-            val userData = resultUserData.getOrThrow()
-            _state.update {
-                it.copy(userData = userData)
-            }
-            _event.emit(RecoveryQuestionEvent.Loading(false))
-            if (resultCalculate.isSuccess) {
-                _event.emit(
-                    RecoveryQuestionEvent.CalculateRequiredSignaturesSuccess(
-                        walletId,
-                        userData,
-                        resultCalculate.getOrThrow().requiredSignatures,
-                        resultCalculate.getOrThrow().type,
-                    )
-                )
-            } else {
-                _event.emit(RecoveryQuestionEvent.ShowError(resultCalculate.exceptionOrNull()?.message.orUnknownError()))
-            }
+        } else {
+            _event.emit(RecoveryQuestionEvent.ShowError(resultCalculate.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 
