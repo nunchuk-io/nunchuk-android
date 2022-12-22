@@ -21,15 +21,7 @@ package com.nunchuk.android.auth.components.signin
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.auth.components.signin.SignInEvent.CheckPrimaryKeyAccountEvent
-import com.nunchuk.android.auth.components.signin.SignInEvent.EmailInvalidEvent
-import com.nunchuk.android.auth.components.signin.SignInEvent.EmailRequiredEvent
-import com.nunchuk.android.auth.components.signin.SignInEvent.EmailValidEvent
-import com.nunchuk.android.auth.components.signin.SignInEvent.PasswordRequiredEvent
-import com.nunchuk.android.auth.components.signin.SignInEvent.PasswordValidEvent
-import com.nunchuk.android.auth.components.signin.SignInEvent.ProcessingEvent
-import com.nunchuk.android.auth.components.signin.SignInEvent.SignInErrorEvent
-import com.nunchuk.android.auth.components.signin.SignInEvent.SignInSuccessEvent
+import com.nunchuk.android.auth.components.signin.SignInEvent.*
 import com.nunchuk.android.auth.domain.SignInUseCase
 import com.nunchuk.android.auth.util.orUnknownError
 import com.nunchuk.android.auth.validator.doAfterValidate
@@ -37,6 +29,7 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.network.NunchukApiException
+import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.retry.DEFAULT_RETRY_POLICY
 import com.nunchuk.android.core.retry.RetryPolicy
 import com.nunchuk.android.core.retry.retryIO
@@ -48,11 +41,7 @@ import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.flatMapConcat
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
@@ -64,6 +53,7 @@ internal class SignInViewModel @Inject constructor(
     private val accountManager: AccountManager,
     private val signInModeHolder: SignInModeHolder,
     private val getPrimaryKeyListUseCase: GetPrimaryKeyListUseCase,
+    private val ncDataStore: NcDataStore,
     @Named(DEFAULT_RETRY_POLICY) private val retryPolicy: RetryPolicy
 ) : NunchukViewModel<Unit, SignInEvent>() {
 
@@ -73,6 +63,12 @@ internal class SignInViewModel @Inject constructor(
 
     private var token: String? = null
     private var encryptedDeviceId: String? = null
+
+    init {
+        viewModelScope.launch {
+            ncDataStore.clear()
+        }
+    }
 
     private fun validateEmail(email: String) = when {
         email.isBlank() -> doAfterValidate(false) { event(EmailRequiredEvent) }

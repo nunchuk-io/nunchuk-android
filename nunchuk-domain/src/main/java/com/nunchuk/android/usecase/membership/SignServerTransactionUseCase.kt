@@ -17,37 +17,31 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase
+package com.nunchuk.android.usecase.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Device
-import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.model.transaction.ExtendedTransaction
+import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class SignTransactionUseCase @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk,
+class SignServerTransactionUseCase @Inject constructor(
+    private val repository: PremiumWalletRepository,
     @IoDispatcher private val isDispatcher: CoroutineDispatcher,
-) : UseCase<SignTransactionUseCase.Param, Transaction>(isDispatcher) {
+) : UseCase<SignServerTransactionUseCase.Param, ExtendedTransaction>(isDispatcher) {
 
-    override suspend fun execute(parameters: Param): Transaction {
-        return nativeSdk.signTransaction(
+    override suspend fun execute(parameters: Param): ExtendedTransaction {
+        return repository.signServerTransaction(
             walletId = parameters.walletId,
             txId = parameters.txId,
-            device = parameters.device
-        ).also {
-            if (parameters.device.needPassPhraseSent && parameters.signerId.isNotEmpty()) nativeSdk.clearSignerPassphrase(
-                parameters.signerId
-            )
-        }
+            psbt = parameters.psbt
+        )
     }
 
     data class Param(
         val walletId: String,
         val txId: String,
-        val device: Device,
-        val signerId: String,
-        val isAssistedWallet: Boolean
+        val psbt: String,
     )
 }

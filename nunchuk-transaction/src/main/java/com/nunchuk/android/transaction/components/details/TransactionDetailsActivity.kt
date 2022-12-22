@@ -280,7 +280,11 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 0
             )
             val broadcastTime = Date(serverTransaction.broadcastTimeInMilis)
-            binding.status.text = getString(R.string.nc_broadcast_on, broadcastTime.simpleWeekDayYearFormat(), broadcastTime.formatByHour())
+            binding.status.text = getString(
+                R.string.nc_broadcast_on,
+                broadcastTime.simpleWeekDayYearFormat(),
+                broadcastTime.formatByHour()
+            )
         } else {
             binding.status.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
         }
@@ -560,9 +564,10 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private fun showSignTransactionSuccess(event: SignTransactionSuccess) {
         hideLoading()
-        NCToastMessage(this).show(getString(R.string.nc_transaction_signed_successful))
-        lifecycleScope.launch {
-            if (event.isAssistedWallet) {
+        if (event.isAssistedWallet.not()) {
+            NCToastMessage(this).show(getString(R.string.nc_transaction_signed_successful))
+        } else {
+            lifecycleScope.launch {
                 if (event.status == TransactionStatus.READY_TO_BROADCAST) {
                     delay(3000L)
                     NCToastMessage(this@TransactionDetailsActivity).show(getString(R.string.nc_server_key_signed))

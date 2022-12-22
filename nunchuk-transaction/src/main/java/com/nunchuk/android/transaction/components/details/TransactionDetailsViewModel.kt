@@ -3,6 +3,7 @@ package com.nunchuk.android.transaction.components.details
 import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
@@ -24,6 +25,7 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.membership.SignServerTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.GetPendingTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.SignRoomTransactionUseCase
@@ -64,6 +66,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
     private val assistedWalletManager: AssistedWalletManager,
     private val pushEventManager: PushEventManager,
+    private val signServerTransactionUseCase: SignServerTransactionUseCase,
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
 
     private var walletId: String = ""
@@ -78,12 +81,27 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private var currentSigner: SignerModel? = null
 
+    private var initNumberOfSignedKey = INVALID_NUMBER_OF_SIGNED
+
     override val initialState = TransactionDetailsState()
 
     init {
         viewModelScope.launch {
             BlockListener.getBlockChainFlow().collect {
                 getTransactionInfo()
+            }
+        }
+        if (isAssistedWallet()) {
+            viewModelScope.launch {
+                state.asFlow().collect {
+                    val signedCount = it.transaction.signers.count { entry -> entry.value }
+                    if (it.transaction.txId.isNotEmpty() && initNumberOfSignedKey == INVALID_NUMBER_OF_SIGNED) {
+                        initNumberOfSignedKey = signedCount
+                    } else if (signedCount > initNumberOfSignedKey) {
+                        initNumberOfSignedKey = signedCount
+                        requestServerSignTransaction(it.transaction.psbt)
+                    }
+                }
             }
         }
         viewModelScope.launch {
@@ -125,6 +143,30 @@ internal class TransactionDetailsViewModel @Inject constructor(
             updateState { copy(transaction = it) }
         }
         loadMasterSigner()
+    }
+
+    private fun requestServerSignTransaction(psbt: String) {
+        viewModelScope.launch {
+            val result = signServerTransactionUseCase(
+                SignServerTransactionUseCase.Param(
+                    walletId,
+                    txId,
+                    psbt
+                )
+            )
+            if (result.isSuccess) {
+                val extendedTransaction = result.getOrThrow()
+                setEvent(SignTransactionSuccess(isAssistedWallet = true, status = extendedTransaction.transaction.status))
+                updateState {
+                    copy(
+                        transaction = extendedTransaction.transaction,
+                        serverTransaction = extendedTransaction.serverTransaction
+                    )
+                }
+            } else {
+                setEvent(TransactionDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
     }
 
     private fun loadMasterSigner() {
@@ -406,17 +448,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 )
             )
             if (result.isSuccess) {
-                val extendedTransaction = result.getOrThrow()
                 updateTransaction(
-                    transaction = extendedTransaction.transaction,
-                    serverTransaction = extendedTransaction.serverTransaction,
+                    transaction = result.getOrThrow(),
                 )
-                setEvent(
-                    SignTransactionSuccess(
-                        isAssistedWallet = isAssistedWallet,
-                        status = extendedTransaction.transaction.status
-                    )
-                )
+                setEvent(SignTransactionSuccess())
             } else {
                 fireSignError(result.exceptionOrNull())
             }
@@ -498,15 +533,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 )
             )
             if (result.isSuccess) {
-                val extendedTransaction = result.getOrThrow()
                 updateTransaction(
-                    transaction = extendedTransaction.transaction,
-                    serverTransaction = extendedTransaction.serverTransaction,
+                    transaction = result.getOrThrow(),
                 )
-                setEvent(SignTransactionSuccess(
-                    isAssistedWallet = isAssistedWallet,
-                    status = extendedTransaction.transaction.status
-                ))
+                setEvent(SignTransactionSuccess())
             } else {
                 fireSignError(result.exceptionOrNull())
             }
@@ -520,4 +550,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun isAssistedWallet() = assistedWalletManager.isActiveAssistedWallet(walletId)
+
+    companion object {
+        private const val INVALID_NUMBER_OF_SIGNED = -1
+    }
 }

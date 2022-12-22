@@ -108,6 +108,6 @@ class Mk4IntroViewModel @Inject constructor(
     }
 
     companion object {
-        private const val SIGNER_PATH = "m/48h/0h/0h/1h"
+        private const val SIGNER_PATH = "m/48h/0h/0h/2h"
     }
 }
