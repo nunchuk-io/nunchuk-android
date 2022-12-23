@@ -222,7 +222,7 @@ class RoomDetailViewModel @Inject constructor(
     private suspend fun handleTimelineEvents(events: List<TimelineEvent>) {
         Timber.tag(TAG).d("handleTimelineEvents:${events.size}")
         val displayableEvents =
-            events.filter(TimelineEvent::isDisplayable)
+            events.filter { it.isDisplayable(isSupportRoom) }
                 .filterNot { !debugMode && it.isNunchukErrorEvent() }
                 .groupEvents(loadMore = ::handleLoadMore)
         val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent)
@@ -438,7 +438,8 @@ class RoomDetailViewModel @Inject constructor(
         loadMessageJob = viewModelScope.launch {
             val newMessages = withContext(ioDispatcher) {
                 val displayableEvents =
-                    timelineListenerAdapter.getLastTimeEvents().filter(TimelineEvent::isDisplayable)
+                    timelineListenerAdapter.getLastTimeEvents()
+                        .filter { it.isDisplayable(isSupportRoom) }
                         .filterNot { !debugMode && it.isNunchukErrorEvent() }
                         .groupEvents(loadMore = ::handleLoadMore)
                 displayableEvents.toMessages(

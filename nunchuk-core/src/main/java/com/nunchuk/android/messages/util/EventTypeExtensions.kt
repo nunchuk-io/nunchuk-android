@@ -38,8 +38,13 @@ const val TRANSACTION_CO_SIGNED_AND_BROADCAST =
 const val STATE_ROOM_SERVER_NOTICE = "m.server_notice"
 const val STATE_ENCRYPTED_MESSAGE = "*Encrypted*"
 
-fun TimelineEvent.isDisplayable() =
-    isMessageEvent() || isEncryptedEvent() || isNotificationEvent() || isNunchukEvent()
+fun TimelineEvent.isDisplayable(isSupportRoom: Boolean) : Boolean {
+    return if (isSupportRoom.not()) {
+        isMessageEvent() || isEncryptedEvent() || isNotificationEvent() || isNunchukEvent()
+    } else {
+        isMessageEvent() || isEncryptedEvent() || isNunchukEvent()
+    }
+}
 
 fun TimelineEvent.isNotificationEvent() =
     isRoomMemberEvent() || isRoomCreateEvent() || isRoomNameEvent()
@@ -81,7 +86,8 @@ fun TimelineEvent.isContactInvitationAcceptedEvent() =
 
 fun TimelineEvent.isCosignedEvent() = getMsgType() == TRANSACTION_CO_SIGNED
 
-fun TimelineEvent.isCosignedAndBroadcastEvent() = getMsgType() == TRANSACTION_CO_SIGNED_AND_BROADCAST
+fun TimelineEvent.isCosignedAndBroadcastEvent() =
+    getMsgType() == TRANSACTION_CO_SIGNED_AND_BROADCAST
 
 fun TimelineEvent.getMsgType() = root.getClearContent()?.get("msgtype")
 
