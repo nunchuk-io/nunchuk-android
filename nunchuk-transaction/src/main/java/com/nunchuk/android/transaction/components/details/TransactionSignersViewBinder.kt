@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.transaction.components.details
 
+import android.text.format.DateUtils
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
@@ -93,7 +94,17 @@ internal class TransactionSignersViewBinder(
                 binding.xpf.text = serverTransaction?.spendingLimitMessage
             } else if (cosignedTime > 0L) {
                 val cosignDate = Date(cosignedTime)
-                binding.xpf.text = context.getString(R.string.nc_cosign_at, "${cosignDate.formatByHour()} ${cosignDate.formatByWeek()}")
+                if (DateUtils.isToday(cosignedTime)) {
+                    binding.xpf.text = context.getString(
+                        R.string.nc_cosign_at,
+                        cosignDate.formatByHour()
+                    )
+                } else {
+                    binding.xpf.text = context.getString(
+                        R.string.nc_cosign_at,
+                        "${cosignDate.formatByHour()} ${cosignDate.formatByWeek()}"
+                    )
+                }
             }
             binding.xpf.setTextColor(ContextCompat.getColor(context, R.color.nc_beeswax_dark))
         } else {
