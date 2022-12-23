@@ -105,8 +105,11 @@ fun InheritanceActivationDateScreen(
     onDatePicker: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     val date = if (state.date > 0) Date(state.date).simpleGlobalDateFormat() else ""
+
     InheritanceActivationDateScreenContent(
+        remainTime = remainTime,
         date = date,
         onContinueClick = {
             viewModel.onContinueClicked()
@@ -117,6 +120,7 @@ fun InheritanceActivationDateScreen(
 
 @Composable
 fun InheritanceActivationDateScreenContent(
+    remainTime: Int = 0,
     date: String = "",
     onContinueClick: () -> Unit = {},
     onDatePick: () -> Unit = {}
@@ -129,13 +133,18 @@ fun InheritanceActivationDateScreenContent(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                NcTopAppBar(title = "")
+                NcTopAppBar(
+                    title = stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    ),
+                )
                 Text(
                     modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_set_up_activation_date),
                     style = NunchukTheme.typography.heading
                 )
-                Text(
+                NcHighlightText(
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_set_up_activation_date_desc),
                     style = NunchukTheme.typography.body

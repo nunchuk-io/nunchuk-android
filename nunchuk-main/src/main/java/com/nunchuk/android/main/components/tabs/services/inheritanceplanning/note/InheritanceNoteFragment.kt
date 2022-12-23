@@ -23,7 +23,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
@@ -94,8 +93,10 @@ fun InheritanceNoteScreen(
     viewModel: InheritanceNoteViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
 
     InheritanceNoteScreenContent(
+        remainTime = remainTime,
         note = state.note,
         onContinueClick = viewModel::onContinueClicked,
         onTextChange = viewModel::updateNote
@@ -105,7 +106,10 @@ fun InheritanceNoteScreen(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun InheritanceNoteScreenContent(
-    note: String = "", onContinueClick: () -> Unit = {}, onTextChange: (value: String) -> Unit = {}
+    remainTime: Int = 0,
+    note: String = "",
+    onContinueClick: () -> Unit = {},
+    onTextChange: (value: String) -> Unit = {}
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -115,7 +119,12 @@ fun InheritanceNoteScreenContent(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                NcTopAppBar(title = "")
+                NcTopAppBar(
+                    title = stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    ),
+                )
                 Text(
                     modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_inheritance_leave_message),

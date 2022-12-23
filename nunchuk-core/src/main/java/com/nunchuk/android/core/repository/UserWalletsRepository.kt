@@ -60,7 +60,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val result = userWalletApiManager.walletApi.configSecurityQuestion(
             ConfigSecurityQuestionPayload(questionsAndAnswerRequests = questions.map {
                 QuestionsAndAnswerRequest(
-                    questionId = it.questionId, answer = it.answer
+                    questionId = it.questionId, answer = it.answer, change = it.change
                 )
             })
         )
@@ -580,7 +580,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return TransactionAdditional(psbt = transaction.psbt.orEmpty())
     }
 
-    override suspend fun inheritanceCheck(magic: String): InheritanceCheck {
+    override suspend fun inheritanceCheck(magic: String?): InheritanceCheck {
         val request = InheritanceCheckRequest(magic = magic, environment = "PRODUCTION")
         val response = userWalletApiManager.walletApi.inheritanceCheck(request)
         return InheritanceCheck(
@@ -631,7 +631,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     ): String {
         val questionsAndAnswerRequests = questions.map {
             QuestionsAndAnswerRequest(
-                questionId = it.questionId, answer = it.answer
+                questionId = it.questionId, answer = it.answer, change = it.change
             )
         }
         val body = QuestionsAndAnswerRequestBody(questionsAndAnswerRequests, walletId = walletId)

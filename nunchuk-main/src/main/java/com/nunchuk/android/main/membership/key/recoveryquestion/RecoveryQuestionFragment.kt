@@ -258,8 +258,10 @@ fun RecoveryQuestionScreenContent(
                             })
                     }
                 }
+                val continueEnabled =
+                    recoveries.all { it.answer.isNotEmpty() } || (recoveries.any { it.change } && isRecoveryFlow)
                 NcPrimaryDarkButton(
-                    enabled = recoveries.all { it.answer.isNotEmpty() },
+                    enabled = continueEnabled,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),

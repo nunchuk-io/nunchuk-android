@@ -15,7 +15,10 @@ import com.nunchuk.android.main.databinding.ItemServiceTabNonSubHeaderBinding
 import com.nunchuk.android.main.databinding.ItemServiceTabNonSubRowBinding
 import com.nunchuk.android.main.databinding.ItemServiceTabRowBinding
 
-class ServicesTabAdapter constructor(val itemClick: (ServiceTabRowItem) -> Unit) :
+class ServicesTabAdapter constructor(
+    val itemClick: (ServiceTabRowItem) -> Unit,
+    val onClaimClick: () -> Unit
+) :
     ListAdapter<Any, ViewHolder>(DiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ServiceTabViewHolder {
@@ -41,6 +44,9 @@ class ServicesTabAdapter constructor(val itemClick: (ServiceTabRowItem) -> Unit)
                 val viewHolder = ServiceTabViewHolder.NonSubHeaderViewHolder(
                     ItemServiceTabNonSubHeaderBinding.inflate(inflater, parent, false)
                 )
+                viewHolder.binding.claimLayout.setOnClickListener {
+                    onClaimClick()
+                }
                 viewHolder
             }
             R.layout.item_service_tab_non_sub_row -> {
@@ -125,6 +131,7 @@ sealed class ServiceTabViewHolder(itemView: View) : ViewHolder(itemView) {
     class NonSubHeaderViewHolder(
         val binding: ItemServiceTabNonSubHeaderBinding
     ) : ServiceTabViewHolder(binding.root) {
+
         fun bind(item: NonSubHeader) {
         }
     }
@@ -135,7 +142,12 @@ sealed class ServiceTabViewHolder(itemView: View) : ViewHolder(itemView) {
         fun bind(item: NonSubRow) {
             binding.tvTitle.text = getString(item.title)
             binding.tvDesc.text = getString(item.desc)
-            binding.image.setImageDrawable(ContextCompat.getDrawable(binding.root.context,item.drawableId))
+            binding.image.setImageDrawable(
+                ContextCompat.getDrawable(
+                    binding.root.context,
+                    item.drawableId
+                )
+            )
         }
     }
 

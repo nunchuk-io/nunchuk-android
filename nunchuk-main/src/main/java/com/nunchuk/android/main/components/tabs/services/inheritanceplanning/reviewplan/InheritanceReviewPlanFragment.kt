@@ -214,8 +214,10 @@ fun InheritanceReviewPlanScreen(
     onActionTopBarClick: () -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
 
     InheritanceReviewPlanScreenContent(
+        remainTime = remainTime,
         note = state.note,
         emails = state.emails,
         planFlow = args.planFlow,

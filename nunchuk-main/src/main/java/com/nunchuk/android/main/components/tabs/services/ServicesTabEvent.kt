@@ -17,7 +17,7 @@ sealed class ServicesTabEvent {
 
     data class LoadingEvent(val isLoading: Boolean) : ServicesTabEvent()
     data class CreateSupportRoomSuccess(val roomId: String) : ServicesTabEvent()
-    data class CheckInheritance(val inheritanceCheck: InheritanceCheck): ServicesTabEvent()
+    data class CheckInheritance(val inheritanceCheck: InheritanceCheck) : ServicesTabEvent()
 }
 
 data class ServicesTabState(
@@ -25,7 +25,8 @@ data class ServicesTabState(
     val isCreatedAssistedWallet: Boolean = false,
     val plan: MembershipPlan = MembershipPlan.NONE,
     val rowItems: List<Any> = emptyList(),
-    val inheritance: Inheritance? = null
+    val inheritance: Inheritance? = null,
+    val walletId: String? = null
 ) {
     fun initRowItems(plan: MembershipPlan, inheritance: Inheritance? = null): List<Any> {
         val items = mutableListOf<Any>()
@@ -92,7 +93,7 @@ data class ServicesTabState(
                 items.add(ServiceTabRowCategory.Emergency)
                 items.addAll(ServiceTabRowCategory.Emergency.items)
                 items.add(ServiceTabRowCategory.Inheritance)
-                if (inheritance?.status == InheritanceStatus.PENDING_CREATION) {
+                if (inheritance == null || inheritance.status == InheritanceStatus.PENDING_CREATION) {
                     items.add(ServiceTabRowItem.SetUpInheritancePlan)
                 } else {
                     items.add(ServiceTabRowItem.ViewInheritancePlan)

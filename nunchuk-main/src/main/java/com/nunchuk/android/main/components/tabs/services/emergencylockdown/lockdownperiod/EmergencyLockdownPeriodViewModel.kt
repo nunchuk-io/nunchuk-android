@@ -52,39 +52,37 @@ class EmergencyLockdownPeriodViewModel @Inject constructor(
     }
 
     fun calculateRequiredSignatures() = viewModelScope.launch {
-        getAssistedWalletIdsFlowUseCase(Unit).collect { it ->
-            val walletId = it.getOrNull() ?: return@collect
-            _event.emit(LockdownPeriodEvent.Loading(true))
-            val period = _state.value.options.first { it.isSelected }.period
-            val resultCalculate = calculateRequiredSignaturesLockdownUseCase(
-                CalculateRequiredSignaturesLockdownUseCase.Param(
+        val walletId = getAssistedWalletIdsFlowUseCase(Unit).firstOrNull()?.getOrNull() ?: return@launch
+        _event.emit(LockdownPeriodEvent.Loading(true))
+        val period = _state.value.options.first { it.isSelected }.period
+        val resultCalculate = calculateRequiredSignaturesLockdownUseCase(
+            CalculateRequiredSignaturesLockdownUseCase.Param(
+                walletId = walletId,
+                periodId = period.id
+            )
+        )
+        val resultUserData = getLockdownUserDataUseCase(
+            GetLockdownUserDataUseCase.Param(
+                walletId = walletId,
+                periodId = period.id
+            )
+        )
+        val userData = resultUserData.getOrThrow()
+        _state.update {
+            it.copy(userData = userData, period = period)
+        }
+        _event.emit(LockdownPeriodEvent.Loading(false))
+        if (resultCalculate.isSuccess) {
+            _event.emit(
+                LockdownPeriodEvent.CalculateRequiredSignaturesSuccess(
+                    type = resultCalculate.getOrThrow().type,
                     walletId = walletId,
-                    periodId = period.id
+                    userData = userData,
+                    requiredSignatures = resultCalculate.getOrThrow().requiredSignatures
                 )
             )
-            val resultUserData = getLockdownUserDataUseCase(
-                GetLockdownUserDataUseCase.Param(
-                    walletId = walletId,
-                    periodId = period.id
-                )
-            )
-            val userData = resultUserData.getOrThrow()
-            _state.update {
-                it.copy(userData = userData, period = period)
-            }
-            _event.emit(LockdownPeriodEvent.Loading(false))
-            if (resultCalculate.isSuccess) {
-                _event.emit(
-                    LockdownPeriodEvent.CalculateRequiredSignaturesSuccess(
-                        type = resultCalculate.getOrThrow().type,
-                        walletId = walletId,
-                        userData = userData,
-                        requiredSignatures = resultCalculate.getOrThrow().requiredSignatures
-                    )
-                )
-            } else {
-                _event.emit(LockdownPeriodEvent.ProcessFailure(resultCalculate.exceptionOrNull()?.message.orUnknownError()))
-            }
+        } else {
+            _event.emit(LockdownPeriodEvent.ProcessFailure(resultCalculate.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 

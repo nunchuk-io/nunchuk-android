@@ -59,7 +59,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
                     ImportTapsignerMasterSignerContentUseCase.Param(
                         backupData,
                         stateValue.backupPassword,
-                        backupKey.keyName
+                        INHERITED_KEY_NAME
                     )
                 )
                 if (resultImport.isSuccess) {
@@ -122,6 +122,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
     }
 
     companion object {
+        private const val INHERITED_KEY_NAME = "Inherited key"
         private const val ACCEPTED_NUM_WORDS = 3
     }
 }

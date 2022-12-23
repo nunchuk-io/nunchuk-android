@@ -111,7 +111,7 @@ private fun MagicalPhraseIntroContent(
                 Column(
                     modifier = Modifier
                         .background(color = colorResource(id = R.color.nc_denim_tint_color))
-                        .height(300.dp)
+                        .height(250.dp)
                         .fillMaxWidth(),
                     verticalArrangement = Arrangement.Center
                 ) {

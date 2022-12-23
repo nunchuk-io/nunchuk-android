@@ -64,6 +64,8 @@ data class QuestionsAndAnswerRequest(
     val answer: String? = null,
     @SerializedName("question_id")
     val questionId: String = "",
+    @SerializedName("change")
+    val change: Boolean? = null
 )
 
 data class SecurityQuestionsUpdateRequest(

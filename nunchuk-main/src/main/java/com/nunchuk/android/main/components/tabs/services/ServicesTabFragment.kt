@@ -87,9 +87,15 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
     }
 
     private fun setupViews() {
-        adapter = ServicesTabAdapter {
+        adapter = ServicesTabAdapter(itemClick = {
             onTabItemClick(it)
-        }
+        }, onClaimClick = {
+            if (viewModel.isLoggedIn()) {
+                viewModel.checkInheritance()
+            } else {
+                navigator.openSignInScreen(requireActivity(), isNeedNewTask = false)
+            }
+        })
         binding.recyclerView.adapter = adapter
         binding.supportFab.setOnDebounceClickListener {
             viewModel.getOrCreateSupportRom()
@@ -97,11 +103,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
     }
 
     private fun onTabItemClick(item: ServiceTabRowItem) {
-        if (item is ServiceTabRowItem.CoSigningPolicies ||
-            item is ServiceTabRowItem.EmergencyLockdown ||
-            item is ServiceTabRowItem.RollOverAssistedWallet ||
-            item is ServiceTabRowItem.KeyRecovery
-        ) {
+        if (isCheckWalletCreationState(item)) {
             val textAction =
                 if (viewModel.getGroupStage() == MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS) {
                     getString(R.string.nc_continue_setting_up_wallet)
@@ -136,6 +138,14 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
         }
     }
 
+    private fun isCheckWalletCreationState(item: ServiceTabRowItem): Boolean {
+        return item is ServiceTabRowItem.CoSigningPolicies ||
+                item is ServiceTabRowItem.EmergencyLockdown ||
+                item is ServiceTabRowItem.RollOverAssistedWallet ||
+                item is ServiceTabRowItem.KeyRecovery ||
+                item is ServiceTabRowItem.SetUpInheritancePlan
+    }
+
     private fun showUnPaid() {
         NCInfoDialog(requireActivity()).showDialog(
             message = getString(R.string.nc_unpaid_security_deposit),
@@ -155,11 +165,11 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             message = getString(R.string.nc_feature_assisted_wallet_inform_desc),
             btnYes = textAction,
             btnInfo = getString(R.string.nc_text_got_it),
-            onInfoClick = {
-
-            },
             onYesClick = {
-
+                navigator.openMembershipActivity(
+                    requireActivity(),
+                    viewModel.getGroupStage()
+                )
             }
         )
     }

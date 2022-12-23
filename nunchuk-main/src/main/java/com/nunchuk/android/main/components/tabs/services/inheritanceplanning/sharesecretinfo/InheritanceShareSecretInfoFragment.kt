@@ -7,8 +7,11 @@ import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Card
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -18,6 +21,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.util.ClickAbleText
@@ -30,13 +35,14 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class InheritanceShareSecretInfoFragment : MembershipFragment() {
     private val args: InheritanceShareSecretInfoFragmentArgs by navArgs()
+    private val viewModel: InheritanceShareSecretInfoViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                InheritanceShareSecretInfoContent(magicalPhrase = args.magicalPhrase) {
+                InheritanceShareSecretInfoScreen(viewModel, args) {
                     showDialogInfo()
                 }
             }
@@ -52,6 +58,23 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
         )
     }
 }
+
+@OptIn(ExperimentalLifecycleComposeApi::class)
+@Composable
+private fun InheritanceShareSecretInfoScreen(
+    viewModel: InheritanceShareSecretInfoViewModel = viewModel(),
+    args: InheritanceShareSecretInfoFragmentArgs,
+    onActionClick: () -> Unit = {}
+) {
+    val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
+    InheritanceShareSecretInfoContent(
+        remainTime = remainTime,
+        type = args.type,
+        magicalPhrase = args.magicalPhrase,
+        onActionClick = onActionClick
+    )
+}
+
 
 @Composable
 private fun InheritanceShareSecretInfoContent(
@@ -133,7 +156,14 @@ private fun InheritanceShareSecretInfoContent(
                 }
                 NcHintMessage(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    messages = listOf(ClickAbleText(content = stringResource(R.string.nc_inheritance_share_secret_info_warning, warningDesc))),
+                    messages = listOf(
+                        ClickAbleText(
+                            content = stringResource(
+                                R.string.nc_inheritance_share_secret_info_warning,
+                                warningDesc
+                            )
+                        )
+                    ),
                     type = HighlightMessageType.WARNING,
                 )
                 NcPrimaryDarkButton(

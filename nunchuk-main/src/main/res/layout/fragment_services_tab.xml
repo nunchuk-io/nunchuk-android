@@ -33,7 +33,8 @@
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:clipToPadding="true"
+            android:clipToPadding="false"
+            android:paddingBottom="@dimen/nc_padding_30"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             app:layout_constraintBottom_toTopOf="@+id/action_group"
             app:layout_constraintTop_toBottomOf="@+id/toolbar" />
