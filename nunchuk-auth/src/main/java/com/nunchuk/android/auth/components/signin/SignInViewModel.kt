@@ -26,10 +26,10 @@ import com.nunchuk.android.auth.domain.SignInUseCase
 import com.nunchuk.android.auth.util.orUnknownError
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.account.ClearDataStoreUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.network.NunchukApiException
-import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.retry.DEFAULT_RETRY_POLICY
 import com.nunchuk.android.core.retry.RetryPolicy
 import com.nunchuk.android.core.retry.retryIO
@@ -53,7 +53,7 @@ internal class SignInViewModel @Inject constructor(
     private val accountManager: AccountManager,
     private val signInModeHolder: SignInModeHolder,
     private val getPrimaryKeyListUseCase: GetPrimaryKeyListUseCase,
-    private val ncDataStore: NcDataStore,
+    private val clearDataStoreUseCase: ClearDataStoreUseCase,
     @Named(DEFAULT_RETRY_POLICY) private val retryPolicy: RetryPolicy
 ) : NunchukViewModel<Unit, SignInEvent>() {
 
@@ -66,7 +66,7 @@ internal class SignInViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            ncDataStore.clear()
+            clearDataStoreUseCase(Unit)
         }
     }
 

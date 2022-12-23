@@ -55,12 +55,13 @@
         app:constraint_referenced_ids="iv_empty_view, btn_contact_supporter"
         tools:visibility="visible" />
 
-    <ViewStub
+    <include
         android:id="@+id/viewStubEmptyState"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        layout="@layout/layout_empty_state_contacts"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:layout="@layout/layout_empty_state_contacts"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

@@ -58,7 +58,7 @@
     <string name="nc_generate_new_string">Generate new string</string>
     <string name="nc_invalid_chain_code">Invalid chain code, it should contains 64 characters from 0 to 9 and a to f</string>
     <string name="nc_set_up_nfc_hint">We’ll scan your NFC key again to activate it. This could take a few seconds.\n\nWe’ll give you an encrypted backup file for the key once this process is done.</string>
-    <string name="nc_recovery_key_info_desc">The encrypted backup file you just saved is required if you want to recover the NFC key later.\n\nYou’ll also need the decryption key printed on the back of the card.</string>
+    <string name="nc_recovery_key_info_desc">The encrypted backup file you just saved is required if you want to recover the NFC key later.\n\nYou’ll also need the backup password printed on the back of the card.</string>
     <string name="nc_nfc_key_recovery_info_title">NFC key recovery information</string>
     <string name="nc_confirm_change_cvc">Confirm change PIN</string>
     <string name="nc_xpub_topped_up">XPUBs have been topped up</string>
@@ -68,10 +68,10 @@
     <string name="nc_recover_nfc_key">Recover NFC key</string>
     <string name="nc_convert_backup_key_msg">Note that we will convert the NFC key backup into a software key. On the next screens, you will:</string>
     <string name="nc_select_the_encrypted_backup">Select the encrypted backup file</string>
-    <string name="nc_enter_descryption_key_msg">Enter the decryption key. You can find it on the back of the card.</string>
+    <string name="nc_enter_descryption_key_msg">Enter the backup password. You can find it on the back of the card.</string>
     <string name="nc_add_new_nfc_key">Add TAPSIGNER</string>
     <string name="nc_recover_nfc_key_from_backup">Recover TAPSIGNER key from backup</string>
-    <string name="nc_enter_decryption_key">Enter decryption key</string>
+    <string name="nc_enter_decryption_key">Enter backup password</string>
     <string name="nc_backup_password">Backup Password</string>
     <string name="nc_warning_key_use_in_wallet">Oops, your key is currently being used in a wallet. Please remove the wallet first.</string>
     <string name="nc_please_remove_on_added_device">Please remove this key on the device that it was added to.</string>
@@ -99,8 +99,8 @@
     <string name="nc_reupload_backup_file">Reupload backup file</string>
     <string name="nc_verify_backup_yourself_desc">Please follow the steps below to verify the backup yourself</string>
     <string name="nc_verify_backup_yourself_step_one">Download the encrypted backup file.</string>
-    <string name="nc_verify_backup_yourself_step_two">Use any TAPSIGNER-compatible tool to ensure that you can decrypt the backup via the Backup Password printed on the back of the TAPSIGNER.</string>
-    <string name="nc_verify_backup_yourself_step_three">Remove the backup file after you have verified it.</string>
+    <string name="nc_verify_backup_yourself_step_two">Use a decryption tool such as openssl to check if you can decrypt the file using the provided password.</string>
+    <string name="nc_verify_backup_yourself_step_three">Remove the backup file after you are done.</string>
     <string name="nc_existing_card_id">Existing card ID</string>
     <string name="nc_scan_your_card_again_desc">If you have more than one TAPSIGNERs, please make sure that you scan the correct one. You can find the card ID on the back of the card.</string>
     <string name="nc_scan_your_card_title">Please scan your card again</string>
@@ -111,7 +111,7 @@
     <string name="nc_add_your_coldcard">Add your COLDCARD</string>
     <string name="nc_export_xpub_coldcard_desc">Navigate to Advanced/Tools → Export Wallet → Generic JSON → OK.</string>
     <string name="nc_import_xpub_into_app_desc">Import the file from step 3 on the next screen.</string>
-    <string name="nc_self_verify_hint">For a Nunchuk-provided tool, check out</string>
+    <string name="nc_self_verify_hint">For details on how to use openssl for verification, visit</string>
     <string name="nc_share_your_secrets">Share your secrets</string>
     <string name="nc_view_claiming_instructions">View claiming instructions</string>
 </resources>

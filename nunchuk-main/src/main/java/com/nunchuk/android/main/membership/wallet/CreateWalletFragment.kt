@@ -20,6 +20,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
@@ -76,7 +77,10 @@ class CreateWalletFragment : MembershipFragment() {
             findNavController().navigate(
                 CreateWalletFragmentDirections.actionCreateWalletFragmentToCreateWalletSuccessFragment(
                     event.walletId
-                )
+                ),
+                NavOptions.Builder()
+                    .setPopUpTo(findNavController().graph.startDestinationId, true)
+                    .build()
             )
         }
     }

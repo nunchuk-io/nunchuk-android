@@ -178,11 +178,13 @@ fun AddKeyStepContent(
                 .navigationBarsPadding(),
         ) {
             NcImageAppBar(backgroundRes = imageBannerId, actions = {
-                IconButton(onClick = onMoreClicked) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_more),
-                        contentDescription = "More icon"
-                    )
+                if (isCreateWalletDone.not()) {
+                    IconButton(onClick = onMoreClicked) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_more),
+                            contentDescription = "More icon"
+                        )
+                    }
                 }
             })
             StepWithEstTime(

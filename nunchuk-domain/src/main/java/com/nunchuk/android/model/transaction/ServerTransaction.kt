@@ -8,4 +8,5 @@ data class ServerTransaction(
     val type: String = "",
     val broadcastTimeInMilis: Long = 0L,
     val spendingLimitMessage: String = "",
+    val signedInMilis: Long = 0L,
 ) : Parcelable

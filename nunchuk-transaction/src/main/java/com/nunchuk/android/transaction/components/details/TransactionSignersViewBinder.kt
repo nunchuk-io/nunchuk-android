@@ -33,9 +33,12 @@ import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.utils.formatByHour
+import com.nunchuk.android.utils.formatByWeek
 import com.nunchuk.android.widget.databinding.ItemTransactionSignerBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
+import java.util.*
 
 internal class TransactionSignersViewBinder(
     container: ViewGroup,
@@ -83,8 +86,15 @@ internal class TransactionSignersViewBinder(
 
         binding.signerType.isVisible = model.type != SignerType.SERVER
         if (model.type == SignerType.SERVER) {
-            binding.xpf.isGone = serverTransaction?.spendingLimitMessage.isNullOrEmpty()
-            binding.xpf.text = serverTransaction?.spendingLimitMessage
+            val spendingLimitMessage = serverTransaction?.spendingLimitMessage.orEmpty()
+            val cosignedTime = serverTransaction?.signedInMilis ?: 0L
+            binding.xpf.isVisible = spendingLimitMessage.isNotEmpty() || cosignedTime > 0L
+            if (spendingLimitMessage.isNotEmpty()) {
+                binding.xpf.text = serverTransaction?.spendingLimitMessage
+            } else if (cosignedTime > 0L) {
+                val cosignDate = Date(cosignedTime)
+                binding.xpf.text = context.getString(R.string.nc_cosign_at, "${cosignDate.formatByHour()} ${cosignDate.formatByWeek()}")
+            }
             binding.xpf.setTextColor(ContextCompat.getColor(context, R.color.nc_beeswax_dark))
         } else {
             binding.xpf.isVisible = true

@@ -45,6 +45,8 @@ interface UserProfileRepository {
     fun deleteDevices(devices: List<String>): Flow<Unit>
 
     fun compromiseDevices(devices: List<String>): Flow<Unit>
+
+    suspend fun clearDataStore()
 }
 
 internal class UserProfileRepositoryImpl @Inject constructor(
@@ -102,4 +104,5 @@ internal class UserProfileRepositoryImpl @Inject constructor(
         emit(Unit)
     }
 
+    override suspend fun clearDataStore() = ncDataStore.clear()
 }

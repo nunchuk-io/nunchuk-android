@@ -32,5 +32,6 @@ data class SpendingLimitReach(
 internal fun TransactionResponse.toServerTransaction() = ServerTransaction(
     type = transaction?.type.orEmpty(),
     broadcastTimeInMilis = transaction?.broadCastTimeMillis ?: 0L,
-    spendingLimitMessage = transaction?.spendingLimitReach?.message.orEmpty()
+    spendingLimitMessage = transaction?.spendingLimitReach?.message.orEmpty(),
+    signedInMilis = transaction?.signedAtMilis ?: 0L
 )

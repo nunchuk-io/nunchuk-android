@@ -168,6 +168,7 @@
         <action
             android:id="@+id/action_createWalletFragment_to_registerWalletToColdcardFragment"
             app:destination="@id/registerWalletToColdcardFragment"
+            app:popUpTo="@id/addKeyStepFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -176,6 +177,7 @@
             android:id="@+id/action_createWalletFragment_to_registerWalletToAirgapFragment"
             app:destination="@id/registerWalletToAirgapFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
+            app:popUpTo="@id/addKeyStepFragment"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />

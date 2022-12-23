@@ -23,8 +23,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -59,8 +57,6 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
     private lateinit var adapter: RoomAdapter
 
-    private var emptyStateView: View? = null
-
     override fun initializeBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
@@ -70,11 +66,6 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
         super.onViewCreated(view, savedInstanceState)
         setupViews()
         observeEvent()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        emptyStateView = null
     }
 
     private fun setupViews() {
@@ -91,21 +82,18 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
             navigator.openCreateRoomScreen(requireActivity().supportFragmentManager)
         }
         setEmptyState()
-        emptyStateView?.findViewById<View>(R.id.btnAddContacts)?.setOnClickListener {
+        binding.viewStubEmptyState.btnAddContacts.setOnClickListener {
             navigator.openAddContactsScreen(childFragmentManager, viewModel::listenRoomSummaries)
         }
-        emptyStateView?.isVisible = false
         binding.btnContactSupporter.setOnDebounceClickListener {
             viewModel.getOrCreateSupportRom()
         }
     }
 
     private fun setEmptyState() {
-        emptyStateView = binding.viewStubEmptyState.inflate()
-        emptyStateView?.findViewById<TextView>(R.id.tvEmptyStateDes)?.text =
+        binding.viewStubEmptyState.tvEmptyStateDes.text =
             getString(R.string.nc_message_empty_messages)
-        emptyStateView?.findViewById<ImageView>(R.id.ivContactAdd)
-            ?.setImageResource(R.drawable.ic_messages_new)
+        binding.viewStubEmptyState.ivContactAdd.setImageResource(R.drawable.ic_messages_new)
     }
 
     private fun openRoomDetailScreen(summary: RoomSummary) {
@@ -140,7 +128,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     private fun handleShowEmptyState() {
         val visibleRooms = viewModel.getVisibleRooms()
         val plan = viewModel.plan.value
-        emptyStateView?.isVisible = visibleRooms.isEmpty() && plan == MembershipPlan.NONE
+        binding.viewStubEmptyState.container.isVisible = visibleRooms.isEmpty() && plan == MembershipPlan.NONE
         binding.containerEmptyPremiumUser.isVisible =
             visibleRooms.isEmpty() && plan != MembershipPlan.NONE
     }
