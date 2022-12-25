@@ -4,20 +4,18 @@ import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import com.bumptech.glide.Glide
 import com.nunchuk.android.core.util.getString
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.databinding.ItemServerTabCategoryBinding
-import com.nunchuk.android.main.databinding.ItemServiceTabNonSubHeaderBinding
-import com.nunchuk.android.main.databinding.ItemServiceTabNonSubRowBinding
-import com.nunchuk.android.main.databinding.ItemServiceTabRowBinding
+import com.nunchuk.android.main.databinding.*
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 
 class ServicesTabAdapter constructor(
     val itemClick: (ServiceTabRowItem) -> Unit,
-    val onClaimClick: () -> Unit
+    val bannerClick: (id: String) -> Unit
 ) :
     ListAdapter<Any, ViewHolder>(DiffCallback) {
 
@@ -44,15 +42,23 @@ class ServicesTabAdapter constructor(
                 val viewHolder = ServiceTabViewHolder.NonSubHeaderViewHolder(
                     ItemServiceTabNonSubHeaderBinding.inflate(inflater, parent, false)
                 )
-                viewHolder.binding.claimLayout.setOnClickListener {
-                    onClaimClick()
-                }
                 viewHolder
             }
             R.layout.item_service_tab_non_sub_row -> {
                 val viewHolder = ServiceTabViewHolder.NonSubRowViewHolder(
                     ItemServiceTabNonSubRowBinding.inflate(inflater, parent, false)
                 )
+                viewHolder
+            }
+            R.layout.item_services_tab_banner -> {
+                val viewHolder = ServiceTabViewHolder.BannerViewHolder(
+                    ItemServicesTabBannerBinding.inflate(inflater, parent, false)
+                )
+                viewHolder.itemView.setOnDebounceClickListener {
+                    viewHolder.banner?.let {
+                        bannerClick(it.id)
+                    }
+                }
                 viewHolder
             }
             else -> throw IllegalStateException("Unknown viewType $viewType")
@@ -70,6 +76,12 @@ class ServicesTabAdapter constructor(
             is ServiceTabViewHolder.NonSubRowViewHolder -> {
                 holder.bind(getItem(position) as NonSubRow)
             }
+            is ServiceTabViewHolder.NonSubHeaderViewHolder -> {
+                holder.bind(getItem(position) as NonSubHeader)
+            }
+            is ServiceTabViewHolder.BannerViewHolder -> {
+                holder.bind(getItem(position) as Banner)
+            }
         }
     }
 
@@ -79,6 +91,7 @@ class ServicesTabAdapter constructor(
             is ServiceTabRowItem -> R.layout.item_service_tab_row
             is NonSubHeader -> R.layout.item_service_tab_non_sub_header
             is NonSubRow -> R.layout.item_service_tab_non_sub_row
+            is Banner -> R.layout.item_services_tab_banner
             else -> throw IllegalStateException("Unknown view type at position $position")
         }
     }
@@ -92,6 +105,8 @@ object DiffCallback : DiffUtil.ItemCallback<Any>() {
             oldItem is ServiceTabRowCategory && newItem is ServiceTabRowCategory -> oldItem.title == newItem.title
             oldItem is ServiceTabRowItem && newItem is ServiceTabRowItem -> oldItem.title == newItem.title
             oldItem is NonSubRow && newItem is NonSubRow -> oldItem.title == newItem.title
+            oldItem is NonSubHeader && newItem is NonSubHeader -> oldItem.title == newItem.title
+            oldItem is Banner && newItem is Banner -> oldItem.id == newItem.id
             else -> false
         }
     }
@@ -102,6 +117,8 @@ object DiffCallback : DiffUtil.ItemCallback<Any>() {
             oldItem is ServiceTabRowCategory && newItem is ServiceTabRowCategory -> oldItem == newItem
             oldItem is ServiceTabRowItem && newItem is ServiceTabRowItem -> oldItem == newItem
             oldItem is NonSubRow && newItem is NonSubRow -> oldItem == newItem
+            oldItem is NonSubHeader && newItem is NonSubHeader -> oldItem == newItem
+            oldItem is Banner && newItem is Banner -> oldItem == newItem
             else -> true
         }
     }
@@ -128,26 +145,40 @@ sealed class ServiceTabViewHolder(itemView: View) : ViewHolder(itemView) {
         }
     }
 
+    class BannerViewHolder(val binding: ItemServicesTabBannerBinding) :
+        ServiceTabViewHolder(binding.root) {
+        internal var banner: Banner? = null
+        internal fun bind(item: Banner) {
+            banner = item
+            binding.containerNonSubscriber.tag = item.id
+            Glide.with(binding.ivNonSubscriber)
+                .load(item.url)
+                .override(binding.ivNonSubscriber.width)
+                .into(binding.ivNonSubscriber)
+            binding.tvNonSubscriber.text = item.title
+        }
+    }
+
     class NonSubHeaderViewHolder(
         val binding: ItemServiceTabNonSubHeaderBinding
     ) : ServiceTabViewHolder(binding.root) {
 
-        fun bind(item: NonSubHeader) {
+        internal fun bind(item: NonSubHeader) {
+            binding.tvTitle.text = item.title
+            binding.tvDesc.text = item.desc
         }
     }
 
     class NonSubRowViewHolder(
         val binding: ItemServiceTabNonSubRowBinding
     ) : ServiceTabViewHolder(binding.root) {
-        fun bind(item: NonSubRow) {
-            binding.tvTitle.text = getString(item.title)
-            binding.tvDesc.text = getString(item.desc)
-            binding.image.setImageDrawable(
-                ContextCompat.getDrawable(
-                    binding.root.context,
-                    item.drawableId
-                )
-            )
+        internal fun bind(item: NonSubRow) {
+            binding.tvTitle.text = item.title
+            binding.tvDesc.text = item.desc
+            Glide.with(binding.image)
+                .load(item.url)
+                .override(binding.image.width)
+                .into(binding.image)
         }
     }
 

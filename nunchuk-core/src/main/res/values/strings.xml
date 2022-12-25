@@ -318,7 +318,7 @@
     <string name="nc_answer_security_question">Answer security question</string>
     <string name="nc_answer_security_question_desc">Please answer the following question. Answer is case-sensitive.</string>
     <string name="nc_enter_backup_password">Enter Backup Password</string>
-    <string name="nc_enter_backup_password_desc">Please enter the Backup Password for %1$s.</string>
+    <string name="nc_enter_backup_password_desc">Please enter the Backup Password for [B]%1$s[/B] (card ID: [B]%2$s[/B].)</string>
     <string name="nc_backup_download">Backup Password</string>
     <string name="nc_tapsigner_recovered">TAPSIGNER recovered</string>
     <string name="nc_tapsigner_recovered_success_info_1">The software key is stored on this device</string>

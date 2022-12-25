@@ -24,6 +24,8 @@ import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
 import com.nunchuk.android.usecase.user.IsRegisterAirgapUseCase
 import com.nunchuk.android.usecase.user.IsRegisterColdcardUseCase
+import com.nunchuk.android.usecase.user.IsSetupInheritanceUseCase
+import com.nunchuk.android.usecase.user.SetSetupInheritanceUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -48,7 +50,9 @@ internal class WalletsViewModel @Inject constructor(
     private val getBannerUseCase: GetBannerUseCase,
     isRegisterAirgapUseCase: IsRegisterAirgapUseCase,
     isRegisterColdcardUseCase: IsRegisterColdcardUseCase,
-    isShowNfcUniversalUseCase: IsShowNfcUniversalUseCase
+    isShowNfcUniversalUseCase: IsShowNfcUniversalUseCase,
+    isSetupInheritanceUseCase: IsSetupInheritanceUseCase,
+    private val setSetupInheritanceUseCase: SetSetupInheritanceUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
 
@@ -61,6 +65,10 @@ internal class WalletsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val isRegisterColdcard = isRegisterColdcardUseCase(Unit)
+        .map { it.getOrElse { false } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    private val isSetupInheritance = isSetupInheritanceUseCase(Unit)
         .map { it.getOrElse { false } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
@@ -80,6 +88,11 @@ internal class WalletsViewModel @Inject constructor(
         viewModelScope.launch {
             membershipStepManager.remainingTime.collect {
                 updateState { copy(remainingTime = it) }
+            }
+        }
+        viewModelScope.launch {
+            isSetupInheritance.collect {
+                updateState { copy(isSetupInheritance = it) }
             }
         }
     }
@@ -105,6 +118,7 @@ internal class WalletsViewModel @Inject constructor(
                     val inheritanceResult = getInheritanceUseCase(walletLocalId)
                     isSetupInheritance =
                         inheritanceResult.isSuccess && inheritanceResult.getOrThrow().status != InheritanceStatus.PENDING_CREATION
+                    setSetupInheritanceUseCase(isSetupInheritance)
                 }
                 updateState {
                     copy(

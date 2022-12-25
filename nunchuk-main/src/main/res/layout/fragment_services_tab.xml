@@ -29,6 +29,37 @@
                 android:textColor="@color/nc_white_color" />
         </androidx.appcompat.widget.Toolbar>
 
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/claim_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/nc_denim_tint_color"
+            android:paddingHorizontal="@dimen/nc_padding_18"
+            android:paddingVertical="@dimen/nc_padding_16"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:layout_constraintTop_toBottomOf="@+id/toolbar">
+
+            <TextView
+                android:id="@+id/tv_claim"
+                style="@style/NCText.Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/nc_claim_an_inheritance"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_arrow"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
@@ -37,7 +68,7 @@
             android:paddingBottom="@dimen/nc_padding_30"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             app:layout_constraintBottom_toTopOf="@+id/action_group"
-            app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+            app:layout_constraintTop_toBottomOf="@+id/claim_layout" />
 
         <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/action_group"

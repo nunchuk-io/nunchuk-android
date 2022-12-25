@@ -1,6 +1,7 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -167,13 +168,14 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                         )
                     } else if (args.planFlow == InheritancePlanFlow.VIEW) {
                         showSuccess(message = getString(R.string.nc_inheritance_plan_updated_notify))
+                        handleResult()
                     }
                 }
                 is InheritanceReviewPlanEvent.Loading -> showOrHideLoading(loading = event.loading)
                 is InheritanceReviewPlanEvent.ProcessFailure -> showError(message = event.message)
                 is InheritanceReviewPlanEvent.CancelInheritanceSuccess -> {
                     showSuccess(message = getString(R.string.nc_inheritance_plan_cancelled_notify))
-                    requireActivity().finish()
+                    handleResult()
                 }
             }
         }
@@ -198,6 +200,13 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
         if (option.type == SheetOptionType.TYPE_CANCEL) {
             viewModel.calculateRequiredSignatures(isCreateOrUpdate = false)
         }
+    }
+
+    private fun handleResult() {
+        requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
+            putExtra(GlobalResultKey.UPDATE_INHERITANCE, viewModel.isDataChanged())
+        })
+        requireActivity().finish()
     }
 }
 

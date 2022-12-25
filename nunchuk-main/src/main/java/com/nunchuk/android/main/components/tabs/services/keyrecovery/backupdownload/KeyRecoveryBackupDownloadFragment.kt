@@ -23,10 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.NcPrimaryDarkButton
-import com.nunchuk.android.compose.NcTextField
-import com.nunchuk.android.compose.NcTopAppBar
-import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -55,7 +52,11 @@ class BackupDownloadFragment : Fragment() {
         flowObserver(viewModel.event) {
             when (it) {
                 is BackupDownloadEvent.ImportTapsignerSuccess -> {
-                    findNavController().navigate(BackupDownloadFragmentDirections.actionBackupDownloadFragmentToKeyRecoverySuccessFragment(it.signer))
+                    findNavController().navigate(
+                        BackupDownloadFragmentDirections.actionBackupDownloadFragmentToKeyRecoverySuccessFragment(
+                            it.signer
+                        )
+                    )
                 }
                 is BackupDownloadEvent.Loading -> showOrHideLoading(loading = it.isLoading)
                 is BackupDownloadEvent.ProcessFailure -> showError(it.message)
@@ -74,6 +75,7 @@ fun BackupDownloadScreen(
 
     BackupDownloadScreenContent(
         tapSignerName = args.signer.name,
+        cardId = args.signer.cardId,
         password = state.password,
         error = state.error,
         onContinueClick = {
@@ -87,6 +89,7 @@ fun BackupDownloadScreen(
 @Composable
 fun BackupDownloadScreenContent(
     tapSignerName: String = "",
+    cardId: String = "",
     password: String = "",
     error: String = "",
     onContinueClick: () -> Unit = {},
@@ -106,12 +109,13 @@ fun BackupDownloadScreenContent(
                     text = stringResource(R.string.nc_enter_backup_password),
                     style = NunchukTheme.typography.heading
                 )
-                Text(
+                NcHighlightText(
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
                     text = stringResource(
                         id = R.string.nc_enter_backup_password_desc,
-                        tapSignerName
-                    ),
+                        tapSignerName,
+                        "••${cardId.takeLast(5)}"
+                        ),
                     style = NunchukTheme.typography.body
                 )
 

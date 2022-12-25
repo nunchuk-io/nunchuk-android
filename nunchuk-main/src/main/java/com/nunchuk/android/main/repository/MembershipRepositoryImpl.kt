@@ -101,10 +101,12 @@ class MembershipRepositoryImpl @Inject constructor(
     override fun getLocalCurrentPlan(): Flow<MembershipPlan> = ncDataStore.membershipPlan
 
     override fun isRegisterAirgap(): Flow<Boolean> = ncDataStore.isRegisterAirgap
+    override fun isSetupInheritance(): Flow<Boolean> = ncDataStore.isSetupInheritance
 
     override fun isRegisterColdcard(): Flow<Boolean> = ncDataStore.isRegisterColdCard
 
     override suspend fun setRegisterAirgap(value: Boolean) = ncDataStore.setRegisterAirgap(value)
+    override suspend fun setSetupInheritance(value: Boolean) = ncDataStore.setSetupInheritance(value)
 
     override suspend fun setRegisterColdcard(value: Boolean) = ncDataStore.setRegisterColdcard(value)
 }

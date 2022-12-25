@@ -47,12 +47,7 @@ class KeyRecoveryIntroFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) { event ->
             when (event) {
-                is KeyRecoveryIntroEvent.ContinueClick -> {
-
-                }
-                is KeyRecoveryIntroEvent.Loading -> {
-                    showOrHideLoading(loading = event.isLoading)
-                }
+                is KeyRecoveryIntroEvent.Loading -> showOrHideLoading(loading = event.isLoading)
                 is KeyRecoveryIntroEvent.GetTapSignerSuccess -> {
                     findNavController().navigate(
                         KeyRecoveryIntroFragmentDirections.actionKeyRecoveryIntroFragmentToRecoverTapSignerListBottomSheetFragment(

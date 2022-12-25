@@ -27,13 +27,6 @@ class KeyRecoveryIntroViewModel @Inject constructor(
     private val _event = MutableSharedFlow<KeyRecoveryIntroEvent>()
     val event = _event.asSharedFlow()
 
-    fun onContinueClicked() {
-        viewModelScope.launch {
-            getTapSignerList()
-            _event.emit(KeyRecoveryIntroEvent.ContinueClick)
-        }
-    }
-
     fun getTapSignerList() = viewModelScope.launch {
         _event.emit(KeyRecoveryIntroEvent.Loading(true))
         getMasterSignersUseCase.execute().collect { masterSigners ->

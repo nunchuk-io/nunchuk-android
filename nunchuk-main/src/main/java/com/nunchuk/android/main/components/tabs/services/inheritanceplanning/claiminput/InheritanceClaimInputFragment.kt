@@ -36,6 +36,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.*
+import com.nunchuk.android.core.util.countWords
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -105,7 +106,6 @@ fun InheritanceClaimScreen(
     InheritanceClaimInputContent(suggestions = state.suggestions,
         magicalPhrase = state.magicalPhrase,
         backupDownload = state.backupPassword,
-        enableContinue = state.enableContinue,
         onMagicalPhraseTextChange = {
             viewModel.handleInputEvent(it)
         }, onSuggestClick = {
@@ -123,7 +123,6 @@ fun InheritanceClaimScreen(
 private fun InheritanceClaimInputContent(
     magicalPhrase: String = "",
     backupDownload: String = "",
-    enableContinue: Boolean = false,
     suggestions: List<String> = emptyList(),
     onContinueClick: () -> Unit = {},
     onSuggestClick: (String) -> Unit = {},
@@ -207,7 +206,7 @@ private fun InheritanceClaimInputContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    enabled = enableContinue,
+                    enabled = magicalPhrase.countWords()  >= 1 && backupDownload.isNotBlank(),
                     onClick = onContinueClick,
                 ) {
                     Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))

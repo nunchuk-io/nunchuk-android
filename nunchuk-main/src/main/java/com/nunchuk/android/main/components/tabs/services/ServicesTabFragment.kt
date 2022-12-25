@@ -1,9 +1,11 @@
 package com.nunchuk.android.main.components.tabs.services
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseFragment
@@ -13,18 +15,35 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.databinding.FragmentServicesTabBinding
+import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
+import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.utils.parcelable
+import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.HashMap
 
 @AndroidEntryPoint
 class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
 
     private val viewModel: ServicesTabViewModel by viewModels()
     private lateinit var adapter: ServicesTabAdapter
+
+    private val launcher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data?.extras
+            if (it.resultCode == Activity.RESULT_OK && data != null) {
+                val isUpdate =
+                    data.getBoolean(GlobalResultKey.UPDATE_INHERITANCE)
+                if (isUpdate) viewModel.updateInheritance()
+            }
+        }
+
     override fun initializeBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
@@ -48,6 +67,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 is ServicesTabEvent.CheckInheritance -> {
                     if (event.inheritanceCheck.isPaid) {
                         navigator.openInheritancePlanningScreen(
+                            launcher = launcher,
                             requireContext(),
                             flowInfo = InheritancePlanFlow.CLAIM
                         )
@@ -58,10 +78,11 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             }
         }
         flowObserver(viewModel.state) { state ->
-            adapter.submitList(state.rowItems)
+            adapter.submitList(viewModel.getRowItems())
             state.isPremiumUser?.let {
                 binding.supportFab.isVisible = state.isPremiumUser
                 binding.actionGroup.isVisible = state.isPremiumUser.not()
+                binding.claimLayout.isVisible = state.isPremiumUser.not()
             }
         }
     }
@@ -76,6 +97,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             }
             ServiceTabRowItem.ViewInheritancePlan -> {
                 navigator.openInheritancePlanningScreen(
+                    launcher = launcher,
                     requireContext(),
                     verifyToken = event.token,
                     inheritance = viewModel.getInheritance(),
@@ -89,16 +111,19 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
     private fun setupViews() {
         adapter = ServicesTabAdapter(itemClick = {
             onTabItemClick(it)
-        }, onClaimClick = {
+        }, bannerClick = {
+            NonSubscriberActivity.start(requireActivity(), it)
+        })
+        binding.recyclerView.adapter = adapter
+        binding.supportFab.setOnDebounceClickListener {
+            viewModel.getOrCreateSupportRom()
+        }
+        binding.claimLayout.setOnDebounceClickListener {
             if (viewModel.isLoggedIn()) {
                 viewModel.checkInheritance()
             } else {
                 navigator.openSignInScreen(requireActivity(), isNeedNewTask = false)
             }
-        })
-        binding.recyclerView.adapter = adapter
-        binding.supportFab.setOnDebounceClickListener {
-            viewModel.getOrCreateSupportRom()
         }
     }
 
@@ -118,18 +143,15 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             }
         }
         when (item) {
-            ServiceTabRowItem.ClaimInheritance -> {
-                viewModel.checkInheritance()
-            }
-            ServiceTabRowItem.CoSigningPolicies, ServiceTabRowItem.EmergencyLockdown -> enterPasswordDialog(
-                item
-            )
+            ServiceTabRowItem.ClaimInheritance -> viewModel.checkInheritance()
+            ServiceTabRowItem.CoSigningPolicies, ServiceTabRowItem.EmergencyLockdown -> enterPasswordDialog(item)
             ServiceTabRowItem.KeyRecovery -> navigator.openKeyRecoveryScreen(requireContext())
             ServiceTabRowItem.ManageSubscription -> showManageSubscriptionDialog()
             ServiceTabRowItem.OrderNewHardware -> showOrderNewHardwareDialog()
             ServiceTabRowItem.RollOverAssistedWallet -> {}
             ServiceTabRowItem.SetUpInheritancePlan -> {
                 navigator.openInheritancePlanningScreen(
+                    launcher = launcher,
                     requireContext(),
                     flowInfo = InheritancePlanFlow.SETUP
                 )

@@ -101,7 +101,7 @@ class AddKeyStepFragment : Fragment(), BottomSheetOptionListener {
 
     private fun handleOpenInheritanceSetup() {
         nunchukNavigator.openInheritancePlanningScreen(
-            requireContext(),
+            activityContext = requireContext(),
             flowInfo = InheritancePlanFlow.SETUP
         )
     }
