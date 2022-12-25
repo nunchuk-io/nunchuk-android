@@ -15,6 +15,5 @@ data class InheritanceClaimInputState(
 //    val magicalPhrase: String = "paper cart report",
     val magicalPhrase: String = "",
     val backupPassword: String = "",
-    val enableContinue: Boolean = false,
     val suggestions: List<String> = emptyList()
 )

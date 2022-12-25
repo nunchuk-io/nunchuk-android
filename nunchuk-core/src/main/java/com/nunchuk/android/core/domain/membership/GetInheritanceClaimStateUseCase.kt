@@ -5,6 +5,8 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -18,9 +20,10 @@ class GetInheritanceClaimStateUseCase @Inject constructor(
 ) {
     override suspend fun execute(parameters: Param): InheritanceAdditional {
         val userData = userWalletRepository.generateInheritanceClaimStatusUserData(parameters.magic)
-        val signer = nunchukNativeSdk.getSignerFromMasterSigner(
+        val signer = nunchukNativeSdk.getDefaultSignerFromMasterSigner(
             masterSignerId = parameters.signer.id,
-            path = "m/48h/0h/0h"
+            walletType = WalletType.MULTI_SIG.ordinal,
+            addressType = AddressType.ANY.ordinal
         )
         val messagesToSign = nunchukNativeSdk.getHealthCheckMessage(userData)
         val signature = nunchukNativeSdk.signHealthCheckMessage(signer, messagesToSign)

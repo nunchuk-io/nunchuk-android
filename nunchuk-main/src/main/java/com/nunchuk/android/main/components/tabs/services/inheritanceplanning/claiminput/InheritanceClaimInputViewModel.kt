@@ -99,9 +99,6 @@ class InheritanceClaimInputViewModel @Inject constructor(
             if (word.isNotEmpty()) {
                 filter(word)
             }
-            val canGoNext =
-                withoutSpace.countWords() == ACCEPTED_NUM_WORDS && _state.value.backupPassword.isNotBlank()
-            _state.update { it.copy(enableContinue = canGoNext) }
         } else {
             _state.update { it.copy(magicalPhrase = mnemonic) }
         }
@@ -115,14 +112,10 @@ class InheritanceClaimInputViewModel @Inject constructor(
     fun handleSelectWord(word: String) {
         _state.update { it.copy(suggestions = bip39Words) }
         val updatedMnemonic = _state.value.magicalPhrase.replaceLastWord(word)
-        _state.update { it.copy(magicalPhrase = updatedMnemonic) }
-        val canGoNext =
-            updatedMnemonic.countWords() == ACCEPTED_NUM_WORDS && _state.value.backupPassword.isNotBlank()
-        _state.update { it.copy(enableContinue = canGoNext) }
+        _state.update { it.copy(magicalPhrase = "$updatedMnemonic ") }
     }
 
     companion object {
         private const val INHERITED_KEY_NAME = "Inherited key"
-        private const val ACCEPTED_NUM_WORDS = 3
     }
 }

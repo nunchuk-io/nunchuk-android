@@ -99,7 +99,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             val stage = walletsViewModel.getGroupStage()
             if (stage == MembershipStage.SETUP_INHERITANCE && walletsViewModel.isRegisterWalletDone()) {
                 navigator.openInheritancePlanningScreen(
-                    requireContext(),
+                    activityContext = requireContext(),
                     flowInfo = InheritancePlanFlow.SETUP
                 )
             } else {

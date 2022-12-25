@@ -44,6 +44,7 @@ class NcDataStore @Inject constructor(
     private val isShowNfcUniversalKey = booleanPreferencesKey("show_nfc_universal")
     private val registerColdcardKey = booleanPreferencesKey("register_coldcard")
     private val registerAirgapKey = booleanPreferencesKey("register_airgap")
+    private val setupInheritanceKey = booleanPreferencesKey("setup_inheritance")
 
     /**
      * Assisted wallet local id
@@ -104,6 +105,11 @@ class NcDataStore @Inject constructor(
             it[registerAirgapKey] ?: true
         }
 
+    val isSetupInheritance: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[setupInheritanceKey] ?: false
+        }
+
     suspend fun updateTurnOnNotification(turnOn: Boolean) {
         context.dataStore.edit { settings ->
             settings[turnOnNotificationKey] = turnOn
@@ -158,6 +164,12 @@ class NcDataStore @Inject constructor(
         }
     }
 
+    suspend fun setSetupInheritance(value: Boolean) {
+        context.dataStore.edit {
+            it[setupInheritanceKey] = value
+        }
+    }
+
     suspend fun clear() {
         context.dataStore.edit {
             it.remove(syncEnableKey)
@@ -167,6 +179,7 @@ class NcDataStore @Inject constructor(
             it.remove(membershipPlanKey)
             it.remove(registerColdcardKey)
             it.remove(registerAirgapKey)
+            it.remove(setupInheritanceKey)
         }
     }
 }

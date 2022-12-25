@@ -54,6 +54,7 @@ interface AppNavigator {
      * @param inheritance for view/update inheritance [InheritancePlanFlow.VIEW]
      */
     fun openInheritancePlanningScreen(
+        launcher: ActivityResultLauncher<Intent>? = null,
         activityContext: Context,
         verifyToken: String? = null,
         inheritance: Inheritance? = null,

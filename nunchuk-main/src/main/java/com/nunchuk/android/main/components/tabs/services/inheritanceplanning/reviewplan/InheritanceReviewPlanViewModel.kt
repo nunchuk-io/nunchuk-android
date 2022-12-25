@@ -9,6 +9,7 @@ import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.user.SetSetupInheritanceUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -26,6 +27,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
     private val cancelInheritanceUseCase: CancelInheritanceUseCase,
     private val getWalletUseCase: GetWalletUseCase,
     private val membershipStepManager: MembershipStepManager,
+    private val setSetupInheritanceUseCase: SetSetupInheritanceUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -159,11 +161,15 @@ class InheritanceReviewPlanViewModel @Inject constructor(
         )
         _event.emit(InheritanceReviewPlanEvent.Loading(false))
         if (result.isSuccess) {
+            _state.update { it.copy(isDataChanged = true) }
+            setSetupInheritanceUseCase(true)
             _event.emit(InheritanceReviewPlanEvent.CreateOrUpdateInheritanceSuccess)
         } else {
             _event.emit(InheritanceReviewPlanEvent.ProcessFailure(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
+
+    fun isDataChanged() = _state.value.isDataChanged
 
     private fun cancelInheritance(
         signatures: HashMap<String, String>,
@@ -182,6 +188,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
         )
         _event.emit(InheritanceReviewPlanEvent.Loading(false))
         if (result.isSuccess) {
+            _state.update { it.copy(isDataChanged = true) }
             _event.emit(InheritanceReviewPlanEvent.CancelInheritanceSuccess)
         } else {
             _event.emit(InheritanceReviewPlanEvent.ProcessFailure(result.exceptionOrNull()?.message.orUnknownError()))

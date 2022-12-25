@@ -2,6 +2,8 @@ package com.nunchuk.android.main.components.tabs.services
 
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.*
+import com.nunchuk.android.model.banner.Banner
+import com.nunchuk.android.model.banner.BannerPage
 
 sealed class ServicesTabEvent {
     data class ProcessFailure(val message: String) : ServicesTabEvent()
@@ -24,70 +26,30 @@ data class ServicesTabState(
     val isPremiumUser: Boolean? = null,
     val isCreatedAssistedWallet: Boolean = false,
     val plan: MembershipPlan = MembershipPlan.NONE,
-    val rowItems: List<Any> = emptyList(),
+    val walletId: String? = null,
     val inheritance: Inheritance? = null,
-    val walletId: String? = null
+    val banner: Banner? = null,
+    val bannerPage: BannerPage? = null
 ) {
-    fun initRowItems(plan: MembershipPlan, inheritance: Inheritance? = null): List<Any> {
+    fun initRowItems(): List<Any> {
         val items = mutableListOf<Any>()
         when (plan) {
             MembershipPlan.NONE -> {
-                items.add(NonSubHeader)
-                items.add(
-                    NonSubRow(
-                        drawableId = R.drawable.ic_mulitsig_dark,
-                        title = R.string.nc_no_single_point_failure,
-                        desc = R.string.nc_no_single_point_failure_desc
-                    )
-                )
-                items.add(
-                    NonSubRow(
-                        drawableId = R.drawable.ic_inheritance_planning,
-                        title = R.string.nc_inheritance_planning,
-                        desc = R.string.nc_inheritance_planning_desc
-                    )
-                )
-                items.add(
-                    NonSubRow(
-                        drawableId = R.drawable.ic_emergency_lockdown_dark,
-                        title = R.string.nc_emergency_lockdown,
-                        desc = R.string.nc_emergency_lockdown_desc
-                    )
-                )
-                items.add(
-                    NonSubRow(
-                        drawableId = R.drawable.ic_signing_policy,
-                        title = R.string.nc_flexible_spending_policies,
-                        desc = R.string.nc_flexible_spending_policies_desc
-                    )
-                )
-                items.add(
-                    NonSubRow(
-                        drawableId = R.drawable.ic_key_recovery,
-                        title = R.string.nc_cloud_backups_assisted_recovery,
-                        desc = R.string.nc_cloud_backups_assisted_recovery_desc
-                    )
-                )
-                items.add(
-                    NonSubRow(
-                        drawableId = R.drawable.ic_contact_support_dark,
-                        title = R.string.nc_in_app_chat_support,
-                        desc = R.string.nc_in_app_chat_support_desc
-                    )
-                )
-                items.add(
-                    NonSubRow(
-                        drawableId = R.drawable.ic_member_discount,
-                        title = R.string.nc_hardware_discounts,
-                        desc = R.string.nc_hardware_discounts_desc
-                    )
-                )
+                bannerPage?.let { bannerPage ->
+                    items.add(NonSubHeader(title = bannerPage.title, desc = bannerPage.desc))
+                    bannerPage.items.forEach {
+                        items.add(NonSubRow(url = it.url, title = it.title, desc = it.desc))
+                    }
+                }
             }
             MembershipPlan.IRON_HAND -> {
                 items.add(ServiceTabRowCategory.Emergency)
                 items.add(ServiceTabRowItem.KeyRecovery)
                 items.add(ServiceTabRowCategory.Subscription)
                 items.addAll(ServiceTabRowCategory.Subscription.items)
+                if (banner != null) {
+                    items.add(Banner(banner.id, banner.url, banner.title))
+                }
             }
             MembershipPlan.HONEY_BADGER -> {
                 items.add(ServiceTabRowCategory.Emergency)
@@ -102,14 +64,17 @@ data class ServicesTabState(
                 items.add(ServiceTabRowCategory.Subscription)
                 items.addAll(ServiceTabRowCategory.Subscription.items)
             }
+            else -> {}
         }
         return items
     }
 }
 
-data class NonSubRow(val drawableId: Int, val title: Int, val desc: Int)
+internal data class Banner(val id: String, val url: String, val title: String)
 
-object NonSubHeader
+internal data class NonSubRow(val url: String, val title: String, val desc: String)
+
+internal data class NonSubHeader(val title: String, val desc: String)
 
 sealed class ServiceTabRowCategory(
     val title: Int,

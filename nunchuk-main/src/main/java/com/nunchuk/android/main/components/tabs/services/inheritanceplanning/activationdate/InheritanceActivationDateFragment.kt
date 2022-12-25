@@ -203,6 +203,7 @@ fun InheritanceActivationDateScreenContent(
                         .fillMaxWidth()
                         .padding(16.dp),
                     onClick = onContinueClick,
+                    enabled = date.isNotBlank()
                 ) {
                     Text(text = stringResource(id = R.string.nc_update_activation_date))
                 }

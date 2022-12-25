@@ -3,6 +3,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.result.ActivityResultLauncher
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
@@ -63,9 +64,9 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
         }
         navHostFragment.navController.setGraph(graph, bundle)
         navHostFragment.navController.addOnDestinationChangedListener { _, destination, _ ->
-            when(destination.id) {
-                R.id.selectWalletFragment ->  WindowCompat.setDecorFitsSystemWindows(window, true)
-                else ->  WindowCompat.setDecorFitsSystemWindows(window, false)
+            when (destination.id) {
+                R.id.selectWalletFragment -> WindowCompat.setDecorFitsSystemWindows(window, true)
+                else -> WindowCompat.setDecorFitsSystemWindows(window, false)
             }
         }
     }
@@ -81,17 +82,17 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val EXTRA_INHERITANCE = "extra_inheritance"
 
         fun navigate(
+            launcher: ActivityResultLauncher<Intent>?,
             activity: Context,
             verifyToken: String?,
             inheritance: Inheritance?,
             @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int
         ) {
-            activity.startActivity(
-                Intent(activity, InheritancePlanningActivity::class.java)
-                    .putExtra(EXTRA_INHERITANCE_PLAN_FLOW, flowInfo)
-                    .putExtra(EXTRA_VERIFY_TOKEN, verifyToken)
-                    .putExtra(EXTRA_INHERITANCE, inheritance)
-            )
+            val intent = Intent(activity, InheritancePlanningActivity::class.java)
+                .putExtra(EXTRA_INHERITANCE_PLAN_FLOW, flowInfo)
+                .putExtra(EXTRA_VERIFY_TOKEN, verifyToken)
+                .putExtra(EXTRA_INHERITANCE, inheritance)
+            launcher?.launch(intent) ?: activity.startActivity(intent)
         }
     }
 }

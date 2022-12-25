@@ -22,5 +22,6 @@ data class InheritanceReviewPlanState(
     val userData: String? = null,
     val walletId: String? = null,
     val walletName: String? = null,
-    val isCreateOrUpdateFlow: Boolean = true
+    val isCreateOrUpdateFlow: Boolean = true,
+    val isDataChanged: Boolean = false
 )

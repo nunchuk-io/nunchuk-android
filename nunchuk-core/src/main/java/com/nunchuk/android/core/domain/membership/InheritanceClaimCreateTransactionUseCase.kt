@@ -5,6 +5,8 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -22,9 +24,10 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
             address = parameters.address,
             feeRate = nunchukNativeSdk.valueFromAmount(parameters.feeRate)
         )
-        val signer = nunchukNativeSdk.getSignerFromMasterSigner(
+        val signer = nunchukNativeSdk.getDefaultSignerFromMasterSigner(
             masterSignerId = parameters.masterSignerId,
-            path = "m/48h/0h/0h"
+            walletType = WalletType.MULTI_SIG.ordinal,
+            addressType = AddressType.ANY.ordinal
         )
         val messagesToSign = nunchukNativeSdk.getHealthCheckMessage(userData)
         val signature = nunchukNativeSdk.signHealthCheckMessage(signer, messagesToSign)

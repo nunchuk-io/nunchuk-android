@@ -157,13 +157,15 @@ interface AppNavigatorDelegate : AppNavigator {
     }
 
     override fun openInheritancePlanningScreen(
+        launcher: ActivityResultLauncher<Intent>?,
         activityContext: Context,
         verifyToken: String?,
         inheritance: Inheritance?,
         @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int
     ) {
         InheritancePlanningActivity.navigate(
-            activityContext,
+            launcher = launcher,
+            activity = activityContext,
             verifyToken = verifyToken,
             flowInfo = flowInfo,
             inheritance = inheritance
