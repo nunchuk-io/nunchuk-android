@@ -107,6 +107,11 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
             openReviewPlanScreen(isDiscard = true, emptyList(), false)
         }
         binding.btnContinue.setOnClickListener {
+            val currentText = binding.input.text.toString().trim()
+            if (currentText.isNotEmpty()) {
+                viewModel.handleAddEmail(currentText)
+                binding.input.setText("")
+            }
             viewModel.onContinueClicked()
         }
     }
