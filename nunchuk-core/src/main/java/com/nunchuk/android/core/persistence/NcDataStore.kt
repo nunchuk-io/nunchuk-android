@@ -42,6 +42,8 @@ class NcDataStore @Inject constructor(
     private val turnOnNotificationKey = booleanPreferencesKey("turn_on_notification")
     private val syncEnableKey = booleanPreferencesKey("sync_enable")
     private val isShowNfcUniversalKey = booleanPreferencesKey("show_nfc_universal")
+    private val registerColdcardKey = booleanPreferencesKey("register_coldcard")
+    private val registerAirgapKey = booleanPreferencesKey("register_airgap")
 
     /**
      * Assisted wallet local id
@@ -92,6 +94,16 @@ class NcDataStore @Inject constructor(
             MembershipPlan.values()[ordinal]
         }
 
+    val isRegisterColdCard: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[registerColdcardKey] ?: true
+        }
+
+    val isRegisterAirgap: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[registerAirgapKey] ?: true
+        }
+
     suspend fun updateTurnOnNotification(turnOn: Boolean) {
         context.dataStore.edit { settings ->
             settings[turnOnNotificationKey] = turnOn
@@ -134,6 +146,18 @@ class NcDataStore @Inject constructor(
         }
     }
 
+    suspend fun setRegisterColdcard(value: Boolean) {
+        context.dataStore.edit {
+            it[registerColdcardKey] = value
+        }
+    }
+
+    suspend fun setRegisterAirgap(value: Boolean) {
+        context.dataStore.edit {
+            it[registerAirgapKey] = value
+        }
+    }
+
     suspend fun clear() {
         context.dataStore.edit {
             it.remove(syncEnableKey)
@@ -141,6 +165,8 @@ class NcDataStore @Inject constructor(
             it.remove(assistedWalletLocalIdKey)
             it.remove(assistedWalletPlanKey)
             it.remove(membershipPlanKey)
+            it.remove(registerColdcardKey)
+            it.remove(registerAirgapKey)
         }
     }
 }

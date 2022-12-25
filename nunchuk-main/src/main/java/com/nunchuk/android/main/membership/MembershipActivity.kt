@@ -35,7 +35,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
         val stage = intent.serializable<MembershipStage>(EXTRA_GROUP_STEP)
         when (stage) {
             MembershipStage.NONE -> graph.setStartDestination(R.id.introAssistedWalletFragment)
-            MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS -> graph.setStartDestination(
+            MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS, MembershipStage.SETUP_INHERITANCE -> graph.setStartDestination(
                 R.id.addKeyStepFragment
             )
             MembershipStage.CONFIG_SERVER_KEY -> graph.setStartDestination(R.id.configureServerKeySettingFragment)

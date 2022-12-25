@@ -60,10 +60,9 @@ class MembershipRepositoryImpl @Inject constructor(
             ncSharePreferences.appSettings,
             AppSettings::class.java
         )?.chain ?: Chain.MAIN
-        val result = if (chain == Chain.MAIN) {
-            membershipApi.getCurrentSubscription()
-        } else {
-            membershipApi.getTestnetCurrentSubscription()
+        var result = membershipApi.getCurrentSubscription()
+        if (result.isSuccess.not() && chain != Chain.MAIN) {
+            result = membershipApi.getTestnetCurrentSubscription()
         }
         if (result.isSuccess) {
             val data = result.data
@@ -100,4 +99,12 @@ class MembershipRepositoryImpl @Inject constructor(
     }
 
     override fun getLocalCurrentPlan(): Flow<MembershipPlan> = ncDataStore.membershipPlan
+
+    override fun isRegisterAirgap(): Flow<Boolean> = ncDataStore.isRegisterAirgap
+
+    override fun isRegisterColdcard(): Flow<Boolean> = ncDataStore.isRegisterColdCard
+
+    override suspend fun setRegisterAirgap(value: Boolean) = ncDataStore.setRegisterAirgap(value)
+
+    override suspend fun setRegisterColdcard(value: Boolean) = ncDataStore.setRegisterColdcard(value)
 }

@@ -75,12 +75,35 @@ class AddKeyStepFragment : Fragment(), BottomSheetOptionListener {
                 AddKeyStepEvent.OnMoreClicked -> handleShowMore()
                 AddKeyStepEvent.RestartWizardSuccess -> requireActivity().finish()
                 AddKeyStepEvent.OpenInheritanceSetup -> handleOpenInheritanceSetup()
+                is AddKeyStepEvent.OpenRegisterAirgap -> handleOpenRegisterAirgap(event.walletId)
+                is AddKeyStepEvent.OpenRegisterColdCard -> handleOpenRegisterColdcard(
+                    event.walletId,
+                    event.isNeedRegisterAirgap
+                )
             }
         }
     }
 
+    private fun handleOpenRegisterColdcard(walletId: String, needRegisterAirgap: Boolean) {
+        findNavController().navigate(
+            AddKeyStepFragmentDirections.actionAddKeyStepFragmentToRegisterWalletToColdcardFragment(
+                walletId,
+                needRegisterAirgap,
+            )
+        )
+    }
+
+    private fun handleOpenRegisterAirgap(walletId: String) {
+        findNavController().navigate(
+            AddKeyStepFragmentDirections.actionAddKeyStepFragmentToRegisterWalletToAirgapFragment(walletId)
+        )
+    }
+
     private fun handleOpenInheritanceSetup() {
-        nunchukNavigator.openInheritancePlanningScreen(requireContext(), flowInfo = InheritancePlanFlow.SETUP)
+        nunchukNavigator.openInheritancePlanningScreen(
+            requireContext(),
+            flowInfo = InheritancePlanFlow.SETUP
+        )
     }
 
     private fun handleShowMore() {
@@ -233,7 +256,11 @@ fun AddKeyStepContent(
                     .padding(16.dp),
                 onClick = onContinueClicked
             ) {
-                Text(text = if (isConfigKeyDone.not()) stringResource(R.string.nc_start) else stringResource(id = R.string.nc_text_continue))
+                Text(
+                    text = if (isConfigKeyDone.not()) stringResource(R.string.nc_start) else stringResource(
+                        id = R.string.nc_text_continue
+                    )
+                )
             }
         }
     }
@@ -298,5 +325,9 @@ fun StepWithEstTime(
 @Preview
 @Composable
 fun AddKeyStepScreenPreview() {
-    AddKeyStepContent(isSetupRecoverKeyDone = false, isConfigKeyDone = false, isCreateWalletDone = true)
+    AddKeyStepContent(
+        isSetupRecoverKeyDone = false,
+        isConfigKeyDone = false,
+        isCreateWalletDone = true
+    )
 }

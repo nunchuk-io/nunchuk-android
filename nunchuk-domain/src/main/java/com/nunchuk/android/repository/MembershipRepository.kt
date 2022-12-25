@@ -12,4 +12,8 @@ interface MembershipRepository {
     suspend fun getSubscription() : MemberSubscription
     suspend fun restart(plan: MembershipPlan)
     fun getLocalCurrentPlan(): Flow<MembershipPlan>
+    fun isRegisterColdcard(): Flow<Boolean>
+    fun isRegisterAirgap(): Flow<Boolean>
+    suspend fun setRegisterColdcard(value: Boolean)
+    suspend fun setRegisterAirgap(value: Boolean)
 }

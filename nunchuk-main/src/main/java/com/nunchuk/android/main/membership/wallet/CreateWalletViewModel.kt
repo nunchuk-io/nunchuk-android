@@ -16,9 +16,10 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.CreateWalletUseCase
-import com.nunchuk.android.usecase.DeleteWalletUseCase
 import com.nunchuk.android.usecase.GetRemoteSignerUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
+import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
+import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -38,6 +39,8 @@ class CreateWalletViewModel @Inject constructor(
     private val createServerWalletUseCase: CreateServerWalletUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
+    private val setRegisterColdcardUseCase: SetRegisterColdcardUseCase,
+    private val setRegisterAirgapUseCase: SetRegisterAirgapUseCase
 ) : ViewModel() {
     private val signers = hashMapOf<String, SignerExtra>()
     private var serverKeyExtra: ServerKeyExtra? = null
@@ -182,6 +185,12 @@ class CreateWalletViewModel @Inject constructor(
                         _event.emit(CreateWalletEvent.ShowError(it.message.orUnknownError()))
                     }
                     .collect {
+                        if (signers.any { it.value.signerType == SignerType.COLDCARD_NFC }) {
+                            setRegisterColdcardUseCase(false)
+                        }
+                        if (signers.any { it.value.signerType == SignerType.AIRGAP }) {
+                            setRegisterAirgapUseCase(false)
+                        }
                         _event.emit(
                             CreateWalletEvent.OnCreateWalletSuccess(
                                 walletId = it.id,

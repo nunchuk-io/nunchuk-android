@@ -69,6 +69,7 @@ class RegisterWalletToAirgapFragment : MembershipFragment() {
 
         sharedViewModel.event.observe(viewLifecycleOwner) {
             if (it == UploadConfigurationEvent.DoneScanQr) {
+                viewModel.setRegisterAirgapSuccess()
                 findNavController().navigate(
                     RegisterWalletToAirgapFragmentDirections.actionRegisterWalletToAirgapFragmentToCreateWalletSuccessFragment(
                         args.walletId

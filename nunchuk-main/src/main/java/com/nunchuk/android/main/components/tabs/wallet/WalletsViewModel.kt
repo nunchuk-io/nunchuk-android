@@ -22,6 +22,8 @@ import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
+import com.nunchuk.android.usecase.user.IsRegisterAirgapUseCase
+import com.nunchuk.android.usecase.user.IsRegisterColdcardUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -44,6 +46,8 @@ internal class WalletsViewModel @Inject constructor(
     private val assistedWalletManager: AssistedWalletManager,
     private val getInheritanceUseCase: GetInheritanceUseCase,
     private val getBannerUseCase: GetBannerUseCase,
+    isRegisterAirgapUseCase: IsRegisterAirgapUseCase,
+    isRegisterColdcardUseCase: IsRegisterColdcardUseCase,
     isShowNfcUniversalUseCase: IsShowNfcUniversalUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -51,6 +55,14 @@ internal class WalletsViewModel @Inject constructor(
     val isShownNfcUniversal = isShowNfcUniversalUseCase(Unit)
         .map { it.getOrElse { false } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    private val isRegisterAirgap = isRegisterAirgapUseCase(Unit)
+        .map { it.getOrElse { false } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    private val isRegisterColdcard = isRegisterColdcardUseCase(Unit)
+        .map { it.getOrElse { false } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private var isRetrievingData = AtomicBoolean(false)
 
@@ -77,7 +89,8 @@ internal class WalletsViewModel @Inject constructor(
             val result = getUserSubscriptionUseCase(Unit)
             if (result.isSuccess) {
                 val subscription = result.getOrThrow()
-                val isPremiumUser = subscription.subscriptionId.isNullOrEmpty().not() && subscription.plan != MembershipPlan.NONE
+                val isPremiumUser = subscription.subscriptionId.isNullOrEmpty()
+                    .not() && subscription.plan != MembershipPlan.NONE
                 val getServerWalletResult = getServerWalletUseCase(Unit)
                 if (getServerWalletResult.isFailure) return@launch
                 if (getServerWalletResult.isSuccess && getServerWalletResult.getOrThrow().isNeedReload) {
@@ -234,6 +247,8 @@ internal class WalletsViewModel @Inject constructor(
         if (membershipStepManager.isNotConfig()) return MembershipStage.NONE
         return MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
     }
+
+    fun isRegisterWalletDone() = isRegisterAirgap.value && isRegisterColdcard.value
 
     fun getKeyPolicy(walletId: String) = keyPolicyMap[walletId]
 }

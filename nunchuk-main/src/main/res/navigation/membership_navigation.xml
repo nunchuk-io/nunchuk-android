@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/membership_navigation"
-    app:startDestination="@id/createWalletFragment">
+    android:id="@+id/membership_navigation">
 
     <fragment
         android:id="@+id/introAssistedWalletFragment"
@@ -42,6 +41,23 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_addKeyStepFragment_to_registerWalletToColdcardFragment"
+            app:destination="@id/registerWalletToColdcardFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_addKeyStepFragment_to_registerWalletToAirgapFragment"
+            app:destination="@id/registerWalletToAirgapFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
         <action
             android:id="@+id/action_addKeyStepFragment_to_inheritanceSetupIntroFragment"
             app:destination="@id/inheritanceSetupIntroFragment" />
@@ -168,19 +184,21 @@
         <action
             android:id="@+id/action_createWalletFragment_to_registerWalletToColdcardFragment"
             app:destination="@id/registerWalletToColdcardFragment"
-            app:popUpTo="@id/addKeyStepFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@id/addKeyStepFragment"
+            app:popUpToInclusive="false" />
         <action
             android:id="@+id/action_createWalletFragment_to_registerWalletToAirgapFragment"
             app:destination="@id/registerWalletToAirgapFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
-            app:popUpTo="@id/addKeyStepFragment"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@id/addKeyStepFragment"
+            app:popUpToInclusive="false" />
     </fragment>
     <fragment
         android:id="@+id/createWalletSuccessFragment"
@@ -197,7 +215,7 @@
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
 
     </fragment>
     <fragment
@@ -223,8 +241,8 @@
 
         <argument
             android:name="key_policy"
-            app:argType="com.nunchuk.android.model.KeyPolicy"
             android:defaultValue="@null"
+            app:argType="com.nunchuk.android.model.KeyPolicy"
             app:nullable="true" />
     </fragment>
     <fragment

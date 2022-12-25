@@ -286,8 +286,8 @@
     <string name="nc_schedule_broadcast">Schedule broadcast</string>
     <string name="nc_setup_inheritance_plan_intro_title">Set up inheritance plan</string>
     <string name="nc_setup_inheritance_plan_intro_desc">The Nunchuk inheritance plan allows you to safely pass along your bitcoin to your loved ones, while not affecting the security of your day-to-day wallet usage.\n\nBefore we begin, here are some definitions.</string>
-    <string name="nc_magical_phrase_desc">Your inheritance plan is uniquely identified by a Magical Phrase. The phrase can be used to look up your plan later.\n\n[B]Make note of this Magical Phrase[/B]. You will need to share it with the Beneficiary or Trustee.</string>
-    <string name="nc_magical_phrase">A Magical Phrase</string>
+    <string name="nc_magical_phrase_desc">Your inheritance plan is uniquely identified by a Magic Phrase. The phrase can be used to look up your plan later.\n\n[B]Make note of this Magic Phrase[/B]. You will need to share it with the Beneficiary or Trustee.</string>
+    <string name="nc_magical_phrase">A Magic Phrase</string>
     <string name="nc_a_backup_password">A Backup Password</string>
     <string name="nc_give_app_permission">Please give app the permission to use this feature</string>
     <string name="nc_start">Start</string>
@@ -353,7 +353,7 @@
     <string name="nc_finalize_changes_desc">Please sign a test message using one of the keys below.</string>
     <string name="nc_set_up_activation_date">Set up an activation date</string>
     <string name="nc_update_activation_date">Update activation date</string>
-    <string name="nc_set_up_activation_date_notice">Even with the correct Magical Phrase and Backup Password, one cannot claim the inheritance before this date.</string>
+    <string name="nc_set_up_activation_date_notice">Even with the correct Magic Phrase and Backup Password, one cannot claim the inheritance before this date.</string>
     <string name="nc_set_up_activation_date_desc">[B]Only on or after this date,[/B] a Beneficiary or Trustee can claim the inheritance.\n\nYou can change the activation date any time via the Services tab. Please note that once a date has been picked, any date change request will require two of your keys to sign off.</string>
     <string name="nc_inheritance_leave_message">Would you like to leave a message?</string>
     <string name="nc_inheritance_leave_message_desc">After the Beneficiary or Trustee claims the inheritance, they will be able to see this message.</string>
@@ -362,7 +362,7 @@
     <string name="nc_optional">(optional)</string>
     <string name="nc_inheritance_notify_pref_desc">On the activation date, would you like us to notify the Beneficiary or Trustee of the inheritance plan? If so, please provide an email address.</string>
     <string name="nc_notify_them_today">Also notify them today</string>
-    <string name="nc_inheritance_notify_pref_warning">You are still personally responsible for sharing the Magical Phrase and Backup Password with the Beneficiary or Trustee. The notification email won’t include these information.</string>
+    <string name="nc_inheritance_notify_pref_warning">You are still personally responsible for sharing the Magic Phrase and Backup Password with the Beneficiary or Trustee. The notification email won’t include these information.</string>
     <string name="nc_update_notification_preferences">Update notification preferences</string>
     <string name="nc_dont_want_any_notifications">I don’t want any notifications</string>
     <string name="nc_policy_updated">Policies have been updated.</string>
@@ -429,15 +429,15 @@
     <string name="nc_inheritance_notify_pref_hint">To include multiple email addresses, separate them by commas or spaces.</string>
     <string name="nc_inheritance_create_success">Your inheritance plan has been set up!</string>
     <string name="nc_share_your_secrets">Share your secrets</string>
-    <string name="nc_share_your_secrets_desc">The Magical Phrase and Backup Password must be shared with the party or parties eligible for the inheritance. Please select your option:</string>
+    <string name="nc_share_your_secrets_desc">The Magic Phrase and Backup Password must be shared with the party or parties eligible for the inheritance. Please select your option:</string>
     <string name="nc_direct_inheritance">Direct inheritance</string>
     <string name="nc_direct_inheritance_desc">The Beneficiary has full control over the inheritance. Upon the Activation Date, they can claim the inheritance for themselves.</string>
     <string name="nc_indirect_inheritance">Indirect inheritance</string>
     <string name="nc_indirect_inheritance_desc">A Trustee has full control over the inheritance. Upon the Activation Date, the Trustee can help the Beneficiary claim the inheritance on their behalf.</string>
     <string name="nc_joint_control">Joint control</string>
     <string name="nc_joint_control_desc">The Beneficiary and the Trustee have joint control over the inheritance. Upon the Activation Date, the Beneficiary and Trustee will need to combine their secrets in order to claim the inheritance.</string>
-    <string name="nc_plan_magical_phrase">The plan’s Magical Phrase.</string>
-    <string name="nc_inheritance_share_secret_info_warning">You are solely responsible for sharing the Magical Phrase and Backup Password with the %s. Failure to share will result in the inheritance being unclaimable.</string>
+    <string name="nc_plan_magical_phrase">The plan’s Magic Phrase.</string>
+    <string name="nc_inheritance_share_secret_info_warning">You are solely responsible for sharing the Magic Phrase and Backup Password with the %s. Failure to share will result in the inheritance being unclaimable.</string>
     <string name="nc_inheritance_share_secret_info_2">The Backup Password for the encrypted backup, which can be found on the back of the TAPSIGNER designated for inheritance. (it might be listed under “Backup key”).</string>
     <string name="nc_inheritance_share_secret_info_title_direct">Please share these two secrets with the Beneficiary:</string>
     <string name="nc_inheritance_share_secret_info_title_indirect">Please share these two secrets with the Trustee:</string>
@@ -445,7 +445,7 @@
     <string name="nc_continue_to_finalize_changes">Continue to finalize changes</string>
     <string name="nc_inheritance_share_secret_info_dialog_desc">You can review these information again by navigating to Services → View inheritance plan.</string>
     <string name="nc_claim_inheritance">Claim inheritance</string>
-    <string name="nc_claim_inheritance_desc">Please enter the Magical Phrase and Backup Password</string>
+    <string name="nc_claim_inheritance_desc">Please enter the Magic Phrase and Backup Password</string>
     <string name="nc_inactive">Inactive</string>
     <string name="nc_need_support_chat_with_an_expert">Need support? Chat with an expert</string>
     <string name="nc_inheritance_plan_cancelled_notify">The inheritance plan has been cancelled</string>

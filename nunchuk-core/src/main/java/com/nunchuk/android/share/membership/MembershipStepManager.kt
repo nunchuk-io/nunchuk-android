@@ -26,6 +26,7 @@ class MembershipStepManager @Inject constructor(
 ) {
     private var job: Job? = null
     private val _plan = MutableStateFlow(MembershipPlan.NONE)
+    private val _assistedPlan = MutableStateFlow(MembershipPlan.NONE)
     val plan: MembershipPlan
         get() = _plan.value
     private val steps = hashMapOf<MembershipStep, MembershipStepFlow>()
@@ -47,11 +48,13 @@ class MembershipStepManager @Inject constructor(
                 currentPlan to assistedWalletPlan
             }.collect {
                 _plan.value = it.first
+                _assistedPlan.value = it.second
                 initStep(it.first, it.second)
                 observerStep(it.first, it.second)
             }
         }
     }
+
     // Special case when set up wallet done and login in another device to setup inheritance we should mark all created wallet step to done
     private fun initStep(currentPlan: MembershipPlan, assistedWalletPlan: MembershipPlan) {
         steps.clear()
@@ -128,7 +131,7 @@ class MembershipStepManager @Inject constructor(
     fun isNotConfig() = _stepDone.value.isEmpty()
 
     fun isConfigKeyDone(): Boolean {
-        return if (plan == MembershipPlan.IRON_HAND) {
+        val isConfigKeyDone = if (plan == MembershipPlan.IRON_HAND) {
             _stepDone.value.containsAll(
                 listOf(
                     MembershipStep.ADD_TAP_SIGNER_1,
@@ -146,19 +149,30 @@ class MembershipStepManager @Inject constructor(
                 )
             )
         }
+        return isConfigKeyDone || isServerWalletCreated()
     }
 
     fun isConfigRecoverKeyDone(): Boolean {
-        return isConfigKeyDone() && _stepDone.value.contains(MembershipStep.SETUP_KEY_RECOVERY)
+        val isConfigRecoverKeyDone =
+            isConfigKeyDone() && _stepDone.value.contains(MembershipStep.SETUP_KEY_RECOVERY)
+        return isConfigRecoverKeyDone || isServerWalletCreated()
     }
 
-    fun isCreatedAssistedWalletDone() =
-        isConfigRecoverKeyDone() && _stepDone.value.contains(MembershipStep.CREATE_WALLET)
+    fun isCreatedAssistedWalletDone(): Boolean {
+        val isCreatedAssistedWalletDone =
+            isConfigRecoverKeyDone() && _stepDone.value.contains(MembershipStep.CREATE_WALLET)
+        return isCreatedAssistedWalletDone || isServerWalletCreated()
+    }
+
+    private fun isServerWalletCreated() = _plan.value == _assistedPlan.value
 
     fun getRemainTimeBySteps(querySteps: List<MembershipStep>) =
         calculateRemainTime(steps.toMap().filter { it.key in querySteps }.values)
 
-    fun getTapSignerName() = if (currentStep == MembershipStep.HONEY_ADD_TAP_SIGNER) TAPSIGNER_INHERITANCE_NAME else "TAPSIGNER${getNextKeySuffixByType(SignerType.NFC)}"
+    fun getTapSignerName() =
+        if (currentStep == MembershipStep.HONEY_ADD_TAP_SIGNER) TAPSIGNER_INHERITANCE_NAME else "TAPSIGNER${
+            getNextKeySuffixByType(SignerType.NFC)
+        }"
 
     fun getNextKeySuffixByType(type: SignerType): String {
         val index = stepInfo.value.asSequence().mapNotNull {
@@ -182,7 +196,8 @@ class MembershipStepManager @Inject constructor(
     }
 
     private fun calculateRemainTime(stepFlows: Collection<MembershipStepFlow>) =
-        stepFlows.sumOf { (it.totalStep - it.currentStep).coerceAtLeast(0) * DURATION_EACH_STEP }.roundToInt()
+        stepFlows.sumOf { (it.totalStep - it.currentStep).coerceAtLeast(0) * DURATION_EACH_STEP }
+            .roundToInt()
 
     private fun isStepInThisPlan(step: MembershipStep, plan: MembershipPlan): Boolean {
         return when (plan) {

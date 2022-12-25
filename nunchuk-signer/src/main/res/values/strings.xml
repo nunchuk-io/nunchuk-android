@@ -68,7 +68,7 @@
     <string name="nc_recover_nfc_key">Recover NFC key</string>
     <string name="nc_convert_backup_key_msg">Note that we will convert the NFC key backup into a software key. On the next screens, you will:</string>
     <string name="nc_select_the_encrypted_backup">Select the encrypted backup file</string>
-    <string name="nc_enter_descryption_key_msg">Enter the backup password. You can find it on the back of the card.</string>
+    <string name="nc_enter_descryption_key_msg">Enter the Backup Password. You can find it on the back of the card (it might be listed under “Backup key”).</string>
     <string name="nc_add_new_nfc_key">Add TAPSIGNER</string>
     <string name="nc_recover_nfc_key_from_backup">Recover TAPSIGNER key from backup</string>
     <string name="nc_enter_decryption_key">Enter backup password</string>

@@ -97,7 +97,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         }
         binding.introContainer.setOnDebounceClickListener {
             val stage = walletsViewModel.getGroupStage()
-            if (stage == MembershipStage.SETUP_INHERITANCE) {
+            if (stage == MembershipStage.SETUP_INHERITANCE && walletsViewModel.isRegisterWalletDone()) {
                 navigator.openInheritancePlanningScreen(
                     requireContext(),
                     flowInfo = InheritancePlanFlow.SETUP
