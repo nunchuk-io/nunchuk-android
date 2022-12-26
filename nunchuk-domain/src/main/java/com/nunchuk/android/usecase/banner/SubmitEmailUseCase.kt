@@ -14,5 +14,5 @@ class SubmitEmailUseCase @Inject constructor(
         repository.submitEmail(parameters.bannerId, parameters.email)
     }
 
-    data class Param(val bannerId: String, val email: String)
+    data class Param(val bannerId: String?, val email: String)
 }

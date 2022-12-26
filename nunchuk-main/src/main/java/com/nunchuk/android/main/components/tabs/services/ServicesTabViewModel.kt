@@ -16,9 +16,11 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.banner.GetAssistedWalletPageContentUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
+import com.nunchuk.android.usecase.banner.SubmitEmailUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.InheritanceCheckUseCase
 import com.nunchuk.android.usecase.user.IsSetupInheritanceUseCase
+import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +41,7 @@ class ServicesTabViewModel @Inject constructor(
     private val accountManager: AccountManager,
     private val getAssistedWalletPageContentUseCase: GetAssistedWalletPageContentUseCase,
     private val getBannerUseCase: GetBannerUseCase,
+    private val submitEmailUseCase: SubmitEmailUseCase,
     isSetupInheritanceUseCase: IsSetupInheritanceUseCase,
 ) : ViewModel() {
 
@@ -129,6 +132,7 @@ class ServicesTabViewModel @Inject constructor(
                     isCreatedAssistedWallet = false,
                     plan = MembershipPlan.NONE,
                     isPremiumUser = false,
+                    bannerPage = pageResult.getOrThrow()
                 )
             }
         } else {
@@ -227,4 +231,28 @@ class ServicesTabViewModel @Inject constructor(
             }
         }
     }
+
+    fun submitEmail(email: String) {
+        viewModelScope.launch {
+            if (EmailValidator.valid(email).not()) {
+                _event.emit(ServicesTabEvent.EmailInvalid)
+                return@launch
+            }
+            _event.emit(ServicesTabEvent.Loading(true))
+            val result = submitEmailUseCase(
+                SubmitEmailUseCase.Param(
+                    email = email,
+                    bannerId = null,
+                )
+            )
+            _event.emit(ServicesTabEvent.Loading(false))
+            if (result.isSuccess) {
+                _event.emit(ServicesTabEvent.OnSubmitEmailSuccess(email))
+            } else {
+                _event.emit(ServicesTabEvent.ProcessFailure(result.exceptionOrNull()?.message.orEmpty()))
+            }
+        }
+    }
+
+    fun getEmail() = accountManager.getAccount().email
 }

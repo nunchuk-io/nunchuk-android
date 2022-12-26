@@ -231,8 +231,6 @@ fun RecoveryQuestionScreenContent(
                             text = stringResource(R.string.nc_setup_key_recovery),
                             style = NunchukTheme.typography.heading
                         )
-                    }
-                    item {
                         Text(
                             modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
                             text = stringResource(id = R.string.nc_setup_key_recovery_desc),

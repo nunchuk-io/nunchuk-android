@@ -127,7 +127,7 @@ class SelectWalletViewModel @Inject constructor(
         val result = inheritanceClaimCreateTransactionUseCase(
             InheritanceClaimCreateTransactionUseCase.Param(
                 address = _state.value.selectWalletAddress,
-                feeRate = manualFeeRate.toAmount(),
+                feeRate = _state.value.feeRates.priorityRate.toAmount(),
                 masterSignerId = args.masterSignerId,
                 magic = args.magicalPhrase
             )

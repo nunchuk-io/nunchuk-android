@@ -469,4 +469,5 @@
     <string name="nc_iron_hand">Iron Hand</string>
     <string name="nc_cosign_at">Co-sign at %1$s</string>
     <string name="nc_invalid_network">Invalid network</string>
+    <string name="nc_we_sent_an_email">We sent an email to %1$s</string>
 </resources>

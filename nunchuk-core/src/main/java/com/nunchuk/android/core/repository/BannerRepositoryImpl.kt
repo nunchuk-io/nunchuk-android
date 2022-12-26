@@ -11,7 +11,7 @@ import javax.inject.Inject
 internal class BannerRepositoryImpl @Inject constructor(
     private val api: BannerApi,
 ) : BannerRepository {
-    override suspend fun submitEmail(reminderId: String, email: String) {
+    override suspend fun submitEmail(reminderId: String?, email: String) {
         api.submitEmail(
             SubmitEmailViewAssistedWalletRequest(
                 email = email,
