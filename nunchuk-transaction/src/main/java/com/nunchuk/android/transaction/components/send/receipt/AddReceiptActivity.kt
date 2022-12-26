@@ -98,8 +98,16 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
         transactionConfirmViewModel.event.observe(this, ::handleCreateTransactionEvent)
         observerSweepSatscard(sweepSatscardViewModel, nfcViewModel) { args.walletId }
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_SATSCARD_SWEEP_SLOT }) {
-            sweepSatscardViewModel.init(viewModel.getAddReceiptState().address, estimateFeeViewModel.defaultRate)
-            sweepSatscardViewModel.handleSweepBalance(IsoDep.get(it.tag), nfcViewModel.inputCvc.orEmpty(), args.slots.toList(), args.sweepType)
+            sweepSatscardViewModel.init(
+                viewModel.getAddReceiptState().address,
+                estimateFeeViewModel.defaultRate
+            )
+            sweepSatscardViewModel.handleSweepBalance(
+                IsoDep.get(it.tag),
+                nfcViewModel.inputCvc.orEmpty(),
+                args.slots.toList(),
+                args.sweepType
+            )
             nfcViewModel.clearScanInfo()
         }
     }
@@ -205,6 +213,8 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
         } else {
             val finalAmount = if (amount.value > 0) amount.pureBTC() else args.outputAmount
             val subtractFeeFromAmount = if (amount.value > 0) false else args.subtractFeeFromAmount
+            val manualFeeRate =
+                if (transactionConfirmViewModel.isInheritanceClaimingFlow()) event.estimateFeeRates.priorityRate else event.estimateFeeRates.defaultRate
             transactionConfirmViewModel.init(
                 walletId = args.walletId,
                 sendAmount = finalAmount,
@@ -212,7 +222,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                 privateNote = state.privateNote,
                 subtractFeeFromAmount = subtractFeeFromAmount,
                 slots = args.slots,
-                manualFeeRate = event.estimateFeeRates.defaultRate,
+                manualFeeRate = manualFeeRate,
                 masterSignerId = args.masterSignerId,
                 magicalPhrase = args.magicalPhrase
             )

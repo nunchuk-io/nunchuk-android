@@ -117,6 +117,8 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                     if (args.planFlow == InheritancePlanFlow.VIEW) {
                         showActionOptions()
                     }
+                }, onViewClaimingInstruction = {
+                    requireActivity().openExternalLink("www.nunchuk.io/claiming")
                 })
             }
         }
@@ -220,7 +222,8 @@ fun InheritanceReviewPlanScreen(
     onNotifyPrefClick: (isNotifyToday: Boolean, emails: List<String>) -> Unit,
     onDiscardChange: () -> Unit,
     onShareSecretClicked: () -> Unit,
-    onActionTopBarClick: () -> Unit
+    onActionTopBarClick: () -> Unit,
+    onViewClaimingInstruction: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -248,7 +251,8 @@ fun InheritanceReviewPlanScreen(
         },
         onDiscardChange = onDiscardChange,
         onShareSecretClicked = onShareSecretClicked,
-        onActionTopBarClick = onActionTopBarClick
+        onActionTopBarClick = onActionTopBarClick,
+        onViewClaimingInstruction = onViewClaimingInstruction
     )
 }
 
@@ -268,7 +272,8 @@ fun InheritanceReviewPlanScreenContent(
     onEditActivationDateClick: () -> Unit = {},
     onEditNoteClick: () -> Unit = {},
     onNotifyPrefClick: () -> Unit = {},
-    onActionTopBarClick: () -> Unit = {}
+    onActionTopBarClick: () -> Unit = {},
+    onViewClaimingInstruction: () -> Unit = {}
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -407,6 +412,9 @@ fun InheritanceReviewPlanScreenContent(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .padding(12.dp)
+                                                .clickable {
+                                                    onViewClaimingInstruction()
+                                                }
                                         )
                                     }
                                 }
@@ -497,7 +505,7 @@ fun InheritanceReviewPlanScreenContent(
                                         Spacer(modifier = Modifier.weight(1f))
                                         Text(
                                             text = emails.joinToString("\n")
-                                                .ifEmpty { "" },
+                                                .ifEmpty { "(${stringResource(id = R.string.nc_none)})" },
                                             style = NunchukTheme.typography.title
                                         )
                                     }

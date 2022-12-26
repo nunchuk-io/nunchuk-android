@@ -6,27 +6,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.Modifier
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.util.InheritancePlanFlow
-import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.databinding.FragmentServicesTabBinding
 import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
-import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.share.result.GlobalResultKey
-import com.nunchuk.android.utils.parcelable
-import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
+import com.nunchuk.android.widget.NCVerticalInputDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.HashMap
 
 @AndroidEntryPoint
 class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
@@ -75,6 +70,8 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                         showUnPaid()
                     }
                 }
+                is ServicesTabEvent.EmailInvalid -> showError(getString(R.string.nc_text_email_invalid))
+                is ServicesTabEvent.OnSubmitEmailSuccess -> showSuccess(message = getString(R.string.nc_we_sent_an_email, event.email))
             }
         }
         flowObserver(viewModel.state) { state ->
@@ -85,6 +82,25 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 binding.claimLayout.isVisible = state.isPremiumUser.not()
             }
         }
+    }
+
+    private fun handleGoOurWebsite() {
+        requireActivity().openExternalLink("https://nunchuk.io")
+    }
+
+    private fun showTellMeMoreDialog() {
+        NCVerticalInputDialog(requireContext()).showDialog(
+            title = getString(R.string.nc_enter_your_email),
+            positiveText = getString(R.string.nc_send_me_the_info),
+            negativeText = getString(R.string.nc_visit_our_website),
+            neutralText = getString(R.string.nc_text_do_this_later),
+            defaultInput = viewModel.getEmail(),
+            cancellable = true,
+            onPositiveClicked = {
+                viewModel.submitEmail(it)
+            },
+            onNegativeClicked = ::handleGoOurWebsite
+        )
     }
 
     private fun handleCheckPasswordSuccess(event: ServicesTabEvent.CheckPasswordSuccess) {
@@ -124,6 +140,12 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             } else {
                 navigator.openSignInScreen(requireActivity(), isNeedNewTask = false)
             }
+        }
+        binding.btnTellMore.setOnDebounceClickListener {
+            showTellMeMoreDialog()
+        }
+        binding.btnVisitWebsite.setOnDebounceClickListener {
+            handleGoOurWebsite()
         }
     }
 
@@ -173,12 +195,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             message = getString(R.string.nc_unpaid_security_deposit),
             btnYes = getString(R.string.nc_take_me_there),
             btnInfo = getString(R.string.nc_text_got_it),
-            onInfoClick = {
-
-            },
-            onYesClick = {
-
-            }
+            onYesClick = ::handleGoOurWebsite
         )
     }
 
@@ -221,7 +238,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             btnInfo = getString(R.string.nc_take_me_to_the_website),
             message = getString(R.string.nc_manage_subscription_desc),
             onInfoClick = {
-
+                requireActivity().openExternalLink("https://stg-www.nunchuk.io/my-plan")
             })
     }
 
@@ -230,7 +247,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             btnInfo = getString(R.string.nc_take_me_to_the_website),
             message = getString(R.string.nc_order_new_hardware_desc),
             onInfoClick = {
-
+                requireActivity().openExternalLink("https://stg-www.nunchuk.io/hardware-replacement")
             })
     }
 }

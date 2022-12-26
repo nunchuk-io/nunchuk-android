@@ -6,5 +6,5 @@ data class SubmitEmailViewAssistedWalletRequest(
     @SerializedName("email")
     val email: String,
     @SerializedName("reminder_id")
-    val reminderId: String,
+    val reminderId: String?,
 )

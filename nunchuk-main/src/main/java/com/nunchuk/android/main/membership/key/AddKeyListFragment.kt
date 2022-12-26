@@ -288,34 +288,41 @@ fun AddKeyListContent(
                     .navigationBarsPadding()
             ) {
                 NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainingTime))
-                Text(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_let_add_your_keys),
-                    style = NunchukTheme.typography.heading
-                )
-                Text(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    text = buildAnnotatedString {
-                        append(stringResource(id = R.string.nc_add_key_list_desc_one, keys.size))
-                        append(" ")
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
-                            append(stringResource(id = R.string.nc_add_key_list_desc_two))
-                        }
-                        append(stringResource(id = R.string.nc_add_key_list_desc_three))
-                        if (keys.size > 3) {
-                            append("\n\n")
-                            append(stringResource(R.string.nc_among_three_key_select_inheritance))
-                        }
-                    },
-                    style = NunchukTheme.typography.body
-                )
                 LazyColumn(
                     modifier = Modifier
                         .weight(1.0f)
-                        .padding(top = 24.dp)
+                        .padding(top = 16.dp)
                         .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    item {
+                        Text(
+                            text = stringResource(R.string.nc_let_add_your_keys),
+                            style = NunchukTheme.typography.heading
+                        )
+                        Text(
+                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
+                            text = buildAnnotatedString {
+                                append(
+                                    stringResource(
+                                        id = R.string.nc_add_key_list_desc_one,
+                                        keys.size
+                                    )
+                                )
+                                append(" ")
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
+                                    append(stringResource(id = R.string.nc_add_key_list_desc_two))
+                                }
+                                append(stringResource(id = R.string.nc_add_key_list_desc_three))
+                                if (keys.size > 3) {
+                                    append("\n\n")
+                                    append(stringResource(R.string.nc_among_three_key_select_inheritance))
+                                }
+                            },
+                            style = NunchukTheme.typography.body
+                        )
+                    }
+
                     items(keys) { key ->
                         AddKeyCard(
                             item = key,

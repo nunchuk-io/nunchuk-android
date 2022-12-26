@@ -90,24 +90,22 @@ private fun InheritanceShareSecretInfoContent(
                     .padding(innerPadding)
                     .navigationBarsPadding()
             ) {
-                NcImageAppBar(
-                    backgroundRes = R.drawable.nc_bg_tap_signer_explain,
-                    title = stringResource(
-                        id = R.string.nc_estimate_remain_time,
-                        remainTime
-                    ),
-                )
-                val typeDesc = when (type) {
-                    InheritanceShareSecretType.DIRECT.ordinal -> stringResource(id = R.string.nc_inheritance_share_secret_info_title_direct)
-                    InheritanceShareSecretType.INDIRECT.ordinal -> stringResource(id = R.string.nc_inheritance_share_secret_info_title_indirect)
-                    InheritanceShareSecretType.JOINT_CONTROL.ordinal -> stringResource(id = R.string.nc_inheritance_share_secret_info_title_joint_control)
-                    else -> ""
-                }
-                LazyColumn(
-                    modifier = Modifier.weight(1.0f),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
+                LazyColumn {
                     item {
+                        NcImageAppBar(
+                            backgroundRes = R.drawable.nc_bg_tap_signer_explain,
+                            title = stringResource(
+                                id = R.string.nc_estimate_remain_time,
+                                remainTime
+                            ),
+                        )
+                        val typeDesc = when (type) {
+                            InheritanceShareSecretType.DIRECT.ordinal -> stringResource(id = R.string.nc_inheritance_share_secret_info_title_direct)
+                            InheritanceShareSecretType.INDIRECT.ordinal -> stringResource(id = R.string.nc_inheritance_share_secret_info_title_indirect)
+                            InheritanceShareSecretType.JOINT_CONTROL.ordinal -> stringResource(id = R.string.nc_inheritance_share_secret_info_title_joint_control)
+                            else -> ""
+                        }
+
                         NcHighlightText(
                             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                             text = typeDesc,
@@ -143,11 +141,13 @@ private fun InheritanceShareSecretInfoContent(
 
                         NCLabelWithIndex(
                             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                            index = 1,
+                            index = 2,
                             label = stringResource(R.string.nc_inheritance_share_secret_info_2),
                         )
                     }
+
                 }
+
                 val warningDesc = when (type) {
                     InheritanceShareSecretType.DIRECT.ordinal -> stringResource(id = R.string.nc_beneficiary)
                     InheritanceShareSecretType.INDIRECT.ordinal -> stringResource(id = R.string.nc_trustee)

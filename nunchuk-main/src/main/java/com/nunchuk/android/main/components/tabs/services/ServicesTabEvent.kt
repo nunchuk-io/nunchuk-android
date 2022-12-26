@@ -1,6 +1,7 @@
 package com.nunchuk.android.main.components.tabs.services
 
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.nonsubscriber.intro.NonSubscriberIntroEvent
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.banner.BannerPage
@@ -20,6 +21,8 @@ sealed class ServicesTabEvent {
     data class LoadingEvent(val isLoading: Boolean) : ServicesTabEvent()
     data class CreateSupportRoomSuccess(val roomId: String) : ServicesTabEvent()
     data class CheckInheritance(val inheritanceCheck: InheritanceCheck) : ServicesTabEvent()
+    object EmailInvalid : ServicesTabEvent()
+    data class OnSubmitEmailSuccess(val email: String) : ServicesTabEvent()
 }
 
 data class ServicesTabState(
