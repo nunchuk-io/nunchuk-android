@@ -222,7 +222,7 @@
     <string name="nc_configure_server_key_intro_question">What is the Nunchuk platform key?</string>
     <string name="nc_configure_server_key_intro_desc">This key will be managed by our secure server. It automatically co-signs transactions based on the policies that you will configure in the next step.</string>
     <string name="nc_configure_server_key_intro_info">The Nunchuk server will never initiate or be the first one to sign a transaction.</string>
-    <string name="nc_configure_server_key_setting_cosigning_delay">Configure co-signing delay</string>
+    <string name="nc_configure_server_key_setting_cosigning_delay">Configure broadcast &amp; delay policies</string>
     <string name="nc_configure_server_key_setting_auto_broadcast">Automatically broadcast transaction after co-signing</string>
     <string name="nc_configure_server_key_setting_enable_cosigning_title">Enable co-signing delay</string>
     <string name="nc_configure_server_key_setting_enable_cosigning_desc">A co-signing delay gives you time to detect errors or unauthorized access before a transaction is broadcast.</string>
@@ -294,7 +294,7 @@
     <string name="nc_among_three_key_select_inheritance">Among your three keys, select one key to be the inheritance key. It must be a TAPSIGNER.</string>
     <string name="nc_what_type_of_hardware_want_to_add">What type of hardware key do you want to add?</string>
     <string name="nc_cosigning_spending_limit">Co-signing spending limit</string>
-    <string name="nc_update_cosigning_delay">Update co-signing delay</string>
+    <string name="nc_update_cosigning_delay">Update policies</string>
     <string name="nc_update_spending_limit">Update spending limit</string>
     <string name="nc_are_you_sure_discard_the_change">Are you sure want to discard the changes?</string>
     <string name="nc_backup_uploaded_successfully">The backup was uploaded successfully</string>
@@ -468,4 +468,5 @@
     <string name="nc_honey_badger">Honey Badger</string>
     <string name="nc_iron_hand">Iron Hand</string>
     <string name="nc_cosign_at">Co-sign at %1$s</string>
+    <string name="nc_invalid_network">Invalid network</string>
 </resources>

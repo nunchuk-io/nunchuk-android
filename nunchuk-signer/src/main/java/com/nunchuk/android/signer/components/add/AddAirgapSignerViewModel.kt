@@ -24,6 +24,7 @@ import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.signer.InvalidSignerFormatException
 import com.nunchuk.android.core.signer.SignerInput
 import com.nunchuk.android.core.signer.toSigner
@@ -36,6 +37,8 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.*
+import com.nunchuk.android.signer.util.isTestNetPath
+import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreatePassportSignersUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
@@ -47,6 +50,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
@@ -65,10 +69,18 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val gson: Gson,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val getAppSettingUseCase: GetAppSettingUseCase,
 ) : NunchukViewModel<Unit, AddAirgapSignerEvent>() {
     private val qrDataList = HashSet<String>()
     private var isProcessing = false
     override val initialState = Unit
+    private var chain: Chain = Chain.MAIN
+
+    init {
+        viewModelScope.launch {
+            chain = getAppSettingUseCase.execute().first().chain
+        }
+    }
 
     private val _signers = mutableListOf<SingleSigner>()
     val signers: List<SingleSigner>
@@ -183,7 +195,11 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                         clear()
                         addAll(result.getOrThrow())
                     }
-                    setEvent(ParseKeystoneAirgapSignerSuccess(result.getOrThrow()))
+                    if (chain == Chain.MAIN && _signers.any { isTestNetPath(it.derivationPath) }) {
+                        setEvent(ErrorMk4TestNet)
+                    } else {
+                        setEvent(ParseKeystoneAirgapSignerSuccess(result.getOrThrow()))
+                    }
                 } else {
                     setEvent(AddAirgapSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
                 }

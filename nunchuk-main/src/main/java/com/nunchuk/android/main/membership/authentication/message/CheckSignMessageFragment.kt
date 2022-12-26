@@ -104,7 +104,7 @@ class CheckSignMessageFragment : Fragment() {
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_GENERATE_HEAL_CHECK_MSG }) { scanInfo ->
             walletAuthenticationViewModel.getInteractSingleSigner()?.let { signer ->
                 walletAuthenticationViewModel.generateColdcardHealthMessages(
-                    Ndef.get(scanInfo.tag),
+                    Ndef.get(scanInfo.tag) ?: return@flowObserver,
                     signer.derivationPath
                 )
             }

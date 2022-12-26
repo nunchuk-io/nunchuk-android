@@ -114,4 +114,5 @@
     <string name="nc_self_verify_hint">For details on how to use openssl for verification, visit</string>
     <string name="nc_share_your_secrets">Share your secrets</string>
     <string name="nc_view_claiming_instructions">View claiming instructions</string>
+    <string name="nc_error_device_in_testnet_msg">It looks like your device is in testnet mode. Please change it back to mainnet before continuing.</string>
 </resources>

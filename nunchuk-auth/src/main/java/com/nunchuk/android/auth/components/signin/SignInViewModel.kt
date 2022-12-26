@@ -26,7 +26,6 @@ import com.nunchuk.android.auth.domain.SignInUseCase
 import com.nunchuk.android.auth.util.orUnknownError
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.domain.account.ClearDataStoreUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.network.NunchukApiException
@@ -53,7 +52,6 @@ internal class SignInViewModel @Inject constructor(
     private val accountManager: AccountManager,
     private val signInModeHolder: SignInModeHolder,
     private val getPrimaryKeyListUseCase: GetPrimaryKeyListUseCase,
-    private val clearDataStoreUseCase: ClearDataStoreUseCase,
     @Named(DEFAULT_RETRY_POLICY) private val retryPolicy: RetryPolicy
 ) : NunchukViewModel<Unit, SignInEvent>() {
 
@@ -63,12 +61,6 @@ internal class SignInViewModel @Inject constructor(
 
     private var token: String? = null
     private var encryptedDeviceId: String? = null
-
-    init {
-        viewModelScope.launch {
-            clearDataStoreUseCase(Unit)
-        }
-    }
 
     private fun validateEmail(email: String) = when {
         email.isBlank() -> doAfterValidate(false) { event(EmailRequiredEvent) }

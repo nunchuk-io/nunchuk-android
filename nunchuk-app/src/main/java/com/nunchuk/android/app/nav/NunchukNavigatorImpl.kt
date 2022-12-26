@@ -25,7 +25,6 @@ import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.jakewharton.processphoenix.ProcessPhoenix
 import com.nunchuk.android.QuickWalletNavigationDirections
 import com.nunchuk.android.app.intro.GuestModeIntroActivity
 import com.nunchuk.android.app.intro.GuestModeMessageIntroActivity
@@ -109,10 +108,10 @@ internal class NunchukNavigatorImpl @Inject constructor(
 interface AppNavigatorDelegate : AppNavigator {
 
     override fun restartApp(activityContext: Context) {
-        ProcessPhoenix.triggerRebirth(
-            activityContext,
-            Intent(activityContext, SplashActivity::class.java)
-        )
+        val intent = Intent(activityContext, SplashActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        }
+        activityContext.startActivity(intent)
     }
 
     override fun openMembershipActivity(

@@ -147,7 +147,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_GENERATE_HEAL_CHECK_MSG }) { scanInfo ->
             viewModel.state.value?.remoteSigner?.let { signer ->
                 viewModel.generateColdcardHealthMessages(
-                    Ndef.get(scanInfo.tag),
+                    Ndef.get(scanInfo.tag) ?: return@flowObserver,
                     signer.derivationPath
                 )
             }

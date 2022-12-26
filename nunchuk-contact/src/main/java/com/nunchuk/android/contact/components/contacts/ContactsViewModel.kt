@@ -35,7 +35,6 @@ import com.nunchuk.android.share.GetContactsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -62,7 +61,7 @@ class ContactsViewModel @Inject constructor(
     init {
         loadActiveSession()
         viewModelScope.launch {
-            timelineListenerAdapter.data.debounce(500L).collect(::handleTimelineEvents)
+            timelineListenerAdapter.data.collect(::handleTimelineEvents)
         }
     }
 
@@ -108,6 +107,8 @@ class ContactsViewModel @Inject constructor(
         }
     }
 
+    fun noticeRoomEvent() = timelineListenerAdapter.data
+
     private fun onUpdateReceivedContactRequestCount(count: Int) = updateState {
         copy(receivedContactRequestCount = count)
     }
@@ -140,5 +141,4 @@ class ContactsViewModel @Inject constructor(
         }
         super.onCleared()
     }
-
 }

@@ -16,6 +16,7 @@ import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
@@ -41,7 +42,7 @@ class Mk4IntroViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
     val remainTime = membershipStepManager.remainingTime
-    var chain: Chain = Chain.MAIN
+    private var chain: Chain = Chain.MAIN
 
     private val _mk4Signers = mutableListOf<SingleSigner>()
 
@@ -105,7 +106,11 @@ class Mk4IntroViewModel @Inject constructor(
                         clear()
                         addAll(result.getOrThrow())
                     }
-                    _event.emit(Mk4IntroViewEvent.LoadMk4SignersSuccess(_mk4Signers))
+                    if (chain == Chain.MAIN && _mk4Signers.any { isTestNetPath(it.derivationPath) }) {
+                        _event.emit(Mk4IntroViewEvent.ErrorMk4TestNet)
+                    } else {
+                        _event.emit(Mk4IntroViewEvent.LoadMk4SignersSuccess(_mk4Signers))
+                    }
                 }
             } else {
                 _event.emit(Mk4IntroViewEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))

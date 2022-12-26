@@ -231,10 +231,6 @@ ext {
             runtimeKtx: "androidx.paging:paging-runtime-ktx:$pagingVersion"
     ]
 
-    triggerRestartDeps = [
-            core: "com.jakewharton:process-phoenix:$triggerRestartVersion"
-    ]
-
     composeDeps = [
             'composeUi'              : "androidx.compose.ui:ui:$compose",
             'composeUiTool'          : "androidx.compose.ui:ui-tooling:$compose",

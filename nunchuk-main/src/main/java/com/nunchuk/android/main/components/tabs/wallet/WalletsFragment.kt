@@ -15,6 +15,7 @@ import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
+import com.nunchuk.android.contact.components.contacts.ContactsViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
@@ -31,6 +32,8 @@ import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
 import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
 import com.nunchuk.android.main.intro.UniversalNfcIntroActivity
 import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
+import com.nunchuk.android.messages.util.SUBSCRIPTION_UPDATE
+import com.nunchuk.android.messages.util.getMsgType
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.banner.Banner
@@ -43,6 +46,7 @@ import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningVerticalDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.filter
 import javax.inject.Inject
 
@@ -53,6 +57,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     lateinit var accountManager: AccountManager
 
     private val walletsViewModel: WalletsViewModel by activityViewModels()
+
+    private val contactViewModel: ContactsViewModel by activityViewModels()
 
     private val mainActivityViewModel: MainActivityViewModel by activityViewModels()
 
@@ -66,6 +72,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                 (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_AUTO_CARD_STATUS)
             }
         }
+
+    private var listenSubscriptionJob: Job? = null
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -149,6 +157,16 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         walletsViewModel.state.observe(viewLifecycleOwner, ::showWalletState)
         walletsViewModel.event.observe(viewLifecycleOwner, ::handleEvent)
         mainActivityViewModel.event.observe(viewLifecycleOwner, ::handleMainActivityEvent)
+        if (walletsViewModel.state.value?.isPremiumUser != true) {
+            flowObserver(contactViewModel.noticeRoomEvent()) {
+                it.forEach { event ->
+                    if (event.getMsgType() == SUBSCRIPTION_UPDATE
+                        && walletsViewModel.isPremiumUser().not()) {
+                        walletsViewModel.checkMemberMembership()
+                    }
+                }
+            }
+        }
         flowObserver(
             nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_AUTO_CARD_STATUS }) {
             walletsViewModel.getSatsCardStatus(IsoDep.get(it.tag))
@@ -247,6 +265,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         showSigners(state.signers)
         showConnectionBlockchainStatus(state)
         showIntro(state)
+        if (state.isPremiumUser == true) listenSubscriptionJob?.cancel()
     }
 
     private fun showConnectionBlockchainStatus(state: WalletsState) {

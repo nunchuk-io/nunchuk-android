@@ -36,6 +36,7 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 
@@ -85,6 +86,11 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                 )
                 Mk4IntroViewEvent.OnCreateSignerSuccess -> requireActivity().finish()
                 Mk4IntroViewEvent.OnSignerExistInAssistedWallet -> showError(getString(R.string.nc_error_add_same_key))
+                Mk4IntroViewEvent.ErrorMk4TestNet -> NCInfoDialog(requireActivity())
+                    .showDialog(
+                        title = getString(R.string.nc_invalid_network),
+                        message = getString(R.string.nc_error_device_in_testnet_msg)
+                    )
             }
         }
     }

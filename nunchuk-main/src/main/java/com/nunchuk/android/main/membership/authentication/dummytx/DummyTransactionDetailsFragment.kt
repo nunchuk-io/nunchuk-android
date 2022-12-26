@@ -148,7 +148,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentTransactionDetailsB
         }
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_MK4_EXPORT_TRANSACTION }) { scanInfo ->
-            walletAuthenticationViewModel.handleExportTransactionToMk4(Ndef.get(scanInfo.tag))
+            walletAuthenticationViewModel.handleExportTransactionToMk4(Ndef.get(scanInfo.tag) ?: return@flowObserver)
             nfcViewModel.clearScanInfo()
         }
 

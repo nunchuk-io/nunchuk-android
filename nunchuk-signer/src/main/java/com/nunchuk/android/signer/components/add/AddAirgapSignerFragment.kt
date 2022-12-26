@@ -37,6 +37,7 @@ import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.*
 import com.nunchuk.android.signer.databinding.FragmentAddSignerBinding
 import com.nunchuk.android.utils.parcelableArrayList
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.heightExtended
 import com.nunchuk.android.widget.util.setMaxLength
@@ -105,6 +106,11 @@ class AddAirgapSignerFragment : BaseFragment<FragmentAddSignerBinding>(),
                 is ParseKeystoneAirgapSignerSuccess -> handleResult(it.signers)
                 is ParseKeystoneAirgapSigner -> openSignerSheet(it.signers)
                 AddSameKey -> showError(getString(R.string.nc_error_add_same_key))
+                ErrorMk4TestNet -> NCInfoDialog(requireActivity())
+                    .showDialog(
+                        title = getString(R.string.nc_invalid_network),
+                        message = getString(R.string.nc_error_device_in_testnet_msg)
+                    )
             }
         }
     }

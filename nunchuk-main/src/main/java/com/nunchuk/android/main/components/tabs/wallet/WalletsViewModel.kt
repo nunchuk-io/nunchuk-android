@@ -97,7 +97,7 @@ internal class WalletsViewModel @Inject constructor(
         }
     }
 
-    private fun checkMemberMembership() {
+    fun checkMemberMembership() {
         viewModelScope.launch {
             val result = getUserSubscriptionUseCase(Unit)
             if (result.isSuccess) {
@@ -265,4 +265,6 @@ internal class WalletsViewModel @Inject constructor(
     fun isRegisterWalletDone() = isRegisterAirgap.value && isRegisterColdcard.value
 
     fun getKeyPolicy(walletId: String) = keyPolicyMap[walletId]
+
+    fun isPremiumUser() = getState().isPremiumUser == true
 }

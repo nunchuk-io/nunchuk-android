@@ -143,7 +143,7 @@ fun ConfigureServerKeySettingScreenContent(
                     ) else "",
                 )
                 Text(
-                    modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_configure_server_key_setting_cosigning_delay),
                     style = NunchukTheme.typography.heading
                 )

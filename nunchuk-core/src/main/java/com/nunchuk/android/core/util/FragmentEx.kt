@@ -27,12 +27,11 @@ import com.nunchuk.android.widget.NCToastMessage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 
-fun <T> Fragment.flowObserver(flow: Flow<T>, collector: FlowCollector<T>) {
+fun <T> Fragment.flowObserver(flow: Flow<T>, collector: FlowCollector<T>) =
     viewLifecycleOwner.lifecycleScope.launchWhenStarted {
         flow.flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
             .collect(collector)
     }
-}
 
 fun Fragment.showError(message: String?) {
     if (message.isNullOrEmpty().not()) {
