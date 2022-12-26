@@ -153,7 +153,6 @@ sealed class ServiceTabViewHolder(itemView: View) : ViewHolder(itemView) {
             binding.containerNonSubscriber.tag = item.id
             Glide.with(binding.ivNonSubscriber)
                 .load(item.url)
-                .override(binding.ivNonSubscriber.width)
                 .into(binding.ivNonSubscriber)
             binding.tvNonSubscriber.text = item.title
         }
@@ -177,7 +176,6 @@ sealed class ServiceTabViewHolder(itemView: View) : ViewHolder(itemView) {
             binding.tvDesc.text = item.desc
             Glide.with(binding.image)
                 .load(item.url)
-                .override(binding.image.width)
                 .into(binding.image)
         }
     }
