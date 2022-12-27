@@ -30,6 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
@@ -50,7 +51,7 @@ class InheritanceNoteFragment : MembershipFragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                InheritanceNoteScreen(viewModel)
+                InheritanceNoteScreen(viewModel, args)
             }
         }
     }
@@ -90,7 +91,8 @@ class InheritanceNoteFragment : MembershipFragment() {
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun InheritanceNoteScreen(
-    viewModel: InheritanceNoteViewModel = viewModel()
+    viewModel: InheritanceNoteViewModel = viewModel(),
+    args: InheritanceNoteFragmentArgs,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -98,6 +100,8 @@ fun InheritanceNoteScreen(
     InheritanceNoteScreenContent(
         remainTime = remainTime,
         note = state.note,
+        planFlow = args.planFlow,
+        isUpdateRequest = args.isUpdateRequest,
         onContinueClick = viewModel::onContinueClicked,
         onTextChange = viewModel::updateNote
     )
@@ -108,6 +112,8 @@ fun InheritanceNoteScreen(
 fun InheritanceNoteScreenContent(
     remainTime: Int = 0,
     note: String = "",
+    planFlow: Int = InheritancePlanFlow.NONE,
+    isUpdateRequest: Boolean = false,
     onContinueClick: () -> Unit = {},
     onTextChange: (value: String) -> Unit = {}
 ) {
@@ -119,12 +125,12 @@ fun InheritanceNoteScreenContent(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                NcTopAppBar(
-                    title = stringResource(
-                        id = R.string.nc_estimate_remain_time,
-                        remainTime
-                    ),
-                )
+                val isSetupFlow = planFlow == InheritancePlanFlow.SETUP && isUpdateRequest.not()
+                val title = if (isSetupFlow) stringResource(
+                    id = R.string.nc_estimate_remain_time,
+                    remainTime
+                ) else ""
+                NcTopAppBar(title = title)
                 Text(
                     modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_inheritance_leave_message),
@@ -191,14 +197,29 @@ fun InheritanceNoteScreenContent(
                     })
 
                 Spacer(modifier = Modifier.weight(1.0f))
-
+                val continueBtnText =
+                    if (isSetupFlow) stringResource(id = R.string.nc_text_continue) else stringResource(
+                        id = R.string.nc_update_message
+                    )
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
+                    enabled = note.isNotBlank(),
                     onClick = onContinueClick,
                 ) {
-                    Text(text = stringResource(id = R.string.nc_update_message))
+                    Text(text = continueBtnText)
+                }
+                if (isSetupFlow) {
+                    NcOutlineButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = 16.dp),
+                        onClick = onContinueClick,
+                    ) {
+                        Text(text = stringResource(R.string.nc_text_skip))
+                    }
                 }
             }
         }

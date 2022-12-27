@@ -27,7 +27,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
@@ -87,14 +86,16 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                     findNavController().navigate(
                         InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceActivationDateFragment(
                             isUpdateRequest = true,
-                            selectedActivationDate = it
+                            selectedActivationDate = it,
+                            planFlow = args.planFlow
                         )
                     )
                 }, onEditNoteClick = {
                     findNavController().navigate(
                         InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceNoteFragment(
                             isUpdateRequest = true,
-                            preNoted = it
+                            preNoted = it,
+                            planFlow = args.planFlow
                         )
                     )
                 }, onNotifyPrefClick = { isNotify, emails ->
@@ -102,7 +103,8 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                         InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceNotifyPrefFragment(
                             isUpdateRequest = true,
                             preIsNotify = isNotify,
-                            preEmails = emails.toTypedArray()
+                            preEmails = emails.toTypedArray(),
+                            planFlow = args.planFlow
                         )
                     )
                 }, onDiscardChange = {
@@ -118,7 +120,7 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                         showActionOptions()
                     }
                 }, onViewClaimingInstruction = {
-                    requireActivity().openExternalLink("www.nunchuk.io/claiming")
+                    requireActivity().openExternalLink("https://nunchuk.io/claiming")
                 })
             }
         }
@@ -287,19 +289,23 @@ fun InheritanceReviewPlanScreenContent(
                         .background(colorResource(id = R.color.nc_denim_tint_color))
                         .statusBarsPadding()
                 ) {
+                    val title = if (planFlow == InheritancePlanFlow.SETUP) stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    ) else ""
                     NcTopAppBar(
                         backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
-                        title = stringResource(
-                            id = R.string.nc_estimate_remain_time, remainTime
-                        ),
+                        title = title,
                         actions = {
                             IconButton(onClick = {
                                 onActionTopBarClick()
                             }) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_more_horizontal),
-                                    contentDescription = "More"
-                                )
+                                if (planFlow != InheritancePlanFlow.SETUP) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_more_horizontal),
+                                        contentDescription = "More"
+                                    )
+                                }
                             }
                         }
                     )

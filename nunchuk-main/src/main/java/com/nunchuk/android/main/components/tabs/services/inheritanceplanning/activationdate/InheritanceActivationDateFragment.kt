@@ -22,7 +22,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.os.bundleOf
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
@@ -51,9 +50,11 @@ class InheritanceActivationDateFragment : MembershipFragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                InheritanceActivationDateScreen(viewModel, onDatePicker = {
-                    showDatePicker()
-                })
+                InheritanceActivationDateScreen(viewModel,
+                    args,
+                    onDatePicker = {
+                        showDatePicker()
+                    })
             }
         }
     }
@@ -102,6 +103,7 @@ class InheritanceActivationDateFragment : MembershipFragment() {
 @Composable
 fun InheritanceActivationDateScreen(
     viewModel: InheritanceActivationDateViewModel = viewModel(),
+    args: InheritanceActivationDateFragmentArgs,
     onDatePicker: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -111,6 +113,8 @@ fun InheritanceActivationDateScreen(
     InheritanceActivationDateScreenContent(
         remainTime = remainTime,
         date = date,
+        planFlow = args.planFlow,
+        isUpdateRequest = args.isUpdateRequest,
         onContinueClick = {
             viewModel.onContinueClicked()
         }, onDatePick = {
@@ -122,6 +126,8 @@ fun InheritanceActivationDateScreen(
 fun InheritanceActivationDateScreenContent(
     remainTime: Int = 0,
     date: String = "",
+    planFlow: Int = InheritancePlanFlow.NONE,
+    isUpdateRequest: Boolean = false,
     onContinueClick: () -> Unit = {},
     onDatePick: () -> Unit = {}
 ) {
@@ -133,12 +139,12 @@ fun InheritanceActivationDateScreenContent(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                NcTopAppBar(
-                    title = stringResource(
-                        id = R.string.nc_estimate_remain_time,
-                        remainTime
-                    ),
-                )
+                val isSetupFlow = planFlow == InheritancePlanFlow.SETUP && isUpdateRequest.not()
+                val title = if (isSetupFlow) stringResource(
+                    id = R.string.nc_estimate_remain_time,
+                    remainTime
+                ) else ""
+                NcTopAppBar(title = title)
                 Text(
                     modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_set_up_activation_date),
@@ -197,6 +203,10 @@ fun InheritanceActivationDateScreenContent(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     messages = listOf(ClickAbleText(content = stringResource(R.string.nc_set_up_activation_date_notice)))
                 )
+                val continueBtnText =
+                    if (isSetupFlow) stringResource(id = R.string.nc_text_continue) else stringResource(
+                        id = R.string.nc_update_activation_date
+                    )
 
                 NcPrimaryDarkButton(
                     modifier = Modifier
@@ -205,7 +215,7 @@ fun InheritanceActivationDateScreenContent(
                     onClick = onContinueClick,
                     enabled = date.isNotBlank()
                 ) {
-                    Text(text = stringResource(id = R.string.nc_update_activation_date))
+                    Text(text = continueBtnText)
                 }
             }
         }
