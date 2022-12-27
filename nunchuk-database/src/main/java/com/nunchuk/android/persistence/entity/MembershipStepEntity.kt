@@ -8,6 +8,7 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.persistence.TABLE_MEMBERSHIP_STEP
+import com.nunchuk.android.type.Chain
 
 @Entity(tableName = TABLE_MEMBERSHIP_STEP)
 data class MembershipStepEntity(
@@ -28,6 +29,8 @@ data class MembershipStepEntity(
     val extraJson: String = "",
     @ColumnInfo(name = "is_verify")
     val verifyType: VerifyType = VerifyType.NONE,
+    @ColumnInfo(name = "chain")
+    val chain: Chain,
     @ColumnInfo(name = "plan")
     val plan: MembershipPlan
 )

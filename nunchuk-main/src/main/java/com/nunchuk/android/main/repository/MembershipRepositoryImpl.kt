@@ -14,9 +14,8 @@ import com.nunchuk.android.persistence.updateOrInsert
 import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.*
 import java.util.*
 import javax.inject.Inject
 
@@ -28,9 +27,11 @@ class MembershipRepositoryImpl @Inject constructor(
     private val gson: Gson,
     private val ncDataStore: NcDataStore,
     private val ncSharePreferences: NCSharePreferences,
+    private val applicationScope: CoroutineScope,
 ) : MembershipRepository {
+    private val chain = ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
     override fun getSteps(plan: MembershipPlan): Flow<List<MembershipStepInfo>> {
-        return membershipStepDao.getSteps(accountManager.getAccount().chatId, plan)
+        return ncDataStore.chain.flatMapLatest { chain -> membershipStepDao.getSteps(accountManager.getAccount().chatId, chain, plan) }
             .map {
                 it.map { entity -> entity.toModel() }
             }
@@ -46,13 +47,14 @@ class MembershipRepositoryImpl @Inject constructor(
                 id = info.id,
                 extraJson = info.extraData,
                 keyIdInServer = info.keyIdInServer,
-                plan = info.plan
+                plan = info.plan,
+                chain = chain.value
             )
         )
     }
 
     override suspend fun deleteStepBySignerId(masterSignerId: String) {
-        membershipStepDao.deleteByMasterSignerId(accountManager.getAccount().chatId, masterSignerId)
+        membershipStepDao.deleteByMasterSignerId(accountManager.getAccount().chatId, chain.value, masterSignerId)
     }
 
     override suspend fun getSubscription(): MemberSubscription {
@@ -95,7 +97,7 @@ class MembershipRepositoryImpl @Inject constructor(
                     }
                 }
         }
-        membershipStepDao.deleteStepByEmail(accountManager.getAccount().chatId)
+        membershipStepDao.deleteStepByEmail(chain.value, accountManager.getAccount().chatId)
     }
 
     override fun getLocalCurrentPlan(): Flow<MembershipPlan> = ncDataStore.membershipPlan

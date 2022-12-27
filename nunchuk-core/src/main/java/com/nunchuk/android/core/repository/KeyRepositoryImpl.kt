@@ -4,15 +4,20 @@ import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.manager.UserWalletApiManager
+import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.model.*
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.entity.MembershipStepEntity
 import com.nunchuk.android.persistence.updateOrInsert
 import com.nunchuk.android.repository.KeyRepository
+import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.stateIn
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -31,7 +36,11 @@ internal class KeyRepositoryImpl @Inject constructor(
     private val membershipDao: MembershipStepDao,
     private val nfcFileManager: NfcFileManager,
     private val gson: Gson,
+    ncDataStore: NcDataStore,
+    applicationScope: CoroutineScope,
 ) : KeyRepository {
+    private val chain = ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
+
     override fun uploadBackupKey(
         step: MembershipStep,
         keyName: String,
@@ -81,7 +90,8 @@ internal class KeyRepositoryImpl @Inject constructor(
                         )
                     ),
                     verifyType = verifyType,
-                    plan = plan
+                    plan = plan,
+                    chain = chain.value
                 )
                 membershipDao.updateOrInsert(info)
                 send(KeyUpload.Progress(100))
@@ -104,7 +114,11 @@ internal class KeyRepositoryImpl @Inject constructor(
 
     override suspend fun setKeyVerified(masterSignerId: String, isAppVerify: Boolean) {
         val stepInfo =
-            membershipDao.getStepByMasterSignerId(accountManager.getAccount().chatId, masterSignerId)
+            membershipDao.getStepByMasterSignerId(
+                email = accountManager.getAccount().chatId,
+                chain = chain.value,
+                masterSignerId = masterSignerId
+            )
                 ?: throw NullPointerException("Can not mark key verified $masterSignerId")
         val response =
             userWalletApiManager.walletApi.setKeyVerified(

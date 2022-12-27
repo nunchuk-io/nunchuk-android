@@ -42,14 +42,7 @@ object DBMigrations {
     val MIGRATION_3_4 = object : Migration(3, 4) {
 
         override fun migrate(database: SupportSQLiteDatabase) {
-            database.execSQL("CREATE TABLE IF NOT EXISTS `membership_flow` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `email` TEXT NOT NULL, `step` INTEGER NOT NULL, `master_signer_id` TEXT NOT NULL, `key_id_in_server` TEXT NOT NULL, `key_id_check_sum` TEXT NOT NULL, `is_verify` INTEGER NOT NULL)")
-        }
-    }
-
-    val MIGRATION_4_5 = object : Migration(4, 5) {
-
-        override fun migrate(database: SupportSQLiteDatabase) {
-            database.execSQL("ALTER TABLE `membership_flow` ADD COLUMN `plan` INT DEFAULT 0")
+            database.execSQL("CREATE TABLE IF NOT EXISTS `membership_flow` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `chat_id` TEXT NOT NULL, `step` INTEGER NOT NULL, `master_signer_id` TEXT NOT NULL, `key_id_in_server` TEXT NOT NULL, `key_id_check_sum` TEXT NOT NULL, `extra_json_data` TEXT NOT NULL, `is_verify` INTEGER NOT NULL, `chain` TEXT NOT NULL, `plan` INTEGER NOT NULL)")
         }
     }
 }

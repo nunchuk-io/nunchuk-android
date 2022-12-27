@@ -17,9 +17,13 @@ import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.SERVER_KEY_NAME
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 internal class PremiumWalletRepositoryImpl @Inject constructor(
@@ -31,7 +35,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val membershipStepDao: MembershipStepDao,
     private val accountManager: AccountManager,
     private val membershipApi: MembershipApi,
+    applicationScope: CoroutineScope,
 ) : PremiumWalletRepository {
+    private val chain = ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
 
     override suspend fun getSecurityQuestions(verifyToken: String?): List<SecurityQuestion> {
         val questions =
@@ -163,7 +169,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         wallet: Wallet, serverKeyId: String, plan: MembershipPlan
     ): SeverWallet {
         val entity = membershipStepDao.getStep(
-            accountManager.getAccount().chatId, MembershipStep.HONEY_ADD_TAP_SIGNER
+            accountManager.getAccount().chatId, chain.value, MembershipStep.HONEY_ADD_TAP_SIGNER
         )
         val signers = wallet.signers.map {
             if (it.type == SignerType.NFC) {

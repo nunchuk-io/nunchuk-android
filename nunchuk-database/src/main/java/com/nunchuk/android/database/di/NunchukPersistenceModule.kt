@@ -41,7 +41,6 @@ internal object NunchukPersistenceModule {
             .addMigrations(DBMigrations.MIGRATION_1_2)
             .addMigrations(DBMigrations.MIGRATION_2_3)
             .addMigrations(DBMigrations.MIGRATION_3_4)
-            .addMigrations(DBMigrations.MIGRATION_4_5)
             .build()
 
     @Singleton
