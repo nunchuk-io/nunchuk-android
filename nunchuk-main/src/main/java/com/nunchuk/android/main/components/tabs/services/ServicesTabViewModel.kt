@@ -72,7 +72,7 @@ class ServicesTabViewModel @Inject constructor(
 
         viewModelScope.launch {
             isSetupInheritance.collect {
-                updateInheritance()
+                if (it) updateInheritance()
             }
         }
     }

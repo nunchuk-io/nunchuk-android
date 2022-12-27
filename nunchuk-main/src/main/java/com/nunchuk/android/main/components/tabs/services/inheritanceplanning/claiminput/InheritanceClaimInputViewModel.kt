@@ -40,7 +40,6 @@ class InheritanceClaimInputViewModel @Inject constructor(
             val result = getBip39WordListUseCase.execute()
             if (result is Result.Success) {
                 bip39Words = ArrayList(result.data)
-                _state.update { it.copy(suggestions = bip39Words) }
             }
         }
     }
@@ -105,7 +104,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
     }
 
     private fun filter(word: String) {
-        val filteredWords = bip39Words.filter { it.startsWith(word) }
+        val filteredWords = if (word.isNotBlank()) bip39Words.filter { it.startsWith(word) } else emptyList()
         _state.update { it.copy(suggestions = filteredWords) }
     }
 

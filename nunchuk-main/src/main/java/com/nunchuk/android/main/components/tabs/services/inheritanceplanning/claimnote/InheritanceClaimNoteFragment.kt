@@ -98,7 +98,7 @@ class InheritanceClaimNoteFragment : MembershipFragment(), BottomSheetOptionList
                 SheetOption(
                     SheetOptionType.TYPE_SWEEP_TO_WALLET,
                     R.drawable.ic_wallet_info,
-                    R.string.nc_sweep_to_a_wallet
+                    R.string.nc_withdraw_nunchuk_wallet
                 ),
                 SheetOption(
                     SheetOptionType.TYPE_SWEEP_TO_EXTERNAL_ADDRESS,
@@ -195,7 +195,7 @@ private fun InheritanceClaimNoteContent(
                         Column(
                             modifier = Modifier
                                 .background(color = colorResource(id = R.color.nc_denim_tint_color))
-                                .height(250.dp)
+                                .height(215.dp)
                                 .fillMaxWidth(),
                             verticalArrangement = Arrangement.Center
                         ) {

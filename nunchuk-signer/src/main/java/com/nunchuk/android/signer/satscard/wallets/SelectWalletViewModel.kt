@@ -132,6 +132,7 @@ class SelectWalletViewModel @Inject constructor(
                 magic = args.magicalPhrase
             )
         )
+        _event.emit(SelectWalletEvent.Loading(false))
         if (result.isSuccess) {
             _event.emit(SelectWalletEvent.CreateTransactionSuccessEvent(result.getOrThrow()))
         } else {
