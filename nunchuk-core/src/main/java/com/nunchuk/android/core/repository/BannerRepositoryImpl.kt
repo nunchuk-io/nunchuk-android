@@ -36,14 +36,14 @@ internal class BannerRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun getBanners(): Banner {
+    override suspend fun getBanners(): Banner? {
         val response = api.getBanners()
-        val banner = response.data.banner
+        val banner = response.data.banner ?: return null
         return Banner(
-            id = banner?.id.orEmpty(),
-            desc = banner?.content?.description.orEmpty(),
-            title = banner?.content?.title.orEmpty(),
-            url = banner?.content?.imageUrl.orEmpty()
+            id = banner.id.orEmpty(),
+            desc = banner.content?.description.orEmpty(),
+            title = banner.content?.title.orEmpty(),
+            url = banner.content?.imageUrl.orEmpty()
         )
     }
 }
