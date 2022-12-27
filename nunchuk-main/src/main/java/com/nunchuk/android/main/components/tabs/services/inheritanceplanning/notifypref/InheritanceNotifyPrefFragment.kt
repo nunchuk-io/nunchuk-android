@@ -85,7 +85,7 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
     }
 
     private fun setupViews() {
-        binding.toolbarTitle.text = String.format(getString(R.string.nc_estimate_remain_time), viewModel.remainTime.value)
+        binding.toolbarTitle.text = if (isSetupFlow()) String.format(getString(R.string.nc_estimate_remain_time), viewModel.remainTime.value) else ""
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
@@ -106,6 +106,8 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
         binding.btnNotification.setOnClickListener {
             openReviewPlanScreen(isDiscard = true, emptyList(), false)
         }
+        val continueBtnText = if (isSetupFlow()) getText(R.string.nc_text_continue) else getText(R.string.nc_update_notification_preferences)
+        binding.btnContinue.text = continueBtnText
         binding.btnContinue.setOnClickListener {
             val currentText = binding.input.text.toString().trim()
             if (currentText.isNotEmpty()) {
@@ -115,6 +117,8 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
             viewModel.onContinueClicked()
         }
     }
+
+    private fun isSetupFlow() = args.planFlow == InheritancePlanFlow.SETUP && args.isUpdateRequest.not()
 
     private fun bindEmailList(emails: List<EmailWithState>) {
         if (emails.isEmpty()) {
