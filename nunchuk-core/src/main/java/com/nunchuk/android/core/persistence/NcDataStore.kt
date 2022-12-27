@@ -25,6 +25,7 @@ import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.toMembershipPlan
+import com.nunchuk.android.type.Chain
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -45,6 +46,7 @@ class NcDataStore @Inject constructor(
     private val registerColdcardKey = booleanPreferencesKey("register_coldcard")
     private val registerAirgapKey = booleanPreferencesKey("register_airgap")
     private val setupInheritanceKey = booleanPreferencesKey("setup_inheritance")
+    private val chainKey = intPreferencesKey("chain")
 
     /**
      * Assisted wallet local id
@@ -109,6 +111,17 @@ class NcDataStore @Inject constructor(
         get() = context.dataStore.data.map {
             it[setupInheritanceKey] ?: false
         }
+
+    val chain: Flow<Chain>
+        get() = context.dataStore.data.map {
+           Chain.values()[it[chainKey] ?: 0]
+        }
+
+    suspend fun setChain(chain: Chain) {
+        context.dataStore.edit { settings ->
+            settings[chainKey] = chain.ordinal
+        }
+    }
 
     suspend fun updateTurnOnNotification(turnOn: Boolean) {
         context.dataStore.edit { settings ->
