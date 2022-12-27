@@ -150,14 +150,14 @@ private fun InheritanceClaimInputContent(
                     style = NunchukTheme.typography.heading
                 )
                 Text(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                     text = stringResource(R.string.nc_claim_inheritance_desc),
                     style = NunchukTheme.typography.body
                 )
                 NcTextField(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 16.dp)
+                        .padding(top = 24.dp)
                         .padding(horizontal = 16.dp),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     title = stringResource(id = R.string.nc_magical_phrase),

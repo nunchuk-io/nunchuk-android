@@ -120,7 +120,7 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                         showActionOptions()
                     }
                 }, onViewClaimingInstruction = {
-                    requireActivity().openExternalLink("https://nunchuk.io/claiming")
+                    requireActivity().openExternalLink("https://stg-www.nunchuk.io/howtoclaim")
                 })
             }
         }
