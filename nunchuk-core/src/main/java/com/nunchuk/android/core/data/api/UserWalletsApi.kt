@@ -126,6 +126,12 @@ internal interface UserWalletsApi {
         @Body payload: ScheduleTransactionRequest,
     ): Data<TransactionResponse>
 
+    @DELETE("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}/schedule")
+    suspend fun deleteScheduleTransaction(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("transaction_id") transactionId: String,
+    ): Data<TransactionResponse>
+
     @GET("/v1.1/user-wallets/lockdown/period")
     suspend fun getLockdownPeriod(): Data<LockdownPeriodResponse>
 

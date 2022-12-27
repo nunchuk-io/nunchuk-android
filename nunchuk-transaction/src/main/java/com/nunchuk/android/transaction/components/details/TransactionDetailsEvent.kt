@@ -22,7 +22,11 @@ package com.nunchuk.android.transaction.components.details
 import com.nunchuk.android.type.TransactionStatus
 
 sealed class TransactionDetailsEvent {
-    data class SignTransactionSuccess(val roomId: String = "", val isAssistedWallet: Boolean = false, val status: TransactionStatus? = null) : TransactionDetailsEvent()
+    data class SignTransactionSuccess(
+        val roomId: String = "",
+        val isAssistedWallet: Boolean = false,
+        val status: TransactionStatus? = null
+    ) : TransactionDetailsEvent()
 
     data class BroadcastTransactionSuccess(val roomId: String = "") : TransactionDetailsEvent()
 
@@ -55,6 +59,7 @@ sealed class TransactionDetailsEvent {
     object ExportTransactionToMk4Success : TransactionDetailsEvent()
 
     object LoadingEvent : TransactionDetailsEvent()
+    object CancelScheduleBroadcastTransactionSuccess : TransactionDetailsEvent()
 
     data class NfcLoadingEvent(val isColdcard: Boolean = false) : TransactionDetailsEvent()
 }

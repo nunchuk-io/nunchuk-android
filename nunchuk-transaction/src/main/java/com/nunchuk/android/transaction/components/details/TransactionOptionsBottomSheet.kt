@@ -33,6 +33,7 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.model.TransactionOption.*
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.DialogTransactionSignBottomSheetBinding
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
@@ -120,6 +121,11 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
         binding.btnScheduleBroadcast.isVisible = args.isPending
                 && args.isAssistedWallet
                 && membershipStepManager.plan == MembershipPlan.HONEY_BADGER
+        binding.btnScheduleBroadcast.text = if (args.isScheduleBroadcast) {
+            getString(R.string.nc_cancel_scheduled_broadcast)
+        } else {
+            getString(R.string.nc_schedule_broadcast)
+        }
         binding.btnScheduleBroadcast.setOnDebounceClickListener {
             listener(SCHEDULE_BROADCAST)
             dismiss()
@@ -139,6 +145,7 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             isPendingConfirm: Boolean,
             isRejected: Boolean,
             isAssistedWallet: Boolean,
+            isScheduleBroadcast: Boolean,
         ): TransactionOptionsBottomSheet {
             return TransactionOptionsBottomSheet().apply {
                 arguments =
@@ -147,6 +154,7 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
                         isPendingConfirm,
                         isRejected,
                         isAssistedWallet,
+                        isScheduleBroadcast
                     ).buildBundle()
                 show(fragmentManager, TAG)
             }
@@ -160,6 +168,7 @@ data class TransactionOptionsArgs(
     val isPendingConfirm: Boolean,
     val isRejected: Boolean,
     val isAssistedWallet: Boolean,
+    val isScheduleBroadcast: Boolean,
 ) : FragmentArgs {
 
     override fun buildBundle() = Bundle().apply {
@@ -167,6 +176,7 @@ data class TransactionOptionsArgs(
         putBoolean(EXTRA_IS_PENDING_CONFIRM, isPendingConfirm)
         putBoolean(EXTRA_IS_REJECTED, isRejected)
         putBoolean(EXTRA_IS_ASSISTED_WALLET, isAssistedWallet)
+        putBoolean(EXTRA_IS_SCHEDULE_BROADCAST, isScheduleBroadcast)
     }
 
     companion object {
@@ -174,12 +184,14 @@ data class TransactionOptionsArgs(
         private const val EXTRA_IS_PENDING_CONFIRM = "EXTRA_IS_PENDING_CONFIRM"
         private const val EXTRA_IS_REJECTED = "EXTRA_IS_REJECTED"
         private const val EXTRA_IS_ASSISTED_WALLET = "EXTRA_IS_ASSISTED_WALLET"
+        private const val EXTRA_IS_SCHEDULE_BROADCAST = "EXTRA_IS_SCHEDULE_BROADCAST"
 
         fun deserializeFrom(data: Bundle?) = TransactionOptionsArgs(
             data?.getBooleanValue(EXTRA_IS_PENDING).orFalse(),
             data?.getBooleanValue(EXTRA_IS_PENDING_CONFIRM).orFalse(),
             data?.getBooleanValue(EXTRA_IS_REJECTED).orFalse(),
             data?.getBooleanValue(EXTRA_IS_ASSISTED_WALLET).orFalse(),
+            data?.getBooleanValue(EXTRA_IS_SCHEDULE_BROADCAST).orFalse(),
         )
     }
 }

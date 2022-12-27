@@ -77,6 +77,11 @@ interface PremiumWalletRepository {
         scheduleTime: Long
     ): ServerTransaction
 
+    suspend fun deleteScheduleTransaction(
+        walletId: String,
+        transactionId: String,
+    ): ServerTransaction
+
     suspend fun getLockdownPeriod(): List<LockdownPeriod>
     suspend fun lockdownUpdate(
         authorizations: List<String>,

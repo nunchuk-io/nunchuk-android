@@ -736,6 +736,16 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return response.data.toServerTransaction()
     }
 
+    override suspend fun deleteScheduleTransaction(
+        walletId: String,
+        transactionId: String
+    ): ServerTransaction {
+        val response = userWalletApiManager.walletApi.deleteScheduleTransaction(
+            walletId, transactionId,
+        )
+        return response.data.toServerTransaction()
+    }
+
     override suspend fun getLockdownPeriod(): List<LockdownPeriod> {
         val response = userWalletApiManager.walletApi.getLockdownPeriod()
         return response.data.periods?.map {

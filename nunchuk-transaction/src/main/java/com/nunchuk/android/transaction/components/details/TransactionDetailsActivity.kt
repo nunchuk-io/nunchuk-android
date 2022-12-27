@@ -239,13 +239,9 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private fun handleState(state: TransactionDetailsState) {
         binding.viewMore.setCompoundDrawablesWithIntrinsicBounds(
-            null,
-            null,
-            if (state.viewMore) ContextCompat.getDrawable(
-                this,
-                R.drawable.ic_collapse
-            ) else ContextCompat.getDrawable(this, R.drawable.ic_expand),
-            null
+            null, null, if (state.viewMore) ContextCompat.getDrawable(
+                this, R.drawable.ic_collapse
+            ) else ContextCompat.getDrawable(this, R.drawable.ic_expand), null
         )
         binding.viewMore.text = if (state.viewMore) {
             getString(R.string.nc_transaction_less_details)
@@ -269,15 +265,11 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     private fun handleServerTransaction(
-        transaction: Transaction,
-        serverTransaction: ServerTransaction?
+        transaction: Transaction, serverTransaction: ServerTransaction?
     ) {
         if (serverTransaction != null && transaction.status.canBroadCast() && serverTransaction.type == ServerTransactionType.SCHEDULED) {
             binding.status.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                R.drawable.ic_schedule,
-                0,
-                0,
-                0
+                R.drawable.ic_schedule, 0, 0, 0
             )
             val broadcastTime = Date(serverTransaction.broadcastTimeInMilis)
             binding.status.text = getString(
@@ -296,8 +288,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         status: TransactionStatus,
         serverTransaction: ServerTransaction?
     ) {
-        TransactionSignersViewBinder(
-            container = binding.signerListView,
+        TransactionSignersViewBinder(container = binding.signerListView,
             signerMap = signerMap,
             signers = signers,
             txStatus = status,
@@ -315,8 +306,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                         viewModel.handleSignEvent(signer)
                     }
                 }
-            }
-        ).bindItems()
+            }).bindItems()
     }
 
     private fun bindTransaction(transaction: Transaction) {
@@ -332,22 +322,14 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         val pendingSigners = transaction.getPendingSignatures()
         if (pendingSigners > 0) {
             binding.signatureStatus.setCompoundDrawablesWithIntrinsicBounds(
-                R.drawable.ic_pending_signatures,
-                0,
-                0,
-                0
+                R.drawable.ic_pending_signatures, 0, 0, 0
             )
             binding.signatureStatus.text = resources.getQuantityString(
-                R.plurals.nc_transaction_pending_signature,
-                pendingSigners,
-                pendingSigners
+                R.plurals.nc_transaction_pending_signature, pendingSigners, pendingSigners
             )
         } else {
             binding.signatureStatus.setCompoundDrawablesWithIntrinsicBounds(
-                R.drawable.ic_check_circle,
-                0,
-                0,
-                0
+                R.drawable.ic_check_circle, 0, 0, 0
             )
             binding.signatureStatus.text = getString(R.string.nc_transaction_enough_signers)
         }
@@ -442,6 +424,9 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             is UpdateTransactionMemoSuccess -> handleUpdateTransactionSuccess(event)
             ImportTransactionFromMk4Success -> handleImportTransactionFromMk4Success()
             ExportTransactionToMk4Success -> handleExportTxToMk4Success()
+            CancelScheduleBroadcastTransactionSuccess -> NCToastMessage(this).show(
+                getString(R.string.nc_schedule_broadcast_has_been_canceled)
+            )
         }
     }
 
@@ -497,37 +482,41 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             isPendingConfirm = event.isPendingConfirm,
             isRejected = event.isRejected,
             isAssistedWallet = viewModel.isAssistedWallet(),
+            isScheduleBroadcast = viewModel.isScheduleBroadcast()
         ).setListener {
             when (it) {
                 CANCEL -> promptCancelTransactionConfirmation()
                 EXPORT_KEYSTONE -> openExportTransactionScreen(EXPORT_KEYSTONE)
                 IMPORT_KEYSTONE -> openImportTransactionScreen(
-                    IMPORT_KEYSTONE,
-                    event.masterFingerPrint
+                    IMPORT_KEYSTONE, event.masterFingerPrint
                 )
                 EXPORT_PASSPORT -> openExportTransactionScreen(EXPORT_PASSPORT)
                 IMPORT_PASSPORT -> openImportTransactionScreen(
-                    IMPORT_PASSPORT,
-                    event.masterFingerPrint
+                    IMPORT_PASSPORT, event.masterFingerPrint
                 )
                 EXPORT_PSBT -> viewModel.exportTransactionToFile()
                 REPLACE_BY_FEE -> handleOpenEditFee()
                 COPY_TRANSACTION_ID -> handleCopyContent(args.txId)
                 REMOVE_TRANSACTION -> viewModel.handleDeleteTransactionEvent(false)
-                SCHEDULE_BROADCAST -> scheduleBroadcastLauncher.launch(
-                    ScheduleBroadcastTransactionActivity.buildIntent(
-                        this,
-                        args.walletId,
-                        args.txId,
+                SCHEDULE_BROADCAST -> if (viewModel.isScheduleBroadcast()) {
+                    viewModel.cancelScheduleBroadcast()
+                } else {
+                    scheduleBroadcastLauncher.launch(
+                        ScheduleBroadcastTransactionActivity.buildIntent(
+                            this,
+                            args.walletId,
+                            args.txId,
+                        )
                     )
-                )
+                }
             }
         }
     }
 
     private fun handleOpenEditFee() {
         navigator.openReplaceTransactionFee(
-            replaceByFeeLauncher, this,
+            replaceByFeeLauncher,
+            this,
             walletId = args.walletId,
             transaction = viewModel.getTransaction()
         )
@@ -543,8 +532,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     private fun openImportTransactionScreen(
-        transactionOption: TransactionOption,
-        masterFingerPrint: String
+        transactionOption: TransactionOption, masterFingerPrint: String
     ) {
         navigator.openImportTransactionScreen(
             activityContext = this,
@@ -557,8 +545,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private fun requireInputPassphrase(func: (String) -> Unit) {
         NCInputDialog(this).showDialog(
-            title = getString(R.string.nc_transaction_enter_passphrase),
-            onConfirmed = func
+            title = getString(R.string.nc_transaction_enter_passphrase), onConfirmed = func
         )
     }
 

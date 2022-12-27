@@ -60,8 +60,7 @@ class ScheduleBroadcastTransactionFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-            viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                .collect { event ->
+            viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle).collect { event ->
                     when (event) {
                         ScheduleBroadcastTransactionEvent.OnSelectDateEvent -> showDatePicker()
                         ScheduleBroadcastTransactionEvent.OnSelectTimeEvent -> showTimePicker()
@@ -90,24 +89,29 @@ class ScheduleBroadcastTransactionFragment : Fragment() {
     }
 
     private fun showDatePicker() {
-        val dialog = DatePickerDialog(requireContext(), R.style.NunchukDateTimePicker)
-        dialog.setOnDateSetListener { _, year, month, dayOfMonth ->
-            viewModel.setDate(year, month, dayOfMonth)
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = viewModel.state.value.time
         }
+        val dialog = DatePickerDialog(
+            requireContext(), R.style.NunchukDateTimePicker,
+            { _, year, month, dayOfMonth ->
+                viewModel.setDate(year, month, dayOfMonth)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH),
+        )
         dialog.show()
     }
 
     private fun showTimePicker() {
-        val calendar = Calendar.getInstance()
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = viewModel.state.value.time
+        }
         val dialog = TimePickerDialog(
-            requireContext(),
-            R.style.NunchukDateTimePicker,
-            { _, hourOfDay, minute ->
+            requireContext(), R.style.NunchukDateTimePicker, { _, hourOfDay, minute ->
                 viewModel.setTime(hourOfDay, minute)
-            },
-            calendar.get(Calendar.HOUR_OF_DAY),
-            calendar.get(Calendar.MINUTE),
-            false
+            }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false
         )
         dialog.show()
     }
@@ -117,8 +121,7 @@ class ScheduleBroadcastTransactionFragment : Fragment() {
 @Composable
 private fun ScheduleBroadcastTransactionScreen(viewModel: ScheduleBroadcastTransactionViewModel = viewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    ScheduleBroadcastTransactionContent(
-        time = state.time,
+    ScheduleBroadcastTransactionContent(time = state.time,
         timeZone = state.timeZone,
         onDateSelect = {
             viewModel.onSelectEvent(ScheduleBroadcastTransactionEvent.OnSelectDateEvent)
@@ -179,8 +182,7 @@ private fun ScheduleBroadcastTransactionContent(
                     )
                 }
                 NcTextField(
-                    modifier = Modifier
-                        .padding(start = 16.dp, top = 24.dp, end = 16.dp),
+                    modifier = Modifier.padding(start = 16.dp, top = 24.dp, end = 16.dp),
                     onClick = onTimeZoneSelect,
                     title = stringResource(R.string.nc_time_zone),
                     enabled = false,

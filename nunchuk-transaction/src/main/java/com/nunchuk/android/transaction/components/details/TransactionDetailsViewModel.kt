@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.*
+import com.nunchuk.android.core.domain.membership.CancelScheduleBroadcastTransactionUseCase
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
@@ -67,6 +68,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val assistedWalletManager: AssistedWalletManager,
     private val pushEventManager: PushEventManager,
     private val signServerTransactionUseCase: SignServerTransactionUseCase,
+    private val cancelScheduleBroadcastTransactionUseCase: CancelScheduleBroadcastTransactionUseCase,
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
 
     private var walletId: String = ""
@@ -89,19 +91,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             BlockListener.getBlockChainFlow().collect {
                 getTransactionInfo()
-            }
-        }
-        if (isAssistedWallet()) {
-            viewModelScope.launch {
-                state.asFlow().collect {
-                    val signedCount = it.transaction.signers.count { entry -> entry.value }
-                    if (it.transaction.txId.isNotEmpty() && initNumberOfSignedKey == INVALID_NUMBER_OF_SIGNED) {
-                        initNumberOfSignedKey = signedCount
-                    } else if (signedCount > initNumberOfSignedKey) {
-                        initNumberOfSignedKey = signedCount
-                        requestServerSignTransaction(it.transaction.psbt)
-                    }
-                }
             }
         }
         viewModelScope.launch {
@@ -143,6 +132,23 @@ internal class TransactionDetailsViewModel @Inject constructor(
             updateState { copy(transaction = it) }
         }
         loadMasterSigner()
+        listenSignKey()
+    }
+
+    private fun listenSignKey() {
+        if (isAssistedWallet()) {
+            viewModelScope.launch {
+                state.asFlow().collect {
+                    val signedCount = it.transaction.signers.count { entry -> entry.value }
+                    if (it.transaction.txId.isNotEmpty() && initNumberOfSignedKey == INVALID_NUMBER_OF_SIGNED) {
+                        initNumberOfSignedKey = signedCount
+                    } else if (signedCount > initNumberOfSignedKey) {
+                        initNumberOfSignedKey = signedCount
+                        requestServerSignTransaction(it.transaction.psbt)
+                    }
+                }
+            }
+        }
     }
 
     private fun requestServerSignTransaction(psbt: String) {
@@ -156,7 +162,12 @@ internal class TransactionDetailsViewModel @Inject constructor(
             )
             if (result.isSuccess) {
                 val extendedTransaction = result.getOrThrow()
-                setEvent(SignTransactionSuccess(isAssistedWallet = true, status = extendedTransaction.transaction.status))
+                setEvent(
+                    SignTransactionSuccess(
+                        isAssistedWallet = true,
+                        status = extendedTransaction.transaction.status
+                    )
+                )
                 updateState {
                     copy(
                         transaction = extendedTransaction.transaction,
@@ -358,6 +369,22 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
+    fun cancelScheduleBroadcast() {
+        viewModelScope.launch {
+            val result = cancelScheduleBroadcastTransactionUseCase(
+                CancelScheduleBroadcastTransactionUseCase.Param(
+                    walletId, txId
+                )
+            )
+            if (result.isSuccess) {
+                updateState { copy(serverTransaction = result.getOrThrow()) }
+                setEvent(CancelScheduleBroadcastTransactionSuccess)
+            } else {
+                setEvent(TransactionDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
     fun handleSignEvent(signer: SignerModel) {
         if (signer.software) {
             viewModelScope.launch {
@@ -550,6 +577,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun isAssistedWallet() = assistedWalletManager.isActiveAssistedWallet(walletId)
+
+    fun isScheduleBroadcast() = (getState().serverTransaction?.broadcastTimeInMilis ?: 0L) > 0L
 
     companion object {
         private const val INVALID_NUMBER_OF_SIGNED = -1
