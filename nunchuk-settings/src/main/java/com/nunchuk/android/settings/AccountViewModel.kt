@@ -37,6 +37,7 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
@@ -134,17 +135,15 @@ internal class AccountViewModel @Inject constructor(
     }
 
     fun handleSignOutEvent() {
-        appScope.launch {
+        appScope.launch(dispatcher) {
+            event(AccountEvent.LoadingEvent(true))
             repository.signOut()
                 .flowOn(Dispatchers.IO)
                 .onException {
                     event(AccountEvent.LoadingEvent(false))
                 }
                 .first()
-            event(AccountEvent.LoadingEvent(true))
-            withContext(dispatcher) {
-                clearInfoSessionUseCase.invoke(Unit)
-            }
+            clearInfoSessionUseCase.invoke(Unit)
             event(AccountEvent.SignOutEvent)
         }
     }

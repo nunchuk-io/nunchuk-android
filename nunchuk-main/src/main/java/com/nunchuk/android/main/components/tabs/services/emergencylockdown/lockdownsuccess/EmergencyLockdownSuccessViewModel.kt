@@ -25,17 +25,15 @@ class EmergencyLockdownSuccessViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
     fun onContinueClicked() {
-        appScope.launch {
+        appScope.launch(dispatcher) {
+            _event.emit(EmergencyLockdownSuccessEvent.Loading(true))
             repository.signOut()
                 .flowOn(Dispatchers.IO)
                 .onException {
                     _event.emit(EmergencyLockdownSuccessEvent.Loading(false))
                 }
                 .first()
-            _event.emit(EmergencyLockdownSuccessEvent.Loading(true))
-            withContext(dispatcher) {
-                clearInfoSessionUseCase.invoke(Unit)
-            }
+            clearInfoSessionUseCase.invoke(Unit)
             _event.emit(EmergencyLockdownSuccessEvent.SignOut)
         }
     }
