@@ -32,13 +32,11 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.NcPrimaryDarkButton
-import com.nunchuk.android.compose.NcTextField
-import com.nunchuk.android.compose.NcTopAppBar
-import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.SpendingCurrencyUnit
 import com.nunchuk.android.model.SpendingTimeUnit
@@ -258,6 +256,10 @@ private fun ConfigSpendingLimitContent(
                     )
                 }
                 Spacer(modifier = Modifier.weight(1.0f))
+                NcHintMessage(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    messages = listOf(ClickAbleText(content = stringResource(R.string.nc_hint_config_spending_limit)))
+                )
                 NcPrimaryDarkButton(
                     enabled = spendingLimit.value.isNotEmpty(),
                     modifier = Modifier
