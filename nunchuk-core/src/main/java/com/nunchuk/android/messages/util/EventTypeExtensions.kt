@@ -33,7 +33,8 @@ const val STATE_NUNCHUK_CONTACT_INVITATION_ACCEPTED = "io.nunchuk.custom.invitat
 const val STATE_NUNCHUK_CONTACT_REQUEST_ACCEPTED = "io.nunchuk.custom.contact_request_accepted"
 const val STATE_NUNCHUK_CONTACT_WITHDRAW_INVITATION = "io.nunchuk.custom.withdraw_invitation"
 const val TRANSACTION_CO_SIGNED = "io.nunchuk.custom.transaction_co_signed"
-const val SUBSCRIPTION_UPDATE = "io.nunchuk.custom.subscription_activated"
+const val SUBSCRIPTION_SUBSCRIPTION_ACTIVE = "io.nunchuk.custom.subscription_activated"
+const val SUBSCRIPTION_SUBSCRIPTION_PENDING = "io.nunchuk.custom.subscription_pending"
 const val TRANSACTION_CO_SIGNED_AND_BROADCAST =
     "io.nunchuk.custom.transaction_co_signed_and_broadcast"
 const val STATE_ROOM_SERVER_NOTICE = "m.server_notice"

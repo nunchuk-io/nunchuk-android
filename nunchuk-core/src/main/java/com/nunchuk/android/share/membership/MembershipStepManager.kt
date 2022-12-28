@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.roundToInt
@@ -29,7 +30,7 @@ class MembershipStepManager @Inject constructor(
     private val _assistedPlan = MutableStateFlow(MembershipPlan.NONE)
     val plan: MembershipPlan
         get() = _plan.value
-    private val steps = hashMapOf<MembershipStep, MembershipStepFlow>()
+    private val steps = Collections.synchronizedMap<MembershipStep, MembershipStepFlow>(mutableMapOf())
     private val _stepDone = MutableStateFlow<Set<MembershipStep>>(emptySet())
     val stepDone = _stepDone.asStateFlow()
 

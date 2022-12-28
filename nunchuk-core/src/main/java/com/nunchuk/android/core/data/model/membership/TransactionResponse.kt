@@ -29,9 +29,9 @@ data class SpendingLimitReach(
     val message: String? = null
 )
 
-internal fun TransactionResponse.toServerTransaction() = ServerTransaction(
-    type = transaction?.type.orEmpty(),
-    broadcastTimeInMilis = transaction?.broadCastTimeMillis ?: 0L,
-    spendingLimitMessage = transaction?.spendingLimitReach?.message.orEmpty(),
-    signedInMilis = transaction?.signedAtMilis ?: 0L
+internal fun TransactionServerDto.toServerTransaction() = ServerTransaction(
+    type = type.orEmpty(),
+    broadcastTimeInMilis = broadCastTimeMillis,
+    spendingLimitMessage = spendingLimitReach?.message.orEmpty(),
+    signedInMilis = signedAtMilis
 )

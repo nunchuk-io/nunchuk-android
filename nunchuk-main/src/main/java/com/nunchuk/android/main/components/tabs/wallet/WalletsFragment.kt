@@ -32,7 +32,8 @@ import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
 import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
 import com.nunchuk.android.main.intro.UniversalNfcIntroActivity
 import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
-import com.nunchuk.android.messages.util.SUBSCRIPTION_UPDATE
+import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_ACTIVE
+import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_PENDING
 import com.nunchuk.android.messages.util.getMsgType
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.WalletExtended
@@ -160,7 +161,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         if (walletsViewModel.state.value?.isPremiumUser != true) {
             flowObserver(contactViewModel.noticeRoomEvent()) {
                 it.forEach { event ->
-                    if (event.getMsgType() == SUBSCRIPTION_UPDATE
+                    if ((event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_PENDING || event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_ACTIVE)
                         && walletsViewModel.isPremiumUser().not()) {
                         walletsViewModel.checkMemberMembership()
                     }

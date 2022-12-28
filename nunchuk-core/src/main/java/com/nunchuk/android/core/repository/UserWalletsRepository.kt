@@ -13,6 +13,7 @@ import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
+import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.repository.MembershipRepository
@@ -319,7 +320,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             transaction = handleServerTransaction(
                 walletId, transactionId, transaction
             ),
-            serverTransaction = response.data.toServerTransaction(),
+            serverTransaction = response.data.transaction?.toServerTransaction(),
         )
     }
 
@@ -682,7 +683,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             transaction = handleServerTransaction(
                 walletId, txId, transaction
             ),
-            serverTransaction = response.data.toServerTransaction(),
+            serverTransaction = response.data.transaction?.toServerTransaction(),
         )
     }
 
@@ -733,7 +734,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.walletApi.scheduleTransaction(
             walletId, transactionId, ScheduleTransactionRequest(scheduleTime, transaction.psbt)
         )
-        return response.data.toServerTransaction()
+        val serverTransaction = response.data.transaction ?: throw NullPointerException("Schedule transaction does not return server transaction")
+        if (serverTransaction.type == ServerTransactionType.SCHEDULED && serverTransaction.broadCastTimeMillis > System.currentTimeMillis()) {
+            nunchukNativeSdk.updateTransactionSchedule(walletId, transactionId, serverTransaction.broadCastTimeMillis)
+        }
+        return serverTransaction.toServerTransaction()
     }
 
     override suspend fun deleteScheduleTransaction(
@@ -743,7 +748,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.walletApi.deleteScheduleTransaction(
             walletId, transactionId,
         )
-        return response.data.toServerTransaction()
+        return response.data.transaction?.toServerTransaction() ?: throw NullPointerException("transaction from server null")
     }
 
     override suspend fun getLockdownPeriod(): List<LockdownPeriod> {
