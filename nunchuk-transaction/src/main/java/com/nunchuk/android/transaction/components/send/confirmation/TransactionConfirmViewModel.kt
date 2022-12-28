@@ -91,7 +91,7 @@ class TransactionConfirmViewModel @Inject constructor(
         }
         this.masterSignerId = masterSignerId
         this.magicalPhrase = magicalPhrase
-        draftTransaction()
+        if (isInheritanceClaimingFlow().not()) draftTransaction()
     }
 
     private fun initRoomTransaction() {

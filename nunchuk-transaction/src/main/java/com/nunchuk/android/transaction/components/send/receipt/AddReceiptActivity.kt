@@ -43,6 +43,7 @@ import com.nunchuk.android.transaction.components.send.confirmation.TransactionC
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeViewModel
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.*
+import com.nunchuk.android.transaction.components.utils.openTransactionDetailScreen
 import com.nunchuk.android.transaction.components.utils.returnActiveRoom
 import com.nunchuk.android.transaction.components.utils.showCreateTransactionError
 import com.nunchuk.android.transaction.components.utils.toTitle
@@ -189,15 +190,24 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
         when (event) {
             is TransactionConfirmEvent.CreateTxErrorEvent -> showCreateTransactionError(event.message)
             is TransactionConfirmEvent.CreateTxSuccessEvent -> {
-                navigator.openTransactionDetailsScreen(
-                    activityContext = this,
-                    walletId = "",
-                    txId = event.transaction.txId,
-                    initEventId = "",
-                    roomId = "",
-                    transaction = event.transaction,
-                    isInheritanceClaimingFlow = transactionConfirmViewModel.isInheritanceClaimingFlow()
-                )
+                if (transactionConfirmViewModel.isInheritanceClaimingFlow()) {
+                    navigator.openTransactionDetailsScreen(
+                        activityContext = this,
+                        walletId = "",
+                        txId = event.transaction.txId,
+                        initEventId = "",
+                        roomId = "",
+                        transaction = event.transaction,
+                        isInheritanceClaimingFlow = true
+                    )
+                } else {
+                    openTransactionDetailScreen(
+                        event.transaction.txId,
+                        args.walletId,
+                        sessionHolder.getActiveRoomIdSafe(),
+                        isInheritanceClaimingFlow = false
+                    )
+                }
             }
             TransactionConfirmEvent.LoadingEvent -> showLoading()
             is TransactionConfirmEvent.InitRoomTransactionError -> showCreateTransactionError(event.message)
