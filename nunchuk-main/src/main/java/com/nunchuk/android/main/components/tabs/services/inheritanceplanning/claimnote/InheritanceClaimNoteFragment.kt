@@ -238,7 +238,11 @@ private fun InheritanceClaimNoteContent(
                         )
                         if (note.isBlank().not()) {
                             Text(
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp),
+                                modifier = Modifier.padding(
+                                    start = 16.dp,
+                                    end = 16.dp,
+                                    top = 12.dp
+                                ),
                                 text = stringResource(R.string.nc_you_have_a_message_below),
                                 style = NunchukTheme.typography.body
                             )

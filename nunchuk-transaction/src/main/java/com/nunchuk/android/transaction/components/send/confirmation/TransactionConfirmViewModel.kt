@@ -192,7 +192,7 @@ class TransactionConfirmViewModel @Inject constructor(
                 )
             )
             if (result.isSuccess) {
-                setEvent(CreateTxSuccessEvent(result.getOrThrow().txId))
+                setEvent(CreateTxSuccessEvent(result.getOrThrow()))
             } else {
                 event(CreateTxErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
             }
@@ -210,7 +210,7 @@ class TransactionConfirmViewModel @Inject constructor(
             )
         )
         if (result.isSuccess) {
-            setEvent(CreateTxSuccessEvent(result.getOrThrow().txId))
+            setEvent(CreateTxSuccessEvent(result.getOrThrow()))
         } else {
             event(CreateTxErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
         }

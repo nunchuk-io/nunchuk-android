@@ -25,7 +25,7 @@ class EmergencyLockdownSuccessViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
     fun onContinueClicked() {
-        appScope.launch(dispatcher) {
+        appScope.launch {
             _event.emit(EmergencyLockdownSuccessEvent.Loading(true))
             repository.signOut()
                 .flowOn(Dispatchers.IO)

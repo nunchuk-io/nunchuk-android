@@ -43,7 +43,6 @@ import com.nunchuk.android.transaction.components.send.confirmation.TransactionC
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeViewModel
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.*
-import com.nunchuk.android.transaction.components.utils.openTransactionDetailScreen
 import com.nunchuk.android.transaction.components.utils.returnActiveRoom
 import com.nunchuk.android.transaction.components.utils.showCreateTransactionError
 import com.nunchuk.android.transaction.components.utils.toTitle
@@ -189,12 +188,17 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
     private fun handleCreateTransactionEvent(event: TransactionConfirmEvent) {
         when (event) {
             is TransactionConfirmEvent.CreateTxErrorEvent -> showCreateTransactionError(event.message)
-            is TransactionConfirmEvent.CreateTxSuccessEvent -> openTransactionDetailScreen(
-                event.txId,
-                args.walletId,
-                sessionHolder.getActiveRoomIdSafe(),
-                transactionConfirmViewModel.isInheritanceClaimingFlow()
-            )
+            is TransactionConfirmEvent.CreateTxSuccessEvent -> {
+                navigator.openTransactionDetailsScreen(
+                    activityContext = this,
+                    walletId = "",
+                    txId = event.transaction.txId,
+                    initEventId = "",
+                    roomId = "",
+                    transaction = event.transaction,
+                    isInheritanceClaimingFlow = transactionConfirmViewModel.isInheritanceClaimingFlow()
+                )
+            }
             TransactionConfirmEvent.LoadingEvent -> showLoading()
             is TransactionConfirmEvent.InitRoomTransactionError -> showCreateTransactionError(event.message)
             is TransactionConfirmEvent.InitRoomTransactionSuccess -> returnActiveRoom(event.roomId)

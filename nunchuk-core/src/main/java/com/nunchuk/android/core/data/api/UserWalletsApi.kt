@@ -144,7 +144,7 @@ internal interface UserWalletsApi {
     @POST("/v1.1/user-wallets/lockdown/calculate-required-signatures")
     suspend fun calculateRequiredSignaturesLockdown(
         @Body payload: LockdownUpdateRequest.Body
-    ) : Data<CalculateRequiredSignaturesResponse>
+    ): Data<CalculateRequiredSignaturesResponse>
 
     @Multipart
     @POST("/v1.1/user-wallets/user-keys/upload-backup")
@@ -156,7 +156,10 @@ internal interface UserWalletsApi {
     ): Data<KeyResponse>
 
     @POST("/v1.1/user-wallets/user-keys/{key_id}/verify")
-    suspend fun setKeyVerified(@Path("key_id") keyId: String, @Body payload: KeyVerifiedRequest) : Data<Unit>
+    suspend fun setKeyVerified(
+        @Path("key_id") keyId: String,
+        @Body payload: KeyVerifiedRequest
+    ): Data<Unit>
 
     @POST("/v1.1/user-wallets/inheritance/claiming/status")
     suspend fun inheritanceClaimingStatus(
@@ -185,7 +188,7 @@ internal interface UserWalletsApi {
         @Body payload: InheritanceClaimCheckValidRequest
     ): Data<InheritanceClaimCheckValidResponse>
 
-    @DELETE("/v1.1/user-wallets/inheritance")
+    @HTTP(method = "DELETE", path = "/v1.1/user-wallets/inheritance", hasBody = true)
     suspend fun inheritanceCancel(
         @HeaderMap headers: Map<String, String>,
         @Body payload: InheritanceCancelRequest
