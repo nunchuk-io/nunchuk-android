@@ -130,7 +130,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
     private fun handleEvent(event: TransactionConfirmEvent) {
         when (event) {
             is CreateTxErrorEvent -> showCreateTransactionError(event.message)
-            is CreateTxSuccessEvent -> openTransactionDetailScreen(event.txId, args.walletId, sessionHolder.getActiveRoomIdSafe(), viewModel.isInheritanceClaimingFlow())
+            is CreateTxSuccessEvent -> openTransactionDetailScreen(event.transaction.txId, args.walletId, sessionHolder.getActiveRoomIdSafe(), viewModel.isInheritanceClaimingFlow())
             is UpdateChangeAddress -> bindChangAddress(event.address, event.amount)
             LoadingEvent -> showLoading()
             is InitRoomTransactionError -> showCreateTransactionError(event.message)

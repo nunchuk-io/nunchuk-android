@@ -29,6 +29,7 @@ import com.nunchuk.android.type.Chain
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -183,16 +184,18 @@ class NcDataStore @Inject constructor(
         }
     }
 
-    suspend fun clear() {
-        context.dataStore.edit {
-            it.remove(syncEnableKey)
-            it.remove(turnOnNotificationKey)
-            it.remove(assistedWalletLocalIdKey)
-            it.remove(assistedWalletPlanKey)
-            it.remove(membershipPlanKey)
-            it.remove(registerColdcardKey)
-            it.remove(registerAirgapKey)
-            it.remove(setupInheritanceKey)
+    fun clear() {
+        runBlocking {
+            context.dataStore.edit {
+                it.remove(syncEnableKey)
+                it.remove(turnOnNotificationKey)
+                it.remove(assistedWalletLocalIdKey)
+                it.remove(assistedWalletPlanKey)
+                it.remove(membershipPlanKey)
+                it.remove(registerColdcardKey)
+                it.remove(registerAirgapKey)
+                it.remove(setupInheritanceKey)
+            }
         }
     }
 }

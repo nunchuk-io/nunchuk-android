@@ -29,15 +29,18 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.network.NunchukApiException
+import com.nunchuk.android.core.profile.UserProfileRepository
 import com.nunchuk.android.core.retry.DEFAULT_RETRY_POLICY
 import com.nunchuk.android.core.retry.RetryPolicy
 import com.nunchuk.android.core.retry.retryIO
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.usecase.GetPrimaryKeyListUseCase
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
@@ -52,6 +55,8 @@ internal class SignInViewModel @Inject constructor(
     private val accountManager: AccountManager,
     private val signInModeHolder: SignInModeHolder,
     private val getPrimaryKeyListUseCase: GetPrimaryKeyListUseCase,
+    private val userProfileRepository: UserProfileRepository,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
     @Named(DEFAULT_RETRY_POLICY) private val retryPolicy: RetryPolicy
 ) : NunchukViewModel<Unit, SignInEvent>() {
 
@@ -61,6 +66,13 @@ internal class SignInViewModel @Inject constructor(
 
     private var token: String? = null
     private var encryptedDeviceId: String? = null
+
+    init {
+        viewModelScope.launch(dispatcher) {
+            userProfileRepository.signOut().collect()
+            userProfileRepository.clearDataStore()
+        }
+    }
 
     private fun validateEmail(email: String) = when {
         email.isBlank() -> doAfterValidate(false) { event(EmailRequiredEvent) }

@@ -135,7 +135,7 @@ internal class AccountViewModel @Inject constructor(
     }
 
     fun handleSignOutEvent() {
-        appScope.launch(dispatcher) {
+        appScope.launch {
             event(AccountEvent.LoadingEvent(true))
             repository.signOut()
                 .flowOn(Dispatchers.IO)
