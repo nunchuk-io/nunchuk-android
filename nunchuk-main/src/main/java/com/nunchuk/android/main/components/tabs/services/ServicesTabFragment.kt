@@ -11,6 +11,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.*
+import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.databinding.FragmentServicesTabBinding
 import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
@@ -238,7 +239,8 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             btnInfo = getString(R.string.nc_take_me_to_the_website),
             message = getString(R.string.nc_manage_subscription_desc),
             onInfoClick = {
-                requireActivity().openExternalLink("https://stg-www.nunchuk.io/my-plan")
+                val link = if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/my-plan" else "https://www.nunchuk.io/my-plan"
+                requireActivity().openExternalLink(link)
             })
     }
 
@@ -247,7 +249,8 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             btnInfo = getString(R.string.nc_take_me_to_the_website),
             message = getString(R.string.nc_order_new_hardware_desc),
             onInfoClick = {
-                requireActivity().openExternalLink("https://stg-www.nunchuk.io/hardware-replacement")
+                val link = if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/hardware-replacement" else "https://www.nunchuk.io/hardware-replacement"
+                requireActivity().openExternalLink(link)
             })
     }
 }

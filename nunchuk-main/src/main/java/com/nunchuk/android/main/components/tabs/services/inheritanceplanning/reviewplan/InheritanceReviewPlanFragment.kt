@@ -41,6 +41,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.*
+import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate.InheritanceActivationDateFragment
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note.InheritanceNoteFragment
@@ -120,7 +121,8 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                         showActionOptions()
                     }
                 }, onViewClaimingInstruction = {
-                    requireActivity().openExternalLink("https://stg-www.nunchuk.io/howtoclaim")
+                    val link = if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/howtoclaim" else "https://www.nunchuk.io/howtoclaim"
+                    requireActivity().openExternalLink(link)
                 })
             }
         }
