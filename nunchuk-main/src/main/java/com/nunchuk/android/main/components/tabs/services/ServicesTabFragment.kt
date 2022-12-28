@@ -196,7 +196,10 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             message = getString(R.string.nc_unpaid_security_deposit),
             btnYes = getString(R.string.nc_take_me_there),
             btnInfo = getString(R.string.nc_text_got_it),
-            onYesClick = ::handleGoOurWebsite
+            onYesClick = {
+                val link = if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/claim" else "https://www.nunchuk.io/claim"
+                requireActivity().openExternalLink(link)
+            }
         )
     }
 
