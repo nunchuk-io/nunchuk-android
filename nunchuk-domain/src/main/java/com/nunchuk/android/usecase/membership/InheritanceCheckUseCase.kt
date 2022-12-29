@@ -29,9 +29,9 @@ import javax.inject.Inject
 class InheritanceCheckUseCase @Inject constructor(
     private val repository: PremiumWalletRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) : UseCase<String?, InheritanceCheck>(ioDispatcher) {
+) : UseCase<Unit, InheritanceCheck>(ioDispatcher) {
 
-    override suspend fun execute(parameters: String?): InheritanceCheck {
-        return repository.inheritanceCheck(parameters)
+    override suspend fun execute(parameters: Unit): InheritanceCheck {
+        return repository.inheritanceCheck()
     }
 }

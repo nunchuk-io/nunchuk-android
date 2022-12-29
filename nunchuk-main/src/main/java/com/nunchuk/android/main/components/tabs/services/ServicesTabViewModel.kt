@@ -200,9 +200,8 @@ class ServicesTabViewModel @Inject constructor(
     }
 
     fun checkInheritance() = viewModelScope.launch {
-        val magic = _state.value.inheritance?.magic
         _event.emit(ServicesTabEvent.Loading(true))
-        val result = inheritanceCheckUseCase(magic)
+        val result = inheritanceCheckUseCase(Unit)
         _event.emit(ServicesTabEvent.Loading(false))
         if (result.isSuccess) {
             _event.emit(ServicesTabEvent.CheckInheritance(result.getOrThrow()))
@@ -221,9 +220,9 @@ class ServicesTabViewModel @Inject constructor(
 
     fun getOrCreateSupportRom() {
         viewModelScope.launch {
-            _event.emit(ServicesTabEvent.LoadingEvent(true))
+            _event.emit(ServicesTabEvent.Loading(true))
             val result = getOrCreateSupportRoomUseCase(Unit)
-            _event.emit(ServicesTabEvent.LoadingEvent(false))
+            _event.emit(ServicesTabEvent.Loading(false))
             if (result.isSuccess) {
                 _event.emit(ServicesTabEvent.CreateSupportRoomSuccess(result.getOrThrow().roomId))
             } else {

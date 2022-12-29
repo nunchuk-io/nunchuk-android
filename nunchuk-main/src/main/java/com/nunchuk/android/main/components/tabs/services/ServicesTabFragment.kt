@@ -59,7 +59,6 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     requireContext(),
                     event.roomId
                 )
-                is ServicesTabEvent.LoadingEvent -> showOrHideLoading(event.isLoading)
                 is ServicesTabEvent.CheckInheritance -> {
                     if (event.inheritanceCheck.isPaid) {
                         navigator.openInheritancePlanningScreen(
