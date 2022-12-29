@@ -11,6 +11,7 @@ interface KeyRepository {
         keyName: String,
         keyType: String,
         xfp: String,
+        cardId: String,
         filePath: String,
         isAddNewKey: Boolean,
         plan: MembershipPlan,

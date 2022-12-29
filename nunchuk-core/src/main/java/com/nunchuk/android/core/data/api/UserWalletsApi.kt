@@ -152,6 +152,7 @@ internal interface UserWalletsApi {
         @Part("key_name") keyName: RequestBody,
         @Part("key_type") keyType: RequestBody,
         @Part("key_xfp") keyXfp: RequestBody,
+        @Part("card_id") cardId: RequestBody,
         @Part image: MultipartBody.Part,
     ): Data<KeyResponse>
 

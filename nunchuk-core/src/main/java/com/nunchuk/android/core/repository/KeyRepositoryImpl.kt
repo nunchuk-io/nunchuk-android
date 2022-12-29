@@ -46,6 +46,7 @@ internal class KeyRepositoryImpl @Inject constructor(
         keyName: String,
         keyType: String,
         xfp: String,
+        cardId: String,
         filePath: String,
         isAddNewKey: Boolean,
         plan: MembershipPlan
@@ -65,10 +66,12 @@ internal class KeyRepositoryImpl @Inject constructor(
             val keyTypeBody: RequestBody =
                 keyType.toRequestBody("multipart/form-data".toMediaTypeOrNull())
             val keyXfp: RequestBody = xfp.toRequestBody("multipart/form-data".toMediaTypeOrNull())
+            val keyCardId: RequestBody = cardId.toRequestBody("multipart/form-data".toMediaTypeOrNull())
             val result = userWalletApiManager.walletApi.uploadBackupKey(
                 keyName = keyNameBody,
                 keyType = keyTypeBody,
                 keyXfp = keyXfp,
+                cardId = keyCardId,
                 image = body
             )
             if (result.isSuccess || result.error.code == ALREADY_VERIFIED_CODE) {

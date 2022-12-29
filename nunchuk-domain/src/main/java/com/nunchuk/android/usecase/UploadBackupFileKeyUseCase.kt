@@ -19,6 +19,7 @@ class UploadBackupFileKeyUseCase @Inject constructor(
             keyName = parameters.keyName,
             keyType = parameters.keyType,
             xfp = parameters.xfp,
+            cardId = parameters.cardId,
             filePath = parameters.filePath,
             isAddNewKey = parameters.isAddNewKey,
             plan = parameters.plan
@@ -29,6 +30,7 @@ class UploadBackupFileKeyUseCase @Inject constructor(
         val keyName: String,
         val keyType: String,
         val xfp: String,
+        val cardId: String,
         val filePath: String,
         val isAddNewKey: Boolean,
         val plan: MembershipPlan
