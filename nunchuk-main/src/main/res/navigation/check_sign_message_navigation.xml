@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/check_sign_message_navigation"
+    app:startDestination="@id/answerSecurityQuestionFragment2">
+
+
+    <fragment
+        android:id="@+id/checkSignMessageFragment"
+        android:name="com.nunchuk.android.main.membership.authentication.message.CheckSignMessageFragment"
+        android:label="CheckSignMessageFragment" />
+    <fragment
+        android:id="@+id/dummyTransactionDetailsFragment"
+        android:name="com.nunchuk.android.main.membership.authentication.dummytx.DummyTransactionDetailsFragment"
+        android:label="DummyTransactionDetailsFragment" />
+    <activity
+        android:id="@+id/walletAuthenticationActivity"
+        android:name="com.nunchuk.android.main.membership.authentication.WalletAuthenticationActivity"
+        android:label="WalletAuthenticationActivity">
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+
+        <argument
+            android:name="user_data"
+            app:argType="string" />
+
+        <argument
+            android:name="required_signatures"
+            app:argType="integer" />
+
+        <argument
+            android:name="type"
+            app:argType="string" />
+    </activity>
+    <fragment
+        android:id="@+id/answerSecurityQuestionFragment2"
+        android:name="com.nunchuk.android.main.components.tabs.services.keyrecovery.securityquestionanswer.AnswerSecurityQuestionFragment"
+        android:label="AnswerSecurityQuestionFragment" />
+    <fragment
+        android:id="@+id/dummyTransactionIntroFragment"
+        android:name="com.nunchuk.android.main.membership.authentication.dummytx.DummyTransactionIntroFragment"
+        android:label="DummyTransactionIntroFragment">
+
+        <action
+            android:id="@+id/action_dummyTransactionIntro_to_dummyTransactionDetailsFragment"
+            app:destination="@id/dummyTransactionDetailsFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@id/dummyTransactionIntroFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+</navigation>

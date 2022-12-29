@@ -29,13 +29,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.model.MasterSigner
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.TapProtocolException
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
+import com.nunchuk.android.utils.parcelable
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -44,17 +44,11 @@ class NfcViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val getMasterSignerUseCase: GetMasterSignerUseCase
 ) : ViewModel() {
-    val masterSignerId = savedStateHandle.get<String>(EXTRA_MASTER_SIGNER_ID).orEmpty()
+    val masterSignerId: String
+        get() = savedStateHandle.get<String>(EXTRA_MASTER_SIGNER_ID).orEmpty()
 
     init {
-        if (masterSignerId.isNotEmpty()) {
-            viewModelScope.launch {
-                val result = getMasterSignerUseCase.execute(masterSignerId)
-                if (result is Result.Success) {
-                    masterSigner = result.data
-                }
-            }
-        }
+        loadMasterSigner()
     }
 
     private val _nfcScanInfo = MutableStateFlow<NfcScanInfo?>(null)
@@ -78,8 +72,15 @@ class NfcViewModel @Inject constructor(
         savedStateHandle[EXTRA_MASTER_SIGNER_ID] = masterSigner.id
     }
 
+    fun updateMasterSigner(masterSignerId: String) {
+        if (masterSignerId != this.masterSignerId) {
+            savedStateHandle[EXTRA_MASTER_SIGNER_ID] = masterSignerId
+            loadMasterSigner()
+        }
+    }
+
     fun updateNfcScanInfo(intent: Intent) {
-        val tag: Tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG) as? Tag ?: return
+        val tag: Tag = intent.parcelable(NfcAdapter.EXTRA_TAG) as? Tag ?: return
         val requestCode = intent.getIntExtra(BaseNfcActivity.EXTRA_REQUEST_NFC_CODE, 0)
         Timber.d("requestCode: $requestCode")
         if (requestCode == 0) return
@@ -121,6 +122,17 @@ class NfcViewModel @Inject constructor(
         runCatching {
             _nfcScanInfo.value?.let {
                 IsoDep.get(it.tag)?.close()
+            }
+        }
+    }
+
+    private fun loadMasterSigner() {
+        if (masterSignerId.isNotEmpty()) {
+            viewModelScope.launch {
+                val result = getMasterSignerUseCase(masterSignerId)
+                if (result.isSuccess) {
+                    masterSigner = result.getOrThrow()
+                }
             }
         }
     }

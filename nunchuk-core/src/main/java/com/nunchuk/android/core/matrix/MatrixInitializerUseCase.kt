@@ -26,7 +26,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.Matrix
 import javax.inject.Inject
 
-// TODO Hai
 class MatrixInitializerUseCase @Inject constructor(
     private val instance: Matrix,
     private val accountManager: AccountManager,

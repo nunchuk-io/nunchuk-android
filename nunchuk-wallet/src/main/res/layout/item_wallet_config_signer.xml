@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="@dimen/nc_padding_8">
+
+    <ImageView
+        android:id="@+id/iv_signer_type"
+        android:layout_width="@dimen/nc_padding_48"
+        android:layout_height="@dimen/nc_padding_48"
+        android:background="@drawable/nc_circle_white_background"
+        android:scaleType="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/ic_logo_dark" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/avatar"
+        android:layout_width="@dimen/nc_padding_48"
+        android:layout_height="@dimen/nc_padding_48"
+        android:background="@drawable/nc_circle_beeswax_light_background"
+        android:gravity="center"
+        android:textColor="@color/nc_black_color"
+        android:visibility="gone"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="TN" />
+
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="right"
+        app:constraint_referenced_ids="avatar,iv_signer_type" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/signerName"
+        style="@style/NCText.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        app:fontTextStyle="semi_bold"
+        app:layout_constraintBottom_toTopOf="@+id/signerType"
+        app:layout_constraintStart_toEndOf="@+id/barrier"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="Tom’s Trezor Model T" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/signerPrimaryKeyType"
+        style="@style/NCText.Badges"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/nc_rounded_tag_primary_key_background"
+        android:paddingHorizontal="@dimen/nc_padding_8"
+        android:text="@string/nc_signer_type_primary_key"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/signerType"
+        app:layout_constraintStart_toStartOf="@+id/signerName"
+        app:layout_goneMarginStart="0dp"
+        tools:visibility="visible" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/signerType"
+        style="@style/NCText.Badges"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_4"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/nc_rounded_tag_whisper_background"
+        android:paddingHorizontal="@dimen/nc_padding_8"
+        android:text="@string/nc_signer_air_gapped"
+        app:layout_constraintBottom_toTopOf="@+id/xpf"
+        app:layout_constraintStart_toEndOf="@+id/signerPrimaryKeyType"
+        app:layout_constraintTop_toBottomOf="@+id/signerName"
+        app:layout_goneMarginStart="0dp" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/xpf"
+        style="@style/NCText.Body.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        app:layout_constraintBottom_toTopOf="@+id/tv_bip32_path"
+        app:layout_constraintStart_toEndOf="@+id/barrier"
+        app:layout_constraintTop_toBottomOf="@+id/signerType"
+        tools:text="XFP: 79EB35F4" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_bip32_path"
+        style="@style/NCText.Body.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:drawableEnd="@drawable/ic_edit_small"
+        android:drawablePadding="@dimen/nc_padding_4"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/barrier"
+        app:layout_constraintTop_toBottomOf="@+id/xpf"
+        tools:text="BIP32 path: m/48h/0h/0h" />
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btn_view_key_policy"
+        style="@style/NCOutlineButton.Light"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:paddingHorizontal="@dimen/nc_padding_16"
+        android:text="@string/nc_view_policies"
+        android:textAppearance="@style/NCText.Title.Small"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

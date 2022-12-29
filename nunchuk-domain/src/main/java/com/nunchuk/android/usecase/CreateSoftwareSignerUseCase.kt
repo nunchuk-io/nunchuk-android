@@ -35,7 +35,7 @@ interface CreateSoftwareSignerUseCase {
 }
 
 internal class CreateSoftwareSignerUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
+        private val nativeSdk: NunchukNativeSdk,
 ) : CreateSoftwareSignerUseCase {
 
     override fun execute(

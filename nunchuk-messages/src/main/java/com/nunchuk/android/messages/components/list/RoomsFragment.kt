@@ -23,21 +23,23 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.hideLoading
-import com.nunchuk.android.core.util.showLoading
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
 import com.nunchuk.android.messages.databinding.FragmentMessagesBinding
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.widget.NCWarningDialog
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import javax.inject.Inject
@@ -55,8 +57,6 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
     private lateinit var adapter: RoomAdapter
 
-    private var emptyStateView: View? = null
-
     override fun initializeBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
@@ -68,13 +68,12 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
         observeEvent()
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        emptyStateView = null
-    }
-
     private fun setupViews() {
-        adapter = RoomAdapter(accountManager.getAccount().name, ::openRoomDetailScreen, ::handleRemoveRoom)
+        adapter = RoomAdapter(
+            accountManager.getAccount().name,
+            ::openRoomDetailScreen,
+            ::handleRemoveRoom
+        )
         binding.recyclerView.setRecycledViewPool(roomShareViewPool.recycledViewPool)
         binding.recyclerView.setHasFixedSize(true)
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)
@@ -83,25 +82,35 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
             navigator.openCreateRoomScreen(requireActivity().supportFragmentManager)
         }
         setEmptyState()
-        emptyStateView?.findViewById<View>(R.id.btnAddContacts)?.setOnClickListener {
+        binding.viewStubEmptyState.btnAddContacts.setOnClickListener {
             navigator.openAddContactsScreen(childFragmentManager, viewModel::listenRoomSummaries)
         }
-        emptyStateView?.isVisible = false
+        binding.btnContactSupporter.setOnDebounceClickListener {
+            viewModel.getOrCreateSupportRom()
+        }
     }
 
     private fun setEmptyState() {
-        emptyStateView = binding.viewStubEmptyState.inflate()
-        emptyStateView?.findViewById<TextView>(R.id.tvEmptyStateDes)?.text = getString(R.string.nc_message_empty_messages)
-        emptyStateView?.findViewById<ImageView>(R.id.ivContactAdd)?.setImageResource(R.drawable.ic_messages_new)
+        binding.viewStubEmptyState.tvEmptyStateDes.text =
+            getString(R.string.nc_message_empty_messages)
+        binding.viewStubEmptyState.ivContactAdd.setImageResource(R.drawable.ic_messages_new)
     }
 
     private fun openRoomDetailScreen(summary: RoomSummary) {
-        navigator.openRoomDetailActivity(requireContext(), summary.roomId)
+        openRoomDetailScreen(summary.roomId)
     }
+
+    private fun openRoomDetailScreen(roomId: String) {
+        navigator.openRoomDetailActivity(requireContext(), roomId)
+    }
+
 
     private fun observeEvent() {
         viewModel.state.observe(viewLifecycleOwner, ::handleState)
         viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
+        flowObserver(viewModel.plan) {
+            handleShowEmptyState()
+        }
     }
 
     private fun handleState(state: RoomsState) {
@@ -109,26 +118,26 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
             clear()
             addAll(state.roomWallets.map(RoomWallet::roomId))
         }
-        adapter.submitList(state.rooms.filter(RoomSummary::shouldShow))
-        emptyStateView?.isVisible = state.rooms.isEmpty()
+        val visibleRooms = state.rooms.filter(RoomSummary::shouldShow)
+        adapter.submitList(visibleRooms)
+        handleShowEmptyState()
 
         hideLoading()
     }
 
+    private fun handleShowEmptyState() {
+        val visibleRooms = viewModel.getVisibleRooms()
+        val plan = viewModel.plan.value
+        binding.viewStubEmptyState.container.isVisible = visibleRooms.isEmpty() && plan == MembershipPlan.NONE
+        binding.containerEmptyPremiumUser.isVisible =
+            visibleRooms.isEmpty() && plan != MembershipPlan.NONE
+    }
+
     private fun handleEvent(event: RoomsEvent) {
         when (event) {
-            is LoadingEvent -> {
-                if (event.loading) {
-                    if (viewModel.getVisibleRooms().isNotEmpty()) {
-                        showLoading()
-                    } else {
-                        binding.skeletonContainer.root.isVisible = true
-                    }
-                } else {
-                    binding.skeletonContainer.root.isVisible = false
-                    hideLoading()
-                }
-            }
+            is LoadingEvent -> showOrHideLoading(event.loading)
+            is RoomsEvent.CreateSupportRoomSuccess -> openRoomDetailScreen(event.roomId)
+            is RoomsEvent.ShowError -> showError(event.message)
         }
     }
 
@@ -142,7 +151,8 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
                         deleteRoom(roomSummary)
                     },
                     onNoClick = {
-                        val position = viewModel.getVisibleRooms().indexOfFirst { it.roomId == roomSummary.roomId }
+                        val position = viewModel.getVisibleRooms()
+                            .indexOfFirst { it.roomId == roomSummary.roomId }
                         if (position in 0 until adapter.itemCount) {
                             adapter.notifyItemChanged(position)
                         }

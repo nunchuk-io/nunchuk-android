@@ -87,8 +87,7 @@
             android:textSize="@dimen/nc_text_size_12"
             app:layout_constraintBottom_toBottomOf="@+id/configuration"
             app:layout_constraintStart_toEndOf="@+id/configuration"
-            app:layout_constraintTop_toTopOf="@+id/configuration"
-            tools:text="Shared" />
+            app:layout_constraintTop_toTopOf="@+id/configuration" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/walletTypeLabel"

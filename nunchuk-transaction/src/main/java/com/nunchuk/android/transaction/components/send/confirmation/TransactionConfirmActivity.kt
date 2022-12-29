@@ -74,7 +74,9 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             subtractFeeFromAmount = args.subtractFeeFromAmount,
             privateNote = args.privateNote,
             manualFeeRate = args.manualFeeRate,
-            slots = args.slots
+            slots = args.slots,
+            masterSignerId = args.masterSignerId,
+            magicalPhrase = args.magicalPhrase
         )
     }
 
@@ -128,7 +130,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
     private fun handleEvent(event: TransactionConfirmEvent) {
         when (event) {
             is CreateTxErrorEvent -> showCreateTransactionError(event.message)
-            is CreateTxSuccessEvent -> openTransactionDetailScreen(event.txId, args.walletId, sessionHolder.getActiveRoomIdSafe())
+            is CreateTxSuccessEvent -> openTransactionDetailScreen(event.transaction.txId, args.walletId, sessionHolder.getActiveRoomIdSafe(), viewModel.isInheritanceClaimingFlow())
             is UpdateChangeAddress -> bindChangAddress(event.address, event.amount)
             LoadingEvent -> showLoading()
             is InitRoomTransactionError -> showCreateTransactionError(event.message)
@@ -172,7 +174,9 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             subtractFeeFromAmount: Boolean = false,
             manualFeeRate: Int = 0,
             sweepType: SweepType = SweepType.NONE,
-            slots: List<SatsCardSlot> = emptyList()
+            slots: List<SatsCardSlot> = emptyList(),
+            masterSignerId: String,
+            magicalPhrase: String
         ) {
             activityContext.startActivity(
                 TransactionConfirmArgs(
@@ -185,7 +189,9 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                     subtractFeeFromAmount = subtractFeeFromAmount,
                     manualFeeRate = manualFeeRate,
                     sweepType = sweepType,
-                    slots = slots
+                    slots = slots,
+                    masterSignerId = masterSignerId,
+                    magicalPhrase = magicalPhrase
                 ).buildIntent(activityContext)
             )
         }

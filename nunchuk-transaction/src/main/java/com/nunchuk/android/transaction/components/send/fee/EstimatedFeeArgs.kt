@@ -36,7 +36,9 @@ data class EstimatedFeeArgs(
     val privateNote: String,
     val subtractFeeFromAmount: Boolean = false,
     val sweepType: SweepType = SweepType.NONE,
-    val slots: List<SatsCardSlot> = emptyList()
+    val slots: List<SatsCardSlot> = emptyList(),
+    val masterSignerId: String = "",
+    val magicalPhrase: String = ""
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, EstimatedFeeActivity::class.java).apply {
@@ -48,6 +50,8 @@ data class EstimatedFeeArgs(
         putExtra(EXTRA_SUBTRACT_FEE, subtractFeeFromAmount)
         putExtra(EXTRA_SWEEP_TYPE, sweepType)
         putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
+        putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
+        putExtra(EXTRA_MAGICAL_PHRASE, magicalPhrase)
     }
 
     companion object {
@@ -59,6 +63,8 @@ data class EstimatedFeeArgs(
         private const val EXTRA_SUBTRACT_FEE = "EXTRA_SUBTRACT_FEE"
         private const val EXTRA_SWEEP_TYPE = "EXTRA_SWEEP_TYPE"
         private const val EXTRA_SLOTS = "EXTRA_SLOTS"
+        private const val EXTRA_MASTER_SIGNER_ID = "EXTRA_MASTER_SIGNER_ID"
+        private const val EXTRA_MAGICAL_PHRASE = "EXTRA_MAGICAL_PHRASE"
 
         fun deserializeFrom(intent: Intent) = EstimatedFeeArgs(
             intent.extras.getStringValue(EXTRA_WALLET_ID),
@@ -68,7 +74,9 @@ data class EstimatedFeeArgs(
             intent.extras.getStringValue(EXTRA_PRIVATE_NOTE),
             intent.extras.getBooleanValue(EXTRA_SUBTRACT_FEE),
             intent.extras!!.getSerializable(EXTRA_SWEEP_TYPE) as SweepType,
-            intent.extras!!.getParcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty()
+            intent.extras!!.getParcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
+            intent.extras.getStringValue(EXTRA_MASTER_SIGNER_ID),
+            intent.extras.getStringValue(EXTRA_MAGICAL_PHRASE)
         )
     }
 }

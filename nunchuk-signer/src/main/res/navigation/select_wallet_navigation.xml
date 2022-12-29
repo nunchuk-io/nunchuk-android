@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/select_wallet_navigation"
+    app:startDestination="@id/selectWalletFragment">
+
+    <fragment
+        android:id="@+id/selectWalletFragment"
+        android:name="com.nunchuk.android.signer.satscard.wallets.SelectWalletFragment"
+        android:label="SelectWalletFragment">
+
+        <argument
+            android:name="slots"
+            app:argType="com.nunchuk.android.model.SatsCardSlot[]" />
+        <argument
+            android:name="type"
+            app:argType="integer" />
+
+        <argument
+            android:name="wallet_balance"
+            android:defaultValue="0"
+            app:argType="float" />
+
+        <argument
+            android:name="master_signer_id"
+            android:defaultValue=""
+            app:argType="string" />
+
+        <argument
+            android:name="magical_phrase"
+            android:defaultValue=""
+            app:argType="string" />
+    </fragment>
+
+</navigation>

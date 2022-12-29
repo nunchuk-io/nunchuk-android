@@ -33,9 +33,6 @@ import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
-import kotlin.properties.ObservableProperty
-import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KProperty
 
 fun Throwable.readableMessage() = message ?: UNKNOWN_ERROR
 
@@ -62,6 +59,17 @@ const val BTC_SATOSHI_EXCHANGE_RATE = 100000000
 
 const val NFC_CARD_TIMEOUT = 5000
 const val NFC_DEFAULT_NAME = "NFC Key"
+const val TAPSIGNER_INHERITANCE_NAME = "TAPSIGNER (inh.)"
+
+const val ONE_HOUR_TO_SECONDS = 60 * 60
+
+const val SIGNER_PATH_PREFIX = "m/48h"
+const val COLDCARD_GUIDE_URL = "https://coldcard.com/docs/quick"
+const val COLDCARD_DEFAULT_KEY_NAME = "COLDCARD"
+
+const val SUPPORT_ROOM_USER_ID = "@support:nunchuk.io"
+const val SUPPORT_ROOM_TYPE = "io.nunchuk.support"
+const val SUPPORT_TEST_NET_ROOM_TYPE = "io.nunchuk.support.testnet"
 
 fun Long.formatDate(): String = SimpleDateFormat("MM/dd/yyyy 'at' HH:mm aaa", Locale.US).format(Date(this * 1000))
 
@@ -94,17 +102,6 @@ fun InputStream.saveToFile(file: String) = try {
 fun TextView.linkify(textToLink: String, url: String) {
     val pattern = Pattern.compile(textToLink)
     Linkify.addLinks(this, pattern, url, { _, _, _ -> true }, { _, _ -> "" })
-}
-
-inline fun <T> observable(
-    initialValue: T,
-    crossinline onChange: (newValue: T) -> Unit
-): ReadWriteProperty<Any?, T> = object : ObservableProperty<T>(initialValue) {
-    override fun beforeChange(property: KProperty<*>, oldValue: T, newValue: T): Boolean {
-        return oldValue != newValue
-    }
-
-    override fun afterChange(property: KProperty<*>, oldValue: T, newValue: T) = onChange(newValue)
 }
 
 fun Context.copyToClipboard(label: String, text: String) {

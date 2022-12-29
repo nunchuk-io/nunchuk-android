@@ -19,43 +19,51 @@
 
 package com.nunchuk.android.usecase
 
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.repository.PremiumWalletRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface CreateTransactionUseCase {
-    suspend fun execute(
-        walletId: String,
-        outputs: Map<String, Amount>,
-        memo: String = "",
-        inputs: List<UnspentOutput> = emptyList(),
-        feeRate: Amount = Amount(-1),
-        subtractFeeFromAmount: Boolean = false
-    ): Result<Transaction>
-}
-
-internal class CreateTransactionUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
-) : BaseUseCase(), CreateTransactionUseCase {
-    override suspend fun execute(
-        walletId: String,
-        outputs: Map<String, Amount>,
-        memo: String,
-        inputs: List<UnspentOutput>,
-        feeRate: Amount,
-        subtractFeeFromAmount: Boolean
-    ) = exe {
-        nativeSdk.createTransaction(
-            walletId = walletId,
-            outputs = outputs,
-            memo = memo,
-            inputs = inputs,
-            feeRate = feeRate,
-            subtractFeeFromAmount = subtractFeeFromAmount
+class CreateTransactionUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    private val repository: PremiumWalletRepository,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
+) : UseCase<CreateTransactionUseCase.Param, Transaction>(ioDispatcher) {
+    override suspend fun execute(parameters: Param): Transaction {
+        val transaction = nativeSdk.createTransaction(
+            walletId = parameters.walletId,
+            outputs = parameters.outputs,
+            memo = parameters.memo,
+            inputs = parameters.inputs,
+            feeRate = parameters.feeRate,
+            subtractFeeFromAmount = parameters.subtractFeeFromAmount
         )
+        if (parameters.isAssistedWallet) {
+            try {
+                repository.createServerTransaction(
+                    parameters.walletId,
+                    transaction.psbt,
+                    transaction.memo,
+                    transaction.txId
+                )
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+        return transaction
     }
 
+    data class Param(
+        val walletId: String,
+        val outputs: Map<String, Amount>,
+        val memo: String = "",
+        val inputs: List<UnspentOutput> = emptyList(),
+        val feeRate: Amount = Amount(-1),
+        val subtractFeeFromAmount: Boolean = false,
+        val isAssistedWallet: Boolean
+    )
 }

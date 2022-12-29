@@ -27,15 +27,23 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.arch.args.FragmentArgs
 import com.nunchuk.android.core.base.BaseBottomSheet
-import com.nunchuk.android.core.util.checkCameraPermission
 import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.model.TransactionOption.*
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.DialogTransactionSignBottomSheetBinding
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBottomSheetBinding>() {
+
+    @Inject
+    lateinit var membershipStepManager: MembershipStepManager
 
     private lateinit var listener: (TransactionOption) -> Unit
 
@@ -71,7 +79,7 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
 
         binding.btnExport.isVisible = args.isPending
         binding.btnExport.setOnClickListener {
-            listener(EXPORT)
+            listener(EXPORT_KEYSTONE)
             dismiss()
         }
 
@@ -83,26 +91,20 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
 
         binding.btnImport.isVisible = args.isPending
         binding.btnImport.setOnClickListener {
-            if (requireActivity().checkCameraPermission()) {
-                listener(IMPORT_KEYSTONE)
-                dismiss()
-            }
+            listener(IMPORT_KEYSTONE)
+            dismiss()
         }
 
         binding.btnImportPassport.isVisible = args.isPending
         binding.btnImportPassport.setOnClickListener {
-            if (requireActivity().checkCameraPermission()) {
-                listener(IMPORT_PASSPORT)
-                dismiss()
-            }
+            listener(IMPORT_PASSPORT)
+            dismiss()
         }
 
         binding.btnReplaceFee.isVisible = args.isPendingConfirm
         binding.btnReplaceFee.setOnClickListener {
-            if (requireActivity().checkCameraPermission()) {
-                listener(REPLACE_BY_FEE)
-                dismiss()
-            }
+            listener(REPLACE_BY_FEE)
+            dismiss()
         }
 
         binding.btnCopyTxId.setOnDebounceClickListener {
@@ -115,6 +117,19 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             listener(REMOVE_TRANSACTION)
             dismiss()
         }
+
+        binding.btnScheduleBroadcast.isVisible = args.isPending
+                && args.isAssistedWallet
+                && membershipStepManager.plan == MembershipPlan.HONEY_BADGER
+        binding.btnScheduleBroadcast.text = if (args.isScheduleBroadcast) {
+            getString(R.string.nc_cancel_scheduled_broadcast)
+        } else {
+            getString(R.string.nc_schedule_broadcast)
+        }
+        binding.btnScheduleBroadcast.setOnDebounceClickListener {
+            listener(SCHEDULE_BROADCAST)
+            dismiss()
+        }
     }
 
     fun setListener(listener: (TransactionOption) -> Unit) {
@@ -124,27 +139,25 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
     companion object {
         private const val TAG = "TransactionOptionsBottomSheet"
 
-        private fun newInstance(
-            isPending: Boolean,
-            isPendingConfirm: Boolean,
-            isRejected: Boolean
-        ) = TransactionOptionsBottomSheet().apply {
-            arguments =
-                TransactionOptionsArgs(isPending, isPendingConfirm, isRejected).buildBundle()
-        }
-
-
         fun show(
             fragmentManager: FragmentManager,
             isPending: Boolean,
             isPendingConfirm: Boolean,
-            isRejected: Boolean
+            isRejected: Boolean,
+            isAssistedWallet: Boolean,
+            isScheduleBroadcast: Boolean,
         ): TransactionOptionsBottomSheet {
-            return newInstance(
-                isPending,
-                isPendingConfirm,
-                isRejected
-            ).apply { show(fragmentManager, TAG) }
+            return TransactionOptionsBottomSheet().apply {
+                arguments =
+                    TransactionOptionsArgs(
+                        isPending,
+                        isPendingConfirm,
+                        isRejected,
+                        isAssistedWallet,
+                        isScheduleBroadcast
+                    ).buildBundle()
+                show(fragmentManager, TAG)
+            }
         }
     }
 
@@ -153,24 +166,32 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
 data class TransactionOptionsArgs(
     val isPending: Boolean,
     val isPendingConfirm: Boolean,
-    val isRejected: Boolean
+    val isRejected: Boolean,
+    val isAssistedWallet: Boolean,
+    val isScheduleBroadcast: Boolean,
 ) : FragmentArgs {
 
     override fun buildBundle() = Bundle().apply {
         putBoolean(EXTRA_IS_PENDING, isPending)
         putBoolean(EXTRA_IS_PENDING_CONFIRM, isPendingConfirm)
         putBoolean(EXTRA_IS_REJECTED, isRejected)
+        putBoolean(EXTRA_IS_ASSISTED_WALLET, isAssistedWallet)
+        putBoolean(EXTRA_IS_SCHEDULE_BROADCAST, isScheduleBroadcast)
     }
 
     companion object {
         private const val EXTRA_IS_PENDING = "EXTRA_IS_PENDING"
         private const val EXTRA_IS_PENDING_CONFIRM = "EXTRA_IS_PENDING_CONFIRM"
         private const val EXTRA_IS_REJECTED = "EXTRA_IS_REJECTED"
+        private const val EXTRA_IS_ASSISTED_WALLET = "EXTRA_IS_ASSISTED_WALLET"
+        private const val EXTRA_IS_SCHEDULE_BROADCAST = "EXTRA_IS_SCHEDULE_BROADCAST"
 
         fun deserializeFrom(data: Bundle?) = TransactionOptionsArgs(
             data?.getBooleanValue(EXTRA_IS_PENDING).orFalse(),
             data?.getBooleanValue(EXTRA_IS_PENDING_CONFIRM).orFalse(),
             data?.getBooleanValue(EXTRA_IS_REJECTED).orFalse(),
+            data?.getBooleanValue(EXTRA_IS_ASSISTED_WALLET).orFalse(),
+            data?.getBooleanValue(EXTRA_IS_SCHEDULE_BROADCAST).orFalse(),
         )
     }
 }

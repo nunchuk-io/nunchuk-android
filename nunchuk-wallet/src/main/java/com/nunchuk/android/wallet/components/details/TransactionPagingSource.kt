@@ -21,7 +21,11 @@ package com.nunchuk.android.wallet.components.details
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import com.nunchuk.android.core.util.isPending
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.transaction.ExtendedTransaction
+import com.nunchuk.android.model.transaction.ServerTransaction
+import com.nunchuk.android.usecase.membership.GetServerTransactionUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import javax.inject.Inject
 
@@ -29,15 +33,35 @@ internal const val STARTING_PAGE = 1
 internal const val PAGE_SIZE = 100
 
 class TransactionPagingSource @Inject constructor(
-    private val transactions: List<Transaction>
-) : PagingSource<Int, Transaction>() {
+    private val transactions: List<Transaction>,
+    private val getServerTransactionUseCase: GetServerTransactionUseCase,
+    private val walletId: String,
+    private val isAssistedWallet: Boolean,
+    private val serverTransactions: MutableMap<String, ServerTransaction?>
+) : PagingSource<Int, ExtendedTransaction>() {
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Transaction> {
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ExtendedTransaction> {
         return try {
             val position = params.key ?: STARTING_PAGE
             val fromIndex = (position - 1) * PAGE_SIZE
             val toIndex = (position * PAGE_SIZE).coerceAtMost(transactions.size)
-            val data = transactions.subList(fromIndex, toIndex)
+            val data = transactions.subList(fromIndex, toIndex).map { transaction ->
+                if (isAssistedWallet && transaction.signers.any { it.value } && transaction.status.isPending()) {
+                    if (serverTransactions.contains(transaction.txId).not()) {
+                        serverTransactions[transaction.txId] = getServerTransactionUseCase(
+                            GetServerTransactionUseCase.Param(
+                                walletId,
+                                transaction.txId
+                            )
+                        ).getOrNull()?.serverTransaction
+                    }
+                    return@map ExtendedTransaction(
+                        transaction = transaction,
+                        serverTransaction = serverTransactions[transaction.txId]
+                    )
+                }
+                return@map ExtendedTransaction(transaction = transaction)
+            }
             val hasNextPage = ((position * PAGE_SIZE) < transactions.size)
             LoadResult.Page(
                 data = data,
@@ -50,8 +74,10 @@ class TransactionPagingSource @Inject constructor(
         }
     }
 
-    override fun getRefreshKey(state: PagingState<Int, Transaction>) = state.anchorPosition?.let {
-        state.closestPageToPosition(it)?.prevKey?.plus(1) ?: state.closestPageToPosition(it)?.nextKey?.minus(1)
-    }
+    override fun getRefreshKey(state: PagingState<Int, ExtendedTransaction>) =
+        state.anchorPosition?.let {
+            state.closestPageToPosition(it)?.prevKey?.plus(1)
+                ?: state.closestPageToPosition(it)?.nextKey?.minus(1)
+        }
 
 }

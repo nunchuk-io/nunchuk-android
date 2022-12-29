@@ -30,9 +30,6 @@ import dagger.hilt.components.SingletonComponent
 internal interface SignerDomainModule {
 
     @Binds
-    fun bindCreateSignerUseCase(useCase: CreateSignerUseCaseImpl): CreateSignerUseCase
-
-    @Binds
     fun bindGetOrCreateRootDirUseCase(useCase: GetOrCreateRootDirUseCaseImpl): GetOrCreateRootDirUseCase
 
     @Binds
@@ -59,10 +56,6 @@ internal interface SignerDomainModule {
 
     @Binds
     fun bindCreateSoftwareSignerUseCase(useCase: CreateSoftwareSignerUseCaseImpl): CreateSoftwareSignerUseCase
-
-    // MASTER SIGNER
-    @Binds
-    fun bindGetMasterSignerUseCase(useCase: GetMasterSignerUseCaseImpl): GetMasterSignerUseCase
 
     @Binds
     fun bindGetMasterSignersUseCase(useCase: GetMasterSignersUseCaseImpl): GetMasterSignersUseCase

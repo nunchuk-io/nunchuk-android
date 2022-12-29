@@ -25,7 +25,7 @@ import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.signer.R
-import com.nunchuk.android.signer.databinding.ActivityNavigationBinding
+import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

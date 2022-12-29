@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <MotionScene xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:motion="http://schemas.android.com/apk/res-auto">
 
     <Transition
@@ -13,6 +14,12 @@
     </Transition>
 
     <ConstraintSet android:id="@+id/start">
+
+        <Constraint android:id="@+id/tv_assisted_downgrade_hint">
+            <PropertySet
+                app:applyMotionScene="false"
+                app:visibilityMode="ignore" />
+        </Constraint>
 
         <Constraint
             android:id="@+id/configuration_container"
@@ -30,7 +37,7 @@
             android:layout_marginBottom="@dimen/nc_padding_8"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toBottomOf="@+id/configuration_container" >
+            motion:layout_constraintTop_toBottomOf="@+id/configuration_container">
             <CustomAttribute
                 motion:attributeName="textSize"
                 motion:customFloatValue="24" />
@@ -53,7 +60,7 @@
             android:layout_marginEnd="@dimen/nc_padding_8"
             motion:layout_constraintEnd_toStartOf="@id/guideline"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toBottomOf="@+id/viewWalletConfig" >
+            motion:layout_constraintTop_toBottomOf="@+id/viewWalletConfig">
             <CustomAttribute
                 motion:attributeName="textSize"
                 motion:customFloatValue="16" />
@@ -68,7 +75,7 @@
             android:layout_marginEnd="@dimen/nc_padding_16"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toEndOf="@id/guideline"
-            motion:layout_constraintTop_toBottomOf="@+id/viewWalletConfig" >
+            motion:layout_constraintTop_toBottomOf="@+id/viewWalletConfig">
             <CustomAttribute
                 motion:attributeName="textSize"
                 motion:customFloatValue="16" />
@@ -93,7 +100,7 @@
             android:layout_marginTop="@dimen/nc_padding_8"
             android:layout_marginBottom="@dimen/nc_padding_8"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintTop_toBottomOf="@+id/configuration_container" >
+            motion:layout_constraintTop_toBottomOf="@+id/configuration_container">
             <CustomAttribute
                 motion:attributeName="textSize"
                 motion:customFloatValue="16" />
@@ -116,7 +123,7 @@
             motion:layout_constraintBottom_toBottomOf="@+id/btcAmount"
             motion:layout_constraintEnd_toStartOf="@+id/btnReceive"
             motion:layout_constraintStart_toEndOf="@+id/barrier"
-            motion:layout_constraintTop_toBottomOf="@+id/configuration_container" >
+            motion:layout_constraintTop_toBottomOf="@+id/configuration_container">
             <CustomAttribute
                 motion:attributeName="textSize"
                 motion:customFloatValue="12" />
@@ -130,7 +137,7 @@
             motion:layout_constraintBottom_toBottomOf="@+id/btcAmount"
             motion:layout_constraintEnd_toEndOf="parent"
             motion:layout_constraintStart_toEndOf="@+id/btnSend"
-            motion:layout_constraintTop_toBottomOf="@+id/configuration_container" >
+            motion:layout_constraintTop_toBottomOf="@+id/configuration_container">
             <CustomAttribute
                 motion:attributeName="textSize"
                 motion:customFloatValue="12" />

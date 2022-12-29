@@ -23,5 +23,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface SettingRepository {
     val syncEnable: Flow<Boolean>
+    val isShowNfcUniversal: Flow<Boolean>
     suspend fun setSyncEnable(isEnable: Boolean)
+    suspend fun markIsShowNfcUniversal()
 }

@@ -31,17 +31,19 @@ import javax.inject.Inject
 class GetDefaultSignerFromMasterSignerUseCase @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val nunchukNativeSdk: NunchukNativeSdk
-) : UseCase<GetDefaultSignerFromMasterSignerUseCase.Params, SingleSigner>(ioDispatcher) {
+) : UseCase<GetDefaultSignerFromMasterSignerUseCase.Params, List<SingleSigner>>(ioDispatcher) {
 
-    override suspend fun execute(parameters: Params): SingleSigner {
-        return nunchukNativeSdk.getDefaultSignerFromMasterSigner(
-            masterSignerId = parameters.masterSignerId,
-            walletType = parameters.walletType.ordinal,
-            addressType = parameters.addressType.ordinal
-        )
+    override suspend fun execute(parameters: Params): List<SingleSigner> {
+        return parameters.masterSignerIds.map { masterSignerId ->
+            nunchukNativeSdk.getDefaultSignerFromMasterSigner(
+                masterSignerId = masterSignerId,
+                walletType = parameters.walletType.ordinal,
+                addressType = parameters.addressType.ordinal
+            )
+        }
     }
 
     data class Params(
-        val masterSignerId: String, val walletType: WalletType, val addressType: AddressType
+        val masterSignerIds: List<String>, val walletType: WalletType, val addressType: AddressType
     )
 }

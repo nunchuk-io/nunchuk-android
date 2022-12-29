@@ -39,7 +39,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.details.model.SingerOption
 import com.nunchuk.android.signer.databinding.ActivitySignerInfoBinding
-import com.nunchuk.android.signer.nfc.NfcSetupActivity
+import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
@@ -147,7 +147,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_GENERATE_HEAL_CHECK_MSG }) { scanInfo ->
             viewModel.state.value?.remoteSigner?.let { signer ->
                 viewModel.generateColdcardHealthMessages(
-                    Ndef.get(scanInfo.tag),
+                    Ndef.get(scanInfo.tag) ?: return@flowObserver,
                     signer.derivationPath
                 )
             }
@@ -209,7 +209,8 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
         binding.signerSpec.isVisible = true
         binding.signerSpec.text = signer.descriptor
         binding.fingerprint.isVisible = false
-        binding.signerType.text = signer.type.toReadableString(this, isPrimaryKey(signer.masterSignerId))
+        binding.signerType.text =
+            signer.type.toReadableString(this, isPrimaryKey(signer.masterSignerId))
     }
 
     private fun handleEvent(event: SignerInfoEvent) {
@@ -248,7 +249,9 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
                 val message = event.e?.message ?: getString(R.string.nc_topup_xpub_failed)
                 NCToastMessage(this).showError(message)
             }
-            SignerInfoEvent.GenerateColdcardHealthMessagesSuccess -> startNfcFlow(REQUEST_MK4_IMPORT_SIGNATURE)
+            SignerInfoEvent.GenerateColdcardHealthMessagesSuccess -> startNfcFlow(
+                REQUEST_MK4_IMPORT_SIGNATURE
+            )
             SignerInfoEvent.NfcLoading -> showOrHideNfcLoading(true)
         }
     }
@@ -271,7 +274,12 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
 
     private fun setupViews() {
         binding.signerName.text = args.name
-        if (args.isReplacePrimaryKey) {
+        if (args.customMessage.isNotBlank()) {
+            NCToastMessage(this).showMessage(
+                message = args.customMessage,
+                icon = R.drawable.ic_check_circle_outline
+            )
+        } else if (args.isReplacePrimaryKey) {
             NCToastMessage(this).showMessage(
                 message = getString(R.string.nc_replace_primary_key_success),
                 icon = R.drawable.ic_check_circle_outline
@@ -368,7 +376,8 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
             justAdded: Boolean = false,
             setPassphrase: Boolean = false,
             isInWallet: Boolean,
-            isReplacePrimaryKey: Boolean = false
+            isReplacePrimaryKey: Boolean = false,
+            customMessage: String
         ) {
             activityContext.startActivity(
                 SignerInfoArgs(
@@ -380,7 +389,8 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
                     setPassphrase = setPassphrase,
                     masterFingerprint = masterFingerprint,
                     isInWallet = isInWallet,
-                    isReplacePrimaryKey = isReplacePrimaryKey
+                    isReplacePrimaryKey = isReplacePrimaryKey,
+                    customMessage = customMessage
                 ).buildIntent(activityContext)
             )
         }

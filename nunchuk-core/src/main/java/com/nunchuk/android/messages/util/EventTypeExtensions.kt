@@ -32,12 +32,24 @@ const val STATE_NUNCHUK_CONTACT_REQUEST = "io.nunchuk.custom.contact_request"
 const val STATE_NUNCHUK_CONTACT_INVITATION_ACCEPTED = "io.nunchuk.custom.invitation_accepted"
 const val STATE_NUNCHUK_CONTACT_REQUEST_ACCEPTED = "io.nunchuk.custom.contact_request_accepted"
 const val STATE_NUNCHUK_CONTACT_WITHDRAW_INVITATION = "io.nunchuk.custom.withdraw_invitation"
+const val TRANSACTION_CO_SIGNED = "io.nunchuk.custom.transaction_co_signed"
+const val SUBSCRIPTION_SUBSCRIPTION_ACTIVE = "io.nunchuk.custom.subscription_activated"
+const val SUBSCRIPTION_SUBSCRIPTION_PENDING = "io.nunchuk.custom.subscription_pending"
+const val TRANSACTION_CO_SIGNED_AND_BROADCAST =
+    "io.nunchuk.custom.transaction_co_signed_and_broadcast"
 const val STATE_ROOM_SERVER_NOTICE = "m.server_notice"
 const val STATE_ENCRYPTED_MESSAGE = "*Encrypted*"
 
-fun TimelineEvent.isDisplayable() = isMessageEvent() || isEncryptedEvent() || isNotificationEvent() || isNunchukEvent()
+fun TimelineEvent.isDisplayable(isSupportRoom: Boolean) : Boolean {
+    return if (isSupportRoom.not()) {
+        isMessageEvent() || isEncryptedEvent() || isNotificationEvent() || isNunchukEvent()
+    } else {
+        isMessageEvent() || isEncryptedEvent() || isNunchukEvent()
+    }
+}
 
-fun TimelineEvent.isNotificationEvent() = isRoomMemberEvent() || isRoomCreateEvent() || isRoomNameEvent()
+fun TimelineEvent.isNotificationEvent() =
+    isRoomMemberEvent() || isRoomCreateEvent() || isRoomNameEvent()
 
 fun TimelineEvent.isRoomCreateEvent() = root.getClearType() == EventType.STATE_ROOM_CREATE
 
@@ -49,7 +61,8 @@ fun TimelineEvent.isRoomNameEvent() = root.getClearType() == EventType.STATE_ROO
 
 fun TimelineEvent.isMessageEvent() = root.isTextMessage()
 
-fun TimelineEvent.isNunchukEvent() = isNunchukWalletEvent() || isNunchukTransactionEvent() || isNunchukErrorEvent()
+fun TimelineEvent.isNunchukEvent() =
+    isNunchukWalletEvent() || isNunchukTransactionEvent() || isNunchukErrorEvent()
 
 fun TimelineEvent.isNunchukWalletEvent() = root.getClearType() == STATE_NUNCHUK_WALLET
 
@@ -59,14 +72,27 @@ fun TimelineEvent.isNunchukConsumeSyncEvent() = root.getClearType() == STATE_NUN
 
 fun TimelineEvent.isNunchukErrorEvent() = root.getClearType() == STATE_NUNCHUK_ERROR
 
-fun TimelineEvent.isContactUpdateEvent() = isContactRequestEvent() || isContactWithdrawInvitationEvent() || isContactRequestAcceptedEvent() || isContactInvitationAcceptedEvent()
+fun TimelineEvent.isContactUpdateEvent() =
+    isContactRequestEvent() || isContactWithdrawInvitationEvent() || isContactRequestAcceptedEvent() || isContactInvitationAcceptedEvent()
 
 fun TimelineEvent.isContactRequestEvent() = getMsgType() == STATE_NUNCHUK_CONTACT_REQUEST
 
-fun TimelineEvent.isContactWithdrawInvitationEvent() = getMsgType() == STATE_NUNCHUK_CONTACT_WITHDRAW_INVITATION
+fun TimelineEvent.isContactWithdrawInvitationEvent() =
+    getMsgType() == STATE_NUNCHUK_CONTACT_WITHDRAW_INVITATION
 
-fun TimelineEvent.isContactRequestAcceptedEvent() = getMsgType() == STATE_NUNCHUK_CONTACT_REQUEST_ACCEPTED
+fun TimelineEvent.isContactRequestAcceptedEvent() =
+    getMsgType() == STATE_NUNCHUK_CONTACT_REQUEST_ACCEPTED
 
-fun TimelineEvent.isContactInvitationAcceptedEvent() = getMsgType() == STATE_NUNCHUK_CONTACT_INVITATION_ACCEPTED
+fun TimelineEvent.isContactInvitationAcceptedEvent() =
+    getMsgType() == STATE_NUNCHUK_CONTACT_INVITATION_ACCEPTED
 
-private fun TimelineEvent.getMsgType() = root.getClearContent()?.get("msgtype")
+fun TimelineEvent.isCosignedEvent() = getMsgType() == TRANSACTION_CO_SIGNED
+
+fun TimelineEvent.isCosignedAndBroadcastEvent() =
+    getMsgType() == TRANSACTION_CO_SIGNED_AND_BROADCAST
+
+fun TimelineEvent.getMsgType() = root.getClearContent()?.get("msgtype")
+
+fun TimelineEvent.getTransactionId() = root.getClearContent()?.get("transaction_id").toString()
+
+fun TimelineEvent.getWalletId() = root.getClearContent()?.get("wallet_local_id").toString()

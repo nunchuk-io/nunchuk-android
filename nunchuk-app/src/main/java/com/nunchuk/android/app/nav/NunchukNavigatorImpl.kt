@@ -19,12 +19,12 @@
 
 package com.nunchuk.android.app.nav
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.jakewharton.processphoenix.ProcessPhoenix
 import com.nunchuk.android.QuickWalletNavigationDirections
 import com.nunchuk.android.app.intro.GuestModeIntroActivity
 import com.nunchuk.android.app.intro.GuestModeMessageIntroActivity
@@ -33,8 +33,17 @@ import com.nunchuk.android.app.wallet.QuickWalletActivity
 import com.nunchuk.android.auth.nav.AuthNavigatorDelegate
 import com.nunchuk.android.contact.nav.ContactNavigatorDelegate
 import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.main.MainActivity
+import com.nunchuk.android.main.components.tabs.services.emergencylockdown.EmergencyLockdownActivity
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
+import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoveryActivity
+import com.nunchuk.android.main.membership.MembershipActivity
+import com.nunchuk.android.main.membership.authentication.WalletAuthenticationActivity
 import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
+import com.nunchuk.android.model.Inheritance
+import com.nunchuk.android.model.KeyPolicy
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.nav.AppNavigator
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.nav.SettingNavigatorDelegate
@@ -99,9 +108,84 @@ internal class NunchukNavigatorImpl @Inject constructor(
 interface AppNavigatorDelegate : AppNavigator {
 
     override fun restartApp(activityContext: Context) {
-        ProcessPhoenix.triggerRebirth(
-            activityContext,
-            Intent(activityContext, SplashActivity::class.java)
+        val intent = Intent(activityContext, SplashActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        }
+        activityContext.startActivity(intent)
+    }
+
+    override fun openMembershipActivity(
+        activityContext: Activity,
+        groupStep: MembershipStage,
+        keyPolicy: KeyPolicy?,
+        xfp: String?
+    ) {
+        activityContext.startActivity(
+            MembershipActivity.buildIntent(
+                activity = activityContext,
+                groupStep = groupStep,
+                keyPolicy = keyPolicy,
+                xfp = xfp
+            )
+        )
+    }
+
+    override fun openMembershipActivity(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Activity,
+        groupStep: MembershipStage,
+        keyPolicy: KeyPolicy?,
+        xfp: String?
+    ) {
+        launcher.launch(
+            MembershipActivity.buildIntent(
+                activity = activityContext,
+                groupStep = groupStep,
+                keyPolicy = keyPolicy,
+                xfp = xfp
+            )
+        )
+    }
+
+    override fun openKeyRecoveryScreen(activityContext: Context) {
+        KeyRecoveryActivity.navigate(activityContext)
+    }
+
+    override fun openEmergencyLockdownScreen(activityContext: Context, verifyToken: String) {
+        EmergencyLockdownActivity.navigate(activityContext, verifyToken)
+    }
+
+    override fun openInheritancePlanningScreen(
+        launcher: ActivityResultLauncher<Intent>?,
+        activityContext: Context,
+        verifyToken: String?,
+        inheritance: Inheritance?,
+        @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int
+    ) {
+        InheritancePlanningActivity.navigate(
+            launcher = launcher,
+            activity = activityContext,
+            verifyToken = verifyToken,
+            flowInfo = flowInfo,
+            inheritance = inheritance
+        )
+    }
+
+    override fun openWalletAuthentication(
+        walletId: String,
+        userData: String,
+        requiredSignatures: Int,
+        type: String,
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Activity
+    ) {
+        WalletAuthenticationActivity.start(
+            walletId = walletId,
+            userData = userData,
+            requiredSignatures = requiredSignatures,
+            type = type,
+            launcher = launcher,
+            activityContext = activityContext
         )
     }
 }

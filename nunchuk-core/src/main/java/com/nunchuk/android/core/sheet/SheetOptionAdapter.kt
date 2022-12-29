@@ -53,20 +53,34 @@ class SheetOptionAdapter(
 
 }
 
-class SheetOptionHolder(private val binding: ItemSheetOptionBinding) : RecyclerView.ViewHolder(binding.root) {
+class SheetOptionHolder(private val binding: ItemSheetOptionBinding) :
+    RecyclerView.ViewHolder(binding.root) {
     fun bind(option: SheetOption) {
-        if (option.resId > 0) {
-            binding.tvLabel.setCompoundDrawablesRelativeWithIntrinsicBounds(option.resId, 0, 0, 0)
-        }
+        binding.tvLabel.setCompoundDrawablesRelativeWithIntrinsicBounds(
+            option.resId,
+            0,
+            if (option.isSelected) R.drawable.ic_check else 0,
+            0
+        )
         option.label?.let {
             binding.tvLabel.text = it
         } ?: run {
             binding.tvLabel.setText(option.stringId)
         }
         if (option.isDeleted) {
-            binding.tvLabel.setTextColor(ContextCompat.getColor(binding.root.context, R.color.nc_orange_color))
+            binding.tvLabel.setTextColor(
+                ContextCompat.getColor(
+                    binding.root.context,
+                    R.color.nc_orange_color
+                )
+            )
         } else {
-            binding.tvLabel.setTextColor(ContextCompat.getColor(binding.root.context, R.color.nc_black_color))
+            binding.tvLabel.setTextColor(
+                ContextCompat.getColor(
+                    binding.root.context,
+                    R.color.nc_black_color
+                )
+            )
         }
     }
 }

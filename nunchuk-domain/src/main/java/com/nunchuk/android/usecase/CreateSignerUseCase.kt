@@ -19,41 +19,34 @@
 
 package com.nunchuk.android.usecase
 
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import com.nunchuk.android.type.SignerType
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface CreateSignerUseCase {
-    fun execute(
-        name: String,
-        xpub: String,
-        publicKey: String,
-        derivationPath: String,
-        masterFingerprint: String
-    ): Flow<SingleSigner>
-}
-
-internal class CreateSignerUseCaseImpl @Inject constructor(
+class CreateSignerUseCase @Inject constructor(
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val nativeSdk: NunchukNativeSdk
-) : CreateSignerUseCase {
+) : UseCase<CreateSignerUseCase.Params, SingleSigner>(ioDispatcher) {
 
-    override fun execute(
-        name: String,
-        xpub: String,
-        publicKey: String,
-        derivationPath: String,
-        masterFingerprint: String
-    ) = flow {
-        emit(
-            nativeSdk.createSigner(
-                name = name,
-                xpub = xpub,
-                publicKey = publicKey,
-                derivationPath = derivationPath,
-                masterFingerprint = masterFingerprint
-            )
+    override suspend fun execute(parameters: Params): SingleSigner {
+        return nativeSdk.createSigner(
+            name = parameters.name,
+            xpub = parameters.xpub,
+            publicKey = "",
+            derivationPath = parameters.derivationPath,
+            masterFingerprint = parameters.masterFingerprint,
+            type = parameters.type
         )
     }
+
+    data class Params(
+        val name: String,
+        val xpub: String,
+        val type: SignerType,
+        val derivationPath: String,
+        val masterFingerprint: String
+    )
 }

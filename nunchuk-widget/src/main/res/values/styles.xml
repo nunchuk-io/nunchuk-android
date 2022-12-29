@@ -5,6 +5,7 @@
         <item name="colorPrimary">@color/nc_primary_color</item>
         <item name="colorPrimaryDark">@color/nc_primary_dark_color</item>
         <item name="colorAccent">@color/nc_accent_color</item>
+        <item name="android:datePickerStyle">@style/NunchukDateTimePicker</item>
     </style>
 
     <style name="NCToolbar">
@@ -81,6 +82,16 @@
     <style name="NCAnimatedDialog">
         <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
         <item name="android:windowExitAnimation">@android:anim/fade_out</item>
+    </style>
+
+    <style name="NunchukDateTimePicker" parent="Theme.MaterialComponents.Light.Dialog">
+        <item name="colorAccent">@color/nc_primary_color</item>
+        <item name="android:buttonBarNegativeButtonStyle">@style/DatePickerTheme.ButtonBarNegativeButtonStyle</item>
+        <item name="android:buttonBarPositiveButtonStyle">@style/DatePickerTheme.ButtonBarNegativeButtonStyle</item>
+    </style>
+
+    <style name="DatePickerTheme.ButtonBarNegativeButtonStyle" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/nc_primary_color</item>
     </style>
 
 </resources>

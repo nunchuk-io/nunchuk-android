@@ -1,22 +1,3 @@
-/**************************************************************************
- * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
- * Copyright (C) 2022 Nunchuk								              *
- *                                                                        *
- * This program is free software; you can redistribute it and/or          *
- * modify it under the terms of the GNU General Public License            *
- * as published by the Free Software Foundation; either version 3         *
- * of the License, or (at your option) any later version.                 *
- *                                                                        *
- * This program is distributed in the hope that it will be useful,        *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of         *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          *
- * GNU General Public License for more details.                           *
- *                                                                        *
- * You should have received a copy of the GNU General Public License      *
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.  *
- *                                                                        *
- **************************************************************************/
-
 package com.nunchuk.android.wallet.components.details
 
 import android.app.Activity
@@ -27,9 +8,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.navArgs
 import androidx.paging.CombinedLoadStates
 import androidx.paging.LoadState
@@ -48,6 +32,7 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
+import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.config.WalletConfigAction
 import com.nunchuk.android.wallet.components.config.WalletConfigActivity
@@ -78,9 +63,10 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             val data = it.data
             if (it.resultCode == Activity.RESULT_OK && data != null) {
-                when (data.getSerializableExtra(WalletConfigActivity.EXTRA_WALLET_ACTION) as WalletConfigAction) {
-                    WalletConfigAction.DELETE -> activity?.onBackPressed()
+                when (data.serializable<WalletConfigAction>(WalletConfigActivity.EXTRA_WALLET_ACTION)) {
+                    WalletConfigAction.DELETE -> requireActivity().onBackPressedDispatcher.onBackPressed()
                     WalletConfigAction.UPDATE_NAME -> viewModel.getWalletDetails(false)
+                    null -> {}
                 }
             }
         }
@@ -89,6 +75,11 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         IntentSharingController.from(
             requireActivity()
         )
+    }
+
+    override fun onDestroy() {
+        requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.nc_primary_color)
+        super.onDestroy()
     }
 
     private val viewModel: WalletDetailsViewModel by viewModels()
@@ -157,6 +148,11 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     }
 
     private fun observeEvent() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                viewModel.syncData()
+            }
+        }
         viewModel.state.observe(viewLifecycleOwner, ::handleState)
         viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
     }
@@ -242,19 +238,30 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         binding.cashAmount.text = wallet.getUSDAmount()
         binding.btnSend.isClickable = wallet.balance.value > 0
 
-        binding.shareIcon.isVisible = state.walletExtended.isShared
+        binding.shareIcon.isVisible = state.walletExtended.isShared || state.isAssistedWallet
+        if (state.isAssistedWallet) {
+            binding.container.setBackgroundResource(R.drawable.nc_header_membership_gradient_background)
+            requireActivity().window.statusBarColor =  ContextCompat.getColor(requireContext(), R.color.nc_wallet_premium_bg)
+            binding.shareIcon.text = getString(R.string.nc_assisted)
+        }
     }
 
     private fun setupViews() {
         binding.transactionList.layoutManager =
             LinearLayoutManager(context, RecyclerView.VERTICAL, false)
+        binding.tvAssistedDowngradeHint.isVisible = viewModel.isInactiveAssistedWallet()
         binding.transactionList.isNestedScrollingEnabled = false
         binding.transactionList.setHasFixedSize(false)
         binding.transactionList.adapter = adapter
 
         binding.viewWalletConfig.setUnderline()
         binding.viewWalletConfig.setOnClickListener {
-            navigator.openWalletConfigScreen(launcher, requireActivity(), args.walletId)
+            navigator.openWalletConfigScreen(
+                launcher = launcher,
+                activityContext = requireActivity(),
+                walletId = args.walletId,
+                keyPolicy = args.keyPolicy
+            )
         }
         binding.btnReceive.setOnClickListener {
             navigator.openReceiveTransactionScreen(
@@ -263,7 +270,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         }
         binding.btnSend.setOnClickListener { viewModel.handleSendMoneyEvent() }
         binding.toolbar.setNavigationOnClickListener {
-            requireActivity().onBackPressed()
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
         binding.toolbar.setOnMenuItemClickListener { menu ->
