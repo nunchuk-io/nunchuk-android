@@ -587,8 +587,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return TransactionAdditional(psbt = transaction.psbt.orEmpty())
     }
 
-    override suspend fun inheritanceCheck(magic: String?): InheritanceCheck {
-        val request = InheritanceCheckRequest(magic = magic, environment = "PRODUCTION")
+    override suspend fun inheritanceCheck(): InheritanceCheck {
+        val request = InheritanceCheckRequest(environment = "PRODUCTION")
         val response = userWalletApiManager.walletApi.inheritanceCheck(request)
         return InheritanceCheck(
             isValid = response.data.isValid.orFalse(),
