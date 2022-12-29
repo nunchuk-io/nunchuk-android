@@ -736,7 +736,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
         val serverTransaction = response.data.transaction ?: throw NullPointerException("Schedule transaction does not return server transaction")
         if (serverTransaction.type == ServerTransactionType.SCHEDULED && serverTransaction.broadCastTimeMillis > System.currentTimeMillis()) {
-            nunchukNativeSdk.updateTransactionSchedule(walletId, transactionId, serverTransaction.broadCastTimeMillis)
+            nunchukNativeSdk.updateTransactionSchedule(walletId, transactionId, serverTransaction.broadCastTimeMillis / 1000)
         }
         return serverTransaction.toServerTransaction()
     }
@@ -748,6 +748,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.walletApi.deleteScheduleTransaction(
             walletId, transactionId,
         )
+        if (response.isSuccess) {
+            nunchukNativeSdk.updateTransactionSchedule(walletId, transactionId, 0)
+        }
         return response.data.transaction?.toServerTransaction() ?: throw NullPointerException("transaction from server null")
     }
 

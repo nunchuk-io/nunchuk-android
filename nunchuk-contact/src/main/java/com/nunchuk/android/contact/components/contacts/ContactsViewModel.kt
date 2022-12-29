@@ -24,10 +24,11 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.contact.usecase.GetReceivedContactsUseCase
 import com.nunchuk.android.contact.usecase.GetSentContactsUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
-import com.nunchuk.android.messages.util.STATE_ROOM_SERVER_NOTICE
-import com.nunchuk.android.messages.util.isContactUpdateEvent
+import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.ReceiveContact
 import com.nunchuk.android.model.SentContact
@@ -49,7 +50,8 @@ class ContactsViewModel @Inject constructor(
     private val getContactsUseCase: GetContactsUseCase,
     private val getSentContactsUseCase: GetSentContactsUseCase,
     private val getReceivedContactsUseCase: GetReceivedContactsUseCase,
-    private val sessionHolder: SessionHolder
+    private val sessionHolder: SessionHolder,
+    private val pushEventManager: PushEventManager,
 ) : NunchukViewModel<ContactsState, Unit>() {
 
     override val initialState = ContactsState.empty()
@@ -131,6 +133,13 @@ class ContactsViewModel @Inject constructor(
     }
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
+        events.forEach { event ->
+            if (event.isCosignedEvent() || event.isCosignedAndBroadcastEvent()) {
+                viewModelScope.launch {
+                    pushEventManager.push(PushEvent.CosigningEvent(event.getWalletId(), event.getTransactionId()))
+                }
+            }
+        }
         events.findLast(TimelineEvent::isContactUpdateEvent)?.let { retrieveContacts() }
     }
 

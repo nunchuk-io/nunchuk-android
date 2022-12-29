@@ -125,8 +125,8 @@ class SignUpActivity : BaseActivity<ActivitySignupBinding>() {
     }
 
     companion object {
-        private const val PRIVACY_URL = "https://www.nunchuk.io/privacy.html"
-        private const val TERM_URL = "https://www.nunchuk.io/terms.html"
+        private const val PRIVACY_URL = "https://www.nunchuk.io/privacy"
+        private const val TERM_URL = "https://www.nunchuk.io/terms"
         fun start(activityContext: Context) {
             activityContext.startActivity(Intent(activityContext, SignUpActivity::class.java))
         }
