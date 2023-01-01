@@ -236,13 +236,18 @@ class WalletAuthenticationViewModel @Inject constructor(
         }
     }
 
-    suspend fun handleSignatureResult(
+    private suspend fun handleSignatureResult(
         result: Result<String>,
         singleSigner: SingleSigner
     ) {
         if (result.isSuccess) {
             val signatures = _state.value.signatures.toMutableMap()
-            signatures[singleSigner.masterFingerprint] = result.getOrThrow()
+            val signature = result.getOrThrow()
+            if (signature.isEmpty()) {
+                _event.emit(WalletAuthenticationEvent.CanNotSignDummyTx)
+                return
+            }
+            signatures[singleSigner.masterFingerprint] = signature
             if (signatures.size == args.requiredSignatures) {
                 _event.emit(WalletAuthenticationEvent.WalletAuthenticationSuccess(signatures))
             } else {

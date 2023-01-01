@@ -30,6 +30,7 @@ import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.utils.CrashlyticsReporter
 import java.io.File
 import java.io.InputStream
+import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
@@ -70,6 +71,22 @@ const val COLDCARD_DEFAULT_KEY_NAME = "COLDCARD"
 const val SUPPORT_ROOM_USER_ID = "@support:nunchuk.io"
 const val SUPPORT_ROOM_TYPE = "io.nunchuk.support"
 const val SUPPORT_TEST_NET_ROOM_TYPE = "io.nunchuk.support.testnet"
+
+fun Double.formatRoundDecimal(): String {
+    val df = DecimalFormat("#.##")
+    return df.format(this)
+}
+
+fun String.fixAfterDecimal(count: Int = 2) : String{
+    val decimalIndex = indexOf(".")
+    return if (decimalIndex > 0) {
+        substring(0, minOf(length, decimalIndex + count + 1))
+    } else {
+        this
+    }
+}
+
+fun Double.roundDecimal(): Double = formatRoundDecimal().toDoubleOrNull() ?: 0.0
 
 fun Long.formatDate(): String = SimpleDateFormat("MM/dd/yyyy 'at' HH:mm aaa", Locale.US).format(Date(this * 1000))
 
