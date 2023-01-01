@@ -79,11 +79,15 @@ class ServicesTabViewModel @Inject constructor(
         viewModelScope.launch {
             getLocalMembershipPlanFlowUseCase(Unit)
                 .map { it.getOrElse { MembershipPlan.NONE } }
-                .zip(getAssistedWalletIdsFlowUseCase(Unit)
+                .combine(getAssistedWalletIdsFlowUseCase(Unit)
                     .map { it.getOrElse { "" } }
-                    .distinctUntilChanged()) { plan, walletId ->
+                    .distinctUntilChanged()
+                ) { plan, walletId ->
                     plan to walletId
-                }.collect { (plan, walletId) ->
+                }.filter {
+                    it.second.isNotEmpty()
+                }
+                .collect { (plan, walletId) ->
                     _state.update { it.copy(walletId = walletId) }
                     getInheritance(walletId, plan)
                 }
