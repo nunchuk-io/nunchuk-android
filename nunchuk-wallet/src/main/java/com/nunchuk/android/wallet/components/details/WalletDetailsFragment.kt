@@ -97,7 +97,8 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     }
 
     override fun onDestroy() {
-        requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.nc_primary_color)
+        requireActivity().window.statusBarColor =
+            ContextCompat.getColor(requireContext(), R.color.nc_primary_color)
         super.onDestroy()
     }
 
@@ -260,7 +261,8 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         binding.shareIcon.isVisible = state.walletExtended.isShared || state.isAssistedWallet
         if (state.isAssistedWallet) {
             binding.container.setBackgroundResource(R.drawable.nc_header_membership_gradient_background)
-            requireActivity().window.statusBarColor =  ContextCompat.getColor(requireContext(), R.color.nc_wallet_premium_bg)
+            requireActivity().window.statusBarColor =
+                ContextCompat.getColor(requireContext(), R.color.nc_wallet_premium_bg)
             binding.shareIcon.text = getString(R.string.nc_assisted)
         }
     }
@@ -364,15 +366,11 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     }
 
     private fun handleExportBSMS() {
-        if (requireActivity().checkReadExternalPermission()) {
-            viewModel.handleExportBSMS()
-        }
+        viewModel.handleExportBSMS()
     }
 
     private fun handleImportPSBT() {
-        if (requireActivity().checkReadExternalPermission()) {
-            requireActivity().openSelectFileChooser()
-        }
+        requireActivity().openSelectFileChooser()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
