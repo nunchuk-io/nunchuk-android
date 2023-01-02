@@ -20,7 +20,6 @@
 package com.nunchuk.android.main.components.tabs.services
 
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.nonsubscriber.intro.NonSubscriberIntroEvent
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.banner.BannerPage
@@ -63,7 +62,9 @@ data class ServicesTabState(
             }
             MembershipPlan.IRON_HAND -> {
                 items.add(ServiceTabRowCategory.Emergency)
-                items.add(ServiceTabRowItem.KeyRecovery)
+                if (walletId.isNullOrEmpty().not()) {
+                    items.add(ServiceTabRowItem.KeyRecovery)
+                }
                 items.add(ServiceTabRowCategory.Subscription)
                 items.addAll(ServiceTabRowCategory.Subscription.items)
                 if (banner != null) {
@@ -79,7 +80,9 @@ data class ServicesTabState(
                 } else {
                     items.add(ServiceTabRowItem.ViewInheritancePlan)
                 }
-                items.add(ServiceTabRowItem.ClaimInheritance)
+                if (walletId.isNullOrEmpty().not()) {
+                    items.add(ServiceTabRowItem.ClaimInheritance)
+                }
                 items.add(ServiceTabRowCategory.Subscription)
                 items.addAll(ServiceTabRowCategory.Subscription.items)
             }

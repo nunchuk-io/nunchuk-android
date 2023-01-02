@@ -84,8 +84,6 @@ class ServicesTabViewModel @Inject constructor(
                     .distinctUntilChanged()
                 ) { plan, walletId ->
                     plan to walletId
-                }.filter {
-                    it.second.isNotEmpty()
                 }
                 .collect { (plan, walletId) ->
                     _state.update { it.copy(walletId = walletId) }
