@@ -91,20 +91,7 @@ internal class SignInViewModel @Inject constructor(
                 .retryIO(retryPolicy)
                 .onStart { event(ProcessingEvent) }
                 .flowOn(IO)
-                .onException {
-                    if (it is NunchukApiException) {
-                        event(
-                            SignInErrorEvent(
-                                code = it.code,
-                                message = it.message,
-                                errorDetail = it.errorDetail
-                            )
-                        )
-                    } else {
-                        event(SignInErrorEvent(message = it.message.orUnknownError()))
-                    }
-                }
-                .flatMapConcat {
+                .map {
                     token = it.first
                     encryptedDeviceId = it.second
                     fileLog(message = "start initNunchuk")
@@ -122,6 +109,19 @@ internal class SignInViewModel @Inject constructor(
                     )
                 }
                 .flowOn(Main)
+                .onException {
+                    if (it is NunchukApiException) {
+                        event(
+                            SignInErrorEvent(
+                                code = it.code,
+                                message = it.message,
+                                errorDetail = it.errorDetail
+                            )
+                        )
+                    } else {
+                        event(SignInErrorEvent(message = it.message.orUnknownError()))
+                    }
+                }
                 .launchIn(viewModelScope)
         }
     }
@@ -135,12 +135,11 @@ internal class SignInViewModel @Inject constructor(
         }
     }
 
-    private fun initNunchuk() = initNunchukUseCase.execute(
+    private suspend fun initNunchuk() = initNunchukUseCase(InitNunchukUseCase.Param(
         accountId = accountManager.getAccount().email
-    ).flowOn(IO).onException { event(SignInErrorEvent(message = it.message)) }
+    ))
 
     fun storeStaySignedIn(staySignedIn: Boolean) {
         this.staySignedIn = staySignedIn
     }
-
 }

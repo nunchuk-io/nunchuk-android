@@ -23,25 +23,24 @@ import com.nunchuk.android.core.constants.Constants.GLOBAL_SIGNET_EXPLORER
 import com.nunchuk.android.core.constants.Constants.MAIN_NET_HOST
 import com.nunchuk.android.core.constants.Constants.SIG_NET_HOST
 import com.nunchuk.android.core.constants.Constants.TEST_NET_HOST
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.AppSettings
 import com.nunchuk.android.type.BackendType
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.usecase.GetOrCreateRootDirUseCase
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flatMapConcat
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface InitAppSettingsUseCase {
-    fun execute(): Flow<AppSettings>
-}
-
-internal class InitAppSettingsUseCaseImpl @Inject constructor(
+class InitAppSettingsUseCase @Inject constructor(
     private val updateAppSettingUseCase: UpdateAppSettingUseCase,
-    private val getOrCreateRootDirUseCase: GetOrCreateRootDirUseCase
-) : InitAppSettingsUseCase {
+    private val getOrCreateRootDirUseCase: GetOrCreateRootDirUseCase,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+) : UseCase<Unit, AppSettings>(ioDispatcher) {
 
-    override fun execute() = getOrCreateRootDirUseCase.execute().flatMapConcat { path ->
-        updateAppSettingUseCase.execute(
+    override suspend fun execute(parameters: Unit): AppSettings {
+        val path = getOrCreateRootDirUseCase(Unit).getOrThrow()
+        return updateAppSettingUseCase(
             AppSettings(
                 chain = Chain.MAIN,
                 hwiPath = "bin/hwi",
@@ -52,7 +51,6 @@ internal class InitAppSettingsUseCaseImpl @Inject constructor(
                 storagePath = path,
                 signetExplorerHost = GLOBAL_SIGNET_EXPLORER
             )
-
-        )
+        ).getOrThrow()
     }
 }

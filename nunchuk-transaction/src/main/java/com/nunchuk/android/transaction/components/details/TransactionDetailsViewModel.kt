@@ -55,8 +55,9 @@ import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.retrieveInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -354,10 +355,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    fun handleViewBlockchainEvent() {
-        getBlockchainExplorerUrlUseCase.execute(txId).flowOn(IO)
-            .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }
-            .onEach { setEvent(ViewBlockchainExplorer(it)) }.flowOn(Main).launchIn(viewModelScope)
+    fun handleViewBlockchainEvent() = viewModelScope.launch {
+        val result = getBlockchainExplorerUrlUseCase(txId)
+        if (result.isSuccess) {
+            setEvent(ViewBlockchainExplorer(result.getOrThrow()))
+        } else {
+            setEvent(TransactionDetailsError(result.exceptionOrNull()?.message.orEmpty()))
+        }
     }
 
     fun handleMenuMoreEvent() {

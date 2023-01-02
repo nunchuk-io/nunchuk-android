@@ -52,4 +52,3 @@ enum class SignInMode(val value: Int) {
 
 fun SignInMode.isGuestMode() = this == SignInMode.GUEST_MODE
 fun SignInMode.isPrimaryKey() = this == SignInMode.PRIMARY_KEY
-fun SignInMode.isUnknown() = this == SignInMode.UNKNOWN

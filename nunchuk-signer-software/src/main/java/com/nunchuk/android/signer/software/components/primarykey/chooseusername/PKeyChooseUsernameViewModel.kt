@@ -30,13 +30,9 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
 import com.nunchuk.android.usecase.GetPrimaryKeyAddressUseCase
-import com.nunchuk.android.utils.onException
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 internal class PKeyChooseUsernameViewModel @AssistedInject constructor(
@@ -81,37 +77,39 @@ internal class PKeyChooseUsernameViewModel @AssistedInject constructor(
         val state = getState()
         if (state.username.isBlank()) return@launch
         setEvent(PKeyChooseUsernameEvent.LoadingEvent(true))
-        initNunchukUseCase.execute(accountId = state.username)
-            .flowOn(Dispatchers.IO)
-            .onException { event(PKeyChooseUsernameEvent.ProcessFailure(it.message.orUnknownError())) }
-            .map {
-                val param = GetPrimaryKeyAddressUseCase.Param(
-                    mnemonic = args.mnemonic,
-                    passphrase = args.passphrase
-                )
-                getPrimaryKeyAddressUseCase(param).getOrThrow()
-            }
-            .collect { address ->
-                if (address.isNullOrEmpty()) return@collect
-                val resultSignUp = signUpPrimaryKeyUseCase(
-                    SignUpPrimaryKeyUseCase.Param(
-                        mnemonic = args.mnemonic,
-                        passphrase = args.passphrase,
-                        address = address,
-                        username = state.username,
-                        signerName = args.signerName,
-                        defaultUserName = state.defaultUserName.orEmpty(),
-                        staySignedIn = true
-                    )
-                )
-                setEvent(PKeyChooseUsernameEvent.LoadingEvent(false))
-                if (resultSignUp.isSuccess) {
-                    signInModeHolder.setCurrentMode(SignInMode.PRIMARY_KEY)
-                    setEvent(PKeyChooseUsernameEvent.SignUpSuccess)
-                } else {
-                    setEvent(PKeyChooseUsernameEvent.ProcessFailure(resultSignUp.exceptionOrNull()?.message.orUnknownError()))
-                }
-            }
+        val initNunchukResult =
+            initNunchukUseCase(InitNunchukUseCase.Param(accountId = state.username))
+        if (initNunchukResult.isFailure) {
+            setEvent(PKeyChooseUsernameEvent.ProcessFailure(initNunchukResult.exceptionOrNull()?.message.orUnknownError()))
+            return@launch
+        }
+        val param = GetPrimaryKeyAddressUseCase.Param(
+            mnemonic = args.mnemonic,
+            passphrase = args.passphrase
+        )
+        val addressResult = getPrimaryKeyAddressUseCase(param)
+        if (addressResult.isFailure) {
+            setEvent(PKeyChooseUsernameEvent.ProcessFailure(addressResult.exceptionOrNull()?.message.orUnknownError()))
+            return@launch
+        }
+        val resultSignUp = signUpPrimaryKeyUseCase(
+            SignUpPrimaryKeyUseCase.Param(
+                mnemonic = args.mnemonic,
+                passphrase = args.passphrase,
+                address = addressResult.getOrThrow().orEmpty(),
+                username = state.username,
+                signerName = args.signerName,
+                defaultUserName = state.defaultUserName.orEmpty(),
+                staySignedIn = true
+            )
+        )
+        setEvent(PKeyChooseUsernameEvent.LoadingEvent(false))
+        if (resultSignUp.isSuccess) {
+            signInModeHolder.setCurrentMode(SignInMode.PRIMARY_KEY)
+            setEvent(PKeyChooseUsernameEvent.SignUpSuccess)
+        } else {
+            setEvent(PKeyChooseUsernameEvent.ProcessFailure(resultSignUp.exceptionOrNull()?.message.orUnknownError()))
+        }
     }
 
     fun getTurnOnNotification() = viewModelScope.launch {
@@ -131,5 +129,4 @@ internal class PKeyChooseUsernameViewModel @AssistedInject constructor(
     internal interface Factory {
         fun create(args: PKeyChooseUsernameArgs): PKeyChooseUsernameViewModel
     }
-
 }

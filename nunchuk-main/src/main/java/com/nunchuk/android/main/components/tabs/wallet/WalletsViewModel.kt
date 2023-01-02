@@ -24,10 +24,10 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.BaseNfcUseCase
-import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
 import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
 import com.nunchuk.android.core.domain.membership.GetServerWalletUseCase
+import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
@@ -36,6 +36,7 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.*
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.type.Chain
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
@@ -57,7 +58,7 @@ import javax.inject.Inject
 internal class WalletsViewModel @Inject constructor(
     private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     private val getWalletsUseCase: GetWalletsUseCase,
-    private val getAppSettingUseCase: GetAppSettingUseCase,
+    private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     private val getNfcCardStatusUseCase: GetNfcCardStatusUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val masterSignerMapper: MasterSignerMapper,
@@ -164,13 +165,11 @@ internal class WalletsViewModel @Inject constructor(
 
     fun getAppSettings() {
         viewModelScope.launch {
-            getAppSettingUseCase.execute()
-                .flowOn(Dispatchers.IO)
-                .onException { }
-                .flowOn(Dispatchers.Main)
+            getChainSettingFlowUseCase(Unit)
+                .map { it.getOrElse { Chain.MAIN } }
                 .collect {
                     updateState {
-                        copy(chain = it.chain)
+                        copy(chain = it)
                     }
                 }
         }

@@ -20,27 +20,17 @@
 package com.nunchuk.android.app.splash
 
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.app.splash.SplashEvent.*
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
-import com.nunchuk.android.core.guestmode.isPrimaryKey
-import com.nunchuk.android.core.matrix.MatrixInitializerUseCase
-import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.share.InitNunchukUseCase
-import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 internal class SplashViewModel @Inject constructor(
-    private val initNunchukUseCase: InitNunchukUseCase,
     private val accountManager: AccountManager,
-    private val matrixInitializerUseCase: MatrixInitializerUseCase,
     private val signInModeHolder: SignInModeHolder,
 ) : NunchukViewModel<Unit, SplashEvent>() {
 
@@ -71,26 +61,23 @@ internal class SplashViewModel @Inject constructor(
     }
 
     fun initFlow() {
-        val account = accountManager.getAccount()
         viewModelScope.launch {
-            matrixInitializerUseCase(Unit)
-            val accountId = if (signInModeHolder.getCurrentMode().isPrimaryKey()) {
-                account.username
-            } else {
-                account.email
+            val account = accountManager.getAccount()
+            when {
+                accountManager.isAccountExisted()
+                        && accountManager.isAccountActivated().not() -> event(
+                    SplashEvent.NavActivateAccountEvent
+                )
+                accountManager.isHasAccountBefore()
+                        && accountManager.isStaySignedIn().not() -> event(
+                    SplashEvent.NavSignInEvent
+                )
+                else -> event(
+                    SplashEvent.NavHomeScreenEvent(
+                        account.token, account.deviceId
+                    )
+                )
             }
-            initNunchukUseCase.execute(accountId = accountId)
-                .flowOn(Dispatchers.IO)
-                .onException { event(InitErrorEvent(it.message.orUnknownError())) }
-                .flowOn(Dispatchers.Main)
-                .collect {
-                    when {
-                        accountManager.isAccountExisted() && accountManager.isAccountActivated().not() -> event(NavActivateAccountEvent)
-                        accountManager.isHasAccountBefore() && accountManager.isStaySignedIn().not() -> event(NavSignInEvent)
-                        else -> event(NavHomeScreenEvent(account.token, account.deviceId))
-                    }
-                }
         }
     }
-
 }
