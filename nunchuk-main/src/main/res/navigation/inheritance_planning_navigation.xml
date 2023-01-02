@@ -345,6 +345,10 @@
         <argument
             android:name="magical_phrase"
             app:argType="string" />
+        <argument
+            android:name="plan_flow"
+            android:defaultValue="0"
+            app:argType="integer" />
     </fragment>
 
     <fragment
@@ -361,6 +365,10 @@
         <argument
             android:name="magical_phrase"
             app:argType="string" />
+        <argument
+            android:name="plan_flow"
+            android:defaultValue="0"
+            app:argType="integer" />
     </fragment>
 
     <fragment
@@ -372,6 +380,10 @@
             app:argType="string" />
         <argument
             android:name="type"
+            app:argType="integer" />
+        <argument
+            android:name="plan_flow"
+            android:defaultValue="0"
             app:argType="integer" />
     </fragment>
 

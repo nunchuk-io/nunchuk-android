@@ -62,9 +62,7 @@ data class ServicesTabState(
             }
             MembershipPlan.IRON_HAND -> {
                 items.add(ServiceTabRowCategory.Emergency)
-                if (walletId.isNullOrEmpty().not()) {
-                    items.add(ServiceTabRowItem.KeyRecovery)
-                }
+                items.add(ServiceTabRowItem.KeyRecovery)
                 items.add(ServiceTabRowCategory.Subscription)
                 items.addAll(ServiceTabRowCategory.Subscription.items)
                 if (banner != null) {
@@ -80,9 +78,7 @@ data class ServicesTabState(
                 } else {
                     items.add(ServiceTabRowItem.ViewInheritancePlan)
                 }
-                if (walletId.isNullOrEmpty().not()) {
-                    items.add(ServiceTabRowItem.ClaimInheritance)
-                }
+                items.add(ServiceTabRowItem.ClaimInheritance)
                 items.add(ServiceTabRowCategory.Subscription)
                 items.addAll(ServiceTabRowCategory.Subscription.items)
             }

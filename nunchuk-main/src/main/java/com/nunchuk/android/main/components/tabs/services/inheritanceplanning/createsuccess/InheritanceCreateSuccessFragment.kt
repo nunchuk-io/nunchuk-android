@@ -35,17 +35,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanFragmentArgs
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanFragmentDirections
 import com.nunchuk.android.nav.NunchukNavigator
 import javax.inject.Inject
 
@@ -62,7 +57,12 @@ class InheritanceCreateSuccessFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 InheritanceCreateSuccessScreenContent {
-                    findNavController().navigate(InheritanceCreateSuccessFragmentDirections.actionInheritanceCreateSuccessFragmentToInheritanceShareSecretFragment(magicalPhrase = args.magicalPhrase))
+                    findNavController().navigate(
+                        InheritanceCreateSuccessFragmentDirections.actionInheritanceCreateSuccessFragmentToInheritanceShareSecretFragment(
+                            magicalPhrase = args.magicalPhrase,
+                            planFlow = args.planFlow
+                        )
+                    )
                 }
             }
         }

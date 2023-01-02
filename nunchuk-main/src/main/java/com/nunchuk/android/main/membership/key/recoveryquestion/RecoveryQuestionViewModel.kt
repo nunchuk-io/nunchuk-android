@@ -117,10 +117,11 @@ class RecoveryQuestionViewModel @Inject constructor(
         val value = _state.value
         val selectedQuestionSet = hashSetOf<String>()
         value.recoveries.forEach {
-            selectedQuestionSet.add(it.question.id)
+            val question = if (it.question.question.isNullOrBlank().not()) it.question.question else it.question.customQuestion
+            selectedQuestionSet.add(question.orEmpty())
         }
         val questions = value.securityQuestions.filter {
-            selectedQuestionSet.contains(it.id).not()
+            selectedQuestionSet.contains(it.question).not()
         }
         if (questions.isNotEmpty()) {
             _state.update {

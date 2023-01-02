@@ -45,6 +45,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -90,6 +91,7 @@ private fun InheritanceShareSecretInfoScreen(
         remainTime = remainTime,
         type = args.type,
         magicalPhrase = args.magicalPhrase,
+        planFlow = args.planFlow,
         onActionClick = onActionClick
     )
 }
@@ -100,6 +102,7 @@ private fun InheritanceShareSecretInfoContent(
     remainTime: Int = 0,
     magicalPhrase: String = "",
     type: Int = 0,
+    planFlow: Int = InheritancePlanFlow.NONE,
     onActionClick: () -> Unit = {}
 ) {
     NunchukTheme {
@@ -109,14 +112,19 @@ private fun InheritanceShareSecretInfoContent(
                     .padding(innerPadding)
                     .navigationBarsPadding()
             ) {
-                LazyColumn {
+                LazyColumn(modifier = Modifier.weight(1f)) {
                     item {
-                        NcImageAppBar(
-                            backgroundRes = R.drawable.nc_bg_tap_signer_explain,
-                            title = stringResource(
+                        val title = if (planFlow == InheritancePlanFlow.SETUP) {
+                            stringResource(
                                 id = R.string.nc_estimate_remain_time,
                                 remainTime
-                            ),
+                            )
+                        } else {
+                            ""
+                        }
+                        NcImageAppBar(
+                            backgroundRes = R.drawable.nc_bg_tap_signer_explain,
+                            title = title,
                         )
                         val typeDesc = when (type) {
                             InheritanceShareSecretType.DIRECT.ordinal -> stringResource(id = R.string.nc_inheritance_share_secret_info_title_direct)
@@ -164,7 +172,6 @@ private fun InheritanceShareSecretInfoContent(
                             label = stringResource(R.string.nc_inheritance_share_secret_info_2),
                         )
                     }
-
                 }
 
                 val warningDesc = when (type) {

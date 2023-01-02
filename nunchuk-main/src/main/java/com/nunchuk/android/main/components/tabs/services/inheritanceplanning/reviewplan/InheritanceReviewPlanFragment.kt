@@ -132,7 +132,8 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                 }, onShareSecretClicked = {
                     findNavController().navigate(
                         InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceShareSecretFragment(
-                            magicalPhrase = args.magicalPhrase
+                            magicalPhrase = args.magicalPhrase,
+                            planFlow = args.planFlow
                         )
                     )
                 }, onActionTopBarClick = {
@@ -188,7 +189,8 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                     if (args.planFlow == InheritancePlanFlow.SETUP) {
                         findNavController().navigate(
                             InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceCreateSuccessFragment(
-                                magicalPhrase = args.magicalPhrase
+                                magicalPhrase = args.magicalPhrase,
+                                planFlow = args.planFlow
                             )
                         )
                     } else if (args.planFlow == InheritancePlanFlow.VIEW) {
