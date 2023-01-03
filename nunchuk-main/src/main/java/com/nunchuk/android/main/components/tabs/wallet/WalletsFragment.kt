@@ -51,6 +51,7 @@ import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
 import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
 import com.nunchuk.android.main.intro.UniversalNfcIntroActivity
 import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
+import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_ACTIVE
 import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_PENDING
 import com.nunchuk.android.messages.util.getMsgType
@@ -77,6 +78,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     lateinit var accountManager: AccountManager
 
     private val walletsViewModel: WalletsViewModel by activityViewModels()
+
+    private val roomViewModel: RoomsViewModel by activityViewModels()
 
     private val contactViewModel: ContactsViewModel by activityViewModels()
 
@@ -177,12 +180,24 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         walletsViewModel.state.observe(viewLifecycleOwner, ::showWalletState)
         walletsViewModel.event.observe(viewLifecycleOwner, ::handleEvent)
         mainActivityViewModel.event.observe(viewLifecycleOwner, ::handleMainActivityEvent)
+        roomViewModel.state.observe(viewLifecycleOwner) {
+            if (walletsViewModel.isPremiumUser().not()) {
+                it.rooms.forEach { room ->
+                    room.latestPreviewableEvent?.takeIf { event ->
+                        event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_PENDING
+                                || event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_ACTIVE
+                    }?.let {
+                        walletsViewModel.reloadMembership()
+                    }
+                }
+            }
+        }
         if (walletsViewModel.state.value?.isPremiumUser != true) {
             flowObserver(contactViewModel.noticeRoomEvent()) {
                 it.forEach { event ->
                     if ((event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_PENDING || event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_ACTIVE)
                         && walletsViewModel.isPremiumUser().not()) {
-                        walletsViewModel.checkMemberMembership()
+                        walletsViewModel.reloadMembership()
                     }
                 }
             }

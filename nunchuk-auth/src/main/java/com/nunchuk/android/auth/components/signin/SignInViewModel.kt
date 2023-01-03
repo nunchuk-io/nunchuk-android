@@ -69,7 +69,7 @@ internal class SignInViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(dispatcher) {
-            userProfileRepository.signOut().collect()
+            userProfileRepository.signOut().catch {  }.collect()
             userProfileRepository.clearDataStore()
         }
     }

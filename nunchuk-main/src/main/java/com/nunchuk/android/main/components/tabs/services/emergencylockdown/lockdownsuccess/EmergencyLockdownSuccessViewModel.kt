@@ -25,11 +25,13 @@ import com.nunchuk.android.core.profile.UserProfileRepository
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -47,11 +49,11 @@ class EmergencyLockdownSuccessViewModel @Inject constructor(
         appScope.launch {
             _event.emit(EmergencyLockdownSuccessEvent.Loading(true))
             repository.signOut()
-                .flowOn(Dispatchers.IO)
+                .flowOn(dispatcher)
                 .onException {
                     _event.emit(EmergencyLockdownSuccessEvent.Loading(false))
                 }
-                .first()
+                .firstOrNull()
             clearInfoSessionUseCase.invoke(Unit)
             _event.emit(EmergencyLockdownSuccessEvent.SignOut)
         }

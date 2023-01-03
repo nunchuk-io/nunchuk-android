@@ -33,8 +33,7 @@ import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -113,7 +112,7 @@ internal class NetworkSettingViewModel @Inject constructor(
 
     fun signOut() {
         appScope.launch {
-            repository.signOut().flowOn(Dispatchers.IO).onException { }.first()
+            repository.signOut().flowOn(dispatcher).onException { }.firstOrNull()
             event(NetworkSettingEvent.LoadingEvent(true))
             sessionHolder.clearActiveSession()
             accountManager.signOut()

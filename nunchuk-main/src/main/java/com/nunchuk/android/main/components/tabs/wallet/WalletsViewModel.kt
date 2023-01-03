@@ -49,6 +49,7 @@ import com.nunchuk.android.usecase.user.SetSetupInheritanceUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
@@ -114,6 +115,13 @@ internal class WalletsViewModel @Inject constructor(
             isSetupInheritance.collect {
                 updateState { copy(isSetupInheritance = it) }
             }
+        }
+    }
+
+    fun reloadMembership() {
+        viewModelScope.launch {
+            delay(300L)
+            checkMemberMembership()
         }
     }
 

@@ -115,8 +115,6 @@ class ServicesTabViewModel @Inject constructor(
                             inheritance = inheritanceResult.getOrNull(),
                         )
                     }
-                } else {
-                    _event.emit(ServicesTabEvent.ProcessFailure(inheritanceResult.exceptionOrNull()?.message.orUnknownError()))
                 }
             } else {
                 val bannerResult = getBannerUseCase(Unit)

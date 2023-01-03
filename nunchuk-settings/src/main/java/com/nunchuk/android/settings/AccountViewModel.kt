@@ -36,10 +36,12 @@ import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -142,7 +144,7 @@ internal class AccountViewModel @Inject constructor(
                 .onException {
                     event(AccountEvent.LoadingEvent(false))
                 }
-                .first()
+                .firstOrNull()
             clearInfoSessionUseCase.invoke(Unit)
             event(AccountEvent.SignOutEvent)
         }
