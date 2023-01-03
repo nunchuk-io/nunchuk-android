@@ -54,4 +54,14 @@ interface AuthApi {
     suspend fun forgotPassword(
         @Body forgotPasswordPayload: ForgotPasswordPayload
     ): Data<Unit>
+
+    @POST("/v1.1/passport/qr/try-login")
+    suspend fun tryLogin(
+        @Body payload: TryLoginRequest
+    ): Data<TryLoginResponse>
+
+    @POST("/v1.1/passport/qr/confirm-login")
+    suspend fun confirmLogin(
+        @Body payload: ConfirmQrLoginRequest
+    ): Data<Unit>
 }

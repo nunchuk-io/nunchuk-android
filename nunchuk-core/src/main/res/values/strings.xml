@@ -473,4 +473,6 @@
     <string name="nc_cancel_scheduled_broadcast">Cancel scheduled broadcast</string>
     <string name="nc_withdraw_nunchuk_wallet">Withdraw to a Nunchuk wallet</string>
     <string name="nc_can_not_sign_please_try_again">Can not sign, please try again</string>
+    <string name="nc_confirm_qr_sign_in_msg">Are you sure you want to sign in remotely on another device?</string>
+    <string name="nc_remote_sign_in_success">Remote sign-in successful</string>
 </resources>

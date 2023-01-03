@@ -31,10 +31,18 @@ data class UserTokenResponse(
     val expireInSeconds: Long = 0
 ) : Serializable
 
-data class UserResponseWrapper(
-    @SerializedName("user")
-    val user: UserResponse
-) : Serializable
+data class TryLoginResponse(
+    @SerializedName("user_agent")
+    val userAgent: String? = null,
+    @SerializedName("ip")
+    val ip: String? = null,
+    @SerializedName("token")
+    val token: String? = null,
+    @SerializedName("uuid")
+    val uuid: String? = null,
+    @SerializedName("expires_in_secs")
+    val expiresInSecs: Int = 0,
+)
 
 data class UserResponse(
     @SerializedName("id")
