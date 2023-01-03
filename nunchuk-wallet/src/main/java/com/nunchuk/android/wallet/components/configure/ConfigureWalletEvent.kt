@@ -41,11 +41,9 @@ sealed class ConfigureWalletEvent {
 }
 
 data class ConfigureWalletState(
-    val totalRequireSigns: Int = 0,
+    val totalRequireSigns: Int = 1,
     val masterSigners: List<MasterSigner> = emptyList(),
     val remoteSigners: List<SingleSigner> = emptyList(),
-    val masterSignerSingleMap: Map<String, SingleSigner> = emptyMap(),
-    val masterSignerMutisigMap: Map<String, SingleSigner> = emptyMap(),
     val selectedSigners: Set<SignerModel> = emptySet(),
     val isShowPath: Boolean = false
 )

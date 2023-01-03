@@ -48,15 +48,33 @@
         <argument
             android:name="slots"
             app:argType="com.nunchuk.android.model.SatsCardSlot[]" />
+
         <argument
             android:name="type"
             app:argType="integer" />
+
+        <argument
+            android:name="wallet_balance"
+            android:defaultValue="0"
+            app:argType="float" />
+
+        <argument
+            android:name="master_signer_id"
+            android:defaultValue=""
+            app:argType="string" />
+
+        <argument
+            android:name="magical_phrase"
+            android:defaultValue=""
+            app:argType="string" />
+
+
     </fragment>
     <fragment
         android:id="@+id/satsCardSlotQrFragment"
         android:name="com.nunchuk.android.signer.satscard.qr.SatsCardSlotQrFragment"
         android:label="SatsCardSlotQrFragment"
-        tools:layout="@layout/fragment_satscard_slot_qr" >
+        tools:layout="@layout/fragment_satscard_slot_qr">
 
         <argument
             android:name="slot"

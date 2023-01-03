@@ -78,6 +78,11 @@
             android:label="@string/nc_wallet_add_a_wallet"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Dark" />
+
+        <activity
+            android:name=".components.cosigning.CosigningPolicyActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar" />
     </application>
 
 </manifest>

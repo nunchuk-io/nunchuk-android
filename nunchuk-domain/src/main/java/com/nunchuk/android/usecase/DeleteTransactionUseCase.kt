@@ -19,19 +19,24 @@
 
 package com.nunchuk.android.usecase
 
-import com.nunchuk.android.model.Result
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.repository.PremiumWalletRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface DeleteTransactionUseCase {
-    suspend fun execute(walletId: String, txId: String): Result<Boolean>
-}
+class DeleteTransactionUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    private val repository: PremiumWalletRepository,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<DeleteTransactionUseCase.Param, Unit>(ioDispatcher) {
 
-internal class DeleteTransactionUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
-) : BaseUseCase(), DeleteTransactionUseCase {
-
-    override suspend fun execute(walletId: String, txId: String) = exe {
-        nativeSdk.deleteTransaction(walletId = walletId, txId = txId)
+    override suspend fun execute(parameters: Param) {
+        if (parameters.isAssistedWallet) {
+            repository.deleteServerTransaction(parameters.walletId, parameters.txId)
+        }
+        nativeSdk.deleteTransaction(parameters.walletId, parameters.txId)
     }
+
+    data class Param(val walletId: String, val txId: String, val isAssistedWallet: Boolean)
 }

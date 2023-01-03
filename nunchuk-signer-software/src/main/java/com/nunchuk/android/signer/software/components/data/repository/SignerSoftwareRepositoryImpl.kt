@@ -23,12 +23,7 @@ import com.nunchuk.android.model.PKeySignInResponse
 import com.nunchuk.android.model.PKeySignUpResponse
 import com.nunchuk.android.model.UserResponse
 import com.nunchuk.android.repository.SignerSoftwareRepository
-import com.nunchuk.android.signer.software.components.data.api.PKeyChangeKeyPayload
-import com.nunchuk.android.signer.software.components.data.api.PKeyDeleteKeyPayload
-import com.nunchuk.android.signer.software.components.data.api.PKeyNoncePayload
-import com.nunchuk.android.signer.software.components.data.api.PKeySignInPayload
-import com.nunchuk.android.signer.software.components.data.api.PKeySignUpPayload
-import com.nunchuk.android.signer.software.components.data.api.SignerSoftwareApi
+import com.nunchuk.android.signer.software.components.data.api.*
 import javax.inject.Inject
 
 internal class SignerSoftwareRepositoryImpl @Inject constructor(
@@ -82,8 +77,8 @@ internal class SignerSoftwareRepositoryImpl @Inject constructor(
     }
 
     override suspend fun pKeyCheckUsername(username: String) {
-        val error = api.checkUsername(username).getError()
-        if (error != null) throw error
+        val error = api.checkUsername(username).error
+        throw error
     }
 
     override suspend fun pKeyChangeKey(

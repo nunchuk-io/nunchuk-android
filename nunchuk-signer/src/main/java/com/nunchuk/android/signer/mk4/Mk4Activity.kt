@@ -19,12 +19,16 @@
 
 package com.nunchuk.android.signer.mk4
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
+import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.signer.R
-import com.nunchuk.android.signer.databinding.ActivityNavigationBinding
-import com.nunchuk.android.widget.util.setLightStatusBar
+import com.nunchuk.android.utils.serializable
+import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -35,12 +39,36 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setLightStatusBar()
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         initStartDestination()
     }
 
     private fun initStartDestination() {
-        val navHostFragment = (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
-        navHostFragment.navController.setGraph(R.navigation.mk4_navigation)
+        val navHostFragment =
+            (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
+        val inflater = navHostFragment.navController.navInflater
+        val graph = inflater.inflate(R.navigation.mk4_navigation)
+        when (intent.serializable<ColdcardAction>(EXTRA_ACTION)!!) {
+            ColdcardAction.CREATE -> graph.setStartDestination(R.id.mk4InfoFragment)
+            ColdcardAction.RECOVER -> graph.setStartDestination(R.id.coldcardRecoverFragment)
+        }
+        navHostFragment.navController.setGraph(graph, intent.extras)
+        navHostFragment.navController.addOnDestinationChangedListener { _, destination, _ ->
+            WindowCompat.setDecorFitsSystemWindows(
+                window,
+                destination.id == R.id.addMk4NameFragment
+            )
+        }
+    }
+
+    companion object {
+        private const val EXTRA_IS_MEMBERSHIP_FLOW = "is_membership_flow"
+        private const val EXTRA_ACTION = "action"
+        fun navigate(activity: Activity, isMembershipFlow: Boolean, action: ColdcardAction) {
+            activity.startActivity(Intent(activity, Mk4Activity::class.java).apply {
+                putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
+                putExtra(EXTRA_ACTION, action)
+            })
+        }
     }
 }

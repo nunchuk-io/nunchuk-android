@@ -34,5 +34,4 @@ internal class DeleteWalletUseCaseImpl @Inject constructor(
     override suspend fun execute(walletId: String) = exe {
         nativeSdk.deleteWallet(walletId)
     }
-
 }

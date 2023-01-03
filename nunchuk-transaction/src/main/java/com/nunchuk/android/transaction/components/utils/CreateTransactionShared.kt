@@ -29,14 +29,15 @@ fun BaseActivity<*>.showCreateTransactionError(message: String) {
     NCToastMessage(this).showError("Create transaction error due to $message")
 }
 
-fun BaseActivity<*>.openTransactionDetailScreen(txId: String, walletId: String, roomId: String) {
+fun BaseActivity<*>.openTransactionDetailScreen(txId: String, walletId: String, roomId: String, isInheritanceClaimingFlow: Boolean) {
     hideLoading()
     ActivityManager.popUntil(InputAmountActivity::class.java, true)
     navigator.openTransactionDetailsScreen(
         activityContext = this,
         walletId = walletId,
         txId = txId,
-        roomId = roomId
+        roomId = roomId,
+        isInheritanceClaimingFlow = isInheritanceClaimingFlow
     )
     NCToastMessage(this).showMessage("Transaction created::$txId")
 }

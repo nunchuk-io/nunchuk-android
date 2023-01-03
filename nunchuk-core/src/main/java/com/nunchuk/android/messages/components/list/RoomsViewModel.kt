@@ -23,11 +23,17 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.matrix.roomSummariesFlow
+import com.nunchuk.android.core.util.SUPPORT_ROOM_TYPE
+import com.nunchuk.android.core.util.SUPPORT_TEST_NET_ROOM_TYPE
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.log.fileLog
+import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCase
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.messages.util.sortByLastMessage
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
+import com.nunchuk.android.usecase.membership.GetLocalCurrentSubscriptionPlan
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,10 +49,16 @@ import javax.inject.Inject
 class RoomsViewModel @Inject constructor(
     private val getAllRoomWalletsUseCase: GetAllRoomWalletsUseCase,
     private val leaveRoomUseCase: LeaveRoomUseCase,
-    private val sessionHolder: SessionHolder
+    private val sessionHolder: SessionHolder,
+    private val getOrCreateSupportRoomUseCase: GetOrCreateSupportRoomUseCase,
+    getLocalCurrentSubscriptionPlan: GetLocalCurrentSubscriptionPlan,
 ) : NunchukViewModel<RoomsState, RoomsEvent>() {
 
     override val initialState = RoomsState.empty()
+
+    val plan = getLocalCurrentSubscriptionPlan(Unit)
+        .map { it.getOrElse { MembershipPlan.NONE } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, MembershipPlan.NONE)
 
     private var listenJob: Job? = null
 
@@ -94,6 +106,9 @@ class RoomsViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val draftSyncRooms = summaries.filter {
                 it.displayName == TAG_SYNC && it.tags.isEmpty()
+                        || ((it.roomType == SUPPORT_ROOM_TYPE || it.roomType == SUPPORT_TEST_NET_ROOM_TYPE)
+                        && it.joinedMembersCount == 1
+                        && it.latestPreviewableEvent != null)
             }
             draftSyncRooms.forEach {
                 leaveRoomUseCase.execute(it.roomId)
@@ -132,6 +147,19 @@ class RoomsViewModel @Inject constructor(
         }
     }
 
+    fun getOrCreateSupportRom() {
+        viewModelScope.launch {
+            setEvent(RoomsEvent.LoadingEvent(true))
+            val result = getOrCreateSupportRoomUseCase(Unit)
+            setEvent(RoomsEvent.LoadingEvent(false))
+            if (result.isSuccess) {
+                setEvent(RoomsEvent.CreateSupportRoomSuccess(result.getOrThrow().roomId))
+            } else {
+                setEvent(RoomsEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
     private fun handleRemoveRoom(room: Room) {
         viewModelScope.launch {
             leaveRoomUseCase.execute(room.roomId)
@@ -144,9 +172,10 @@ class RoomsViewModel @Inject constructor(
         }
     }
 
-    fun getVisibleRooms() = getState().rooms.filter{ it.shouldShow() }
+    fun getVisibleRooms() = getState().rooms.filter { it.shouldShow() }
 
-    private fun getRoom(roomSummary: RoomSummary) = sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomSummary.roomId)
+    private fun getRoom(roomSummary: RoomSummary) =
+        sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomSummary.roomId)
 
     companion object {
         private const val TAG_SYNC = "io.nunchuk.sync"

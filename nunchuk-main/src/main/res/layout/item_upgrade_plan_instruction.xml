@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/nc_rounded_beeswax_background"
+    android:padding="@dimen/nc_padding_16">
+
+    <ImageView
+        android:id="@+id/iv_intro"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@null"
+        android:src="@drawable/ic_assisted_wallet_intro"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_intro_title"
+        style="@style/NCText.Title.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_12"
+        android:text="@string/nc_let_s_get_you_started"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/iv_intro"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_intro_desc"
+        style="@style/NCText.Body.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_12"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:text="@string/nc_assisted_wallet_intro_desc"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/iv_intro"
+        app:layout_constraintTop_toBottomOf="@+id/tv_intro_title" />
+
+    <TextView
+        android:id="@+id/tv_intro_action"
+        style="@style/NCText.Title.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_12"
+        android:drawablePadding="@dimen/nc_padding_6"
+        android:gravity="center_vertical"
+        android:text="@string/nc_start_wizard"
+        app:drawableEndCompat="@drawable/ic_arrow"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/iv_intro" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

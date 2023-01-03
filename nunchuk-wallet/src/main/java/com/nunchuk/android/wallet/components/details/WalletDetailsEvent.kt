@@ -35,5 +35,6 @@ sealed class WalletDetailsEvent {
 data class WalletDetailsState(
     val walletExtended: WalletExtended = WalletExtended(),
     val transactions: List<Transaction> = emptyList(),
-    val isLeaveRoom: Boolean = false
+    val isLeaveRoom: Boolean = false,
+    val isAssistedWallet: Boolean = false
 )

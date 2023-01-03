@@ -20,6 +20,7 @@
 package com.nunchuk.android.compose
 
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Typography
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -31,19 +32,25 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.nunchuk.android.core.R
 
 private val PrimaryColor = Color(0xff031F2B)
-private val SecondaryColor = Color(0xffC1C1C1)
+private val SecondaryColor = Color(0xff031F2B)
+private val ErrorColor = Color(0xffCF4018)
 
 val montserratMedium = FontFamily(Font(R.font.montserrat_medium))
 val latoRegular = FontFamily(Font(R.font.lato_regular))
+val latoBold = FontFamily(Font(R.font.lato_bold))
 val latoSemiBold = FontFamily(Font(R.font.lato_semibold))
 
 private val LightColors = lightColors(
     primary = PrimaryColor,
     onPrimary = Color.White,
     secondary = SecondaryColor,
+    onSecondary = Color.White,
+    error = ErrorColor,
+    secondaryVariant = PrimaryColor
 )
 
 @Immutable
@@ -54,6 +61,7 @@ data class NunchukTypography(
     val titleSmall: TextStyle,
     val body: TextStyle,
     val bold: TextStyle,
+    val caption: TextStyle,
     val bodySmall: TextStyle,
 )
 
@@ -66,6 +74,7 @@ val LocalNunchukTypography = staticCompositionLocalOf {
         titleLarge = TextStyle.Default,
         titleSmall = TextStyle.Default,
         bodySmall = TextStyle.Default,
+        caption = TextStyle.Default
     )
 }
 
@@ -82,19 +91,22 @@ fun NunchukTheme(
 ) {
     val nunchukTypography = NunchukTypography(
         body = TextStyle(fontSize = 16.sp, fontFamily = latoRegular, color = PrimaryColor),
-        title = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.SemiBold, fontFamily = latoSemiBold, color = PrimaryColor),
-        bold = TextStyle(fontWeight = FontWeight.SemiBold, fontFamily = latoSemiBold, color = PrimaryColor),
+        title = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = latoBold, color = PrimaryColor),
+        bold = TextStyle(fontWeight = FontWeight.Bold, fontFamily = latoBold, color = PrimaryColor),
         heading = TextStyle(fontSize = 24.sp, fontFamily = montserratMedium, color = PrimaryColor),
-        titleLarge = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.SemiBold, fontFamily = latoSemiBold, color = PrimaryColor),
-        titleSmall = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, fontFamily = latoSemiBold, color = PrimaryColor),
+        titleLarge = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold, fontFamily = latoBold, color = PrimaryColor),
+        titleSmall = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, fontFamily = latoBold, color = PrimaryColor),
         bodySmall = TextStyle(fontSize = 12.sp, fontFamily = latoRegular, color = PrimaryColor),
+        caption = TextStyle(fontSize = 12.sp, fontFamily = latoRegular, color = PrimaryColor, fontWeight = FontWeight.Medium),
     )
-
+    val systemUiController = rememberSystemUiController()
+    systemUiController.setSystemBarsColor(color = Color.Transparent, darkIcons = true)
     CompositionLocalProvider(
         LocalNunchukTypography provides nunchukTypography,
     ) {
         MaterialTheme(
             colors = LightColors,
+            typography = Typography(defaultFontFamily = latoSemiBold),
             content = content,
         )
     }

@@ -49,6 +49,7 @@ import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -145,8 +146,12 @@ class AssignSignerSharedWalletActivity : BaseNfcActivity<ActivityAssignSignerBin
     }
 
     private fun handleState(state: AssignSignerState) {
-        val signers = viewModel.mapSigners()
-
+        val signers = runBlocking {
+            viewModel.mapSigners(
+                masterSigners = state.masterSigners,
+                remoteSigners = state.remoteSigners
+            )
+        }
         bindSigners(signers, state.selectedSigner, state.isShowPath)
 
         emptyStateView?.isVisible = signers.isEmpty()
@@ -155,7 +160,11 @@ class AssignSignerSharedWalletActivity : BaseNfcActivity<ActivityAssignSignerBin
         binding.slot.text = getString(R.string.nc_wallet_slots_left_in_the_wallet, slot)
     }
 
-    private fun bindSigners(signers: List<SignerModel>, selectedPFXs: Set<SignerModel>, isShowPath: Boolean) {
+    private fun bindSigners(
+        signers: List<SignerModel>,
+        selectedPFXs: Set<SignerModel>,
+        isShowPath: Boolean
+    ) {
         val canSelect = args.totalSigns - selectedPFXs.size
         SignersViewBinder(
             container = binding.signersContainer,
@@ -207,7 +216,6 @@ class AssignSignerSharedWalletActivity : BaseNfcActivity<ActivityAssignSignerBin
     }
 
     companion object {
-
         fun start(
             activityContext: Context,
             walletName: String,
@@ -228,7 +236,5 @@ class AssignSignerSharedWalletActivity : BaseNfcActivity<ActivityAssignSignerBin
                 ).buildIntent(activityContext)
             )
         }
-
     }
-
 }

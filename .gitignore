@@ -3,4 +3,6 @@
 /build
 *.iml
 local.properties
-production-keystore.jks
+keystore.properties
+nunchuk-keystore.jks
+nunchuk-database/schemas

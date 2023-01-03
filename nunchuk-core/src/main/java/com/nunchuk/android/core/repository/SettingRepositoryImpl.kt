@@ -30,7 +30,14 @@ internal class SettingRepositoryImpl @Inject constructor(
     override val syncEnable: Flow<Boolean>
         get() = ncDataStore.syncEnableFlow
 
+    override val isShowNfcUniversal: Flow<Boolean>
+        get() = ncDataStore.isShowNfcUniversal
+
     override suspend fun setSyncEnable(isEnable: Boolean) {
         ncDataStore.setSyncEnable(isEnable)
+    }
+
+    override suspend fun markIsShowNfcUniversal() {
+        ncDataStore.markIsShowNfcUniversal()
     }
 }

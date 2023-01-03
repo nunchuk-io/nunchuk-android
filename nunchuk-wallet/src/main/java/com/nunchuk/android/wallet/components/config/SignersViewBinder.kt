@@ -20,32 +20,52 @@
 package com.nunchuk.android.wallet.components.config
 
 import android.view.ViewGroup
+import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.toReadableDrawable
 import com.nunchuk.android.core.util.toReadableSignerType
-import com.nunchuk.android.wallet.core.databinding.ItemAssignSignerBinding
+import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.databinding.ItemWalletConfigSignerBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 
 internal class SignersViewBinder(
     container: ViewGroup,
     signers: List<SignerModel>,
-) : AbsViewBinder<SignerModel, ItemAssignSignerBinding>(container, signers) {
+    private val isInactiveAssistedWallet: Boolean = false,
+    private val onViewPolicy: (model: SignerModel) -> Unit = {},
+) : AbsViewBinder<SignerModel, ItemWalletConfigSignerBinding>(container, signers) {
 
-    override fun initializeBinding() = ItemAssignSignerBinding.inflate(inflater, container, false)
+    override fun initializeBinding() = ItemWalletConfigSignerBinding.inflate(inflater, container, false)
 
     override fun bindItem(position: Int, model: SignerModel) {
-        val binding = ItemAssignSignerBinding.bind(container.getChildAt(position))
+        val binding = ItemWalletConfigSignerBinding.bind(container.getChildAt(position))
+
+        val isServerKey = model.type == SignerType.SERVER
+        binding.btnViewKeyPolicy.isVisible = isServerKey && isInactiveAssistedWallet.not()
+        binding.signerType.isVisible = isServerKey.not()
+        binding.xpf.isVisible = isServerKey.not() || isInactiveAssistedWallet
+        binding.btnViewKeyPolicy.setOnDebounceClickListener { onViewPolicy(model) }
 
         binding.signerType.text = model.toReadableSignerType(context, isIgnorePrimary = true)
-        binding.ivSignerType.isVisible = true
-        binding.ivSignerType.setImageDrawable(model.type.toReadableDrawable(context))
+        binding.avatar.isGone = model.localKey
+        binding.ivSignerType.isVisible = model.localKey
+        if (model.localKey) {
+            binding.ivSignerType.setImageDrawable(model.type.toReadableDrawable(context))
+        } else {
+            binding.avatar.text = model.name.shorten()
+        }
         binding.signerName.text = model.name
-        val xfpValue = "XFP: ${model.fingerPrint}"
-        binding.xpf.text = xfpValue
-        binding.checkbox.isVisible = false
+        if (isServerKey) {
+            binding.xpf.text = context.getString(R.string.nc_inactive)
+        } else {
+            binding.xpf.text = model.getXfpOrCardIdLabel()
+        }
         binding.signerPrimaryKeyType.isVisible = model.isPrimaryKey
-        binding.tvBip32Path.isVisible = model.derivationPath.isNotEmpty()
+        binding.tvBip32Path.isVisible = model.derivationPath.isNotEmpty() && isServerKey.not()
         binding.tvBip32Path.text = "BIP32 path: ${model.derivationPath}"
         binding.tvBip32Path.setCompoundDrawablesRelativeWithIntrinsicBounds(0,0,0,0)
     }

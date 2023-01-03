@@ -33,6 +33,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
+import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
@@ -94,17 +95,17 @@ internal class AssignSignerViewModel @AssistedInject constructor(
             if (result.isSuccess) {
                 val signerResult = getDefaultSignerFromMasterSignerUseCase(
                     GetDefaultSignerFromMasterSignerUseCase.Params(
-                        signer.id,
+                        listOf(signer.id),
                         WalletType.MULTI_SIG,
                         args.addressType
                     )
                 )
                 if (signerResult.isSuccess) {
                     val newSigner = signerResult.getOrThrow()
-                    handleSelected(newSigner.toModel(), true)
+                    handleSelected(newSigner.first().toModel(), true)
                     updateState {
                         copy(masterSignerMap = masterSignerMap.toMutableMap().apply {
-                            set(signer.id, newSigner)
+                            set(signer.id, newSigner.first())
                         })
                     }
                 } else {
@@ -118,27 +119,32 @@ internal class AssignSignerViewModel @AssistedInject constructor(
     }
 
     fun getSigners(walletType: WalletType, addressType: AddressType) {
-        getCompoundSignersUseCase.execute().flatMapLatest { signerPair ->
-            getUnusedSignerUseCase.execute(
-                signerPair.first, walletType, addressType
-            ).map { signers ->
-                Triple(signerPair.first,
-                    signerPair.second,
-                    signers.associateBy { it.masterSignerId })
+        getCompoundSignersUseCase.execute()
+            .flatMapLatest { signerPair ->
+                getUnusedSignerUseCase.execute(
+                    signerPair.first, walletType, addressType
+                ).map { signers ->
+                    AssignSignerState(
+                        masterSigners = signerPair.first,
+                        remoteSigners = signerPair.second,
+                        masterSignerMap = signers.associateBy { it.masterSignerId }
+                    )
+                }
             }
-        }.flowOn(Dispatchers.IO)
+            .flowOn(Dispatchers.IO)
             .onException {
                 updateState {
                     copy(
-                        masterSigners = emptyList(), remoteSigners = emptyList()
+                        masterSigners = emptyList(),
+                        remoteSigners = emptyList(),
                     )
                 }
-            }.onEach {
+            }.onEach { newState ->
                 updateState {
                     copy(
-                        masterSigners = it.first,
-                        remoteSigners = it.second,
-                        masterSignerMap = it.third
+                        masterSigners = newState.masterSigners,
+                        remoteSigners = newState.remoteSigners,
+                        masterSignerMap = newState.masterSignerMap,
                     )
                 }
             }
@@ -214,18 +220,18 @@ internal class AssignSignerViewModel @AssistedInject constructor(
         }
     }
 
-    fun mapSigners(): List<SignerModel> {
+    suspend fun mapSigners(
+        masterSigners: List<MasterSigner>,
+        remoteSigners: List<SingleSigner>
+    ): List<SignerModel> {
         val state = getState()
-        val masterSignerModels = state.masterSigners.map { signer ->
-            masterSignerMapper(
-                signer,
-                state.masterSignerMap[signer.id]?.derivationPath.orEmpty()
-            )
+        val masterSignerModels = masterSigners.map { signer ->
+            masterSignerMapper(signer, state.masterSignerMap[signer.id]?.derivationPath.orEmpty())
         }
         val signers = if (args.signers.isNotEmpty()) {
             masterSignerModels + state.filterRecSigners.map(SingleSigner::toModel)
         } else {
-            masterSignerModels + state.remoteSigners.map(SingleSigner::toModel)
+            masterSignerModels + remoteSigners.map(SingleSigner::toModel)
         }
         return signers
     }
@@ -258,7 +264,10 @@ internal class AssignSignerViewModel @AssistedInject constructor(
 
     @AssistedFactory
     internal interface Factory {
-        fun create(args: AssignSignerArgs, savedStateHandle: SavedStateHandle): AssignSignerViewModel
+        fun create(
+            args: AssignSignerArgs,
+            savedStateHandle: SavedStateHandle
+        ): AssignSignerViewModel
     }
 
     companion object {

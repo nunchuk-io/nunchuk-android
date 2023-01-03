@@ -14,4 +14,5 @@
     android:paddingVertical="@dimen/nc_padding_16"
     android:textColor="@color/nc_black_color"
     tools:drawableStart="@drawable/ic_backup"
+    tools:drawableEnd="@drawable/ic_check"
     tools:text="Option" />

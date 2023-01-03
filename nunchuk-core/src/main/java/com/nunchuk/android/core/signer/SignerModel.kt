@@ -37,6 +37,7 @@ data class SignerModel(
     val software: Boolean = false,
     val localKey: Boolean = true,
     val isPrimaryKey: Boolean = false,
+    val cardId: String = "",
 ) : Parcelable {
     val isEditablePath: Boolean
         get() = type == SignerType.HARDWARE || type == SignerType.SOFTWARE
@@ -48,6 +49,7 @@ data class SignerModel(
         other as SignerModel
 
         if (fingerPrint != other.fingerPrint) return false
+        if (type != other.type) return false
         if (derivationPath != other.derivationPath) return false
 
         return true
@@ -58,6 +60,14 @@ data class SignerModel(
         result = 31 * result + fingerPrint.hashCode()
         return result
     }
+
+    fun getXfpOrCardIdLabel() = if (type == SignerType.NFC && cardId.isNotEmpty()) {
+        "Card ID: ••${cardIdShorten()}"
+    } else if (fingerPrint.isNotEmpty()) {
+        "XFP: $fingerPrint"
+    } else ""
+
+    private fun cardIdShorten() = cardId.takeLast(5)
 }
 
 fun SingleSigner.toModel(isPrimaryKey: Boolean = false) = SignerModel(

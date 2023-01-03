@@ -32,7 +32,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
 
-    private val viewModel: AddSignerViewModel by viewModels()
+    private val viewModel: AddAirgapSignerViewModel by viewModels()
 
     override fun initializeBinding() = ActivityScanDynamicQrBinding.inflate(layoutInflater)
 
@@ -46,7 +46,7 @@ class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
 
     private fun observer() {
         viewModel.event.observe(this) {
-            if (it is AddSignerEvent.ParseKeystoneSignerSuccess) {
+            if (it is AddAirgapSignerEvent.ParseKeystoneAirgapSignerSuccess) {
                 setResult(Activity.RESULT_OK, Intent().apply {
                     putParcelableArrayListExtra(PASSPORT_EXTRA_KEYS, ArrayList(it.signers))
                 })
@@ -78,12 +78,9 @@ class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
         binding.barcodeView.pause()
     }
 
-
-
     companion object {
-        fun start(activityContext: Activity, requestCode: Int) {
-            activityContext.startActivityForResult(Intent(activityContext, ScanDynamicQRActivity::class.java), requestCode)
-        }
+        fun buildIntent(activityContext: Activity) =
+            Intent(activityContext, ScanDynamicQRActivity::class.java)
     }
 
 }

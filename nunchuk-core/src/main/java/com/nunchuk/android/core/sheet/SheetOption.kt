@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.sheet
 
 import android.os.Parcelable
+import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import kotlinx.parcelize.Parcelize
@@ -27,12 +28,13 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class SheetOption(
-    val type: Int,
+    val type: Int = 0,
     @DrawableRes val resId: Int = 0,
     @StringRes val stringId: Int = 0,
     val isDeleted: Boolean = false,
     val label: String? = null,
-    val id: String? = null
+    val id: String? = null,
+    val isSelected: Boolean = false
 ) : Parcelable
 
 object SheetOptionType {
@@ -65,4 +67,10 @@ object SheetOptionType {
     const val IMPORT_SINGLE_SIG_COLD_CARD = 18
     const val IMPORT_MULTI_SIG_COLD_CARD = 19
 
+    // Membership
+    const val TYPE_RESTART_WIZARD = 20
+    const val TYPE_EXIT_WIZARD = 21
+    const val TYPE_ADD_COLDCARD_NFC = 22
+    const val TYPE_ADD_COLDCARD_FILE = 23
+    const val TYPE_CANCEL = 24
 }

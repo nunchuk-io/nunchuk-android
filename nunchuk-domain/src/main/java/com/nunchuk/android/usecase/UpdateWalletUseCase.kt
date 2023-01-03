@@ -21,19 +21,24 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.repository.PremiumWalletRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface UpdateWalletUseCase {
-    fun execute(wallet: Wallet): Flow<Boolean>
+    fun execute(wallet: Wallet, isAssistedWallet: Boolean = false): Flow<Boolean>
 }
 
 internal class UpdateWalletUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
+    private val nativeSdk: NunchukNativeSdk,
+    private val userWalletsRepository: PremiumWalletRepository,
 ) : UpdateWalletUseCase {
 
-    override fun execute(wallet: Wallet) = flow {
+    override fun execute(wallet: Wallet, isAssistedWallet: Boolean): Flow<Boolean> = flow {
+        if (isAssistedWallet) {
+            userWalletsRepository.updateServerWallet(wallet.id, wallet.name)
+        }
         emit(nativeSdk.updateWallet(wallet))
     }
 

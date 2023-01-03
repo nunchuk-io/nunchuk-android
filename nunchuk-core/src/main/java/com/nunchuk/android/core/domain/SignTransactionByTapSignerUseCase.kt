@@ -30,7 +30,10 @@ class SignTransactionByTapSignerUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val nunchukNativeSdk: NunchukNativeSdk,
     waitAutoCardUseCase: WaitAutoCardUseCase
-) : BaseNfcUseCase<SignTransactionByTapSignerUseCase.Data, Transaction>(dispatcher, waitAutoCardUseCase) {
+) : BaseNfcUseCase<SignTransactionByTapSignerUseCase.Data, Transaction>(
+    dispatcher,
+    waitAutoCardUseCase
+) {
 
     override suspend fun executeNfc(parameters: Data): Transaction {
         return nunchukNativeSdk.signTransactionByTapSigner(
@@ -41,5 +44,11 @@ class SignTransactionByTapSignerUseCase @Inject constructor(
         )
     }
 
-    class Data(isoDep: IsoDep, val cvc: String, val walletId: String, val txId: String) : BaseNfcUseCase.Data(isoDep)
+    class Data(
+        isoDep: IsoDep,
+        val cvc: String,
+        val walletId: String,
+        val txId: String,
+        val isAssistedWallet: Boolean
+    ) : BaseNfcUseCase.Data(isoDep)
 }

@@ -20,6 +20,9 @@
 package com.nunchuk.android.main.di
 
 import com.nunchuk.android.core.matrix.SyncStateHolder
+import com.nunchuk.android.main.manager.AssistedWalletManagerImpl
+import com.nunchuk.android.manager.AssistedWalletManager
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,9 +31,15 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-class SyncStateModule {
+internal abstract class SyncStateModule {
 
     @Singleton
-    @Provides
-    fun provideGlobalSyncLockState() = SyncStateHolder()
+    @Binds
+    abstract fun bindAssistedWalletManager(implementation: AssistedWalletManagerImpl): AssistedWalletManager
+
+    companion object {
+        @Singleton
+        @Provides
+        fun provideGlobalSyncLockState() = SyncStateHolder()
+    }
 }

@@ -29,6 +29,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.settings.DeleteAccountEvent.*
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -42,7 +43,8 @@ internal class DeleteAccountViewModel @Inject constructor(
     private val accountManager: AccountManager,
     private val repository: UserProfileRepository,
     private val cleanUpCryptoAssetsUseCase: CleanUpCryptoAssetsUseCase,
-    private val sessionHolder: SessionHolder
+    private val sessionHolder: SessionHolder,
+    private val applicationScope: CoroutineScope
 ) : NunchukViewModel<DeleteAccountState, DeleteAccountEvent>() {
 
     override val initialState = DeleteAccountState("")
@@ -84,7 +86,7 @@ internal class DeleteAccountViewModel @Inject constructor(
     }
 
     fun signOutNunchuk() {
-        viewModelScope.launch {
+        applicationScope.launch {
             repository.signOut()
                 .flowOn(Dispatchers.IO)
                 .onException { }

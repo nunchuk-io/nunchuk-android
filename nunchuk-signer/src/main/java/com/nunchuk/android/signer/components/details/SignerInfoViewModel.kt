@@ -22,7 +22,6 @@ package com.nunchuk.android.signer.components.details
 import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.*
@@ -40,6 +39,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -68,9 +68,12 @@ internal class SignerInfoViewModel @Inject constructor(
         this.args = args
         viewModelScope.launch {
             if (shouldLoadMasterSigner(args.signerType)) {
-                when (val result = getMasterSignerUseCase.execute(args.id)) {
-                    is Success -> updateState { copy(masterSigner = result.data) }
-                    is Error -> Log.e(TAG, "get software signer error", result.exception)
+                val result = getMasterSignerUseCase(args.id)
+                if (result.isSuccess) {
+
+                   updateState { copy(masterSigner = result.getOrThrow()) }
+                } else {
+                    Timber.e("Get software signer error")
                 }
             } else {
                 val result = getRemoteSignerUseCase(GetRemoteSignerUseCase.Data(args.masterFingerprint, args.derivationPath))
@@ -220,11 +223,14 @@ internal class SignerInfoViewModel @Inject constructor(
 
     private fun shouldLoadMasterSigner(type: SignerType) = (type != SignerType.AIRGAP) && (type != SignerType.COLDCARD_NFC)
 
-    fun generateColdcardHealthMessages(ndef: Ndef?,  derivationPath: String) {
+    fun generateColdcardHealthMessages(ndef: Ndef?, derivationPath: String) {
         ndef ?: return
         viewModelScope.launch {
             event(NfcLoading)
-            val result = generateColdCardHealthCheckMessageUseCase(GenerateColdCardHealthCheckMessageUseCase.Data(derivationPath, ndef))
+            val result = generateColdCardHealthCheckMessageUseCase(GenerateColdCardHealthCheckMessageUseCase.Data(
+                derivationPath = derivationPath,
+                ndef = ndef
+            ))
             if (result.isSuccess) {
                 setEvent(GenerateColdcardHealthMessagesSuccess)
             } else {
@@ -244,9 +250,4 @@ internal class SignerInfoViewModel @Inject constructor(
             }
         }
     }
-
-    companion object {
-        private const val TAG = "SignerInfoViewModel"
-    }
-
 }

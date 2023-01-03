@@ -33,7 +33,8 @@ class NCDeleteConfirmationDialog @Inject constructor(private val context: Contex
         title: String = context.getString(R.string.nc_confirmation),
         message: String = context.getString(R.string.nc_delete_account),
         onConfirmed: (String) -> Unit = {},
-        onCanceled: () -> Unit = {}
+        onCanceled: () -> Unit = {},
+        isMaskInput: Boolean = false,
     ) {
         Dialog(context).apply {
             window?.setBackgroundDrawableResource(android.R.color.transparent)
@@ -41,6 +42,9 @@ class NCDeleteConfirmationDialog @Inject constructor(private val context: Contex
             setCancelable(false)
             val binding = NcDeleteConfirmDialogBinding.inflate(LayoutInflater.from(context))
             setContentView(binding.root)
+            if (isMaskInput) {
+                binding.input.makeMaskedInput()
+            }
             binding.title.text = title
             binding.message.text = message
             binding.btnYes.setOnClickListener {

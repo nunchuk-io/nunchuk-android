@@ -15,8 +15,6 @@
     <string name="nc_transaction_private_note">Private note</string>
     <string name="nc_transaction_private_note_optional">(optional off-chain data)</string>
     <string name="nc_transaction_enter_receipt">Enter recipient’s address or email</string>
-    <string name="nc_transaction_estimate_fee">Estimated fee</string>
-    <string name="nc_transaction_total_amount">Total amount</string>
     <string name="nc_transaction_customize_fee_setting">Customize fee setting</string>
     <string name="nc_transaction_subtract_fee_title">Subtract fee from send amount</string>
     <string name="nc_transaction_subtract_fee_desc">The fee will be deducted from the amount being sent. The recipient will receive less bitcoin than you entered in the amount fee.</string>
@@ -32,35 +30,19 @@
     <string name="nc_transaction_economical_rate_value">2 sat/vB</string>
     <string name="nc_transaction_confirm_transaction">Confirm transaction</string>
     <string name="nc_transaction_confirm_and_create_transaction">Confirm and create transaction</string>
-    <string name="nc_transaction_private_note_off_chain_data">Private note (off-chain data)</string>
-    <string name="nc_transaction_change_address">Change address</string>
-    <string name="nc_transaction_send_to_address">Send to address</string>
     <string name="nc_transaction_receive_address">Receive address</string>
     <string name="nc_transaction_insufficient_funds">Insufficient funds</string>
     <string name="nc_transaction_invalid_address">Invalid address</string>
-    <string name="nc_transaction_details">Transaction details</string>
 
-    <string name="nc_transaction_broadcast">Broadcast transaction</string>
-    <string name="nc_transaction_sending_to">Sending to</string>
     <string name="nc_transaction_sent_to">Sent to</string>
-    <string name="nc_transaction_more_details">More details</string>
-    <string name="nc_transaction_less_details">Less details</string>
-    <string name="nc_transaction_member_signers">Member keys</string>
-    <string name="nc_transaction_enough_signers">Enough signatures have been collected</string>
     <string name="nc_text_n_a">N/A</string>
-    <string name="nc_transaction_signed">Signed</string>
-    <string name="nc_transaction_sign">Sign</string>
     <string name="nc_transaction_view_blockchain">View on blockchain explorer</string>
     <string name="nc_transaction_enter_passphrase">Enter your passphrase</string>
-    <string name="nc_transaction_export_transaction">Export to Keystone/SeedSigner/Jade</string>
-    <string name="nc_transaction_export_passport_transaction">Export to Passport</string>
     <string name="nc_transaction_export_transaction_as_file">Export PSBT</string>
     <string name="nc_transaction_import_signature_via_file">Import PSBT</string>
     <string name="nc_transaction_import_signature_via_qr_code">Import signature via QR code</string>
 
     <string name="nc_transaction_confirmation">Are you sure you want to cancel this transaction?</string>
-    <string name="nc_transaction_import_signature">Import from Keystone/SeedSigner/Jade</string>
-    <string name="nc_transaction_import_passport_signature">Import from Passport</string>
     <string name="nc_transaction_cancel_transaction">Cancel transaction</string>
     <string name="nc_transaction_balance">Balance</string>
     <string name="nc_transaction_signed_successful">Transaction signed successfully</string>
@@ -73,4 +55,9 @@
     <string name="nc_input_fee_invalid_error">Rate cannot be lower than the minimum fee rate</string>
     <string name="nc_wait_to_estimate_fee">Please wait to estimate fee</string>
     <string name="nc_address_detected_please_enter_amount">Address detected. Please enter a send amount.</string>
+    <string name="nc_server_key_signed">The platform key has signed this transaction</string>
+    <string name="nc_transaction_has_succesfully_broadcast">The transaction has successfully been broadcast</string>
+    <string name="nc_schedule_broadcast_hint">The transaction must have enough signatures before it can be broadcast. If the wallet has been configured to automatically broadcast after co-signing, this action will override the policy.</string>
+    <string name="nc_error_schedule_broadcast_out_of_range">Scheduled broadcast must happen within a year.</string>
+    <string name="nc_schedule_broadcast_has_been_canceled">Scheduled broadcast has been canceled</string>
 </resources>

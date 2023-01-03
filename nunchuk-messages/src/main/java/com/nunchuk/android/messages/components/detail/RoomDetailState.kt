@@ -29,7 +29,8 @@ data class RoomDetailState(
     val messages: List<Message>,
     val transactions: List<TransactionExtended>,
     val isSelectEnable: Boolean,
-    val selectedEventIds: MutableSet<Long> = mutableSetOf()
+    val selectedEventIds: MutableSet<Long> = mutableSetOf(),
+    val isSupportRoom: Boolean = false
 ) {
 
     companion object {

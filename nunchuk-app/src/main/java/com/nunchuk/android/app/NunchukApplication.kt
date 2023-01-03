@@ -26,11 +26,13 @@ import com.nunchuk.android.BuildConfig
 import com.nunchuk.android.core.base.ForegroundAppBackgroundListener
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.manager.NcToastManager
+import com.nunchuk.android.core.matrix.MatrixInitializerUseCase
 import com.nunchuk.android.core.util.AppEvenBus
 import com.nunchuk.android.core.util.AppEvent
 import com.nunchuk.android.log.FileLogTree
 import com.nunchuk.android.util.FileHelper
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.runBlocking
 import org.matrix.android.sdk.api.Matrix
 import timber.log.Timber
 import java.util.concurrent.Executors
@@ -45,6 +47,9 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
     @Inject
     lateinit var matrix: Matrix
 
+    @Inject
+    lateinit var matrixInitializerUseCase: MatrixInitializerUseCase
+
     private val foregroundAppBackgroundListener = ForegroundAppBackgroundListener(
         onResumeAppCallback = { AppEvenBus.instance.publish(AppEvent.AppResumedEvent) }
     )
@@ -53,6 +58,9 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
         super.onCreate()
         if (BuildConfig.DEBUG) {
             Timber.plant(FileLogTree(this))
+        }
+        runBlocking {
+            matrixInitializerUseCase(Unit)
         }
         fileHelper.getOrCreateNunchukRootDir()
         registerActivityLifecycleCallbacks(ActivityManager)

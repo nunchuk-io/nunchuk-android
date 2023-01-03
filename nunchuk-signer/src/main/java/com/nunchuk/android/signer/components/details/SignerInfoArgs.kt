@@ -36,20 +36,23 @@ data class SignerInfoArgs(
     val isNfc: Boolean = false,
     val setPassphrase: Boolean = false,
     val isInWallet: Boolean = false,
-    val isReplacePrimaryKey: Boolean = false
+    val isReplacePrimaryKey: Boolean = false,
+    val customMessage: String
 ) : ActivityArgs {
 
-    override fun buildIntent(activityContext: Context) = Intent(activityContext, SignerInfoActivity::class.java).apply {
-        putExtra(EXTRA_SIGNER_ID, id)
-        putExtra(EXTRA_SIGNER_NAME, name)
-        putExtra(EXTRA_SIGNER_ADDED, justAdded)
-        putExtra(EXTRA_SIGNER_TYPE, signerType)
-        putExtra(EXTRA_SIGNER_SET_PASS_PHRASE, setPassphrase)
-        putExtra(EXTRA_IS_IN_WALLET, isInWallet)
-        putExtra(EXTRA_DERIVATION_PATH, derivationPath)
-        putExtra(EXTRA_MASTER_FINGERPRINT, masterFingerprint)
-        putExtra(EXTRA_IS_REPLACE_PRIMARY_KEY, isReplacePrimaryKey)
-    }
+    override fun buildIntent(activityContext: Context) =
+        Intent(activityContext, SignerInfoActivity::class.java).apply {
+            putExtra(EXTRA_SIGNER_ID, id)
+            putExtra(EXTRA_SIGNER_NAME, name)
+            putExtra(EXTRA_SIGNER_ADDED, justAdded)
+            putExtra(EXTRA_SIGNER_TYPE, signerType)
+            putExtra(EXTRA_SIGNER_SET_PASS_PHRASE, setPassphrase)
+            putExtra(EXTRA_IS_IN_WALLET, isInWallet)
+            putExtra(EXTRA_DERIVATION_PATH, derivationPath)
+            putExtra(EXTRA_MASTER_FINGERPRINT, masterFingerprint)
+            putExtra(EXTRA_IS_REPLACE_PRIMARY_KEY, isReplacePrimaryKey)
+            putExtra(EXTRA_CUSTOM_MESSAGE, customMessage)
+        }
 
     companion object {
         private const val EXTRA_SIGNER_ID = "EXTRA_SIGNER_ID"
@@ -61,6 +64,7 @@ data class SignerInfoArgs(
         private const val EXTRA_DERIVATION_PATH = "EXTRA_DERIVATION_PATH"
         private const val EXTRA_MASTER_FINGERPRINT = "EXTRA_MASTER_FINGERPRINT"
         private const val EXTRA_IS_REPLACE_PRIMARY_KEY = "EXTRA_IS_REPLACE_PRIMARY_KEY"
+        private const val EXTRA_CUSTOM_MESSAGE = "EXTRA_CUSTOM_MESSAGE"
 
         fun deserializeFrom(intent: Intent): SignerInfoArgs {
             val bundle = intent.extras
@@ -73,7 +77,8 @@ data class SignerInfoArgs(
                 isInWallet = bundle.getBooleanValue(EXTRA_IS_IN_WALLET),
                 derivationPath = bundle.getStringValue(EXTRA_DERIVATION_PATH),
                 masterFingerprint = bundle.getStringValue(EXTRA_MASTER_FINGERPRINT),
-                isReplacePrimaryKey = bundle.getBooleanValue(EXTRA_IS_REPLACE_PRIMARY_KEY)
+                isReplacePrimaryKey = bundle.getBooleanValue(EXTRA_IS_REPLACE_PRIMARY_KEY),
+                customMessage = bundle.getStringValue(EXTRA_CUSTOM_MESSAGE)
             )
         }
     }

@@ -1,6 +1,8 @@
 apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 apply plugin: 'dagger.hilt.android.plugin'
+apply plugin: 'androidx.navigation.safeargs.kotlin'
+apply plugin: 'kotlin-parcelize'
 
 dependencies {
 
@@ -15,6 +17,9 @@ dependencies {
     implementation project(':nunchuk-messages')
     implementation project(':nunchuk-settings')
     implementation project(':nunchuk-notifications')
+    implementation project(':nunchuk-database')
+    implementation project(':nunchuk-network')
+    implementation project(':nunchuk-auth')
     implementation nunchukDeps.nativeSdk
     implementation matrixDeps.matrixSdk
     implementation pluginsDeps.kotlinAndroidRuntime
@@ -25,6 +30,9 @@ dependencies {
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()
     implementation networkDeps.values()
+
+    implementation 'commons-codec:commons-codec:1.15'
+    implementation project(path: ':nunchuk-transaction')
 
     testImplementation otherTestDeps.junit
 }

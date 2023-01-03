@@ -8,13 +8,15 @@ dependencies {
     implementation project(':nunchuk-arch')
     implementation project(':nunchuk-core')
     implementation project(':nunchuk-domain')
+    implementation project(':nunchuk-network')
+    implementation project(':nunchuk-database')
     implementation project(':nunchuk-widget')
-    implementation project(':nunchuk-signer-airgap')
     implementation project(':nunchuk-signer-software')
     implementation project(':nunchuk-signer-core')
     implementation nunchukDeps.nativeSdk
 
     implementation pluginsDeps.kotlinAndroidRuntime
+    implementation networkDeps.values()
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()
     implementation zxingDeps.values()

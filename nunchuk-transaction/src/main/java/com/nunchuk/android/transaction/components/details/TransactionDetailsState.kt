@@ -21,9 +21,11 @@ package com.nunchuk.android.transaction.components.details
 
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.transaction.ServerTransaction
 
 data class TransactionDetailsState(
     val viewMore: Boolean = false,
     val transaction: Transaction = Transaction(),
+    val serverTransaction: ServerTransaction? = null,
     val signers: List<SignerModel> = emptyList()
 )

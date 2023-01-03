@@ -19,20 +19,18 @@
 
 package com.nunchuk.android.core.domain
 
-import android.content.Context
 import android.nfc.tech.IsoDep
-import com.nunchuk.android.core.domain.utils.NfcFile
+import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
 @Suppress("BlockingMethodInNonBlockingContext")
 class GetTapSignerBackupUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
-    @ApplicationContext private val context: Context,
     private val nunchukNativeSdk: NunchukNativeSdk,
+    private val nfcFileManager: NfcFileManager,
     waitAutoCardUseCase: WaitAutoCardUseCase
 ) : BaseNfcUseCase<GetTapSignerBackupUseCase.Data, String>(dispatcher, waitAutoCardUseCase) {
 
@@ -42,7 +40,8 @@ class GetTapSignerBackupUseCase @Inject constructor(
             cvc = parameters.cvc,
             masterSignerId = parameters.masterSignerId
         )
-        return NfcFile.storeBackupKeyToFile(context, tapStatus)
+        if (tapStatus.backupKey?.isEmpty() == true) throw IllegalArgumentException("Can not get back up key")
+        return nfcFileManager.storeBackupKeyToFile(tapStatus)
     }
 
     class Data(isoDep: IsoDep, val cvc: String, val masterSignerId: String) : BaseNfcUseCase.Data(isoDep)

@@ -19,8 +19,54 @@
 
 package com.nunchuk.android.nav
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.model.Inheritance
+import com.nunchuk.android.model.KeyPolicy
+import com.nunchuk.android.model.MembershipStage
 
 interface AppNavigator {
     fun restartApp(activityContext: Context)
+
+    fun openMembershipActivity(
+        activityContext: Activity,
+        groupStep: MembershipStage,
+        keyPolicy: KeyPolicy? = null,
+        xfp: String? = null
+    )
+
+    fun openMembershipActivity(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Activity,
+        groupStep: MembershipStage,
+        keyPolicy: KeyPolicy? = null,
+        xfp: String? = null
+    )
+
+    fun openKeyRecoveryScreen(activityContext: Context)
+    fun openEmergencyLockdownScreen(activityContext: Context, verifyToken: String)
+
+    /**
+     * @param verifyToken for view/update inheritance [InheritancePlanFlow.VIEW]
+     * @param inheritance for view/update inheritance [InheritancePlanFlow.VIEW]
+     */
+    fun openInheritancePlanningScreen(
+        launcher: ActivityResultLauncher<Intent>? = null,
+        activityContext: Context,
+        verifyToken: String? = null,
+        inheritance: Inheritance? = null,
+        @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int
+    )
+
+    fun openWalletAuthentication(
+        walletId: String,
+        userData: String,
+        requiredSignatures: Int,
+        type: String,
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Activity
+    )
 }

@@ -25,15 +25,20 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.isAtLeastStarted
 import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.utils.trySafe
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -46,6 +51,9 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
     lateinit var notificationManager: PushNotificationManager
 
     @Inject
+    lateinit var pushEventManager: PushEventManager
+
+    @Inject
     lateinit var intentProvider: PushNotificationIntentProvider
 
     @Inject
@@ -53,6 +61,9 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
 
     @Inject
     lateinit var sessionHolder: SessionHolder
+
+    @Inject
+    lateinit var applicationScope: CoroutineScope
 
     private val mUIHandler by lazy {
         Handler(Looper.getMainLooper())
@@ -62,9 +73,16 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         if (!NotificationUtils.areNotificationsEnabled(this) || remoteMessage.data.isEmpty()) {
             return
         }
+        val event = getEvent(remoteMessage.data)?.also {
+            if (it.isCosignedEvent() || it.isCosignedAndBroadcastEvent()) {
+                applicationScope.launch {
+                    pushEventManager.push(PushEvent.CosigningEvent(it.getWalletId(), it.getTransactionId()))
+                }
+            }
+        }
 
         mUIHandler.post {
-            parseMessageData(remoteMessage.data)?.let(::showNotification)
+            parseMessageData(event)?.let(::showNotification)
         }
 
         mUIHandler.post {
@@ -101,14 +119,15 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         }
     }
 
-    private fun parseMessageData(data: Map<String, String>): PushNotificationData? {
+    private fun getEvent(data: Map<String, String>): TimelineEvent? {
+        Timber.d(data.toString())
         val roomId = data[ROOM_ID]
         val eventId = data[EVENT_ID]
-        if (null == eventId || null == roomId) return defaultNotificationData()
+        if (null == eventId || null == roomId) return null
         if (roomId == sessionHolder.getActiveRoomIdSafe()) return null
 
-        val session = getActiveSession() ?: return defaultNotificationData()
-        val room = session.roomService().getRoom(roomId) ?: return defaultNotificationData()
+        val session = getActiveSession() ?: return null
+        val room = session.roomService().getRoom(roomId) ?: return null
         val timelineService = room.timelineService()
         val event = timelineService.getTimelineEvent(eventId)
         if (event == null) {
@@ -116,7 +135,12 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 timelineService.getTimelineEvent(eventId)?.toPushNotificationData(roomId)?.let(::showNotification)
             }, RETRY_DELAY)
         }
-        return event?.toPushNotificationData(roomId)
+        Timber.d(event.toString())
+        return event
+    }
+
+    private fun parseMessageData(event: TimelineEvent?): PushNotificationData? {
+        return event?.toPushNotificationData(event.roomId)
     }
 
     private fun TimelineEvent.toPushNotificationData(roomId: String) = when {
@@ -146,6 +170,20 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
                 title = lastMessageSender(),
                 message = lastMessageContent(),
                 intent = intentProvider.getRoomDetailsIntent(roomId)
+            )
+        }
+        isCosignedEvent() -> {
+            PushNotificationData(
+                title = getString(R.string.notification_transaction_update),
+                message = getString(R.string.nc_notification_transaction_co_signed),
+                intent = intentProvider.getTransactionDetailIntent(getWalletId(), getTransactionId())
+            )
+        }
+        isCosignedAndBroadcastEvent() -> {
+            PushNotificationData(
+                title = getString(R.string.notification_transaction_update),
+                message = getString(R.string.nc_notification_cosign_and_broadcast),
+                intent = intentProvider.getTransactionDetailIntent(getWalletId(), getTransactionId())
             )
         }
         else -> defaultNotificationData()

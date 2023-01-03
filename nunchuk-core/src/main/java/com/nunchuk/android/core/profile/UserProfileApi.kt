@@ -33,7 +33,7 @@ interface UserProfileApi {
     @DELETE("user/me")
     suspend fun requestDeleteAccount(): Data<Unit>
 
-    @DELETE("passport/log-out")
+    @POST("passport/log-out")
     suspend fun signOut(): Data<Unit>
 
     @PUT("user/me")

@@ -22,7 +22,10 @@ package com.nunchuk.android.auth.domain
 import com.nunchuk.android.auth.api.UserTokenResponse
 import com.nunchuk.android.auth.data.AuthRepository
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.domain.di.IoDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -36,7 +39,8 @@ interface SignInUseCase {
 
 internal class SignInUseCaseImpl @Inject constructor(
     private val authRepository: AuthRepository,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : SignInUseCase {
 
     override fun execute(email: String, password: String, staySignedIn: Boolean) = authRepository.login(
@@ -44,7 +48,7 @@ internal class SignInUseCaseImpl @Inject constructor(
         password = password
     ).map {
         storeAccount(email, it, staySignedIn)
-    }
+    }.flowOn(ioDispatcher)
 
     private fun storeAccount(email: String, response: UserTokenResponse, staySignedIn: Boolean): Pair<String, String> {
         val account = accountManager.getAccount()

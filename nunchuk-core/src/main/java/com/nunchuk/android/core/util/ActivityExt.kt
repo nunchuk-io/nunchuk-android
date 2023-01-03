@@ -74,8 +74,16 @@ fun Fragment.hideLoading() {
     activity?.let(FragmentActivity::hideLoading)
 }
 
-fun Fragment.showOrHideNfcLoading(loading: Boolean) {
-    showOrHideLoading(loading, message = getString(R.string.nc_keep_holding_nfc))
+fun Fragment.showOrHideNfcLoading(loading: Boolean, isColdCard: Boolean = false) {
+    if (isColdCard) {
+        showOrHideLoading(
+            loading,
+            title = getString(R.string.nc_data_transfer_in_progress),
+            message = getString(R.string.nc_keep_hold_coldcard_until_finish),
+        )
+    } else {
+        showOrHideLoading(loading, message = getString(R.string.nc_keep_holding_nfc))
+    }
 }
 
 fun Activity.showOrHideNfcLoading(loading: Boolean, isColdCard: Boolean = false) {

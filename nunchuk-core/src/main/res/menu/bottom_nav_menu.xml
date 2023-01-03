@@ -7,6 +7,11 @@
         android:title="@string/nc_title_wallets" />
 
     <item
+        android:id="@+id/navigation_services"
+        android:icon="@drawable/ic_services"
+        android:title="@string/nc_services_tab" />
+
+    <item
         android:id="@+id/navigation_messages"
         android:icon="@drawable/ic_messages"
         android:title="@string/nc_title_message" />
