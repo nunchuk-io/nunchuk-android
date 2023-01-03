@@ -22,25 +22,35 @@ package com.nunchuk.android.signer.components.add
 import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.signer.InvalidSignerFormatException
 import com.nunchuk.android.core.signer.SignerInput
 import com.nunchuk.android.core.signer.toSigner
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.MembershipStepInfo
+import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.signer.components.add.AddSignerEvent.*
+import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.*
+import com.nunchuk.android.signer.util.isTestNetPath
+import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreatePassportSignersUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.ParseJsonSignerUseCase
+import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
@@ -50,41 +60,88 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-internal class AddSignerViewModel @Inject constructor(
+internal class AddAirgapSignerViewModel @Inject constructor(
     private val createSignerUseCase: CreateSignerUseCase,
     private val createPassportSignersUseCase: CreatePassportSignersUseCase,
     private val parseJsonSignerUseCase: ParseJsonSignerUseCase,
     private val application: Application,
+    private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
+    private val membershipStepManager: MembershipStepManager,
+    private val gson: Gson,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : NunchukViewModel<Unit, AddSignerEvent>() {
+    private val getAppSettingUseCase: GetAppSettingUseCase,
+) : NunchukViewModel<Unit, AddAirgapSignerEvent>() {
     private val qrDataList = HashSet<String>()
     private var isProcessing = false
     override val initialState = Unit
+    private var chain: Chain = Chain.MAIN
+
+    init {
+        viewModelScope.launch {
+            chain = getAppSettingUseCase.execute().first().chain
+        }
+    }
 
     private val _signers = mutableListOf<SingleSigner>()
     val signers: List<SingleSigner>
         get() = _signers
 
-    fun handleAddSigner(signerName: String, signerSpec: String) {
-        validateInput(signerName, signerSpec) {
-            doAfterValidate(signerName, it)
+    fun handleAddAirgapSigner(signerName: String, signerSpec: String, isMembershipFlow: Boolean) {
+        val newSignerName = if (isMembershipFlow) "Hardware key${
+            membershipStepManager.getNextKeySuffixByType(
+                SignerType.AIRGAP
+            )
+        }" else signerName
+        validateInput(newSignerName, signerSpec) {
+            doAfterValidate(newSignerName, it, isMembershipFlow)
         }
     }
 
-    private fun doAfterValidate(signerName: String, signerInput: SignerInput) {
+    private fun doAfterValidate(
+        signerName: String,
+        signerInput: SignerInput,
+        isMembershipFlow: Boolean
+    ) {
         viewModelScope.launch {
-            createSignerUseCase.execute(
-                name = signerName,
-                xpub = signerInput.xpub,
-                derivationPath = signerInput.derivationPath,
-                masterFingerprint = signerInput.fingerPrint.lowercase(),
-                publicKey = ""
-            ).flowOn(IO)
-                .onStart { setEvent(LoadingEvent(true)) }
-                .onCompletion { setEvent(LoadingEvent(false)) }
-                .onException { event(AddSignerErrorEvent(it.message.orUnknownError())) }
-                .flowOn(Main)
-                .collect { event(AddSignerSuccessEvent(it)) }
+            if (membershipStepManager.isKeyExisted(signerInput.fingerPrint) && isMembershipFlow) {
+                setEvent(AddSameKey)
+                return@launch
+            }
+            setEvent(LoadingEventAirgap(true))
+            val result = createSignerUseCase(
+                CreateSignerUseCase.Params(
+                    name = signerName,
+                    xpub = signerInput.xpub,
+                    derivationPath = signerInput.derivationPath,
+                    masterFingerprint = signerInput.fingerPrint.lowercase(),
+                    type = SignerType.AIRGAP
+                )
+            )
+            if (result.isSuccess) {
+                val airgap = result.getOrThrow()
+                if (isMembershipFlow) {
+                    saveMembershipStepUseCase(
+                        MembershipStepInfo(
+                            step = membershipStepManager.currentStep
+                                ?: throw IllegalArgumentException("Current step empty"),
+                            masterSignerId = airgap.masterFingerprint,
+                            plan = membershipStepManager.plan,
+                            verifyType = VerifyType.APP_VERIFIED,
+                            extraData = gson.toJson(
+                                SignerExtra(
+                                    derivationPath = airgap.derivationPath,
+                                    isAddNew = true,
+                                    signerType = airgap.type
+                                )
+                            )
+                        )
+                    )
+                }
+                setEvent(AddAirgapSignerSuccessEvent(result.getOrThrow()))
+            } else {
+                setEvent(AddAirgapSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+            setEvent(LoadingEventAirgap(false))
         }
     }
 
@@ -94,13 +151,13 @@ internal class AddSignerViewModel @Inject constructor(
         doAfterValidate: (SignerInput) -> Unit = {}
     ) {
         if (signerName.isEmpty()) {
-            event(SignerNameRequiredEvent)
+            event(AirgapSignerNameRequiredEvent)
         } else {
             try {
                 doAfterValidate(signerSpec.toSigner())
             } catch (e: InvalidSignerFormatException) {
                 CrashlyticsReporter.recordException(e)
-                event(InvalidSignerSpecEvent)
+                event(InvalidAirgapSignerSpecEvent)
             }
         }
     }
@@ -118,7 +175,7 @@ internal class AddSignerViewModel @Inject constructor(
                     .onCompletion { isProcessing = false }
                     .collect {
                         Timber.tag(TAG).d("add passport signer successful::$it")
-                        event(ParseKeystoneSignerSuccess(it))
+                        event(ParseKeystoneAirgapSignerSuccess(it))
                     }
             }
         }
@@ -126,7 +183,7 @@ internal class AddSignerViewModel @Inject constructor(
 
     fun parseAirgapSigner(uri: Uri) {
         viewModelScope.launch {
-            setEvent(LoadingEvent(true))
+            setEvent(LoadingEventAirgap(true))
             withContext(ioDispatcher) {
                 getFileFromUri(application.contentResolver, uri, application.cacheDir)?.readText()
             }?.let { content ->
@@ -138,12 +195,16 @@ internal class AddSignerViewModel @Inject constructor(
                         clear()
                         addAll(result.getOrThrow())
                     }
-                    setEvent(ParseKeystoneSignerSuccess(result.getOrThrow()))
+                    if (chain == Chain.MAIN && _signers.any { isTestNetPath(it.derivationPath) }) {
+                        setEvent(ErrorMk4TestNet)
+                    } else {
+                        setEvent(ParseKeystoneAirgapSignerSuccess(result.getOrThrow()))
+                    }
                 } else {
-                    setEvent(AddSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+                    setEvent(AddAirgapSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
                 }
             }
-            setEvent(LoadingEvent(false))
+            setEvent(LoadingEventAirgap(false))
         }
     }
 

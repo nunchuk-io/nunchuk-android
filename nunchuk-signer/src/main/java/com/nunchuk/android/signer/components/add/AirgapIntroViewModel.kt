@@ -19,14 +19,15 @@
 
 package com.nunchuk.android.signer.components.add
 
-import com.nunchuk.android.model.SingleSigner
+import androidx.lifecycle.ViewModel
+import com.nunchuk.android.share.membership.MembershipStepManager
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-sealed class AddSignerEvent {
-    data class AddSignerSuccessEvent(val singleSigner: SingleSigner) : AddSignerEvent()
-    data class ParseKeystoneSignerSuccess(val signers: List<SingleSigner>) : AddSignerEvent()
-    data class AddSignerErrorEvent(val message: String) : AddSignerEvent()
-    object InvalidSignerSpecEvent : AddSignerEvent()
-    object SignerNameRequiredEvent : AddSignerEvent()
-    data class ParseKeystoneSigner(val signers: List<SingleSigner>) : AddSignerEvent()
-    data class LoadingEvent(val isLoading: Boolean) : AddSignerEvent()
+@HiltViewModel
+class AirgapIntroViewModel @Inject constructor(
+    membershipStepManager: MembershipStepManager
+) : ViewModel() {
+    val remainTime = membershipStepManager.remainingTime
 }
+
