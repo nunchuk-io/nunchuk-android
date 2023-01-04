@@ -99,7 +99,8 @@ class WalletAuthenticationViewModel @Inject constructor(
                     )
                 )
                 if (result.isSuccess) {
-                    _state.update { it.copy(transaction = result.getOrThrow()) }
+                    // hard code isReceive false I have no idea why first time it become true from libnunchuk
+                    _state.update { it.copy(transaction = result.getOrThrow().copy(isReceive = false)) }
                     getWalletDetails()
                 } else {
                     _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
