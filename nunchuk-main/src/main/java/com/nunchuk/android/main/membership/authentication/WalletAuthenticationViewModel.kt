@@ -83,7 +83,6 @@ class WalletAuthenticationViewModel @Inject constructor(
         savedStateHandle.get<SingleSigner>(EXTRA_CURRENT_INTERACT_SIGNER)?.let { signer ->
             _state.update { it.copy(interactSingleSigner = signer) }
         }
-        getWalletDetails()
         viewModelScope.launch {
             if (args.type == WalletAuthenticationActivity.SIGN_DUMMY_TX) {
                 val txToSignResult =
@@ -101,6 +100,7 @@ class WalletAuthenticationViewModel @Inject constructor(
                 )
                 if (result.isSuccess) {
                     _state.update { it.copy(transaction = result.getOrThrow()) }
+                    getWalletDetails()
                 } else {
                     _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
                 }
@@ -113,7 +113,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     fun onSignerSelect(signerModel: SignerModel) = viewModelScope.launch {
         _state.update { it.copy(interactSingleSigner = null) }
         val singleSigner =
-            _state.value.singleSigners.firstOrNull { it.masterSignerId == signerModel.id && it.derivationPath == signerModel.derivationPath }
+            _state.value.singleSigners.firstOrNull { it.masterFingerprint == signerModel.fingerPrint && it.derivationPath == signerModel.derivationPath }
                 ?: return@launch
         savedStateHandle[EXTRA_CURRENT_INTERACT_SIGNER] = singleSigner
         _state.update { it.copy(interactSingleSigner = singleSigner) }
@@ -201,25 +201,21 @@ class WalletAuthenticationViewModel @Inject constructor(
 
     fun handleImportAirgapTransaction(transaction: Transaction) {
         viewModelScope.launch {
-            if (transaction.txId != _state.value.transaction?.txId) {
-                val signatures = _state.value.signatures
-                _state.value.singleSigners.filter {
-                    it.type == SignerType.AIRGAP
-                            && transaction.signers[it.masterSignerId] == true
-                            && signatures.contains(it.masterSignerId).not()
-                }.forEach {
-                    handleSignatureResult(
-                        getDummyTransactionSignatureUseCase(
-                            GetDummyTransactionSignatureUseCase.Param(
-                                it,
-                                transaction.psbt
-                            )
-                        ),
-                        it
-                    )
-                }
-            } else {
-                _event.emit(WalletAuthenticationEvent.ShowError("You import invalid transaction"))
+            val signatures = _state.value.signatures
+            _state.value.singleSigners.filter {
+                it.type == SignerType.AIRGAP
+                        && transaction.signers[it.masterFingerprint] == true
+                        && signatures.contains(it.masterFingerprint).not()
+            }.forEach {
+                handleSignatureResult(
+                    getDummyTransactionSignatureUseCase(
+                        GetDummyTransactionSignatureUseCase.Param(
+                            it,
+                            transaction.psbt
+                        )
+                    ),
+                    it
+                )
             }
         }
     }
