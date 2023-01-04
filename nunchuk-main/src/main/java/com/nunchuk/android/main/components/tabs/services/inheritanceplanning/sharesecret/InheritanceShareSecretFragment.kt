@@ -25,6 +25,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -118,7 +119,6 @@ private fun InheritanceShareSecretContent(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
                 .statusBarsPadding()
                 .navigationBarsPadding(),
         ) {
@@ -131,29 +131,32 @@ private fun InheritanceShareSecretContent(
                 ""
             }
             NcTopAppBar(title = title)
-            Text(
-                modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
-                text = stringResource(R.string.nc_share_your_secrets),
-                style = NunchukTheme.typography.heading
-            )
-            Text(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                text = stringResource(R.string.nc_share_your_secrets_desc),
-                style = NunchukTheme.typography.body,
-            )
-            options.forEach { item ->
-                OptionItem(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                    isSelected = item.isSelected,
-                    desc = stringResource(id = item.desc),
-                    title = stringResource(id = item.title)
-                ) {
-                    onOptionClick(item.type)
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                item {
+                    Text(
+                        modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
+                        text = stringResource(R.string.nc_share_your_secrets),
+                        style = NunchukTheme.typography.heading
+                    )
+                    Text(
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                        text = stringResource(R.string.nc_share_your_secrets_desc),
+                        style = NunchukTheme.typography.body,
+                    )
+                    options.forEach { item ->
+                        OptionItem(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                            isSelected = item.isSelected,
+                            desc = stringResource(id = item.desc),
+                            title = stringResource(id = item.title)
+                        ) {
+                            onOptionClick(item.type)
+                        }
+                    }
                 }
             }
-            Spacer(modifier = Modifier.weight(1.0f))
             NcPrimaryDarkButton(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -21,6 +21,7 @@ package com.nunchuk.android.main.components.tabs.services
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletIdFlowUseCase
 import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlanFlowUseCase
@@ -43,6 +44,7 @@ import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -75,6 +77,8 @@ class ServicesTabViewModel @Inject constructor(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
+    private var inheritanceJob: Job? = null
+
     init {
         viewModelScope.launch {
             getLocalMembershipPlanFlowUseCase(Unit)
@@ -100,31 +104,36 @@ class ServicesTabViewModel @Inject constructor(
 
     fun getInheritance() = _state.value.inheritance
 
-    private suspend fun getInheritance(walletLocalId: String, plan: MembershipPlan) {
+    private fun getInheritance(walletLocalId: String, plan: MembershipPlan) {
         if (plan == MembershipPlan.NONE) {
             getNonSubscriberPageContent()
         } else {
             if (walletLocalId.isNotEmpty() && plan == MembershipPlan.HONEY_BADGER) {
-                val inheritanceResult = getInheritanceUseCase(walletLocalId)
-                if (inheritanceResult.isSuccess) {
-                    _state.update {
-                        it.copy(
-                            isCreatedAssistedWallet = true,
-                            plan = plan,
-                            isPremiumUser = true,
-                            inheritance = inheritanceResult.getOrNull(),
-                        )
+                inheritanceJob?.cancel()
+                inheritanceJob = viewModelScope.launch {
+                    val inheritanceResult = getInheritanceUseCase(walletLocalId)
+                    if (inheritanceResult.isSuccess) {
+                        _state.update {
+                            it.copy(
+                                isCreatedAssistedWallet = true,
+                                plan = plan,
+                                isPremiumUser = true,
+                                inheritance = inheritanceResult.getOrNull(),
+                            )
+                        }
                     }
                 }
             } else {
-                val bannerResult = getBannerUseCase(Unit)
-                _state.update {
-                    it.copy(
-                        isCreatedAssistedWallet = false,
-                        plan = plan,
-                        isPremiumUser = true,
-                        banner = bannerResult.getOrNull(),
-                    )
+                viewModelScope.launch {
+                    val bannerResult = getBannerUseCase(Unit)
+                    _state.update {
+                        it.copy(
+                            isCreatedAssistedWallet = false,
+                            plan = plan,
+                            isPremiumUser = true,
+                            banner = bannerResult.getOrNull(),
+                        )
+                    }
                 }
             }
         }

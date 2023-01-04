@@ -88,18 +88,24 @@ class RecoveryQuestionViewModel @Inject constructor(
         val recoveryList = mutableListOf<RecoveryData>()
         if (args.isRecoveryFlow) {
             val answeredQuestions = questions.filter { it.isAnswer }
-            (0..2).forEach {
-                val question = answeredQuestions[it]
-                recoveryList.add(
-                    RecoveryData(
-                        index = it,
-                        question = SecurityQuestionModel(
-                            id = question.id,
-                            question = question.question
-                        ),
-                        isShowMask = true
+            if (answeredQuestions.size < 3) {
+                (0..2).forEach {
+                    recoveryList.add(RecoveryData(index = it))
+                }
+            } else {
+                (0..2).forEach {
+                    val question = answeredQuestions[it]
+                    recoveryList.add(
+                        RecoveryData(
+                            index = it,
+                            question = SecurityQuestionModel(
+                                id = question.id,
+                                question = question.question
+                            ),
+                            isShowMask = true
+                        )
                     )
-                )
+                }
             }
         } else {
             (0..2).forEach {

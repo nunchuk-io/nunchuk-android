@@ -31,34 +31,9 @@ import javax.inject.Inject
 @HiltViewModel
 internal class SplashViewModel @Inject constructor(
     private val accountManager: AccountManager,
-    private val signInModeHolder: SignInModeHolder,
 ) : NunchukViewModel<Unit, SplashEvent>() {
 
     override val initialState = Unit
-
-    init {
-        initSignInMode()
-    }
-
-    private fun initSignInMode() {
-        val isAccountExist = accountManager.isAccountExisted()
-        val loginType = accountManager.loginType()
-        if (isAccountExist) {
-            when (loginType) {
-                SignInMode.UNKNOWN.value, SignInMode.EMAIL.value -> {
-                    signInModeHolder.setCurrentMode(SignInMode.EMAIL)
-                }
-                SignInMode.PRIMARY_KEY.value -> {
-                    signInModeHolder.setCurrentMode(SignInMode.PRIMARY_KEY)
-                }
-                else -> {
-                    signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
-                }
-            }
-        } else {
-            signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
-        }
-    }
 
     fun initFlow() {
         viewModelScope.launch {

@@ -23,10 +23,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -143,31 +143,31 @@ private fun InheritanceShareSecretInfoContent(
                             index = 1,
                             label = stringResource(R.string.nc_plan_magical_phrase),
                         )
-                        Box(modifier = Modifier.padding(start = 30.dp)) {
-                            Card(
+
+                        Box(
+                            modifier = Modifier
+                                .padding(start = 50.dp, top = 16.dp, end = 16.dp)
+                                .background(
+                                    color = NcColor.greyLight, shape = RoundedCornerShape(12.dp)
+                                )
+                        ) {
+                            Row(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                shape = RoundedCornerShape(12.dp)
+                                    .padding(16.dp)
+                                    .fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Row(
-                                    modifier = Modifier
-                                        .padding(16.dp)
-                                        .fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        text = magicalPhrase,
-                                        style = NunchukTheme.typography.body,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
+                                Text(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    text = magicalPhrase,
+                                    style = NunchukTheme.typography.body,
+                                    textAlign = TextAlign.Center
+                                )
                             }
                         }
 
                         NCLabelWithIndex(
-                            modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                            modifier = Modifier.padding(16.dp),
                             index = 2,
                             label = stringResource(R.string.nc_inheritance_share_secret_info_2),
                         )
