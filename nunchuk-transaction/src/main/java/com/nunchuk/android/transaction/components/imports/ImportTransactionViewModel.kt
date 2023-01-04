@@ -111,8 +111,6 @@ internal class ImportTransactionViewModel @Inject constructor(
             }
             if (result.isSuccess) {
                 setEvent(ImportTransactionSuccess(result.getOrThrow()))
-            } else {
-                setEvent(ImportTransactionError(result.exceptionOrNull()?.message.orUnknownError()))
             }
             isProcessing = false
         }
@@ -140,7 +138,6 @@ internal class ImportTransactionViewModel @Inject constructor(
                 }
                     .onStart { isProcessing = true }
                     .flowOn(IO)
-                    .onException { setEvent(ImportTransactionError(it.message.orUnknownError())) }
                     .flowOn(Main)
                     .onCompletion { isProcessing = false }
                     .collect { event(ImportTransactionSuccess()) }
