@@ -27,6 +27,7 @@ import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.share.model.TransactionOption
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.*
 import com.nunchuk.android.transaction.databinding.ActivityExportTransactionBinding
 import com.nunchuk.android.widget.NCToastMessage
@@ -56,7 +57,7 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
         setLightStatusBar()
         setupViews()
         observeEvent()
-        viewModel.init(walletId = args.walletId, txId = args.txId, transactionOption = args.transactionOption)
+        viewModel.init(args)
     }
 
     private fun bindQrCodes() {
@@ -77,6 +78,11 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
     }
 
     private fun setupViews() {
+        if (args.transactionOption == TransactionOption.EXPORT_PASSPORT) {
+            binding.toolbarTitle.text = getText(R.string.nc_transaction_export_passport_transaction)
+        } else {
+            binding.toolbarTitle.text = getText(R.string.nc_transaction_export_transaction)
+        }
         binding.btnExportAsFile.setOnClickListener {
             viewModel.exportTransactionToFile()
         }
@@ -117,11 +123,18 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
 
     companion object {
 
-        fun start(activityContext: Activity, walletId: String, txId: String, transactionOption: TransactionOption) {
+        fun start(
+            activityContext: Activity,
+            walletId: String,
+            txId: String,
+            txToSign: String = "",
+            transactionOption: TransactionOption,
+        ) {
             activityContext.startActivity(
                 ExportTransactionArgs(
                     walletId = walletId,
                     txId = txId,
+                    txToSign = txToSign,
                     transactionOption = transactionOption
                 ).buildIntent(activityContext)
             )

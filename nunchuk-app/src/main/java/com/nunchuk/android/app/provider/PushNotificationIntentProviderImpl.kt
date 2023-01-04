@@ -20,9 +20,11 @@
 package com.nunchuk.android.app.provider
 
 import android.content.Context
+import android.content.Intent
 import com.nunchuk.android.main.MainActivity
 import com.nunchuk.android.messages.components.detail.RoomDetailArgs
 import com.nunchuk.android.notifications.PushNotificationIntentProvider
+import com.nunchuk.android.transaction.components.details.TransactionDetailsActivity
 import javax.inject.Inject
 
 class PushNotificationIntentProviderImpl @Inject constructor(
@@ -32,4 +34,8 @@ class PushNotificationIntentProviderImpl @Inject constructor(
     override fun getRoomDetailsIntent(roomId: String) = RoomDetailArgs(roomId).buildIntent(context)
 
     override fun getMainIntent() = MainActivity.createIntent(context)
+
+    override fun getTransactionDetailIntent(walletId: String, txId: String): Intent {
+        return TransactionDetailsActivity.buildIntent(context, walletId = walletId, txId = txId)
+    }
 }

@@ -32,4 +32,6 @@ data class RoomsState(val rooms: List<RoomSummary>, val roomWallets: List<RoomWa
 
 sealed class RoomsEvent {
     data class LoadingEvent(val loading: Boolean) : RoomsEvent()
+    data class CreateSupportRoomSuccess(val roomId: String) : RoomsEvent()
+    data class ShowError(val message: String) : RoomsEvent()
 }

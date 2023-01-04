@@ -22,11 +22,13 @@ package com.nunchuk.android.wallet.components.review
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.type.WalletType.ESCROW
 import com.nunchuk.android.type.WalletType.SINGLE_SIG
@@ -40,13 +42,15 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 
 internal class ReviewWalletViewModel @AssistedInject constructor(
     @Assisted private val args: ReviewWalletArgs,
     private val draftWalletUseCase: DraftWalletUseCase,
     private val createWalletUseCase: CreateWalletUseCase,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
+    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase
 ) : NunchukViewModel<Unit, ReviewWalletEvent>() {
 
     override val initialState = Unit
@@ -101,6 +105,12 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
     fun mapSigners(): List<SignerModel> {
         val masterSigners = args.masterSigners.map {
             it.toModel(isPrimaryKey = accountManager.getPrimaryKeyInfo()?.xfp == it.masterFingerprint)
+        }.map {
+            if (it.type == SignerType.NFC) {
+                val status = runBlocking { getTapSignerStatusByIdUseCase(it.id) }
+               return@map it.copy(cardId = status.getOrNull()?.ident.orEmpty())
+            }
+            return@map it
         }
         return masterSigners + args.remoteSigners.map(SingleSigner::toModel)
     }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/mobile_navigation"
+    android:id="@+id/wallet_detail_navigation"
     app:startDestination="@+id/walletDetailsFragment">
 
     <fragment
@@ -12,5 +12,11 @@
         <argument
             android:name="walletId"
             app:argType="string" />
+
+        <argument
+            android:name="key_policy"
+            app:argType="com.nunchuk.android.model.KeyPolicy"
+            app:nullable="true"
+            android:defaultValue="@null" />
     </fragment>
 </navigation>

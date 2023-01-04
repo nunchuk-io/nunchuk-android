@@ -21,7 +21,6 @@ package com.nunchuk.android.core.account
 
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.PrimaryKey
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.GetPrimaryKeyListUseCase
 import kotlinx.coroutines.sync.Mutex
@@ -49,10 +48,9 @@ class PrimaryKeySignerInfoHolder @Inject constructor(
         signerMutex.withLock {
             if (masterSigner != null) return masterSigner
             val signerId = accountManager.getPrimaryKeyInfo()?.xfp ?: return null
-            val result =
-                getMasterSignerUseCase.execute(signerId)
-            if (result is Result.Success) {
-                masterSigner = result.data
+            val result = getMasterSignerUseCase(signerId)
+            if (result.isSuccess) {
+                masterSigner = result.getOrThrow()
             }
         }
         return masterSigner

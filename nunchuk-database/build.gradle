@@ -11,6 +11,7 @@ dependencies {
     implementation project(':nunchuk-domain')
 
     implementation androidxDeps.values()
+    implementation nunchukDeps.nativeSdk
     // Room
     kapt roomArch.roomCompiler
     implementation roomArch.roomKtx

@@ -36,19 +36,24 @@ data class AddReceiptArgs(
     val slots: List<SatsCardSlot>,
     val address: String = "",
     val privateNote: String = "",
-    val sweepType: SweepType
+    val sweepType: SweepType,
+    val masterSignerId: String = "",
+    val magicalPhrase: String = ""
 ) : ActivityArgs {
 
-    override fun buildIntent(activityContext: Context) = Intent(activityContext, AddReceiptActivity::class.java).apply {
-        putExtra(EXTRA_WALLET_ID, walletId)
-        putExtra(EXTRA_OUTPUT_AMOUNT, outputAmount)
-        putExtra(EXTRA_AVAILABLE_AMOUNT, availableAmount)
-        putExtra(EXTRA_SUBTRACT_FEE, subtractFeeFromAmount)
-        putExtra(EXTRA_SWEEP_TYPE, sweepType)
-        putExtra(EXTRA_ADDRESS, address)
-        putExtra(EXTRA_PRIVATE_NOTE, privateNote)
-        putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
-    }
+    override fun buildIntent(activityContext: Context) =
+        Intent(activityContext, AddReceiptActivity::class.java).apply {
+            putExtra(EXTRA_WALLET_ID, walletId)
+            putExtra(EXTRA_OUTPUT_AMOUNT, outputAmount)
+            putExtra(EXTRA_AVAILABLE_AMOUNT, availableAmount)
+            putExtra(EXTRA_SUBTRACT_FEE, subtractFeeFromAmount)
+            putExtra(EXTRA_SWEEP_TYPE, sweepType)
+            putExtra(EXTRA_ADDRESS, address)
+            putExtra(EXTRA_PRIVATE_NOTE, privateNote)
+            putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
+            putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
+            putExtra(EXTRA_MAGICAL_PHRASE, magicalPhrase)
+        }
 
     companion object {
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
@@ -59,6 +64,8 @@ data class AddReceiptArgs(
         private const val EXTRA_SWEEP_TYPE = "EXTRA_SWEEP_TYPE"
         private const val EXTRA_ADDRESS = "EXTRA_ADDRESS"
         private const val EXTRA_PRIVATE_NOTE = "EXTRA_PRIVATE_NOTE"
+        private const val EXTRA_MASTER_SIGNER_ID = "EXTRA_MASTER_SIGNER_ID"
+        private const val EXTRA_MAGICAL_PHRASE = "EXTRA_MAGICAL_PHRASE"
 
         fun deserializeFrom(intent: Intent) = AddReceiptArgs(
             intent.extras.getStringValue(EXTRA_WALLET_ID),
@@ -68,7 +75,9 @@ data class AddReceiptArgs(
             intent.extras!!.getParcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
             intent.extras.getStringValue(EXTRA_ADDRESS),
             intent.extras.getStringValue(EXTRA_PRIVATE_NOTE),
-            intent.extras!!.getSerializable(EXTRA_SWEEP_TYPE) as SweepType
+            intent.extras!!.getSerializable(EXTRA_SWEEP_TYPE) as SweepType,
+            intent.extras.getStringValue(EXTRA_MASTER_SIGNER_ID),
+            intent.extras.getStringValue(EXTRA_MAGICAL_PHRASE)
         )
     }
 }

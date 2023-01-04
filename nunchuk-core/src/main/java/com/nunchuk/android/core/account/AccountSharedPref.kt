@@ -40,11 +40,15 @@ internal class AccountSharedPref @Inject constructor(
     }
 
     fun storeAccountInfo(accountInfo: AccountInfo) {
-        sharedPreferences.edit().putString(ACCOUNT_KEY, gson.toJson(accountInfo)).apply()
+        sharedPreferences.edit().putString(ACCOUNT_KEY, gson.toJson(accountInfo)).commit()
     }
 
     fun clearAccountInfo() {
-        sharedPreferences.edit().putString(ACCOUNT_KEY, gson.toJson(AccountInfo())).apply()
+        sharedPreferences.edit().putString(ACCOUNT_KEY, gson.toJson(AccountInfo())).commit()
+    }
+
+    fun removeAccount() {
+        sharedPreferences.edit().remove(ACCOUNT_KEY).apply()
     }
 
     fun isHasAccountBefore() = sharedPreferences.contains(ACCOUNT_KEY)

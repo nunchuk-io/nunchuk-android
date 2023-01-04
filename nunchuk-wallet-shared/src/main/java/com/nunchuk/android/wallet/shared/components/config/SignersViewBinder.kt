@@ -42,12 +42,11 @@ internal class SignersViewBinder(
         binding.avatar.text = model.name.shorten()
 
         binding.signerName.text = model.name
-        val xfpValue = "XFP: ${model.fingerPrint}"
-        binding.xpf.text = xfpValue
+        binding.xfp.text = model.getXfpOrCardIdLabel()
         binding.checkbox.isVisible = false
 
-        val isEmptyXFP = model.fingerPrint.isEmpty()
-        binding.xpf.isVisible = !isEmptyXFP
+        val isEmptyXFP = model.getXfpOrCardIdLabel().isEmpty()
+        binding.xfp.isVisible = !isEmptyXFP
         binding.signerType.isVisible = !isEmptyXFP
         binding.signerPrimaryKeyType.isVisible = model.isPrimaryKey
         binding.tvBip32Path.isVisible = model.derivationPath.isNotEmpty()

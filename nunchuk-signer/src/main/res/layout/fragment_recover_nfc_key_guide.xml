@@ -69,7 +69,7 @@
         android:layout_weight="1" />
 
     <com.nunchuk.android.widget.NCFontButton
-        android:id="@+id/btn_got_it"
+        android:id="@+id/btn_continue"
         style="@style/NCPrimaryButton.Dark"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

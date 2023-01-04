@@ -53,10 +53,6 @@ class NCSharePreferences @Inject constructor(context: Context) {
         get() = prefs.getString(SP_KEY_DEVELOPER_SETTING, "").orEmpty()
         set(value) = prefs.edit().putString(SP_KEY_DEVELOPER_SETTING, value).apply()
 
-    var syncSetting: String
-        get() = prefs.getString(SP_SYNC_SETTING, "").orEmpty()
-        set(value) = prefs.edit().putString(SP_SYNC_SETTING, value).apply()
-
     companion object {
         private const val PACKAGE_PREFIX = "com.nunchuk.android"
         private const val APP_SHARE_PREFERENCE_NAME = "${PACKAGE_PREFIX}.pref"
@@ -66,6 +62,5 @@ class NCSharePreferences @Inject constructor(context: Context) {
         private const val SP_KEY_DEVICE_SHOW_BANNER_NEW_CHAT = "${PACKAGE_PREFIX}.key.show.banner.new.chat.v2"
         private const val SP_KEY_FCM_TOKEN = "${PACKAGE_PREFIX}.key.fcm.token"
         private const val SP_KEY_DEVELOPER_SETTING = "${PACKAGE_PREFIX}.key.developer.setting"
-        private const val SP_SYNC_SETTING = "${PACKAGE_PREFIX}.key.sync.setting"
     }
 }

@@ -39,21 +39,26 @@ data class TransactionConfirmArgs(
     val subtractFeeFromAmount: Boolean = false,
     val manualFeeRate: Int = 0,
     val sweepType: SweepType,
-    val slots: List<SatsCardSlot>
+    val slots: List<SatsCardSlot>,
+    val masterSignerId: String,
+    val magicalPhrase: String
 ) : ActivityArgs {
 
-    override fun buildIntent(activityContext: Context) = Intent(activityContext, TransactionConfirmActivity::class.java).apply {
-        putExtra(EXTRA_WALLET_ID, walletId)
-        putExtra(EXTRA_OUTPUT_AMOUNT, outputAmount)
-        putExtra(EXTRA_AVAILABLE_AMOUNT, availableAmount)
-        putExtra(EXTRA_ADDRESS, address)
-        putExtra(EXTRA_PRIVATE_NOTE, privateNote)
-        putExtra(EXTRA_ESTIMATE_FEE, estimatedFee)
-        putExtra(EXTRA_SUBTRACT_FEE_FROM_AMOUNT, subtractFeeFromAmount)
-        putExtra(EXTRA_MANUAL_FEE_RATE, manualFeeRate)
-        putExtra(EXTRA_SWEEP_TYPE, sweepType)
-        putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
-    }
+    override fun buildIntent(activityContext: Context) =
+        Intent(activityContext, TransactionConfirmActivity::class.java).apply {
+            putExtra(EXTRA_WALLET_ID, walletId)
+            putExtra(EXTRA_OUTPUT_AMOUNT, outputAmount)
+            putExtra(EXTRA_AVAILABLE_AMOUNT, availableAmount)
+            putExtra(EXTRA_ADDRESS, address)
+            putExtra(EXTRA_PRIVATE_NOTE, privateNote)
+            putExtra(EXTRA_ESTIMATE_FEE, estimatedFee)
+            putExtra(EXTRA_SUBTRACT_FEE_FROM_AMOUNT, subtractFeeFromAmount)
+            putExtra(EXTRA_MANUAL_FEE_RATE, manualFeeRate)
+            putExtra(EXTRA_SWEEP_TYPE, sweepType)
+            putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
+            putExtra(EXTRA_MASTER_SIGNER_ID, magicalPhrase)
+            putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
+        }
 
     companion object {
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
@@ -66,6 +71,8 @@ data class TransactionConfirmArgs(
         private const val EXTRA_MANUAL_FEE_RATE = "EXTRA_MANUAL_FEE_RATE"
         private const val EXTRA_SWEEP_TYPE = "EXTRA_SWEEP_TYPE"
         private const val EXTRA_SLOTS = "EXTRA_SLOTS"
+        private const val EXTRA_MASTER_SIGNER_ID = "EXTRA_MASTER_SIGNER_ID"
+        private const val EXTRA_MAGICAL_PHRASE = "EXTRA_MAGICAL_PHRASE"
 
         fun deserializeFrom(intent: Intent): TransactionConfirmArgs {
             val extras = intent.extras
@@ -79,7 +86,9 @@ data class TransactionConfirmArgs(
                 extras.getBooleanValue(EXTRA_SUBTRACT_FEE_FROM_AMOUNT),
                 extras.getIntValue(EXTRA_MANUAL_FEE_RATE),
                 extras!!.getSerializable(EXTRA_SWEEP_TYPE) as SweepType,
-                extras.getParcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty()
+                extras.getParcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
+                masterSignerId = extras.getStringValue(EXTRA_MASTER_SIGNER_ID),
+                magicalPhrase = extras.getStringValue(EXTRA_MAGICAL_PHRASE)
             )
         }
     }

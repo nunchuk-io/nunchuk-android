@@ -51,8 +51,8 @@
 
         <activity
             android:name=".components.export.ExportTransactionActivity"
-            android:label="@string/nc_transaction_export_transaction"
             android:exported="true"
+            android:label="@string/nc_transaction_export_transaction"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
@@ -62,8 +62,14 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
-        <activity android:name=".components.details.fee.ReplaceFeeActivity"
+        <activity
+            android:name=".components.details.fee.ReplaceFeeActivity"
             android:label="@string/nc_replace_by_fee"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+        <activity
+            android:name=".components.schedule.ScheduleBroadcastTransactionActivity"
+            android:label="@string/nc_schedule_broadcast"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tv_title"
+        style="@style/NCText.Heading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:paddingHorizontal="17dp"
+        tools:text="@string/nc_get_assisted_wallet_title" />
+
+    <TextView
+        android:id="@+id/tv_desc"
+        style="@style/NCText.Body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:paddingHorizontal="17dp"
+        tools:text="@string/nc_get_assisted_wallet_desc" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>

@@ -19,27 +19,35 @@
 
 package com.nunchuk.android.usecase
 
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Device
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface SignTransactionUseCase {
-    suspend fun execute(walletId: String, txId: String, device: Device, signerId: String): Result<Transaction>
-}
+class SignTransactionUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    @IoDispatcher private val isDispatcher: CoroutineDispatcher,
+) : UseCase<SignTransactionUseCase.Param, Transaction>(isDispatcher) {
 
-internal class SignTransactionUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
-) : BaseUseCase(), SignTransactionUseCase {
-
-    override suspend fun execute(walletId: String, txId: String, device: Device, signerId: String) = exe {
-        nativeSdk.signTransaction(
-            walletId = walletId,
-            txId = txId,
-            device = device
+    override suspend fun execute(parameters: Param): Transaction {
+        return nativeSdk.signTransaction(
+            walletId = parameters.walletId,
+            txId = parameters.txId,
+            device = parameters.device
         ).also {
-            if (device.needPassPhraseSent && signerId.isNotEmpty()) nativeSdk.clearSignerPassphrase(signerId)
+            if (parameters.device.needPassPhraseSent && parameters.signerId.isNotEmpty()) nativeSdk.clearSignerPassphrase(
+                parameters.signerId
+            )
         }
     }
+
+    data class Param(
+        val walletId: String,
+        val txId: String,
+        val device: Device,
+        val signerId: String,
+        val isAssistedWallet: Boolean
+    )
 }

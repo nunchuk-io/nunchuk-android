@@ -20,6 +20,9 @@
 package com.nunchuk.android.database.di
 
 import android.content.Context
+import androidx.room.Room
+import com.nunchuk.android.persistence.DATABASE_NAME
+import com.nunchuk.android.persistence.DBMigrations
 import com.nunchuk.android.persistence.NunchukDatabase
 import dagger.Module
 import dagger.Provides
@@ -33,7 +36,12 @@ internal object NunchukPersistenceModule {
 
     @Singleton
     @Provides
-    fun provideDatabase(context: Context) = NunchukDatabase.getInstance(context)
+    fun provideDatabase(context: Context) =
+        Room.databaseBuilder(context, NunchukDatabase::class.java, DATABASE_NAME)
+            .addMigrations(DBMigrations.MIGRATION_1_2)
+            .addMigrations(DBMigrations.MIGRATION_2_3)
+            .addMigrations(DBMigrations.MIGRATION_3_4)
+            .build()
 
     @Singleton
     @Provides
@@ -43,6 +51,9 @@ internal object NunchukPersistenceModule {
     @Provides
     fun provideSyncFileDao(database: NunchukDatabase) = database.syncFileDao()
 
+    @Singleton
+    @Provides
+    fun provideMembershipStepDao(database: NunchukDatabase) = database.membershipDao()
 
     @Singleton
     @Provides

@@ -21,16 +21,15 @@ package com.nunchuk.android.core.persistence
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.doublePreferencesKey
-import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
-import com.google.gson.Gson
-import com.nunchuk.android.core.domain.data.SyncSetting
+import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.toMembershipPlan
+import com.nunchuk.android.type.Chain
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,8 +41,28 @@ class NcDataStore @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
     private val btcPriceKey = doublePreferencesKey("btc_price")
-    private val turnOnNotification = booleanPreferencesKey("turn_on_notification")
+    private val turnOnNotificationKey = booleanPreferencesKey("turn_on_notification")
     private val syncEnableKey = booleanPreferencesKey("sync_enable")
+    private val isShowNfcUniversalKey = booleanPreferencesKey("show_nfc_universal")
+    private val registerColdcardKey = booleanPreferencesKey("register_coldcard")
+    private val registerAirgapKey = booleanPreferencesKey("register_airgap")
+    private val setupInheritanceKey = booleanPreferencesKey("setup_inheritance")
+    private val chainKey = intPreferencesKey("chain")
+
+    /**
+     * Assisted wallet local id
+     */
+    private val assistedWalletLocalIdKey = stringPreferencesKey("assisted_wallet_local_id")
+
+    /**
+     * Plan of current assisted wallet
+     */
+    private val assistedWalletPlanKey = stringPreferencesKey("assisted_wallet_plan")
+
+    /**
+     * Current membership plan key
+     */
+    private val membershipPlanKey = intPreferencesKey("membership_plan")
 
     val btcPriceFlow: Flow<Double>
         get() = context.dataStore.data.map { it[btcPriceKey] ?: 45000.0 }
@@ -53,14 +72,61 @@ class NcDataStore @Inject constructor(
             it[syncEnableKey] ?: false
         }
 
+    val isShowNfcUniversal: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[isShowNfcUniversalKey] ?: true
+        }
+
     val turnOnNotificationFlow: Flow<Boolean>
         get() = context.dataStore.data.map {
-            it[turnOnNotification] ?: true
+            it[turnOnNotificationKey] ?: true
         }
+
+    val assistedWalletId: Flow<String>
+        get() = context.dataStore.data.map {
+            it[assistedWalletLocalIdKey].orEmpty()
+        }
+
+    val assistedWalletPlan: Flow<MembershipPlan>
+        get() = context.dataStore.data.map {
+            it[assistedWalletPlanKey].toMembershipPlan()
+        }
+
+    val membershipPlan: Flow<MembershipPlan>
+        get() = context.dataStore.data.map {
+            val ordinal = it[membershipPlanKey] ?: 0
+            MembershipPlan.values()[ordinal]
+        }
+
+    val isRegisterColdCard: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[registerColdcardKey] ?: true
+        }
+
+    val isRegisterAirgap: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[registerAirgapKey] ?: true
+        }
+
+    val isSetupInheritance: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[setupInheritanceKey] ?: false
+        }
+
+    val chain: Flow<Chain>
+        get() = context.dataStore.data.map {
+           Chain.values()[it[chainKey] ?: 0]
+        }
+
+    suspend fun setChain(chain: Chain) {
+        context.dataStore.edit { settings ->
+            settings[chainKey] = chain.ordinal
+        }
+    }
 
     suspend fun updateTurnOnNotification(turnOn: Boolean) {
         context.dataStore.edit { settings ->
-            settings[turnOnNotification] = turnOn
+            settings[turnOnNotificationKey] = turnOn
         }
     }
 
@@ -76,10 +142,60 @@ class NcDataStore @Inject constructor(
         }
     }
 
-    suspend fun clear() {
+    suspend fun markIsShowNfcUniversal() {
+        context.dataStore.edit { settings ->
+            settings[isShowNfcUniversalKey] = false
+        }
+    }
+
+    suspend fun setAssistedWalletId(id: String) {
+        context.dataStore.edit { settings ->
+            settings[assistedWalletLocalIdKey] = id
+        }
+    }
+
+    suspend fun setAssistedWalletPlan(plan: String) {
+        context.dataStore.edit { settings ->
+            settings[assistedWalletPlanKey] = plan
+        }
+    }
+
+    suspend fun setMembershipPlan(plan: MembershipPlan) {
         context.dataStore.edit {
-            it.remove(syncEnableKey)
-            it.remove(turnOnNotification)
+            it[membershipPlanKey] = plan.ordinal
+        }
+    }
+
+    suspend fun setRegisterColdcard(value: Boolean) {
+        context.dataStore.edit {
+            it[registerColdcardKey] = value
+        }
+    }
+
+    suspend fun setRegisterAirgap(value: Boolean) {
+        context.dataStore.edit {
+            it[registerAirgapKey] = value
+        }
+    }
+
+    suspend fun setSetupInheritance(value: Boolean) {
+        context.dataStore.edit {
+            it[setupInheritanceKey] = value
+        }
+    }
+
+    fun clear() {
+        runBlocking {
+            context.dataStore.edit {
+                it.remove(syncEnableKey)
+                it.remove(turnOnNotificationKey)
+                it.remove(assistedWalletLocalIdKey)
+                it.remove(assistedWalletPlanKey)
+                it.remove(membershipPlanKey)
+                it.remove(registerColdcardKey)
+                it.remove(registerAirgapKey)
+                it.remove(setupInheritanceKey)
+            }
         }
     }
 }

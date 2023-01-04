@@ -22,20 +22,26 @@ package com.nunchuk.android.wallet.components.config
 import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
+import com.nunchuk.android.model.KeyPolicy
+import com.nunchuk.android.utils.parcelable
 
 data class WalletConfigArgs(
     val walletId: String,
+    val keyPolicy: KeyPolicy?
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, WalletConfigActivity::class.java).apply {
         putExtra(EXTRA_WALLET_ID, walletId)
+        putExtra(EXTRA_KEY_POLICY, keyPolicy)
     }
 
     companion object {
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
+        private const val EXTRA_KEY_POLICY = "EXTRA_KEY_POLICY"
 
         fun deserializeFrom(intent: Intent): WalletConfigArgs = WalletConfigArgs(
             intent.extras?.getString(EXTRA_WALLET_ID, "").orEmpty(),
+            intent.extras?.parcelable(EXTRA_KEY_POLICY),
         )
     }
 }

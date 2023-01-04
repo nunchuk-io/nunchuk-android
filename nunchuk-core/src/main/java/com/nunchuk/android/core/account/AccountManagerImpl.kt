@@ -46,6 +46,8 @@ interface AccountManager {
     fun clearUserData()
 
     fun loginType(): Int
+
+    fun removeAccount()
 }
 
 @Singleton
@@ -88,4 +90,8 @@ internal class AccountManagerImpl @Inject constructor(
     }
 
     override fun loginType(): Int = accountSharedPref.getAccountInfo().loginType
+
+    override fun removeAccount() {
+        accountSharedPref.removeAccount()
+    }
 }

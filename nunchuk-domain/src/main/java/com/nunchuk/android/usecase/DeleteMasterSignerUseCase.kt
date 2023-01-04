@@ -21,6 +21,7 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.repository.MembershipRepository
 import javax.inject.Inject
 
 interface DeleteMasterSignerUseCase {
@@ -28,11 +29,14 @@ interface DeleteMasterSignerUseCase {
 }
 
 internal class DeleteMasterSignerUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
+    private val nativeSdk: NunchukNativeSdk,
+    private val membershipRepository: MembershipRepository
 ) : BaseUseCase(), DeleteMasterSignerUseCase {
 
     override suspend fun execute(masterSignerId: String) = exe {
-        nativeSdk.deleteMasterSigner(masterSignerId)
+        val isSuccess = nativeSdk.deleteMasterSigner(masterSignerId)
+        membershipRepository.deleteStepBySignerId(masterSignerId)
+        isSuccess
     }
 
 }

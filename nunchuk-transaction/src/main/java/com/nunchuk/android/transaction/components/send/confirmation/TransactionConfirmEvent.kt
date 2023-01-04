@@ -24,7 +24,7 @@ import com.nunchuk.android.model.Transaction
 
 sealed class TransactionConfirmEvent {
     object LoadingEvent : TransactionConfirmEvent()
-    data class CreateTxSuccessEvent(val txId: String) : TransactionConfirmEvent()
+    data class CreateTxSuccessEvent(val transaction: Transaction) : TransactionConfirmEvent()
     data class CreateTxErrorEvent(val message: String) : TransactionConfirmEvent()
     data class UpdateChangeAddress(val address: String, val amount: Amount) : TransactionConfirmEvent()
     data class InitRoomTransactionError(val message: String) : TransactionConfirmEvent()

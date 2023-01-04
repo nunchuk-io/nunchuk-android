@@ -8,6 +8,36 @@
             android:label="@string/nc_title_message"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Dark" />
+
+        <activity
+            android:name=".intro.UniversalNfcIntroActivity"
+            android:label="Universal NFC intro"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".components.tabs.services.keyrecovery.KeyRecoveryActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".components.tabs.services.emergencylockdown.EmergencyLockdownActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".components.tabs.services.inheritanceplanning.InheritancePlanningActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".membership.authentication.WalletAuthenticationActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".nonsubscriber.NonSubscriberActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
     </application>
 
 </manifest>

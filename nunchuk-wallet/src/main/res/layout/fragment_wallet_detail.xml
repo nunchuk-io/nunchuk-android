@@ -2,6 +2,7 @@
 <androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/nc_header_gradient_background"
@@ -31,11 +32,27 @@
             tools:text="Nunchuk’s Fun Fund" />
     </androidx.appcompat.widget.Toolbar>
 
+    <TextView
+        android:id="@+id/tv_assisted_downgrade_hint"
+        style="@style/NCText.Title.Small"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        android:background="@drawable/nc_rounded_whisper_background"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:padding="@dimen/nc_padding_12"
+        android:text="@string/nc_assisted_wallet_downgrade_hint"
+        android:visibility="gone"
+        app:drawableStartCompat="@drawable/ic_info"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        tools:visibility="visible" />
+
     <Space
         android:id="@+id/spaceTop16"
         android:layout_width="match_parent"
         android:layout_height="@dimen/nc_padding_16"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+        app:layout_constraintTop_toBottomOf="@+id/tv_assisted_downgrade_hint" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/configuration_container"

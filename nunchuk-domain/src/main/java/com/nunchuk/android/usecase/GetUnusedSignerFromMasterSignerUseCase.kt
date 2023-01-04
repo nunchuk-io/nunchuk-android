@@ -30,6 +30,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import timber.log.Timber
 import javax.inject.Inject
 
 interface GetUnusedSignerFromMasterSignerUseCase {
@@ -70,7 +71,7 @@ internal class GetUnusedSignerFromMasterSignerUseCaseImpl @Inject constructor(
                             }
                         }
                     }
-                }.getOrNull()
+                }.onFailure { Timber.e(it) }.getOrNull()
             }
         )
     }.flowOn(ioDispatcher)

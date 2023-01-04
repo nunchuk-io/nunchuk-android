@@ -20,12 +20,62 @@
 package com.nunchuk.android.signer.nav
 
 import android.app.Activity
-import android.content.Intent
 import com.nunchuk.android.nav.NfcNavigator
+import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.signer.mk4.Mk4Activity
+import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 
 interface NfcNavigatorDelegate : NfcNavigator {
-    override fun openSetupMk4(activity: Activity) {
-        activity.startActivity(Intent(activity, Mk4Activity::class.java))
+    override fun openSetupMk4(
+        activity: Activity,
+        fromMembershipFlow: Boolean,
+        action: ColdcardAction
+    ) {
+        Mk4Activity.navigate(activity, fromMembershipFlow, action)
+    }
+
+    override fun openSetupTapSigner(
+        activity: Activity,
+        fromMembershipFlow: Boolean,
+    ) {
+        activity.startActivity(
+            NfcSetupActivity.buildIntent(
+                activity = activity,
+                setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
+                fromMembershipFlow = fromMembershipFlow,
+            )
+        )
+    }
+
+    override fun openVerifyBackupTapSigner(
+        activity: Activity,
+        fromMembershipFlow: Boolean,
+        backUpFilePath: String,
+        masterSignerId: String,
+    ) {
+        activity.startActivity(
+            NfcSetupActivity.buildIntent(
+                activity = activity,
+                setUpAction = NfcSetupActivity.VERIFY_TAP_SIGNER,
+                fromMembershipFlow = fromMembershipFlow,
+                backUpFilePath = backUpFilePath,
+                masterSignerId = masterSignerId
+            )
+        )
+    }
+
+    override fun openCreateBackUpTapSigner(
+        activity: Activity,
+        fromMembershipFlow: Boolean,
+        masterSignerId: String
+    ) {
+        activity.startActivity(
+            NfcSetupActivity.buildIntent(
+                activity = activity,
+                setUpAction = NfcSetupActivity.CREATE_BACK_UP_KEY,
+                fromMembershipFlow = fromMembershipFlow,
+                masterSignerId = masterSignerId
+            )
+        )
     }
 }

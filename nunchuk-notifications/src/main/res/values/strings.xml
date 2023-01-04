@@ -12,4 +12,6 @@
     <string name="notification_update">Update</string>
     <string name="notification_update_message">You have new message, check it out</string>
     <string name="notification_cant_sync_push">Can\'t sync from push, no current session</string>
+    <string name="nc_notification_cosign_and_broadcast">The transaction has been co-signed and broadcast</string>
+    <string name="nc_notification_transaction_co_signed">The transaction has been co-signed</string>
 </resources>

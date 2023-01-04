@@ -5,7 +5,7 @@
     <application>
 
         <activity
-            android:name=".components.add.AddSignerActivity"
+            android:name=".components.add.AddAirgapSignerActivity"
             android:label="@string/nc_create_signer_title"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light"
@@ -32,19 +32,13 @@
         </activity>
 
         <activity
-            android:name=".AirSignerIntroActivity"
-            android:label="@string/nc_signer_before_start_title"
-            android:screenOrientation="portrait"
-            android:theme="@style/NunchukNoActionBar.Light" />
-
-        <activity
             android:name=".components.add.ScanDynamicQRActivity"
             android:label="Add passport signers"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
-            android:name=".nfc.NfcSetupActivity"
+            android:name=".tapsigner.NfcSetupActivity"
             android:label="Nfc set up"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light"
@@ -57,6 +51,11 @@
 
         <activity android:name=".mk4.Mk4Activity"
             android:label="Mk4 Activity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"/>
+
+        <activity android:name=".satscard.wallets.SelectWalletActivity"
+            android:label="Select Wallet Activity"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light"/>
 

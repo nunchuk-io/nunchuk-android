@@ -117,6 +117,10 @@ fun Boolean?.orFalse(): Boolean {
     return this ?: false
 }
 
+fun Int?.orDefault(default: Int): Int {
+    return this ?: default
+}
+
 fun Context.showAlertDialog(
     title: String,
     message: String,

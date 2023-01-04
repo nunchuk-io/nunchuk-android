@@ -57,9 +57,15 @@ interface TransactionNavigator {
         privateNote: String = "",
         subtractFeeFromAmount: Boolean = false,
         slots: List<SatsCardSlot> = emptyList(),
-        sweepType: SweepType = SweepType.NONE
+        sweepType: SweepType = SweepType.NONE,
+        masterSignerId: String = "",
+        magicalPhrase: String = ""
     )
 
+    /**
+     * @param masterSignerId inheritance claiming flow
+     * @param magicalPhrase inheritance claiming flow
+     */
     fun openEstimatedFeeScreen(
         activityContext: Activity,
         walletId: String,
@@ -69,9 +75,15 @@ interface TransactionNavigator {
         privateNote: String,
         subtractFeeFromAmount: Boolean = false,
         sweepType: SweepType = SweepType.NONE,
-        slots: List<SatsCardSlot> = emptyList()
+        slots: List<SatsCardSlot> = emptyList(),
+        masterSignerId: String = "",
+        magicalPhrase: String = "",
     )
 
+    /**
+     * @param masterSignerId inheritance claiming flow
+     * @param magicalPhrase inheritance claiming flow
+     */
     fun openTransactionConfirmScreen(
         activityContext: Activity,
         walletId: String,
@@ -83,16 +95,22 @@ interface TransactionNavigator {
         subtractFeeFromAmount: Boolean = false,
         manualFeeRate: Int = 0,
         sweepType: SweepType = SweepType.NONE,
-        slots: List<SatsCardSlot> = emptyList()
+        slots: List<SatsCardSlot> = emptyList(),
+        masterSignerId: String = "",
+        magicalPhrase: String = "",
     )
 
+    /**
+     * @param isInheritanceClaimingFlow inheritance claiming flow
+     */
     fun openTransactionDetailsScreen(
         activityContext: Activity,
         walletId: String,
         txId: String,
         initEventId: String = "",
         roomId: String,
-        transaction: Transaction? = null
+        transaction: Transaction? = null,
+        isInheritanceClaimingFlow: Boolean = false
     )
 
     fun openTransactionDetailsScreen(
@@ -111,6 +129,21 @@ interface TransactionNavigator {
         transactionOption: TransactionOption,
         masterFingerPrint: String = "",
         initEventId: String = ""
+    )
+
+    fun openImportDummyTransactionScreen(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Activity,
+        transactionOption: TransactionOption,
+        walletId: String,
+    )
+
+    fun openExportTransactionScreen(
+        activityContext: Activity,
+        walletId: String = "",
+        txId: String = "",
+        txToSign: String = "",
+        transactionOption: TransactionOption,
     )
 
     fun openReplaceTransactionFee(

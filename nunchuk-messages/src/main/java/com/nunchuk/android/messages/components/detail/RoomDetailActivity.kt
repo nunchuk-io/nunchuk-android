@@ -99,6 +99,9 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
     private fun handleState(state: RoomDetailState) {
         setupViewForSelectMode(state.isSelectEnable)
+        if (state.isSupportRoom) {
+            adapter.removeBannerNewChat()
+        }
         binding.toolbarTitle.text = state.roomInfo.roomName
         binding.tvSelectedMessageCount.text = getString(R.string.nc_text_count_selected_message, state.selectedEventIds.size)
         val count = state.roomInfo.memberCount
@@ -108,7 +111,7 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
         adapter.update(state.messages.groupByDate(), state.roomWallet, count)
         val hasRoomWallet = state.roomWallet != null
         stickyBinding.root.isVisible = hasRoomWallet
-        binding.add.isVisible = !hasRoomWallet
+        binding.add.isVisible = !hasRoomWallet && !state.isSupportRoom
         binding.sendBTC.isVisible = hasRoomWallet
         binding.receiveBTC.isVisible = hasRoomWallet
         binding.expand.isVisible = hasRoomWallet
@@ -243,11 +246,11 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
 
     private fun collapseChatBar() {
         binding.groupWalletAction.isVisible = false
-        binding.expand.isVisible = true
+        binding.expand.isVisible = viewModel.isSupportRoom.not()
     }
 
     private fun expandChatBar() {
-        binding.groupWalletAction.isVisible = true
+        binding.groupWalletAction.isVisible = viewModel.isSupportRoom.not()
         binding.expand.isVisible = false
     }
 

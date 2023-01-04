@@ -27,7 +27,8 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.messages.databinding.ItemRoomBinding
-import com.nunchuk.android.messages.util.*
+import com.nunchuk.android.messages.util.lastMessage
+import com.nunchuk.android.utils.formatMessageDate
 import com.nunchuk.android.widget.swipe.SwipeLayout
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import java.util.*

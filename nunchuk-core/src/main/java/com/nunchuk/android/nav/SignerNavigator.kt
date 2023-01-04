@@ -38,12 +38,11 @@ interface SignerNavigator {
         justAdded: Boolean = false,
         setPassphrase: Boolean = false,
         isInWallet: Boolean = false,
-        isReplacePrimaryKey: Boolean = false
+        isReplacePrimaryKey: Boolean = false,
+        customMessage: String = ""
     )
 
-    fun openAddAirSignerScreen(activityContext: Context)
-
-    fun openAddAirSignerIntroScreen(activityContext: Context)
+    fun openAddAirSignerScreen(activityContext: Context, isMembershipFlow: Boolean)
 
     /**
      * @param passphrase only need for replacing primary key

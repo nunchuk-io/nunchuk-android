@@ -22,6 +22,7 @@ package com.nunchuk.android.core.network.di
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.nunchuk.android.core.network.ApiConstant.BASE_TEST_NET_URL
 import com.nunchuk.android.core.network.ApiConstant.BASE_URL
 import com.nunchuk.android.core.network.ApiConstant.BASE_URL_MATRIX
 import com.nunchuk.android.core.network.ApiConstant.HTTP_CONNECT_TIMEOUT
@@ -29,10 +30,7 @@ import com.nunchuk.android.core.network.ApiConstant.HTTP_READ_TIMEOUT
 import com.nunchuk.android.core.network.ApiConstant.HTTP_WRITE_TIMEOUT
 import com.nunchuk.android.core.network.BuildConfig
 import com.nunchuk.android.core.network.HeaderInterceptor
-import com.nunchuk.android.network.util.APP_HTTP_CLIENT
-import com.nunchuk.android.network.util.MATRIX_HTTP_CLIENT
-import com.nunchuk.android.network.util.MATRIX_LOGGING_INTERCEPTOR
-import com.nunchuk.android.network.util.MATRIX_RETROFIT
+import com.nunchuk.android.network.util.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -81,6 +79,18 @@ class NetworkModule @Inject constructor() {
 
     @Singleton
     @Provides
+    @Named(TEST_NET_RETROFIT)
+    fun provideNunchukTestNetRetrofit(
+        gsonConverterFactory: GsonConverterFactory,
+        @Named(APP_HTTP_CLIENT) client: OkHttpClient
+    ): Retrofit = Retrofit.Builder()
+        .addConverterFactory(gsonConverterFactory)
+        .baseUrl(BASE_TEST_NET_URL)
+        .client(client)
+        .build()
+
+    @Singleton
+    @Provides
     @Named(MATRIX_RETROFIT)
     fun provideMatrixRetrofit(
         gsonConverterFactory: GsonConverterFactory,
@@ -91,7 +101,6 @@ class NetworkModule @Inject constructor() {
         .baseUrl(BASE_URL_MATRIX)
         .client(client)
         .build()
-
     @Singleton
     @Provides
     @Named(APP_HTTP_CLIENT)
@@ -104,10 +113,11 @@ class NetworkModule @Inject constructor() {
         .readTimeout(HTTP_READ_TIMEOUT, TimeUnit.SECONDS)
         .writeTimeout(HTTP_WRITE_TIMEOUT, TimeUnit.SECONDS)
         .protocols(listOf(Protocol.HTTP_1_1))
-        .addInterceptor(loggingInterceptor)
         .addInterceptor(headerInterceptor)
+        .addInterceptor(loggingInterceptor)
         .connectionSpecs(connectionSpecs)
         .build()
+
 
     @Singleton
     @Provides

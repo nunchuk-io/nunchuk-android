@@ -21,6 +21,7 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.type.SignerType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
@@ -37,7 +38,7 @@ internal class GetCompoundSignersUseCaseImpl @Inject constructor(
 ) : GetCompoundSignersUseCase {
 
     override fun execute() = getMasterSignersUseCase.execute().zip(getRemoteSignersUseCase.execute()) { masters, remotes ->
-        masters to remotes
+        masters to remotes.filter { it.type != SignerType.SERVER }
     }.flowOn(Dispatchers.IO)
 
 }

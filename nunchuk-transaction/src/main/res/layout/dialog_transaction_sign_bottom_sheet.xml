@@ -101,6 +101,19 @@
         app:drawableTint="@color/nc_primary_color" />
 
     <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btn_schedule_broadcast"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:drawableStart="@drawable/ic_scheduling_tx"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:padding="@dimen/nc_padding_16"
+        android:text="@string/nc_schedule_broadcast"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:drawableTint="@color/nc_primary_color" />
+
+    <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btn_copy_tx_id"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

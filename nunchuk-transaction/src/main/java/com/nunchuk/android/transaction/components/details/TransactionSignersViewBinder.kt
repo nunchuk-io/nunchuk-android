@@ -19,39 +19,55 @@
 
 package com.nunchuk.android.transaction.components.details
 
+import android.text.format.DateUtils
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.core.view.get
+import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.hadBroadcast
 import com.nunchuk.android.core.util.shorten
+import com.nunchuk.android.core.util.toReadableDrawable
 import com.nunchuk.android.core.util.toReadableSignerType
-import com.nunchuk.android.transaction.databinding.ItemTransactionSignerBinding
+import com.nunchuk.android.model.transaction.ServerTransaction
+import com.nunchuk.android.transaction.R
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.utils.formatByHour
+import com.nunchuk.android.utils.formatByWeek
+import com.nunchuk.android.widget.databinding.ItemTransactionSignerBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
+import java.util.*
 
 internal class TransactionSignersViewBinder(
     container: ViewGroup,
     private val signerMap: Map<String, Boolean>,
     signers: List<SignerModel>,
     private val txStatus: TransactionStatus,
-    val listener: (SignerModel) -> Unit = {}
+    private val listener: (SignerModel) -> Unit = {},
+    private val serverTransaction: ServerTransaction?,
 ) : AbsViewBinder<SignerModel, ItemTransactionSignerBinding>(container, signers) {
 
-    override fun initializeBinding() = ItemTransactionSignerBinding.inflate(inflater, container, false)
+    override fun initializeBinding() =
+        ItemTransactionSignerBinding.inflate(inflater, container, false)
 
     override fun bindItem(position: Int, model: SignerModel) {
         val binding = ItemTransactionSignerBinding.bind(container[position])
-        val xfpValue = "XFP: ${model.fingerPrint}"
-        binding.avatar.text = model.name.shorten()
+        binding.avatar.isGone = model.localKey
+        binding.ivSignerType.isVisible = model.localKey
+        if (model.localKey) {
+            binding.ivSignerType.setImageDrawable(model.type.toReadableDrawable(context))
+        } else {
+            binding.avatar.text = model.name.shorten()
+        }
         binding.signerName.text = model.name
-        binding.xpf.text = xfpValue
         binding.signerType.text = model.toReadableSignerType(context)
         binding.btnSign.setOnDebounceClickListener { listener(model) }
         val isSigned = model.isSigned()
 
-        if (txStatus.hadBroadcast()){
+        if (txStatus.hadBroadcast()) {
             binding.btnSign.isVisible = false
             binding.signed.isVisible = false
             binding.signNotAvailable.isVisible = false
@@ -64,9 +80,37 @@ internal class TransactionSignersViewBinder(
             binding.signed.isVisible = false
             binding.signNotAvailable.isVisible = true
         } else {
-            binding.btnSign.isVisible = true
+            binding.btnSign.isVisible = model.type != SignerType.SERVER
             binding.signed.isVisible = false
             binding.signNotAvailable.isVisible = false
+        }
+
+        binding.signerType.isVisible = model.type != SignerType.SERVER
+        if (model.type == SignerType.SERVER) {
+            val spendingLimitMessage = serverTransaction?.spendingLimitMessage.orEmpty()
+            val cosignedTime = serverTransaction?.signedInMilis ?: 0L
+            binding.xpf.isVisible = spendingLimitMessage.isNotEmpty() || cosignedTime > 0L
+            if (spendingLimitMessage.isNotEmpty()) {
+                binding.xpf.text = serverTransaction?.spendingLimitMessage
+            } else if (cosignedTime > 0L) {
+                val cosignDate = Date(cosignedTime)
+                if (DateUtils.isToday(cosignedTime)) {
+                    binding.xpf.text = context.getString(
+                        R.string.nc_cosign_at,
+                        cosignDate.formatByHour()
+                    )
+                } else {
+                    binding.xpf.text = context.getString(
+                        R.string.nc_cosign_at,
+                        "${cosignDate.formatByHour()} ${cosignDate.formatByWeek()}"
+                    )
+                }
+            }
+            binding.xpf.setTextColor(ContextCompat.getColor(context, R.color.nc_beeswax_dark))
+        } else {
+            binding.xpf.isVisible = true
+            binding.xpf.setTextColor(ContextCompat.getColor(context, R.color.nc_grey_dark_color))
+            binding.xpf.text = model.getXfpOrCardIdLabel()
         }
     }
 

@@ -32,19 +32,21 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.listener.TransactionListener
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.membership.GetServerTransactionUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
@@ -65,14 +67,18 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val sessionHolder: SessionHolder,
     private val accountManager: AccountManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val selectedWalletUseCase: SetSelectedWalletUseCase
+    private val selectedWalletUseCase: SetSelectedWalletUseCase,
+    private val assistedWalletManager: AssistedWalletManager,
+    private val getServerTransactionUseCase: GetServerTransactionUseCase,
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
-    private var transactions: List<Transaction> = ArrayList()
+    private val transactions = mutableListOf<Transaction>()
 
     override val initialState = WalletDetailsState()
+
+    private val serverTransactions = hashMapOf<String, ServerTransaction?>()
 
     init {
         viewModelScope.launch {
@@ -85,15 +91,10 @@ internal class WalletDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             selectedWalletUseCase(args.walletId)
         }
-        syncData()
-    }
-
-    fun init(walletId: String, shouldReloadPendingTx: Boolean) {
-        if (shouldReloadPendingTx) {
-            handleLoadPendingTx()
-        }
-        viewModelScope.launch {
-            selectedWalletUseCase(walletId)
+        updateState {
+            copy(
+                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
+            )
         }
     }
 
@@ -101,15 +102,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     fun getRoomWallet() = getState().walletExtended.roomWallet
 
     fun syncData() {
-        transactions = ArrayList()
+        transactions.clear()
         getWalletDetails()
-    }
-
-    private fun handleLoadPendingTx() {
-        viewModelScope.launch {
-            delay(TIMEOUT_TO_RELOAD)
-            syncData()
-        }
     }
 
     fun getWalletDetails(shouldRefreshTransaction: Boolean = true) {
@@ -156,8 +150,13 @@ internal class WalletDetailsViewModel @Inject constructor(
             getTransactionHistoryUseCase.execute(args.walletId).flowOn(IO)
                 .onException { event(WalletDetailsError(it.message.orUnknownError())) }.flowOn(Main)
                 .collect {
-                    transactions =
-                        it.sortedWith(compareBy(Transaction::status).thenByDescending(Transaction::blockTime))
+                    transactions.addAll(
+                        it.sortedWith(
+                            compareBy(Transaction::status).thenByDescending(
+                                Transaction::blockTime
+                            )
+                        )
+                    )
                     onRetrievedTransactionHistory()
                 }
         }
@@ -165,7 +164,15 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     fun paginateTransactions() =
         Pager(config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
-            pagingSourceFactory = { TransactionPagingSource(transactions) }).flow.cachedIn(
+            pagingSourceFactory = {
+                TransactionPagingSource(
+                    transactions = transactions,
+                    getServerTransactionUseCase = getServerTransactionUseCase,
+                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId),
+                    walletId = args.walletId,
+                    serverTransactions = serverTransactions
+                )
+            }).flow.cachedIn(
             viewModelScope
         ).flowOn(IO)
 
@@ -242,7 +249,5 @@ internal class WalletDetailsViewModel @Inject constructor(
     val isLeaveRoom: Boolean
         get() = getState().isLeaveRoom
 
-    companion object {
-        private const val TIMEOUT_TO_RELOAD = 5000L
-    }
+    fun isInactiveAssistedWallet() = assistedWalletManager.isInactiveAssistedWallet(args.walletId)
 }

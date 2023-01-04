@@ -30,6 +30,7 @@ import com.nunchuk.android.nav.TransactionNavigator
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.transaction.components.details.TransactionDetailsActivity
 import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeActivity
+import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.imports.ImportTransactionActivity
 import com.nunchuk.android.transaction.components.receive.ReceiveTransactionActivity
 import com.nunchuk.android.transaction.components.receive.address.details.AddressDetailsActivity
@@ -85,7 +86,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         privateNote: String,
         subtractFeeFromAmount: Boolean,
         slots: List<SatsCardSlot>,
-        sweepType: SweepType
+        sweepType: SweepType,
+        masterSignerId: String,
+        magicalPhrase: String
     ) {
         AddReceiptActivity.start(
             activityContext = activityContext,
@@ -96,7 +99,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             address = address,
             privateNote = privateNote,
             slots = slots,
-            sweepType = sweepType
+            sweepType = sweepType,
+            masterSignerId = masterSignerId,
+            magicalPhrase = magicalPhrase
         )
     }
 
@@ -109,7 +114,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         privateNote: String,
         subtractFeeFromAmount: Boolean,
         sweepType: SweepType,
-        slots: List<SatsCardSlot>
+        slots: List<SatsCardSlot>,
+        masterSignerId: String,
+        magicalPhrase: String
     ) {
         EstimatedFeeActivity.start(
             activityContext = activityContext,
@@ -120,7 +127,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             privateNote = privateNote,
             subtractFeeFromAmount = subtractFeeFromAmount,
             sweepType = sweepType,
-            slots = slots
+            slots = slots,
+            masterSignerId = masterSignerId,
+            magicalPhrase = magicalPhrase
         )
     }
 
@@ -135,7 +144,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         subtractFeeFromAmount: Boolean,
         manualFeeRate: Int,
         sweepType: SweepType,
-        slots: List<SatsCardSlot>
+        slots: List<SatsCardSlot>,
+        masterSignerId: String,
+        magicalPhrase: String
     ) {
         TransactionConfirmActivity.start(
             activityContext = activityContext,
@@ -148,7 +159,9 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             subtractFeeFromAmount = subtractFeeFromAmount,
             manualFeeRate = manualFeeRate,
             sweepType = sweepType,
-            slots = slots
+            slots = slots,
+            masterSignerId = masterSignerId,
+            magicalPhrase = magicalPhrase
         )
     }
 
@@ -158,7 +171,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         txId: String,
         initEventId: String,
         roomId: String,
-        transaction: Transaction?
+        transaction: Transaction?,
+        isInheritanceClaimingFlow: Boolean
     ) {
         activityContext.startActivity(
             TransactionDetailsActivity.buildIntent(
@@ -167,7 +181,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
                 txId = txId,
                 initEventId = initEventId,
                 roomId = roomId,
-                transaction = transaction
+                transaction = transaction,
+                isInheritanceClaimingFlow = isInheritanceClaimingFlow
             )
         )
     }
@@ -200,12 +215,46 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         masterFingerPrint: String,
         initEventId: String
     ) {
-        ImportTransactionActivity.start(
+        activityContext.startActivity(
+            ImportTransactionActivity.buildIntent(
+                activityContext = activityContext,
+                walletId = walletId,
+                transactionOption = transactionOption,
+                masterFingerPrint = masterFingerPrint,
+                initEventId = initEventId
+            )
+        )
+    }
+
+    override fun openImportDummyTransactionScreen(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Activity,
+        transactionOption: TransactionOption,
+        walletId: String,
+    ) {
+        launcher.launch(
+            ImportTransactionActivity.buildIntent(
+                activityContext = activityContext,
+                transactionOption = transactionOption,
+                walletId = walletId,
+                isDummyTx = true
+            )
+        )
+    }
+
+    override fun openExportTransactionScreen(
+        activityContext: Activity,
+        walletId: String,
+        txId: String,
+        txToSign: String,
+        transactionOption: TransactionOption
+    ) {
+        ExportTransactionActivity.start(
             activityContext = activityContext,
             walletId = walletId,
-            transactionOption = transactionOption,
-            masterFingerPrint = masterFingerPrint,
-            initEventId = initEventId
+            txId = txId,
+            txToSign = txToSign,
+            transactionOption = transactionOption
         )
     }
 

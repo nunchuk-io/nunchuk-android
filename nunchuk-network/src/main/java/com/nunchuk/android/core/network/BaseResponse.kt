@@ -49,9 +49,10 @@ data class Data<out T>(
         }
 
     val isSuccess: Boolean
-        get() = _error?.code == CODE_SUCCESS
+        get() = _error == null || _error.code == CODE_SUCCESS
 
-    fun getError(): NunchukApiException? {
+    val error: NunchukApiException
+    get() {
         if (_error != null && _error.code != 0) {
             return NunchukApiException(
                 code = _error.code,
@@ -59,7 +60,7 @@ data class Data<out T>(
                 errorDetail = _error.details
             )
         }
-        return null
+        return NunchukApiException()
     }
 }
 
@@ -92,7 +93,7 @@ object ApiErrorCode {
     const val UNAUTHORIZED = 401
 }
 
-const val UNKNOWN_ERROR = "Unknown error"
+const val UNKNOWN_ERROR = "Unknown error, please try again!"
 const val CODE_SUCCESS = 0
 
 

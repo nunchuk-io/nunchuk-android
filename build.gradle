@@ -11,7 +11,7 @@ buildscript {
         mavenLocal()
     }
     dependencies {
-        classpath pluginsDeps.gradleAndroid
+        classpath "com.android.tools.build:gradle:$gradleVersion"
         classpath kotlinDeps.plugin
         classpath pluginsDeps.googleServices
         classpath pluginsDeps.crashlytics

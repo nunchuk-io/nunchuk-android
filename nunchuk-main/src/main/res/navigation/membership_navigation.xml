@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/membership_navigation">
+
+    <fragment
+        android:id="@+id/introAssistedWalletFragment"
+        android:name="com.nunchuk.android.main.membership.intro.IntroAssistedWalletFragment"
+        android:label="IntroAssistedWalletFragment">
+        <action
+            android:id="@+id/action_introAssistedWalletFragment_to_addKeyStepFragment"
+            app:destination="@id/addKeyStepFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/addKeyStepFragment"
+        android:name="com.nunchuk.android.main.membership.key.AddKeyStepFragment"
+        android:label="AddKeyStepFragment">
+        <action
+            android:id="@+id/action_addKeyStepFragment_to_addKeyListFragment"
+            app:destination="@id/addKeyListFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_addKeyListFragment_to_recoveryQuestionFragment"
+            app:destination="@id/recoveryQuestionFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_addKeyStepFragment_to_createWalletFragment"
+            app:destination="@id/createWalletFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_addKeyStepFragment_to_registerWalletToColdcardFragment"
+            app:destination="@id/registerWalletToColdcardFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_addKeyStepFragment_to_registerWalletToAirgapFragment"
+            app:destination="@id/registerWalletToAirgapFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_addKeyStepFragment_to_inheritanceSetupIntroFragment"
+            app:destination="@id/inheritanceSetupIntroFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/addKeyListFragment"
+        android:name="com.nunchuk.android.main.membership.key.AddKeyListFragment"
+        android:label="AddKeyListFragment">
+        <action
+            android:id="@+id/action_addKeyListFragment_to_tapSignerListBottomSheetFragment"
+            app:destination="@id/tapSignerListBottomSheetFragment" />
+        <action
+            android:id="@+id/action_addKeyListFragment_to_configureServerKeyIntroFragment"
+            app:destination="@id/configureServerKeyIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_addKeyListFragment_to_tapSignerInheritanceIntroFragment"
+            app:destination="@id/tapSignerInheritanceIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/recoveryQuestionFragment"
+        android:name="com.nunchuk.android.main.membership.key.recoveryquestion.RecoveryQuestionFragment"
+        android:label="RecoveryQuestionFragment">
+        <action
+            android:id="@+id/action_recoveryQuestionFragment_to_recoveryQuestionBottomSheetFragment"
+            app:destination="@id/recoveryQuestionBottomSheetFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/configureServerKeyIntroFragment"
+        android:name="com.nunchuk.android.main.membership.key.server.intro.ConfigureServerKeyIntroFragment"
+        android:label="ConfigureServerKeyIntroFragment">
+        <action
+            android:id="@+id/action_configureServerKeyIntroFragment_to_configureServerKeySettingFragment"
+            app:destination="@id/configureServerKeySettingFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_configureServerKeyIntroFragment_to_configSpendingLimitFragment"
+            app:destination="@id/configSpendingLimitFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/configureServerKeySettingFragment"
+        android:name="com.nunchuk.android.main.membership.key.server.setting.ConfigureServerKeySettingFragment"
+        android:label="ConfigureServerKeySettingFragment">
+
+        <argument
+            android:name="key_policy"
+            android:defaultValue="@null"
+            app:argType="com.nunchuk.android.model.KeyPolicy"
+            app:nullable="true" />
+
+        <argument
+            android:name="xfp"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+
+        <argument
+            android:name="spending_limit"
+            android:defaultValue="@null"
+            app:argType="com.nunchuk.android.model.SpendingPolicy"
+            app:nullable="true" />
+
+    </fragment>
+
+    <dialog
+        android:id="@+id/tapSignerListBottomSheetFragment"
+        android:name="com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment"
+        android:label="TapSignerListBottomSheetFragment">
+
+        <argument
+            android:name="signers"
+            app:argType="com.nunchuk.android.core.signer.SignerModel[]" />
+
+        <argument
+            android:name="type"
+            app:argType="com.nunchuk.android.type.SignerType" />
+
+    </dialog>
+
+    <dialog
+        android:id="@+id/recoveryQuestionBottomSheetFragment"
+        android:name="com.nunchuk.android.main.membership.key.recoveryquestion.RecoveryQuestionBottomSheetFragment"
+        android:label="RecoveryQuestionBottomSheetFragment">
+
+        <argument
+            android:name="questions"
+            app:argType="com.nunchuk.android.main.membership.model.SecurityQuestionModel[]" />
+    </dialog>
+    <fragment
+        android:id="@+id/createWalletFragment"
+        android:name="com.nunchuk.android.main.membership.wallet.CreateWalletFragment"
+        android:label="CreateWalletFragment">
+        <action
+            android:id="@+id/action_createWalletFragment_to_createWalletSuccessFragment"
+            app:destination="@id/createWalletSuccessFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_createWalletFragment_to_registerWalletToColdcardFragment"
+            app:destination="@id/registerWalletToColdcardFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@id/addKeyStepFragment"
+            app:popUpToInclusive="false" />
+        <action
+            android:id="@+id/action_createWalletFragment_to_registerWalletToAirgapFragment"
+            app:destination="@id/registerWalletToAirgapFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@id/addKeyStepFragment"
+            app:popUpToInclusive="false" />
+    </fragment>
+    <fragment
+        android:id="@+id/createWalletSuccessFragment"
+        android:name="com.nunchuk.android.main.membership.wallet.CreateWalletSuccessFragment"
+        android:label="CreateWalletSuccessFragment">
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+
+        <action
+            android:id="@+id/action_createWalletSuccessFragment_to_addKeyStepFragment"
+            app:destination="@id/addKeyStepFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+    </fragment>
+    <fragment
+        android:id="@+id/tapSignerInheritanceIntroFragment"
+        android:name="com.nunchuk.android.main.membership.honey.intro.TapSignerInheritanceIntroFragment"
+        android:label="TapSignerInheritanceIntroFragment">
+        <action
+            android:id="@+id/action_tapSignerInheritanceIntroFragment_to_tapSignerListBottomSheetFragment"
+            app:destination="@id/tapSignerListBottomSheetFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/configSpendingLimitFragment"
+        android:name="com.nunchuk.android.main.membership.key.server.limit.ConfigSpendingLimitFragment"
+        android:label="ConfigSpendingLimitFragment">
+
+        <action
+            android:id="@+id/action_configSpendingLimitFragment_to_configureServerKeySettingFragment"
+            app:destination="@id/configureServerKeySettingFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <argument
+            android:name="key_policy"
+            android:defaultValue="@null"
+            app:argType="com.nunchuk.android.model.KeyPolicy"
+            app:nullable="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/registerWalletToColdcardFragment"
+        android:name="com.nunchuk.android.main.membership.honey.registerwallet.RegisterWalletToColdcardFragment"
+        android:label="RegisterWalletToColdcardFragment">
+
+        <action
+            android:id="@+id/action_registerWalletFragment_to_createWalletSuccessFragment"
+            app:destination="@id/createWalletSuccessFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@+id/registerWalletToColdcardFragment"
+            app:popUpToInclusive="true" />
+
+        <action
+            android:id="@+id/action_registerWalletToColdcardFragment_to_registerWalletToAirgapFragment"
+            app:destination="@id/registerWalletToAirgapFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@+id/registerWalletToColdcardFragment"
+            app:popUpToInclusive="true" />
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+
+        <argument
+            android:name="has_airgap"
+            app:argType="boolean" />
+
+    </fragment>
+    <fragment
+        android:id="@+id/registerWalletToAirgapFragment"
+        android:name="com.nunchuk.android.main.membership.honey.registerwallet.RegisterWalletToAirgapFragment"
+        android:label="RegisterWalletToAirgapFragment">
+
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_registerWalletToAirgapFragment_to_createWalletSuccessFragment"
+            app:destination="@id/createWalletSuccessFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@+id/registerWalletToAirgapFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+</navigation>

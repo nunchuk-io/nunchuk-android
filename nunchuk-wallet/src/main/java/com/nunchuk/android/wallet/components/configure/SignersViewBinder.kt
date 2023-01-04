@@ -43,12 +43,11 @@ internal class SignersViewBinder(
 
     override fun bindItem(position: Int, model: SignerModel) {
         val binding = ItemAssignSignerBinding.bind(container[position])
-        val xfpValue = "XFP: ${model.fingerPrint}"
         binding.signerType.text = model.toReadableSignerType(context, isIgnorePrimary = true)
         binding.ivSignerType.isVisible = true
         binding.ivSignerType.setImageDrawable(model.type.toReadableDrawable(context))
         binding.signerName.text = model.name
-        binding.xpf.text = xfpValue
+        binding.xfp.text = model.getXfpOrCardIdLabel()
         binding.tvBip32Path.isVisible = model.derivationPath.isNotEmpty() && isShowPath
         binding.tvBip32Path.text = "BIP32 path: ${model.derivationPath}"
         if (model.isEditablePath.not()) {

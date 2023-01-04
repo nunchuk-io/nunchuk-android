@@ -35,7 +35,6 @@ interface PushNotificationManager {
     fun enqueueRegisterPusherWithFcmKey(pushKey: String): UUID?
 
     suspend fun registerPusherWithFcmKey(pushKey: String)
-
 }
 
 internal class PushNotificationManagerImpl @Inject constructor(

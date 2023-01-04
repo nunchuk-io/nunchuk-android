@@ -21,10 +21,12 @@ package com.nunchuk.android.transaction.components.send.confirmation
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.membership.InheritanceClaimCreateTransactionUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.toAmount
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
@@ -49,7 +51,9 @@ class TransactionConfirmViewModel @Inject constructor(
     private val createTransactionUseCase: CreateTransactionUseCase,
     private val initRoomTransactionUseCase: InitRoomTransactionUseCase,
     private val draftSatsCardTransactionUseCase: DraftSatsCardTransactionUseCase,
-    private val sessionHolder: SessionHolder
+    private val sessionHolder: SessionHolder,
+    private val assistedWalletManager: AssistedWalletManager,
+    private val inheritanceClaimCreateTransactionUseCase: InheritanceClaimCreateTransactionUseCase
 ) : NunchukViewModel<Unit, TransactionConfirmEvent>() {
 
     private var manualFeeRate: Int = -1
@@ -59,6 +63,8 @@ class TransactionConfirmViewModel @Inject constructor(
     private var subtractFeeFromAmount: Boolean = false
     private val slots = mutableListOf<SatsCardSlot>()
     private lateinit var privateNote: String
+    private var masterSignerId: String = ""
+    private var magicalPhrase: String = ""
 
     override val initialState = Unit
 
@@ -69,7 +75,9 @@ class TransactionConfirmViewModel @Inject constructor(
         subtractFeeFromAmount: Boolean,
         privateNote: String,
         manualFeeRate: Int,
-        slots: List<SatsCardSlot>
+        slots: List<SatsCardSlot>,
+        masterSignerId: String,
+        magicalPhrase: String,
     ) {
         this.walletId = walletId
         this.address = address
@@ -81,7 +89,9 @@ class TransactionConfirmViewModel @Inject constructor(
             clear()
             addAll(slots)
         }
-        draftTransaction()
+        this.masterSignerId = masterSignerId
+        this.magicalPhrase = magicalPhrase
+        if (isInheritanceClaimingFlow().not()) draftTransaction()
     }
 
     private fun initRoomTransaction() {
@@ -158,23 +168,51 @@ class TransactionConfirmViewModel @Inject constructor(
         if (sessionHolder.hasActiveRoom()) {
             initRoomTransaction()
         } else {
-            createNewTransaction()
+            if (isInheritanceClaimingFlow()) {
+                createInheritanceTransaction()
+            } else {
+                createNewTransaction()
+            }
         }
     }
+
+    fun isInheritanceClaimingFlow() = masterSignerId.isNotBlank() && magicalPhrase.isNotBlank()
 
     private fun createNewTransaction() {
         viewModelScope.launch {
             event(LoadingEvent)
-            when (val result = createTransactionUseCase.execute(
-                walletId = walletId,
-                outputs = mapOf(address to sendAmount.toAmount()),
-                subtractFeeFromAmount = subtractFeeFromAmount,
-                feeRate = manualFeeRate.toManualFeeRate(),
-                memo = privateNote
-            )) {
-                is Success -> event(CreateTxSuccessEvent(result.data.txId))
-                is Error -> event(CreateTxErrorEvent(result.exception.message.orEmpty()))
+            val result = createTransactionUseCase(
+                CreateTransactionUseCase.Param(
+                    walletId = walletId,
+                    outputs = mapOf(address to sendAmount.toAmount()),
+                    subtractFeeFromAmount = subtractFeeFromAmount,
+                    feeRate = manualFeeRate.toManualFeeRate(),
+                    memo = privateNote,
+                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId),
+                )
+            )
+            if (result.isSuccess) {
+                setEvent(CreateTxSuccessEvent(result.getOrThrow()))
+            } else {
+                event(CreateTxErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
             }
+        }
+    }
+
+    private fun createInheritanceTransaction() = viewModelScope.launch {
+        event(LoadingEvent)
+        val result = inheritanceClaimCreateTransactionUseCase(
+            InheritanceClaimCreateTransactionUseCase.Param(
+                address = address,
+                feeRate = manualFeeRate.toManualFeeRate(),
+                masterSignerId = masterSignerId,
+                magic = magicalPhrase
+            )
+        )
+        if (result.isSuccess) {
+            setEvent(CreateTxSuccessEvent(result.getOrThrow()))
+        } else {
+            event(CreateTxErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 

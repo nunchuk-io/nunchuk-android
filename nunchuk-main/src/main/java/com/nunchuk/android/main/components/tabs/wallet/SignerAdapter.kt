@@ -66,20 +66,30 @@ class SingerViewHolder(
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bindItem(model: SignerModel) {
-        val xfpValue = "XFP: ${model.fingerPrint}"
         binding.signerType.apply {
             if (model.isPrimaryKey) {
-                background = AppCompatResources.getDrawable(binding.root.context, R.drawable.nc_rounded_tag_primary_key_background)
+                background = AppCompatResources.getDrawable(
+                    binding.root.context,
+                    R.drawable.nc_rounded_tag_primary_key_background
+                )
                 text = getString(R.string.nc_signer_type_primary_key)
             } else {
-                background = AppCompatResources.getDrawable(binding.root.context, R.drawable.nc_rounded_tag_whisper_background)
+                background = AppCompatResources.getDrawable(
+                    binding.root.context,
+                    R.drawable.nc_rounded_tag_whisper_background
+                )
                 text = getString(R.string.nc_signer_type_software)
             }
         }
         binding.signerName.text = model.name
-        binding.xpf.text = xfpValue
+        binding.xpf.text = model.getXfpOrCardIdLabel()
         binding.signerType.text = model.toReadableSignerType(binding.root.context)
-        binding.icPin.setImageDrawable(model.toReadableSignerTypeDrawable(binding.root.context, model.isPrimaryKey))
+        binding.icPin.setImageDrawable(
+            model.toReadableSignerTypeDrawable(
+                binding.root.context,
+                model.isPrimaryKey
+            )
+        )
         binding.root.setOnClickListener { callback(model) }
     }
 }

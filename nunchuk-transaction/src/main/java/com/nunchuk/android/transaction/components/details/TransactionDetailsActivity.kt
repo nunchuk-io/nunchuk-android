@@ -20,6 +20,7 @@
 package com.nunchuk.android.transaction.components.details
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
@@ -41,23 +42,33 @@ import com.nunchuk.android.core.sheet.input.InputBottomSheetListener
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.transaction.ServerTransaction
+import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.model.TransactionOption.*
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
 import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeArgs
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
+import com.nunchuk.android.transaction.components.schedule.ScheduleBroadcastTransactionActivity
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.CrashlyticsReporter
+import com.nunchuk.android.utils.formatByHour
+import com.nunchuk.android.utils.parcelable
+import com.nunchuk.android.utils.simpleWeekDayYearFormat
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
+import java.util.*
 
 
 @AndroidEntryPoint
@@ -71,21 +82,35 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 
-    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        val data = it.data
-        if (it.resultCode == Activity.RESULT_OK && data != null) {
-            val result = ReplaceFeeArgs.deserializeFrom(data)
-            navigator.openTransactionDetailsScreen(
-                activityContext = this,
-                walletId = result.walletId,
-                txId = result.transaction.txId,
-                initEventId = "",
-                roomId = ""
-            )
-            NcToastManager.scheduleShowMessage(getString(R.string.nc_replace_by_fee_success))
-            finish()
+    private val scheduleBroadcastLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data
+            if (data != null && it.resultCode == Activity.RESULT_OK) {
+                viewModel.updateServerTransaction(
+                    data.parcelable(
+                        ScheduleBroadcastTransactionActivity.EXTRA_SCHEDULE_BROADCAST_TIME
+                    )
+                )
+                NCToastMessage(this).showMessage(getString(R.string.nc_broadcast_has_been_scheduled))
+            }
         }
-    }
+
+    private val replaceByFeeLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data
+            if (it.resultCode == Activity.RESULT_OK && data != null) {
+                val result = ReplaceFeeArgs.deserializeFrom(data)
+                navigator.openTransactionDetailsScreen(
+                    activityContext = this,
+                    walletId = result.walletId,
+                    txId = result.transaction.txId,
+                    initEventId = "",
+                    roomId = ""
+                )
+                NcToastManager.scheduleShowMessage(getString(R.string.nc_replace_by_fee_success))
+                finish()
+            }
+        }
 
     override fun initializeBinding() = ActivityTransactionDetailsBinding.inflate(layoutInflater)
 
@@ -120,6 +145,17 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             roomId = args.roomId,
             transaction = args.transaction
         )
+
+        if (args.isInheritanceClaimingFlow) {
+            showInheritanceClaimingDialog()
+        }
+    }
+
+    private fun showInheritanceClaimingDialog() {
+        NCInfoDialog(this).showDialog(
+            title = getString(R.string.nc_congratulation),
+            message = getString(R.string.nc_your_inheritance_has_been_claimed),
+        ).show()
     }
 
     override fun onInputDone(newInput: String) {
@@ -203,13 +239,9 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private fun handleState(state: TransactionDetailsState) {
         binding.viewMore.setCompoundDrawablesWithIntrinsicBounds(
-            null,
-            null,
-            if (state.viewMore) ContextCompat.getDrawable(
-                this,
-                R.drawable.ic_collapse
-            ) else ContextCompat.getDrawable(this, R.drawable.ic_expand),
-            null
+            null, null, if (state.viewMore) ContextCompat.getDrawable(
+                this, R.drawable.ic_collapse
+            ) else ContextCompat.getDrawable(this, R.drawable.ic_expand), null
         )
         binding.viewMore.text = if (state.viewMore) {
             getString(R.string.nc_transaction_less_details)
@@ -224,22 +256,43 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             bindSigners(
                 state.transaction.signers,
                 state.signers.sortedByDescending(SignerModel::localKey),
-                state.transaction.status
+                state.transaction.status,
+                state.serverTransaction
             )
         }
+        handleServerTransaction(state.transaction, state.serverTransaction)
         hideLoading()
+    }
+
+    private fun handleServerTransaction(
+        transaction: Transaction, serverTransaction: ServerTransaction?
+    ) {
+        if (serverTransaction != null && transaction.status.canBroadCast() && serverTransaction.type == ServerTransactionType.SCHEDULED) {
+            binding.status.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                R.drawable.ic_schedule, 0, 0, 0
+            )
+            val broadcastTime = Date(serverTransaction.broadcastTimeInMilis)
+            binding.status.text = getString(
+                R.string.nc_broadcast_on,
+                broadcastTime.simpleWeekDayYearFormat(),
+                broadcastTime.formatByHour()
+            )
+        } else {
+            binding.status.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
+        }
     }
 
     private fun bindSigners(
         signerMap: Map<String, Boolean>,
         signers: List<SignerModel>,
-        status: TransactionStatus
+        status: TransactionStatus,
+        serverTransaction: ServerTransaction?
     ) {
-        TransactionSignersViewBinder(
-            container = binding.signerListView,
+        TransactionSignersViewBinder(container = binding.signerListView,
             signerMap = signerMap,
             signers = signers,
             txStatus = status,
+            serverTransaction = serverTransaction,
             listener = { signer ->
                 viewModel.setCurrentSigner(signer)
                 when (signer.type) {
@@ -253,8 +306,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                         viewModel.handleSignEvent(signer)
                     }
                 }
-            }
-        ).bindItems()
+            }).bindItems()
     }
 
     private fun bindTransaction(transaction: Transaction) {
@@ -270,22 +322,14 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         val pendingSigners = transaction.getPendingSignatures()
         if (pendingSigners > 0) {
             binding.signatureStatus.setCompoundDrawablesWithIntrinsicBounds(
-                R.drawable.ic_pending_signatures,
-                0,
-                0,
-                0
+                R.drawable.ic_pending_signatures, 0, 0, 0
             )
             binding.signatureStatus.text = resources.getQuantityString(
-                R.plurals.nc_transaction_pending_signature,
-                pendingSigners,
-                pendingSigners
+                R.plurals.nc_transaction_pending_signature, pendingSigners, pendingSigners
             )
         } else {
             binding.signatureStatus.setCompoundDrawablesWithIntrinsicBounds(
-                R.drawable.ic_check_circle,
-                0,
-                0,
-                0
+                R.drawable.ic_check_circle, 0, 0, 0
             )
             binding.signatureStatus.text = getString(R.string.nc_transaction_enough_signers)
         }
@@ -365,7 +409,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private fun handleEvent(event: TransactionDetailsEvent) {
         when (event) {
-            is SignTransactionSuccess -> showSignTransactionSuccess(event.roomId)
+            is SignTransactionSuccess -> showSignTransactionSuccess(event)
             is BroadcastTransactionSuccess -> showBroadcastTransactionSuccess(event.roomId)
             is DeleteTransactionSuccess -> showTransactionDeleteSuccess(event.isCancel)
             is ViewBlockchainExplorer -> openExternalLink(event.url)
@@ -380,6 +424,9 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             is UpdateTransactionMemoSuccess -> handleUpdateTransactionSuccess(event)
             ImportTransactionFromMk4Success -> handleImportTransactionFromMk4Success()
             ExportTransactionToMk4Success -> handleExportTxToMk4Success()
+            CancelScheduleBroadcastTransactionSuccess -> NCToastMessage(this).show(
+                getString(R.string.nc_schedule_broadcast_has_been_canceled)
+            )
         }
     }
 
@@ -433,31 +480,43 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             fragmentManager = supportFragmentManager,
             isPending = event.isPendingTransaction,
             isPendingConfirm = event.isPendingConfirm,
-            isRejected = event.isRejected
+            isRejected = event.isRejected,
+            isAssistedWallet = viewModel.isAssistedWallet(),
+            isScheduleBroadcast = viewModel.isScheduleBroadcast()
         ).setListener {
             when (it) {
                 CANCEL -> promptCancelTransactionConfirmation()
-                EXPORT -> openExportTransactionScreen(EXPORT)
+                EXPORT_KEYSTONE -> openExportTransactionScreen(EXPORT_KEYSTONE)
                 IMPORT_KEYSTONE -> openImportTransactionScreen(
-                    IMPORT_KEYSTONE,
-                    event.masterFingerPrint
+                    IMPORT_KEYSTONE, event.masterFingerPrint
                 )
                 EXPORT_PASSPORT -> openExportTransactionScreen(EXPORT_PASSPORT)
                 IMPORT_PASSPORT -> openImportTransactionScreen(
-                    IMPORT_PASSPORT,
-                    event.masterFingerPrint
+                    IMPORT_PASSPORT, event.masterFingerPrint
                 )
                 EXPORT_PSBT -> viewModel.exportTransactionToFile()
                 REPLACE_BY_FEE -> handleOpenEditFee()
                 COPY_TRANSACTION_ID -> handleCopyContent(args.txId)
                 REMOVE_TRANSACTION -> viewModel.handleDeleteTransactionEvent(false)
+                SCHEDULE_BROADCAST -> if (viewModel.isScheduleBroadcast()) {
+                    viewModel.cancelScheduleBroadcast()
+                } else {
+                    scheduleBroadcastLauncher.launch(
+                        ScheduleBroadcastTransactionActivity.buildIntent(
+                            this,
+                            args.walletId,
+                            args.txId,
+                        )
+                    )
+                }
             }
         }
     }
 
     private fun handleOpenEditFee() {
         navigator.openReplaceTransactionFee(
-            launcher, this,
+            replaceByFeeLauncher,
+            this,
             walletId = args.walletId,
             transaction = viewModel.getTransaction()
         )
@@ -473,8 +532,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     private fun openImportTransactionScreen(
-        transactionOption: TransactionOption,
-        masterFingerPrint: String
+        transactionOption: TransactionOption, masterFingerPrint: String
     ) {
         navigator.openImportTransactionScreen(
             activityContext = this,
@@ -487,15 +545,29 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private fun requireInputPassphrase(func: (String) -> Unit) {
         NCInputDialog(this).showDialog(
-            title = getString(R.string.nc_transaction_enter_passphrase),
-            onConfirmed = func
+            title = getString(R.string.nc_transaction_enter_passphrase), onConfirmed = func
         )
     }
 
-    private fun showSignTransactionSuccess(roomId: String) {
+    private fun showSignTransactionSuccess(event: SignTransactionSuccess) {
         hideLoading()
-        NCToastMessage(this).show(getString(R.string.nc_transaction_signed_successful))
-        if (roomId.isNotEmpty()) {
+        if (event.isAssistedWallet.not()) {
+            NCToastMessage(this).show(getString(R.string.nc_transaction_signed_successful))
+        } else {
+            lifecycleScope.launch {
+                if (event.status == TransactionStatus.READY_TO_BROADCAST) {
+                    delay(3000L)
+                    NCToastMessage(this@TransactionDetailsActivity).show(getString(R.string.nc_server_key_signed))
+                }
+                if (event.status == TransactionStatus.PENDING_CONFIRMATION) {
+                    delay(3000L)
+                    NCToastMessage(this@TransactionDetailsActivity).show(getString(R.string.nc_server_key_signed))
+                    delay(3000L)
+                    NCToastMessage(this@TransactionDetailsActivity).show(getString(R.string.nc_transaction_has_succesfully_broadcast))
+                }
+            }
+        }
+        if (event.roomId.isNotEmpty()) {
             returnActiveRoom()
         }
     }
@@ -553,19 +625,21 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     companion object {
         fun buildIntent(
-            activityContext: Activity,
+            activityContext: Context,
             walletId: String,
             txId: String,
             initEventId: String = "",
             roomId: String = "",
-            transaction: Transaction? = null
+            transaction: Transaction? = null,
+            isInheritanceClaimingFlow: Boolean = false
         ): Intent {
             return TransactionDetailsArgs(
                 walletId = walletId,
                 txId = txId,
                 initEventId = initEventId,
                 roomId = roomId,
-                transaction = transaction
+                transaction = transaction,
+                isInheritanceClaimingFlow = isInheritanceClaimingFlow
             ).buildIntent(activityContext)
         }
     }
