@@ -26,6 +26,8 @@ import javax.inject.Singleton
 @Singleton
 class SignInModeHolder @Inject constructor(private val accountManager: AccountManager) {
 
+    private var currentMode: SignInMode = SignInMode.UNKNOWN
+
     init {
         val isAccountExist = accountManager.isAccountExisted()
         val loginType = accountManager.loginType()
@@ -45,8 +47,6 @@ class SignInModeHolder @Inject constructor(private val accountManager: AccountMa
             setCurrentMode(SignInMode.GUEST_MODE)
         }
     }
-
-    private var currentMode: SignInMode = SignInMode.UNKNOWN
 
     fun getCurrentMode(): SignInMode = currentMode
 
