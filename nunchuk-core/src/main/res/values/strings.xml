@@ -207,7 +207,7 @@
     <string name="nc_i_have_verified">I have verified the backup</string>
     <string name="I_will_comeback_to_this_later">I’ll come back to this later</string>
     <string name="nc_confirmation">Confirmation</string>
-    <string name="nc_confirm_verify_backup_by_self_desc">Are you sure you have verified the backup? Key recovery might not work with an unverified backup.</string>
+    <string name="nc_confirm_verify_backup_by_self_desc">Are you sure you have verified the backup? key recovery might not work with an unverified backup.</string>
     <string name="nc_verify_backup">Verify backup</string>
     <string name="nc_un_verify_backup">Unverified backup</string>
     <string name="nc_try_again">Try again</string>
@@ -236,7 +236,7 @@
     <string name="nc_create_your_wallet_desc">What would you like to name this wallet?</string>
     <string name="nc_wallet_name">Wallet name</string>
     <string name="nc_setup_key_recovery">Set up security questions</string>
-    <string name="nc_setup_key_recovery_desc">The Key Recovery procedure helps you recover the TAPSIGNER’s private key in case of loss or accidents.\n\nFill in the security questions and answers below. They will be used to prevent unauthorized access to Key Recovery. Answers are case-sensitive.</string>
+    <string name="nc_setup_key_recovery_desc">The key recovery procedure helps you recover the TAPSIGNER’s private key in case of loss or accidents.\n\nFill in the security questions and answers below. They will be used to prevent unauthorized access to Key Recovery. Answers are case-sensitive.</string>
     <string name="nc_hours">Hours</string>
     <string name="nc_minutes">Minutes</string>
     <string name="nc_take_me_my_wallet">Take me to my wallet</string>
@@ -326,7 +326,7 @@
     <string name="nc_tapsigner_recovered_success_warning">If you suspect that someone has gained possession of the key, we recommend that you replace it with a new key and roll over your balance to a new wallet.</string>
     <string name="nc_tapsigner_recovered_success_replace_my_key">I want to replace my key</string>
     <string name="nc_tapsigner_recovered_desc">Your TAPSIGNER’s private key has been successfully recovered and converted into a software key. Please note the following: </string>
-    <string name="nc_emergency_lockdown_intro_desc">If you feel that there is an imminent threat or just want to disable wallet access temporarily, you can activate the Emergency Lockdown. Please note the following:</string>
+    <string name="nc_emergency_lockdown_intro_desc">If you feel that there is an imminent threat or just want to disable wallet access temporarily, you can activate the emergency lockdown. Please note the following:</string>
     <string name="nc_emergency_lockdown_intro_info_1">Once you have entered the lockdown, no one—including yourself—will be able to sign in to your account and access your wallet.</string>
     <string name="nc_emergency_lockdown_intro_info_2">There is no way to end the lockdown early.</string>
     <string name="nc_emergency_lockdown_intro_info_3">Access will be automatically re-enabled once the lockdown period ends.</string>
