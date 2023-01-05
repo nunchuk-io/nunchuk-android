@@ -26,9 +26,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.type.SignerType
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class MasterSignerMapper @Inject constructor(
     accountManager: AccountManager,
     private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
@@ -40,7 +38,8 @@ class MasterSignerMapper @Inject constructor(
         val isPrimaryKey =
             accountInfo.loginType == SignInMode.PRIMARY_KEY.value && accountInfo.primaryKeyInfo?.xfp == from.device.masterFingerprint
         if (from.type == SignerType.NFC && tapSignerCardIds.contains(from.id).not()) {
-            tapSignerCardIds[from.id] = getTapSignerStatusByIdUseCase(from.id).getOrNull()?.ident.orEmpty()
+            tapSignerCardIds[from.id] =
+                getTapSignerStatusByIdUseCase(from.id).getOrNull()?.ident.orEmpty()
         }
         return SignerModel(
             id = from.id,
