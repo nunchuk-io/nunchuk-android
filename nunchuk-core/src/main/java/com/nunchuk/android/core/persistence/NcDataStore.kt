@@ -48,6 +48,7 @@ class NcDataStore @Inject constructor(
     private val registerAirgapKey = booleanPreferencesKey("register_airgap")
     private val setupInheritanceKey = booleanPreferencesKey("setup_inheritance")
     private val chainKey = intPreferencesKey("chain")
+    private val hideUpsellBanner = booleanPreferencesKey("hide_upsell_banner")
 
     /**
      * Assisted wallet local id
@@ -118,6 +119,11 @@ class NcDataStore @Inject constructor(
            Chain.values()[it[chainKey] ?: 0]
         }
 
+    val isHideUpsellBanner: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[hideUpsellBanner] ?: false
+        }
+
     suspend fun setChain(chain: Chain) {
         context.dataStore.edit { settings ->
             settings[chainKey] = chain.ordinal
@@ -184,6 +190,12 @@ class NcDataStore @Inject constructor(
         }
     }
 
+    suspend fun setHideUpsellBanner() {
+        context.dataStore.edit {
+            it[hideUpsellBanner] = true
+        }
+    }
+
     fun clear() {
         runBlocking {
             context.dataStore.edit {
@@ -195,6 +207,7 @@ class NcDataStore @Inject constructor(
                 it.remove(registerColdcardKey)
                 it.remove(registerAirgapKey)
                 it.remove(setupInheritanceKey)
+                it.remove(hideUpsellBanner)
             }
         }
     }

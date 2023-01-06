@@ -17,26 +17,17 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.repository
+package com.nunchuk.android.usecase.user
 
-import com.nunchuk.android.model.MemberSubscription
-import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.model.MembershipStepInfo
-import kotlinx.coroutines.flow.Flow
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.MembershipRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-interface MembershipRepository {
-    fun getSteps(plan: MembershipPlan): Flow<List<MembershipStepInfo>>
-    suspend fun saveStepInfo(info: MembershipStepInfo)
-    suspend fun deleteStepBySignerId(masterSignerId: String)
-    suspend fun getSubscription() : MemberSubscription
-    suspend fun restart(plan: MembershipPlan)
-    fun getLocalCurrentPlan(): Flow<MembershipPlan>
-    fun isRegisterColdcard(): Flow<Boolean>
-    fun isRegisterAirgap(): Flow<Boolean>
-    fun isSetupInheritance(): Flow<Boolean>
-    fun isHideUpsellBanner(): Flow<Boolean>
-    suspend fun setRegisterColdcard(value: Boolean)
-    suspend fun setRegisterAirgap(value: Boolean)
-    suspend fun setSetupInheritance(value: Boolean)
-    suspend fun setHideUpsellBanner()
+class HideUpsellBannerUseCase @Inject constructor(
+    private val repository: MembershipRepository,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher
+) : UseCase<Unit, Unit>(ioDispatcher) {
+    override suspend fun execute(parameters: Unit) = repository.setHideUpsellBanner()
 }

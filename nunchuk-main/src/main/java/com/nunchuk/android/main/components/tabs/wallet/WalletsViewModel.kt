@@ -42,10 +42,7 @@ import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
-import com.nunchuk.android.usecase.user.IsRegisterAirgapUseCase
-import com.nunchuk.android.usecase.user.IsRegisterColdcardUseCase
-import com.nunchuk.android.usecase.user.IsSetupInheritanceUseCase
-import com.nunchuk.android.usecase.user.SetSetupInheritanceUseCase
+import com.nunchuk.android.usecase.user.*
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -73,6 +70,7 @@ internal class WalletsViewModel @Inject constructor(
     isRegisterColdcardUseCase: IsRegisterColdcardUseCase,
     isShowNfcUniversalUseCase: IsShowNfcUniversalUseCase,
     isSetupInheritanceUseCase: IsSetupInheritanceUseCase,
+    isHideUpsellBannerUseCase: IsHideUpsellBannerUseCase,
     private val setSetupInheritanceUseCase: SetSetupInheritanceUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -90,6 +88,10 @@ internal class WalletsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val isSetupInheritance = isSetupInheritanceUseCase(Unit)
+        .map { it.getOrElse { false } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    private val isHideUpsellBanner = isHideUpsellBannerUseCase(Unit)
         .map { it.getOrElse { false } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
@@ -116,6 +118,11 @@ internal class WalletsViewModel @Inject constructor(
                 updateState { copy(isSetupInheritance = it) }
             }
         }
+        viewModelScope.launch {
+            isHideUpsellBanner.collect {
+                updateState { copy(isHideUpsellBanner = it) }
+            }
+        }
     }
 
     fun reloadMembership() {
@@ -125,7 +132,7 @@ internal class WalletsViewModel @Inject constructor(
         }
     }
 
-    fun checkMemberMembership() {
+    private fun checkMemberMembership() {
         viewModelScope.launch {
             val result = getUserSubscriptionUseCase(Unit)
             if (result.isSuccess) {
@@ -162,7 +169,7 @@ internal class WalletsViewModel @Inject constructor(
                     )
                 }
             }
-            if (result.getOrNull()?.subscriptionId.isNullOrEmpty()) {
+            if (result.getOrNull()?.subscriptionId.isNullOrEmpty() && isHideUpsellBanner.value.not()) {
                 val bannerResult = getBannerUseCase(Unit)
                 updateState {
                     copy(banner = bannerResult.getOrNull())

@@ -73,4 +73,5 @@ object SheetOptionType {
     const val TYPE_ADD_COLDCARD_NFC = 22
     const val TYPE_ADD_COLDCARD_FILE = 23
     const val TYPE_CANCEL = 24
+    const val TYPE_ONE_OPTION_CONFIRM = 25
 }

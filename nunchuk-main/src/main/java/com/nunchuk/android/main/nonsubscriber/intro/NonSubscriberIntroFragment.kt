@@ -41,6 +41,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
@@ -54,6 +55,10 @@ import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -65,7 +70,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @AndroidEntryPoint
-class NonSubscriberIntroFragment : Fragment() {
+class NonSubscriberIntroFragment : Fragment(), BottomSheetOptionListener {
     private val viewModel: NonSubscriberIntroViewModel by viewModels()
 
     override fun onCreateView(
@@ -84,9 +89,31 @@ class NonSubscriberIntroFragment : Fragment() {
                             NonSubscriberIntroFragmentDirections.actionNonSubscriberIntroFragmentToTryAssistedWalletFragment()
                         )
                     },
-                    onVisitOurWebsite = ::handleGoOurWebsite
+                    onVisitOurWebsite = ::handleGoOurWebsite,
+                    onCloseClick = {
+                        showActionOptions()
+                    }
                 )
             }
+        }
+    }
+
+    private fun showActionOptions() {
+        (childFragmentManager.findFragmentByTag("BottomSheetOption") as? DialogFragment)?.dismiss()
+        val dialog = BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_ONE_OPTION_CONFIRM,
+                    stringId = R.string.nc_dismiss_banner_from_home,
+                ),
+            )
+        )
+        dialog.show(childFragmentManager, "BottomSheetOption")
+    }
+
+    override fun onOptionClicked(option: SheetOption) {
+        if (option.type == SheetOptionType.TYPE_ONE_OPTION_CONFIRM) {
+            viewModel.hideUpsellBanner()
         }
     }
 
@@ -119,6 +146,9 @@ class NonSubscriberIntroFragment : Fragment() {
                         is NonSubscriberIntroEvent.ShowError -> showError(event.message)
                         is NonSubscriberIntroEvent.OnSubmitEmailSuccess -> showSuccess("We sent an email to ${event.email}")
                         NonSubscriberIntroEvent.EmailInvalid -> showError(getString(R.string.nc_text_email_invalid))
+                        NonSubscriberIntroEvent.HideUpsellBannerSuccess -> {
+                            requireActivity().onBackPressedDispatcher.onBackPressed()
+                        }
                     }
                 }
         }
@@ -131,6 +161,7 @@ private fun NonSubscriberIntroContent(
     onTellMeMore: () -> Unit = {},
     onTryOnTestNet: () -> Unit = {},
     onVisitOurWebsite: () -> Unit = {},
+    onCloseClick: () -> Unit = {}
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -145,7 +176,11 @@ private fun NonSubscriberIntroContent(
                         verticalArrangement = Arrangement.spacedBy(24.dp),
                     ) {
                         item {
-                            NcImageAppBar(backgroundRes = R.drawable.bg_assisted_wallet)
+                            NcImageAppBar(
+                                backgroundRes = R.drawable.bg_assisted_wallet,
+                                backIconRes = R.drawable.ic_close,
+                                onClosedClicked = onCloseClick
+                            )
                             Text(
                                 modifier = Modifier.padding(
                                     top = 16.dp,
@@ -202,6 +237,7 @@ private fun NonSubscriberIntroContent(
     }
 }
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 private fun AssistedWalletPointWidget(modifier: Modifier = Modifier, point: AssistedWalletPoint) {
     Row(

@@ -17,26 +17,18 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.repository
+package com.nunchuk.android.usecase.user
 
-import com.nunchuk.android.model.MemberSubscription
-import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.model.MembershipStepInfo
+import com.nunchuk.android.FlowUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.MembershipRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-interface MembershipRepository {
-    fun getSteps(plan: MembershipPlan): Flow<List<MembershipStepInfo>>
-    suspend fun saveStepInfo(info: MembershipStepInfo)
-    suspend fun deleteStepBySignerId(masterSignerId: String)
-    suspend fun getSubscription() : MemberSubscription
-    suspend fun restart(plan: MembershipPlan)
-    fun getLocalCurrentPlan(): Flow<MembershipPlan>
-    fun isRegisterColdcard(): Flow<Boolean>
-    fun isRegisterAirgap(): Flow<Boolean>
-    fun isSetupInheritance(): Flow<Boolean>
-    fun isHideUpsellBanner(): Flow<Boolean>
-    suspend fun setRegisterColdcard(value: Boolean)
-    suspend fun setRegisterAirgap(value: Boolean)
-    suspend fun setSetupInheritance(value: Boolean)
-    suspend fun setHideUpsellBanner()
+class IsHideUpsellBannerUseCase @Inject constructor(
+    private val repository: MembershipRepository,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher
+) : FlowUseCase<Unit, Boolean>(ioDispatcher) {
+    override fun execute(parameters: Unit): Flow<Boolean> = repository.isHideUpsellBanner()
 }

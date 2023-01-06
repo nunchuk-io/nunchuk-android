@@ -376,13 +376,13 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     state.isCreatedAssistedWallet,
                     state.isSetupInheritance,
                 )
-                else -> showNonSubscriberIntro(state.banner)
+                else -> showNonSubscriberIntro(state.banner, state.isHideUpsellBanner)
             }
         }
     }
 
-    private fun showNonSubscriberIntro(banner: Banner?) {
-        binding.containerNonSubscriber.isVisible = banner != null
+    private fun showNonSubscriberIntro(banner: Banner?, isHideUpsellBanner: Boolean) {
+        binding.containerNonSubscriber.isVisible = banner != null && isHideUpsellBanner.not()
         if (banner != null) {
             binding.containerNonSubscriber.tag = banner.id
             Glide.with(binding.ivNonSubscriber)
