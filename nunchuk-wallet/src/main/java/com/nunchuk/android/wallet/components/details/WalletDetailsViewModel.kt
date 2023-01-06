@@ -41,6 +41,7 @@ import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.usecase.membership.GetServerTransactionUseCase
+import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -70,6 +71,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val selectedWalletUseCase: SetSelectedWalletUseCase,
     private val assistedWalletManager: AssistedWalletManager,
     private val getServerTransactionUseCase: GetServerTransactionUseCase,
+    private val syncTransactionUseCase: SyncTransactionUseCase,
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -91,6 +93,12 @@ internal class WalletDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             selectedWalletUseCase(args.walletId)
         }
+        viewModelScope.launch {
+            val result = syncTransactionUseCase(args.walletId)
+            if (result.isSuccess) {
+                getTransactionHistory()
+            }
+        }
         updateState {
             copy(
                 isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
@@ -102,7 +110,6 @@ internal class WalletDetailsViewModel @Inject constructor(
     fun getRoomWallet() = getState().walletExtended.roomWallet
 
     fun syncData() {
-        transactions.clear()
         getWalletDetails()
     }
 
@@ -150,6 +157,7 @@ internal class WalletDetailsViewModel @Inject constructor(
             getTransactionHistoryUseCase.execute(args.walletId).flowOn(IO)
                 .onException { event(WalletDetailsError(it.message.orUnknownError())) }.flowOn(Main)
                 .collect {
+                    transactions.clear()
                     transactions.addAll(
                         it.sortedWith(
                             compareBy(Transaction::status).thenByDescending(
@@ -166,7 +174,7 @@ internal class WalletDetailsViewModel @Inject constructor(
         Pager(config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
             pagingSourceFactory = {
                 TransactionPagingSource(
-                    transactions = transactions,
+                    transactions = transactions.toList(),
                     getServerTransactionUseCase = getServerTransactionUseCase,
                     isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId),
                     walletId = args.walletId,

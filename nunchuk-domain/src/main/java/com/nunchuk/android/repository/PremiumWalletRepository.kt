@@ -182,4 +182,6 @@ interface PremiumWalletRepository {
     suspend fun inheritanceClaimingClaim(magic: String, psbt: String): TransactionAdditional
 
     suspend fun inheritanceCheck(): InheritanceCheck
+
+    suspend fun syncTransaction(walletId: String)
 }

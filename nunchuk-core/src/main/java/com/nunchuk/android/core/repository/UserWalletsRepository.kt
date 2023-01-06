@@ -22,6 +22,7 @@ package com.nunchuk.android.core.repository
 import com.google.gson.Gson
 import com.nunchuk.android.api.key.MembershipApi
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.data.api.TRANSACTION_PAGE_COUNT
 import com.nunchuk.android.core.data.model.*
 import com.nunchuk.android.core.data.model.membership.*
 import com.nunchuk.android.core.manager.UserWalletApiManager
@@ -335,6 +336,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.walletApi.getTransaction(walletId, transactionId)
         val transaction =
             response.data.transaction ?: throw NullPointerException("Transaction from server null")
+        updateScheduleTransactionIfNeed(walletId, transactionId, transaction)
         return ExtendedTransaction(
             transaction = handleServerTransaction(
                 walletId, transactionId, transaction
@@ -754,9 +756,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             walletId, transactionId, ScheduleTransactionRequest(scheduleTime, transaction.psbt)
         )
         val serverTransaction = response.data.transaction ?: throw NullPointerException("Schedule transaction does not return server transaction")
-        if (serverTransaction.type == ServerTransactionType.SCHEDULED && serverTransaction.broadCastTimeMillis > System.currentTimeMillis()) {
-            nunchukNativeSdk.updateTransactionSchedule(walletId, transactionId, serverTransaction.broadCastTimeMillis / 1000)
-        }
+        updateScheduleTransactionIfNeed(walletId, transactionId, serverTransaction)
         return serverTransaction.toServerTransaction()
     }
 
@@ -784,6 +784,30 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 displayName = it.displayName.orEmpty()
             )
         }.orEmpty()
+    }
+
+    override suspend fun syncTransaction(walletId: String) {
+        (0 until Int.MAX_VALUE step TRANSACTION_PAGE_COUNT).forEach { index ->
+            val response = userWalletApiManager.walletApi.getTransactions(walletId, index)
+            if (response.isSuccess.not()) throw response.error
+            response.data.transactions.forEach { transition ->
+                if (transition.psbt.isNullOrEmpty().not()) {
+                    nunchukNativeSdk.importPsbt(walletId, transition.psbt.orEmpty())
+                    updateScheduleTransactionIfNeed(walletId, transition.transactionId.orEmpty(), transition)
+                }
+            }
+            if (response.data.transactions.size < TRANSACTION_PAGE_COUNT) return
+        }
+    }
+
+    private fun updateScheduleTransactionIfNeed(
+        walletId: String,
+        transactionId: String,
+        transaction: TransactionServerDto
+    ) {
+        if (transaction.type == ServerTransactionType.SCHEDULED && transaction.broadCastTimeMillis > System.currentTimeMillis()) {
+            nunchukNativeSdk.updateTransactionSchedule(walletId, transactionId, transaction.broadCastTimeMillis / 1000)
+        }
     }
 
     private fun inheritanceDtoMapper(inheritanceDto: InheritanceDto?): Inheritance {
