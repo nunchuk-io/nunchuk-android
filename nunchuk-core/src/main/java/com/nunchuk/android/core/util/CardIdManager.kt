@@ -14,10 +14,11 @@ class CardIdManager @Inject constructor(private val getTapSignerStatusByIdUseCas
 
     suspend fun getCardId(signerId: String): String {
         mutex.withLock {
-            if (tapSignerCardIds.contains(signerId)) return tapSignerCardIds[signerId]!!
-            val cardId = getTapSignerStatusByIdUseCase(signerId).getOrNull()?.ident.orEmpty()
-            if (cardId.isNotEmpty()) tapSignerCardIds[signerId] = cardId
-            return cardId
+            return tapSignerCardIds[signerId]
+                ?: getTapSignerStatusByIdUseCase(signerId).getOrNull()?.ident.orEmpty()
+                    .also { cardId ->
+                        tapSignerCardIds[signerId] = cardId
+                    }
         }
     }
 }
