@@ -41,15 +41,14 @@ class TapSignerIdViewModel @Inject constructor(
     private val _event = MutableSharedFlow<TapSignerIdEvent>()
     val event = _event.asSharedFlow()
 
+    private val _state = MutableStateFlow(TapSignerIdState(""))
+    val state = _state.asStateFlow()
+
     init {
         viewModelScope.launch {
             _state.update { it.copy(cardId = cardIdManager.getCardId(args.masterSignerId)) }
         }
     }
-
-    private val _state = MutableStateFlow(TapSignerIdState(""))
-    val state = _state.asStateFlow()
-
 
     fun getTapSignerBackup(isoDep: IsoDep, cvc: String) {
         viewModelScope.launch {
