@@ -30,6 +30,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -90,7 +93,7 @@ class NonSubscriberIntroFragment : Fragment(), BottomSheetOptionListener {
                         )
                     },
                     onVisitOurWebsite = ::handleGoOurWebsite,
-                    onCloseClick = {
+                    onActionClick = {
                         showActionOptions()
                     }
                 )
@@ -161,7 +164,7 @@ private fun NonSubscriberIntroContent(
     onTellMeMore: () -> Unit = {},
     onTryOnTestNet: () -> Unit = {},
     onVisitOurWebsite: () -> Unit = {},
-    onCloseClick: () -> Unit = {}
+    onActionClick: () -> Unit = {}
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -179,7 +182,14 @@ private fun NonSubscriberIntroContent(
                             NcImageAppBar(
                                 backgroundRes = R.drawable.bg_assisted_wallet,
                                 backIconRes = R.drawable.ic_close,
-                                onClosedClicked = onCloseClick
+                                actions = {
+                                    IconButton(onClick = onActionClick) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_more),
+                                            contentDescription = "More icon"
+                                        )
+                                    }
+                                }
                             )
                             Text(
                                 modifier = Modifier.padding(
