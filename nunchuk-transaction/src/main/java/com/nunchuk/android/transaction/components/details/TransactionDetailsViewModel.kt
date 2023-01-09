@@ -121,7 +121,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            pushEventManager.event.filterIsInstance<PushEvent.CosigningEvent>().collect {
+            pushEventManager.event.filterIsInstance<PushEvent.ServerTransactionEvent>().collect {
                 if (it.transactionId == txId) {
                     getTransaction()
                 }
@@ -182,9 +182,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
             )
             if (result.isSuccess) {
                 val extendedTransaction = result.getOrThrow()
+                val serverKeyFingerPrint = getState().signers.find { it.type == SignerType.SERVER }?.fingerPrint.orEmpty()
                 setEvent(
                     SignTransactionSuccess(
                         isAssistedWallet = true,
+                        serverSigned = extendedTransaction.transaction.signers[serverKeyFingerPrint] ?: false,
                         status = extendedTransaction.transaction.status
                     )
                 )

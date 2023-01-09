@@ -135,8 +135,8 @@ internal class AccountViewModel @Inject constructor(
     fun handleSignOutEvent() {
         appScope.launch {
             event(AccountEvent.LoadingEvent(true))
-            repository.sendSignOut()
             clearInfoSessionUseCase.invoke(Unit)
+            repository.sendSignOut()
             event(AccountEvent.SignOutEvent)
         }
     }

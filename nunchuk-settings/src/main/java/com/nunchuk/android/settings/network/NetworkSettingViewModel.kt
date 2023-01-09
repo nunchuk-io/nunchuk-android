@@ -105,8 +105,8 @@ internal class NetworkSettingViewModel @Inject constructor(
     fun signOut() {
         appScope.launch {
             event(NetworkSettingEvent.LoadingEvent(true))
-            repository.sendSignOut()
             clearInfoSessionUseCase(Unit)
+            repository.sendSignOut()
             event(NetworkSettingEvent.SignOutSuccessEvent)
         }
     }

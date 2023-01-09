@@ -42,8 +42,8 @@ class EmergencyLockdownSuccessViewModel @Inject constructor(
     fun onContinueClicked() {
         appScope.launch {
             _event.emit(EmergencyLockdownSuccessEvent.Loading(true))
-            repository.sendSignOut()
             clearInfoSessionUseCase.invoke(Unit)
+            repository.sendSignOut()
             _event.emit(EmergencyLockdownSuccessEvent.SignOut)
         }
     }

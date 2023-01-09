@@ -68,7 +68,7 @@ internal class SignInViewModel @Inject constructor(
     private var encryptedDeviceId: String? = null
 
     init {
-        viewModelScope.launch(dispatcher) {
+        viewModelScope.launch {
             clearInfoSessionUseCase(Unit)
         }
     }

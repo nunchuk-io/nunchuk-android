@@ -25,6 +25,7 @@ sealed class TransactionDetailsEvent {
     data class SignTransactionSuccess(
         val roomId: String = "",
         val isAssistedWallet: Boolean = false,
+        val serverSigned: Boolean = false,
         val status: TransactionStatus? = null
     ) : TransactionDetailsEvent()
 

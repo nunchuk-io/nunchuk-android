@@ -28,13 +28,14 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
+import timber.log.Timber
 import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class SessionHolder @Inject constructor(
-    private val sessionListener: SessionListener
+    private val sessionListener: SessionListener,
 ) {
     private var activeSessionReference: AtomicReference<Session?> = AtomicReference()
 
@@ -60,6 +61,7 @@ class SessionHolder @Inject constructor(
                 }
                 pushersService().refreshPushers()
             } catch (e: Exception) {
+                Timber.e(e)
                 CrashlyticsReporter.recordException(e)
             }
         }
@@ -81,6 +83,7 @@ class SessionHolder @Inject constructor(
                 close()
             }
         } catch (e: Error) {
+            Timber.e(e)
             CrashlyticsReporter.recordException(e)
         }
         activeSessionReference.set(null)

@@ -74,9 +74,9 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
             return
         }
         val event = getEvent(remoteMessage.data)?.also {
-            if (it.isCosignedEvent() || it.isCosignedAndBroadcastEvent()) {
+            if (it.isServerTransactionEvent()) {
                 applicationScope.launch {
-                    pushEventManager.push(PushEvent.CosigningEvent(it.getWalletId(), it.getTransactionId()))
+                    pushEventManager.push(PushEvent.ServerTransactionEvent(it.getWalletId(), it.getTransactionId()))
                 }
             }
         }
