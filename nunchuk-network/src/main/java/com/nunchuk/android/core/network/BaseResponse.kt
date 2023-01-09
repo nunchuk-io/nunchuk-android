@@ -73,7 +73,7 @@ data class ErrorResponse(
     val details: ErrorDetail? = null
 ) : Serializable
 
-class UnauthorizedException : Exception()
+class UnauthorizedException(message: String = "") : Exception(message)
 
 class ApiInterceptedException : Exception()
 data class ErrorDetail(
