@@ -22,22 +22,16 @@ package com.nunchuk.android.main.components.tabs.services.emergencylockdown.lock
 import androidx.lifecycle.ViewModel
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.profile.UserProfileRepository
-import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class EmergencyLockdownSuccessViewModel @Inject constructor(
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
-    @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val appScope: CoroutineScope,
     private val repository: UserProfileRepository
 ) : ViewModel() {
@@ -48,12 +42,7 @@ class EmergencyLockdownSuccessViewModel @Inject constructor(
     fun onContinueClicked() {
         appScope.launch {
             _event.emit(EmergencyLockdownSuccessEvent.Loading(true))
-            repository.signOut()
-                .flowOn(dispatcher)
-                .onException {
-                    _event.emit(EmergencyLockdownSuccessEvent.Loading(false))
-                }
-                .firstOrNull()
+            repository.sendSignOut()
             clearInfoSessionUseCase.invoke(Unit)
             _event.emit(EmergencyLockdownSuccessEvent.SignOut)
         }

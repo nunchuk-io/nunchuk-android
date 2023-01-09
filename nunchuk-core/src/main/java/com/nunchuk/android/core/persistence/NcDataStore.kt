@@ -29,7 +29,6 @@ import com.nunchuk.android.type.Chain
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -116,7 +115,7 @@ class NcDataStore @Inject constructor(
 
     val chain: Flow<Chain>
         get() = context.dataStore.data.map {
-           Chain.values()[it[chainKey] ?: 0]
+            Chain.values()[it[chainKey] ?: 0]
         }
 
     val isHideUpsellBanner: Flow<Boolean>
@@ -196,19 +195,17 @@ class NcDataStore @Inject constructor(
         }
     }
 
-    fun clear() {
-        runBlocking {
-            context.dataStore.edit {
-                it.remove(syncEnableKey)
-                it.remove(turnOnNotificationKey)
-                it.remove(assistedWalletLocalIdKey)
-                it.remove(assistedWalletPlanKey)
-                it.remove(membershipPlanKey)
-                it.remove(registerColdcardKey)
-                it.remove(registerAirgapKey)
-                it.remove(setupInheritanceKey)
-                it.remove(hideUpsellBanner)
-            }
+    suspend fun clear() {
+        context.dataStore.edit {
+            it.remove(syncEnableKey)
+            it.remove(turnOnNotificationKey)
+            it.remove(assistedWalletLocalIdKey)
+            it.remove(assistedWalletPlanKey)
+            it.remove(membershipPlanKey)
+            it.remove(registerColdcardKey)
+            it.remove(registerAirgapKey)
+            it.remove(setupInheritanceKey)
+            it.remove(hideUpsellBanner)
         }
     }
 }

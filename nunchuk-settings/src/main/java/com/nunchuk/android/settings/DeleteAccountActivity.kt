@@ -79,10 +79,6 @@ class DeleteAccountActivity : BaseActivity<ActivityDeleteAccountBinding>() {
         navigator.openSignInScreen(this, isAccountDeleted = true)
     }
 
-    private fun restartApp() {
-        navigator.restartApp(this)
-    }
-
     private fun showConfirmError(message: String) {
         hideLoading()
         NCToastMessage(this).showError(message)

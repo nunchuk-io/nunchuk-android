@@ -21,20 +21,14 @@ package com.nunchuk.android.settings.network
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.InitAppSettingsUseCase
 import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
-import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.profile.UserProfileRepository
-import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.AppSettings
-import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -43,11 +37,9 @@ internal class NetworkSettingViewModel @Inject constructor(
     private val initAppSettingsUseCase: InitAppSettingsUseCase,
     private val updateAppSettingUseCase: UpdateAppSettingUseCase,
     private val getAppSettingUseCase: GetAppSettingUseCase,
-    private val accountManager: AccountManager,
     private val repository: UserProfileRepository,
-    private val sessionHolder: SessionHolder,
     private val appScope: CoroutineScope,
-    @IoDispatcher private val dispatcher: CoroutineDispatcher
+    private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
 ) : NunchukViewModel<NetworkSettingState, NetworkSettingEvent>() {
 
     override val initialState = NetworkSettingState()
@@ -112,10 +104,9 @@ internal class NetworkSettingViewModel @Inject constructor(
 
     fun signOut() {
         appScope.launch {
-            repository.signOut().flowOn(dispatcher).onException { }.firstOrNull()
             event(NetworkSettingEvent.LoadingEvent(true))
-            sessionHolder.clearActiveSession()
-            accountManager.signOut()
+            repository.sendSignOut()
+            clearInfoSessionUseCase(Unit)
             event(NetworkSettingEvent.SignOutSuccessEvent)
         }
     }

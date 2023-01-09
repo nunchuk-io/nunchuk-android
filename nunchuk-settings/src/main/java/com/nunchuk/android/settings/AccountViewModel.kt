@@ -30,16 +30,13 @@ import com.nunchuk.android.core.matrix.UploadFileUseCase
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.profile.UpdateUseProfileUseCase
 import com.nunchuk.android.core.profile.UserProfileRepository
-import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -55,7 +52,6 @@ internal class AccountViewModel @Inject constructor(
     private val signInModeHolder: SignInModeHolder,
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
     private val membershipStepManager: MembershipStepManager,
-    @IoDispatcher private val dispatcher: CoroutineDispatcher
 ) : NunchukViewModel<AccountState, AccountEvent>() {
 
     override val initialState = AccountState()
@@ -139,12 +135,7 @@ internal class AccountViewModel @Inject constructor(
     fun handleSignOutEvent() {
         appScope.launch {
             event(AccountEvent.LoadingEvent(true))
-            repository.signOut()
-                .flowOn(Dispatchers.IO)
-                .onException {
-                    event(AccountEvent.LoadingEvent(false))
-                }
-                .firstOrNull()
+            repository.sendSignOut()
             clearInfoSessionUseCase.invoke(Unit)
             event(AccountEvent.SignOutEvent)
         }
