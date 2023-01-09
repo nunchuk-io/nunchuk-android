@@ -19,54 +19,25 @@
 
 package com.nunchuk.android.settings.signin
 
-import android.Manifest
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
 import com.google.zxing.client.android.Intents
-import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.base.BaseCameraFragment
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.settings.databinding.FragmentSignInQrBinding
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class SignInQrFragment : BaseFragment<FragmentSignInQrBinding>() {
+internal class SignInQrFragment : BaseCameraFragment<FragmentSignInQrBinding>() {
     private val viewModel: SignInQrViewModel by viewModels()
-
-    private val requestPermissionLauncher =
-        registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { isGranted: Boolean ->
-            if (isGranted.not()) {
-                navigateSystemPermissionSetting()
-            }
-        }
-
-    private fun navigateSystemPermissionSetting() {
-        NCWarningDialog(requireActivity()).showDialog(
-            message = getString(R.string.nc_give_app_permission),
-            onYesClick = {
-                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                    data = Uri.fromParts("package", requireActivity().packageName, null)
-                }
-                settingLauncher.launch(intent)
-            }
-        )
-    }
-
-    private val settingLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        if (requireActivity().isPermissionGranted(Manifest.permission.CAMERA).not()) {
-            navigateSystemPermissionSetting()
-        }
-    }
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -78,7 +49,7 @@ class SignInQrFragment : BaseFragment<FragmentSignInQrBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        requestPermissionLauncher.checkCameraPermission(requireActivity())
+        requestCameraPermissionOrExecuteAction()
         setupViews()
         observeEvent()
     }
@@ -114,6 +85,10 @@ class SignInQrFragment : BaseFragment<FragmentSignInQrBinding>() {
             viewModel.trySignIn(it.text)
         }
         binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
+    }
+
+    override fun onCameraPermissionGranted(fromUser: Boolean) {
+        // Do nothing
     }
 
     override fun onResume() {

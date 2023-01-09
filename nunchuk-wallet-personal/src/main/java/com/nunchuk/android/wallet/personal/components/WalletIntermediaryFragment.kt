@@ -19,21 +19,17 @@
 
 package com.nunchuk.android.wallet.personal.components
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.base.BaseCameraFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
@@ -53,7 +49,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
-class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBinding>(),
+class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediaryBinding>(),
     BottomSheetOptionListener {
     private val viewModel: WalletIntermediaryViewModel by viewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
@@ -74,6 +70,10 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
         initUi()
         setupViews()
         observer()
+    }
+
+    override fun onCameraPermissionGranted(fromUser: Boolean) {
+        openScanQRCodeScreen()
     }
 
     override fun onOptionClicked(option: SheetOption) {
@@ -160,7 +160,7 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
         val recoverWalletBottomSheet = RecoverWalletActionBottomSheet.show(childFragmentManager)
         recoverWalletBottomSheet.listener = {
             when (it) {
-                RecoverWalletOption.QrCode -> handleOptionUsingQRCode()
+                RecoverWalletOption.QrCode -> requestCameraPermissionOrExecuteAction()
                 RecoverWalletOption.BSMSFile -> openSelectFileChooser(WalletIntermediaryActivity.REQUEST_CODE)
                 RecoverWalletOption.ColdCard -> showOptionImportFromColdCard()
             }
@@ -199,77 +199,12 @@ class WalletIntermediaryFragment : BaseFragment<FragmentWalletIntermediaryBindin
             }
         }
         binding.toolbar.setNavigationOnClickListener {
-            activity?.onBackPressed()
+            activity?.onBackPressedDispatcher?.onBackPressed()
         }
     }
 
     private fun openWalletEmptySignerScreen() {
         navigator.openWalletEmptySignerScreen(requireActivity())
-    }
-
-    private fun handleOptionUsingQRCode() {
-        if (requireActivity().isPermissionGranted(Manifest.permission.CAMERA)) {
-            openScanQRCodeScreen()
-            return
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(
-                arrayOf(Manifest.permission.CAMERA),
-                WalletIntermediaryActivity.REQUEST_PERMISSION_CAMERA
-            )
-        }
-    }
-
-
-    // TODO: refactor with registerForActivityResult later
-    @RequiresApi(Build.VERSION_CODES.M)
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == WalletIntermediaryActivity.REQUEST_PERMISSION_CAMERA) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                handlePermissionGranted()
-            } else if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
-                showAlertPermissionNotGranted()
-            } else {
-                showAlertPermissionDeniedPermanently()
-            }
-        }
-    }
-
-    private fun handlePermissionGranted() {
-        openScanQRCodeScreen()
-    }
-
-    private fun showAlertPermissionNotGranted() {
-        requireActivity().showAlertDialog(
-            title = getString(R.string.nc_text_title_permission_denied),
-            message = getString(R.string.nc_text_des_permission_denied),
-            positiveButtonText = getString(android.R.string.ok),
-            negativeButtonText = getString(android.R.string.cancel),
-            positiveClick = {
-                handleOptionUsingQRCode()
-            },
-            negativeClick = {
-            }
-        )
-    }
-
-    private fun showAlertPermissionDeniedPermanently() {
-        requireActivity().showAlertDialog(
-            title = getString(R.string.nc_text_title_permission_denied_permanently),
-            message = getString(R.string.nc_text_des_permission_denied_permanently),
-            positiveButtonText = getString(android.R.string.ok),
-            negativeButtonText = getString(android.R.string.cancel),
-            positiveClick = {
-                requireActivity().startActivityAppSetting()
-            },
-            negativeClick = {
-            }
-        )
     }
 
     private fun showOptionImportFromColdCard() {

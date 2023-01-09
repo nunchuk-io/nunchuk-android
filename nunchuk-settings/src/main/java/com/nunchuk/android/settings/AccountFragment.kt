@@ -19,11 +19,8 @@
 
 package com.nunchuk.android.settings
 
-import android.Manifest.permission.CAMERA
-import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.app.Activity.RESULT_OK
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
@@ -31,12 +28,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
-import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.base.BaseCameraFragment
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.guestmode.SignInModeHolder
@@ -51,7 +47,7 @@ import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
 @AndroidEntryPoint
-internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
+internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
 
     @Inject
     lateinit var signInModeHolder: SignInModeHolder
@@ -138,24 +134,20 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
         bottomSheet.listener = {
             when (it) {
                 EditPhotoOption.SelectAlbum -> {
-                    if (isPermissionPhotoGranted()) {
-                        openAlbum()
-                    } else {
-                        requestPermissions(REQUEST_PERMISSION_SELECT_PHOTO_CODE)
-                    }
+                    openAlbum()
                 }
                 EditPhotoOption.TakePhoto -> {
-                    if (isPermissionPhotoGranted()) {
-                        takePhoto()
-                    } else {
-                        requestPermissions(REQUEST_PERMISSION_TAKE_PHOTO_CODE)
-                    }
+                    requestCameraPermissionOrExecuteAction()
                 }
                 EditPhotoOption.RemovePhoto -> {
                     removePhoto()
                 }
             }
         }
+    }
+
+    override fun onCameraPermissionGranted(fromUser: Boolean) {
+        takePhoto()
     }
 
     private fun removePhoto() {
@@ -256,8 +248,6 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
                     uploadPhotoData(bitmap)
                 }
             }
-            else -> {
-            }
         }
     }
 
@@ -267,91 +257,6 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
         val byteArray = byteArrayOutputStream.toByteArray()
         viewModel.uploadPhotoToMaTrix(byteArray)
     }
-
-    private fun requestPermissions(code: Int) {
-        if (isPermissionPhotoGranted()) {
-            return
-        }
-
-        when (code) {
-            REQUEST_PERMISSION_SELECT_PHOTO_CODE -> requestPermissions(
-                arrayOf(
-                    WRITE_EXTERNAL_STORAGE
-                ), code
-            )
-            REQUEST_PERMISSION_TAKE_PHOTO_CODE -> requestPermissions(
-                arrayOf(
-                    WRITE_EXTERNAL_STORAGE,
-                    CAMERA
-                ), code
-            )
-            else -> {
-            }
-        }
-    }
-
-    // TODO: refactor with registerForActivityResult later
-    @RequiresApi(Build.VERSION_CODES.M)
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_PERMISSION_TAKE_PHOTO_CODE || requestCode == REQUEST_PERMISSION_SELECT_PHOTO_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                handlePermissionGranted(requestCode)
-            } else if (shouldShowRequestPermissionRationale(WRITE_EXTERNAL_STORAGE) || shouldShowRequestPermissionRationale(
-                    CAMERA
-                )
-            ) {
-                showAlertPermissionNotGranted(requestCode)
-            } else {
-                showAlertPermissionDeniedPermanently()
-            }
-        }
-    }
-
-    private fun handlePermissionGranted(permissionCode: Int) {
-        if (permissionCode == REQUEST_PERMISSION_TAKE_PHOTO_CODE) {
-            takePhoto()
-        } else {
-            openAlbum()
-        }
-    }
-
-    private fun showAlertPermissionNotGranted(permissionCode: Int) {
-        requireActivity().showAlertDialog(
-            title = getString(R.string.nc_text_title_permission_denied),
-            message = getString(R.string.nc_text_des_permission_denied),
-            positiveButtonText = getString(android.R.string.ok),
-            negativeButtonText = getString(android.R.string.cancel),
-            positiveClick = {
-                requestPermissions(permissionCode)
-            },
-            negativeClick = {
-            }
-        )
-    }
-
-    private fun showAlertPermissionDeniedPermanently() {
-        requireActivity().showAlertDialog(
-            title = getString(R.string.nc_text_title_permission_denied_permanently),
-            message = getString(R.string.nc_text_des_permission_denied_permanently),
-            positiveButtonText = getString(android.R.string.ok),
-            negativeButtonText = getString(android.R.string.cancel),
-            positiveClick = {
-                requireActivity().startActivityAppSetting()
-            },
-            negativeClick = {
-            }
-        )
-    }
-
-    private fun isPermissionPhotoGranted() =
-        requireActivity().isPermissionGranted(WRITE_EXTERNAL_STORAGE) && requireActivity().isPermissionGranted(
-            CAMERA
-        )
 
     private fun setupViews() {
         binding.premiumBadge.isVisible = viewModel.plan != MembershipPlan.NONE
@@ -394,8 +299,6 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
     }
 
     companion object {
-        private const val REQUEST_PERMISSION_TAKE_PHOTO_CODE = 1247
-        private const val REQUEST_PERMISSION_SELECT_PHOTO_CODE = 1248
         private const val REQUEST_TAKE_PHOTO_CODE = 1249
         private const val REQUEST_SELECT_PHOTO_CODE = 1250
     }

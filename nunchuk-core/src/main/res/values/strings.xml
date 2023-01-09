@@ -40,7 +40,6 @@
 
     <string name="nc_text_title_permission_denied">Permission Denied</string>
     <string name="nc_text_des_permission_denied">The app can\'t work properly without this permission. Do you want to grant access permission again?</string>
-    <string name="nc_text_title_permission_denied_permanently">Permission Denied Permanently</string>
     <string name="nc_text_des_permission_denied_permanently">The permission denied permanently. Do you want to open the application setting to allow it?</string>
     <string name="nc_text_add_contacts">Add contacts</string>
     <string name="nc_text_create_an_account">Create an account</string>
@@ -476,4 +475,7 @@
     <string name="nc_confirm_qr_sign_in_msg">Are you sure you want to sign in remotely on another device?</string>
     <string name="nc_remote_sign_in_success">Remote sign-in successful</string>
     <string name="nc_dismiss_banner_from_home">I’ve got it, dismiss banner from home</string>
+    <string name="nc_camera">Camera</string>
+    <string name="nc_photo_and_video">Photos and videos</string>
+    <string name="nc_upload_file">Upload file</string>
 </resources>
