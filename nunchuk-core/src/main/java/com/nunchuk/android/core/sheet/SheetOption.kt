@@ -73,6 +73,7 @@ object SheetOptionType {
     const val TYPE_ADD_COLDCARD_FILE = 23
     const val TYPE_CANCEL = 24
     const val TYPE_ONE_OPTION_CONFIRM = 25
+    const val TYPE_FORCE_REFRESH_WALLET = 26
 
     // Chat Action
     const val CHAT_ACTION_CAPTURE_CAMERA = 26

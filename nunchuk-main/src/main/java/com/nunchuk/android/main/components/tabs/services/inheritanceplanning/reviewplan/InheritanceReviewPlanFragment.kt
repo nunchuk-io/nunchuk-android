@@ -70,6 +70,7 @@ import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.utils.simpleGlobalDateFormat
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
@@ -194,14 +195,14 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                             )
                         )
                     } else if (args.planFlow == InheritancePlanFlow.VIEW) {
-                        showSuccess(message = getString(R.string.nc_inheritance_plan_updated_notify))
+                        NCToastMessage(requireActivity(), skipDismissOnDestroy = true).show(message = getString(R.string.nc_inheritance_plan_updated_notify))
                         handleResult()
                     }
                 }
                 is InheritanceReviewPlanEvent.Loading -> showOrHideLoading(loading = event.loading)
                 is InheritanceReviewPlanEvent.ProcessFailure -> showError(message = event.message)
                 is InheritanceReviewPlanEvent.CancelInheritanceSuccess -> {
-                    showSuccess(message = getString(R.string.nc_inheritance_plan_cancelled_notify))
+                    NCToastMessage(requireActivity(), skipDismissOnDestroy = true).show(message = getString(R.string.nc_inheritance_plan_cancelled_notify))
                     handleResult()
                 }
             }

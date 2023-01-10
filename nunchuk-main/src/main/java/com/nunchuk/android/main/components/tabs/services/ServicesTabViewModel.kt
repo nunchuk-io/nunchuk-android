@@ -140,8 +140,7 @@ class ServicesTabViewModel @Inject constructor(
                 viewModelScope.launch {
                     val bannerResult = getBannerUseCase(Unit)
                     _state.update {
-                        it.copy(banner = bannerResult.getOrNull(),
-                        )
+                        it.copy(banner = bannerResult.getOrNull())
                     }
                 }
             }

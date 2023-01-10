@@ -478,4 +478,7 @@
     <string name="nc_camera">Camera</string>
     <string name="nc_photo_and_video">Photos and videos</string>
     <string name="nc_upload_file">Upload file</string>
+    <string name="nc_force_refresh">Force refresh (advanced)</string>
+    <string name="nc_force_refresh_success">The wallet has been refreshed</string>
+    <string name="nc_force_refresh_desc">Are you sure you want to perform a force refresh? This process will clear this wallet’s existing data (including notes and pending transactions) and attempt to re-sync it with the blockchain.</string>
 </resources>
