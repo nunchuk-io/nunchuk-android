@@ -24,7 +24,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.IdRes
 import androidx.annotation.RequiresApi
@@ -115,11 +114,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         pushNotificationHelper.retrieveFcmToken(
             NotificationUtils.areNotificationsEnabled(this),
             onTokenRetrieved = ::onTokenRetrieved,
-            Toast.makeText(
-                this,
-                "No valid Google Play Services found. Cannot use FCM.",
-                Toast.LENGTH_SHORT
-            )::show
         )
         setupData()
         setupNavigationView()

@@ -40,6 +40,7 @@ import com.nunchuk.android.model.*
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.transaction.ServerTransaction
+import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
 import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
@@ -603,7 +604,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun isAssistedWallet() = assistedWalletManager.isActiveAssistedWallet(walletId)
 
-    fun isScheduleBroadcast() = (getState().serverTransaction?.broadcastTimeInMilis ?: 0L) > 0L
+    fun isScheduleBroadcast() = (getState().serverTransaction?.broadcastTimeInMilis ?: 0L) > 0L && getState().serverTransaction?.type == ServerTransactionType.SCHEDULED
 
     companion object {
         private const val INVALID_NUMBER_OF_SIGNED = -1
