@@ -25,7 +25,7 @@ import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.InitAppSettingsUseCase
 import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
-import com.nunchuk.android.core.profile.UserProfileRepository
+import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.model.AppSettings
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -37,7 +37,7 @@ internal class NetworkSettingViewModel @Inject constructor(
     private val initAppSettingsUseCase: InitAppSettingsUseCase,
     private val updateAppSettingUseCase: UpdateAppSettingUseCase,
     private val getAppSettingUseCase: GetAppSettingUseCase,
-    private val repository: UserProfileRepository,
+    private val sendSignOutUseCase: SendSignOutUseCase,
     private val appScope: CoroutineScope,
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
 ) : NunchukViewModel<NetworkSettingState, NetworkSettingEvent>() {
@@ -106,7 +106,7 @@ internal class NetworkSettingViewModel @Inject constructor(
         appScope.launch {
             event(NetworkSettingEvent.LoadingEvent(true))
             clearInfoSessionUseCase(Unit)
-            repository.sendSignOut()
+            sendSignOutUseCase(Unit)
             event(NetworkSettingEvent.SignOutSuccessEvent)
         }
     }

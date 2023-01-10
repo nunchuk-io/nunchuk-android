@@ -28,8 +28,8 @@ import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.matrix.UploadFileUseCase
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
+import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.core.profile.UpdateUseProfileUseCase
-import com.nunchuk.android.core.profile.UserProfileRepository
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -47,7 +47,7 @@ internal class AccountViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val updateUseProfileUseCase: UpdateUseProfileUseCase,
     private val uploadFileUseCase: UploadFileUseCase,
-    private val repository: UserProfileRepository,
+    private val sendSignOutUseCase: SendSignOutUseCase,
     private val appScope: CoroutineScope,
     private val signInModeHolder: SignInModeHolder,
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
@@ -136,7 +136,7 @@ internal class AccountViewModel @Inject constructor(
         appScope.launch {
             event(AccountEvent.LoadingEvent(true))
             clearInfoSessionUseCase.invoke(Unit)
-            repository.sendSignOut()
+            sendSignOutUseCase(Unit)
             event(AccountEvent.SignOutEvent)
         }
     }

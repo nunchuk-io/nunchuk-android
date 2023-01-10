@@ -63,10 +63,7 @@ class DeleteAccountActivity : BaseActivity<ActivityDeleteAccountBinding>() {
         when (event) {
             Loading -> showLoading()
             is ConfirmDeleteError -> showConfirmError(event.message)
-            ConfirmDeleteSuccess -> {
-                viewModel.signOutNunchuk()
-                handleConfirmSuccess()
-            }
+            ConfirmDeleteSuccess -> handleConfirmSuccess()
         }
     }
 

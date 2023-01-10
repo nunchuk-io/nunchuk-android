@@ -21,7 +21,7 @@ package com.nunchuk.android.main.components.tabs.services.emergencylockdown.lock
 
 import androidx.lifecycle.ViewModel
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
-import com.nunchuk.android.core.profile.UserProfileRepository
+import com.nunchuk.android.core.profile.SendSignOutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -33,7 +33,7 @@ import javax.inject.Inject
 class EmergencyLockdownSuccessViewModel @Inject constructor(
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
     private val appScope: CoroutineScope,
-    private val repository: UserProfileRepository
+    private val sendSignOutUseCase: SendSignOutUseCase,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<EmergencyLockdownSuccessEvent>()
@@ -43,9 +43,8 @@ class EmergencyLockdownSuccessViewModel @Inject constructor(
         appScope.launch {
             _event.emit(EmergencyLockdownSuccessEvent.Loading(true))
             clearInfoSessionUseCase.invoke(Unit)
-            repository.sendSignOut()
+            sendSignOutUseCase(Unit)
             _event.emit(EmergencyLockdownSuccessEvent.SignOut)
         }
     }
-
 }

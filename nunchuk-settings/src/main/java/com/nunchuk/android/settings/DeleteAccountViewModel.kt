@@ -24,13 +24,12 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.CleanUpCryptoAssetsUseCase
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
-import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.core.profile.UserProfileRepository
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.settings.DeleteAccountEvent.*
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -43,8 +42,7 @@ internal class DeleteAccountViewModel @Inject constructor(
     private val accountManager: AccountManager,
     private val repository: UserProfileRepository,
     private val cleanUpCryptoAssetsUseCase: CleanUpCryptoAssetsUseCase,
-    private val sessionHolder: SessionHolder,
-    private val applicationScope: CoroutineScope,
+    private val sendSignOutUseCase: SendSignOutUseCase,
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
 ) : NunchukViewModel<DeleteAccountState, DeleteAccountEvent>() {
 
@@ -70,18 +68,13 @@ internal class DeleteAccountViewModel @Inject constructor(
             cleanUpCryptoAssetsUseCase.execute()
                 .map {
                     clearInfoSessionUseCase(Unit)
+                    sendSignOutUseCase(Unit)
                 }
                 .flowOn(Dispatchers.IO)
                 .onException { }
                 .collect {
                     event(ConfirmDeleteSuccess)
                 }
-        }
-    }
-
-    fun signOutNunchuk() {
-        applicationScope.launch {
-            repository.sendSignOut()
         }
     }
 }
