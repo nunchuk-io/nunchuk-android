@@ -166,7 +166,8 @@ interface PremiumWalletRepository {
         verifyToken: String,
         userData: String,
         securityQuestionToken: String,
-        isUpdate: Boolean
+        isUpdate: Boolean,
+        plan: MembershipPlan
     ): Inheritance
 
     suspend fun cancelInheritance(

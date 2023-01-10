@@ -41,7 +41,7 @@ class AddKeyStepViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     isRegisterColdcardUseCase: IsRegisterColdcardUseCase,
     isRegisterAirgapUseCase: IsRegisterAirgapUseCase,
-    getAssistedWalletIdFlowUseCase: GetAssistedWalletIdFlowUseCase,
+    getAssistedWalletIdFlowUseCase: GetAssistedWalletIdFlowUseCase
 ) : ViewModel() {
     private val _event = MutableSharedFlow<AddKeyStepEvent>()
     val event = _event.asSharedFlow()
@@ -73,6 +73,10 @@ class AddKeyStepViewModel @Inject constructor(
 
     val isCreateWalletDone =
         membershipStepManager.stepDone.map { membershipStepManager.isCreatedAssistedWalletDone() }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val isSetupInheritanceDone =
+        membershipStepManager.stepDone.map { membershipStepManager.isSetupInheritanceDone() }
             .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val groupRemainTime =
@@ -111,7 +115,9 @@ class AddKeyStepViewModel @Inject constructor(
 
     fun onContinueClicked() {
         viewModelScope.launch {
-            if (isCreateWalletDone.value && isRegisterAirgap.value && isRegisterColdcard.value) {
+            if (isSetupInheritanceDone.value) {
+                _event.emit(AddKeyStepEvent.SetupInheritanceSetupDone)
+            } else if (isCreateWalletDone.value && isRegisterAirgap.value && isRegisterColdcard.value) {
                 savedStateHandle[KEY_CURRENT_STEP] = MembershipStep.SETUP_INHERITANCE
                 _event.emit(AddKeyStepEvent.OpenInheritanceSetup)
             } else if (isSetupRecoverKeyDone.value) {
@@ -171,4 +177,5 @@ sealed class AddKeyStepEvent {
     object OnMoreClicked : AddKeyStepEvent()
     object RestartWizardSuccess : AddKeyStepEvent()
     object OpenInheritanceSetup : AddKeyStepEvent()
+    object SetupInheritanceSetupDone : AddKeyStepEvent()
 }

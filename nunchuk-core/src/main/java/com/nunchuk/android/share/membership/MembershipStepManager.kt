@@ -184,6 +184,10 @@ class MembershipStepManager @Inject constructor(
         return isCreatedAssistedWalletDone || isServerWalletCreated()
     }
 
+    fun isSetupInheritanceDone(): Boolean {
+        return isCreatedAssistedWalletDone() && _stepDone.value.contains(MembershipStep.SETUP_INHERITANCE)
+    }
+
     private fun isServerWalletCreated() = _plan.value == _assistedPlan.value
 
     fun getRemainTimeBySteps(querySteps: List<MembershipStep>) =

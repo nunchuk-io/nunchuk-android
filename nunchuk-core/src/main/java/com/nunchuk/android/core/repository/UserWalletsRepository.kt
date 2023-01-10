@@ -547,7 +547,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         verifyToken: String,
         userData: String,
         securityQuestionToken: String,
-        isUpdate: Boolean
+        isUpdate: Boolean,
+        plan: MembershipPlan
     ): Inheritance {
         val request = gson.fromJson(userData, CreateUpdateInheritancePlanRequest::class.java)
         val headers = mutableMapOf<String, String>()
@@ -559,6 +560,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = if (isUpdate) userWalletApiManager.walletApi.updateInheritance(
             headers, request
         ) else userWalletApiManager.walletApi.createInheritance(headers, request)
+        if (response.isSuccess && isUpdate.not()) {
+            membershipRepository.saveStepInfo(
+                MembershipStepInfo(
+                    step = MembershipStep.SETUP_INHERITANCE,
+                    verifyType = VerifyType.APP_VERIFIED,
+                    plan = plan
+                )
+            )
+        }
         return inheritanceDtoMapper(response.data.inheritance)
     }
 

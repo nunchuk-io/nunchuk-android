@@ -99,6 +99,7 @@ class AddKeyStepFragment : Fragment(), BottomSheetOptionListener {
                     event.walletId,
                     event.isNeedRegisterAirgap
                 )
+                AddKeyStepEvent.SetupInheritanceSetupDone -> requireActivity().finish()
             }
         }
     }
@@ -178,12 +179,14 @@ fun AddKeyStepScreen(viewModel: AddKeyStepViewModel = viewModel()) {
     val isConfigKeyDone by viewModel.isConfigKeyDone.collectAsStateWithLifecycle()
     val isSetupRecoverKeyDone by viewModel.isSetupRecoverKeyDone.collectAsStateWithLifecycle()
     val isCreateWalletDone by viewModel.isCreateWalletDone.collectAsStateWithLifecycle()
+    val isSetupInheritanceDone by viewModel.isSetupInheritanceDone.collectAsStateWithLifecycle()
     val groupRemainTime by viewModel.groupRemainTime.collectAsStateWithLifecycle()
 
     AddKeyStepContent(
         isConfigKeyDone = isConfigKeyDone,
         isSetupRecoverKeyDone = isSetupRecoverKeyDone,
         isCreateWalletDone = isCreateWalletDone,
+        isSetupInheritanceDone = isSetupInheritanceDone,
         groupRemainTime = groupRemainTime,
         onMoreClicked = viewModel::onMoreClicked,
         onContinueClicked = viewModel::onContinueClicked,
@@ -197,6 +200,7 @@ fun AddKeyStepContent(
     isConfigKeyDone: Boolean = false,
     isSetupRecoverKeyDone: Boolean = false,
     isCreateWalletDone: Boolean = false,
+    isSetupInheritanceDone: Boolean = false,
     groupRemainTime: IntArray = IntArray(4),
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
@@ -264,7 +268,7 @@ fun AddKeyStepContent(
                     4,
                     stringResource(R.string.nc_set_up_inheritance_plan),
                     groupRemainTime[3],
-                    false,
+                    isSetupInheritanceDone,
                     isCreateWalletDone
                 )
             }
