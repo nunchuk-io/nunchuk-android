@@ -123,7 +123,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             pushEventManager.event.filterIsInstance<PushEvent.ServerTransactionEvent>().collect {
                 if (it.transactionId == txId) {
-                    getTransaction()
+                    getTransactionInfo()
                 }
             }
         }
