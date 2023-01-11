@@ -318,11 +318,14 @@
     <string name="nc_answer_security_question_desc">Please answer the following question. Answer is case-sensitive.</string>
     <string name="nc_enter_backup_password">Enter Backup Password</string>
     <string name="nc_enter_backup_password_desc">Please enter the Backup Password for [B]%1$s[/B] (card ID: [B]%2$s[/B].)</string>
+    <string name="nc_enter_backup_password_notice">The password is printed on the back of the TAPSIGNER. You should have had a copy of this when setting up the TAPSIGNER for the first time.</string>
     <string name="nc_backup_download">Backup Password</string>
+    <string name="nc_invalid_backup_password">Invalid Backup Password. Please try again.</string>
+    <string name="nc_incorrect_answer">Incorrect answer</string>
     <string name="nc_tapsigner_recovered">TAPSIGNER recovered</string>
     <string name="nc_tapsigner_recovered_success_info_1">The software key is stored on this device</string>
     <string name="nc_tapsigner_recovered_success_info_2">You can continue signing transactions using this software key</string>
-    <string name="nc_tapsigner_recovered_success_warning">If you suspect that someone has gained possession of the key, we recommend that you replace it with a new key and roll over your balance to a new wallet.</string>
+    <string name="nc_tapsigner_recovered_success_warning">If you suspect that someone has gained possession of the key, we recommend that you roll over your balance to a new wallet.</string>
     <string name="nc_tapsigner_recovered_success_replace_my_key">I want to replace my key</string>
     <string name="nc_tapsigner_recovered_desc">Your TAPSIGNER’s private key has been successfully recovered and converted into a software key. Please note the following: </string>
     <string name="nc_emergency_lockdown_intro_desc">If you feel that there is an imminent threat or just want to disable wallet access temporarily, you can activate the emergency lockdown. Please note the following:</string>

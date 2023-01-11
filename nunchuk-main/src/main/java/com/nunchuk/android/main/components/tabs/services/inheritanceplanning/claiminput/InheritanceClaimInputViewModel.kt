@@ -96,7 +96,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
             if (exception is NunchukApiException) {
                 when (exception.code) {
                     400 -> _event.emit(InheritanceClaimInputEvent.SubscriptionExpired)
-                    801 -> _event.emit(InheritanceClaimInputEvent.InActivated(result.exceptionOrNull()?.message.orUnknownError()))
+                    803 -> _event.emit(InheritanceClaimInputEvent.InActivated(result.exceptionOrNull()?.message.orUnknownError()))
                     else -> _event.emit(InheritanceClaimInputEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
                 }
             } else {
