@@ -24,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.network.UnauthorizedEventBus
 import com.nunchuk.android.core.network.UnauthorizedException
 import com.nunchuk.android.nav.NunchukNavigator
@@ -63,9 +64,11 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         UnauthorizedEventBus.instance().subscribe {
-            accountManager.clearUserData()
-            navigator.openSignInScreen(this)
-            CrashlyticsReporter.recordException(UnauthorizedException())
+            if (accountManager.loginType() != SignInMode.GUEST_MODE.value) {
+                accountManager.clearUserData()
+                navigator.openSignInScreen(this)
+                CrashlyticsReporter.recordException(UnauthorizedException())
+            }
         }
     }
 

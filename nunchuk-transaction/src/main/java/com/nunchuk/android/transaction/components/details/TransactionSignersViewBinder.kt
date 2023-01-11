@@ -86,7 +86,7 @@ internal class TransactionSignersViewBinder(
         if (model.type == SignerType.SERVER) {
             val spendingLimitMessage = serverTransaction?.spendingLimitMessage.orEmpty()
             val cosignedTime = serverTransaction?.signedInMilis ?: 0L
-            binding.xpf.isVisible = spendingLimitMessage.isNotEmpty() || cosignedTime > 0L
+            binding.xpf.isVisible = spendingLimitMessage.isNotEmpty() || (cosignedTime > 0L && isSigned.not() && txStatus.isPendingSignatures())
             if (spendingLimitMessage.isNotEmpty()) {
                 binding.xpf.text = serverTransaction?.spendingLimitMessage
             } else if (cosignedTime > 0L && isSigned.not() && txStatus.isPendingSignatures()) {

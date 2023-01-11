@@ -138,6 +138,7 @@ internal class ImportTransactionViewModel @Inject constructor(
                 }
                     .onStart { isProcessing = true }
                     .flowOn(IO)
+                    .onException {  }
                     .flowOn(Main)
                     .onCompletion { isProcessing = false }
                     .collect { event(ImportTransactionSuccess()) }
