@@ -40,7 +40,6 @@ import com.nunchuk.android.model.*
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.transaction.ServerTransaction
-import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
 import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
@@ -160,12 +159,16 @@ internal class TransactionDetailsViewModel @Inject constructor(
         if (isAssistedWallet()) {
             viewModelScope.launch {
                 state.asFlow().collect {
-                    val signedCount = it.transaction.signers.count { entry -> entry.value }
-                    if (it.transaction.txId.isNotEmpty() && initNumberOfSignedKey == INVALID_NUMBER_OF_SIGNED) {
-                        initNumberOfSignedKey = signedCount
-                    } else if (signedCount > initNumberOfSignedKey) {
-                        initNumberOfSignedKey = signedCount
-                        requestServerSignTransaction(it.transaction.psbt)
+                    if (it.transaction.txId.isNotEmpty()) {
+                        val signedCount = it.transaction.signers.count { entry -> entry.value }
+                        if (initNumberOfSignedKey == INVALID_NUMBER_OF_SIGNED) {
+                            initNumberOfSignedKey = signedCount
+                        } else if (signedCount > initNumberOfSignedKey) {
+                            initNumberOfSignedKey = signedCount
+                            if (signedCount > 0) {
+                                requestServerSignTransaction(it.transaction.psbt)
+                            }
+                        }
                     }
                 }
             }
@@ -183,11 +186,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
             )
             if (result.isSuccess) {
                 val extendedTransaction = result.getOrThrow()
-                val serverKeyFingerPrint = getState().signers.find { it.type == SignerType.SERVER }?.fingerPrint.orEmpty()
                 setEvent(
                     SignTransactionSuccess(
                         isAssistedWallet = true,
-                        serverSigned = extendedTransaction.transaction.signers[serverKeyFingerPrint] ?: false,
                         status = extendedTransaction.transaction.status
                     )
                 )
@@ -604,7 +605,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun isAssistedWallet() = assistedWalletManager.isActiveAssistedWallet(walletId)
 
-    fun isScheduleBroadcast() = (getState().serverTransaction?.broadcastTimeInMilis ?: 0L) > 0L && getState().serverTransaction?.type == ServerTransactionType.SCHEDULED
+    fun isScheduleBroadcast() = (getState().serverTransaction?.broadcastTimeInMilis ?: 0L) > 0L
 
     companion object {
         private const val INVALID_NUMBER_OF_SIGNED = -1
