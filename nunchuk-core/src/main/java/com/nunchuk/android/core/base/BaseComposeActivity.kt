@@ -59,7 +59,8 @@ abstract class BaseComposeActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         UnauthorizedEventBus.instance().subscribe {
-            if (accountManager.loginType() != SignInMode.GUEST_MODE.value) {
+            val loginType = accountManager.loginType()
+            if (loginType == SignInMode.EMAIL.value || loginType == SignInMode.PRIMARY_KEY.value) {
                 accountManager.clearUserData()
                 navigator.openSignInScreen(this)
                 CrashlyticsReporter.recordException(UnauthorizedException())
