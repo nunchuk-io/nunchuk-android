@@ -48,6 +48,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
@@ -84,7 +85,7 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            TransactionListener.transactionUpdateFlow.collect {
+            TransactionListener.transactionUpdateFlow.debounce(1000L).collect {
                 if (it.walletId == args.walletId) {
                     syncData()
                 }
@@ -118,8 +119,8 @@ internal class WalletDetailsViewModel @Inject constructor(
             getWalletUseCase.execute(args.walletId)
                 .onStart { event(Loading(true)) }
                 .flowOn(IO)
-                .onException { event(WalletDetailsError(it.message.orUnknownError())) }.flowOn(Main)
-
+                .onException { event(WalletDetailsError(it.message.orUnknownError())) }
+                .flowOn(Main)
                 .collect {
                     updateState { copy(walletExtended = it) }
                     if (shouldRefreshTransaction) {
@@ -253,6 +254,13 @@ internal class WalletDetailsViewModel @Inject constructor(
                 }
         }
     }
+
+    fun setForceRefreshWalletProcessing(isProcessing: Boolean) {
+        updateState { copy(isForceRefreshProcessing = isProcessing) }
+    }
+
+    val isForceRefreshProcessing: Boolean
+        get() = getState().isForceRefreshProcessing
 
     val isLeaveRoom: Boolean
         get() = getState().isLeaveRoom

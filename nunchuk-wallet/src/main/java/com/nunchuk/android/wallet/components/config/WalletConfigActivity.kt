@@ -26,6 +26,7 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
@@ -134,10 +135,10 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             is WalletConfigEvent.Loading -> showOrHideLoading(event.isLoading)
             is WalletConfigEvent.Error -> NCToastMessage(this).showError(message = event.message)
             WalletConfigEvent.ForceRefreshWalletSuccess -> {
-                NCToastMessage(
-                    this,
-                    skipDismissOnDestroy = true
-                ).showMessage(message = getString(R.string.nc_force_refresh_success))
+                NcToastManager.scheduleShowMessage(message = getString(R.string.nc_force_refresh_success))
+                setResult(Activity.RESULT_OK, Intent().apply {
+                    putExtra(EXTRA_WALLET_ACTION, WalletConfigAction.FORCE_REFRESH)
+                })
                 finish()
             }
         }
@@ -284,5 +285,5 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 }
 
 enum class WalletConfigAction {
-    DELETE, UPDATE_NAME
+    DELETE, UPDATE_NAME, FORCE_REFRESH
 }

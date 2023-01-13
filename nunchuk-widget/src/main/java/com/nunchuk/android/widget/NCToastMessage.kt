@@ -35,7 +35,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 
-class NCToastMessage(private val activity: Activity, private val skipDismissOnDestroy: Boolean = false) : DefaultLifecycleObserver {
+class NCToastMessage(private val activity: Activity) : DefaultLifecycleObserver {
     init {
         if (activity is AppCompatActivity) {
             activity.lifecycle.addObserver(this)
@@ -105,7 +105,7 @@ class NCToastMessage(private val activity: Activity, private val skipDismissOnDe
     override fun onDestroy(owner: LifecycleOwner) {
         super.onDestroy(owner)
         handler.removeCallbacks(dismissRunnable)
-        if (skipDismissOnDestroy.not()) toast.cancel()
+        toast.cancel()
     }
 
     companion object {

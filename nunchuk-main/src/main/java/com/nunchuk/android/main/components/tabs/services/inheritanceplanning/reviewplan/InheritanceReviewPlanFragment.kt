@@ -55,6 +55,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -195,14 +196,14 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                             )
                         )
                     } else if (args.planFlow == InheritancePlanFlow.VIEW) {
-                        NCToastMessage(requireActivity(), skipDismissOnDestroy = true).show(message = getString(R.string.nc_inheritance_plan_updated_notify))
+                        NcToastManager.scheduleShowMessage(message = getString(R.string.nc_inheritance_plan_updated_notify))
                         handleResult()
                     }
                 }
                 is InheritanceReviewPlanEvent.Loading -> showOrHideLoading(loading = event.loading)
                 is InheritanceReviewPlanEvent.ProcessFailure -> showError(message = event.message)
                 is InheritanceReviewPlanEvent.CancelInheritanceSuccess -> {
-                    NCToastMessage(requireActivity(), skipDismissOnDestroy = true).show(message = getString(R.string.nc_inheritance_plan_cancelled_notify))
+                    NcToastManager.scheduleShowMessage(message = getString(R.string.nc_inheritance_plan_cancelled_notify))
                     handleResult()
                 }
             }

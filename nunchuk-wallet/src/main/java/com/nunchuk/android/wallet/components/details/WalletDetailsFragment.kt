@@ -85,6 +85,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                 when (data.serializable<WalletConfigAction>(WalletConfigActivity.EXTRA_WALLET_ACTION)) {
                     WalletConfigAction.DELETE -> requireActivity().onBackPressedDispatcher.onBackPressed()
                     WalletConfigAction.UPDATE_NAME -> viewModel.getWalletDetails(false)
+                    WalletConfigAction.FORCE_REFRESH -> viewModel.setForceRefreshWalletProcessing(true)
                     null -> {}
                 }
             }
@@ -170,7 +171,12 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     private fun observeEvent() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                viewModel.syncData()
+                // skip calling syncData here in-case forceRefreshWallet since it will show the an empty state for a while
+                if (viewModel.isForceRefreshProcessing.not()) {
+                    viewModel.syncData()
+                } else {
+                    viewModel.setForceRefreshWalletProcessing(false)
+                }
             }
         }
         viewModel.state.observe(viewLifecycleOwner, ::handleState)
