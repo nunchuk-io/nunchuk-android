@@ -28,6 +28,8 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.*
 import com.nunchuk.android.core.domain.membership.CancelScheduleBroadcastTransactionUseCase
+import com.nunchuk.android.core.network.ApiErrorCode
+import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
@@ -309,7 +311,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 txId,
                 assistedWalletManager.isActiveAssistedWallet(walletId)
             ).flowOn(IO)
-                .onException { setEvent(TransactionDetailsError(it.message.orEmpty())) }
+                .onException {
+                    if ((it as? NunchukApiException)?.code == ApiErrorCode.TRANSACTION_CANCEL) {
+                        handleDeleteTransactionEvent(isCancel = true, onlyLocal = true)
+                    } else {
+                        setEvent(TransactionDetailsError(it.message.orEmpty()))
+                    }
+                }
                 .collect {
                     updateTransaction(it.transaction, it.serverTransaction)
                 }
@@ -379,13 +387,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
         )
     }
 
-    fun handleDeleteTransactionEvent(isCancel: Boolean = true) {
+    fun handleDeleteTransactionEvent(isCancel: Boolean = true, onlyLocal: Boolean = false) {
         viewModelScope.launch {
             val result = deleteTransactionUseCase(
                 DeleteTransactionUseCase.Param(
                     walletId = walletId,
                     txId = txId,
-                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId)
+                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId) && !onlyLocal
                 )
             )
             if (result.isSuccess) {

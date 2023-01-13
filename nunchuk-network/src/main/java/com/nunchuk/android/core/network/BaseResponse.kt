@@ -91,6 +91,7 @@ object ApiErrorCode {
     const val ACCOUNT_EXISTED = -100
     const val NEW_DEVICE = 841
     const val UNAUTHORIZED = 401
+    const val TRANSACTION_CANCEL = 410
 }
 
 const val UNKNOWN_ERROR = "Unknown error, please try again!"
