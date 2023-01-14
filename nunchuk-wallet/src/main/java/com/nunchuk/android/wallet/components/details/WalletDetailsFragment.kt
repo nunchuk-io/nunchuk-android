@@ -277,6 +277,9 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         binding.transactionList.layoutManager =
             LinearLayoutManager(context, RecyclerView.VERTICAL, false)
         binding.tvAssistedDowngradeHint.isVisible = viewModel.isInactiveAssistedWallet()
+        if (binding.tvAssistedDowngradeHint.isVisible) {
+            handleInactiveAssistedWallet()
+        }
         binding.transactionList.isNestedScrollingEnabled = false
         binding.transactionList.setHasFixedSize(false)
         binding.transactionList.adapter = adapter
@@ -318,6 +321,15 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         binding.shareLayout.setOnClickListener { controller.shareText(binding.addressText.text.toString()) }
 
         setupPaginationAdapter()
+    }
+
+    private fun handleInactiveAssistedWallet() {
+        binding.tvAssistedDowngradeHint.makeTextLink(
+            getString(R.string.nc_assisted_wallet_downgrade_hint),
+            ClickAbleText(content = "renew your subscription", onClick = {
+                requireActivity().openExternalLink(RENEW_ACCOUNT_LINK)
+            })
+        )
     }
 
     private fun shareConfigurationFile(filePath: String) {
