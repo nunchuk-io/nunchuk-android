@@ -22,6 +22,7 @@ package com.nunchuk.android.transaction.components.export
 import android.app.Activity
 import android.graphics.Bitmap
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseActivity
@@ -32,6 +33,7 @@ import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.
 import com.nunchuk.android.transaction.databinding.ActivityExportTransactionBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -46,6 +48,14 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
     private lateinit var bitmaps: List<Bitmap>
 
     private var index = 0
+
+    private val launcher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                setResult(Activity.RESULT_OK, it.data)
+                finish()
+            }
+        }
 
     private val viewModel: ExportTransactionViewModel by viewModels()
 
@@ -89,6 +99,9 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
+        binding.btnImportSignature.setOnDebounceClickListener {
+            openImportTransactionScreen()
+        }
     }
 
     private fun handleState(state: ExportTransactionState) {
@@ -121,6 +134,19 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
         controller.shareFile(filePath)
     }
 
+    private fun openImportTransactionScreen() {
+        navigator.openImportTransactionScreen(
+            launcher = launcher,
+            activityContext = this,
+            walletId = args.walletId,
+            transactionOption = TransactionOption.IMPORT_KEYSTONE,
+            masterFingerPrint = args.masterFingerPrint,
+            initEventId = args.initEventId,
+            isFinishWhenError = true,
+            isDummyTx = args.isDummyTx
+        )
+    }
+
     companion object {
 
         fun start(
@@ -129,13 +155,19 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
             txId: String,
             txToSign: String = "",
             transactionOption: TransactionOption,
+            initEventId: String = "",
+            masterFingerPrint: String = "",
+            isDummyTx: Boolean = false
         ) {
             activityContext.startActivity(
                 ExportTransactionArgs(
                     walletId = walletId,
                     txId = txId,
                     txToSign = txToSign,
-                    transactionOption = transactionOption
+                    transactionOption = transactionOption,
+                    initEventId = initEventId,
+                    masterFingerPrint = masterFingerPrint,
+                    isDummyTx = isDummyTx
                 ).buildIntent(activityContext)
             )
         }

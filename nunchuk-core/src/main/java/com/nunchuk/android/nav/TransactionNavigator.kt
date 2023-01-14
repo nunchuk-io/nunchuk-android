@@ -124,18 +124,14 @@ interface TransactionNavigator {
     )
 
     fun openImportTransactionScreen(
+        launcher: ActivityResultLauncher<Intent>? = null,
         activityContext: Activity,
         walletId: String,
         transactionOption: TransactionOption,
         masterFingerPrint: String = "",
-        initEventId: String = ""
-    )
-
-    fun openImportDummyTransactionScreen(
-        launcher: ActivityResultLauncher<Intent>,
-        activityContext: Activity,
-        transactionOption: TransactionOption,
-        walletId: String,
+        initEventId: String = "",
+        isDummyTx: Boolean = false,
+        isFinishWhenError: Boolean = false
     )
 
     fun openExportTransactionScreen(
@@ -144,9 +140,13 @@ interface TransactionNavigator {
         txId: String = "",
         txToSign: String = "",
         transactionOption: TransactionOption,
+        isDummyTx: Boolean = false
     )
 
     fun openReplaceTransactionFee(
-        launcher: ActivityResultLauncher<Intent>, context: Context, walletId: String, transaction: Transaction
+        launcher: ActivityResultLauncher<Intent>,
+        context: Context,
+        walletId: String,
+        transaction: Transaction
     )
 }

@@ -488,11 +488,11 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         ).setListener {
             when (it) {
                 CANCEL -> promptCancelTransactionConfirmation()
-                EXPORT_KEYSTONE -> openExportTransactionScreen(EXPORT_KEYSTONE)
+                EXPORT_KEYSTONE -> openExportTransactionScreen(EXPORT_KEYSTONE, event.masterFingerPrint)
                 IMPORT_KEYSTONE -> openImportTransactionScreen(
                     IMPORT_KEYSTONE, event.masterFingerPrint
                 )
-                EXPORT_PASSPORT -> openExportTransactionScreen(EXPORT_PASSPORT)
+                EXPORT_PASSPORT -> openExportTransactionScreen(EXPORT_PASSPORT, event.masterFingerPrint)
                 IMPORT_PASSPORT -> openImportTransactionScreen(
                     IMPORT_PASSPORT, event.masterFingerPrint
                 )
@@ -524,12 +524,14 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         )
     }
 
-    private fun openExportTransactionScreen(transactionOption: TransactionOption) {
+    private fun openExportTransactionScreen(transactionOption: TransactionOption, masterFingerPrint: String) {
         ExportTransactionActivity.start(
             activityContext = this,
             walletId = args.walletId,
             txId = args.txId,
-            transactionOption = transactionOption
+            transactionOption = transactionOption,
+            initEventId = viewModel.getInitEventId(),
+            masterFingerPrint = if (viewModel.isSharedTransaction()) masterFingerPrint else ""
         )
     }
 

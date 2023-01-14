@@ -85,11 +85,13 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
     }
 
     private fun onImportTransactionSuccess(event: ImportTransactionSuccess) {
+        val intent = Intent()
         if (event.transaction != null) {
-            setResult(Activity.RESULT_OK, Intent().apply {
+            intent.apply {
                 putExtra(GlobalResultKey.TRANSACTION_EXTRA, event.transaction)
-            })
+            }
         }
+        setResult(Activity.RESULT_OK, intent)
         hideLoading()
         NcToastManager.scheduleShowMessage(getString(R.string.nc_transaction_imported))
         finish()
@@ -97,7 +99,15 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
 
     private fun onImportTransactionError(event: ImportTransactionError) {
         hideLoading()
-        NCToastMessage(this).showWarning(getString(R.string.nc_transaction_imported_failed) + event.message)
+        if (args.isFinishWhenError) {
+            NcToastManager.scheduleShowMessage(
+                message = getString(R.string.nc_transaction_imported_failed) + event.message,
+                type = NcToastManager.MessageType.WARING
+            )
+            finish()
+        } else {
+            NCToastMessage(this).showWarning(getString(R.string.nc_transaction_imported_failed) + event.message)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
@@ -127,13 +137,15 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
             masterFingerPrint: String = "",
             initEventId: String = "",
             isDummyTx: Boolean = false,
+            isFinishWhenError: Boolean = false
         ): Intent {
             return ImportTransactionArgs(
                 walletId = walletId,
                 transactionOption = transactionOption,
                 masterFingerPrint = masterFingerPrint,
                 initEventId = initEventId,
-                isDummyTx = isDummyTx
+                isDummyTx = isDummyTx,
+                isFinishWhenError = isFinishWhenError
             ).buildIntent(activityContext)
         }
     }

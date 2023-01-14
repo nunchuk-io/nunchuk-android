@@ -339,18 +339,20 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
         navigator.openExportTransactionScreen(
             activityContext = requireActivity(),
             txToSign = walletAuthenticationViewModel.getDataToSign(),
-            transactionOption = transactionOption
+            transactionOption = transactionOption,
+            isDummyTx = true
         )
     }
 
     private fun openImportTransactionScreen(
         transactionOption: TransactionOption,
     ) {
-        navigator.openImportDummyTransactionScreen(
+        navigator.openImportTransactionScreen(
             launcher = importTxLauncher,
             activityContext = requireActivity(),
             transactionOption = transactionOption,
-            walletId = walletAuthenticationViewModel.getWalletId()
+            walletId = walletAuthenticationViewModel.getWalletId(),
+            isDummyTx = true
         )
     }
 
