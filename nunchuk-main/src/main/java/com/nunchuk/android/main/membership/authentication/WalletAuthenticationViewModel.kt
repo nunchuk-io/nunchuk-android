@@ -208,8 +208,7 @@ class WalletAuthenticationViewModel @Inject constructor(
         viewModelScope.launch {
             val signatures = _state.value.signatures
             _state.value.singleSigners.filter {
-                it.type == SignerType.AIRGAP
-                        && transaction.signers[it.masterFingerprint] == true
+                transaction.signers[it.masterFingerprint] == true
                         && signatures.contains(it.masterFingerprint).not()
             }.forEach {
                 handleSignatureResult(

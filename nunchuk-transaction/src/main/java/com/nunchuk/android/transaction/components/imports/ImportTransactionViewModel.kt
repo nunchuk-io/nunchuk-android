@@ -73,7 +73,7 @@ internal class ImportTransactionViewModel @Inject constructor(
         viewModelScope.launch {
             if (isDummyFlow) {
                 val psbt = withContext(ioDispatcher) {
-                    File(filePath).readText()
+                    File(filePath).readText().trim()
                 }
                 val result = getDummyTxFromPsbt(GetDummyTxFromPsbt.Param(args.walletId, psbt))
                 if (result.isSuccess) {

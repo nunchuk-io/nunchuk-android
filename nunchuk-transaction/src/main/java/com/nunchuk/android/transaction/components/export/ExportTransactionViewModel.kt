@@ -79,7 +79,7 @@ internal class ExportTransactionViewModel @Inject constructor(
     fun exportTransactionToFile() {
         viewModelScope.launch {
             event(LoadingEvent)
-            when (val result = createShareFileUseCase.execute("${args.walletId}_${args.txId}")) {
+            when (val result = createShareFileUseCase.execute( if (isDummyTxFlow) "dummy.psbt" else "${args.walletId}_${args.txId}.psbt")) {
                 is Success -> exportTransaction(result.data)
                 is Error -> event(ExportTransactionError(result.exception.messageOrUnknownError()))
             }
