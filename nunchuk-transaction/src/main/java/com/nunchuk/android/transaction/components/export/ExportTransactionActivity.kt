@@ -20,6 +20,7 @@
 package com.nunchuk.android.transaction.components.export
 
 import android.app.Activity
+import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
@@ -149,7 +150,7 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
 
     companion object {
 
-        fun start(
+        fun buildIntent(
             activityContext: Activity,
             walletId: String,
             txId: String,
@@ -158,18 +159,16 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
             initEventId: String = "",
             masterFingerPrint: String = "",
             isDummyTx: Boolean = false
-        ) {
-            activityContext.startActivity(
-                ExportTransactionArgs(
-                    walletId = walletId,
-                    txId = txId,
-                    txToSign = txToSign,
-                    transactionOption = transactionOption,
-                    initEventId = initEventId,
-                    masterFingerPrint = masterFingerPrint,
-                    isDummyTx = isDummyTx
-                ).buildIntent(activityContext)
-            )
+        ): Intent {
+            return ExportTransactionArgs(
+                walletId = walletId,
+                txId = txId,
+                txToSign = txToSign,
+                transactionOption = transactionOption,
+                initEventId = initEventId,
+                masterFingerPrint = masterFingerPrint,
+                isDummyTx = isDummyTx
+            ).buildIntent(activityContext)
         }
     }
 }

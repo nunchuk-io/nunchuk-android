@@ -235,6 +235,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
     }
 
     override fun openExportTransactionScreen(
+        launcher: ActivityResultLauncher<Intent>?,
         activityContext: Activity,
         walletId: String,
         txId: String,
@@ -242,7 +243,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         transactionOption: TransactionOption,
         isDummyTx: Boolean
     ) {
-        ExportTransactionActivity.start(
+        val intent = ExportTransactionActivity.buildIntent(
             activityContext = activityContext,
             walletId = walletId,
             txId = txId,
@@ -250,6 +251,11 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             transactionOption = transactionOption,
             isDummyTx = isDummyTx
         )
+        if (launcher != null) {
+            launcher.launch(intent)
+        } else {
+            activityContext.startActivity(intent)
+        }
     }
 
     override fun openReplaceTransactionFee(

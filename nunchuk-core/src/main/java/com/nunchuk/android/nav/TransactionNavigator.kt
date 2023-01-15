@@ -135,6 +135,7 @@ interface TransactionNavigator {
     )
 
     fun openExportTransactionScreen(
+        launcher: ActivityResultLauncher<Intent>? = null,
         activityContext: Activity,
         walletId: String = "",
         txId: String = "",
