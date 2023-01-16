@@ -462,7 +462,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     fun exportTransactionToFile() {
         viewModelScope.launch {
             setEvent(LoadingEvent)
-            when (val result = createShareFileUseCase.execute("${walletId}_${txId}")) {
+            when (val result = createShareFileUseCase.execute("${walletId}_${txId}.psbt")) {
                 is Success -> exportTransaction(result.data)
                 is Error -> {
                     val message =
