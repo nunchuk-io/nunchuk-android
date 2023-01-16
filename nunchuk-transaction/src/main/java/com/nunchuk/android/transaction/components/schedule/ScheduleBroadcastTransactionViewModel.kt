@@ -112,7 +112,12 @@ class ScheduleBroadcastTransactionViewModel @Inject constructor(
                 )
                 _event.emit(ScheduleBroadcastTransactionEvent.Loading(false))
                 if (result.isSuccess) {
-                    _event.emit(ScheduleBroadcastTransactionEvent.ScheduleBroadcastSuccess(result.getOrThrow()))
+                    val serverTransaction = result.getOrThrow()
+                    if (serverTransaction.spendingLimitMessage.isEmpty()) {
+                        _event.emit(ScheduleBroadcastTransactionEvent.ScheduleBroadcastSuccess(serverTransaction))
+                    } else {
+                        _event.emit(ScheduleBroadcastTransactionEvent.ShowError(serverTransaction.spendingLimitMessage))
+                    }
                 } else {
                     _event.emit(ScheduleBroadcastTransactionEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
                 }

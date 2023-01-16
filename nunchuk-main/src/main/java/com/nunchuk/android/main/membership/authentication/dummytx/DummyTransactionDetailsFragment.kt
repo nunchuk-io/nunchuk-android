@@ -43,7 +43,7 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.databinding.FragmentTransactionDetailsBinding
+import com.nunchuk.android.main.databinding.FragmentDummyTransactionDetailsBinding
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationEvent
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationState
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationViewModel
@@ -55,9 +55,11 @@ import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import java.text.SimpleDateFormat
+import java.util.*
 
 @AndroidEntryPoint
-class DummyTransactionDetailsFragment : BaseFragment<FragmentTransactionDetailsBinding>(),
+class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDetailsBinding>(),
     BottomSheetOptionListener {
     private val viewModel: DummyTransactionDetailsViewModel by viewModels()
     private val walletAuthenticationViewModel: WalletAuthenticationViewModel by activityViewModels()
@@ -132,6 +134,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentTransactionDetailsB
                         is WalletAuthenticationEvent.ShowError -> showError(event.message)
                         WalletAuthenticationEvent.ShowAirgapOption -> handleMenuMore()
                         WalletAuthenticationEvent.ExportTransactionToColdcardSuccess -> handleExportToColdcardSuccess()
+                        WalletAuthenticationEvent.CanNotSignDummyTx -> showError(getString(R.string.nc_can_not_sign_please_try_again))
                     }
                 }
         }
@@ -257,13 +260,11 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentTransactionDetailsB
     }
 
     private fun bindTransaction(transaction: Transaction) {
-        binding.tvReplaceByFee.isVisible = transaction.replacedTxid.isNotEmpty()
         val output = if (transaction.isReceive) {
             transaction.receiveOutputs.firstOrNull()
         } else {
             transaction.outputs.firstOrNull()
         }
-        binding.noteContent.text = transaction.memo.ifEmpty { getString(R.string.nc_none) }
         binding.sendingTo.text = output?.first.orEmpty().truncatedAddress()
         binding.signatureStatus.isVisible = !transaction.status.hadBroadcast()
         val pendingSigners = transaction.getPendingSignatures()
@@ -288,13 +289,13 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentTransactionDetailsB
             )
             binding.signatureStatus.text = getString(R.string.nc_transaction_enough_signers)
         }
-        binding.confirmTime.text = transaction.getFormatDate()
+        binding.confirmTime.text = SimpleDateFormat("MM/dd/yyyy 'at' HH:mm aaa", Locale.US)
+            .format(Date())
         binding.status.bindTransactionStatus(transaction)
         binding.sendingBTC.text = transaction.totalAmount.getBTCAmount()
         binding.signersContainer.isVisible = !transaction.isReceive
 
         bindAddress(transaction)
-        bindChangeAddress(transaction)
         bindTransactionFee(transaction)
         bindingTotalAmount(transaction)
         bindViewSendOrReceive(transaction)
@@ -308,9 +309,6 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentTransactionDetailsB
         binding.totalAmountLabel.isVisible = !transaction.isReceive
         binding.totalAmountBTC.isVisible = !transaction.isReceive
         binding.totalAmountUSD.isVisible = !transaction.isReceive
-        binding.changeAddress.isVisible = !transaction.isReceive
-        binding.changeAddressBTC.isVisible = !transaction.isReceive
-        binding.changeAddressUSD.isVisible = !transaction.isReceive
     }
 
     private fun bindAddress(transaction: Transaction) {
@@ -337,35 +335,26 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentTransactionDetailsB
         binding.estimatedFeeUSD.text = transaction.fee.getUSDAmount()
     }
 
-    private fun bindChangeAddress(transaction: Transaction) {
-        val hasChange: Boolean = transaction.hasChangeIndex()
-        if (hasChange) {
-            val txOutput = transaction.outputs[transaction.changeIndex]
-            binding.changeAddressLabel.text = txOutput.first
-            binding.changeAddressBTC.text = txOutput.second.getBTCAmount()
-            binding.changeAddressUSD.text = txOutput.second.getUSDAmount()
-        }
-        binding.changeAddressLabel.isVisible = hasChange
-        binding.changeAddressBTC.isVisible = hasChange
-        binding.changeAddressUSD.isVisible = hasChange
-    }
-
     private fun openExportTransactionScreen(transactionOption: TransactionOption) {
         navigator.openExportTransactionScreen(
+            launcher = importTxLauncher,
             activityContext = requireActivity(),
             txToSign = walletAuthenticationViewModel.getDataToSign(),
-            transactionOption = transactionOption
+            transactionOption = transactionOption,
+            isDummyTx = true,
+            walletId = walletAuthenticationViewModel.getWalletId()
         )
     }
 
     private fun openImportTransactionScreen(
         transactionOption: TransactionOption,
     ) {
-        navigator.openImportDummyTransactionScreen(
+        navigator.openImportTransactionScreen(
             launcher = importTxLauncher,
             activityContext = requireActivity(),
             transactionOption = transactionOption,
-            walletId = walletAuthenticationViewModel.getWalletId()
+            walletId = walletAuthenticationViewModel.getWalletId(),
+            isDummyTx = true
         )
     }
 
@@ -377,7 +366,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentTransactionDetailsB
     override fun initializeBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
-    ): FragmentTransactionDetailsBinding {
-        return FragmentTransactionDetailsBinding.inflate(inflater, container, false)
+    ): FragmentDummyTransactionDetailsBinding {
+        return FragmentDummyTransactionDetailsBinding.inflate(inflater, container, false)
     }
 }

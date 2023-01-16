@@ -23,6 +23,7 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.account.PrimaryKeySignerInfoHolder
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -33,12 +34,14 @@ class ClearInfoSessionUseCase @Inject constructor(
     private val sessionHolder: SessionHolder,
     private val accountManager: AccountManager,
     private val singInModeHolder: SignInModeHolder,
-    private val primaryKeySignerInfoHolder: PrimaryKeySignerInfoHolder
+    private val primaryKeySignerInfoHolder: PrimaryKeySignerInfoHolder,
+    private val ncDataStore: NcDataStore,
 ) : UseCase<Unit, Unit>(dispatcher) {
 
     override suspend fun execute(parameters: Unit) {
         sessionHolder.clearActiveSession()
         accountManager.signOut()
+        ncDataStore.clear()
         singInModeHolder.clear()
         primaryKeySignerInfoHolder.clear()
     }

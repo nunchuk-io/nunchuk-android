@@ -60,7 +60,6 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
@@ -172,7 +171,6 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is AddKeyListEvent.OnAddKey -> handleOnAddKey(event.data)
-                AddKeyListEvent.OnAddSameKey -> showSameSignerAdded()
                 is AddKeyListEvent.OnVerifySigner -> openVerifyTapSigner(event)
                 AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack()
             }
@@ -256,19 +254,11 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     private fun openCreateBackUpTapSigner(masterSignerId: String) {
-        if (viewModel.isSignerExist(masterSignerId).not()) {
-            navigator.openCreateBackUpTapSigner(
-                activity = requireActivity(),
-                fromMembershipFlow = true,
-                masterSignerId = masterSignerId
-            )
-        } else {
-            showSameSignerAdded()
-        }
-    }
-
-    private fun showSameSignerAdded() {
-        showError(getString(R.string.nc_error_add_same_key))
+        navigator.openCreateBackUpTapSigner(
+            activity = requireActivity(),
+            fromMembershipFlow = true,
+            masterSignerId = masterSignerId
+        )
     }
 }
 
@@ -518,12 +508,24 @@ fun AddKeyListScreenIronHandPreview() {
         keys = listOf(
             AddKeyData(
                 type = MembershipStep.ADD_TAP_SIGNER_1,
-                SignerModel(id = "123", type = SignerType.NFC, name = "My Key", derivationPath = "", fingerPrint = "123456"),
+                SignerModel(
+                    id = "123",
+                    type = SignerType.NFC,
+                    name = "My Key",
+                    derivationPath = "",
+                    fingerPrint = "123456"
+                ),
                 verifyType = VerifyType.APP_VERIFIED
             ),
             AddKeyData(
                 type = MembershipStep.ADD_TAP_SIGNER_2,
-                signer = SignerModel(id = "123", type = SignerType.NFC, name = "My Key", derivationPath = "", fingerPrint = "123456"),
+                signer = SignerModel(
+                    id = "123",
+                    type = SignerType.NFC,
+                    name = "My Key",
+                    derivationPath = "",
+                    fingerPrint = "123456"
+                ),
                 verifyType = VerifyType.NONE
             ),
             AddKeyData(type = MembershipStep.ADD_SEVER_KEY),
@@ -543,7 +545,13 @@ fun AddKeyListScreenHoneyBadgerPreview() {
             ),
             AddKeyData(
                 type = MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
-                signer = SignerModel(id = "123", type = SignerType.COLDCARD_NFC, name = "TAPSIGNER", derivationPath = "", fingerPrint = "123456"),
+                signer = SignerModel(
+                    id = "123",
+                    type = SignerType.COLDCARD_NFC,
+                    name = "TAPSIGNER",
+                    derivationPath = "",
+                    fingerPrint = "123456"
+                ),
                 verifyType = VerifyType.NONE
             ),
             AddKeyData(

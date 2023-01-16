@@ -19,9 +19,10 @@
 
 package com.nunchuk.android.core.matrix
 
-import com.nunchuk.android.core.network.UnauthorizedEventBus
+import com.nunchuk.android.core.network.UnauthorizedException
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.usecase.contact.GetContactByChatIdUseCase
+import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
@@ -38,7 +39,7 @@ class SessionListener @Inject constructor(
 ) : Session.Listener {
     override fun onGlobalError(session: Session, globalError: GlobalError) {
         if (globalError is GlobalError.InvalidToken || globalError === GlobalError.ExpiredAccount) {
-            UnauthorizedEventBus.instance().publish()
+            CrashlyticsReporter.recordException(UnauthorizedException("Matrix unauthorized"))
         }
     }
 

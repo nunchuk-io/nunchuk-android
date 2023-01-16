@@ -17,20 +17,18 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.transaction.di
+package com.nunchuk.android.usecase.user
 
-import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
-import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCaseImpl
-import dagger.Binds
-import dagger.Module
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
+import com.nunchuk.android.FlowUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.MembershipRepository
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-@Module
-@InstallIn(SingletonComponent::class)
-internal interface TransactionDomainModule {
-
-    @Binds
-    fun bindGetBlockchainExplorerUrlUseCase(useCase: GetBlockchainExplorerUrlUseCaseImpl): GetBlockchainExplorerUrlUseCase
-
+class IsHideUpsellBannerUseCase @Inject constructor(
+    private val repository: MembershipRepository,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher
+) : FlowUseCase<Unit, Boolean>(ioDispatcher) {
+    override fun execute(parameters: Unit): Flow<Boolean> = repository.isHideUpsellBanner()
 }

@@ -44,7 +44,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/nc_height_48"
         android:layout_margin="@dimen/nc_padding_16"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/btnImportSignature"
         app:layout_constraintStart_toStartOf="parent">
 
         <ImageView
@@ -61,5 +61,15 @@
             android:text="@string/nc_transaction_export_transaction_as_file"
             android:textColor="@color/nc_white_color" />
     </LinearLayout>
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btnImportSignature"
+        style="@style/NCPrimaryButton.Light"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/nc_padding_16"
+        android:text="@string/nc_import_signature"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

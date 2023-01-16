@@ -48,7 +48,7 @@ internal class AccountSharedPref @Inject constructor(
     }
 
     fun removeAccount() {
-        sharedPreferences.edit().remove(ACCOUNT_KEY).apply()
+        sharedPreferences.edit().remove(ACCOUNT_KEY).commit()
     }
 
     fun isHasAccountBefore() = sharedPreferences.contains(ACCOUNT_KEY)

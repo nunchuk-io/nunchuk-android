@@ -23,10 +23,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -45,6 +45,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -90,6 +91,7 @@ private fun InheritanceShareSecretInfoScreen(
         remainTime = remainTime,
         type = args.type,
         magicalPhrase = args.magicalPhrase,
+        planFlow = args.planFlow,
         onActionClick = onActionClick
     )
 }
@@ -100,6 +102,7 @@ private fun InheritanceShareSecretInfoContent(
     remainTime: Int = 0,
     magicalPhrase: String = "",
     type: Int = 0,
+    planFlow: Int = InheritancePlanFlow.NONE,
     onActionClick: () -> Unit = {}
 ) {
     NunchukTheme {
@@ -109,14 +112,19 @@ private fun InheritanceShareSecretInfoContent(
                     .padding(innerPadding)
                     .navigationBarsPadding()
             ) {
-                LazyColumn {
+                LazyColumn(modifier = Modifier.weight(1f)) {
                     item {
-                        NcImageAppBar(
-                            backgroundRes = R.drawable.nc_bg_tap_signer_explain,
-                            title = stringResource(
+                        val title = if (planFlow == InheritancePlanFlow.SETUP) {
+                            stringResource(
                                 id = R.string.nc_estimate_remain_time,
                                 remainTime
-                            ),
+                            )
+                        } else {
+                            ""
+                        }
+                        NcImageAppBar(
+                            backgroundRes = R.drawable.nc_bg_tap_signer_explain,
+                            title = title,
                         )
                         val typeDesc = when (type) {
                             InheritanceShareSecretType.DIRECT.ordinal -> stringResource(id = R.string.nc_inheritance_share_secret_info_title_direct)
@@ -135,36 +143,35 @@ private fun InheritanceShareSecretInfoContent(
                             index = 1,
                             label = stringResource(R.string.nc_plan_magical_phrase),
                         )
-                        Box(modifier = Modifier.padding(start = 30.dp)) {
-                            Card(
+
+                        Box(
+                            modifier = Modifier
+                                .padding(start = 50.dp, top = 16.dp, end = 16.dp)
+                                .background(
+                                    color = NcColor.greyLight, shape = RoundedCornerShape(12.dp)
+                                )
+                        ) {
+                            Row(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                shape = RoundedCornerShape(12.dp)
+                                    .padding(16.dp)
+                                    .fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Row(
-                                    modifier = Modifier
-                                        .padding(16.dp)
-                                        .fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        text = magicalPhrase,
-                                        style = NunchukTheme.typography.body,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
+                                Text(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    text = magicalPhrase,
+                                    style = NunchukTheme.typography.body,
+                                    textAlign = TextAlign.Center
+                                )
                             }
                         }
 
                         NCLabelWithIndex(
-                            modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                            modifier = Modifier.padding(16.dp),
                             index = 2,
                             label = stringResource(R.string.nc_inheritance_share_secret_info_2),
                         )
                     }
-
                 }
 
                 val warningDesc = when (type) {

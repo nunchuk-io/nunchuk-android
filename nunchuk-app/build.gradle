@@ -11,7 +11,6 @@ apply plugin: 'androidx.navigation.safeargs.kotlin'
 android {
     compileSdkVersion androidConfig.compileSdkVersion
     buildToolsVersion androidConfig.buildToolsVersion
-    ndkVersion '21.0.6113669'
 
     buildFeatures {
         viewBinding true
@@ -158,8 +157,6 @@ dependencies {
     implementation platform(playServices.firebaseBom)
     implementation playServices.firebaseCrashlytics
     implementation playServices.firebaseNdkCrashlytics
-    implementation playServices.firebaseAnalytics
-    implementation playServices.firebasePerf
 
     implementation lifecycleDeps.values()
 

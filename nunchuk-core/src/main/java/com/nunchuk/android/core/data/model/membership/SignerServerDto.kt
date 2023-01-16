@@ -28,5 +28,6 @@ internal data class SignerServerDto(
     @SerializedName("xpub") val xpub: String? = null,
     @SerializedName("pubkey") val pubkey: String? = null,
     @SerializedName("type") val type: String? = null,
-    @SerializedName("tapsigner") val tapsigner: TapSignerDto? = null
+    @SerializedName("tapsigner") val tapsigner: TapSignerDto? = null,
+    @SerializedName("tags") val tags: List<String>? = null
 )

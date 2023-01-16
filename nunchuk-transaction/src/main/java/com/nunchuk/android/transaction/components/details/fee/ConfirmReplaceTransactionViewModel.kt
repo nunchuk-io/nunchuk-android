@@ -22,6 +22,7 @@ package com.nunchuk.android.transaction.components.details.fee
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.ReplaceTransactionUseCase
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
@@ -35,7 +36,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ConfirmReplaceTransactionViewModel @Inject constructor(
     private val replaceTransactionUseCase: ReplaceTransactionUseCase,
-    private val draftTransactionUseCase: DraftTransactionUseCase
+    private val draftTransactionUseCase: DraftTransactionUseCase,
+    private val assistedWalletManager: AssistedWalletManager,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<ReplaceFeeEvent>()
     private val _state = MutableStateFlow<ConfirmReplaceTransactionState?>(null)
@@ -65,7 +67,12 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
     fun replaceTransaction(walletId: String, txId: String, newFee: Int) {
         viewModelScope.launch {
             _event.emit(ReplaceFeeEvent.Loading(true))
-            val result = replaceTransactionUseCase(ReplaceTransactionUseCase.Data(walletId, txId, newFee))
+            val result = replaceTransactionUseCase(ReplaceTransactionUseCase.Data(
+                walletId = walletId,
+                txId = txId,
+                newFee = newFee,
+                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId),
+            ))
             _event.emit(ReplaceFeeEvent.Loading(false))
             if (result.isSuccess) {
                 _event.emit(ReplaceFeeEvent.ReplaceTransactionSuccess(result.getOrThrow().txId))

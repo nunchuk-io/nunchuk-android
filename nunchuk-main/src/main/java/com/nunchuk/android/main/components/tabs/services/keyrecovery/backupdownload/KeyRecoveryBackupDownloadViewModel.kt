@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.keyrecovery.backupdownload
 
+import android.content.Context
 import android.util.Base64
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -31,6 +32,7 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.util.ChecksumUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -41,6 +43,7 @@ class KeyRecoveryBackupDownloadViewModel @Inject constructor(
     private val verifyTapSignerBackupContentUseCase: VerifyTapSignerBackupContentUseCase,
     private val importTapsignerMasterSignerContentUseCase: ImportTapsignerMasterSignerContentUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @ApplicationContext private val context: Context,
     private val masterSignerMapper: MasterSignerMapper,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -86,7 +89,7 @@ class KeyRecoveryBackupDownloadViewModel @Inject constructor(
                 }
             } else {
                 _state.update {
-                    it.copy(error = resultVerify.exceptionOrNull()?.message.orUnknownError())
+                    it.copy(error = context.getString(R.string.nc_invalid_backup_password))
                 }
             }
         }

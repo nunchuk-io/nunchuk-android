@@ -23,9 +23,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -99,57 +101,60 @@ fun EmergencyLockdownIntroScreenContent(
                 modifier = Modifier
                     .padding(innerPadding)
                     .navigationBarsPadding()
-                    .verticalScroll(rememberScrollState())
             ) {
-                NcImageAppBar(
-                    backgroundRes = R.drawable.nc_bg_emergency_lockdown
-                )
-                Text(
-                    modifier = Modifier.padding(
-                        top = 16.dp,
-                        start = 16.dp,
-                        end = 16.dp
-                    ),
-                    text = stringResource(R.string.nc_emergency_lockdown),
-                    style = NunchukTheme.typography.heading
-                )
-                Text(
-                    modifier = Modifier.padding(
-                        top = 16.dp,
-                        start = 16.dp,
-                        end = 16.dp
-                    ),
-                    text = stringResource(R.string.nc_emergency_lockdown_intro_desc),
-                    style = NunchukTheme.typography.body
-                )
-                NCLabelWithIndex(
-                    modifier = Modifier.padding(
-                        start = 16.dp,
-                        end = 16.dp,
-                        top = 24.dp
-                    ),
-                    index = 1,
-                    label = stringResource(R.string.nc_emergency_lockdown_intro_info_1)
-                )
-                NCLabelWithIndex(
-                    modifier = Modifier.padding(
-                        start = 16.dp,
-                        end = 16.dp,
-                        top = 24.dp
-                    ),
-                    index = 2,
-                    label = stringResource(R.string.nc_emergency_lockdown_intro_info_2)
-                )
-                NCLabelWithIndex(
-                    modifier = Modifier.padding(
-                        start = 16.dp,
-                        end = 16.dp,
-                        top = 24.dp
-                    ),
-                    index = 3,
-                    label = stringResource(R.string.nc_emergency_lockdown_intro_info_3)
-                )
-                Spacer(modifier = Modifier.weight(1.0f))
+                LazyColumn(modifier = Modifier.weight(1f)) {
+                    item {
+                        NcImageAppBar(
+                            backgroundRes = R.drawable.emergency_lockdown_illustrations
+                        )
+                        Text(
+                            modifier = Modifier.padding(
+                                top = 16.dp,
+                                start = 16.dp,
+                                end = 16.dp
+                            ),
+                            text = stringResource(R.string.nc_emergency_lockdown),
+                            style = NunchukTheme.typography.heading
+                        )
+                        Text(
+                            modifier = Modifier.padding(
+                                top = 16.dp,
+                                start = 16.dp,
+                                end = 16.dp
+                            ),
+                            text = stringResource(R.string.nc_emergency_lockdown_intro_desc),
+                            style = NunchukTheme.typography.body
+                        )
+                        NCLabelWithIndex(
+                            modifier = Modifier.padding(
+                                start = 16.dp,
+                                end = 16.dp,
+                                top = 24.dp
+                            ),
+                            index = 1,
+                            label = stringResource(R.string.nc_emergency_lockdown_intro_info_1)
+                        )
+                        NCLabelWithIndex(
+                            modifier = Modifier.padding(
+                                start = 16.dp,
+                                end = 16.dp,
+                                top = 24.dp
+                            ),
+                            index = 2,
+                            label = stringResource(R.string.nc_emergency_lockdown_intro_info_2)
+                        )
+                        NCLabelWithIndex(
+                            modifier = Modifier.padding(
+                                start = 16.dp,
+                                end = 16.dp,
+                                top = 24.dp
+                            ),
+                            index = 3,
+                            label = stringResource(R.string.nc_emergency_lockdown_intro_info_3)
+                        )
+                    }
+                }
+
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()

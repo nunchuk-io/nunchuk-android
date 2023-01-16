@@ -17,20 +17,17 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.di
+package com.nunchuk.android.usecase.user
 
-import com.nunchuk.android.share.InitNunchukUseCase
-import com.nunchuk.android.share.InitNunchukUseCaseImpl
-import dagger.Binds
-import dagger.Module
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.MembershipRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-@Module
-@InstallIn(SingletonComponent::class)
-internal interface ViewModelModule {
-
-    @Binds
-    fun bindInitNunchukUseCase(useCase: InitNunchukUseCaseImpl): InitNunchukUseCase
-
+class HideUpsellBannerUseCase @Inject constructor(
+    private val repository: MembershipRepository,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher
+) : UseCase<Unit, Unit>(ioDispatcher) {
+    override suspend fun execute(parameters: Unit) = repository.setHideUpsellBanner()
 }

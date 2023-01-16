@@ -53,6 +53,7 @@ class ContactsViewModel @Inject constructor(
     private val sessionHolder: SessionHolder,
     private val pushEventManager: PushEventManager,
 ) : NunchukViewModel<ContactsState, Unit>() {
+    private val handledEventIds = hashSetOf<Long>()
 
     override val initialState = ContactsState.empty()
 
@@ -134,9 +135,10 @@ class ContactsViewModel @Inject constructor(
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
         events.forEach { event ->
-            if (event.isCosignedEvent() || event.isCosignedAndBroadcastEvent()) {
+            if (event.isServerTransactionEvent() && !handledEventIds.contains(event.localId)) {
+                handledEventIds.add(event.localId)
                 viewModelScope.launch {
-                    pushEventManager.push(PushEvent.CosigningEvent(event.getWalletId(), event.getTransactionId()))
+                    pushEventManager.push(PushEvent.ServerTransactionEvent(event.getWalletId(), event.getTransactionId()))
                 }
             }
         }

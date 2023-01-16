@@ -35,7 +35,6 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.GetRemoteSignerUseCase
-import com.nunchuk.android.usecase.GetRemoteSignersUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -52,7 +51,6 @@ class AddKeyListViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val nfcFileManager: NfcFileManager,
     private val masterSignerMapper: MasterSignerMapper,
-    private val getRemoteSignersUseCase: GetRemoteSignersUseCase,
     private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
     private val gson: Gson,
@@ -103,11 +101,6 @@ class AddKeyListViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            getRemoteSignersUseCase.execute().collect {
-
-            }
-        }
-        viewModelScope.launch {
             membershipStepState.collect {
                 val news = _keys.value.map { addKeyData ->
                     val info = getStepInfo(addKeyData.type)
@@ -148,9 +141,6 @@ class AddKeyListViewModel @Inject constructor(
     // COLDCARD or Airgap
     fun onSelectedExistingHardwareSigner(signer: SignerModel) {
         viewModelScope.launch {
-            if (isSignerExist(signer.fingerPrint)) {
-                _event.emit(AddKeyListEvent.OnAddSameKey)
-            } else {
                 saveMembershipStepUseCase(
                     MembershipStepInfo(
                         step = membershipStepManager.currentStep
@@ -167,7 +157,6 @@ class AddKeyListViewModel @Inject constructor(
                         )
                     )
                 )
-            }
         }
     }
 
@@ -206,14 +195,15 @@ class AddKeyListViewModel @Inject constructor(
             MembershipStepInfo(step = step, plan = membershipStepManager.plan)
         }
 
-    fun getTapSigners() = _state.value.signers.filter { it.type == SignerType.NFC }
+    fun getTapSigners() = _state.value.signers.filter { it.type == SignerType.NFC && isSignerExist(it.fingerPrint).not() }
 
     fun getColdcard() = _state.value.signers.filter {
         it.type == SignerType.COLDCARD_NFC
                 && it.derivationPath.contains(SIGNER_PATH_PREFIX)
+                && isSignerExist(it.fingerPrint).not()
     }
 
-    fun getAirgap() = _state.value.signers.filter { it.type == SignerType.AIRGAP }
+    fun getAirgap() = _state.value.signers.filter { it.type == SignerType.AIRGAP && isSignerExist(it.fingerPrint).not() }
 
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"
@@ -223,7 +213,6 @@ class AddKeyListViewModel @Inject constructor(
 sealed class AddKeyListEvent {
     data class OnAddKey(val data: AddKeyData) : AddKeyListEvent()
     data class OnVerifySigner(val signer: SignerModel, val filePath: String) : AddKeyListEvent()
-    object OnAddSameKey : AddKeyListEvent()
     object OnAddAllKey : AddKeyListEvent()
 }
 

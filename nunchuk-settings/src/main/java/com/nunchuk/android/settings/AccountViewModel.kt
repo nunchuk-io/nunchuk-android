@@ -28,18 +28,17 @@ import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.matrix.UploadFileUseCase
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
+import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.core.profile.UpdateUseProfileUseCase
-import com.nunchuk.android.core.profile.UserProfileRepository
-import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -48,12 +47,11 @@ internal class AccountViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val updateUseProfileUseCase: UpdateUseProfileUseCase,
     private val uploadFileUseCase: UploadFileUseCase,
-    private val repository: UserProfileRepository,
+    private val sendSignOutUseCase: SendSignOutUseCase,
     private val appScope: CoroutineScope,
     private val signInModeHolder: SignInModeHolder,
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
     private val membershipStepManager: MembershipStepManager,
-    @IoDispatcher private val dispatcher: CoroutineDispatcher
 ) : NunchukViewModel<AccountState, AccountEvent>() {
 
     override val initialState = AccountState()
@@ -137,13 +135,8 @@ internal class AccountViewModel @Inject constructor(
     fun handleSignOutEvent() {
         appScope.launch {
             event(AccountEvent.LoadingEvent(true))
-            repository.signOut()
-                .flowOn(Dispatchers.IO)
-                .onException {
-                    event(AccountEvent.LoadingEvent(false))
-                }
-                .first()
             clearInfoSessionUseCase.invoke(Unit)
+            sendSignOutUseCase(Unit)
             event(AccountEvent.SignOutEvent)
         }
     }

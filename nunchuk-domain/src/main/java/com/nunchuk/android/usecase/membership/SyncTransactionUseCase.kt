@@ -17,42 +17,20 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.util
+package com.nunchuk.android.usecase.membership
 
-import android.Manifest.permission.CAMERA
-import android.Manifest.permission.READ_EXTERNAL_STORAGE
-import android.app.Activity
-import android.content.pm.PackageManager.PERMISSION_GRANTED
-import androidx.activity.result.ActivityResultLauncher
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.nunchuk.android.utils.CrashlyticsReporter
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-private const val READ_STORAGE_PERMISSION_REQUEST_CODE = 0x2048
+class SyncTransactionUseCase @Inject constructor(
+    private val repository: PremiumWalletRepository,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<String, Unit>(ioDispatcher) {
 
-fun Activity.isPermissionGranted(permission: String) =
-    ContextCompat.checkSelfPermission(this, permission) == PERMISSION_GRANTED
-
-fun Activity.checkReadExternalPermission(): Boolean {
-    val isGranted = isPermissionGranted(READ_EXTERNAL_STORAGE)
-    if (!isGranted) {
-        requestReadExternalPermission()
+    override suspend fun execute(parameters: String) {
+        return repository.syncTransaction(parameters)
     }
-    return isGranted
-}
-
-fun Activity.requestReadExternalPermission() = try {
-    ActivityCompat.requestPermissions(
-        this, arrayOf(READ_EXTERNAL_STORAGE), READ_STORAGE_PERMISSION_REQUEST_CODE
-    )
-} catch (e: Exception) {
-    CrashlyticsReporter.recordException(e)
-}
-
-fun ActivityResultLauncher<String>.checkCameraPermission(activity: Activity): Boolean {
-    val isGranted = activity.isPermissionGranted(CAMERA)
-    if (!isGranted) {
-        launch(CAMERA)
-    }
-    return isGranted
 }

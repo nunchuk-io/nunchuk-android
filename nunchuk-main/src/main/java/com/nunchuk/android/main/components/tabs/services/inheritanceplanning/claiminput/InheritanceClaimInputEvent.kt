@@ -31,7 +31,6 @@ sealed class InheritanceClaimInputEvent {
 }
 
 data class InheritanceClaimInputState(
-//    val magicalPhrase: String = "paper cart report",
     val magicalPhrase: String = "",
     val backupPassword: String = "",
     val suggestions: List<String> = emptyList()

@@ -20,7 +20,6 @@
 package com.nunchuk.android.main.components.tabs.services
 
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.nonsubscriber.intro.NonSubscriberIntroEvent
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.banner.BannerPage

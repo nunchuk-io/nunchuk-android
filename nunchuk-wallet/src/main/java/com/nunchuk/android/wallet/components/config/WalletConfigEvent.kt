@@ -31,4 +31,6 @@ sealed class WalletConfigEvent {
 
     data class VerifyPasswordSuccess(val token: String, val xfp: String) : WalletConfigEvent()
     class Loading(val isLoading: Boolean) : WalletConfigEvent()
+    class Error(val message: String) : WalletConfigEvent()
+    object ForceRefreshWalletSuccess : WalletConfigEvent()
 }

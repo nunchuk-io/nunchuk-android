@@ -31,7 +31,6 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.util.checkReadExternalPermission
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.wallet.R
@@ -44,11 +43,12 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
     BottomSheetOptionListener {
     protected val sharedViewModel by viewModels<SharedWalletConfigurationViewModel>()
 
-    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        if (it.resultCode == Activity.RESULT_OK) {
-            sharedViewModel.doneScanQr()
+    private val launcher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                sharedViewModel.doneScanQr()
+            }
         }
-    }
 
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
@@ -128,8 +128,6 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
     }
 
     private fun handleColdcardExportToFile() {
-        if (checkReadExternalPermission()) {
-            sharedViewModel.handleColdcardExportToFile()
-        }
+        sharedViewModel.handleColdcardExportToFile()
     }
 }

@@ -25,7 +25,6 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 class ImportWalletFromMk4UseCase @Inject constructor(
@@ -35,7 +34,7 @@ class ImportWalletFromMk4UseCase @Inject constructor(
 ) : UseCase<List<NdefRecord>, Wallet?>(dispatcher) {
 
     override suspend fun execute(parameters: List<NdefRecord>): Wallet? {
-        val appSettings = getAppSettingUseCase.execute().first()
+        val appSettings = getAppSettingUseCase(Unit).getOrThrow()
         return nunchukNativeSdk.importWalletFromMk4(appSettings.chain.ordinal, parameters.toTypedArray())
     }
 }

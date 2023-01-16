@@ -46,7 +46,7 @@ class MembershipRepositoryImpl @Inject constructor(
     private val gson: Gson,
     private val ncDataStore: NcDataStore,
     private val ncSharePreferences: NCSharePreferences,
-    private val applicationScope: CoroutineScope,
+    applicationScope: CoroutineScope,
 ) : MembershipRepository {
     private val chain = ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
     override fun getSteps(plan: MembershipPlan): Flow<List<MembershipStepInfo>> {
@@ -125,9 +125,11 @@ class MembershipRepositoryImpl @Inject constructor(
     override fun isSetupInheritance(): Flow<Boolean> = ncDataStore.isSetupInheritance
 
     override fun isRegisterColdcard(): Flow<Boolean> = ncDataStore.isRegisterColdCard
+    override fun isHideUpsellBanner(): Flow<Boolean> = ncDataStore.isHideUpsellBanner
 
     override suspend fun setRegisterAirgap(value: Boolean) = ncDataStore.setRegisterAirgap(value)
     override suspend fun setSetupInheritance(value: Boolean) = ncDataStore.setSetupInheritance(value)
 
     override suspend fun setRegisterColdcard(value: Boolean) = ncDataStore.setRegisterColdcard(value)
+    override suspend fun setHideUpsellBanner() = ncDataStore.setHideUpsellBanner()
 }

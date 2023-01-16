@@ -24,7 +24,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
-import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
+import com.nunchuk.android.core.util.CardIdManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -33,30 +33,33 @@ import javax.inject.Inject
 @HiltViewModel
 class TapSignerIdViewModel @Inject constructor(
     private val getTapSignerBackupUseCase: GetTapSignerBackupUseCase,
-    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
-    private val savedStateHandle: SavedStateHandle
+    cardIdManager: CardIdManager,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val args : TapSignerIdFragmentArgs = TapSignerIdFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    private val args: TapSignerIdFragmentArgs =
+        TapSignerIdFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _event = MutableSharedFlow<TapSignerIdEvent>()
     val event = _event.asSharedFlow()
-
-    init {
-        viewModelScope.launch {
-            val result = getTapSignerStatusByIdUseCase(args.masterSignerId)
-            if (result.isSuccess) {
-                _state.update { it.copy(cardId = result.getOrThrow().ident.orEmpty()) }
-            }
-        }
-    }
 
     private val _state = MutableStateFlow(TapSignerIdState(""))
     val state = _state.asStateFlow()
 
+    init {
+        viewModelScope.launch {
+            _state.update { it.copy(cardId = cardIdManager.getCardId(args.masterSignerId)) }
+        }
+    }
 
     fun getTapSignerBackup(isoDep: IsoDep, cvc: String) {
         viewModelScope.launch {
             _event.emit(TapSignerIdEvent.NfcLoading(true))
-            val result = getTapSignerBackupUseCase(GetTapSignerBackupUseCase.Data(isoDep, cvc, args.masterSignerId))
+            val result = getTapSignerBackupUseCase(
+                GetTapSignerBackupUseCase.Data(
+                    isoDep,
+                    cvc,
+                    args.masterSignerId
+                )
+            )
             _event.emit(TapSignerIdEvent.NfcLoading(false))
             if (result.isSuccess) {
                 _event.emit(TapSignerIdEvent.GetTapSignerBackupKeyEvent(result.getOrThrow()))
