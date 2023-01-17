@@ -25,7 +25,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
-import androidx.core.view.WindowCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -61,6 +60,8 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
 
     private val viewModel by viewModels<SetupChainCodeViewModel>()
     private val nfcViewModel by activityViewModels<NfcViewModel>()
+    private val selectedBackground = R.drawable.nc_rounded_12dp_stroke_primary_background
+    private val unselectedBackground = R.drawable.nc_rounded_12dp_stroke_border_background
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentSetupChainCodeBinding {
         return FragmentSetupChainCodeBinding.inflate(inflater, container, false)
@@ -82,6 +83,9 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
     private fun initViews() {
         binding.etChainCode.setMaxLength(CHAIN_CODE_LENGTH)
         binding.etChainCode.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_120))
+        binding.tvTitle.text = getString(R.string.nc_estimate_remain_time,membershipStepManager.remainingTime.value)
+        binding.cardAutomatic.setBackgroundResource(selectedBackground)
+        binding.cardAdvanced.setBackgroundResource(unselectedBackground)
     }
 
     private fun observer() {
@@ -102,6 +106,8 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
         val onRadioClickListener = View.OnClickListener {
             binding.radioAdvanced.isChecked = it.id == binding.cardAdvanced.id
             binding.radioAutomatic.isChecked = it.id == binding.cardAutomatic.id
+            binding.cardAdvanced.setBackgroundResource(if (it.id == binding.cardAdvanced.id) selectedBackground else unselectedBackground)
+            binding.cardAutomatic.setBackgroundResource(if (it.id == binding.cardAutomatic.id) selectedBackground else unselectedBackground)
         }
         val onCheckChangeListener = CompoundButton.OnCheckedChangeListener { _, _ ->
             binding.btnGenerate.isVisible = binding.radioAdvanced.isChecked
