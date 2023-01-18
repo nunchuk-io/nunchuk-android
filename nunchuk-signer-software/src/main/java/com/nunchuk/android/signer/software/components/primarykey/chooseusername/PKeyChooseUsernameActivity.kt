@@ -105,7 +105,6 @@ class PKeyChooseUsernameActivity : BaseActivity<ActivityPkeyChooseUsernameBindin
     }
 
     private fun setupViews() {
-        binding.usernameInput.preventWhitespaceInput()
         binding.usernameInput.addTextChangedCallback {
             viewModel.updateUsername(it)
         }

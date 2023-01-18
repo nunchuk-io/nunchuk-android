@@ -128,15 +128,20 @@ internal class SignInViewModel @Inject constructor(
     fun checkPrimaryKeyAccounts() = viewModelScope.launch {
         val result = getPrimaryKeyListUseCase(Unit)
         if (result.isSuccess) {
-            val data = result.getOrThrow()
-            if (data.isEmpty()) event(CheckPrimaryKeyAccountEvent(arrayListOf()))
-            else event(CheckPrimaryKeyAccountEvent(ArrayList(data)))
+            val data = result.getOrNull().orEmpty()
+            if (data.isEmpty()) {
+                event(CheckPrimaryKeyAccountEvent(arrayListOf()))
+            } else {
+                event(CheckPrimaryKeyAccountEvent(ArrayList(data)))
+            }
         }
     }
 
-    private suspend fun initNunchuk() = initNunchukUseCase(InitNunchukUseCase.Param(
-        accountId = accountManager.getAccount().email
-    ))
+    private suspend fun initNunchuk() = initNunchukUseCase(
+        InitNunchukUseCase.Param(
+            accountId = accountManager.getAccount().email
+        )
+    )
 
     fun storeStaySignedIn(staySignedIn: Boolean) {
         this.staySignedIn = staySignedIn
