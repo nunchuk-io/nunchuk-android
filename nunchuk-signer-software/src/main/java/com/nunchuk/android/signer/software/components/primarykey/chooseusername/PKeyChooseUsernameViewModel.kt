@@ -75,7 +75,10 @@ internal class PKeyChooseUsernameViewModel @AssistedInject constructor(
 
     fun handleContinue() = viewModelScope.launch {
         val state = getState()
-        if (state.username.trim().contains(" ")) return@launch
+        if (state.username.trim().contains(" ")) {
+            setEvent(PKeyChooseUsernameEvent.InvalidUsername)
+            return@launch
+        }
         setEvent(PKeyChooseUsernameEvent.LoadingEvent(true))
         val initNunchukResult =
             initNunchukUseCase(InitNunchukUseCase.Param(accountId = state.username))
