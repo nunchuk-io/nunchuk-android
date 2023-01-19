@@ -20,7 +20,9 @@
 package com.nunchuk.android.messages.util
 
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.isImageMessage
 import org.matrix.android.sdk.api.session.events.model.isTextMessage
+import org.matrix.android.sdk.api.session.events.model.isVideoMessage
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
 // Naming follow Matrix's convention
@@ -60,7 +62,7 @@ fun TimelineEvent.isEncryptedEvent() = root.getClearType() == EventType.ENCRYPTE
 
 fun TimelineEvent.isRoomNameEvent() = root.getClearType() == EventType.STATE_ROOM_NAME
 
-fun TimelineEvent.isMessageEvent() = root.isTextMessage()
+fun TimelineEvent.isMessageEvent() = root.isTextMessage() || root.isVideoMessage() || root.isImageMessage()
 
 fun TimelineEvent.isNunchukEvent() =
     isNunchukWalletEvent() || isNunchukTransactionEvent() || isNunchukErrorEvent()

@@ -31,7 +31,7 @@ import com.nunchuk.android.nav.MessageNavigator
 
 interface MessageNavigatorDelegate : MessageNavigator {
 
-    override fun openRoomDetailActivity(activityContext: Context, roomId: String, roomAction: RoomAction?) {
+    override fun openRoomDetailActivity(activityContext: Context, roomId: String, roomAction: RoomAction) {
         RoomDetailActivity.start(activityContext, roomId, roomAction)
     }
 

@@ -47,7 +47,7 @@ ext {
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
     PATCH_VERSION = 24
-    TASK_LABEL = "MEMBER_SHIP"
+    TASK_LABEL = "SEND_MEDIA"
 
     VERSION_CODE = 195
 
@@ -90,6 +90,7 @@ ext {
             supportAnnotation: "androidx.annotation:annotation:${androidxVersion}",
             constraintLayout : "androidx.constraintlayout:constraintlayout:${constraintLayoutVersion}",
             multidex         : "androidx.multidex:multidex:${mutlidexVersion}",
+            core             : "androidx.core:core-ktx:1.9.0",
     ]
 
     navigationDeps = [

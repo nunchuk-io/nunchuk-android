@@ -2,6 +2,7 @@ apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 apply plugin: 'kotlin-parcelize'
 apply plugin: 'dagger.hilt.android.plugin'
+apply plugin: 'androidx.navigation.safeargs.kotlin'
 
 dependencies {
 
@@ -13,6 +14,14 @@ dependencies {
     implementation nunchukDeps.nativeSdk
 
     implementation 'com.google.android.flexbox:flexbox:3.0.0'
+    implementation 'com.github.chrisbanes:PhotoView:2.3.0'
+    implementation 'androidx.documentfile:documentfile:1.0.1'
+
+    implementation "androidx.media3:media3-exoplayer:1.0.0-beta03"
+    implementation "androidx.media3:media3-ui:1.0.0-beta03"
+    implementation "androidx.media3:media3-exoplayer-dash:1.0.0-beta03"
+
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
 
     implementation androidxDeps.values()
     implementation lifecycleDeps.values()

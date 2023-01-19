@@ -76,7 +76,8 @@ object SheetOptionType {
     const val TYPE_FORCE_REFRESH_WALLET = 26
 
     // Chat Action
-    const val CHAT_ACTION_CAPTURE_CAMERA = 26
-    const val CHAT_ACTION_SELECT_PHOTO_VIDEO = 26
-    const val CHAT_ACTION_SELECT_FILE = 26
+    const val CHAT_ACTION_TAKE_PHOTO = 26
+    const val CHAT_ACTION_CAPTURE_VIDEO = 27
+    const val CHAT_ACTION_SELECT_PHOTO_VIDEO = 28
+    const val CHAT_ACTION_SELECT_FILE = 29
 }
