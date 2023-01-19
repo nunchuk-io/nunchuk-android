@@ -67,6 +67,7 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
     private fun observer() {
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_EXPORT_WALLET_TO_MK4 }) {
             sharedViewModel.handleColdcardExportNfc(Ndef.get(it.tag) ?: return@flowObserver)
+            nfcViewModel.clearScanInfo()
         }
         sharedViewModel.event.observe(this, ::handleSharedEvent)
     }

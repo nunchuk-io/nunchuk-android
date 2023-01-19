@@ -104,9 +104,11 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
         }
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_IMPORT_MULTI_WALLET_FROM_MK4 }) {
             viewModel.importWalletFromMk4(it.records)
+            nfcViewModel.clearScanInfo()
         }
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_IMPORT_SINGLE_WALLET_FROM_MK4 }) {
             viewModel.getWalletsFromColdCard(it.records)
+            nfcViewModel.clearScanInfo()
         }
     }
 

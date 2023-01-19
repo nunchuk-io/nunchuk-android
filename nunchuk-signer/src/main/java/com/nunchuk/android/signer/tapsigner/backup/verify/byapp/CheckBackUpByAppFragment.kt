@@ -124,6 +124,7 @@ class CheckBackUpByAppFragment : MembershipFragment() {
                 nfcViewModel.masterSignerId,
                 nfcViewModel.inputCvc.orEmpty()
             )
+            nfcViewModel.clearScanInfo()
         }
     }
 
