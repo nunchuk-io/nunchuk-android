@@ -161,14 +161,14 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         isContactUpdateEvent() -> {
             PushNotificationData(
                 title = getString(R.string.notification_contact_update),
-                message = lastMessageContent(),
+                message = lastMessageContent(this@PushNotificationMessagingService),
                 intent = intentProvider.getMainIntent()
             )
         }
         isMessageEvent() -> {
             PushNotificationData(
                 title = lastMessageSender(),
-                message = lastMessageContent(),
+                message = lastMessageContent(this@PushNotificationMessagingService),
                 intent = intentProvider.getRoomDetailsIntent(roomId)
             )
         }

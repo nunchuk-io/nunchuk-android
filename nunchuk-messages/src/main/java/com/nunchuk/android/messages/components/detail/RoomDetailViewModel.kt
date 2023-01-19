@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.messages.components.detail
 
+import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
@@ -29,6 +30,7 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
+import com.nunchuk.android.messages.usecase.media.SendMediaUseCase
 import com.nunchuk.android.messages.usecase.message.CheckShowBannerNewChatUseCase
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.messages.util.*
@@ -67,6 +69,7 @@ class RoomDetailViewModel @Inject constructor(
     private val getContactsUseCase: GetContactsUseCase,
     private val leaveRoomUseCase: LeaveRoomUseCase,
     private val sessionHolder: SessionHolder,
+    private val sendMediaUseCase: SendMediaUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : NunchukViewModel<RoomDetailState, RoomDetailEvent>() {
 
@@ -267,7 +270,7 @@ class RoomDetailViewModel @Inject constructor(
     private fun onConsumeEventCompleted() {
         val latestEventTs = room.roomSummary().latestPreviewableEventTs()
         getTransactions()
-        if (latestEventTs != latestPreviewableEventTs) {
+        if (latestEventTs > latestPreviewableEventTs) {
             latestPreviewableEventTs = latestEventTs
             setEvent(HasUpdatedEvent)
         }
@@ -479,6 +482,25 @@ class RoomDetailViewModel @Inject constructor(
             getState().selectedEventIds.remove(eventId)
         }
         handleUpdateMessagesContent(isSelectedEnable = true)
+    }
+
+    fun sendMedia(uri: List<Uri>) {
+        viewModelScope.launch {
+            setEvent(Loading(true))
+            val result = sendMediaUseCase(SendMediaUseCase.Data(room, uri))
+            setEvent(Loading(false))
+            if (result.isFailure) {
+                setEvent(ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun getMediaMessages() = room.timelineService().getAttachmentMessages()
+
+    fun clearEvent() {
+        if (event.value != None) {
+            setEvent(None)
+        }
     }
 
     override fun onCleared() {

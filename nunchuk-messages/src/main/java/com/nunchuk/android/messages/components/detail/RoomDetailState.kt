@@ -68,4 +68,7 @@ sealed class RoomDetailEvent {
     object HasUpdatedEvent : RoomDetailEvent()
     object GetRoomWalletSuccessEvent : RoomDetailEvent()
     object LeaveRoomEvent : RoomDetailEvent()
+    object None : RoomDetailEvent()
+    data class ShowError(val message: String) : RoomDetailEvent()
+    data class Loading(val isLoading: Boolean) : RoomDetailEvent()
 }

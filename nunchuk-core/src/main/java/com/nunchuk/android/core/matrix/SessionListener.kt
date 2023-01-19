@@ -49,7 +49,9 @@ class SessionListener @Inject constructor(
             val chatId = summary.roomSummary()?.inviterId ?: return@launch
             val result = getContactByChatIdUseCase(chatId)
             if (result.isSuccess && result.getOrThrow() != null) {
-                session.roomService().joinRoom(roomId)
+                runCatching {
+                    session.roomService().joinRoom(roomId)
+                }
             }
         }
     }

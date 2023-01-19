@@ -25,7 +25,7 @@ import com.nunchuk.android.core.constants.RoomAction
 
 interface MessageNavigator {
 
-    fun openRoomDetailActivity(activityContext: Context, roomId: String, roomAction: RoomAction? = null)
+    fun openRoomDetailActivity(activityContext: Context, roomId: String, roomAction: RoomAction = RoomAction.NONE)
 
     fun returnRoomDetailScreen()
 
