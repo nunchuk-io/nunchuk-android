@@ -75,6 +75,7 @@ class PKeyChooseUsernameActivity : BaseActivity<ActivityPkeyChooseUsernameBindin
             is PKeyChooseUsernameEvent.ProcessFailure -> NCToastMessage(this).showError(event.message)
             is PKeyChooseUsernameEvent.SignUpSuccess -> viewModel.getTurnOnNotification()
             is PKeyChooseUsernameEvent.GetTurnOnNotificationSuccess -> openNextScreen(event.isTurnOn)
+            PKeyChooseUsernameEvent.InvalidUsername -> NCToastMessage(this).showError(getString(R.string.nc_primary_key_invalid_username))
         }
     }
 
@@ -105,7 +106,6 @@ class PKeyChooseUsernameActivity : BaseActivity<ActivityPkeyChooseUsernameBindin
     }
 
     private fun setupViews() {
-        binding.usernameInput.preventWhitespaceInput()
         binding.usernameInput.addTextChangedCallback {
             viewModel.updateUsername(it)
         }

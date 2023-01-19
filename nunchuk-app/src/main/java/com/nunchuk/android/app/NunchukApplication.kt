@@ -23,13 +23,16 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.multidex.MultiDexApplication
 import androidx.work.Configuration
 import com.nunchuk.android.BuildConfig
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.ForegroundAppBackgroundListener
+import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.matrix.MatrixInitializerUseCase
 import com.nunchuk.android.core.util.AppEvenBus
 import com.nunchuk.android.core.util.AppEvent
 import com.nunchuk.android.log.FileLogTree
+import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.util.FileHelper
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.runBlocking
@@ -50,6 +53,12 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
     @Inject
     lateinit var matrixInitializerUseCase: MatrixInitializerUseCase
 
+    @Inject
+    lateinit var accountManager: AccountManager
+
+    @Inject
+    lateinit var initNunchukUseCase: InitNunchukUseCase
+
     private val foregroundAppBackgroundListener = ForegroundAppBackgroundListener(
         onResumeAppCallback = { AppEvenBus.instance.publish(AppEvent.AppResumedEvent) }
     )
@@ -61,6 +70,13 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
         }
         runBlocking {
             matrixInitializerUseCase(Unit)
+            val account = accountManager.getAccount()
+            val accountId = if (account.loginType == SignInMode.PRIMARY_KEY.value) {
+                account.username
+            } else {
+                account.email
+            }
+            initNunchukUseCase(InitNunchukUseCase.Param(accountId = accountId))
         }
         fileHelper.getOrCreateNunchukRootDir()
         registerActivityLifecycleCallbacks(ActivityManager)

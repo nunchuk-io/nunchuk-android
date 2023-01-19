@@ -109,6 +109,7 @@ class CheckSignMessageFragment : Fragment() {
                         is WalletAuthenticationEvent.ShowError -> showError(event.message)
                         WalletAuthenticationEvent.ShowAirgapOption -> Unit
                         WalletAuthenticationEvent.ExportTransactionToColdcardSuccess -> Unit
+                        WalletAuthenticationEvent.CanNotSignDummyTx -> showError(getString(R.string.nc_can_not_sign_please_try_again))
                     }
                 }
         }

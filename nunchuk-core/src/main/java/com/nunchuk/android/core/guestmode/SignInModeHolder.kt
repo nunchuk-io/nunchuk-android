@@ -28,6 +28,26 @@ class SignInModeHolder @Inject constructor(private val accountManager: AccountMa
 
     private var currentMode: SignInMode = SignInMode.UNKNOWN
 
+    init {
+        val isAccountExist = accountManager.isAccountExisted()
+        val loginType = accountManager.loginType()
+        if (isAccountExist) {
+            when (loginType) {
+                SignInMode.UNKNOWN.value, SignInMode.EMAIL.value -> {
+                    setCurrentMode(SignInMode.EMAIL)
+                }
+                SignInMode.PRIMARY_KEY.value -> {
+                    setCurrentMode(SignInMode.PRIMARY_KEY)
+                }
+                else -> {
+                    setCurrentMode(SignInMode.GUEST_MODE)
+                }
+            }
+        } else {
+            setCurrentMode(SignInMode.GUEST_MODE)
+        }
+    }
+
     fun getCurrentMode(): SignInMode = currentMode
 
     fun setCurrentMode(mode: SignInMode) {
@@ -52,4 +72,3 @@ enum class SignInMode(val value: Int) {
 
 fun SignInMode.isGuestMode() = this == SignInMode.GUEST_MODE
 fun SignInMode.isPrimaryKey() = this == SignInMode.PRIMARY_KEY
-fun SignInMode.isUnknown() = this == SignInMode.UNKNOWN

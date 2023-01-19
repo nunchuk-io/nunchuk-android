@@ -209,53 +209,53 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
     }
 
     override fun openImportTransactionScreen(
+        launcher: ActivityResultLauncher<Intent>?,
         activityContext: Activity,
         walletId: String,
         transactionOption: TransactionOption,
         masterFingerPrint: String,
-        initEventId: String
+        initEventId: String,
+        isDummyTx: Boolean,
+        isFinishWhenError: Boolean
     ) {
-        activityContext.startActivity(
-            ImportTransactionActivity.buildIntent(
-                activityContext = activityContext,
-                walletId = walletId,
-                transactionOption = transactionOption,
-                masterFingerPrint = masterFingerPrint,
-                initEventId = initEventId
-            )
+        val intent = ImportTransactionActivity.buildIntent(
+            activityContext = activityContext,
+            walletId = walletId,
+            transactionOption = transactionOption,
+            masterFingerPrint = masterFingerPrint,
+            initEventId = initEventId,
+            isDummyTx = isDummyTx,
+            isFinishWhenError = isFinishWhenError
         )
-    }
-
-    override fun openImportDummyTransactionScreen(
-        launcher: ActivityResultLauncher<Intent>,
-        activityContext: Activity,
-        transactionOption: TransactionOption,
-        walletId: String,
-    ) {
-        launcher.launch(
-            ImportTransactionActivity.buildIntent(
-                activityContext = activityContext,
-                transactionOption = transactionOption,
-                walletId = walletId,
-                isDummyTx = true
-            )
-        )
+        if (launcher != null) {
+            launcher.launch(intent)
+        } else {
+            activityContext.startActivity(intent)
+        }
     }
 
     override fun openExportTransactionScreen(
+        launcher: ActivityResultLauncher<Intent>?,
         activityContext: Activity,
         walletId: String,
         txId: String,
         txToSign: String,
-        transactionOption: TransactionOption
+        transactionOption: TransactionOption,
+        isDummyTx: Boolean
     ) {
-        ExportTransactionActivity.start(
+        val intent = ExportTransactionActivity.buildIntent(
             activityContext = activityContext,
             walletId = walletId,
             txId = txId,
             txToSign = txToSign,
-            transactionOption = transactionOption
+            transactionOption = transactionOption,
+            isDummyTx = isDummyTx
         )
+        if (launcher != null) {
+            launcher.launch(intent)
+        } else {
+            activityContext.startActivity(intent)
+        }
     }
 
     override fun openReplaceTransactionFee(

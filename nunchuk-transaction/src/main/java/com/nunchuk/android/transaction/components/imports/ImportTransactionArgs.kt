@@ -31,6 +31,7 @@ data class ImportTransactionArgs(
     val masterFingerPrint: String,
     val initEventId: String,
     val isDummyTx: Boolean,
+    val isFinishWhenError: Boolean,
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, ImportTransactionActivity::class.java).apply {
@@ -39,6 +40,7 @@ data class ImportTransactionArgs(
         putExtra(EXTRA_MASTER_FINGER_PRINT, masterFingerPrint)
         putExtra(EXTRA_INIT_EVENT_ID, initEventId)
         putExtra(EXTRA_IS_DUMMY_TX, isDummyTx)
+        putExtra(EXTRA_IS_FINISH_WHEN_ERROR, isFinishWhenError)
     }
 
     companion object {
@@ -47,6 +49,7 @@ data class ImportTransactionArgs(
         private const val EXTRA_MASTER_FINGER_PRINT = "c"
         private const val EXTRA_INIT_EVENT_ID = "d"
         private const val EXTRA_IS_DUMMY_TX = "e"
+        private const val EXTRA_IS_FINISH_WHEN_ERROR = "f"
 
         fun deserializeFrom(intent: Intent): ImportTransactionArgs {
             val extras = intent.extras
@@ -55,7 +58,8 @@ data class ImportTransactionArgs(
                 transactionOption = extras?.getSerializable(EXTRA_TRANSACTION_OPTION) as TransactionOption? ?: TransactionOption.IMPORT_KEYSTONE,
                 masterFingerPrint = extras.getStringValue(EXTRA_MASTER_FINGER_PRINT),
                 initEventId = extras.getStringValue(EXTRA_INIT_EVENT_ID),
-                isDummyTx = extras?.getBoolean(EXTRA_IS_DUMMY_TX) ?: false
+                isDummyTx = extras?.getBoolean(EXTRA_IS_DUMMY_TX) ?: false,
+                isFinishWhenError = extras?.getBoolean(EXTRA_IS_FINISH_WHEN_ERROR) ?: false
             )
         }
     }

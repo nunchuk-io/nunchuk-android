@@ -25,7 +25,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.ui.Modifier
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseFragment

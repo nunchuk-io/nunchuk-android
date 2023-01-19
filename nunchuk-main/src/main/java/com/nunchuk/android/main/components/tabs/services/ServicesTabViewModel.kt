@@ -27,6 +27,7 @@ import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlanFlowUseC
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCase
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
@@ -43,6 +44,7 @@ import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -61,6 +63,7 @@ class ServicesTabViewModel @Inject constructor(
     private val getAssistedWalletPageContentUseCase: GetAssistedWalletPageContentUseCase,
     private val getBannerUseCase: GetBannerUseCase,
     private val submitEmailUseCase: SubmitEmailUseCase,
+    private val assistedWalletManager: AssistedWalletManager,
     isSetupInheritanceUseCase: IsSetupInheritanceUseCase,
 ) : ViewModel() {
 
@@ -75,18 +78,30 @@ class ServicesTabViewModel @Inject constructor(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
+    private var inheritanceJob: Job? = null
+
     init {
         viewModelScope.launch {
             getLocalMembershipPlanFlowUseCase(Unit)
                 .map { it.getOrElse { MembershipPlan.NONE } }
-                .zip(getAssistedWalletIdsFlowUseCase(Unit)
+                .combine(getAssistedWalletIdsFlowUseCase(Unit)
                     .map { it.getOrElse { "" } }
-                    .distinctUntilChanged()) { plan, walletId ->
+                    .distinctUntilChanged()
+                ) { plan, walletId ->
                     plan to walletId
-                }.collect { (plan, walletId) ->
+                }
+                .collect { (plan, walletId) ->
                     _state.update { it.copy(walletId = walletId) }
                     getInheritance(walletId, plan)
                 }
+        }
+
+        viewModelScope.launch {
+            assistedWalletManager.assistedWalletId.distinctUntilChanged().collect { walletId ->
+                if (assistedWalletManager.isActiveAssistedWallet(walletId)) {
+                    _state.update { it.copy(isCreatedAssistedWallet = true, walletId = walletId) }
+                }
+            }
         }
 
         viewModelScope.launch {
@@ -98,33 +113,35 @@ class ServicesTabViewModel @Inject constructor(
 
     fun getInheritance() = _state.value.inheritance
 
-    private suspend fun getInheritance(walletLocalId: String, plan: MembershipPlan) {
+    private fun getInheritance(walletLocalId: String, plan: MembershipPlan) {
         if (plan == MembershipPlan.NONE) {
             getNonSubscriberPageContent()
         } else {
+            _state.update {
+                it.copy(
+                    plan = plan,
+                    isPremiumUser = true,
+                    isCreatedAssistedWallet = walletLocalId.isNotEmpty()
+                )
+            }
             if (walletLocalId.isNotEmpty() && plan == MembershipPlan.HONEY_BADGER) {
-                val inheritanceResult = getInheritanceUseCase(walletLocalId)
-                if (inheritanceResult.isSuccess) {
-                    _state.update {
-                        it.copy(
-                            isCreatedAssistedWallet = true,
-                            plan = plan,
-                            isPremiumUser = true,
-                            inheritance = inheritanceResult.getOrNull(),
-                        )
+                inheritanceJob?.cancel()
+                inheritanceJob = viewModelScope.launch {
+                    val inheritanceResult = getInheritanceUseCase(walletLocalId)
+                    if (inheritanceResult.isSuccess) {
+                        _state.update {
+                            it.copy(
+                                inheritance = inheritanceResult.getOrNull(),
+                            )
+                        }
                     }
-                } else {
-                    _event.emit(ServicesTabEvent.ProcessFailure(inheritanceResult.exceptionOrNull()?.message.orUnknownError()))
                 }
             } else {
-                val bannerResult = getBannerUseCase(Unit)
-                _state.update {
-                    it.copy(
-                        isCreatedAssistedWallet = false,
-                        plan = plan,
-                        isPremiumUser = true,
-                        banner = bannerResult.getOrNull(),
-                    )
+                viewModelScope.launch {
+                    val bannerResult = getBannerUseCase(Unit)
+                    _state.update {
+                        it.copy(banner = bannerResult.getOrNull())
+                    }
                 }
             }
         }

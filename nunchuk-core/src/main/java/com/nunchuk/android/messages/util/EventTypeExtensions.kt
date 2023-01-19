@@ -20,7 +20,9 @@
 package com.nunchuk.android.messages.util
 
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.isImageMessage
 import org.matrix.android.sdk.api.session.events.model.isTextMessage
+import org.matrix.android.sdk.api.session.events.model.isVideoMessage
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
 // Naming follow Matrix's convention
@@ -33,6 +35,7 @@ const val STATE_NUNCHUK_CONTACT_INVITATION_ACCEPTED = "io.nunchuk.custom.invitat
 const val STATE_NUNCHUK_CONTACT_REQUEST_ACCEPTED = "io.nunchuk.custom.contact_request_accepted"
 const val STATE_NUNCHUK_CONTACT_WITHDRAW_INVITATION = "io.nunchuk.custom.withdraw_invitation"
 const val TRANSACTION_CO_SIGNED = "io.nunchuk.custom.transaction_co_signed"
+const val TRANSACTION_SCHEDULE_BROADCAST = "io.nunchuk.custom.transaction_schedule_broadcast"
 const val SUBSCRIPTION_SUBSCRIPTION_ACTIVE = "io.nunchuk.custom.subscription_activated"
 const val SUBSCRIPTION_SUBSCRIPTION_PENDING = "io.nunchuk.custom.subscription_pending"
 const val TRANSACTION_CO_SIGNED_AND_BROADCAST =
@@ -59,7 +62,7 @@ fun TimelineEvent.isEncryptedEvent() = root.getClearType() == EventType.ENCRYPTE
 
 fun TimelineEvent.isRoomNameEvent() = root.getClearType() == EventType.STATE_ROOM_NAME
 
-fun TimelineEvent.isMessageEvent() = root.isTextMessage()
+fun TimelineEvent.isMessageEvent() = root.isTextMessage() || root.isVideoMessage() || root.isImageMessage()
 
 fun TimelineEvent.isNunchukEvent() =
     isNunchukWalletEvent() || isNunchukTransactionEvent() || isNunchukErrorEvent()
@@ -86,7 +89,11 @@ fun TimelineEvent.isContactRequestAcceptedEvent() =
 fun TimelineEvent.isContactInvitationAcceptedEvent() =
     getMsgType() == STATE_NUNCHUK_CONTACT_INVITATION_ACCEPTED
 
+fun TimelineEvent.isServerTransactionEvent() = isCosignedEvent() || isBroadcastEvent() || isCosignedAndBroadcastEvent()
+
 fun TimelineEvent.isCosignedEvent() = getMsgType() == TRANSACTION_CO_SIGNED
+
+fun TimelineEvent.isBroadcastEvent() = getMsgType() == TRANSACTION_SCHEDULE_BROADCAST
 
 fun TimelineEvent.isCosignedAndBroadcastEvent() =
     getMsgType() == TRANSACTION_CO_SIGNED_AND_BROADCAST

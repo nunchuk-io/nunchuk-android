@@ -38,7 +38,7 @@ interface UserProfileRepository {
 
     fun updateUserProfile(name: String?, avatarUrl: String?): Flow<UserProfileResponse>
 
-    fun signOut(): Flow<Unit>
+    suspend fun sendSignOut()
 
     fun getUserDevices(): Flow<List<UserDeviceResponse>>
 
@@ -82,10 +82,8 @@ internal class UserProfileRepositoryImpl @Inject constructor(
         emit(userProfileApi.updateUserProfile(payload).data.user)
     }.flowOn(Dispatchers.IO)
 
-    override fun signOut() = flow {
-        ncDataStore.clear()
+    override suspend fun sendSignOut() {
         userProfileApi.signOut()
-        emit(Unit)
     }
 
     override fun getUserDevices() = flow {

@@ -27,12 +27,7 @@ import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.InitNunchukUseCase
-import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -47,15 +42,16 @@ internal class GuestModeViewModel @Inject constructor(
 
     fun initGuestModeNunchuk() {
         viewModelScope.launch {
-            initNunchukUseCase.execute(accountId = "")
-                .map { accountManager.removeAccount() }
-                .flowOn(Dispatchers.IO)
-                .onStart { setEvent(GuestModeEvent.LoadingEvent(true)) }
-                .onException { event(GuestModeEvent.InitErrorEvent(it.message.orUnknownError())) }
-                .collect {
-                    signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
-                    event(GuestModeEvent.InitSuccessEvent)
-                }
+            setEvent(GuestModeEvent.LoadingEvent(true))
+            val result = initNunchukUseCase(InitNunchukUseCase.Param(accountId = ""))
+            setEvent(GuestModeEvent.LoadingEvent(false))
+            if (result.isSuccess) {
+                accountManager.removeAccount()
+                signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
+                event(GuestModeEvent.InitSuccessEvent)
+            } else {
+                event(GuestModeEvent.InitErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+            }
         }
     }
 }

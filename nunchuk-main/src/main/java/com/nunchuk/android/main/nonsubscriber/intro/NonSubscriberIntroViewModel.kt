@@ -26,6 +26,7 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.main.nonsubscriber.intro.model.AssistedWalletPoint
 import com.nunchuk.android.usecase.banner.GetAssistedWalletPageContentUseCase
 import com.nunchuk.android.usecase.banner.SubmitEmailUseCase
+import com.nunchuk.android.usecase.user.HideUpsellBannerUseCase
 import com.nunchuk.android.utils.EmailValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -37,6 +38,7 @@ class NonSubscriberIntroViewModel @Inject constructor(
     private val getAssistedWalletPageContentUseCase: GetAssistedWalletPageContentUseCase,
     private val submitEmailUseCase: SubmitEmailUseCase,
     private val accountManager: AccountManager,
+    private val hideUpsellBannerUseCase: HideUpsellBannerUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val args = NonSubscriberIntroFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -91,6 +93,11 @@ class NonSubscriberIntroViewModel @Inject constructor(
         }
     }
 
+    fun hideUpsellBanner() = viewModelScope.launch {
+        hideUpsellBannerUseCase(Unit)
+        _event.emit(NonSubscriberIntroEvent.HideUpsellBannerSuccess)
+    }
+
     fun getEmail() = accountManager.getAccount().email
 }
 
@@ -99,4 +106,5 @@ sealed class NonSubscriberIntroEvent {
     data class Loading(val isLoading: Boolean) : NonSubscriberIntroEvent()
     data class ShowError(val message: String) : NonSubscriberIntroEvent()
     data class OnSubmitEmailSuccess(val email: String) : NonSubscriberIntroEvent()
+    object HideUpsellBannerSuccess : NonSubscriberIntroEvent()
 }

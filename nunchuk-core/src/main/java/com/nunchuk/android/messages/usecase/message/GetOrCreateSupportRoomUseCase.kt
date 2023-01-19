@@ -19,7 +19,7 @@
 
 package com.nunchuk.android.messages.usecase.message
 
-import com.nunchuk.android.core.domain.GetAppSettingUseCase
+import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.SUPPORT_ROOM_TYPE
 import com.nunchuk.android.core.util.SUPPORT_ROOM_USER_ID
@@ -41,7 +41,7 @@ import javax.inject.Inject
 
 class GetOrCreateSupportRoomUseCase @Inject constructor(
     private val sessionHolder: SessionHolder,
-    private val getAppSettingUseCase: GetAppSettingUseCase,
+    private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : UseCase<Unit, Room>(ioDispatcher) {
 
@@ -74,7 +74,7 @@ class GetOrCreateSupportRoomUseCase @Inject constructor(
     }
 
     private suspend fun getRoomType(): String {
-        val chain = getAppSettingUseCase.execute().firstOrNull()?.chain
+        val chain = getChainSettingFlowUseCase(Unit).firstOrNull()?.getOrNull()
         return if (chain == Chain.MAIN) {
             SUPPORT_ROOM_TYPE
         } else {

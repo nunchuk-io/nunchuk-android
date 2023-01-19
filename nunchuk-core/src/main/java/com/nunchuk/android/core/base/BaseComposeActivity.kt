@@ -22,6 +22,7 @@ package com.nunchuk.android.core.base
 import androidx.appcompat.app.AppCompatActivity
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.network.UnauthorizedEventBus
 import com.nunchuk.android.core.network.UnauthorizedException
 import com.nunchuk.android.nav.NunchukNavigator
@@ -58,9 +59,12 @@ abstract class BaseComposeActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         UnauthorizedEventBus.instance().subscribe {
-            accountManager.clearUserData()
-            navigator.openSignInScreen(this)
-            CrashlyticsReporter.recordException(UnauthorizedException())
+            val loginType = accountManager.loginType()
+            if (loginType == SignInMode.EMAIL.value || loginType == SignInMode.PRIMARY_KEY.value) {
+                accountManager.clearUserData()
+                navigator.openSignInScreen(this)
+                CrashlyticsReporter.recordException(UnauthorizedException())
+            }
         }
     }
 

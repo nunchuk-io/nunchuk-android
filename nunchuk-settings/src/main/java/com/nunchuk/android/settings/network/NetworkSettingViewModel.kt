@@ -21,19 +21,15 @@ package com.nunchuk.android.settings.network
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.InitAppSettingsUseCase
 import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
-import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.profile.UserProfileRepository
-import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.model.AppSettings
-import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -41,11 +37,9 @@ internal class NetworkSettingViewModel @Inject constructor(
     private val initAppSettingsUseCase: InitAppSettingsUseCase,
     private val updateAppSettingUseCase: UpdateAppSettingUseCase,
     private val getAppSettingUseCase: GetAppSettingUseCase,
-    private val accountManager: AccountManager,
-    private val repository: UserProfileRepository,
-    private val sessionHolder: SessionHolder,
+    private val sendSignOutUseCase: SendSignOutUseCase,
     private val appScope: CoroutineScope,
-    @IoDispatcher private val dispatcher: CoroutineDispatcher
+    private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
 ) : NunchukViewModel<NetworkSettingState, NetworkSettingEvent>() {
 
     override val initialState = NetworkSettingState()
@@ -69,65 +63,50 @@ internal class NetworkSettingViewModel @Inject constructor(
 
     fun getAppSettings() {
         viewModelScope.launch {
-            getAppSettingUseCase.execute()
-                .flowOn(Dispatchers.IO)
-                .onException { }
-                .flowOn(Dispatchers.Main)
-                .collect {
-                    initAppSettings = it
-                    updateState {
-                        copy(appSetting = it)
-                    }
-                    event(
-                        NetworkSettingEvent.ResetTextHostServerEvent(it)
-                    )
+            val result = getAppSettingUseCase(Unit)
+            if (result.isSuccess) {
+                initAppSettings = result.getOrThrow()
+                updateState {
+                    copy(appSetting = result.getOrThrow())
                 }
+                event(
+                    NetworkSettingEvent.ResetTextHostServerEvent(result.getOrThrow())
+                )
+            }
         }
     }
 
     fun updateAppSettings(appSettings: AppSettings) {
         viewModelScope.launch {
-            updateAppSettingUseCase.execute(appSettings)
-                .flowOn(Dispatchers.IO)
-                .onException { }
-                .flowOn(Dispatchers.Main)
-                .collect {
-                    initAppSettings = it
-                    updateState {
-                        copy(appSetting = it)
-                    }
-                    event(NetworkSettingEvent.UpdateSettingSuccessEvent(it))
+            val result = updateAppSettingUseCase(appSettings)
+            if (result.isSuccess) {
+                initAppSettings = result.getOrThrow()
+                updateState {
+                    copy(appSetting = result.getOrThrow())
                 }
+                event(NetworkSettingEvent.UpdateSettingSuccessEvent(result.getOrThrow()))
+            }
         }
     }
 
     fun resetToDefaultAppSetting() {
         viewModelScope.launch {
-            initAppSettingsUseCase.execute()
-                .flowOn(Dispatchers.IO)
-                .onException { }
-                .flowOn(Dispatchers.Main)
-                .collect {
-                    initAppSettings = it
-                    updateState {
-                        copy(appSetting = it)
-                    }
-                    event(NetworkSettingEvent.UpdateSettingSuccessEvent(it))
+            val result = initAppSettingsUseCase(Unit)
+            result.getOrNull()?.let {
+                initAppSettings = it
+                updateState {
+                    copy(appSetting = it)
                 }
+                event(NetworkSettingEvent.UpdateSettingSuccessEvent(it))
+            }
         }
     }
 
     fun signOut() {
         appScope.launch {
-            repository.signOut()
-                .flowOn(Dispatchers.IO)
-                .onException { }
-                .first()
             event(NetworkSettingEvent.LoadingEvent(true))
-            withContext(dispatcher) {
-                sessionHolder.clearActiveSession()
-                accountManager.signOut()
-            }
+            clearInfoSessionUseCase(Unit)
+            sendSignOutUseCase(Unit)
             event(NetworkSettingEvent.SignOutSuccessEvent)
         }
     }

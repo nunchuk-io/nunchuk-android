@@ -70,7 +70,7 @@ class RoomViewHolder(
         val roomName = data.getRoomName(currentName)
         binding.name.text = roomName
         data.latestPreviewableEvent?.let {
-            binding.message.text = it.lastMessage()
+            binding.message.text = it.lastMessage(itemView.context)
             binding.time.text = it.root.originServerTs?.let { time -> Date(time).formatMessageDate() } ?: "-"
         }
         binding.message.isVisible = data.latestPreviewableEvent != null

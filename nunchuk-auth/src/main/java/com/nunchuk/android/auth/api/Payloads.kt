@@ -67,3 +67,17 @@ data class VerifyNewDevicePayload(
     @SerializedName("deviceId")
     val deviceId: String
 ): Serializable
+
+data class TryLoginRequest(
+    @SerializedName("uuid")
+    val uuid: String?,
+    @SerializedName("qr_payload")
+    val qrCode: String
+)
+
+data class ConfirmQrLoginRequest(
+    @SerializedName("uuid")
+    val uuid: String?,
+    @SerializedName("token")
+    val token: String
+)

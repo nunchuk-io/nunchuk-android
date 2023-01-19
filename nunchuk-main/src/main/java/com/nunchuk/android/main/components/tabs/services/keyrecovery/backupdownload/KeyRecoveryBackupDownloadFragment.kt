@@ -43,6 +43,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
+import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -150,6 +151,11 @@ fun BackupDownloadScreenContent(
                     onValueChange = onTextChange
                 )
                 Spacer(modifier = Modifier.weight(1.0f))
+                NcHintMessage(
+                    modifier = Modifier.padding(top = 16.dp, end = 16.dp, start = 16.dp),
+                    messages = listOf(ClickAbleText(content = stringResource(R.string.nc_enter_backup_password_notice))),
+                    type = HighlightMessageType.HINT,
+                )
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()

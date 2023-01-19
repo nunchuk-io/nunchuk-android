@@ -17,30 +17,17 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.messages.components.detail
+package com.nunchuk.android.usecase.user
 
-import android.content.Context
-import android.content.Intent
-import com.nunchuk.android.arch.args.ActivityArgs
-import com.nunchuk.android.core.constants.RoomAction
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.MembershipRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-data class RoomDetailArgs(val roomId: String, var roomAction: RoomAction? = null) : ActivityArgs {
-
-    override fun buildIntent(activityContext: Context) =
-        Intent(activityContext, RoomDetailActivity::class.java).apply {
-            putExtra(EXTRA_ROOM_ID, roomId)
-            putExtra(EXTRA_ROOM_ACTION, roomAction)
-        }
-
-    companion object {
-        private const val EXTRA_ROOM_ID = "EXTRA_ROOM_ID"
-        private const val EXTRA_ROOM_ACTION = "EXTRA_ROOM_ACTION"
-
-        fun deserializeFrom(intent: Intent) = RoomDetailArgs(
-            intent.extras?.getString(EXTRA_ROOM_ID, "").orEmpty(),
-            intent.extras?.getSerializable(EXTRA_ROOM_ACTION) as RoomAction?,
-        )
-
-    }
-
+class HideUpsellBannerUseCase @Inject constructor(
+    private val repository: MembershipRepository,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher
+) : UseCase<Unit, Unit>(ioDispatcher) {
+    override suspend fun execute(parameters: Unit) = repository.setHideUpsellBanner()
 }

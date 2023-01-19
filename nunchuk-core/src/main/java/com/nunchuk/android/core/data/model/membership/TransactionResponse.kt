@@ -26,6 +26,10 @@ data class TransactionResponse(
     @SerializedName("transaction") val transaction: TransactionServerDto? = null
 )
 
+data class TransactionsResponse(
+    @SerializedName("transactions") val transactions: List<TransactionServerDto> = emptyList()
+)
+
 data class TransactionServerDto(
     @SerializedName("wallet_id") val walletId: String? = null,
     @SerializedName("wallet_local_id") val walletLocalId: String? = null,

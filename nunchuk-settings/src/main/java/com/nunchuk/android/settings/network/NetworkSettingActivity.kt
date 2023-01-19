@@ -30,8 +30,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.constants.Constants.GLOBAL_SIGNET_EXPLORER
+import com.nunchuk.android.core.constants.Constants.MAIN_NET_HOST
 import com.nunchuk.android.core.constants.Constants.SIG_NET_HOST
-import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.core.constants.Constants.TEST_NET_HOST
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.settings.databinding.ActivityNetworkSettingBinding
 import com.nunchuk.android.type.Chain
@@ -304,9 +305,9 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
 
     private fun handleResetNetwork(chain: Chain) {
         val servers = when(chain) {
-            Chain.SIGNET -> if (viewModel.initAppSettings?.signetServers?.isEmpty().orFalse()) listOf(SIG_NET_HOST) else listOf(viewModel.initAppSettings?.signetServers?.get(0).orEmpty())
-            Chain.TESTNET -> listOf(viewModel.initAppSettings?.testnetServers?.get(0).orEmpty())
-            Chain.MAIN -> listOf(viewModel.initAppSettings?.mainnetServers?.get(0).orEmpty())
+            Chain.SIGNET -> listOf(SIG_NET_HOST)
+            Chain.TESTNET -> listOf(TEST_NET_HOST)
+            Chain.MAIN -> listOf(MAIN_NET_HOST)
             else -> emptyList()
         }
 

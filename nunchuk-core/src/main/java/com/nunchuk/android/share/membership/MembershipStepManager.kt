@@ -32,7 +32,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.roundToInt
@@ -49,7 +48,7 @@ class MembershipStepManager @Inject constructor(
     private val _assistedPlan = MutableStateFlow(MembershipPlan.NONE)
     val plan: MembershipPlan
         get() = _plan.value
-    private val steps = Collections.synchronizedMap<MembershipStep, MembershipStepFlow>(mutableMapOf())
+    private val steps = mutableMapOf<MembershipStep, MembershipStepFlow>()
     private val _stepDone = MutableStateFlow<Set<MembershipStep>>(emptySet())
     val stepDone = _stepDone.asStateFlow()
 
@@ -76,28 +75,29 @@ class MembershipStepManager @Inject constructor(
     }
 
     // Special case when set up wallet done and login in another device to setup inheritance we should mark all created wallet step to done
-    private fun initStep(currentPlan: MembershipPlan, assistedWalletPlan: MembershipPlan) {
-        steps.clear()
-        if (currentPlan == MembershipPlan.IRON_HAND && currentPlan != assistedWalletPlan) {
-            steps[MembershipStep.ADD_TAP_SIGNER_1] = MembershipStepFlow(totalStep = 8)
-            steps[MembershipStep.ADD_TAP_SIGNER_2] = MembershipStepFlow(totalStep = 8)
-            steps[MembershipStep.HONEY_ADD_TAP_SIGNER] = MembershipStepFlow(totalStep = 8)
-            steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
-            steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 1)
-            steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
-        } else if (currentPlan == MembershipPlan.HONEY_BADGER && currentPlan != assistedWalletPlan) {
-            steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_1] = MembershipStepFlow(totalStep = 8)
-            steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_2] = MembershipStepFlow(totalStep = 8)
-            steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
-            steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 2)
-            steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
+    private fun initStep(currentPlan: MembershipPlan, assistedWalletPlan: MembershipPlan) =
+        synchronized(this) {
+            steps.clear()
+            if (currentPlan == MembershipPlan.IRON_HAND && currentPlan != assistedWalletPlan) {
+                steps[MembershipStep.ADD_TAP_SIGNER_1] = MembershipStepFlow(totalStep = 8)
+                steps[MembershipStep.ADD_TAP_SIGNER_2] = MembershipStepFlow(totalStep = 8)
+                steps[MembershipStep.HONEY_ADD_TAP_SIGNER] = MembershipStepFlow(totalStep = 8)
+                steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
+                steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 1)
+                steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
+            } else if (currentPlan == MembershipPlan.HONEY_BADGER && currentPlan != assistedWalletPlan) {
+                steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_1] = MembershipStepFlow(totalStep = 8)
+                steps[MembershipStep.HONEY_ADD_HARDWARE_KEY_2] = MembershipStepFlow(totalStep = 8)
+                steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
+                steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 2)
+                steps[MembershipStep.CREATE_WALLET] = MembershipStepFlow(totalStep = 2)
+            }
+            if (currentPlan == MembershipPlan.HONEY_BADGER) {
+                steps[MembershipStep.SETUP_INHERITANCE] = MembershipStepFlow(totalStep = 12)
+            }
+            _remainingTime.value = calculateRemainTime(steps.toMap().values)
+            _stepDone.value = emptySet()
         }
-        if (currentPlan == MembershipPlan.HONEY_BADGER) {
-            steps[MembershipStep.SETUP_INHERITANCE] = MembershipStepFlow(totalStep = 12)
-        }
-        _remainingTime.value = calculateRemainTime(steps.toMap().values)
-        _stepDone.value = emptySet()
-    }
 
     private fun observerStep(currentPlan: MembershipPlan, assistedWalletPlan: MembershipPlan) {
         job?.cancel()
@@ -184,6 +184,10 @@ class MembershipStepManager @Inject constructor(
         return isCreatedAssistedWalletDone || isServerWalletCreated()
     }
 
+    fun isSetupInheritanceDone(): Boolean {
+        return isCreatedAssistedWalletDone() && _stepDone.value.contains(MembershipStep.SETUP_INHERITANCE)
+    }
+
     private fun isServerWalletCreated() = _plan.value == _assistedPlan.value
 
     fun getRemainTimeBySteps(querySteps: List<MembershipStep>) =
@@ -209,7 +213,7 @@ class MembershipStepManager @Inject constructor(
     fun isKeyExisted(masterSignerId: String) =
         stepInfo.value.any { it.masterSignerId == masterSignerId }
 
-    private fun updateRemainTime() {
+    private fun updateRemainTime() = synchronized(this) {
         _remainingTime.update {
             calculateRemainTime(steps.toMap().filter { isStepInThisPlan(it.key, plan) }.values)
         }

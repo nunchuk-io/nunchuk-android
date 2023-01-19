@@ -166,7 +166,8 @@ interface PremiumWalletRepository {
         verifyToken: String,
         userData: String,
         securityQuestionToken: String,
-        isUpdate: Boolean
+        isUpdate: Boolean,
+        plan: MembershipPlan
     ): Inheritance
 
     suspend fun cancelInheritance(
@@ -182,4 +183,6 @@ interface PremiumWalletRepository {
     suspend fun inheritanceClaimingClaim(magic: String, psbt: String): TransactionAdditional
 
     suspend fun inheritanceCheck(): InheritanceCheck
+
+    suspend fun syncTransaction(walletId: String)
 }

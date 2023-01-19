@@ -35,18 +35,15 @@ class GetPrimaryKeyListUseCase @Inject constructor(
     private val filerHelper: FileHelper
 ) : UseCase<Unit, List<PrimaryKey>>(dispatcher) {
 
-    override suspend fun execute(parameters: Unit): List<PrimaryKey> = supervisorScope {
+    override suspend fun execute(parameters: Unit): List<PrimaryKey> {
         val primaryKeys = mutableListOf<PrimaryKey>()
         val storagePath = filerHelper.getOrCreateNunchukRootDir()
-        val mainResultDeferred = async { nunchukNativeSdk.getPrimaryKeys(chain = Chain.MAIN.ordinal, storagePath = storagePath).map { it.copy(chain = Chain.MAIN) } }
-        val testnetResultDeferred = async { nunchukNativeSdk.getPrimaryKeys(chain = Chain.TESTNET.ordinal, storagePath = storagePath).map { it.copy(chain = Chain.TESTNET) } }
-        val signetResultDeferred = async { nunchukNativeSdk.getPrimaryKeys(chain = Chain.SIGNET.ordinal, storagePath = storagePath).map { it.copy(chain = Chain.SIGNET) } }
-        val mainResult = kotlin.runCatching { mainResultDeferred.await() }
-        val testnetResult = kotlin.runCatching { testnetResultDeferred.await() }
-        val signetResult = kotlin.runCatching { signetResultDeferred.await()}
-        primaryKeys.addAll(mainResult.getOrDefault(emptyList()))
-        primaryKeys.addAll(testnetResult.getOrDefault(emptyList()))
-        primaryKeys.addAll(signetResult.getOrDefault(emptyList()))
-        return@supervisorScope primaryKeys
+        val mainResult = nunchukNativeSdk.getPrimaryKeys(chain = Chain.MAIN.ordinal, storagePath = storagePath).map { it.copy(chain = Chain.MAIN) }
+        val testnetResult = nunchukNativeSdk.getPrimaryKeys(chain = Chain.TESTNET.ordinal, storagePath = storagePath).map { it.copy(chain = Chain.TESTNET) }
+        val signetResult = nunchukNativeSdk.getPrimaryKeys(chain = Chain.SIGNET.ordinal, storagePath = storagePath).map { it.copy(chain = Chain.SIGNET) }
+        primaryKeys.addAll(mainResult)
+        primaryKeys.addAll(testnetResult)
+        primaryKeys.addAll(signetResult)
+        return primaryKeys
     }
 }

@@ -73,7 +73,7 @@ internal class ImportTransactionViewModel @Inject constructor(
         viewModelScope.launch {
             if (isDummyFlow) {
                 val psbt = withContext(ioDispatcher) {
-                    File(filePath).readText()
+                    File(filePath).readText().trim()
                 }
                 val result = getDummyTxFromPsbt(GetDummyTxFromPsbt.Param(args.walletId, psbt))
                 if (result.isSuccess) {
@@ -111,8 +111,6 @@ internal class ImportTransactionViewModel @Inject constructor(
             }
             if (result.isSuccess) {
                 setEvent(ImportTransactionSuccess(result.getOrThrow()))
-            } else {
-                setEvent(ImportTransactionError(result.exceptionOrNull()?.message.orUnknownError()))
             }
             isProcessing = false
         }
@@ -140,7 +138,7 @@ internal class ImportTransactionViewModel @Inject constructor(
                 }
                     .onStart { isProcessing = true }
                     .flowOn(IO)
-                    .onException { setEvent(ImportTransactionError(it.message.orUnknownError())) }
+                    .onException {  }
                     .flowOn(Main)
                     .onCompletion { isProcessing = false }
                     .collect { event(ImportTransactionSuccess()) }

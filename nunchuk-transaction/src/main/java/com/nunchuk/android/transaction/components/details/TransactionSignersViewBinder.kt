@@ -26,10 +26,7 @@ import androidx.core.view.get
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.hadBroadcast
-import com.nunchuk.android.core.util.shorten
-import com.nunchuk.android.core.util.toReadableDrawable
-import com.nunchuk.android.core.util.toReadableSignerType
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.type.SignerType
@@ -80,7 +77,7 @@ internal class TransactionSignersViewBinder(
             binding.signed.isVisible = false
             binding.signNotAvailable.isVisible = true
         } else {
-            binding.btnSign.isVisible = model.type != SignerType.SERVER
+            binding.btnSign.isVisible = model.type != SignerType.SERVER && txStatus.isPendingSignatures()
             binding.signed.isVisible = false
             binding.signNotAvailable.isVisible = false
         }
@@ -89,10 +86,10 @@ internal class TransactionSignersViewBinder(
         if (model.type == SignerType.SERVER) {
             val spendingLimitMessage = serverTransaction?.spendingLimitMessage.orEmpty()
             val cosignedTime = serverTransaction?.signedInMilis ?: 0L
-            binding.xpf.isVisible = spendingLimitMessage.isNotEmpty() || cosignedTime > 0L
+            binding.xpf.isVisible = spendingLimitMessage.isNotEmpty() || (cosignedTime > 0L && isSigned.not() && txStatus.isPendingSignatures())
             if (spendingLimitMessage.isNotEmpty()) {
                 binding.xpf.text = serverTransaction?.spendingLimitMessage
-            } else if (cosignedTime > 0L) {
+            } else if (cosignedTime > 0L && isSigned.not() && txStatus.isPendingSignatures()) {
                 val cosignDate = Date(cosignedTime)
                 if (DateUtils.isToday(cosignedTime)) {
                     binding.xpf.text = context.getString(
