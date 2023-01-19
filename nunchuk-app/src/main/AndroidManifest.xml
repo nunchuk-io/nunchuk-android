@@ -6,7 +6,6 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.NFC" />
 
     <uses-sdk tools:overrideLibrary="com.google.zxing.client.android" />
@@ -54,9 +53,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".app.intro.IntroActivity"
-            android:screenOrientation="portrait" />
 
         <activity
             android:name=".app.intro.GuestModeIntroActivity"
@@ -90,6 +86,9 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_logo_notification" />
+
+        <meta-data android:name="firebase_analytics_collection_deactivated" android:value="true" />
+
     </application>
 
 </manifest>

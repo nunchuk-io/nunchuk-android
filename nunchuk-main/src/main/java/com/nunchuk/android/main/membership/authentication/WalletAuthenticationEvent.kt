@@ -38,6 +38,7 @@ sealed class WalletAuthenticationEvent {
     object GenerateColdcardHealthMessagesSuccess : WalletAuthenticationEvent()
     object ShowAirgapOption : WalletAuthenticationEvent()
     object ExportTransactionToColdcardSuccess : WalletAuthenticationEvent()
+    object CanNotSignDummyTx : WalletAuthenticationEvent()
 }
 
 data class WalletAuthenticationState(

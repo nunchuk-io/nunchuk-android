@@ -26,7 +26,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GenerateColdCardHealthCheckMessageUseCase
-import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.domain.HealthCheckColdCardUseCase
 import com.nunchuk.android.core.domain.coldcard.ExportRawPsbtToMk4UseCase
 import com.nunchuk.android.core.domain.membership.CheckSignMessageTapsignerUseCase
@@ -36,6 +35,7 @@ import com.nunchuk.android.core.domain.membership.GetSignatureFromColdCardPsbt
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
@@ -60,7 +60,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val getHealthCheckMessageUseCase: GetHealthCheckMessageUseCase,
     private val healthCheckColdCardUseCase: HealthCheckColdCardUseCase,
     private val generateColdCardHealthCheckMessageUseCase: GenerateColdCardHealthCheckMessageUseCase,
-    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
+    private val cardIdManager: CardIdManager,
     private val getDummyTxFromPsbt: GetDummyTxFromPsbt,
     private val getTxToSignMessage: GetTxToSignMessage,
     private val exportRawPsbtToMk4UseCase: ExportRawPsbtToMk4UseCase,
@@ -83,7 +83,6 @@ class WalletAuthenticationViewModel @Inject constructor(
         savedStateHandle.get<SingleSigner>(EXTRA_CURRENT_INTERACT_SIGNER)?.let { signer ->
             _state.update { it.copy(interactSingleSigner = signer) }
         }
-        getWalletDetails()
         viewModelScope.launch {
             if (args.type == WalletAuthenticationActivity.SIGN_DUMMY_TX) {
                 val txToSignResult =
@@ -100,7 +99,13 @@ class WalletAuthenticationViewModel @Inject constructor(
                     )
                 )
                 if (result.isSuccess) {
-                    _state.update { it.copy(transaction = result.getOrThrow()) }
+                    // hard code isReceive false I have no idea why first time it become true from libnunchuk
+                    _state.update {
+                        it.copy(
+                            transaction = result.getOrThrow().copy(isReceive = false)
+                        )
+                    }
+                    getWalletDetails()
                 } else {
                     _event.emit(WalletAuthenticationEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
                 }
@@ -113,7 +118,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     fun onSignerSelect(signerModel: SignerModel) = viewModelScope.launch {
         _state.update { it.copy(interactSingleSigner = null) }
         val singleSigner =
-            _state.value.singleSigners.firstOrNull { it.masterSignerId == signerModel.id && it.derivationPath == signerModel.derivationPath }
+            _state.value.singleSigners.firstOrNull { it.masterFingerprint == signerModel.fingerPrint && it.derivationPath == signerModel.derivationPath }
                 ?: return@launch
         savedStateHandle[EXTRA_CURRENT_INTERACT_SIGNER] = singleSigner
         _state.update { it.copy(interactSingleSigner = singleSigner) }
@@ -201,25 +206,20 @@ class WalletAuthenticationViewModel @Inject constructor(
 
     fun handleImportAirgapTransaction(transaction: Transaction) {
         viewModelScope.launch {
-            if (transaction.txId != _state.value.transaction?.txId) {
-                val signatures = _state.value.signatures
-                _state.value.singleSigners.filter {
-                    it.type == SignerType.AIRGAP
-                            && transaction.signers[it.masterSignerId] == true
-                            && signatures.contains(it.masterSignerId).not()
-                }.forEach {
-                    handleSignatureResult(
-                        getDummyTransactionSignatureUseCase(
-                            GetDummyTransactionSignatureUseCase.Param(
-                                it,
-                                transaction.psbt
-                            )
-                        ),
-                        it
-                    )
-                }
-            } else {
-                _event.emit(WalletAuthenticationEvent.ShowError("You import invalid transaction"))
+            val signatures = _state.value.signatures
+            _state.value.singleSigners.filter {
+                transaction.signers[it.masterFingerprint] == true
+                        && signatures.contains(it.masterFingerprint).not()
+            }.forEach {
+                handleSignatureResult(
+                    getDummyTransactionSignatureUseCase(
+                        GetDummyTransactionSignatureUseCase.Param(
+                            it,
+                            transaction.psbt
+                        )
+                    ),
+                    it
+                )
             }
         }
     }
@@ -236,13 +236,18 @@ class WalletAuthenticationViewModel @Inject constructor(
         }
     }
 
-    suspend fun handleSignatureResult(
+    private suspend fun handleSignatureResult(
         result: Result<String>,
         singleSigner: SingleSigner
     ) {
         if (result.isSuccess) {
             val signatures = _state.value.signatures.toMutableMap()
-            signatures[singleSigner.masterFingerprint] = result.getOrThrow()
+            val signature = result.getOrThrow()
+            if (signature.isEmpty()) {
+                _event.emit(WalletAuthenticationEvent.CanNotSignDummyTx)
+                return
+            }
+            signatures[singleSigner.masterFingerprint] = signature
             if (signatures.size == args.requiredSignatures) {
                 _event.emit(WalletAuthenticationEvent.WalletAuthenticationSuccess(signatures))
             } else {
@@ -275,7 +280,7 @@ class WalletAuthenticationViewModel @Inject constructor(
                             isValidSigner(it.type, args.type)
                         }.map {
                             if (it.type == SignerType.NFC) it.toModel()
-                                .copy(cardId = getTapSignerStatusByIdUseCase(it.masterSignerId).getOrThrow().ident.orEmpty()) else it.toModel()
+                                .copy(cardId = cardIdManager.getCardId(it.masterSignerId)) else it.toModel()
                         }
                     _state.update {
                         it.copy(

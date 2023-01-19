@@ -40,7 +40,6 @@
 
     <string name="nc_text_title_permission_denied">Permission Denied</string>
     <string name="nc_text_des_permission_denied">The app can\'t work properly without this permission. Do you want to grant access permission again?</string>
-    <string name="nc_text_title_permission_denied_permanently">Permission Denied Permanently</string>
     <string name="nc_text_des_permission_denied_permanently">The permission denied permanently. Do you want to open the application setting to allow it?</string>
     <string name="nc_text_add_contacts">Add contacts</string>
     <string name="nc_text_create_an_account">Create an account</string>
@@ -158,6 +157,7 @@
     <string name="nc_risk_signer_key_warning_button">I understand the risk</string>
     <string name="nc_replace_primary_key_success">Primary Key has been successfully replaced</string>
     <string name="nc_primary_key_account_created">Account has been created </string>
+    <string name="nc_primary_key_invalid_username">Username cannot contain spaces</string>
     <string name="nc_bip32_path">BIP32 path</string>
     <string name="nc_bip32_path_example">For example: m/48h/0h/0h</string>
     <string name="nc_invalid_path">Invalid path</string>
@@ -207,7 +207,7 @@
     <string name="nc_i_have_verified">I have verified the backup</string>
     <string name="I_will_comeback_to_this_later">I’ll come back to this later</string>
     <string name="nc_confirmation">Confirmation</string>
-    <string name="nc_confirm_verify_backup_by_self_desc">Are you sure you have verified the backup? Key recovery might not work with an unverified backup.</string>
+    <string name="nc_confirm_verify_backup_by_self_desc">Are you sure you have verified the backup? key recovery might not work with an unverified backup.</string>
     <string name="nc_verify_backup">Verify backup</string>
     <string name="nc_un_verify_backup">Unverified backup</string>
     <string name="nc_try_again">Try again</string>
@@ -236,7 +236,7 @@
     <string name="nc_create_your_wallet_desc">What would you like to name this wallet?</string>
     <string name="nc_wallet_name">Wallet name</string>
     <string name="nc_setup_key_recovery">Set up security questions</string>
-    <string name="nc_setup_key_recovery_desc">The Key Recovery procedure helps you recover the TAPSIGNER’s private key in case of loss or accidents.\n\nFill in the security questions and answers below. They will be used to prevent unauthorized access to Key Recovery. Answers are case-sensitive.</string>
+    <string name="nc_setup_key_recovery_desc">The key recovery procedure helps you recover the TAPSIGNER’s private key in case of loss or accidents.\n\nFill in the security questions and answers below. They will be used to prevent unauthorized access to Key Recovery. Answers are case-sensitive.</string>
     <string name="nc_hours">Hours</string>
     <string name="nc_minutes">Minutes</string>
     <string name="nc_take_me_my_wallet">Take me to my wallet</string>
@@ -287,7 +287,7 @@
     <string name="nc_setup_inheritance_plan_intro_title">Set up inheritance plan</string>
     <string name="nc_setup_inheritance_plan_intro_desc">The Nunchuk inheritance plan allows you to safely pass along your bitcoin to your loved ones, while not affecting the security of your day-to-day wallet usage.\n\nBefore we begin, here are some definitions.</string>
     <string name="nc_magical_phrase_desc">Your inheritance plan is uniquely identified by a Magic Phrase. The phrase can be used to look up your plan later.\n\n[B]Make note of this Magic Phrase[/B]. You will need to share it with the Beneficiary or Trustee.</string>
-    <string name="nc_magical_phrase">A Magic Phrase</string>
+    <string name="nc_magical_phrase">Magic Phrase</string>
     <string name="nc_a_backup_password">A Backup Password</string>
     <string name="nc_give_app_permission">Please give app the permission to use this feature</string>
     <string name="nc_start">Start</string>
@@ -319,14 +319,17 @@
     <string name="nc_answer_security_question_desc">Please answer the following question. Answer is case-sensitive.</string>
     <string name="nc_enter_backup_password">Enter Backup Password</string>
     <string name="nc_enter_backup_password_desc">Please enter the Backup Password for [B]%1$s[/B] (card ID: [B]%2$s[/B].)</string>
+    <string name="nc_enter_backup_password_notice">The password is printed on the back of the TAPSIGNER. You should have had a copy of this when setting up the TAPSIGNER for the first time.</string>
     <string name="nc_backup_download">Backup Password</string>
+    <string name="nc_invalid_backup_password">Invalid Backup Password. Please try again.</string>
+    <string name="nc_incorrect_answer">Incorrect answer</string>
     <string name="nc_tapsigner_recovered">TAPSIGNER recovered</string>
     <string name="nc_tapsigner_recovered_success_info_1">The software key is stored on this device</string>
     <string name="nc_tapsigner_recovered_success_info_2">You can continue signing transactions using this software key</string>
-    <string name="nc_tapsigner_recovered_success_warning">If you suspect that someone has gained possession of the key, we recommend that you replace it with a new key and roll over your balance to a new wallet.</string>
+    <string name="nc_tapsigner_recovered_success_warning">If you suspect that someone has gained possession of the key, we recommend that you roll over your balance to a new wallet.</string>
     <string name="nc_tapsigner_recovered_success_replace_my_key">I want to replace my key</string>
     <string name="nc_tapsigner_recovered_desc">Your TAPSIGNER’s private key has been successfully recovered and converted into a software key. Please note the following: </string>
-    <string name="nc_emergency_lockdown_intro_desc">If you feel that there is an imminent threat or just want to disable wallet access temporarily, you can activate the Emergency Lockdown. Please note the following:</string>
+    <string name="nc_emergency_lockdown_intro_desc">If you feel that there is an imminent threat or just want to disable wallet access temporarily, you can activate the emergency lockdown. Please note the following:</string>
     <string name="nc_emergency_lockdown_intro_info_1">Once you have entered the lockdown, no one—including yourself—will be able to sign in to your account and access your wallet.</string>
     <string name="nc_emergency_lockdown_intro_info_2">There is no way to end the lockdown early.</string>
     <string name="nc_emergency_lockdown_intro_info_3">Access will be automatically re-enabled once the lockdown period ends.</string>
@@ -472,4 +475,18 @@
     <string name="nc_we_sent_an_email">We sent an email to %1$s</string>
     <string name="nc_cancel_scheduled_broadcast">Cancel scheduled broadcast</string>
     <string name="nc_withdraw_nunchuk_wallet">Withdraw to a Nunchuk wallet</string>
+    <string name="nc_can_not_sign_please_try_again">Can not sign, please try again</string>
+    <string name="nc_confirm_qr_sign_in_msg">Are you sure you want to sign in remotely on another device?</string>
+    <string name="nc_remote_sign_in_success">Remote sign-in successful</string>
+    <string name="nc_dismiss_banner_from_home">I’ve got it, dismiss banner from home</string>
+    <string name="nc_take_photo">Take photo</string>
+    <string name="nc_capture_video">Capture video</string>
+    <string name="nc_photo_and_video">Photos and videos</string>
+    <string name="nc_upload_file">Upload file</string>
+    <string name="nc_force_refresh">Force refresh (advanced)</string>
+    <string name="nc_force_refresh_success">The wallet has been refreshed</string>
+    <string name="nc_force_refresh_desc">Are you sure you want to perform a force refresh? This process will clear this wallet’s existing data (including notes and pending transactions) and attempt to re-sync it with the blockchain.</string>
+    <string name="nc_photo_was_uploaded">A photo was uploaded.</string>
+    <string name="nc_video_was_uploaded">A video was uploaded.</string>
+    <string name="nc_attachment_was_uploaded">An attachment was uploaded.</string>
 </resources>

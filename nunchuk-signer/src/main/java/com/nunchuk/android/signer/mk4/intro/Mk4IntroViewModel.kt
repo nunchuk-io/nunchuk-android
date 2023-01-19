@@ -24,8 +24,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.CreateMk4SignerUseCase
-import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.GetMk4SingersUseCase
+import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.SIGNER_PATH_PREFIX
 import com.nunchuk.android.core.util.gson
@@ -43,6 +43,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -52,7 +53,7 @@ class Mk4IntroViewModel @Inject constructor(
     private val createMk4SignerUseCase: CreateMk4SignerUseCase,
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
     private val membershipStepManager: MembershipStepManager,
-    private val getAppSettingUseCase: GetAppSettingUseCase,
+    private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<Mk4IntroViewEvent>()
@@ -67,7 +68,7 @@ class Mk4IntroViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            chain = getAppSettingUseCase.execute().first().chain
+            chain = getChainSettingFlowUseCase(Unit).map { it.getOrElse { Chain.MAIN } }.first()
         }
     }
 

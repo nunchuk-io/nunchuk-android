@@ -63,10 +63,7 @@ class DeleteAccountActivity : BaseActivity<ActivityDeleteAccountBinding>() {
         when (event) {
             Loading -> showLoading()
             is ConfirmDeleteError -> showConfirmError(event.message)
-            ConfirmDeleteSuccess -> {
-                viewModel.signOutNunchuk()
-                handleConfirmSuccess()
-            }
+            ConfirmDeleteSuccess -> handleConfirmSuccess()
         }
     }
 
@@ -77,10 +74,6 @@ class DeleteAccountActivity : BaseActivity<ActivityDeleteAccountBinding>() {
 
     private fun gotoLogin() {
         navigator.openSignInScreen(this, isAccountDeleted = true)
-    }
-
-    private fun restartApp() {
-        navigator.restartApp(this)
     }
 
     private fun showConfirmError(message: String) {

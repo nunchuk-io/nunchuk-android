@@ -20,9 +20,9 @@
 package com.nunchuk.android.core.mapper
 
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.type.SignerType
 import javax.inject.Inject
@@ -30,18 +30,14 @@ import javax.inject.Singleton
 
 @Singleton
 class MasterSignerMapper @Inject constructor(
-    accountManager: AccountManager,
-    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
+    private val accountManager: AccountManager,
+    private val cardIdManager: CardIdManager
 ) {
-    private val tapSignerCardIds = hashMapOf<String, String>()
-    private val accountInfo = accountManager.getAccount()
-
     suspend operator fun invoke(from: MasterSigner, derivationPath: String = ""): SignerModel {
+        val accountInfo = accountManager.getAccount()
         val isPrimaryKey =
             accountInfo.loginType == SignInMode.PRIMARY_KEY.value && accountInfo.primaryKeyInfo?.xfp == from.device.masterFingerprint
-        if (from.type == SignerType.NFC && tapSignerCardIds.contains(from.id).not()) {
-            tapSignerCardIds[from.id] = getTapSignerStatusByIdUseCase(from.id).getOrNull()?.ident.orEmpty()
-        }
+        val cardId = if (from.type == SignerType.NFC) cardIdManager.getCardId(from.id) else ""
         return SignerModel(
             id = from.id,
             name = from.name,
@@ -50,7 +46,7 @@ class MasterSignerMapper @Inject constructor(
             type = from.type,
             software = from.software,
             isPrimaryKey = isPrimaryKey,
-            cardId = tapSignerCardIds[from.id].orEmpty()
+            cardId = cardId
         )
     }
 }

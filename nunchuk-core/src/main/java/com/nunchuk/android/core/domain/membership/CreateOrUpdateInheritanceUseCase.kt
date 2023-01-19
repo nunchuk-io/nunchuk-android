@@ -21,6 +21,7 @@ package com.nunchuk.android.core.domain.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Inheritance
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
@@ -43,7 +44,8 @@ class CreateOrUpdateInheritanceUseCase @Inject constructor(
             verifyToken = parameters.verifyToken,
             userData = parameters.userData,
             securityQuestionToken = parameters.securityQuestionToken,
-            isUpdate = parameters.isUpdate
+            isUpdate = parameters.isUpdate,
+            plan = parameters.plan
         )
     }
 
@@ -52,6 +54,7 @@ class CreateOrUpdateInheritanceUseCase @Inject constructor(
         val userData: String,
         val verifyToken: String,
         val securityQuestionToken: String,
-        val isUpdate: Boolean
+        val isUpdate: Boolean,
+        val plan: MembershipPlan
     )
 }

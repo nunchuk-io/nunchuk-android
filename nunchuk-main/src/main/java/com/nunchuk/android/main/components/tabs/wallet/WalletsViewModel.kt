@@ -24,10 +24,10 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.BaseNfcUseCase
-import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
 import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
 import com.nunchuk.android.core.domain.membership.GetServerWalletUseCase
+import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
@@ -36,18 +36,17 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.*
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.type.Chain
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
-import com.nunchuk.android.usecase.user.IsRegisterAirgapUseCase
-import com.nunchuk.android.usecase.user.IsRegisterColdcardUseCase
-import com.nunchuk.android.usecase.user.IsSetupInheritanceUseCase
-import com.nunchuk.android.usecase.user.SetSetupInheritanceUseCase
+import com.nunchuk.android.usecase.user.*
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
@@ -57,7 +56,7 @@ import javax.inject.Inject
 internal class WalletsViewModel @Inject constructor(
     private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
     private val getWalletsUseCase: GetWalletsUseCase,
-    private val getAppSettingUseCase: GetAppSettingUseCase,
+    private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     private val getNfcCardStatusUseCase: GetNfcCardStatusUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val masterSignerMapper: MasterSignerMapper,
@@ -71,6 +70,7 @@ internal class WalletsViewModel @Inject constructor(
     isRegisterColdcardUseCase: IsRegisterColdcardUseCase,
     isShowNfcUniversalUseCase: IsShowNfcUniversalUseCase,
     isSetupInheritanceUseCase: IsSetupInheritanceUseCase,
+    isHideUpsellBannerUseCase: IsHideUpsellBannerUseCase,
     private val setSetupInheritanceUseCase: SetSetupInheritanceUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -88,6 +88,10 @@ internal class WalletsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val isSetupInheritance = isSetupInheritanceUseCase(Unit)
+        .map { it.getOrElse { false } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    private val isHideUpsellBanner = isHideUpsellBannerUseCase(Unit)
         .map { it.getOrElse { false } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
@@ -114,9 +118,21 @@ internal class WalletsViewModel @Inject constructor(
                 updateState { copy(isSetupInheritance = it) }
             }
         }
+        viewModelScope.launch {
+            isHideUpsellBanner.collect {
+                updateState { copy(isHideUpsellBanner = it) }
+            }
+        }
     }
 
-    fun checkMemberMembership() {
+    fun reloadMembership() {
+        viewModelScope.launch {
+            delay(300L)
+            checkMemberMembership()
+        }
+    }
+
+    private fun checkMemberMembership() {
         viewModelScope.launch {
             val result = getUserSubscriptionUseCase(Unit)
             if (result.isSuccess) {
@@ -153,7 +169,7 @@ internal class WalletsViewModel @Inject constructor(
                     )
                 }
             }
-            if (result.getOrNull()?.subscriptionId.isNullOrEmpty()) {
+            if (result.getOrNull()?.subscriptionId.isNullOrEmpty() && isHideUpsellBanner.value.not()) {
                 val bannerResult = getBannerUseCase(Unit)
                 updateState {
                     copy(banner = bannerResult.getOrNull())
@@ -164,13 +180,11 @@ internal class WalletsViewModel @Inject constructor(
 
     fun getAppSettings() {
         viewModelScope.launch {
-            getAppSettingUseCase.execute()
-                .flowOn(Dispatchers.IO)
-                .onException { }
-                .flowOn(Dispatchers.Main)
+            getChainSettingFlowUseCase(Unit)
+                .map { it.getOrElse { Chain.MAIN } }
                 .collect {
                     updateState {
-                        copy(chain = it.chain)
+                        copy(chain = it)
                     }
                 }
         }

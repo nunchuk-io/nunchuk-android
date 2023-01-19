@@ -24,7 +24,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.session.Session
-import timber.log.Timber
 import javax.inject.Inject
 
 interface MatrixInterceptor {
@@ -40,6 +39,7 @@ internal class MatrixInterceptorImpl @Inject constructor(
 
     private var authenticationService = matrix.authenticationService()
 
+    // TODO remove encryptedDeviceId
     override fun login(username: String, password: String, encryptedDeviceId: String) = flow {
         emit(
             authenticationService
@@ -48,7 +48,6 @@ internal class MatrixInterceptorImpl @Inject constructor(
                     matrixId = username,
                     password = password,
                     initialDeviceName = headerProvider.getDeviceName(),
-                    deviceId = encryptedDeviceId
                 ).apply {
                     authenticationService.reset()
                     sessionHolder.storeActiveSession(this)

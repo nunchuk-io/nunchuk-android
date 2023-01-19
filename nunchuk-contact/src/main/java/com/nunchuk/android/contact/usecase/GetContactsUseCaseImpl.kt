@@ -43,7 +43,7 @@ internal class GetContactsUseCaseImpl @Inject constructor(
     override fun execute(): Flow<List<Contact>> = with(repository) {
         val email = accountManager.getAccount().email
         appScope.launch(dispatcher) {
-            getRemoteContacts(email)
+           runCatching { getRemoteContacts(email) }
         }
         getLocalContacts(email).flowOn(dispatcher)
     }

@@ -41,12 +41,14 @@ import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.usecase.membership.GetServerTransactionUseCase
+import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
@@ -70,6 +72,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val selectedWalletUseCase: SetSelectedWalletUseCase,
     private val assistedWalletManager: AssistedWalletManager,
     private val getServerTransactionUseCase: GetServerTransactionUseCase,
+    private val syncTransactionUseCase: SyncTransactionUseCase,
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -82,7 +85,7 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            TransactionListener.transactionUpdateFlow.collect {
+            TransactionListener.transactionUpdateFlow.debounce(1000L).collect {
                 if (it.walletId == args.walletId) {
                     syncData()
                 }
@@ -90,6 +93,12 @@ internal class WalletDetailsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             selectedWalletUseCase(args.walletId)
+        }
+        viewModelScope.launch {
+            val result = syncTransactionUseCase(args.walletId)
+            if (result.isSuccess) {
+                getTransactionHistory()
+            }
         }
         updateState {
             copy(
@@ -102,7 +111,6 @@ internal class WalletDetailsViewModel @Inject constructor(
     fun getRoomWallet() = getState().walletExtended.roomWallet
 
     fun syncData() {
-        transactions.clear()
         getWalletDetails()
     }
 
@@ -111,8 +119,8 @@ internal class WalletDetailsViewModel @Inject constructor(
             getWalletUseCase.execute(args.walletId)
                 .onStart { event(Loading(true)) }
                 .flowOn(IO)
-                .onException { event(WalletDetailsError(it.message.orUnknownError())) }.flowOn(Main)
-
+                .onException { event(WalletDetailsError(it.message.orUnknownError())) }
+                .flowOn(Main)
                 .collect {
                     updateState { copy(walletExtended = it) }
                     if (shouldRefreshTransaction) {
@@ -150,6 +158,7 @@ internal class WalletDetailsViewModel @Inject constructor(
             getTransactionHistoryUseCase.execute(args.walletId).flowOn(IO)
                 .onException { event(WalletDetailsError(it.message.orUnknownError())) }.flowOn(Main)
                 .collect {
+                    transactions.clear()
                     transactions.addAll(
                         it.sortedWith(
                             compareBy(Transaction::status).thenByDescending(
@@ -166,7 +175,7 @@ internal class WalletDetailsViewModel @Inject constructor(
         Pager(config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
             pagingSourceFactory = {
                 TransactionPagingSource(
-                    transactions = transactions,
+                    transactions = transactions.toList(),
                     getServerTransactionUseCase = getServerTransactionUseCase,
                     isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId),
                     walletId = args.walletId,
@@ -245,6 +254,13 @@ internal class WalletDetailsViewModel @Inject constructor(
                 }
         }
     }
+
+    fun setForceRefreshWalletProcessing(isProcessing: Boolean) {
+        updateState { copy(isForceRefreshProcessing = isProcessing) }
+    }
+
+    val isForceRefreshProcessing: Boolean
+        get() = getState().isForceRefreshProcessing
 
     val isLeaveRoom: Boolean
         get() = getState().isLeaveRoom

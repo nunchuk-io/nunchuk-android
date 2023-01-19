@@ -23,6 +23,7 @@ import com.nunchuk.android.messages.util.TransactionEventType
 import com.nunchuk.android.messages.util.WalletEventType
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.Transaction
+import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -46,11 +47,7 @@ data class MatrixMessage(
     val selected: Boolean,
     val isSelectEnable: Boolean
 ) : Message(
-    sender,
-    content,
-    state,
-    time,
-    type
+    sender, content, state, time, type
 )
 
 data class NotificationMessage(
@@ -59,11 +56,7 @@ data class NotificationMessage(
     override val time: Long,
     val timelineEvent: TimelineEvent
 ) : Message(
-    sender,
-    content,
-    SendState.UNKNOWN,
-    time,
-    MessageType.TYPE_NOTIFICATION.index
+    sender, content, SendState.UNKNOWN, time, MessageType.TYPE_NOTIFICATION.index
 )
 
 data class NunchukWalletMessage(
@@ -77,11 +70,7 @@ data class NunchukWalletMessage(
     val isOwner: Boolean = false,
     val roomWallet: RoomWallet?
 ) : Message(
-    sender,
-    content,
-    SendState.UNKNOWN,
-    time,
-    type
+    sender, content, SendState.UNKNOWN, time, type
 )
 
 data class NunchukTransactionMessage(
@@ -97,9 +86,21 @@ data class NunchukTransactionMessage(
     val walletId: String,
     val transaction: Transaction?
 ) : Message(
-    sender,
-    content,
-    SendState.UNKNOWN,
-    time,
-    type
+    sender, content, SendState.UNKNOWN, time, type
+)
+
+data class NunchukMediaMessage(
+    override val sender: SenderInfo,
+    override val content: String,
+    override val time: Long,
+    val eventId: String,
+    val isMine: Boolean,
+    val filename: String,
+    val mimeType: String?,
+    val elementToDecrypt: ElementToDecrypt?,
+    val height: Int?,
+    val width: Int?,
+    val allowNonMxcUrls: Boolean = false
+) : Message(
+    sender, content, SendState.UNKNOWN, time, MessageType.TYPE_IMAGE_AND_VIDEO.index
 )

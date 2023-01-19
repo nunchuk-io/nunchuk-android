@@ -164,17 +164,6 @@ fun KeyRecoverySuccessScreenContent(
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_got_it))
                 }
-                NcOutlineButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
-                        .height(48.dp),
-                    onClick = onReplaceMyKeyClick,
-                ) {
-                    Text(
-                        text = stringResource(R.string.nc_tapsigner_recovered_success_replace_my_key),
-                    )
-                }
             }
         }
     }

@@ -37,7 +37,7 @@ private fun initOptions(): List<InheritanceOption> {
                 type = InheritanceShareSecretType.DIRECT.ordinal,
                 title = R.string.nc_direct_inheritance,
                 desc = R.string.nc_direct_inheritance_desc,
-                isSelected = false
+                isSelected = true
             )
         )
         add(

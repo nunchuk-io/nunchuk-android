@@ -21,18 +21,20 @@ package com.nunchuk.android.auth.components.verify
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.auth.components.verify.VerifyNewDeviceEvent.*
+import com.nunchuk.android.auth.components.verify.VerifyNewDeviceEvent.ProcessingEvent
+import com.nunchuk.android.auth.components.verify.VerifyNewDeviceEvent.SignInSuccessEvent
 import com.nunchuk.android.auth.domain.VerifyNewDeviceUseCase
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
-import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -65,13 +67,13 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
                 staySignedIn = staySignedIn
             ).flowOn(Dispatchers.IO)
                 .onStart { event(ProcessingEvent) }
-                .onException { event(SignInErrorEvent(message = it.message.orUnknownError())) }
-                .flatMapConcat {
+                .map {
                     token = it.first
                     encryptedDeviceId = it.second
                     initNunchuk()
                 }
                 .flowOn(Dispatchers.Main)
+                .onException { setEvent(VerifyNewDeviceEvent.SignInErrorEvent(message = it.message.orUnknownError())) }
                 .collect {
                     signInModeHolder.setCurrentMode(SignInMode.EMAIL)
                     event(SignInSuccessEvent(token = token.orEmpty(), encryptedDeviceId = encryptedDeviceId.orEmpty()))
@@ -79,11 +81,8 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
         }
     }
 
-    private fun initNunchuk(): Flow<Unit> {
+    private suspend fun initNunchuk() {
         val account = accountManager.getAccount()
-        return initNunchukUseCase.execute(accountId = account.email)
-            .flowOn(Dispatchers.IO)
-            .onException { event(SignInErrorEvent(message = it.message.orUnknownError())) }
+        return initNunchukUseCase(InitNunchukUseCase.Param(accountId = account.email)).getOrThrow()
     }
-
 }

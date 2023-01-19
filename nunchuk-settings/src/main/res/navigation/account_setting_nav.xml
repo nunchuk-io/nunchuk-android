@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/account_setting_nav"
+    app:startDestination="@id/accountSettingFragment">
+
+    <fragment
+        android:id="@+id/accountSettingFragment"
+        tools:layout="@layout/fragment_account_setting"
+        android:name="com.nunchuk.android.settings.AccountSettingFragment"
+        android:label="AccountSettingFragment" >
+        <action
+            android:id="@+id/action_accountSettingFragment_to_signInQrFragment"
+            app:destination="@id/signInQrFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            />
+    </fragment>
+    <fragment
+        android:id="@+id/signInQrFragment"
+        android:name="com.nunchuk.android.settings.signin.SignInQrFragment"
+        android:label="SignInQrFragment" />
+</navigation>

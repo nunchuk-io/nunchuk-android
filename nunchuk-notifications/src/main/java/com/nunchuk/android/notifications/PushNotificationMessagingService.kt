@@ -74,9 +74,9 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
             return
         }
         val event = getEvent(remoteMessage.data)?.also {
-            if (it.isCosignedEvent() || it.isCosignedAndBroadcastEvent()) {
+            if (it.isServerTransactionEvent()) {
                 applicationScope.launch {
-                    pushEventManager.push(PushEvent.CosigningEvent(it.getWalletId(), it.getTransactionId()))
+                    pushEventManager.push(PushEvent.ServerTransactionEvent(it.getWalletId(), it.getTransactionId()))
                 }
             }
         }
@@ -161,14 +161,14 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         isContactUpdateEvent() -> {
             PushNotificationData(
                 title = getString(R.string.notification_contact_update),
-                message = lastMessageContent(),
+                message = lastMessageContent(this@PushNotificationMessagingService),
                 intent = intentProvider.getMainIntent()
             )
         }
         isMessageEvent() -> {
             PushNotificationData(
                 title = lastMessageSender(),
-                message = lastMessageContent(),
+                message = lastMessageContent(this@PushNotificationMessagingService),
                 intent = intentProvider.getRoomDetailsIntent(roomId)
             )
         }

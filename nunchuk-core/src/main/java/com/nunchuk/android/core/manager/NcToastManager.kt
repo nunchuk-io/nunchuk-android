@@ -21,6 +21,7 @@ package com.nunchuk.android.core.manager
 
 import android.os.Handler
 import android.os.Looper
+import androidx.annotation.Keep
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
@@ -31,21 +32,42 @@ import java.util.*
 
 object NcToastManager : DefaultLifecycleObserver {
     private const val DELAY = 150L
-    private val queue = LinkedList<String>()
+    private val queue = LinkedList<Pair<MessageType, String>>()
     private val handler = Handler(Looper.getMainLooper())
     private val showMessage = Runnable {
-        if (queue.isNotEmpty() && ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+        if (queue.isNotEmpty() && ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(
+                Lifecycle.State.STARTED
+            )
+        ) {
             val topActivity = ActivityManager.peek()
-            if (topActivity is AppCompatActivity && topActivity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                NCToastMessage(topActivity).show(queue.remove())
+            if (topActivity is AppCompatActivity && topActivity.lifecycle.currentState.isAtLeast(
+                    Lifecycle.State.RESUMED
+                )
+            ) {
+                showMessage(topActivity, queue.remove())
             } else {
                 schedule()
             }
         }
     }
 
-    fun scheduleShowMessage(message: String) {
-        queue.add(message)
+    private fun showMessage(topActivity: AppCompatActivity, data: Pair<MessageType, String>) {
+        val (type, message) = data
+        when (type) {
+            MessageType.SUCCESS -> {
+                NCToastMessage(topActivity).show(message)
+            }
+            MessageType.WARING -> {
+                NCToastMessage(topActivity).showWarning(message)
+            }
+            else -> {
+                NCToastMessage(topActivity).showError(message)
+            }
+        }
+    }
+
+    fun scheduleShowMessage(message: String, type: MessageType = MessageType.SUCCESS) {
+        queue.add(Pair(type, message))
         schedule()
     }
 
@@ -62,5 +84,10 @@ object NcToastManager : DefaultLifecycleObserver {
     override fun onStop(owner: LifecycleOwner) {
         super.onStop(owner)
         handler.removeCallbacks(showMessage)
+    }
+
+    @Keep
+    enum class MessageType {
+        SUCCESS, WARING, ERROR
     }
 }

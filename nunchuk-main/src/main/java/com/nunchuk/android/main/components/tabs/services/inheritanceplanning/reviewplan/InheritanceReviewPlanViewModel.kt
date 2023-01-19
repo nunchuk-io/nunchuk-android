@@ -175,7 +175,8 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                 verifyToken = args.verifyToken,
                 userData = state.userData.orEmpty(),
                 securityQuestionToken = securityQuestionToken,
-                isUpdate = isUpdate
+                isUpdate = isUpdate,
+                plan = membershipStepManager.plan
             )
         )
         _event.emit(InheritanceReviewPlanEvent.Loading(false))

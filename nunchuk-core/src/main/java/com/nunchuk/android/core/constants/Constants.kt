@@ -32,5 +32,5 @@ object Constants {
 }
 
 enum class RoomAction {
-    SEND, RECEIVE
+    NONE, SEND, RECEIVE
 }

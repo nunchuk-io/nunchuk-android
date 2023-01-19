@@ -55,6 +55,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -70,6 +71,7 @@ import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.utils.simpleGlobalDateFormat
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
@@ -132,7 +134,8 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                 }, onShareSecretClicked = {
                     findNavController().navigate(
                         InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceShareSecretFragment(
-                            magicalPhrase = args.magicalPhrase
+                            magicalPhrase = args.magicalPhrase,
+                            planFlow = args.planFlow
                         )
                     )
                 }, onActionTopBarClick = {
@@ -188,18 +191,19 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                     if (args.planFlow == InheritancePlanFlow.SETUP) {
                         findNavController().navigate(
                             InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceCreateSuccessFragment(
-                                magicalPhrase = args.magicalPhrase
+                                magicalPhrase = args.magicalPhrase,
+                                planFlow = args.planFlow
                             )
                         )
                     } else if (args.planFlow == InheritancePlanFlow.VIEW) {
-                        showSuccess(message = getString(R.string.nc_inheritance_plan_updated_notify))
+                        NcToastManager.scheduleShowMessage(message = getString(R.string.nc_inheritance_plan_updated_notify))
                         handleResult()
                     }
                 }
                 is InheritanceReviewPlanEvent.Loading -> showOrHideLoading(loading = event.loading)
                 is InheritanceReviewPlanEvent.ProcessFailure -> showError(message = event.message)
                 is InheritanceReviewPlanEvent.CancelInheritanceSuccess -> {
-                    showSuccess(message = getString(R.string.nc_inheritance_plan_cancelled_notify))
+                    NcToastManager.scheduleShowMessage(message = getString(R.string.nc_inheritance_plan_cancelled_notify))
                     handleResult()
                 }
             }

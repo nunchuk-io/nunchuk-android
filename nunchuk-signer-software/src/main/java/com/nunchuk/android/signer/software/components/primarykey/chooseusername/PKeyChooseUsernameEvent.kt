@@ -25,6 +25,7 @@ sealed class PKeyChooseUsernameEvent {
     data class GetDefaultUsernameSuccess(val username: String) : PKeyChooseUsernameEvent()
     object SignUpSuccess : PKeyChooseUsernameEvent()
     data class GetTurnOnNotificationSuccess(val isTurnOn: Boolean) : PKeyChooseUsernameEvent()
+    object InvalidUsername : PKeyChooseUsernameEvent()
 }
 
 data class PKeyChooseUsernameEventState(

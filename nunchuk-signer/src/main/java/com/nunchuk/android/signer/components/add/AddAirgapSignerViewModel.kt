@@ -24,7 +24,7 @@ import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.core.domain.GetAppSettingUseCase
+import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.signer.InvalidSignerFormatException
 import com.nunchuk.android.core.signer.SignerInput
 import com.nunchuk.android.core.signer.toSigner
@@ -50,10 +50,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -69,7 +66,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val gson: Gson,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val getAppSettingUseCase: GetAppSettingUseCase,
+    private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
 ) : NunchukViewModel<Unit, AddAirgapSignerEvent>() {
     private val qrDataList = HashSet<String>()
     private var isProcessing = false
@@ -78,7 +75,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            chain = getAppSettingUseCase.execute().first().chain
+            chain = getChainSettingFlowUseCase(Unit).map { it.getOrElse { Chain.MAIN } }.first()
         }
     }
 
