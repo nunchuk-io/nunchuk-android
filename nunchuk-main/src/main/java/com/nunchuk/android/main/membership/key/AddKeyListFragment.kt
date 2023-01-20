@@ -322,7 +322,11 @@ fun AddKeyListContent(
                                 withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
                                     append(stringResource(id = R.string.nc_add_key_list_desc_two))
                                 }
-                                append(stringResource(id = R.string.nc_add_key_list_desc_three))
+                                if (keys.size > 3) {
+                                    append(stringResource(id = R.string.nc_honey_add_key_list_desc_three))
+                                } else {
+                                    append(stringResource(id = R.string.nc_add_key_list_desc_three))
+                                }
                                 if (keys.size > 3) {
                                     append("\n\n")
                                     append(stringResource(R.string.nc_among_three_key_select_inheritance))
