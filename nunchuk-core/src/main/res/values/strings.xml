@@ -175,6 +175,7 @@
     <string name="nc_add_key_list_desc_one">Your new wallet will be a 2-of-%1$d multisig wallet.</string>
     <string name="nc_add_key_list_desc_two">Two keys are always required for spending.</string>
     <string name="nc_add_key_list_desc_three">\n\nYou will have possession of two keys. The third key will be held by Nunchuk on our secure server.</string>
+    <string name="nc_honey_add_key_list_desc_three">\n\nYou will have possession of three keys. The fourth key will be held by Nunchuk on our secure server..</string>
     <string name="nc_server_key">Platform key</string>
     <string name="nc_add">Add</string>
     <string name="nc_configure">Configure</string>
