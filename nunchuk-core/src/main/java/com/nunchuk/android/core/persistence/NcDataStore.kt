@@ -47,7 +47,9 @@ class NcDataStore @Inject constructor(
     private val registerAirgapKey = booleanPreferencesKey("register_airgap")
     private val setupInheritanceKey = booleanPreferencesKey("setup_inheritance")
     private val chainKey = intPreferencesKey("chain")
-    private val hideUpsellBanner = booleanPreferencesKey("hide_upsell_banner")
+    private val hideUpsellBannerKey = booleanPreferencesKey("hide_upsell_banner")
+    private val syncRoomSuccessKey = booleanPreferencesKey("sync_room_success")
+    private val createSyncRoomSuccessKey = booleanPreferencesKey("create_sync_room_success")
 
     /**
      * Assisted wallet local id
@@ -63,6 +65,17 @@ class NcDataStore @Inject constructor(
      * Current membership plan key
      */
     private val membershipPlanKey = intPreferencesKey("membership_plan")
+
+    val syncRoomSuccess: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[syncRoomSuccessKey] ?: false
+        }
+
+    suspend fun markSyncRoomSuccess() {
+        context.dataStore.edit { settings ->
+            settings[syncRoomSuccessKey] = true
+        }
+    }
 
     val btcPriceFlow: Flow<Double>
         get() = context.dataStore.data.map { it[btcPriceKey] ?: 45000.0 }
@@ -120,7 +133,7 @@ class NcDataStore @Inject constructor(
 
     val isHideUpsellBanner: Flow<Boolean>
         get() = context.dataStore.data.map {
-            it[hideUpsellBanner] ?: false
+            it[hideUpsellBannerKey] ?: false
         }
 
     suspend fun setChain(chain: Chain) {
@@ -191,7 +204,7 @@ class NcDataStore @Inject constructor(
 
     suspend fun setHideUpsellBanner() {
         context.dataStore.edit {
-            it[hideUpsellBanner] = true
+            it[hideUpsellBannerKey] = true
         }
     }
 
@@ -205,7 +218,8 @@ class NcDataStore @Inject constructor(
             it.remove(registerColdcardKey)
             it.remove(registerAirgapKey)
             it.remove(setupInheritanceKey)
-            it.remove(hideUpsellBanner)
+            it.remove(hideUpsellBannerKey)
+            it.remove(syncRoomSuccessKey)
         }
     }
 }

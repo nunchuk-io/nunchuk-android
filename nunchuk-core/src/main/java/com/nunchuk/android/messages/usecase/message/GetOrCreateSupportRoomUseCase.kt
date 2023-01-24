@@ -25,10 +25,13 @@ import com.nunchuk.android.core.util.SUPPORT_ROOM_TYPE
 import com.nunchuk.android.core.util.SUPPORT_ROOM_USER_ID
 import com.nunchuk.android.core.util.SUPPORT_TEST_NET_ROOM_TYPE
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.SettingRepository
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.RoomSortOrder
@@ -42,10 +45,12 @@ import javax.inject.Inject
 class GetOrCreateSupportRoomUseCase @Inject constructor(
     private val sessionHolder: SessionHolder,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
+    private val settingRepository: SettingRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : UseCase<Unit, Room>(ioDispatcher) {
 
     override suspend fun execute(parameters: Unit): Room {
+        settingRepository.syncRoomSuccess.filter { it }.first()
         val session = sessionHolder.getSafeActiveSession()
             ?: throw NullPointerException("Can not get active session")
         val roomType = getRoomType()

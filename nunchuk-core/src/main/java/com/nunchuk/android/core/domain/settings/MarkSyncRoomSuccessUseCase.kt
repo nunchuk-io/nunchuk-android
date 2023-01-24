@@ -17,17 +17,20 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.repository
+package com.nunchuk.android.core.domain.settings
 
-import com.nunchuk.android.type.Chain
-import kotlinx.coroutines.flow.Flow
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.SettingRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-interface SettingRepository {
-    val syncEnable: Flow<Boolean>
-    val isShowNfcUniversal: Flow<Boolean>
-    val chain: Flow<Chain>
-    val syncRoomSuccess: Flow<Boolean>
-    suspend fun setSyncEnable(isEnable: Boolean)
-    suspend fun markSyncRoomSuccess()
-    suspend fun markIsShowNfcUniversal()
+class MarkSyncRoomSuccessUseCase @Inject constructor(
+    private val repository: SettingRepository,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher
+) : UseCase<Unit, Unit>(dispatcher) {
+
+    override suspend fun execute(parameters: Unit) {
+        return repository.markSyncRoomSuccess()
+    }
 }

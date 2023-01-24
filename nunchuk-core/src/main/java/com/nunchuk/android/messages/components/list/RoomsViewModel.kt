@@ -21,6 +21,7 @@ package com.nunchuk.android.messages.components.list
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.settings.MarkSyncRoomSuccessUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.matrix.roomSummariesFlow
 import com.nunchuk.android.core.util.SUPPORT_ROOM_TYPE
@@ -51,6 +52,7 @@ class RoomsViewModel @Inject constructor(
     private val leaveRoomUseCase: LeaveRoomUseCase,
     private val sessionHolder: SessionHolder,
     private val getOrCreateSupportRoomUseCase: GetOrCreateSupportRoomUseCase,
+    private val markSyncRoomSuccessUseCase: MarkSyncRoomSuccessUseCase,
     getLocalCurrentSubscriptionPlan: GetLocalCurrentSubscriptionPlan,
 ) : NunchukViewModel<RoomsState, RoomsEvent>() {
 
@@ -81,6 +83,9 @@ class RoomsViewModel @Inject constructor(
                 fileLog("listenRoomSummaries($it)")
                 leaveDraftSyncRoom(it)
                 retrieveMessages(it)
+                if (it.isNotEmpty()) {
+                    markSyncRoomSuccessUseCase(Unit)
+                }
             }
             .onCompletion { setEvent(RoomsEvent.LoadingEvent(false)) }
             .flowOn(Dispatchers.Main)
