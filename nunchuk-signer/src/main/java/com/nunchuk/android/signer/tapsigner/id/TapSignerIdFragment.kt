@@ -92,9 +92,7 @@ class TapSignerIdFragment : MembershipFragment() {
                     TapSignerIdEvent.OnContinueClicked -> (requireActivity() as NfcActionListener).startNfcFlow(
                         BaseNfcActivity.REQUEST_NFC_VIEW_BACKUP_KEY
                     )
-                    TapSignerIdEvent.OnAddNewOne -> {
-                        findNavController().navigate(TapSignerIdFragmentDirections.actionTapSignerIdFragmentToAddTapSignerIntroFragment(true))
-                    }
+                    TapSignerIdEvent.OnAddNewOne -> requireActivity().finish()
                 }
             }
         }
