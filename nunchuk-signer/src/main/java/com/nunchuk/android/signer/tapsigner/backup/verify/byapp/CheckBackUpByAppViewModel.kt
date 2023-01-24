@@ -78,7 +78,7 @@ class CheckBackUpByAppViewModel @Inject constructor(
             } else {
                 tryCount++
                 errorMessage = application.getString(R.string.nc_decryption_failed_try_again)
-                if (tryCount == MAX_TRY) {
+                if (tryCount.mod(MAX_TRY) == 0) {
                     _event.emit(CheckBackUpByAppEvent.OnVerifyFailedTooMuch)
                 }
             }
