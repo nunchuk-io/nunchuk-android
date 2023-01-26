@@ -14,3 +14,15 @@ Publish the SDK to the local maven. Note the SDK version number.
 Open `dependencies.gradle` and update `nativeSdkVersion` to the SDK version you just published.
 
 Build and run the app on your device.
+
+## Alternative solution without building the SDK (Recommended)
+
+You can use prebuilt sdk version from github, check it [here](https://github.com/nunchuk-io/nunchuk-android-nativesdk-prebuild).
+
+Change `nativeSdk` in `dependencies.gradle` to the prebuilt version
+
+```
+    nunchukDeps = [
+            nativeSdk: "com.github.nunchuk-io:nunchuk-android-nativesdk-prebuild:1.1.55@aar"
+    ]
+```

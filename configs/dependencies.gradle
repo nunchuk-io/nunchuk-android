@@ -199,7 +199,7 @@ ext {
     ]
 
     nunchukDeps = [
-            nativeSdk: "io.nunchuk.android:nativesdk-arm64_v8a:${nativeSdkVersion}"
+            nativeSdk: "com.github.nunchuk-io:nunchuk-android-nativesdk-prebuild:1.1.55@aar"
     ]
 
     matrixDeps = [
