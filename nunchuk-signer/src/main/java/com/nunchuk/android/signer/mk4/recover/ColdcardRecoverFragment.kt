@@ -29,12 +29,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -67,7 +70,7 @@ class ColdcardRecoverFragment : MembershipFragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                ColdcardRecoverScreen(viewModel, args.isMembershipFlow)
+                ColdcardRecoverScreen(viewModel, ::handleShowMore, args.isMembershipFlow)
             }
         }
     }
@@ -95,6 +98,7 @@ class ColdcardRecoverFragment : MembershipFragment() {
 @Composable
 private fun ColdcardRecoverScreen(
     viewModel: ColdcardRecoverViewModel = viewModel(),
+    onMoreClicked: () -> Unit = {},
     isMembershipFlow: Boolean
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -103,6 +107,7 @@ private fun ColdcardRecoverScreen(
         onContinueClicked = viewModel::onContinueClicked,
         onOpenGuideClicked = viewModel::onOpenGuideClicked,
         isMembershipFlow = isMembershipFlow,
+        onMoreClicked = onMoreClicked,
     )
 }
 
@@ -111,6 +116,7 @@ private fun ColdcardRecoverContent(
     remainTime: Int = 0,
     onContinueClicked: () -> Unit = {},
     onOpenGuideClicked: () -> Unit = {},
+    onMoreClicked: () -> Unit = {},
     isMembershipFlow: Boolean = false,
 ) {
     NunchukTheme {
@@ -127,7 +133,17 @@ private fun ColdcardRecoverContent(
                     title = if (isMembershipFlow) stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
-                    ) else ""
+                    ) else "",
+                    actions = {
+                        if (isMembershipFlow) {
+                            IconButton(onClick = onMoreClicked) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_more),
+                                    contentDescription = "More icon"
+                                )
+                            }
+                        }
+                    }
                 )
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
@@ -211,6 +227,6 @@ private fun ColdcardRecoverContent(
 @Composable
 private fun ColdcardRecoverScreenPreview() {
     ColdcardRecoverContent(
-
+        isMembershipFlow = true
     )
 }

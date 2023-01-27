@@ -226,6 +226,7 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
     }
 
     override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
         if (option.type == SheetOptionType.TYPE_CANCEL) {
             viewModel.calculateRequiredSignatures(isCreateOrUpdate = false)
         }

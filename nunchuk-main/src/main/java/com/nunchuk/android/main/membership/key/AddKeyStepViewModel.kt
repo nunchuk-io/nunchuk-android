@@ -26,7 +26,6 @@ import com.nunchuk.android.core.domain.GetAssistedWalletIdFlowUseCase
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.share.membership.MembershipStepManager
-import com.nunchuk.android.usecase.membership.RestartWizardUseCase
 import com.nunchuk.android.usecase.user.IsRegisterAirgapUseCase
 import com.nunchuk.android.usecase.user.IsRegisterColdcardUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,7 +36,6 @@ import javax.inject.Inject
 @HiltViewModel
 class AddKeyStepViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
-    private val restartWizardUseCase: RestartWizardUseCase,
     private val savedStateHandle: SavedStateHandle,
     isRegisterColdcardUseCase: IsRegisterColdcardUseCase,
     isRegisterAirgapUseCase: IsRegisterAirgapUseCase,
@@ -149,15 +147,6 @@ class AddKeyStepViewModel @Inject constructor(
         }
     }
 
-    fun resetWizard() {
-        viewModelScope.launch {
-            val result = restartWizardUseCase(membershipStepManager.plan)
-            if (result.isSuccess) {
-                _event.emit(AddKeyStepEvent.RestartWizardSuccess)
-            }
-        }
-    }
-
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"
     }
@@ -175,7 +164,6 @@ sealed class AddKeyStepEvent {
 
     data class OpenRegisterAirgap(val walletId: String) : AddKeyStepEvent()
     object OnMoreClicked : AddKeyStepEvent()
-    object RestartWizardSuccess : AddKeyStepEvent()
     object OpenInheritanceSetup : AddKeyStepEvent()
     object SetupInheritanceSetupDone : AddKeyStepEvent()
 }

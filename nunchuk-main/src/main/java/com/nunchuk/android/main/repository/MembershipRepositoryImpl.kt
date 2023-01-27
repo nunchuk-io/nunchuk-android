@@ -103,18 +103,19 @@ class MembershipRepositoryImpl @Inject constructor(
     }
 
     override suspend fun restart(plan: MembershipPlan) {
-        val steps = getSteps(plan).first()
+        val steps = getSteps(plan).firstOrNull().orEmpty()
         steps.filter { it.masterSignerId.isNotEmpty() }.forEach {
-            runCatching { gson.fromJson(it.extraData, SignerExtra::class.java) }
-                .getOrNull()
-                ?.takeIf { extra -> extra.isAddNew }
-                ?.let { extra ->
-                    if (extra.signerType == SignerType.NFC) {
-                        nativeSdk.deleteMasterSigner(it.masterSignerId)
-                    } else {
-                        nativeSdk.deleteRemoteSigner(it.masterSignerId, extra.derivationPath)
+            runCatching {
+               gson.fromJson(it.extraData, SignerExtra::class.java)
+                    ?.takeIf { extra -> extra.isAddNew }
+                    ?.let { extra ->
+                        if (extra.signerType == SignerType.NFC) {
+                            nativeSdk.deleteMasterSigner(it.masterSignerId)
+                        } else {
+                            nativeSdk.deleteRemoteSigner(it.masterSignerId, extra.derivationPath)
+                        }
                     }
-                }
+            }
         }
         membershipStepDao.deleteStepByEmail(chain.value, accountManager.getAccount().chatId)
     }

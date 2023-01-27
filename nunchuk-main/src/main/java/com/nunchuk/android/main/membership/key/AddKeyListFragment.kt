@@ -29,6 +29,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -91,7 +92,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                AddKeyListScreen(viewModel, membershipStepManager)
+                AddKeyListScreen(viewModel, membershipStepManager, ::handleShowMore)
             }
         }
     }
@@ -121,6 +122,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
         when (option.type) {
             SignerType.NFC.ordinal -> handleShowKeysOrCreate(
                 viewModel.getTapSigners(),
@@ -266,7 +268,8 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
 @Composable
 fun AddKeyListScreen(
     viewModel: AddKeyListViewModel = viewModel(),
-    membershipStepManager: MembershipStepManager
+    membershipStepManager: MembershipStepManager,
+    onMoreClicked: () -> Unit = {}
 ) {
     val keys by viewModel.key.collectAsStateWithLifecycle()
     val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
@@ -276,6 +279,7 @@ fun AddKeyListScreen(
         onVerifyClicked = viewModel::onVerifyClicked,
         keys = keys,
         remainingTime = remainingTime,
+        onMoreClicked = onMoreClicked
     )
 }
 
@@ -284,6 +288,7 @@ fun AddKeyListContent(
     onAddClicked: (data: AddKeyData) -> Unit = {},
     onVerifyClicked: (data: AddKeyData) -> Unit = {},
     onContinueClicked: () -> Unit = {},
+    onMoreClicked: () -> Unit = {},
     keys: List<AddKeyData> = emptyList(),
     remainingTime: Int,
 ) {
@@ -296,7 +301,16 @@ fun AddKeyListContent(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainingTime))
+                NcTopAppBar(
+                    stringResource(R.string.nc_estimate_remain_time, remainingTime),
+                    actions = {
+                        IconButton(onClick = onMoreClicked) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
+                        }
+                    })
                 LazyColumn(
                     modifier = Modifier
                         .weight(1.0f)

@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -76,7 +77,7 @@ class ConfigSpendingLimitFragment : MembershipFragment(), BottomSheetOptionListe
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                ConfigSpendingLimitScreen(viewModel, args)
+                ConfigSpendingLimitScreen(viewModel, args, ::handleShowMore)
             }
         }
     }
@@ -143,6 +144,7 @@ class ConfigSpendingLimitFragment : MembershipFragment(), BottomSheetOptionListe
     }
 
     override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
         if (option.type >= OFFSET) {
             val type = SpendingCurrencyUnit.values()[option.type - OFFSET]
             viewModel.setCurrencyUnit(type)
@@ -161,7 +163,8 @@ class ConfigSpendingLimitFragment : MembershipFragment(), BottomSheetOptionListe
 @Composable
 private fun ConfigSpendingLimitScreen(
     viewModel: ConfigSpendingLimitViewModel,
-    args: ConfigSpendingLimitFragmentArgs
+    args: ConfigSpendingLimitFragmentArgs,
+    onMoreClicked: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -172,6 +175,7 @@ private fun ConfigSpendingLimitScreen(
         onShowCurrencyUnitOption = viewModel::showCurrencyUnitOption,
         onShowTimeUnitOption = viewModel::showTimeUnitOption,
         onContinueClicked = viewModel::onContinueClicked,
+        onMoreClicked = onMoreClicked,
         spendingLimit = remember {
             mutableStateOf(args.keyPolicy?.spendingPolicy?.limit?.formatRoundDecimal() ?: "1000")
         },
@@ -187,6 +191,7 @@ private fun ConfigSpendingLimitContent(
     onContinueClicked: (value: Double) -> Unit = {},
     onShowTimeUnitOption: () -> Unit = {},
     onShowCurrencyUnitOption: () -> Unit = {},
+    onMoreClicked: () -> Unit = {},
     spendingLimit: MutableState<String> = mutableStateOf("5000"),
     isEditMode: Boolean = false,
 ) {
@@ -199,10 +204,20 @@ private fun ConfigSpendingLimitContent(
                     .navigationBarsPadding()
             ) {
                 NcTopAppBar(
-                    if (isEditMode) "" else stringResource(
+                    title = if (isEditMode) "" else stringResource(
                         R.string.nc_estimate_remain_time,
                         remainTime
-                    )
+                    ),
+                    actions = {
+                        if (!isEditMode) {
+                            IconButton(onClick = onMoreClicked) {
+                                Icon(
+                                    painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
+                                    contentDescription = "More icon"
+                                )
+                            }
+                        }
+                    }
                 )
                 Text(
                     modifier = Modifier.padding(horizontal = 16.dp),
@@ -293,7 +308,9 @@ private fun ConfigSpendingLimitContent(
                         .fillMaxWidth()
                         .padding(16.dp),
                     onClick = {
-                        onContinueClicked((spendingLimit.value.toDoubleOrNull() ?: 0.0).roundDecimal())
+                        onContinueClicked(
+                            (spendingLimit.value.toDoubleOrNull() ?: 0.0).roundDecimal()
+                        )
                     },
                 ) {
                     Text(
