@@ -58,6 +58,7 @@ class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
     private fun setupViews() {
         val barcodeViewIntent = intent
         barcodeViewIntent.putExtra(Intents.Scan.MODE, Intents.Scan.QR_CODE_MODE)
+        binding.barcodeView.cameraSettings.isContinuousFocusEnabled = true
         binding.barcodeView.initializeFromIntent(barcodeViewIntent)
         binding.barcodeView.decodeContinuous { result ->
             viewModel.handAddPassportSigners(result.text)

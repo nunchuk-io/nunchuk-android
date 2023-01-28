@@ -71,6 +71,7 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
     private fun setupViews() {
         val barcodeViewIntent = intent
         barcodeViewIntent.putExtra(Intents.Scan.MODE, Intents.Scan.QR_CODE_MODE)
+        binding.barcodeView.cameraSettings.isContinuousFocusEnabled = true
         binding.barcodeView.initializeFromIntent(barcodeViewIntent)
         binding.barcodeView.decodeContinuous { viewModel.importTransactionViaQR(it.text) }
         binding.btnImportViaFile.setOnClickListener { openSelectFileChooser() }
