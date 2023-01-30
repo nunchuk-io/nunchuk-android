@@ -494,4 +494,5 @@
     <string name="nc_exit_wizard">Exit wizard</string>
     <string name="nc_resume_wizard_desc">You can resume the wizard anytime from the Wallets tab.</string>
     <string name="nc_xpubs_file_invalid">XPUBs file is invalid</string>
+    <string name="nc_card_id_does_not_match">Card ID does not match. Please try a different card.</string>
 </resources>
