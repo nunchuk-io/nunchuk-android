@@ -89,6 +89,7 @@ class ColdcardRecoverFragment : MembershipFragment() {
                         is ColdcardRecoverEvent.LoadingEvent -> showOrHideLoading(event.isLoading)
                         is ColdcardRecoverEvent.ShowError -> showError(event.message)
                         ColdcardRecoverEvent.AddSameKey -> showError(getString(R.string.nc_error_add_same_key))
+                        ColdcardRecoverEvent.ParseFileError -> showError(getString(R.string.nc_xpubs_file_invalid))
                     }
                 }
         }
