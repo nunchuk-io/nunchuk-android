@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.messages.components.detail
 
+import android.net.Uri
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.RoomWalletData
 import com.nunchuk.android.model.TransactionExtended
@@ -51,9 +52,7 @@ sealed class RoomDetailEvent {
     object CreateNewSharedWallet : RoomDetailEvent()
     data class ReceiveBTCEvent(val walletId: String) : RoomDetailEvent()
     data class CreateNewTransaction(
-        val roomId: String,
-        val walletId: String,
-        val availableAmount: Double
+        val roomId: String, val walletId: String, val availableAmount: Double
     ) : RoomDetailEvent()
 
     object OpenChatInfoEvent : RoomDetailEvent()
@@ -61,14 +60,16 @@ sealed class RoomDetailEvent {
     object RoomWalletCreatedEvent : RoomDetailEvent()
     object HideBannerNewChatEvent : RoomDetailEvent()
     data class ViewWalletConfigEvent(
-        val roomId: String,
-        val roomWalletData: RoomWalletData
+        val roomId: String, val roomWalletData: RoomWalletData
     ) : RoomDetailEvent()
 
     object HasUpdatedEvent : RoomDetailEvent()
     object GetRoomWalletSuccessEvent : RoomDetailEvent()
     object LeaveRoomEvent : RoomDetailEvent()
     object None : RoomDetailEvent()
+    object OnSendMediaSuccess : RoomDetailEvent()
     data class ShowError(val message: String) : RoomDetailEvent()
     data class Loading(val isLoading: Boolean) : RoomDetailEvent()
+
+    data class OpenFile(val uri: Uri, val mimeType: String?) : RoomDetailEvent()
 }

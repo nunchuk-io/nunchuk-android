@@ -11,9 +11,10 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
 import com.nunchuk.android.core.di.singletonEntryPoint
 import com.nunchuk.android.messages.R
+import com.nunchuk.android.messages.components.detail.NunchukMedia
 import com.nunchuk.android.messages.components.detail.model.RoomMediaSource
+import com.nunchuk.android.messages.glide.GlideApp
 import com.nunchuk.android.messages.util.LocalFilesHelper
-import org.matrix.android.sdk.api.session.crypto.model.EncryptedFileInfo
 
 abstract class BaseMediaViewHolder(binding: ViewBinding) : ViewHolder(binding.root) {
     protected val sessionHolder = binding.root.context.singletonEntryPoint().sessionHolder()
@@ -24,8 +25,7 @@ abstract class BaseMediaViewHolder(binding: ViewBinding) : ViewHolder(binding.ro
     open fun onRecycled() {}
 
     protected fun buildRequestManager(
-        url: String?,
-        encryptedFileInfo: EncryptedFileInfo? = null,
+        data: NunchukMedia,
         allowNonMxcUrls: Boolean,
         image: ImageView,
     ): RequestBuilder<Drawable> {
@@ -35,12 +35,12 @@ abstract class BaseMediaViewHolder(binding: ViewBinding) : ViewHolder(binding.ro
         circularProgressDrawable.setColorSchemeColors(Color.WHITE)
         circularProgressDrawable.start()
 
-        return if (encryptedFileInfo != null) {
+        return if (data.elementToDecrypt != null) {
             // Encrypted image
-            Glide.with(image).load(url).placeholder(circularProgressDrawable)
+            GlideApp.with(image).load(data).placeholder(circularProgressDrawable)
         } else {
             // Clear image
-            val resolvedUrl = resolveUrl(url, allowNonMxcUrls)
+            val resolvedUrl = resolveUrl(data.url, allowNonMxcUrls)
             Glide.with(image).load(resolvedUrl).placeholder(circularProgressDrawable)
         }
     }
@@ -49,8 +49,8 @@ abstract class BaseMediaViewHolder(binding: ViewBinding) : ViewHolder(binding.ro
         (sessionHolder.getSafeActiveSession()?.contentUrlResolver()?.resolveFullSize(url)
             ?: url?.takeIf {
                 LocalFilesHelper.isLocalFile(
-                    url,
-                    itemView.context
+                    itemView.context,
+                    url
                 ) && allowNonMxcUrls
             })
 

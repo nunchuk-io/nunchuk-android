@@ -3,7 +3,8 @@ package com.nunchuk.android.messages.components.detail.holder
 import android.content.res.Resources
 import android.util.Size
 import android.view.Gravity
-import android.widget.FrameLayout
+import android.widget.LinearLayout
+import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.RecyclerView
@@ -34,8 +35,11 @@ class MessageMediaViewHolder(
 
     fun bind(message: NunchukMediaMessage) {
         binding.root.tag = message
+        binding.tvError.isGone = message.error.isNullOrEmpty()
+        binding.tvError.text = message.error
+
         val size = processSize(message.width.orDefault(0), message.height.orDefault(0))
-        binding.containerMedia.updateLayoutParams<FrameLayout.LayoutParams> {
+        binding.containerMedia.updateLayoutParams<LinearLayout.LayoutParams> {
             gravity = if (message.isMine) Gravity.END else Gravity.START
         }
         binding.image.updateLayoutParams {

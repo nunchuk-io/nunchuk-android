@@ -19,10 +19,7 @@
 
 package com.nunchuk.android.messages.util
 
-import org.matrix.android.sdk.api.session.events.model.EventType
-import org.matrix.android.sdk.api.session.events.model.isImageMessage
-import org.matrix.android.sdk.api.session.events.model.isTextMessage
-import org.matrix.android.sdk.api.session.events.model.isVideoMessage
+import org.matrix.android.sdk.api.session.events.model.*
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
 // Naming follow Matrix's convention
@@ -40,7 +37,6 @@ const val SUBSCRIPTION_SUBSCRIPTION_ACTIVE = "io.nunchuk.custom.subscription_act
 const val SUBSCRIPTION_SUBSCRIPTION_PENDING = "io.nunchuk.custom.subscription_pending"
 const val TRANSACTION_CO_SIGNED_AND_BROADCAST =
     "io.nunchuk.custom.transaction_co_signed_and_broadcast"
-const val STATE_ROOM_SERVER_NOTICE = "m.server_notice"
 const val STATE_ENCRYPTED_MESSAGE = "*Encrypted*"
 
 fun TimelineEvent.isDisplayable(isSupportRoom: Boolean) : Boolean {
@@ -62,7 +58,7 @@ fun TimelineEvent.isEncryptedEvent() = root.getClearType() == EventType.ENCRYPTE
 
 fun TimelineEvent.isRoomNameEvent() = root.getClearType() == EventType.STATE_ROOM_NAME
 
-fun TimelineEvent.isMessageEvent() = root.isTextMessage() || root.isVideoMessage() || root.isImageMessage()
+fun TimelineEvent.isMessageEvent() = root.isTextMessage() || root.isVideoMessage() || root.isImageMessage() || root.isFileMessage()
 
 fun TimelineEvent.isNunchukEvent() =
     isNunchukWalletEvent() || isNunchukTransactionEvent() || isNunchukErrorEvent()

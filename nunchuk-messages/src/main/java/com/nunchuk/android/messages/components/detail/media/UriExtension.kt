@@ -4,8 +4,10 @@ import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
+import com.nunchuk.android.model.matrix.AttachmentType
 import com.nunchuk.android.model.matrix.BaseRoomMediaType
 import com.nunchuk.android.model.matrix.RoomImageType
 import com.nunchuk.android.model.matrix.RoomVideoType
@@ -18,7 +20,7 @@ fun List<Uri>.getSelectedMediaFiles(context: Context): List<BaseRoomMediaType> {
         when {
             mimeType.isMimeTypeVideo() -> selectedUri.toMultiPickerVideoType(context)
             mimeType.isMimeTypeImage() -> selectedUri.toMultiPickerImageType(context)
-            else -> null
+            else -> selectedUri.toAttachmentType(context)
         }
     }
 }
@@ -108,4 +110,29 @@ internal fun Uri.toMultiPickerVideoType(context: Context): RoomVideoType? {
             null
         }
     }
+}
+
+internal fun Uri.toAttachmentType(context: Context) : AttachmentType? {
+    val projection = arrayOf(
+        MediaStore.Video.Media.DISPLAY_NAME,
+        MediaStore.Video.Media.SIZE
+    )
+  return context.contentResolver.query(this, projection, null, null, null)
+        ?.use { cursor ->
+            val nameColumn = cursor.getColumnIndexOrNull(OpenableColumns.DISPLAY_NAME) ?: return@use null
+            val sizeColumn = cursor.getColumnIndexOrNull(OpenableColumns.SIZE) ?: return@use null
+            if (cursor.moveToFirst()) {
+                val name = cursor.getStringOrNull(nameColumn)
+                val size = cursor.getLongOrNull(sizeColumn) ?: 0
+
+                AttachmentType(
+                    name,
+                    size,
+                    context.contentResolver.getType(this),
+                    this
+                )
+            } else {
+                null
+            }
+        }
 }

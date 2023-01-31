@@ -28,7 +28,11 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
-import com.nunchuk.android.messages.util.*
+import com.nunchuk.android.messages.components.list.isServerNotices
+import com.nunchuk.android.messages.util.getTransactionId
+import com.nunchuk.android.messages.util.getWalletId
+import com.nunchuk.android.messages.util.isContactUpdateEvent
+import com.nunchuk.android.messages.util.isServerTransactionEvent
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.ReceiveContact
 import com.nunchuk.android.model.SentContact
@@ -77,7 +81,7 @@ class ContactsViewModel @Inject constructor(
             session.roomService().getRoomSummaries(roomSummaryQueryParams {
                 memberships = Membership.activeMemberships()
             }).find { roomSummary ->
-                roomSummary.hasTag(STATE_ROOM_SERVER_NOTICE)
+                roomSummary.isServerNotices()
             }?.let {
                 session.roomService().getRoom(it.roomId)
                     ?.let(::retrieveTimelineEvents)

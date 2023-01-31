@@ -38,10 +38,10 @@ fun RoomSummary.isDirectChat() = isDirect || getMembersCount() <= DIRECT_CHAT_ME
 
 fun RoomSummary.shouldShow() = BuildConfig.DEBUG || (!isServerNotices() && !isSyncRoom())
 
-fun RoomSummary.isServerNotices() = name == SERVER_NOTICES
+fun RoomSummary.isServerNotices() = inviterId == NOTICE_ROOM_INVITE_ID
 
 fun RoomSummary.isSyncRoom() = tags.isNotEmpty() && tags.any { it.name == STATE_NUNCHUK_SYNC }
 
-const val SERVER_NOTICES = "Server Notices"
+const val NOTICE_ROOM_INVITE_ID = "@nunchuk-notices:nunchuk.io"
 
 const val DIRECT_CHAT_MEMBERS_COUNT = 2

@@ -24,3 +24,10 @@ data class RoomVideoType(
     val orientation: Int,
     val duration: Long
 ): BaseRoomMediaType()
+
+data class AttachmentType(
+    val displayName: String?,
+    val size: Long,
+    val mimeType: String?,
+    val contentUri: Uri,
+) : BaseRoomMediaType()

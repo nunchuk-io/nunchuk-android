@@ -127,7 +127,7 @@ internal class WalletsViewModel @Inject constructor(
 
     fun reloadMembership() {
         viewModelScope.launch {
-            delay(300L)
+            delay(1000L)
             checkMemberMembership()
         }
     }
