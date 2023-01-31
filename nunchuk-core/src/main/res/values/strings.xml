@@ -253,7 +253,7 @@
     <string name="nc_off">Off</string>
     <string name="nc_re_enter_password">Re-enter your password</string>
     <string name="nc_enter_your_password_desc">For security, please re-enter your password.</string>
-    <string name="nc_delay_signing_invalid">Co-signing delay invalid, the maximum delay is 168 hours</string>
+    <string name="nc_delay_signing_invalid">Please set a delay that is less than 168 hours.</string>
     <string name="nc_configured">Configured</string>
     <string name="nc_view_policies">View policies</string>
     <string name="nc_check_out_assisted_wallet">Check out our assisted wallet</string>
