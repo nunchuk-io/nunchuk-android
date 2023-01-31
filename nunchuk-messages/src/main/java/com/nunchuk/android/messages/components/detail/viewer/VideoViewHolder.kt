@@ -5,10 +5,9 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.nunchuk.android.messages.components.detail.model.RoomMediaSource
 import com.nunchuk.android.messages.databinding.ItemVideoViewerBinding
+import com.nunchuk.android.messages.util.downloadFile
 import kotlinx.coroutines.*
-import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
-import org.matrix.android.sdk.api.session.room.model.message.getThumbnailUrl
 import timber.log.Timber
 
 class VideoViewHolder(
@@ -18,7 +17,7 @@ class VideoViewHolder(
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
     private val fileService = sessionHolder.getSafeActiveSession()?.fileService()
     private var playWhenReady: Boolean = true
-    private var downloadJob : Job? = null
+    private var downloadJob: Job? = null
 
     init {
         lifecycleOwner.lifecycle.addObserver(this)
@@ -28,8 +27,7 @@ class VideoViewHolder(
         val data = item as RoomMediaSource.Video
 
         buildRequestManager(
-            data.content.videoInfo?.getThumbnailUrl(),
-            data.content.videoInfo?.thumbnailFile,
+            data.thumbnail,
             data.allowNonMxcUrls,
             binding.viewThumbnail
         ).override(maxImageWidth, maxImageHeight)
@@ -44,12 +42,7 @@ class VideoViewHolder(
             downloadJob = coroutineScope.launch {
                 val result = withContext(Dispatchers.IO) {
                     runCatching {
-                        fileService?.downloadFile(
-                            fileName = data.content.body,
-                            mimeType = data.content.mimeType,
-                            url = url,
-                            elementToDecrypt = data.content.encryptedFileInfo?.toElementToDecrypt()
-                        )
+                        fileService?.downloadFile(data)
                     }
                 }
                 ensureActive()

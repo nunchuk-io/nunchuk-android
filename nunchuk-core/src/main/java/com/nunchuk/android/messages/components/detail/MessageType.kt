@@ -30,4 +30,5 @@ enum class MessageType(val index: Int) {
     TYPE_NUNCHUK_TRANSACTION_NOTIFICATION(7),
     TYPE_NUNCHUK_BANNER_NEW_CHAT(8),
     TYPE_IMAGE_AND_VIDEO(9),
+    TYPE_FILE(10),
 }

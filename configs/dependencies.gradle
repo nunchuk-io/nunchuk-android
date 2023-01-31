@@ -220,7 +220,7 @@ ext {
             'composeUiTool'          : "androidx.compose.ui:ui-tooling:$compose",
             'composeFoundation'      : "androidx.compose.foundation:foundation:$compose",
             'composeMaterial'        : "androidx.compose.material:material:$compose",
-            'composeActivity'        : "androidx.activity:activity-compose:1.5.1",
+            'composeActivity'        : "androidx.activity:activity-compose:1.6.1",
             'composeViewModel'       : "androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1",
             'composeSystemUi'        : "com.google.accompanist:accompanist-systemuicontroller:0.17.0",
             'composeInsets'          : "com.google.accompanist:accompanist-insets:0.25.1",

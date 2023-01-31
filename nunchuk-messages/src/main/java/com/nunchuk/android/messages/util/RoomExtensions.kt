@@ -19,10 +19,12 @@
 
 package com.nunchuk.android.messages.util
 
+import com.nunchuk.android.messages.components.detail.NunchukMedia
 import com.nunchuk.android.messages.components.detail.RoomInfo
 import com.nunchuk.android.messages.components.list.DIRECT_CHAT_MEMBERS_COUNT
 import com.nunchuk.android.messages.components.list.getRoomName
 import org.matrix.android.sdk.api.extensions.orFalse
+import org.matrix.android.sdk.api.session.file.FileService
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.members.RoomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -45,3 +47,10 @@ fun Room.getRoomInfo(currentName: String): RoomInfo {
 fun Room.getRoomMemberList() = membershipService().getRoomMembers(roomMemberQueryParams())
 
 private fun roomMemberQueryParams() = RoomMemberQueryParams.Builder().build()
+
+suspend fun FileService.downloadFile(data: NunchukMedia) = downloadFile(
+    fileName = data.filename,
+    mimeType = data.mimeType,
+    url = data.url,
+    elementToDecrypt = data.elementToDecrypt
+)

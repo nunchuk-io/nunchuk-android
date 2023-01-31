@@ -20,13 +20,16 @@ import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import org.matrix.android.sdk.api.extensions.orFalse
+import java.io.InputStream
 
 object LocalFilesHelper {
-    fun isLocalFile(fileUri: String?, context: Context): Boolean {
-        return fileUri
-                ?.let { Uri.parse(it) }
-                ?.let { DocumentFile.fromSingleUri(context, it) }
-                ?.exists()
-                .orFalse()
+    fun isLocalFile(context: Context, fileUri: String?): Boolean {
+        return fileUri?.let { Uri.parse(it) }?.let { DocumentFile.fromSingleUri(context, it) }
+            ?.exists().orFalse()
+    }
+
+    fun openInputStream(context: Context, fileUri: String?): InputStream? {
+        return fileUri?.takeIf { isLocalFile(context, it) }?.let { Uri.parse(it) }
+            ?.let { context.contentResolver.openInputStream(it) }
     }
 }

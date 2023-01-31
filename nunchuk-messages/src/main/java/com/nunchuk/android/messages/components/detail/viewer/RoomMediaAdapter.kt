@@ -63,4 +63,6 @@ class RoomMediaAdapter(private val items: List<RoomMediaSource>, private val lif
     override fun onViewDetachedFromWindow(holder: BaseMediaViewHolder) {
         holder.onDetached()
     }
+
+    fun getItem(position: Int) = items.getOrNull(position)
 }

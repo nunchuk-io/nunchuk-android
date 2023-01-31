@@ -1,5 +1,6 @@
 package com.nunchuk.android.messages.components.detail.media
 
+import com.nunchuk.android.model.matrix.AttachmentType
 import com.nunchuk.android.model.matrix.BaseRoomMediaType
 import com.nunchuk.android.model.matrix.RoomImageType
 import com.nunchuk.android.model.matrix.RoomVideoType
@@ -10,11 +11,11 @@ fun BaseRoomMediaType.toContentAttachmentData(): ContentAttachmentData {
     return when (this) {
         is RoomImageType -> toContentAttachmentData()
         is RoomVideoType -> toContentAttachmentData()
-        else -> throw IllegalStateException("Unknown media type")
+        is AttachmentType -> toContentAttachmentData()
     }
 }
 
-fun RoomImageType.toContentAttachmentData(): ContentAttachmentData {
+private fun RoomImageType.toContentAttachmentData(): ContentAttachmentData {
     if (mimeType == null) Timber.w("No mimeType")
     return ContentAttachmentData(
         mimeType = mimeType,
@@ -28,7 +29,7 @@ fun RoomImageType.toContentAttachmentData(): ContentAttachmentData {
     )
 }
 
-fun RoomVideoType.toContentAttachmentData(): ContentAttachmentData {
+private fun RoomVideoType.toContentAttachmentData(): ContentAttachmentData {
     if (mimeType == null) Timber.w("No mimeType")
     return ContentAttachmentData(
         mimeType = mimeType,
@@ -37,6 +38,17 @@ fun RoomVideoType.toContentAttachmentData(): ContentAttachmentData {
         height = height.toLong(),
         width = width.toLong(),
         duration = duration,
+        name = displayName,
+        queryUri = contentUri
+    )
+}
+
+private fun AttachmentType.toContentAttachmentData(): ContentAttachmentData {
+    if (mimeType == null) Timber.w("No mimeType")
+    return ContentAttachmentData(
+        mimeType = mimeType,
+        type = ContentAttachmentData.Type.FILE,
+        size = size,
         name = displayName,
         queryUri = contentUri
     )
