@@ -302,7 +302,17 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                         showSignByMk4Options()
                     }
                     SignerType.NFC -> {
-                        startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
+                        if (viewModel.isInheritanceSigner(signer.fingerPrint)) {
+                            NCWarningDialog(this).showDialog(
+                                title = getString(R.string.nc_text_confirmation),
+                                message = getString(R.string.nc_inheritance_key_warning),
+                                onYesClick = {
+                                    startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
+                                }
+                            )
+                        } else {
+                            startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
+                        }
                     }
                     else -> {
                         viewModel.handleSignEvent(signer)
@@ -488,11 +498,17 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         ).setListener {
             when (it) {
                 CANCEL -> promptCancelTransactionConfirmation()
-                EXPORT_KEYSTONE -> openExportTransactionScreen(EXPORT_KEYSTONE, event.masterFingerPrint)
+                EXPORT_KEYSTONE -> openExportTransactionScreen(
+                    EXPORT_KEYSTONE,
+                    event.masterFingerPrint
+                )
                 IMPORT_KEYSTONE -> openImportTransactionScreen(
                     IMPORT_KEYSTONE, event.masterFingerPrint
                 )
-                EXPORT_PASSPORT -> openExportTransactionScreen(EXPORT_PASSPORT, event.masterFingerPrint)
+                EXPORT_PASSPORT -> openExportTransactionScreen(
+                    EXPORT_PASSPORT,
+                    event.masterFingerPrint
+                )
                 IMPORT_PASSPORT -> openImportTransactionScreen(
                     IMPORT_PASSPORT, event.masterFingerPrint
                 )
@@ -524,15 +540,20 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         )
     }
 
-    private fun openExportTransactionScreen(transactionOption: TransactionOption, masterFingerPrint: String) {
-        startActivity(ExportTransactionActivity.buildIntent(
-            activityContext = this,
-            walletId = args.walletId,
-            txId = args.txId,
-            transactionOption = transactionOption,
-            initEventId = viewModel.getInitEventId(),
-            masterFingerPrint = if (viewModel.isSharedTransaction()) masterFingerPrint else ""
-        ))
+    private fun openExportTransactionScreen(
+        transactionOption: TransactionOption,
+        masterFingerPrint: String
+    ) {
+        startActivity(
+            ExportTransactionActivity.buildIntent(
+                activityContext = this,
+                walletId = args.walletId,
+                txId = args.txId,
+                transactionOption = transactionOption,
+                initEventId = viewModel.getInitEventId(),
+                masterFingerPrint = if (viewModel.isSharedTransaction()) masterFingerPrint else ""
+            )
+        )
     }
 
     private fun openImportTransactionScreen(

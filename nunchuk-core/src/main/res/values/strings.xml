@@ -495,4 +495,5 @@
     <string name="nc_resume_wizard_desc">You can resume the wizard anytime from the Wallets tab.</string>
     <string name="nc_xpubs_file_invalid">XPUBs file is invalid</string>
     <string name="nc_card_id_does_not_match">Card ID does not match. Please try a different card.</string>
+    <string name="nc_inheritance_key_warning">This is the inheritance key. We recommend that you reserve it for the purpose of inheritance. Are you sure you want to sign using this key?</string>
 </resources>

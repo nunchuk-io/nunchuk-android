@@ -45,6 +45,7 @@ import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
 import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.*
 import com.nunchuk.android.usecase.membership.SignServerTransactionUseCase
@@ -614,6 +615,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     fun isAssistedWallet() = assistedWalletManager.isActiveAssistedWallet(walletId)
 
     fun isScheduleBroadcast() = (getState().serverTransaction?.broadcastTimeInMilis ?: 0L) > 0L
+
+    fun isInheritanceSigner(xfp: String): Boolean = masterSigners.find { it.device.masterFingerprint == xfp }?.tags?.contains(SignerTag.INHERITANCE) == true
 
     companion object {
         private const val INVALID_NUMBER_OF_SIGNED = -1
