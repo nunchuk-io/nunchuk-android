@@ -31,12 +31,12 @@
 
         <action
             android:id="@+id/action_inheritanceClaimNoteFragment_to_selectWalletFragment"
+            app:destination="@id/select_wallet_navigation"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
+            app:launchSingleTop="true"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim"
-            app:destination="@id/select_wallet_navigation"
-            app:launchSingleTop="true" >
+            app:popExitAnim="@anim/nav_default_pop_exit_anim">
 
             <argument
                 android:name="slots"
@@ -262,14 +262,6 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <argument
-            android:name="verifyToken"
-            android:defaultValue=""
-            app:argType="string" />
-        <argument
-            android:name="plan_flow"
-            android:defaultValue="0"
-            app:argType="integer" />
     </fragment>
 
     <fragment

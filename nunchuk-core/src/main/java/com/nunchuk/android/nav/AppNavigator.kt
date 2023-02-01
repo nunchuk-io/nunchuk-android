@@ -58,7 +58,8 @@ interface AppNavigator {
         activityContext: Context,
         verifyToken: String? = null,
         inheritance: Inheritance? = null,
-        @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int
+        @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int,
+        isOpenFromWizard: Boolean = false
     )
 
     fun openWalletAuthentication(

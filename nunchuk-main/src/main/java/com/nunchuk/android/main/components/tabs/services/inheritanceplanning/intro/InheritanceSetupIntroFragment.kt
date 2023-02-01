@@ -58,38 +58,27 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class InheritanceSetupIntroFragment : MembershipFragment() {
     private val viewModel: InheritanceSetupIntroViewModel by viewModels()
-    private val args: InheritanceSetupIntroFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                InheritanceSetupIntroScreen(viewModel)
-            }
-        }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-            viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                .collect { event ->
-                    when (event) {
-                        InheritanceSetupIntroEvent.OnContinueClicked -> findNavController().navigate(
-                            InheritanceSetupIntroFragmentDirections.actionInheritanceSetupIntroFragmentToInheritancePlanOverviewFragment()
-                        )
-                    }
+                InheritanceSetupIntroScreen(viewModel) {
+                    findNavController().navigate(
+                        InheritanceSetupIntroFragmentDirections.actionInheritanceSetupIntroFragmentToInheritancePlanOverviewFragment()
+                    )
                 }
+            }
         }
     }
 }
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
-private fun InheritanceSetupIntroScreen(viewModel: InheritanceSetupIntroViewModel = viewModel()) {
+private fun InheritanceSetupIntroScreen(viewModel: InheritanceSetupIntroViewModel = viewModel(), onContinueClicked: () -> Unit) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
-    InheritanceSetupIntroContent(remainTime, viewModel::onContinueClicked)
+    InheritanceSetupIntroContent(remainTime, onContinueClicked)
 }
 
 @Composable

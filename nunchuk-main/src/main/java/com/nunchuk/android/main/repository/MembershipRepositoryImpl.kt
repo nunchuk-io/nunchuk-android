@@ -76,6 +76,10 @@ class MembershipRepositoryImpl @Inject constructor(
         membershipStepDao.deleteByMasterSignerId(accountManager.getAccount().chatId, chain.value, masterSignerId)
     }
 
+    override suspend fun deleteStepByChatId(step: MembershipStep) {
+        membershipStepDao.deleteStepByChatId(chain = chain.value, chatId = accountManager.getAccount().chatId, step)
+    }
+
     override suspend fun getSubscription(): MemberSubscription {
         val chain = gson.fromJson(
             ncSharePreferences.appSettings,
@@ -116,7 +120,7 @@ class MembershipRepositoryImpl @Inject constructor(
                     }
                 }
         }
-        membershipStepDao.deleteStepByEmail(chain.value, accountManager.getAccount().chatId)
+        membershipStepDao.deleteStepByChatId(chain.value, accountManager.getAccount().chatId)
     }
 
     override fun getLocalCurrentPlan(): Flow<MembershipPlan> = ncDataStore.membershipPlan

@@ -37,15 +37,25 @@ import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.databinding.FragmentInheritanceNotifyPrefBinding
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.widget.util.setOnEnterOrSpaceListener
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPrefBinding>() {
 
+    @Inject
+    lateinit var membershipStepManager: MembershipStepManager
+
     private val viewModel: InheritanceNotifyPrefViewModel by viewModels()
     private val args: InheritanceNotifyPrefFragmentArgs by navArgs()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        membershipStepManager.updateStep(true)
+    }
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -149,6 +159,11 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
         val isHasErrorUserName = emails.any { it.valid.not() && !EmailValidator.valid(it.email) }
         binding.tvErrorEmail.isVisible = isHasErrorEmail
         binding.tvErrorUserName.isVisible = isHasErrorUserName
+    }
+
+    override fun onDestroy() {
+        membershipStepManager.updateStep(false)
+        super.onDestroy()
     }
 
     companion object {

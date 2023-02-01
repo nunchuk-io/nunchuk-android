@@ -212,7 +212,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         isTestnet = status.isTestNet,
                         isInheritance = inheritanceTapSigner?.masterSignerId == it.masterSignerId
                     ),
-                    tags = if (inheritanceTapSigner?.masterSignerId == it.masterSignerId) listOf(SignerTag.INHERITANCE.name) else null
+                    tags = if (inheritanceTapSigner?.masterSignerId == it.masterSignerId) listOf(
+                        SignerTag.INHERITANCE.name
+                    ) else null
                 )
             } else {
                 SignerServerDto(
@@ -324,18 +326,20 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             val signers = HashMap<String, SingleSigner>(wallet.signers.size)
             wallet.signers.associateByTo(signers) { it.masterFingerprint }
 
-            walletServer.signerServerDtos.filter { it.tags.isNullOrEmpty().not() }.forEach { serverSigner ->
-                signers[serverSigner.xfp]?.let { localSigner ->
-                    if (localSigner.hasMasterSigner) {
-                        val masterSigner = nunchukNativeSdk.getMasterSigner(localSigner.masterSignerId)
-                        val tags = serverSigner.tags.orEmpty().mapNotNull { it.toSignerTag() }
-                        if (tags.isNotEmpty()) {
-                            masterSigner.tags = tags
-                            nunchukNativeSdk.updateMasterSigner(masterSigner)
+            walletServer.signerServerDtos.filter { it.tags.isNullOrEmpty().not() }
+                .forEach { serverSigner ->
+                    signers[serverSigner.xfp]?.let { localSigner ->
+                        if (localSigner.hasMasterSigner) {
+                            val masterSigner =
+                                nunchukNativeSdk.getMasterSigner(localSigner.masterSignerId)
+                            val tags = serverSigner.tags.orEmpty().mapNotNull { it.toSignerTag() }
+                            if (tags.isNotEmpty()) {
+                                masterSigner.tags = tags
+                                nunchukNativeSdk.updateMasterSigner(masterSigner)
+                            }
                         }
                     }
                 }
-            }
         }
         val planWalletCreated = hashMapOf<String, String>()
         result.data.wallets.forEach { planWalletCreated[it.slug.orEmpty()] = it.localId.orEmpty() }
@@ -610,7 +614,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
         headers[VERIFY_TOKEN] = verifyToken
         headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
-        userWalletApiManager.walletApi.inheritanceCancel(headers, request)
+        val response = userWalletApiManager.walletApi.inheritanceCancel(headers, request)
+        if (response.isSuccess) {
+            val inheritanceStep = membershipStepDao.getStep(
+                accountManager.getAccount().chatId, chain.value, MembershipStep.SETUP_INHERITANCE
+            )
+            if (inheritanceStep != null) {
+                membershipRepository.deleteStepByChatId(MembershipStep.SETUP_INHERITANCE)
+            }
+        }
     }
 
     override suspend fun inheritanceClaimDownloadBackup(magic: String): BackupKey {

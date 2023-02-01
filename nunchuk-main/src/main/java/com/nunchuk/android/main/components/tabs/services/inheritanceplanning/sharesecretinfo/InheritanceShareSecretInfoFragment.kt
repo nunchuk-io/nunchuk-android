@@ -46,14 +46,22 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
+import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class InheritanceShareSecretInfoFragment : MembershipFragment() {
+
+    @Inject
+    lateinit var navigator: NunchukNavigator
+
     private val args: InheritanceShareSecretInfoFragmentArgs by navArgs()
     private val viewModel: InheritanceShareSecretInfoViewModel by viewModels()
 
@@ -63,16 +71,21 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 InheritanceShareSecretInfoScreen(viewModel, args) {
-                    showDialogInfo()
+                    val isOpenFromWizard =
+                        (requireActivity() as? InheritancePlanningActivity)?.isOpenFromWizard.orFalse()
+                    showDialogInfo(isOpenFromWizard)
                 }
             }
         }
     }
 
-    private fun showDialogInfo() {
+    private fun showDialogInfo(isOpenFromWizard: Boolean) {
         NCInfoDialog(requireActivity()).showDialog(
             message = getString(R.string.nc_inheritance_share_secret_info_dialog_desc),
             onYesClick = {
+                if (isOpenFromWizard) {
+                    navigator.openWalletDetailsScreen(requireContext(), viewModel.walletId.value)
+                }
                 requireActivity().finish()
             }
         )
