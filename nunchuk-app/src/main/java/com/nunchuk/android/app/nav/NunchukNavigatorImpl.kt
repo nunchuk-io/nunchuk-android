@@ -160,14 +160,16 @@ interface AppNavigatorDelegate : AppNavigator {
         activityContext: Context,
         verifyToken: String?,
         inheritance: Inheritance?,
-        @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int
+        @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int,
+        isOpenFromWizard: Boolean
     ) {
         InheritancePlanningActivity.navigate(
             launcher = launcher,
             activity = activityContext,
             verifyToken = verifyToken,
             flowInfo = flowInfo,
-            inheritance = inheritance
+            inheritance = inheritance,
+            isOpenFromWizard = isOpenFromWizard
         )
     }
 

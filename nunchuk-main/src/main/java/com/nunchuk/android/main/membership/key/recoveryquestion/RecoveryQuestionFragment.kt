@@ -247,12 +247,12 @@ fun RecoveryQuestionScreenContent(
                     item {
                         Text(
                             modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
-                            text = stringResource(R.string.nc_setup_key_recovery),
+                            text = stringResource(R.string.nc_setup_security_questions),
                             style = NunchukTheme.typography.heading
                         )
                         Text(
                             modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
-                            text = stringResource(id = R.string.nc_setup_key_recovery_desc),
+                            text = stringResource(id = R.string.nc_setup_security_questions_desc),
                             style = NunchukTheme.typography.body
                         )
                     }

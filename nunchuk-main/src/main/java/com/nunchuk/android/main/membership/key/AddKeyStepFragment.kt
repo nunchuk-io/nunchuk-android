@@ -116,7 +116,8 @@ class AddKeyStepFragment : MembershipFragment() {
     private fun handleOpenInheritanceSetup() {
         nunchukNavigator.openInheritancePlanningScreen(
             activityContext = requireContext(),
-            flowInfo = InheritancePlanFlow.SETUP
+            flowInfo = InheritancePlanFlow.SETUP,
+            isOpenFromWizard = true
         )
     }
 
@@ -213,7 +214,7 @@ fun AddKeyStepContent(
             }
             StepWithEstTime(
                 2,
-                stringResource(R.string.nc_setup_key_recovery),
+                stringResource(R.string.nc_setup_security_questions),
                 groupRemainTime[1],
                 isSetupRecoverKeyDone,
                 isConfigKeyDone && isSetupRecoverKeyDone.not()
