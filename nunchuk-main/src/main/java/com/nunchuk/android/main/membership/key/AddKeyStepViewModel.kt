@@ -44,11 +44,11 @@ class AddKeyStepViewModel @Inject constructor(
     private val _event = MutableSharedFlow<AddKeyStepEvent>()
     val event = _event.asSharedFlow()
 
-    private val isRegisterAirgap = isRegisterAirgapUseCase(Unit)
+    val isRegisterAirgap = isRegisterAirgapUseCase(Unit)
         .map { it.getOrElse { false } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    private val isRegisterColdcard = isRegisterColdcardUseCase(Unit)
+    val isRegisterColdcard = isRegisterColdcardUseCase(Unit)
         .map { it.getOrElse { false } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 

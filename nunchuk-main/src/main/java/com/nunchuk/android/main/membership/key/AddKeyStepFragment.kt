@@ -139,13 +139,15 @@ fun AddKeyStepScreen(viewModel: AddKeyStepViewModel = viewModel()) {
     val isConfigKeyDone by viewModel.isConfigKeyDone.collectAsStateWithLifecycle()
     val isSetupRecoverKeyDone by viewModel.isSetupRecoverKeyDone.collectAsStateWithLifecycle()
     val isCreateWalletDone by viewModel.isCreateWalletDone.collectAsStateWithLifecycle()
+    val isRegisterAirgap by viewModel.isRegisterAirgap.collectAsStateWithLifecycle()
+    val isRegisterColdcard by viewModel.isRegisterColdcard.collectAsStateWithLifecycle()
     val isSetupInheritanceDone by viewModel.isSetupInheritanceDone.collectAsStateWithLifecycle()
     val groupRemainTime by viewModel.groupRemainTime.collectAsStateWithLifecycle()
 
     AddKeyStepContent(
         isConfigKeyDone = isConfigKeyDone,
         isSetupRecoverKeyDone = isSetupRecoverKeyDone,
-        isCreateWalletDone = isCreateWalletDone,
+        isCreateWalletDone = isCreateWalletDone && isRegisterAirgap && isRegisterColdcard,
         isSetupInheritanceDone = isSetupInheritanceDone,
         groupRemainTime = groupRemainTime,
         onMoreClicked = viewModel::onMoreClicked,
