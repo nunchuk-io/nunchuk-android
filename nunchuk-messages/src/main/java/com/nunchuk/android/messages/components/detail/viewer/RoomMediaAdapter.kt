@@ -10,8 +10,18 @@ import com.nunchuk.android.messages.databinding.ItemAnimatedImageViewerBinding
 import com.nunchuk.android.messages.databinding.ItemImageViewerBinding
 import com.nunchuk.android.messages.databinding.ItemVideoViewerBinding
 
-class RoomMediaAdapter(private val items: List<RoomMediaSource>, private val lifecycleOwner: LifecycleOwner) :
+class RoomMediaAdapter(private val lifecycleOwner: LifecycleOwner) :
     RecyclerView.Adapter<BaseMediaViewHolder>() {
+    val items: MutableList<RoomMediaSource> = mutableListOf()
+    var recyclerView: RecyclerView? = null
+
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        this.recyclerView = recyclerView
+    }
+
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        this.recyclerView = null
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseMediaViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -65,4 +75,12 @@ class RoomMediaAdapter(private val items: List<RoomMediaSource>, private val lif
     }
 
     fun getItem(position: Int) = items.getOrNull(position)
+
+    fun isScaled(position: Int): Boolean {
+        val holder = recyclerView?.findViewHolderForAdapterPosition(position)
+        if (holder is ZoomableImageViewHolder) {
+            return holder.binding.image.attacher.scale > 1f
+        }
+        return false
+    }
 }
