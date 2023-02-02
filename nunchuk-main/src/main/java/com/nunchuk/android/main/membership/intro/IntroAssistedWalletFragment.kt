@@ -75,7 +75,10 @@ fun IntroAssistedWalletScreen(viewModel: IntroAssistedWalletViewModel = viewMode
                         .padding(innerPadding)
                         .navigationBarsPadding()
                 ) {
-                    NcImageAppBar(backgroundRes = R.drawable.nc_bg_intro_assisted_wallet)
+                    NcImageAppBar(
+                        backgroundRes = R.drawable.nc_bg_intro_assisted_wallet,
+                        backIconRes = R.drawable.ic_close
+                    )
                     Text(
                         modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                         text = stringResource(R.string.nc_welcome_assisted_wallet_title),

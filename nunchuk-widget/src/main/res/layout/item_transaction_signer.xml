@@ -16,6 +16,7 @@
         app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         tools:text="TN" />
 
     <ImageView
@@ -37,35 +38,35 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_64"
         app:fontTextStyle="semi_bold"
+        app:layout_constraintBottom_toTopOf="@+id/signerType"
         app:layout_constraintEnd_toStartOf="@+id/barrier"
-        app:layout_constraintBottom_toTopOf="@+id/xpf"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Tom’s Trezor Model T" />
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/xpf"
-        style="@style/NCText.Body.Small"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/nc_padding_8"
-        android:textColor="@color/nc_grey_dark_color"
-        app:layout_constraintStart_toStartOf="@+id/signerName"
-        app:layout_constraintTop_toBottomOf="@+id/signerName"
-        app:layout_constraintBottom_toBottomOf="parent"
-        tools:text="XFP: 79EB35F4" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/signerType"
         style="@style/NCText.Badges"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/nc_padding_8"
+        app:layout_constraintBottom_toTopOf="@+id/xpf"
         android:layout_marginTop="@dimen/nc_padding_4"
         android:background="@drawable/nc_rounded_tag_whisper_background"
-        app:layout_constraintBottom_toBottomOf="@+id/xpf"
-        app:layout_constraintStart_toEndOf="@+id/xpf"
+        app:layout_constraintTop_toBottomOf="@+id/signerName"
+        app:layout_constraintStart_toStartOf="@+id/signerName"
         tools:text="Software signer" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/xpf"
+        style="@style/NCText.Body.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:textColor="@color/nc_grey_dark_color"
+        app:layout_constraintStart_toStartOf="@+id/signerName"
+        app:layout_constraintTop_toBottomOf="@+id/signerType"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:text="XFP: 79EB35F4" />
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/barrier"

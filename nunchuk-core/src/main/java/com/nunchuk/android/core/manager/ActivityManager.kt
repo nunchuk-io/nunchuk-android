@@ -27,7 +27,7 @@ import java.util.*
 object ActivityManager : Application.ActivityLifecycleCallbacks {
     private val activityStack = Stack<Activity>()
 
-    fun peek(): Activity = activityStack.peek()
+    fun peek(): Activity? = if (activityStack.isNotEmpty()) activityStack.peek() else null
 
     fun popUntilRoot() {
         while (activityStack.size > 1) {
