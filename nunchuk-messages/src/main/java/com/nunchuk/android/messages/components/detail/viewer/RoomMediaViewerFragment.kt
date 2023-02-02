@@ -29,6 +29,7 @@ import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
+import kotlin.math.abs
 
 @AndroidEntryPoint
 class RoomMediaViewerFragment : BasePermissionFragment<FragmentRoomMediaViewerBinding>() {
@@ -47,7 +48,7 @@ class RoomMediaViewerFragment : BasePermissionFragment<FragmentRoomMediaViewerBi
             swipeView = binding.container,
             shouldAnimateDismiss = { true },
             onDismiss = { requireActivity().onBackPressedDispatcher.onBackPressed() },
-            onSwipeViewMove = { _, _ -> }
+            onSwipeViewMove = ::handleSwipeViewMove
         )
     }
     private val directionDetector: SwipeDirectionDetector by lazy(LazyThreadSafetyMode.NONE) {
@@ -230,4 +231,13 @@ class RoomMediaViewerFragment : BasePermissionFragment<FragmentRoomMediaViewerBi
             (requireActivity() as RoomDetailActivity).superDispatchTouchEvent(event)
         }
     }
+
+    private fun handleSwipeViewMove(translationY: Float, translationLimit: Int) {
+        val alpha = calculateTranslationAlpha(translationY, translationLimit)
+        binding.container.alpha = alpha
+        binding.overlay.alpha = alpha
+    }
+
+    private fun calculateTranslationAlpha(translationY: Float, translationLimit: Int): Float =
+        1.0f - 1.0f / translationLimit.toFloat() / 4f * abs(translationY)
 }

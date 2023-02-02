@@ -28,6 +28,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
@@ -53,6 +55,15 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
     lateinit var signInModeHolder: SignInModeHolder
 
     private val viewModel: AccountViewModel by activityViewModels()
+
+    private val selectPhotoAndVideoLauncher =
+        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) {
+            it ?: return@registerForActivityResult
+            val bitmap = BitmapFactory.decodeStream(
+                requireActivity().contentResolver.openInputStream(it)
+            )
+            uploadPhotoData(bitmap)
+        }
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -220,7 +231,12 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
     }
 
     private fun openAlbum() {
-        pickPhotoWithResult(REQUEST_SELECT_PHOTO_CODE)
+        selectPhotoAndVideoLauncher.launch(
+            PickVisualMediaRequest.Builder()
+                .setMediaType(
+                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                ).build()
+        )
     }
 
     private fun takePhoto() {
@@ -238,15 +254,6 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
             REQUEST_TAKE_PHOTO_CODE -> {
                 val imageBitmap = data?.extras?.get("data") as Bitmap
                 uploadPhotoData(imageBitmap)
-            }
-
-            REQUEST_SELECT_PHOTO_CODE -> {
-                data?.data?.let {
-                    val bitmap = BitmapFactory.decodeStream(
-                        requireActivity().contentResolver.openInputStream(it)
-                    )
-                    uploadPhotoData(bitmap)
-                }
             }
         }
     }
