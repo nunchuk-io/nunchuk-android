@@ -19,7 +19,11 @@
 
 package com.nunchuk.android.settings
 
+import android.app.Application
+import android.graphics.Bitmap
+import android.net.Uri
 import androidx.lifecycle.viewModelScope
+import com.bumptech.glide.Glide
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.callbacks.SyncFileCallBack
 import com.nunchuk.android.core.account.AccountManager
@@ -30,15 +34,17 @@ import com.nunchuk.android.core.matrix.UploadFileUseCase
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.core.profile.UpdateUseProfileUseCase
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.onCompletion
+import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
 @HiltViewModel
@@ -52,6 +58,8 @@ internal class AccountViewModel @Inject constructor(
     private val signInModeHolder: SignInModeHolder,
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
     private val membershipStepManager: MembershipStepManager,
+    private val application: Application,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<AccountState, AccountEvent>() {
 
     override val initialState = AccountState()
@@ -110,14 +118,29 @@ internal class AccountViewModel @Inject constructor(
         }
     }
 
-    fun uploadPhotoToMaTrix(fileData: ByteArray) {
+    fun uploadPhotoToMaTrix(uri: Uri) {
         viewModelScope.launch {
-            uploadFileUseCase.execute(System.currentTimeMillis().toString(), "image/jpeg", fileData)
-                .flowOn(Dispatchers.IO)
-                .onException { }
-                .flowOn(Dispatchers.Main)
+            setEvent(AccountEvent.LoadingEvent(true))
+            val byteArray = withContext(ioDispatcher) {
+                val bitmap = Glide.with(application)
+                    .asBitmap()
+                    .override(application.resources.getDimensionPixelSize(R.dimen.nc_avatar_size))
+                    .load(uri)
+                    .submit()
+                    .get()
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+                byteArrayOutputStream.toByteArray()
+            }
+            uploadFileUseCase.execute(
+                System.currentTimeMillis().toString(),
+                "image/jpeg",
+                byteArray
+            ).onException { setEvent(AccountEvent.ShowError(it.message.orUnknownError())) }
+                .onCompletion { setEvent(AccountEvent.LoadingEvent(false)) }
                 .collect {
-                    event(
+                    updateState { copy(account = getState().account.copy(avatarUrl = it.contentUri)) }
+                    setEvent(
                         AccountEvent.UploadPhotoSuccessEvent(matrixUri = it.contentUri)
                     )
                 }

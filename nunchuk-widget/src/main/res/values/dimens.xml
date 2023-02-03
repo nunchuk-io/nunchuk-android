@@ -60,5 +60,6 @@
     <dimen name="nc_bottom_navigation_height">@dimen/design_bottom_navigation_height</dimen>
 
     <dimen name="nc_icon_large_size">96dp</dimen>
+    <dimen name="nc_avatar_size">120dp</dimen>
 
 </resources>
