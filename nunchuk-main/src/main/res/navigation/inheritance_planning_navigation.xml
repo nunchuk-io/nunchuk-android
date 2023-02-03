@@ -15,6 +15,22 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_inheritanceClaimInputFragment_to_inheritanceClaimBufferPeriodFragment"
+            app:destination="@id/inheritanceClaimBufferPeriodFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/inheritanceClaimBufferPeriodFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claimbufferperiod.InheritanceClaimBufferPeriodFragment"
+        android:label="InheritanceClaimBufferPeriodFragment">
+        <argument
+            android:name="countdown_buffer_period"
+            app:argType="com.nunchuk.android.model.BufferPeriodCountdown" />
     </fragment>
 
     <fragment
@@ -28,6 +44,9 @@
         <argument
             android:name="magic"
             app:argType="string" />
+        <argument
+            android:name="inheritance_additional"
+            app:argType="com.nunchuk.android.model.InheritanceAdditional" />
 
         <action
             android:id="@+id/action_inheritanceClaimNoteFragment_to_selectWalletFragment"
@@ -106,6 +125,14 @@
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
 
+        <action
+            android:id="@+id/action_inheritanceReviewPlanFragment_to_inheritanceBufferPeriodFragment"
+            app:destination="@id/inheritanceBufferPeriodFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
         <argument
             android:name="activation_date"
             app:argType="long" />
@@ -130,6 +157,10 @@
             android:name="plan_flow"
             android:defaultValue="0"
             app:argType="integer" />
+        <argument
+            android:name="buffer_period"
+            app:argType="com.nunchuk.android.model.Period"
+            app:nullable="true" />
     </fragment>
 
     <fragment
@@ -170,7 +201,45 @@
         android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note.InheritanceNoteFragment"
         android:label="InheritanceNoteFragment">
         <action
-            android:id="@+id/action_inheritanceNoteFragment_to_inheritanceNotifyPrefFragment"
+            android:id="@+id/action_inheritanceNoteFragment_to_inheritanceBufferPeriodFragment"
+            app:destination="@id/inheritanceBufferPeriodFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <argument
+            android:name="activation_date"
+            android:defaultValue="0L"
+            app:argType="long" />
+        <argument
+            android:name="magical_phrase"
+            android:defaultValue=""
+            app:argType="string" />
+        <argument
+            android:name="verifyToken"
+            android:defaultValue=""
+            app:argType="string" />
+        <argument
+            android:name="plan_flow"
+            android:defaultValue="0"
+            app:argType="integer" />
+        <argument
+            android:name="is_update_request"
+            android:defaultValue="false"
+            app:argType="boolean" />
+        <argument
+            android:name="pre_noted"
+            android:defaultValue=""
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/inheritanceBufferPeriodFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.bufferperiod.InheritanceBufferPeriodFragment"
+        android:label="InheritanceBufferPeriodFragment">
+        <action
+            android:id="@+id/action_inheritanceBufferPeriodFragment_to_inheritanceNotifyPrefFragment"
             app:destination="@id/inheritanceNotifyPrefFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
@@ -190,6 +259,10 @@
             android:defaultValue=""
             app:argType="string" />
         <argument
+            android:name="note"
+            android:defaultValue=""
+            app:argType="string" />
+        <argument
             android:name="plan_flow"
             android:defaultValue="0"
             app:argType="integer" />
@@ -198,9 +271,10 @@
             android:defaultValue="false"
             app:argType="boolean" />
         <argument
-            android:name="pre_noted"
-            android:defaultValue=""
-            app:argType="string" />
+            android:name="pre_buffer_period"
+            android:defaultValue="@null"
+            app:argType="com.nunchuk.android.model.Period"
+            app:nullable="true" />
     </fragment>
 
     <fragment
@@ -236,6 +310,10 @@
             android:name="plan_flow"
             android:defaultValue="0"
             app:argType="integer" />
+        <argument
+            android:name="buffer_period"
+            app:argType="com.nunchuk.android.model.Period"
+            app:nullable="true" />
         <argument
             android:name="is_update_request"
             android:defaultValue="false"

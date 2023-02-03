@@ -38,7 +38,9 @@ class CalculateRequiredSignaturesInheritanceUseCase @Inject constructor(
             note = parameters.note,
             notificationEmails = parameters.notificationEmails,
             notifyToday = parameters.notifyToday,
-            activationTimeMilis = parameters.activationTimeMilis
+            activationTimeMilis = parameters.activationTimeMilis,
+            bufferPeriodId = parameters.bufferPeriodId,
+            isCancelInheritance = parameters.isCancelInheritance
         )
     }
 
@@ -47,6 +49,8 @@ class CalculateRequiredSignaturesInheritanceUseCase @Inject constructor(
         val notificationEmails: List<String>,
         val notifyToday: Boolean,
         val activationTimeMilis: Long,
-        val walletId: String
+        val walletId: String,
+        val bufferPeriodId: String?,
+        val isCancelInheritance: Boolean
     )
 }

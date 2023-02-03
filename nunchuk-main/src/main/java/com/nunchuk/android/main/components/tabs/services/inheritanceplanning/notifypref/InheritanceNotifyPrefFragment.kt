@@ -103,7 +103,8 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
                     emails = emails.toTypedArray(),
                     planFlow = args.planFlow,
                     isNotify = isNotify,
-                    magicalPhrase = args.magicalPhrase
+                    magicalPhrase = args.magicalPhrase,
+                    bufferPeriod = args.bufferPeriod
                 )
             )
         }

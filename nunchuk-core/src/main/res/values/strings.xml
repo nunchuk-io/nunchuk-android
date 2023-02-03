@@ -429,6 +429,7 @@
     <string name="nc_wallet_subject_to_inheritance">Wallet subject to inheritance:</string>
     <string name="nc_no_note">(No note)</string>
     <string name="nc_no_listed">(None listed)</string>
+    <string name="nc_no_buffer">(No buffer)</string>
     <string name="nc_backup_password_desc">(The Backup Password is printed on the back of the inheritance key)</string>
     <string name="nc_inheritance_notify_pref_hint">To include multiple email addresses, separate them by commas or spaces.</string>
     <string name="nc_inheritance_create_success">Your inheritance plan has been set up!</string>
@@ -496,4 +497,13 @@
     <string name="nc_xpubs_file_invalid">XPUBs file is invalid</string>
     <string name="nc_card_id_does_not_match">Card ID does not match. Please try a different card.</string>
     <string name="nc_inheritance_key_warning">This is the inheritance key. We recommend that you reserve it for the purpose of inheritance. Are you sure you want to sign using this key?</string>
+    <string name="nc_set_up_buffer_period">Set up buffer period</string>
+    <string name="nc_buffer_period">Buffer period</string>
+    <string name="nc_buffer_period_has_started">Buffer period has started</string>
+    <string name="nc_buffer_period_has_started_desc">The owner of this plan set up a buffer period before the inheritance can be claimed</string>
+    <string name="nc_check_back_in">Please check back in [B]%s[/B]</string>
+    <string name="nc_update_buffer_period">Update buffer period</string>
+    <string name="nc_recommended">Recommended</string>
+    <string name="nc_do_not_need_buffer_period">I don’t need a buffer period</string>
+    <string name="nc_set_up_buffer_period_desc">A buffer period is extra time that you can add after the claimant has provided the secrets and before the inheritance can be claimed. The buffer period helps you prevent unauthorized claims.\n\nAn email notification will be sent when the buffer period begins.</string>
 </resources>

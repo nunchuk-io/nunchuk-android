@@ -78,7 +78,8 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
                     magicalPhrase = inheritance.magic,
                     note = inheritance.note,
                     verifyToken = intent.getStringExtra(EXTRA_VERIFY_TOKEN).orEmpty(),
-                    planFlow = planFlow
+                    planFlow = planFlow,
+                    bufferPeriod = inheritance.bufferPeriod
                 ).toBundle()
             }
             else -> null

@@ -21,7 +21,7 @@ package com.nunchuk.android.core.data.model.membership
 
 import com.google.gson.annotations.SerializedName
 
-data class LockdownPeriodResponse(
+data class PeriodResponse(
     @SerializedName("periods")
     val periods: List<Data>? = null
 ) {
@@ -36,5 +36,7 @@ data class LockdownPeriodResponse(
         val enabled: Boolean? = null,
         @SerializedName("display_name")
         val displayName: String? = null,
+        @SerializedName("is_recommended")
+        val isRecommended: Boolean? = null,
     )
 }
