@@ -19,7 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.emergencylockdown.lockdownperiod
 
-import com.nunchuk.android.model.LockdownPeriod
+import com.nunchuk.android.model.Period
 
 sealed class LockdownPeriodEvent {
     data class Loading(val isLoading: Boolean) : LockdownPeriodEvent()
@@ -37,7 +37,7 @@ sealed class LockdownPeriodEvent {
 data class LockdownPeriodState(
     val options: List<PeriodOption> = emptyList(),
     val userData: String? = null,
-    val period: LockdownPeriod? = null
+    val period: Period? = null
 )
 
-data class PeriodOption(val period: LockdownPeriod, val isSelected: Boolean)
+data class PeriodOption(val period: Period, val isSelected: Boolean)

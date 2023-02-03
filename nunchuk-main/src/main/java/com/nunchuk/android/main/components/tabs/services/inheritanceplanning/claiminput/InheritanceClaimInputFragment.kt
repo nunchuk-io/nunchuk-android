@@ -49,6 +49,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -60,14 +61,14 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
-import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.model.BufferPeriodCountdown
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class InheritanceClaimInputFragment : MembershipFragment() {
+class InheritanceClaimInputFragment : Fragment() {
     private val viewModel: InheritanceClaimInputViewModel by viewModels()
 
     override fun onCreateView(
@@ -85,12 +86,22 @@ class InheritanceClaimInputFragment : MembershipFragment() {
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is InheritanceClaimInputEvent.Error -> showError(message = event.message)
-                is InheritanceClaimInputEvent.ImportSuccess -> {
-                    findNavController().navigate(
-                        InheritanceClaimInputFragmentDirections.actionInheritanceClaimInputFragmentToInheritanceClaimNoteFragment(
-                            signer = event.signer, magic = event.magicalPhrase
+                is InheritanceClaimInputEvent.GetInheritanceStatusSuccess -> {
+                    if (event.inheritanceAdditional.bufferPeriodCountdown == null) {
+                        findNavController().navigate(
+                            InheritanceClaimInputFragmentDirections.actionInheritanceClaimInputFragmentToInheritanceClaimNoteFragment(
+                                signer = event.signer,
+                                magic = event.magic,
+                                inheritanceAdditional = event.inheritanceAdditional
+                            )
                         )
-                    )
+                    } else {
+                        findNavController().navigate(
+                            InheritanceClaimInputFragmentDirections.actionInheritanceClaimInputFragmentToInheritanceClaimBufferPeriodFragment(
+                                countdownBufferPeriod = event.inheritanceAdditional.bufferPeriodCountdown!!
+                            )
+                        )
+                    }
                 }
                 is InheritanceClaimInputEvent.Loading -> showOrHideLoading(loading = event.isLoading)
                 is InheritanceClaimInputEvent.SubscriptionExpired -> showSubscriptionExpiredDialog()

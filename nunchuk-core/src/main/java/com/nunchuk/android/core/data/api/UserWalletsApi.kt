@@ -154,7 +154,7 @@ internal interface UserWalletsApi {
     ): Data<TransactionResponse>
 
     @GET("/v1.1/user-wallets/lockdown/period")
-    suspend fun getLockdownPeriod(): Data<LockdownPeriodResponse>
+    suspend fun getLockdownPeriod(): Data<PeriodResponse>
 
     @POST("/v1.1/user-wallets/lockdown/lock")
     suspend fun lockdownUpdate(
@@ -226,4 +226,7 @@ internal interface UserWalletsApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Query("offset") offset: Int
     ): Data<TransactionsResponse>
+
+    @GET("/v1.1/user-wallets/inheritance/buffer-period")
+    suspend fun getInheritanceBufferPeriod(): Data<PeriodResponse>
 }

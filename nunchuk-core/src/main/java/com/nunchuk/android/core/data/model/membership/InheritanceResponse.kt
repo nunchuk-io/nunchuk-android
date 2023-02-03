@@ -36,13 +36,15 @@ class InheritanceDto(
     @SerializedName("note")
     val note: String? = null,
     @SerializedName("notification_emails")
-    val notificationEmails: List<String> = emptyList(),
+    val notificationEmails: List<String>? = null,
     @SerializedName("status")
     val status: String? = null,
     @SerializedName("activation_time_milis")
-    val activationTimeMilis: Long = 0L,
+    val activationTimeMilis: Long? = null,
     @SerializedName("created_time_milis")
-    val createdTimeMilis: Long = 0L,
+    val createdTimeMilis: Long? = null,
     @SerializedName("last_modified_time_milis")
-    val lastModifiedTimeMilis: Long = 0L,
+    val lastModifiedTimeMilis: Long? = null,
+    @SerializedName("buffer_period")
+    val bufferPeriod: PeriodResponse.Data? = null
 )

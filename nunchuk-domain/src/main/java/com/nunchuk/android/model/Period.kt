@@ -19,10 +19,15 @@
 
 package com.nunchuk.android.model
 
-data class LockdownPeriod(
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
+data class Period(
     val id: String,
     val interval: String,
     val intervalCount: Int,
     val enabled: Boolean,
-    val displayName: String
-)
+    val displayName: String,
+    val isRecommended: Boolean // inheritance
+) : Parcelable

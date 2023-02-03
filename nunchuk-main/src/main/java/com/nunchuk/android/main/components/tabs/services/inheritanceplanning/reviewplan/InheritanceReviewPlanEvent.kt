@@ -19,6 +19,8 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan
 
+import com.nunchuk.android.model.Period
+
 sealed class InheritanceReviewPlanEvent {
     data class Loading(val loading: Boolean) : InheritanceReviewPlanEvent()
     data class CalculateRequiredSignaturesSuccess(
@@ -42,5 +44,6 @@ data class InheritanceReviewPlanState(
     val walletId: String? = null,
     val walletName: String? = null,
     val isCreateOrUpdateFlow: Boolean = true,
-    val isDataChanged: Boolean = false
+    val isDataChanged: Boolean = false,
+    val bufferPeriod: Period? = null
 )

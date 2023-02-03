@@ -101,7 +101,7 @@ interface PremiumWalletRepository {
         transactionId: String,
     ): ServerTransaction
 
-    suspend fun getLockdownPeriod(): List<LockdownPeriod>
+    suspend fun getLockdownPeriod(): List<Period>
     suspend fun lockdownUpdate(
         authorizations: List<String>,
         verifyToken: String,
@@ -124,6 +124,7 @@ interface PremiumWalletRepository {
         notificationEmails: List<String>,
         notifyToday: Boolean,
         activationTimeMilis: Long,
+        bufferPeriodId: String?,
         walletId: String
     ): String
 
@@ -158,7 +159,9 @@ interface PremiumWalletRepository {
         notificationEmails: List<String>,
         notifyToday: Boolean,
         activationTimeMilis: Long,
-        walletId: String
+        walletId: String,
+        bufferPeriodId: String?,
+        isCancelInheritance: Boolean
     ): CalculateRequiredSignatures
 
     suspend fun createOrUpdateInheritance(
@@ -185,4 +188,6 @@ interface PremiumWalletRepository {
     suspend fun inheritanceCheck(): InheritanceCheck
 
     suspend fun syncTransaction(walletId: String)
+
+    suspend fun getInheritanceBufferPeriod(): List<Period>
 }
