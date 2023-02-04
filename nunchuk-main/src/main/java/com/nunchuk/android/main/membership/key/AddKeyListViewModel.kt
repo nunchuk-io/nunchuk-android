@@ -77,8 +77,8 @@ class AddKeyListViewModel @Inject constructor(
         }
         if (membershipStepManager.plan == MembershipPlan.IRON_HAND) {
             _keys.value = listOf(
-                AddKeyData(type = MembershipStep.ADD_TAP_SIGNER_1),
-                AddKeyData(type = MembershipStep.ADD_TAP_SIGNER_2),
+                AddKeyData(type = MembershipStep.IRON_ADD_HARDWARE_KEY_1),
+                AddKeyData(type = MembershipStep.IRON_ADD_HARDWARE_KEY_2),
                 AddKeyData(type = MembershipStep.ADD_SEVER_KEY),
             )
         } else {

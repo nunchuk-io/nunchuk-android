@@ -181,23 +181,19 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
 
     private fun handleOnAddKey(data: AddKeyData) {
         when (data.type) {
-            MembershipStep.ADD_TAP_SIGNER_1,
-            MembershipStep.ADD_TAP_SIGNER_2 -> handleShowKeysOrCreate(
-                viewModel.getTapSigners(),
-                SignerType.NFC,
-                ::openSetupTapSigner
-            )
             MembershipStep.ADD_SEVER_KEY -> {
                 findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToConfigureServerKeyIntroFragment())
             }
             MembershipStep.HONEY_ADD_TAP_SIGNER -> {
                 findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToTapSignerInheritanceIntroFragment())
             }
+            MembershipStep.IRON_ADD_HARDWARE_KEY_1,
+            MembershipStep.IRON_ADD_HARDWARE_KEY_2,
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> openSelectHardwareOption()
             MembershipStep.SETUP_KEY_RECOVERY,
             MembershipStep.SETUP_INHERITANCE,
             MembershipStep.CREATE_WALLET -> throw IllegalArgumentException("handleOnAddKey")
-            MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
-            MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> openSelectHardwareOption()
         }
     }
 
@@ -525,7 +521,7 @@ fun AddKeyListScreenIronHandPreview() {
     AddKeyListContent(
         keys = listOf(
             AddKeyData(
-                type = MembershipStep.ADD_TAP_SIGNER_1,
+                type = MembershipStep.IRON_ADD_HARDWARE_KEY_1,
                 SignerModel(
                     id = "123",
                     type = SignerType.NFC,
@@ -536,7 +532,7 @@ fun AddKeyListScreenIronHandPreview() {
                 verifyType = VerifyType.APP_VERIFIED
             ),
             AddKeyData(
-                type = MembershipStep.ADD_TAP_SIGNER_2,
+                type = MembershipStep.IRON_ADD_HARDWARE_KEY_2,
                 signer = SignerModel(
                     id = "123",
                     type = SignerType.NFC,
