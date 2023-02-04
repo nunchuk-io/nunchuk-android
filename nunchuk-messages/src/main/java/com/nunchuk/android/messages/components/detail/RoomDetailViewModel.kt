@@ -295,7 +295,6 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     fun handleTitleClick() {
-        if (getState().isSupportRoom) return
         if (room.isDirectChat()) {
             setEvent(OpenChatInfoEvent)
         } else {

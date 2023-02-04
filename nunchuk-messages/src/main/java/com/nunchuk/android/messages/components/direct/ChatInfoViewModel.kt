@@ -26,6 +26,7 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.messages.components.direct.ChatInfoEvent.CreateSharedWalletEvent
 import com.nunchuk.android.messages.components.direct.ChatInfoEvent.CreateTransactionEvent
+import com.nunchuk.android.messages.components.list.isSupportRoom
 import com.nunchuk.android.messages.util.getRoomMemberList
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.RoomWallet
@@ -58,17 +59,26 @@ class ChatInfoViewModel @Inject constructor(
     override val initialState = ChatInfoState()
 
     fun initialize(roomId: String) {
-        sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomId)?.let(::onRetrievedRoom) ?: event(ChatInfoEvent.RoomNotFoundEvent)
+        sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomId)?.let(::onRetrievedRoom)
+            ?: event(ChatInfoEvent.RoomNotFoundEvent)
     }
 
     private fun onRetrievedRoom(room: Room) {
         this.room = room
-        viewModelScope.launch {
-            getContactsUseCase.execute()
-                .catch {  }
-                .collect(::onRetrievedContacts)
+        val isSupportRoom = room.roomSummary()?.isSupportRoom() == true
+        updateState {
+            copy(
+                isSupportRoom = isSupportRoom
+            )
         }
-        getRoomWallet()
+        if (isSupportRoom.not()) {
+            viewModelScope.launch {
+                getContactsUseCase.execute()
+                    .catch { }
+                    .collect(::onRetrievedContacts)
+            }
+            getRoomWallet()
+        }
     }
 
     private fun getRoomWallet() {
@@ -97,7 +107,13 @@ class ChatInfoViewModel @Inject constructor(
         if (wallet == null) {
             event(CreateSharedWalletEvent)
         } else if (wallet.balance.value > 0L) {
-            event(CreateTransactionEvent(roomId = room.roomId, walletId = wallet.id, availableAmount = wallet.balance.pureBTC()))
+            event(
+                CreateTransactionEvent(
+                    roomId = room.roomId,
+                    walletId = wallet.id,
+                    availableAmount = wallet.balance.pureBTC()
+                )
+            )
         }
     }
 
