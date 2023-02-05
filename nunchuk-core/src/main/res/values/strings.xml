@@ -242,7 +242,7 @@
     <string name="nc_minutes">Minutes</string>
     <string name="nc_take_me_my_wallet">Take me to my wallet</string>
     <string name="nc_create_wallet_success">Congratulations! Your wallet has been created</string>
-    <string name="nc_create_wallet_success_desc">For best security, please keep your keys stored in physically distributed locations.</string>
+    <string name="nc_create_wallet_success_desc">For security, please keep the keys physically distributed as much as possible. Avoid storing two of them in the same location.</string>
     <string name="nc_create_my_own_question">Create my own question</string>
     <string name="nc_cosigning_policies">Platform key co-signing policies</string>
     <string name="nc_co_signing_delay">Co-signing delay</string>
@@ -261,7 +261,7 @@
     <string name="nc_assisted">Assisted</string>
     <string name="nc_your_inheritance_key">Your inheritance key</string>
     <string name="nc_inheritance_intro_desc">This TAPSIGNER will be your designated inheritance key. Once you have set up an inheritance plan, a Beneficiary or Trustee will be able to recover this TAPSIGNER’s private key at a later date to access your wallet and claim the inheritance.\n\nPlease take a moment to mark or label this key.</string>
-    <string name="nc_inheritance_key_tip_desc">[B]The inheritance key is designed to be used exclusively for the purpose of inheritance[/B]. The TAPSIGNER designated as the inheritance key should be locked and put away in a safe place, until it is needed.\n\nFor day-to-day spending, we recommend that you use the other keys in the wallet.</string>
+    <string name="nc_inheritance_key_tip_desc">[B]The inheritance key is designed to be used exclusively for the purpose of inheritance[/B]. We recommend that you put it away in a safe place.\n\nFor day-to-day spending, please use the other keys in the wallet.</string>
     <string name="nc_set_up_inheritance_plan">Set up an inheritance plan</string>
     <string name="nc_view_inheritance_plan">View inheritance plan</string>
     <string name="nc_add_coldcard_via_file">Add COLDCARD via a file (Advanced)</string>
@@ -506,4 +506,5 @@
     <string name="nc_recommended">Recommended</string>
     <string name="nc_do_not_need_buffer_period">I don’t need a buffer period</string>
     <string name="nc_set_up_buffer_period_desc">A buffer period is extra time that you can add after the claimant has provided the secrets and before the inheritance can be claimed. The buffer period helps you prevent unauthorized claims.\n\nAn email notification will be sent when the buffer period begins.</string>
+    <string name="nc_add_coldcard_from_file_hint">For extra security, you can disable NFC on COLDCARD between uses.</string>
 </resources>

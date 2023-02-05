@@ -123,6 +123,15 @@ internal fun Mk4InfoContent(
                     )
                 }
                 Spacer(modifier = Modifier.weight(1.0f))
+                NcHintMessage(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    messages = listOf(
+                        ClickAbleText(
+                            content = stringResource(R.string.nc_add_coldcard_from_file_hint)
+                        )
+                    )
+                )
+
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()
