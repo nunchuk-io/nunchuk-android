@@ -149,6 +149,7 @@ fun AddKeyStepScreen(viewModel: AddKeyStepViewModel = viewModel()) {
         isConfigKeyDone = isConfigKeyDone,
         isSetupRecoverKeyDone = isSetupRecoverKeyDone,
         isCreateWalletDone = isCreateWalletDone && isRegisterAirgap && isRegisterColdcard,
+        isShowMoreOption = isCreateWalletDone.not(),
         isSetupInheritanceDone = isSetupInheritanceDone,
         groupRemainTime = groupRemainTime,
         onMoreClicked = viewModel::onMoreClicked,
@@ -164,6 +165,7 @@ fun AddKeyStepContent(
     isSetupRecoverKeyDone: Boolean = false,
     isCreateWalletDone: Boolean = false,
     isSetupInheritanceDone: Boolean = false,
+    isShowMoreOption: Boolean = false,
     groupRemainTime: IntArray = IntArray(4),
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
@@ -189,7 +191,7 @@ fun AddKeyStepContent(
             NcImageAppBar(
                 backgroundRes = imageBannerId,
                 actions = {
-                    if (isCreateWalletDone.not()) {
+                    if (isShowMoreOption) {
                         IconButton(onClick = onMoreClicked) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),
