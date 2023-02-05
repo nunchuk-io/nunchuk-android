@@ -191,15 +191,16 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
 
     private fun handleState(state: RoomDetailState) {
         setupViewForSelectMode(state.isSelectEnable)
+        val count = state.roomInfo.memberCount
         if (state.isSupportRoom) {
             adapter.removeBannerNewChat()
+            binding.memberCount.text = resources.getString(R.string.nc_message_transaction_view_details)
+        } else {
+            binding.memberCount.text = resources.getQuantityString(R.plurals.nc_message_members, count, count)
         }
         binding.toolbarTitle.text = state.roomInfo.roomName
         binding.tvSelectedMessageCount.text =
             getString(R.string.nc_text_count_selected_message, state.selectedEventIds.size)
-        val count = state.roomInfo.memberCount
-        val membersCount = resources.getQuantityString(R.plurals.nc_message_members, count, count)
-        binding.memberCount.text = membersCount
 
         adapter.update(state.messages.groupByDate(), state.roomWallet, count)
         val hasRoomWallet = state.roomWallet != null
