@@ -24,6 +24,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.contact.components.add.EmailWithState
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.utils.EmailValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -64,13 +65,19 @@ class InheritanceNotifyPrefViewModel @Inject constructor(
     fun onContinueClicked() =
         viewModelScope.launch {
             val emails = _state.value.emails
-            if (isAllValid(emails)) {
-                _event.emit(
-                    InheritanceNotifyPrefEvent.ContinueClick(
-                        _state.value.emails.map { it.email },
-                        _state.value.isNotify
+            if (emails.isEmpty()) {
+                _event.emit(InheritanceNotifyPrefEvent.EmptyEmailError)
+            } else {
+                if (isAllValid(emails)) {
+                    _event.emit(
+                        InheritanceNotifyPrefEvent.ContinueClick(
+                            _state.value.emails.map { it.email },
+                            _state.value.isNotify
+                        )
                     )
-                )
+                } else {
+                    updateEmailsError()
+                }
             }
         }
 
@@ -86,7 +93,21 @@ class InheritanceNotifyPrefViewModel @Inject constructor(
         }
         if (isAllValid(newEmails)) {
             _event.emit(InheritanceNotifyPrefEvent.AllEmailValidEvent)
+        } else {
+            updateEmailsError()
         }
+    }
+
+    private fun updateEmailsError() {
+        val emails = _state.value.emails
+        val updatedEmails = emails.map {
+            if (EmailValidator.valid(it.email).not()) {
+                it.copy(valid = false)
+            } else {
+                it
+            }
+        }
+        _state.update { it.copy(emails = updatedEmails) }
     }
 
     fun handleRemove(email: EmailWithState) = viewModelScope.launch {
@@ -99,5 +120,5 @@ class InheritanceNotifyPrefViewModel @Inject constructor(
     }
 
     private fun isAllValid(emails: List<EmailWithState>) =
-        emails.all { it.email.trim().isNotEmpty() }
+        emails.all { EmailValidator.valid(it.email) }
 }

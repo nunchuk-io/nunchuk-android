@@ -60,5 +60,10 @@ data class RecoveryData(
     val question: SecurityQuestionModel = SecurityQuestionModel(),
     val answer: String = "",
     val change: Boolean = false,
-    val isShowMask: Boolean = false
-)
+    val isShowMask: Boolean = false,
+    val isShowError: Boolean = false
+) {
+    companion object {
+        val EMPTY = RecoveryData(index = -1)
+    }
+}

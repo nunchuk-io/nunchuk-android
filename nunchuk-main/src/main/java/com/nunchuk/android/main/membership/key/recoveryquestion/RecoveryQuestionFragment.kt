@@ -262,6 +262,7 @@ fun RecoveryQuestionScreenContent(
                             answer = recoverQuestion.answer,
                             isRecoveryFlow = isRecoveryFlow,
                             isShowMask = recoverQuestion.isShowMask,
+                            isShowError = recoverQuestion.isShowError,
                             onQuestionClicked = onQuestionClicked,
                             isRequestClearFocus = clearFocusRequest,
                             onInputAnswerTextChange = { value ->
@@ -312,6 +313,7 @@ fun QuestionRow(
     isRecoveryFlow: Boolean = false,
     isShowMask: Boolean = false,
     isRequestClearFocus: Boolean = false,
+    isShowError: Boolean = false,
     onQuestionClicked: (index: Int) -> Unit = {},
     onInputAnswerTextChange: (value: String) -> Unit = {},
     onInputCustomQuestionTextChange: (value: String) -> Unit = {},
@@ -362,6 +364,9 @@ fun QuestionRow(
             }
         }
         if (question.id == SecurityQuestionModel.CUSTOM_QUESTION_ID) {
+            val error = if (isShowError) {
+                stringResource(id = R.string.nc_please_write_your_question)
+            } else ""
             NcTextField(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -369,7 +374,8 @@ fun QuestionRow(
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 title = "",
                 value = question.customQuestion.orEmpty(),
-                onValueChange = onInputCustomQuestionTextChange
+                onValueChange = onInputCustomQuestionTextChange,
+                error = error
             )
         }
         val vi =
