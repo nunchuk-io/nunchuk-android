@@ -508,4 +508,6 @@
     <string name="nc_set_up_buffer_period_desc">A buffer period is extra time that you can add after the claimant has provided the secrets and before the inheritance can be claimed. The buffer period helps you prevent unauthorized claims.\n\nAn email notification will be sent when the buffer period begins.</string>
     <string name="nc_add_coldcard_from_file_hint">For extra security, you can disable NFC on COLDCARD between uses.</string>
     <string name="nc_please_provide_valid_email_address">Please provide a valid email address</string>
+    <string name="nc_your_account_has_been_signed_out">Your account has been signed out</string>
+    <string name="nc_please_write_your_question">Please write your question</string>
 </resources>
