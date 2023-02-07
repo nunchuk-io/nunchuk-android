@@ -143,7 +143,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_COLDCARD_FILE -> navigator.openSetupMk4(
                 requireActivity(),
                 true,
-                ColdcardAction.RECOVER
+                ColdcardAction.RECOVER_KEY
             )
         }
     }

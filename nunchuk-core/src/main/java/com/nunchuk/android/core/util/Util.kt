@@ -73,6 +73,8 @@ const val SUPPORT_ROOM_TYPE = "io.nunchuk.support"
 const val SUPPORT_TEST_NET_ROOM_TYPE = "io.nunchuk.support.testnet"
 const val RENEW_ACCOUNT_LINK = "https://nunchuk.io/my-account"
 
+const val DEFAULT_COLDCARD_WALLET_NAME = "My COLDCARD wallet"
+
 
 fun Double.formatRoundDecimal(): String {
     val df = DecimalFormat("#.##")

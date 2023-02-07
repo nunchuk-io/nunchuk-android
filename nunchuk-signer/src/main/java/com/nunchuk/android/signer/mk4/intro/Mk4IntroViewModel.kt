@@ -24,26 +24,20 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.CreateMk4SignerUseCase
+import com.nunchuk.android.core.domain.CreateWallet2UseCase
 import com.nunchuk.android.core.domain.GetMk4SingersUseCase
+import com.nunchuk.android.core.domain.ImportWalletFromMk4UseCase
+import com.nunchuk.android.core.domain.coldcard.ExtractWalletsFromColdCard
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
-import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
-import com.nunchuk.android.core.util.SIGNER_PATH_PREFIX
-import com.nunchuk.android.core.util.gson
-import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.model.MembershipStepInfo
-import com.nunchuk.android.model.SignerExtra
-import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.core.util.*
+import com.nunchuk.android.model.*
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -54,12 +48,18 @@ class Mk4IntroViewModel @Inject constructor(
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
+    private val importWalletFromMk4UseCase: ImportWalletFromMk4UseCase,
+    private val extractWalletsFromColdCard: ExtractWalletsFromColdCard,
+    private val createWallet2UseCase: CreateWallet2UseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<Mk4IntroViewEvent>()
     private val args: Mk4IntroFragmentArgs =
         Mk4IntroFragmentArgs.fromSavedStateHandle(savedStateHandle)
     val event = _event.asSharedFlow()
+
+    private val _state = MutableStateFlow(Mk4IntroState())
+    val state = _state.asStateFlow()
 
     val remainTime = membershipStepManager.remainingTime
     private var chain: Chain = Chain.MAIN
@@ -139,6 +139,49 @@ class Mk4IntroViewModel @Inject constructor(
         }
     }
 
+
+    fun importWalletFromMk4(records: List<NdefRecord>) {
+        viewModelScope.launch {
+            _event.emit(Mk4IntroViewEvent.NfcLoading(true))
+            val result = importWalletFromMk4UseCase(records)
+            _event.emit(Mk4IntroViewEvent.NfcLoading(false))
+            if (result.isSuccess && result.getOrThrow() != null) {
+                _event.emit(Mk4IntroViewEvent.ImportWalletFromMk4Success(result.getOrThrow()!!.id))
+            } else {
+                _event.emit(Mk4IntroViewEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun getWalletsFromColdCard(records: List<NdefRecord>) {
+        viewModelScope.launch {
+            _event.emit(Mk4IntroViewEvent.NfcLoading(true))
+            val result = extractWalletsFromColdCard(records)
+            _event.emit(Mk4IntroViewEvent.NfcLoading(false))
+            if (result.isSuccess && result.getOrThrow().isNotEmpty()) {
+                _state.update { it.copy(wallets = result.getOrThrow()) }
+                _event.emit(Mk4IntroViewEvent.ExtractWalletsFromColdCard(result.getOrThrow()))
+            } else {
+                _event.emit(Mk4IntroViewEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun createWallet(walletId: String) {
+        viewModelScope.launch {
+            _state.value.wallets.find { it.id == walletId }?.let { wallet ->
+                _event.emit(Mk4IntroViewEvent.Loading(true))
+                val result = createWallet2UseCase(wallet.copy(name = DEFAULT_COLDCARD_WALLET_NAME))
+                _event.emit(Mk4IntroViewEvent.Loading(false))
+                if (result.isSuccess) {
+                    _event.emit(Mk4IntroViewEvent.ImportWalletFromMk4Success(result.getOrThrow().id))
+                } else {
+                    _event.emit(Mk4IntroViewEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+                }
+            }
+        }
+    }
+
     fun onContinueClicked() {
         viewModelScope.launch {
             _event.emit(Mk4IntroViewEvent.OnContinueClicked)
@@ -150,3 +193,5 @@ class Mk4IntroViewModel @Inject constructor(
         private const val SIGNER_TESTNET_PATH = "m/48h/1h/0h/2h"
     }
 }
+
+data class Mk4IntroState(val wallets: List<Wallet> = emptyList(),)

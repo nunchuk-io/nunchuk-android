@@ -55,15 +55,26 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showOrHideNfcLoading
+import com.nunchuk.android.model.RecoverWalletData
+import com.nunchuk.android.model.RecoverWalletType
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
+    @Inject
+    lateinit var navigator: NunchukNavigator
+
     private val nfcViewModel by activityViewModels<NfcViewModel>()
     private val viewModel by viewModels<Mk4IntroViewModel>()
     private val args: Mk4IntroFragmentArgs by navArgs()
@@ -85,12 +96,16 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
 
     override fun onOptionClicked(option: SheetOption) {
         super.onOptionClicked(option)
-        val signer = viewModel.mk4Signers.getOrNull(option.type) ?: return
-        findNavController().navigate(
-            Mk4IntroFragmentDirections.actionMk4IntroFragmentToAddMk4NameFragment(
-                signer
+        if (option.type >= WALLET_OFFSET) {
+            viewModel.createWallet(option.id.orEmpty())
+        } else if (option.type >= SIGNER_OFFSET) {
+            val signer = viewModel.mk4Signers.getOrNull(option.type) ?: return
+            findNavController().navigate(
+                Mk4IntroFragmentDirections.actionMk4IntroFragmentToAddMk4NameFragment(
+                    signer
+                )
             )
-        )
+        }
     }
 
     private fun observer() {
@@ -104,9 +119,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                 is Mk4IntroViewEvent.LoadMk4SignersSuccess -> openSignerSheet(it.signers)
                 is Mk4IntroViewEvent.Loading -> showOrHideLoading(it.isLoading)
                 is Mk4IntroViewEvent.ShowError -> showError(it.message)
-                Mk4IntroViewEvent.OnContinueClicked -> (requireActivity() as NfcActionListener).startNfcFlow(
-                    BaseNfcActivity.REQUEST_MK4_ADD_KEY
-                )
+                Mk4IntroViewEvent.OnContinueClicked -> onContinueClicked()
                 Mk4IntroViewEvent.OnCreateSignerSuccess -> requireActivity().finish()
                 Mk4IntroViewEvent.OnSignerExistInAssistedWallet -> showError(getString(R.string.nc_error_add_same_key))
                 Mk4IntroViewEvent.ErrorMk4TestNet -> NCInfoDialog(requireActivity())
@@ -114,19 +127,66 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                         title = getString(R.string.nc_invalid_network),
                         message = getString(R.string.nc_error_device_in_testnet_msg)
                     )
+                is Mk4IntroViewEvent.ImportWalletFromMk4Success -> openRecoverWalletName(it.walletId)
+                is Mk4IntroViewEvent.ExtractWalletsFromColdCard -> showWallets(it.wallets)
+                is Mk4IntroViewEvent.NfcLoading -> showOrHideNfcLoading(it.isLoading)
             }
         }
+
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_IMPORT_MULTI_WALLET_FROM_MK4 }) {
+            viewModel.importWalletFromMk4(it.records)
+            nfcViewModel.clearScanInfo()
+        }
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_IMPORT_SINGLE_WALLET_FROM_MK4 }) {
+            viewModel.getWalletsFromColdCard(it.records)
+            nfcViewModel.clearScanInfo()
+        }
+    }
+
+    private fun showWallets(wallets: List<Wallet>) {
+        BottomSheetOption.newInstance(wallets.mapIndexed { index, wallet ->
+            SheetOption(
+                type = index + WALLET_OFFSET,
+                label = wallet.name,
+                id = wallet.id,
+            )
+        }, title = getString(R.string.nc_sellect_wallet_type))
+            .show(childFragmentManager, "BottomSheetOption")
+    }
+
+    private fun openRecoverWalletName(walletId: String) {
+        navigator.openAddRecoverWalletScreen(
+            requireActivity(), RecoverWalletData(
+                type = RecoverWalletType.COLDCARD,
+                walletId = walletId
+            )
+        )
+        requireActivity().finish()
+    }
+
+    private fun onContinueClicked() {
+       val type = when((requireActivity() as Mk4Activity).action) {
+            ColdcardAction.RECOVER_MULTI_SIG_WALLET -> BaseNfcActivity.REQUEST_IMPORT_MULTI_WALLET_FROM_MK4
+            ColdcardAction.RECOVER_SINGLE_SIG_WALLET -> BaseNfcActivity.REQUEST_IMPORT_SINGLE_WALLET_FROM_MK4
+           else -> BaseNfcActivity.REQUEST_MK4_ADD_KEY
+        }
+        (requireActivity() as NfcActionListener).startNfcFlow(type)
     }
 
     private fun openSignerSheet(signer: List<SingleSigner>) {
         if (signer.isNotEmpty()) {
             val fragment = BottomSheetOption.newInstance(signer.mapIndexed { index, singleSigner ->
                 SheetOption(
-                    type = index, label = singleSigner.derivationPath
+                    type = index + SIGNER_OFFSET, label = singleSigner.derivationPath
                 )
             }, title = getString(R.string.nc_mk4_signer_title))
             fragment.show(childFragmentManager, "BottomSheetOption")
         }
+    }
+
+    companion object {
+        private const val WALLET_OFFSET = 1000000
+        private const val SIGNER_OFFSET = 1000
     }
 }
 

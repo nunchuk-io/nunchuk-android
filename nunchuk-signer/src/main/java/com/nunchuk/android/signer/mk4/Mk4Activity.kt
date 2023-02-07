@@ -50,7 +50,9 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
         val graph = inflater.inflate(R.navigation.mk4_navigation)
         when (intent.serializable<ColdcardAction>(EXTRA_ACTION)!!) {
             ColdcardAction.CREATE -> graph.setStartDestination(R.id.mk4InfoFragment)
-            ColdcardAction.RECOVER -> graph.setStartDestination(R.id.coldcardRecoverFragment)
+            ColdcardAction.RECOVER_KEY -> graph.setStartDestination(R.id.coldcardRecoverFragment)
+            ColdcardAction.RECOVER_SINGLE_SIG_WALLET,
+            ColdcardAction.RECOVER_MULTI_SIG_WALLET, -> graph.setStartDestination(R.id.mk4IntroFragment)
         }
         navHostFragment.navController.setGraph(graph, intent.extras)
         navHostFragment.navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -59,6 +61,10 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
                 destination.id == R.id.addMk4NameFragment
             )
         }
+    }
+
+    val action : ColdcardAction by lazy(LazyThreadSafetyMode.NONE) {
+        intent.serializable(EXTRA_ACTION)!!
     }
 
     companion object {
