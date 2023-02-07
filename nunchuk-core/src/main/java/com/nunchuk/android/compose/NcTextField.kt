@@ -52,7 +52,8 @@ fun NcTextField(
     value: String,
     rightContent: @Composable BoxScope.() -> Unit = {},
     error: String? = null,
-    onClick : () -> Unit = {},
+    showErrorMessageOnly: Boolean = false,
+    onClick: () -> Unit = {},
     placeholder: @Composable (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions(),
@@ -65,6 +66,12 @@ fun NcTextField(
     onValueChange: (value: String) -> Unit,
 ) {
     val hasError = error != null && error.isNotEmpty()
+    var backgroundErrorColor = MaterialTheme.colors.surface
+    var borderErrorColor = Color(0xFFDEDEDE)
+    if (hasError && showErrorMessageOnly.not()) {
+        backgroundErrorColor = colorResource(id = R.color.nc_red_tint_color)
+        borderErrorColor = colorResource(id = R.color.nc_orange_color)
+    }
     val interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
     Column(modifier = modifier) {
         if (title.isNotEmpty()) {
@@ -78,7 +85,7 @@ fun NcTextField(
             BasicTextField(
                 modifier = Modifier
                     .background(
-                        color = if (hasError) colorResource(id = R.color.nc_red_tint_color) else MaterialTheme.colors.surface,
+                        color = backgroundErrorColor,
                         shape = RoundedCornerShape(8.dp)
                     )
                     .onFocusEvent(onFocusEvent)
@@ -115,9 +122,7 @@ fun NcTextField(
                             Box(
                                 Modifier.border(
                                     width = 1.dp,
-                                    color = if (hasError) colorResource(id = R.color.nc_orange_color) else Color(
-                                        0xFFDEDEDE
-                                    ),
+                                    color = borderErrorColor,
                                     shape = RoundedCornerShape(8.dp),
                                 )
                             )

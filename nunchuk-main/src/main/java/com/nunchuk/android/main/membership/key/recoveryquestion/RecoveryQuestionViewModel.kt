@@ -252,26 +252,11 @@ class RecoveryQuestionViewModel @Inject constructor(
         }
 
     fun onContinueClicked() = viewModelScope.launch {
-        if (checkValidQuestions().not()) return@launch
         if (args.isRecoveryFlow) {
             calculateRequiredSignatures()
         } else {
             configSecurityQuestion()
         }
-    }
-
-    private fun checkValidQuestions(): Boolean {
-        var isAllValid = true
-        val questionsAndAnswers = state.value.recoveries.map {
-            if (it.question.id == SecurityQuestionModel.CUSTOM_QUESTION_ID && it.question.customQuestion.isNullOrBlank()) {
-                isAllValid = false
-                it.copy(isShowError = true)
-            } else {
-                it.copy(isShowError = false)
-            }
-        }
-        _state.update { it.copy(recoveries = questionsAndAnswers) }
-        return isAllValid
     }
 
     private fun configSecurityQuestion() = viewModelScope.launch {
