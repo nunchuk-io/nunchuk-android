@@ -30,6 +30,8 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -39,6 +41,9 @@ import javax.inject.Inject
 abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
     @Inject
     lateinit var membershipStepManager: MembershipStepManager
+
+    @Inject
+    lateinit var nunchukNavigator: NunchukNavigator
 
     private val viewModel : MembershipViewModel by viewModels()
 
@@ -53,6 +58,7 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) {
             if (it is MembershipEvent.RestartWizardSuccess) {
+                nunchukNavigator.openMembershipActivity(requireActivity(),MembershipStage.NONE, isClearTop = true)
                 requireActivity().finish()
             }
         }

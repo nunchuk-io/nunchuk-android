@@ -35,7 +35,8 @@ interface AppNavigator {
         activityContext: Activity,
         groupStep: MembershipStage,
         keyPolicy: KeyPolicy? = null,
-        xfp: String? = null
+        xfp: String? = null,
+        isClearTop: Boolean = false
     )
 
     fun openMembershipActivity(

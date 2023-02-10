@@ -64,9 +64,6 @@ import javax.inject.Inject
 class AddKeyStepFragment : MembershipFragment() {
     private val viewModel by viewModels<AddKeyStepViewModel>()
 
-    @Inject
-    lateinit var nunchukNavigator: NunchukNavigator
-
     override val isCountdown: Boolean = false
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?

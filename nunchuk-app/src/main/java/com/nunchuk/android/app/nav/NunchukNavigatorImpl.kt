@@ -118,16 +118,17 @@ interface AppNavigatorDelegate : AppNavigator {
         activityContext: Activity,
         groupStep: MembershipStage,
         keyPolicy: KeyPolicy?,
-        xfp: String?
+        xfp: String?,
+        isClearTop: Boolean
     ) {
-        activityContext.startActivity(
-            MembershipActivity.buildIntent(
-                activity = activityContext,
-                groupStep = groupStep,
-                keyPolicy = keyPolicy,
-                xfp = xfp
-            )
+        val intent = MembershipActivity.buildIntent(
+            activity = activityContext,
+            groupStep = groupStep,
+            keyPolicy = keyPolicy,
+            xfp = xfp
         )
+        if (isClearTop) intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        activityContext.startActivity(intent)
     }
 
     override fun openMembershipActivity(
