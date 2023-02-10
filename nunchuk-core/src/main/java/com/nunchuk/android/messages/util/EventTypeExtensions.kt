@@ -37,6 +37,8 @@ const val SUBSCRIPTION_SUBSCRIPTION_ACTIVE = "io.nunchuk.custom.subscription_act
 const val SUBSCRIPTION_SUBSCRIPTION_PENDING = "io.nunchuk.custom.subscription_pending"
 const val TRANSACTION_CO_SIGNED_AND_BROADCAST =
     "io.nunchuk.custom.transaction_co_signed_and_broadcast"
+const val TRANSACTION_SCHEDULE_MISSING_SIGNATURES = "io.nunchuk.custom.transaction_schedule_missing_signatures"
+const val TRANSACTION_SCHEDULE_NETWORK_REJECTED = "io.nunchuk.custom.transaction_schedule_network_rejected"
 const val STATE_ENCRYPTED_MESSAGE = "*Encrypted*"
 
 fun TimelineEvent.isDisplayable(isSupportRoom: Boolean) : Boolean {
@@ -93,6 +95,11 @@ fun TimelineEvent.isBroadcastEvent() = getMsgType() == TRANSACTION_SCHEDULE_BROA
 
 fun TimelineEvent.isCosignedAndBroadcastEvent() =
     getMsgType() == TRANSACTION_CO_SIGNED_AND_BROADCAST
+
+fun TimelineEvent.isTransactionScheduleMissingSignaturesEvent() = getMsgType() == TRANSACTION_SCHEDULE_MISSING_SIGNATURES
+fun TimelineEvent.isTransactionScheduleNetworkRejectedEvent() = getMsgType() == TRANSACTION_SCHEDULE_NETWORK_REJECTED
+
+fun TimelineEvent.isTransactionHandleErrorMessageEvent() = isTransactionScheduleMissingSignaturesEvent() || isTransactionScheduleNetworkRejectedEvent()
 
 fun TimelineEvent.getMsgType() = root.getClearContent()?.get("msgtype")
 

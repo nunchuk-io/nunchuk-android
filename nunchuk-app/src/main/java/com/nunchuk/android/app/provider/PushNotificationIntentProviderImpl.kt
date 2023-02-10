@@ -39,7 +39,12 @@ class PushNotificationIntentProviderImpl @Inject constructor(
 
     override fun getMainIntent() = MainActivity.createIntent(context)
 
-    override fun getTransactionDetailIntent(walletId: String, txId: String): Intent {
-        return TransactionDetailsActivity.buildIntent(context, walletId = walletId, txId = txId)
+    override fun getTransactionDetailIntent(
+        walletId: String,
+        txId: String,
+        isCancelBroadcast: Boolean,
+        errorMessage: String
+    ): Intent {
+        return TransactionDetailsActivity.buildIntent(context, walletId = walletId, txId = txId, isCancelBroadcast = isCancelBroadcast, errorMessage = errorMessage)
     }
 }

@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.contact.components.contacts
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.contact.usecase.GetReceivedContactsUseCase
@@ -29,14 +30,13 @@ import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
 import com.nunchuk.android.messages.components.list.isServerNotices
-import com.nunchuk.android.messages.util.getTransactionId
-import com.nunchuk.android.messages.util.getWalletId
-import com.nunchuk.android.messages.util.isContactUpdateEvent
-import com.nunchuk.android.messages.util.isServerTransactionEvent
+import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.ReceiveContact
 import com.nunchuk.android.model.SentContact
 import com.nunchuk.android.share.GetContactsUseCase
+import com.nunchuk.android.usecase.IsHandledEventUseCase
+import com.nunchuk.android.usecase.SaveHandledEventUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.catch
@@ -56,6 +56,8 @@ class ContactsViewModel @Inject constructor(
     private val getReceivedContactsUseCase: GetReceivedContactsUseCase,
     private val sessionHolder: SessionHolder,
     private val pushEventManager: PushEventManager,
+    private val isHandledEventUseCase: IsHandledEventUseCase,
+    private val saveHandledEventUseCase: SaveHandledEventUseCase,
 ) : NunchukViewModel<ContactsState, Unit>() {
     private val handledEventIds = hashSetOf<Long>()
 
@@ -139,10 +141,27 @@ class ContactsViewModel @Inject constructor(
 
     private fun handleTimelineEvents(events: List<TimelineEvent>) {
         events.forEach { event ->
-            if (event.isServerTransactionEvent() && !handledEventIds.contains(event.localId)) {
+            if (event.isTransactionHandleErrorMessageEvent()) {
+                viewModelScope.launch {
+                    val result = isHandledEventUseCase.invoke(event.eventId)
+                    if (result.getOrDefault(false).not()) {
+                        saveHandledEventUseCase.invoke(event.eventId)
+                        pushEventManager.push(
+                            PushEvent.MessageEvent(
+                                message = event.getLastMessageContentSafe().orEmpty()
+                            )
+                        )
+                    }
+                }
+            } else if ((event.isServerTransactionEvent() && !handledEventIds.contains(event.localId))) {
                 handledEventIds.add(event.localId)
                 viewModelScope.launch {
-                    pushEventManager.push(PushEvent.ServerTransactionEvent(event.getWalletId(), event.getTransactionId()))
+                    pushEventManager.push(
+                        PushEvent.ServerTransactionEvent(
+                            event.getWalletId(),
+                            event.getTransactionId()
+                        )
+                    )
                 }
             }
         }

@@ -149,6 +149,12 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         if (args.isInheritanceClaimingFlow) {
             showInheritanceClaimingDialog()
         }
+        if (args.errorMessage.isBlank().not()) {
+            showError(message = args.errorMessage)
+        }
+        if (args.isCancelBroadcast) {
+            viewModel.cancelScheduleBroadcast()
+        }
     }
 
     private fun showInheritanceClaimingDialog() {
@@ -658,7 +664,9 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             initEventId: String = "",
             roomId: String = "",
             transaction: Transaction? = null,
-            isInheritanceClaimingFlow: Boolean = false
+            isInheritanceClaimingFlow: Boolean = false,
+            isCancelBroadcast: Boolean = false,
+            errorMessage: String = ""
         ): Intent {
             return TransactionDetailsArgs(
                 walletId = walletId,
@@ -666,7 +674,9 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 initEventId = initEventId,
                 roomId = roomId,
                 transaction = transaction,
-                isInheritanceClaimingFlow = isInheritanceClaimingFlow
+                isInheritanceClaimingFlow = isInheritanceClaimingFlow,
+                isCancelBroadcast = isCancelBroadcast,
+                errorMessage = errorMessage
             ).buildIntent(activityContext)
         }
     }
