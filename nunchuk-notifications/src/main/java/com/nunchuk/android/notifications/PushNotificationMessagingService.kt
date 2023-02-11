@@ -91,15 +91,11 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         }
 
         mUIHandler.post {
-            if (event?.isTransactionHandleErrorMessageEvent() == true) {
-                if (ProcessLifecycleOwner.get().isAtLeastStarted().not()) {
-                    parseMessageData(event)?.let(::showNotification)
-                    applicationScope.launch {
-                        saveHandledEventUseCase.invoke(event.eventId)
-                    }
+            parseMessageData(event)?.let(::showNotification)
+            if (ProcessLifecycleOwner.get().isAtLeastStarted().not() && event != null) {
+                applicationScope.launch {
+                    saveHandledEventUseCase.invoke(event.eventId)
                 }
-            } else {
-                parseMessageData(event)?.let(::showNotification)
             }
         }
 

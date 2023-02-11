@@ -45,7 +45,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
-import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import javax.inject.Inject
 
@@ -85,7 +84,6 @@ class RoomsViewModel @Inject constructor(
             .onStart { setEvent(RoomsEvent.LoadingEvent(true)) }
             .onEach {
                 fileLog("listenRoomSummaries($it)")
-                handleJoinNoticeRoomIfNeed(it)
                 leaveDraftSyncRoom(it)
                 retrieveMessages(it)
                 if (it.isNotEmpty()) {
@@ -109,18 +107,6 @@ class RoomsViewModel @Inject constructor(
             }
             .distinctUntilChanged()
             .collect()
-    }
-
-    private fun handleJoinNoticeRoomIfNeed(summaries: List<RoomSummary>) {
-        viewModelScope.launch(dispatcher) {
-            summaries.find { it.isServerNotices() }?.takeIf { it.membership != Membership.JOIN }
-                ?.let { summary ->
-                    runCatching {
-                        sessionHolder.getSafeActiveSession()?.roomService()
-                            ?.joinRoom(summary.roomId)
-                    }
-                }
-        }
     }
 
     private fun leaveDraftSyncRoom(summaries: List<RoomSummary>) {

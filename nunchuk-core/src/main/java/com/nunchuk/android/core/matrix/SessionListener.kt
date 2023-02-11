@@ -21,6 +21,7 @@ package com.nunchuk.android.core.matrix
 
 import com.nunchuk.android.core.network.UnauthorizedException
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.usecase.contact.GetContactByChatIdUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import kotlinx.coroutines.CoroutineDispatcher
@@ -45,8 +46,14 @@ class SessionListener @Inject constructor(
 
     override fun onNewInvitedRoom(session: Session, roomId: String) {
         session.coroutineScope.launch(dispatcher) {
-            val summary = session.roomService().getRoom(roomId) ?: return@launch
-            val chatId = summary.roomSummary()?.inviterId ?: return@launch
+            val summary = session.roomService().getRoom(roomId)?.roomSummary() ?: return@launch
+            if (summary.isServerNotices()) {
+                runCatching {
+                    session.roomService().joinRoom(roomId)
+                }
+                return@launch
+            }
+            val chatId = summary.inviterId ?: return@launch
             val result = getContactByChatIdUseCase(chatId)
             if (result.isSuccess && result.getOrThrow() != null) {
                 runCatching {

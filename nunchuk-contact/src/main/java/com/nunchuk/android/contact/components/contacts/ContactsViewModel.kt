@@ -28,6 +28,7 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.model.Contact
@@ -37,6 +38,7 @@ import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.usecase.IsHandledEventUseCase
 import com.nunchuk.android.usecase.SaveHandledEventUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
@@ -57,6 +59,7 @@ class ContactsViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     private val isHandledEventUseCase: IsHandledEventUseCase,
     private val saveHandledEventUseCase: SaveHandledEventUseCase,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<ContactsState, Unit>() {
     override val initialState = ContactsState.empty()
 
@@ -82,8 +85,11 @@ class ContactsViewModel @Inject constructor(
             }).find { roomSummary ->
                 roomSummary.isServerNotices()
             }?.let {
-                session.roomService().getRoom(it.roomId)
-                    ?.let(::retrieveTimelineEvents)
+                viewModelScope.launch(ioDispatcher) {
+                    session.roomService().joinRoom(it.roomId)
+                    session.roomService().getRoom(it.roomId)
+                        ?.let(::retrieveTimelineEvents)
+                }
             }
         }
     }
@@ -143,15 +149,13 @@ class ContactsViewModel @Inject constructor(
                     val result = isHandledEventUseCase.invoke(event.eventId)
                     if (result.getOrDefault(false).not()) {
                         saveHandledEventUseCase.invoke(event.eventId)
-                        val newEvent = if (event.isTransactionHandleErrorMessageEvent()) {
-                            PushEvent.MessageEvent(event.getLastMessageContentSafe().orEmpty())
-                        } else {
-                            PushEvent.ServerTransactionEvent(
-                                event.getWalletId(),
-                                event.getTransactionId()
-                            )
+                        if (event.isTransactionHandleErrorMessageEvent()) {
+                            pushEventManager.push(PushEvent.MessageEvent(event.getLastMessageContentSafe().orEmpty()))
                         }
-                        pushEventManager.push(newEvent)
+                        pushEventManager.push(PushEvent.ServerTransactionEvent(
+                            event.getWalletId(),
+                            event.getTransactionId()
+                        ))
                     }
                 }
             }
