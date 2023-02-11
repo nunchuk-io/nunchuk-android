@@ -142,21 +142,25 @@ class ContactsViewModel @Inject constructor(
             }
     }
 
-    private fun handleTimelineEvents(events: List<TimelineEvent>) {
+    private suspend fun handleTimelineEvents(events: List<TimelineEvent>) {
         events.forEach { event ->
             if (event.isTransactionHandleErrorMessageEvent() || event.isServerTransactionEvent()) {
-                viewModelScope.launch {
-                    val result = isHandledEventUseCase.invoke(event.eventId)
-                    if (result.getOrDefault(false).not()) {
-                        saveHandledEventUseCase.invoke(event.eventId)
-                        if (event.isTransactionHandleErrorMessageEvent()) {
-                            pushEventManager.push(PushEvent.MessageEvent(event.getLastMessageContentSafe().orEmpty()))
-                        }
-                        pushEventManager.push(PushEvent.ServerTransactionEvent(
+                val result = isHandledEventUseCase.invoke(event.eventId)
+                if (result.getOrDefault(false).not()) {
+                    saveHandledEventUseCase.invoke(event.eventId)
+                    if (event.isTransactionHandleErrorMessageEvent()) {
+                        pushEventManager.push(
+                            PushEvent.MessageEvent(
+                                event.getLastMessageContentSafe().orEmpty()
+                            )
+                        )
+                    }
+                    pushEventManager.push(
+                        PushEvent.ServerTransactionEvent(
                             event.getWalletId(),
                             event.getTransactionId()
-                        ))
-                    }
+                        )
+                    )
                 }
             }
         }
