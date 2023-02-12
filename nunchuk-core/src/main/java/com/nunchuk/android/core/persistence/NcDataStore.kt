@@ -45,7 +45,6 @@ class NcDataStore @Inject constructor(
     private val isShowNfcUniversalKey = booleanPreferencesKey("show_nfc_universal")
     private val registerColdcardKey = booleanPreferencesKey("register_coldcard")
     private val registerAirgapKey = booleanPreferencesKey("register_airgap")
-    private val setupInheritanceKey = booleanPreferencesKey("setup_inheritance")
     private val chainKey = intPreferencesKey("chain")
     private val hideUpsellBannerKey = booleanPreferencesKey("hide_upsell_banner")
     private val syncRoomSuccessKey = booleanPreferencesKey("sync_room_success")
@@ -114,11 +113,6 @@ class NcDataStore @Inject constructor(
     val isRegisterAirgap: Flow<Boolean>
         get() = context.dataStore.data.map {
             it[registerAirgapKey] ?: true
-        }
-
-    val isSetupInheritance: Flow<Boolean>
-        get() = context.dataStore.data.map {
-            it[setupInheritanceKey] ?: false
         }
 
     val chain: Flow<Chain>
@@ -190,12 +184,6 @@ class NcDataStore @Inject constructor(
         }
     }
 
-    suspend fun setSetupInheritance(value: Boolean) {
-        context.dataStore.edit {
-            it[setupInheritanceKey] = value
-        }
-    }
-
     suspend fun setHideUpsellBanner() {
         context.dataStore.edit {
             it[hideUpsellBannerKey] = true
@@ -217,7 +205,6 @@ class NcDataStore @Inject constructor(
             it.remove(membershipPlanKey)
             it.remove(registerColdcardKey)
             it.remove(registerAirgapKey)
-            it.remove(setupInheritanceKey)
             it.remove(hideUpsellBannerKey)
             it.remove(syncRoomSuccessKey)
         }

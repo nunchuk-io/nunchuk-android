@@ -39,7 +39,6 @@ import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.banner.SubmitEmailUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.InheritanceCheckUseCase
-import com.nunchuk.android.usecase.user.IsSetupInheritanceUseCase
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -61,7 +60,6 @@ class ServicesTabViewModel @Inject constructor(
     private val getAssistedWalletPageContentUseCase: GetAssistedWalletPageContentUseCase,
     private val getBannerUseCase: GetBannerUseCase,
     private val submitEmailUseCase: SubmitEmailUseCase,
-    isSetupInheritanceUseCase: IsSetupInheritanceUseCase,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<ServicesTabEvent>()
@@ -69,11 +67,6 @@ class ServicesTabViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(ServicesTabState())
     val state = _state.asStateFlow()
-
-    private val isSetupInheritance = isSetupInheritanceUseCase(Unit)
-        .map { it.getOrElse { false } }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private var inheritanceJob: Job? = null
 

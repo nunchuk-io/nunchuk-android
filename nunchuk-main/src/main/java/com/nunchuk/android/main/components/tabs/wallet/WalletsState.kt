@@ -24,6 +24,7 @@ import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.banner.Banner
+import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 
@@ -34,8 +35,7 @@ internal data class WalletsState(
     val chain: Chain = Chain.MAIN,
     val isPremiumUser: Boolean? = null,
     val remainingTime: Int = 0,
-    val isCreatedAssistedWallet: Boolean = false,
-    val assistedWalletIds: Set<String> = emptySet(),
+    val assistedWallets: List<AssistedWalletBrief> = emptyList(),
     val isSetupInheritance: Boolean = false,
     val isHideUpsellBanner: Boolean = false,
     val banner: Banner? = null,

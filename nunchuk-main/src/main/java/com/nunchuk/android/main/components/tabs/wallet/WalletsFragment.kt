@@ -148,11 +148,9 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun showAssistedWalletStart(
         remainingTime: Int,
-        isCreatedAssistedWallet: Boolean,
-        setupInheritance: Boolean
     ) {
         val stage = walletsViewModel.getGroupStage()
-        val isGone = stage == MembershipStage.DONE || (isCreatedAssistedWallet && setupInheritance)
+        val isGone = stage == MembershipStage.DONE
         binding.introContainer.isGone = isGone
         if (isVisible.not()) return
         if (stage == MembershipStage.NONE) {
@@ -289,7 +287,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun showWalletState(state: WalletsState) {
         val wallets = state.wallets
-        showWallets(wallets, state.assistedWalletIds)
+        showWallets(wallets, state.assistedWallets.map { it.localId }.toSet())
         showSigners(state.signers)
         showConnectionBlockchainStatus(state)
         showIntro(state)
@@ -366,8 +364,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             when {
                 state.isPremiumUser -> showAssistedWalletStart(
                     state.remainingTime,
-                    state.isCreatedAssistedWallet,
-                    state.isSetupInheritance,
                 )
                 else -> showNonSubscriberIntro(state.banner, state.isHideUpsellBanner)
             }

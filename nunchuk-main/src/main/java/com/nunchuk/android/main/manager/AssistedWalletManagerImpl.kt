@@ -24,7 +24,6 @@ import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.MembershipPlan
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -44,8 +43,6 @@ internal class AssistedWalletManagerImpl @Inject constructor(
     private val _assistedWalletId = getAssistedWalletsFlowUseCase(Unit)
         .map { if (plan.value != MembershipPlan.NONE) it.getOrElse { emptyList() } else emptyList() }
         .stateIn(applicationScope, SharingStarted.Eagerly, emptyList())
-
-    override val assistedWalletId: Flow<List<String>> = _assistedWalletId.map { wallets -> wallets.map { it.localId } }
 
     override fun isActiveAssistedWallet(walletId: String): Boolean {
         return _assistedWalletId.value.any { it.localId == walletId } && plan.value != MembershipPlan.NONE

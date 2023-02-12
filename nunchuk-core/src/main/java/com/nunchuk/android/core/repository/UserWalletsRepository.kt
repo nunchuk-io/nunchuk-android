@@ -271,7 +271,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 assistedWalletDao.deleteBatch(partition.second.map { it.localId.orEmpty() })
             }
             if (partition.first.isNotEmpty()) {
-                assistedWalletDao.updateOrInsert(
+                assistedWalletDao.insert(
                     partition.first.map { wallet ->
                         AssistedWalletEntity(
                             wallet.localId.orEmpty(),

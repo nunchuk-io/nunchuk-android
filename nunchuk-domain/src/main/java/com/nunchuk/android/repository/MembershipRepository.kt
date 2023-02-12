@@ -35,10 +35,8 @@ interface MembershipRepository {
     fun getLocalCurrentPlan(): Flow<MembershipPlan>
     fun isRegisterColdcard(): Flow<Boolean>
     fun isRegisterAirgap(): Flow<Boolean>
-    fun isSetupInheritance(): Flow<Boolean>
     fun isHideUpsellBanner(): Flow<Boolean>
     suspend fun setRegisterColdcard(value: Boolean)
     suspend fun setRegisterAirgap(value: Boolean)
-    suspend fun setSetupInheritance(value: Boolean)
     suspend fun setHideUpsellBanner()
 }
