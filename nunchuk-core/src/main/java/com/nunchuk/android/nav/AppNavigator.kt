@@ -56,6 +56,7 @@ interface AppNavigator {
      */
     fun openInheritancePlanningScreen(
         launcher: ActivityResultLauncher<Intent>? = null,
+        walletId: String = "",
         activityContext: Context,
         verifyToken: String? = null,
         inheritance: Inheritance? = null,

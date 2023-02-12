@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.persistence
 
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
@@ -32,9 +33,13 @@ import com.nunchuk.android.persistence.entity.*
         MembershipStepEntity::class,
         SyncEventEntity::class,
         HandledEventEntity::class,
+        AssistedWalletEntity::class,
     ],
     version = DATABASE_VERSION,
     exportSchema = true,
+    autoMigrations = [
+        AutoMigration(from = 5, to = 6)
+    ]
 )
 @TypeConverters(Converters::class)
 internal abstract class NunchukDatabase : RoomDatabase() {
@@ -43,4 +48,5 @@ internal abstract class NunchukDatabase : RoomDatabase() {
     abstract fun membershipDao(): MembershipStepDao
     abstract fun syncEventDao(): SyncEventDao
     abstract fun handledEventDao(): HandledEventDao
+    abstract fun assistedWalletDao(): AssistedWalletDao
 }

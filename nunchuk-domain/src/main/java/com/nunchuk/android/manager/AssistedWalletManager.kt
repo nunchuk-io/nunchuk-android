@@ -22,7 +22,7 @@ package com.nunchuk.android.manager
 import kotlinx.coroutines.flow.Flow
 
 interface AssistedWalletManager {
-    val assistedWalletId : Flow<String>
+    val assistedWalletId : Flow<List<String>>
     fun isActiveAssistedWallet(walletId: String): Boolean
     fun isInactiveAssistedWallet(walletId: String): Boolean
 }

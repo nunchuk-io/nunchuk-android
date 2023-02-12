@@ -102,10 +102,8 @@ internal class WalletsViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             assistedWalletManager.assistedWalletId.distinctUntilChanged().collect {
-                if (assistedWalletManager.isActiveAssistedWallet(it)) {
-                    updateState { copy(assistedWalletId = it) }
-                }
                 checkMemberMembership()
+                updateState { copy(assistedWalletIds = it.toSet()) }
             }
         }
         viewModelScope.launch {

@@ -55,10 +55,8 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class AddKeyStepFragment : MembershipFragment() {
@@ -111,11 +109,14 @@ class AddKeyStepFragment : MembershipFragment() {
     }
 
     private fun handleOpenInheritanceSetup() {
-        nunchukNavigator.openInheritancePlanningScreen(
-            activityContext = requireContext(),
-            flowInfo = InheritancePlanFlow.SETUP,
-            isOpenFromWizard = true
-        )
+        viewModel.unSetupWallet()?.let {
+            nunchukNavigator.openInheritancePlanningScreen(
+                walletId = it.localId,
+                activityContext = requireContext(),
+                flowInfo = InheritancePlanFlow.SETUP,
+                isOpenFromWizard = true
+            )
+        }
     }
 
     private fun handleOpenCreateWallet() {

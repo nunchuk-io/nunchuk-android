@@ -25,6 +25,7 @@ import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -36,6 +37,7 @@ class ClearInfoSessionUseCase @Inject constructor(
     private val singInModeHolder: SignInModeHolder,
     private val primaryKeySignerInfoHolder: PrimaryKeySignerInfoHolder,
     private val ncDataStore: NcDataStore,
+    private val premiumWalletRepository: PremiumWalletRepository
 ) : UseCase<Unit, Unit>(dispatcher) {
 
     override suspend fun execute(parameters: Unit) {
@@ -44,5 +46,6 @@ class ClearInfoSessionUseCase @Inject constructor(
         ncDataStore.clear()
         singInModeHolder.clear()
         primaryKeySignerInfoHolder.clear()
+        premiumWalletRepository.clearLocalData()
     }
 }

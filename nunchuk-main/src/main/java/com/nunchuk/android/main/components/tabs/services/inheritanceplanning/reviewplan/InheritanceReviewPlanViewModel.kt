@@ -22,7 +22,6 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.re
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.GetAssistedWalletIdFlowUseCase
 import com.nunchuk.android.core.domain.membership.*
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.orUnknownError
@@ -39,7 +38,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class InheritanceReviewPlanViewModel @Inject constructor(
-    private val getAssistedWalletIdsFlowUseCase: GetAssistedWalletIdFlowUseCase,
     private val calculateRequiredSignaturesInheritanceUseCase: CalculateRequiredSignaturesInheritanceUseCase,
     private val getInheritanceUserDataUseCase: GetInheritanceUserDataUseCase,
     private val cancelInheritanceUserDataUseCase: CancelInheritanceUserDataUseCase,
@@ -67,15 +65,14 @@ class InheritanceReviewPlanViewModel @Inject constructor(
     }
 
     private fun getWalletName() = viewModelScope.launch {
-        val walletId = getAssistedWalletIdsFlowUseCase(Unit).firstOrNull()?.getOrNull() ?: return@launch
-        getWalletUseCase.execute(walletId)
+        getWalletUseCase.execute(args.walletId)
             .flowOn(Dispatchers.IO)
             .onException { _event.emit(InheritanceReviewPlanEvent.ProcessFailure(it.message.orUnknownError())) }
             .flowOn(Dispatchers.Main)
             .collect { wallet ->
                 _state.update { state ->
                     state.copy(
-                        walletId = walletId,
+                        walletId = args.walletId,
                         walletName = wallet.wallet.name
                     )
                 }

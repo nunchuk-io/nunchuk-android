@@ -28,7 +28,6 @@ import com.nunchuk.android.model.SentContact
 import com.nunchuk.android.model.UserResponse
 import com.nunchuk.android.persistence.dao.ContactDao
 import com.nunchuk.android.persistence.entity.ContactEntity
-import com.nunchuk.android.persistence.updateOrInsert
 import com.nunchuk.android.repository.ContactsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first

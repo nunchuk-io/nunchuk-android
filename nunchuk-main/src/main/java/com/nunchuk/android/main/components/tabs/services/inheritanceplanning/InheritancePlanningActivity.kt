@@ -79,10 +79,11 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
                     note = inheritance.note,
                     verifyToken = intent.getStringExtra(EXTRA_VERIFY_TOKEN).orEmpty(),
                     planFlow = planFlow,
-                    bufferPeriod = inheritance.bufferPeriod
+                    bufferPeriod = inheritance.bufferPeriod,
+                    walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty()
                 ).toBundle()
             }
-            else -> null
+            else -> intent.extras
         }
         navHostFragment.navController.setGraph(graph, bundle)
         navHostFragment.navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -103,9 +104,11 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val EXTRA_VERIFY_TOKEN = "extra_verify_token"
         private const val EXTRA_INHERITANCE = "extra_inheritance"
         private const val EXTRA_IS_OPEN_FROM_WIZARD = "extra_is_open_from_wizard"
+        private const val EXTRA_WALLET_ID = "wallet_id"
 
         fun navigate(
             launcher: ActivityResultLauncher<Intent>?,
+            walletId: String,
             activity: Context,
             verifyToken: String?,
             inheritance: Inheritance?,
@@ -117,6 +120,7 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
                 .putExtra(EXTRA_VERIFY_TOKEN, verifyToken)
                 .putExtra(EXTRA_INHERITANCE, inheritance)
                 .putExtra(EXTRA_IS_OPEN_FROM_WIZARD, isOpenFromWizard)
+                .putExtra(EXTRA_WALLET_ID, walletId)
             launcher?.launch(intent) ?: activity.startActivity(intent)
         }
     }

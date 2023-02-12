@@ -158,6 +158,7 @@ interface AppNavigatorDelegate : AppNavigator {
 
     override fun openInheritancePlanningScreen(
         launcher: ActivityResultLauncher<Intent>?,
+        walletId: String,
         activityContext: Context,
         verifyToken: String?,
         inheritance: Inheritance?,
@@ -170,7 +171,8 @@ interface AppNavigatorDelegate : AppNavigator {
             verifyToken = verifyToken,
             flowInfo = flowInfo,
             inheritance = inheritance,
-            isOpenFromWizard = isOpenFromWizard
+            isOpenFromWizard = isOpenFromWizard,
+            walletId = walletId,
         )
     }
 

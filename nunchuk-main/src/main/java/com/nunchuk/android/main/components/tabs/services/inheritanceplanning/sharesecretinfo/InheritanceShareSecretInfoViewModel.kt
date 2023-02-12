@@ -20,23 +20,14 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecretinfo
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.GetAssistedWalletIdFlowUseCase
 import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
 class InheritanceShareSecretInfoViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
-    getAssistedWalletIdsFlowUseCase: GetAssistedWalletIdFlowUseCase,
     ) : ViewModel() {
-
-    val walletId = getAssistedWalletIdsFlowUseCase(Unit).map { it.getOrElse { "" } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     val remainTime = membershipStepManager.remainingTime
 }

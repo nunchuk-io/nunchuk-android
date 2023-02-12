@@ -100,7 +100,8 @@ class InheritanceBufferPeriodFragment : MembershipFragment() {
                                 note = args.note,
                                 magicalPhrase = args.magicalPhrase,
                                 planFlow = args.planFlow,
-                                bufferPeriod = event.period
+                                bufferPeriod = event.period,
+                                walletId = args.walletId
                             )
                         )
                     }

@@ -17,18 +17,25 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.domain
+package com.nunchuk.android.persistence.entity
 
-import com.nunchuk.android.FlowUseCase
-import com.nunchuk.android.core.persistence.NcDataStore
-import com.nunchuk.android.domain.di.IoDispatcher
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.Flow
-import javax.inject.Inject
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.persistence.TABLE_ASSISTED_WALLET
 
-class GetAssistedWalletIdFlowUseCase @Inject constructor(
-    @IoDispatcher dispatcher: CoroutineDispatcher,
-    private val ncDataStore: NcDataStore
-) : FlowUseCase<Unit, String>(dispatcher) {
-    override fun execute(parameters: Unit): Flow<String> = ncDataStore.assistedWalletId
-}
+@Entity(tableName = TABLE_ASSISTED_WALLET)
+data class AssistedWalletEntity(
+    @PrimaryKey
+    @ColumnInfo(name = "local_id")
+    val localId: String,
+    @ColumnInfo(name = "plan")
+    val plan: MembershipPlan,
+    @ColumnInfo(name = "is_set_up_inheritance")
+    val isSetupInheritance: Boolean = false,
+    @ColumnInfo(name = "is_register_coldcard")
+    val isRegisterColdcard: Boolean = true,
+    @ColumnInfo(name = "is_register_airgap")
+    val isRegisterAirgap: Boolean = true,
+)

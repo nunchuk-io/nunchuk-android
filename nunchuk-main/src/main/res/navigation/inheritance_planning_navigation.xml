@@ -141,6 +141,9 @@
             android:defaultValue=""
             app:argType="string" />
         <argument
+            android:name="wallet_id"
+            app:argType="string" />
+        <argument
             android:name="verifyToken"
             android:defaultValue=""
             app:argType="string" />
@@ -194,6 +197,9 @@
             android:name="selected_activation_date"
             android:defaultValue="0L"
             app:argType="long" />
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
     </fragment>
 
     <fragment
@@ -231,6 +237,9 @@
         <argument
             android:name="pre_noted"
             android:defaultValue=""
+            app:argType="string" />
+        <argument
+            android:name="wallet_id"
             app:argType="string" />
     </fragment>
 
@@ -275,6 +284,9 @@
             android:defaultValue="@null"
             app:argType="com.nunchuk.android.model.Period"
             app:nullable="true" />
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
     </fragment>
 
     <fragment
@@ -327,6 +339,9 @@
             android:defaultValue="@null"
             app:argType="string[]"
             app:nullable="true" />
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
     </fragment>
 
     <fragment
@@ -340,6 +355,10 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
     </fragment>
 
     <fragment
@@ -353,6 +372,10 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
     </fragment>
     <fragment
         android:id="@+id/magicalPhraseIntroFragment"
@@ -369,6 +392,10 @@
             android:name="verifyToken"
             android:defaultValue=""
             app:argType="string" />
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
     </fragment>
     <fragment
         android:id="@+id/findBackupPasswordFragment"
@@ -384,6 +411,9 @@
         <argument
             android:name="magical_phrase"
             app:argType="string" />
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
     </fragment>
     <fragment
         android:id="@+id/inheritanceKeyTipFragment"
@@ -398,6 +428,9 @@
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <argument
             android:name="magical_phrase"
+            app:argType="string" />
+        <argument
+            android:name="wallet_id"
             app:argType="string" />
     </fragment>
 
@@ -419,6 +452,9 @@
             android:name="plan_flow"
             android:defaultValue="0"
             app:argType="integer" />
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
     </fragment>
 
     <fragment
@@ -439,6 +475,9 @@
             android:name="plan_flow"
             android:defaultValue="0"
             app:argType="integer" />
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
     </fragment>
 
     <fragment
@@ -455,6 +494,9 @@
             android:name="plan_flow"
             android:defaultValue="0"
             app:argType="integer" />
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
     </fragment>
 
     <include app:graph="@navigation/select_wallet_navigation" />

@@ -44,6 +44,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.MainActivityViewModel
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.WalletsViewBinder
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.main.databinding.FragmentWalletsBinding
 import com.nunchuk.android.main.di.MainAppEvent
@@ -288,7 +289,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun showWalletState(state: WalletsState) {
         val wallets = state.wallets
-        showWallets(wallets, state.assistedWalletId)
+        showWallets(wallets, state.assistedWalletIds)
         showSigners(state.signers)
         showConnectionBlockchainStatus(state)
         showIntro(state)
@@ -385,7 +386,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         }
     }
 
-    private fun showWallets(wallets: List<WalletExtended>, assistedWalletId: String) {
+    private fun showWallets(wallets: List<WalletExtended>, assistedWalletId: Set<String>) {
         if (wallets.isEmpty()) {
             showWalletsEmptyView()
         } else {
@@ -398,13 +399,13 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         binding.walletList.isVisible = false
     }
 
-    private fun showWalletsListView(wallets: List<WalletExtended>, assistedWalletId: String) {
+    private fun showWalletsListView(wallets: List<WalletExtended>, assistedWalletIds: Set<String>) {
         binding.walletEmpty.isVisible = false
         binding.walletList.isVisible = true
         WalletsViewBinder(
             container = binding.walletList,
             wallets = wallets,
-            assistedWalletId = assistedWalletId,
+            assistedWalletIds = assistedWalletIds,
             callback = ::openWalletDetailsScreen
         ).bindItems()
     }

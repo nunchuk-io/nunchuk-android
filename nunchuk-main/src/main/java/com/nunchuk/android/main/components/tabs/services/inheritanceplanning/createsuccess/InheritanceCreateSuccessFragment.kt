@@ -60,7 +60,8 @@ class InheritanceCreateSuccessFragment : Fragment() {
                     findNavController().navigate(
                         InheritanceCreateSuccessFragmentDirections.actionInheritanceCreateSuccessFragmentToInheritanceShareSecretFragment(
                             magicalPhrase = args.magicalPhrase,
-                            planFlow = args.planFlow
+                            planFlow = args.planFlow,
+                            walletId = args.walletId
                         )
                     )
                 }

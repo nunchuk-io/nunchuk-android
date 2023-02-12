@@ -27,7 +27,6 @@ import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.model.*
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.entity.MembershipStepEntity
-import com.nunchuk.android.persistence.updateOrInsert
 import com.nunchuk.android.repository.KeyRepository
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType

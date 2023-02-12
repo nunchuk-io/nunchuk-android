@@ -29,7 +29,6 @@ import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.entity.MembershipStepEntity
 import com.nunchuk.android.persistence.entity.toModel
-import com.nunchuk.android.persistence.updateOrInsert
 import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
@@ -58,16 +57,18 @@ class MembershipRepositoryImpl @Inject constructor(
 
     override suspend fun saveStepInfo(info: MembershipStepInfo) {
         membershipStepDao.updateOrInsert(
-            MembershipStepEntity(
-                chatId = accountManager.getAccount().chatId,
-                step = info.step,
-                masterSignerId = info.masterSignerId,
-                verifyType = info.verifyType,
-                id = info.id,
-                extraJson = info.extraData,
-                keyIdInServer = info.keyIdInServer,
-                plan = info.plan,
-                chain = chain.value
+            listOf(
+                MembershipStepEntity(
+                    chatId = accountManager.getAccount().chatId,
+                    step = info.step,
+                    masterSignerId = info.masterSignerId,
+                    verifyType = info.verifyType,
+                    id = info.id,
+                    extraJson = info.extraData,
+                    keyIdInServer = info.keyIdInServer,
+                    plan = info.plan,
+                    chain = chain.value
+                )
             )
         )
     }

@@ -54,7 +54,7 @@ class NcDataStore @Inject constructor(
     /**
      * Assisted wallet local id
      */
-    private val assistedWalletLocalIdKey = stringPreferencesKey("assisted_wallet_local_id")
+    private val assistedWalletLocalIdKey = stringSetPreferencesKey("assisted_wallet_local_id_set")
 
     /**
      * Plan of current assisted wallet
@@ -93,11 +93,6 @@ class NcDataStore @Inject constructor(
     val turnOnNotificationFlow: Flow<Boolean>
         get() = context.dataStore.data.map {
             it[turnOnNotificationKey] ?: true
-        }
-
-    val assistedWalletId: Flow<String>
-        get() = context.dataStore.data.map {
-            it[assistedWalletLocalIdKey].orEmpty()
         }
 
     val assistedWalletPlan: Flow<MembershipPlan>
@@ -168,12 +163,6 @@ class NcDataStore @Inject constructor(
     suspend fun markIsShowNfcUniversal() {
         context.dataStore.edit { settings ->
             settings[isShowNfcUniversalKey] = false
-        }
-    }
-
-    suspend fun setAssistedWalletId(id: String) {
-        context.dataStore.edit { settings ->
-            settings[assistedWalletLocalIdKey] = id
         }
     }
 

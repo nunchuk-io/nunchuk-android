@@ -20,8 +20,10 @@
 package com.nunchuk.android.repository
 
 import com.nunchuk.android.model.*
+import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
+import kotlinx.coroutines.flow.Flow
 
 interface PremiumWalletRepository {
     suspend fun getSecurityQuestions(verifyToken: String?): List<SecurityQuestion>
@@ -190,4 +192,8 @@ interface PremiumWalletRepository {
     suspend fun syncTransaction(walletId: String)
 
     suspend fun getInheritanceBufferPeriod(): List<Period>
+
+    fun getAssistedWalletsLocal(): Flow<List<AssistedWalletBrief>>
+
+    suspend fun clearLocalData()
 }

@@ -84,7 +84,7 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
             message = getString(R.string.nc_inheritance_share_secret_info_dialog_desc),
             onYesClick = {
                 if (isOpenFromWizard) {
-                    navigator.openWalletDetailsScreen(requireContext(), viewModel.walletId.value)
+                    navigator.openWalletDetailsScreen(requireContext(), args.walletId)
                 }
                 requireActivity().finish()
             }

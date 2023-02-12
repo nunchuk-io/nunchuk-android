@@ -32,11 +32,14 @@ import com.nunchuk.android.core.util.ONE_HOUR_TO_SECONDS
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.model.*
+import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.persistence.dao.AssistedWalletDao
 import com.nunchuk.android.persistence.dao.MembershipStepDao
+import com.nunchuk.android.persistence.entity.AssistedWalletEntity
 import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.type.Chain
@@ -45,7 +48,9 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.SERVER_KEY_NAME
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -58,6 +63,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val membershipStepDao: MembershipStepDao,
     private val accountManager: AccountManager,
     private val membershipApi: MembershipApi,
+    private val assistedWalletDao: AssistedWalletDao,
     applicationScope: CoroutineScope,
 ) : PremiumWalletRepository {
     private val chain =
@@ -245,8 +251,12 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     plan = plan
                 )
             )
-            ncDataStore.setAssistedWalletId(response.data.wallet.localId.orEmpty())
-            ncDataStore.setAssistedWalletPlan(plan.name.lowercase())
+            assistedWalletDao.insert(
+                AssistedWalletEntity(
+                    localId = response.data.wallet.localId.orEmpty(),
+                    plan = plan
+                )
+            )
         }
         return SeverWallet(response.data.wallet.id.orEmpty())
     }
@@ -256,9 +266,19 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (result.data.hasWalletCreated.not()) {
             ncDataStore.setAssistedWalletPlan(MembershipPlan.NONE.name)
         } else {
-            result.data.wallets.find { it.status == WALLET_ACTIVE_STATUS }?.let {
-                ncDataStore.setAssistedWalletId(it.localId.orEmpty())
-                ncDataStore.setAssistedWalletPlan(it.slug.orEmpty())
+            val partition = result.data.wallets.partition { it.status == WALLET_ACTIVE_STATUS }
+            if (partition.second.isNotEmpty()) {
+                assistedWalletDao.deleteBatch(partition.second.map { it.localId.orEmpty() })
+            }
+            if (partition.first.isNotEmpty()) {
+                assistedWalletDao.updateOrInsert(
+                    partition.first.map { wallet ->
+                        AssistedWalletEntity(
+                            wallet.localId.orEmpty(),
+                            wallet.slug.toMembershipPlan()
+                        )
+                    }
+                )
             }
         }
         var isNeedReload = false
@@ -626,7 +646,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             )
         }
         if (response.data.inheritance == null) throw NullPointerException("Can not get inheritance")
-        else return response.data.inheritance!!.toInheritance()
+        else return response.data.inheritance!!.toInheritance().also {
+            markSetupInheritance(it.walletLocalId)
+        }
     }
 
     override suspend fun cancelInheritance(
@@ -793,7 +815,16 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun getInheritance(walletId: String): Inheritance {
         val response = userWalletApiManager.walletApi.getInheritance(walletId)
         if (response.data.inheritance == null) throw NullPointerException("Can not get inheritance")
-        else return response.data.inheritance!!.toInheritance()
+        else return response.data.inheritance!!.toInheritance().also {
+            markSetupInheritance(walletId)
+        }
+    }
+
+    private suspend fun markSetupInheritance(walletId: String) {
+        val entity = assistedWalletDao.getById(walletId)
+        if (entity.isSetupInheritance.not()) {
+            assistedWalletDao.updateOrInsert(entity.copy(isSetupInheritance = true))
+        }
     }
 
     private fun handleServerTransaction(
@@ -900,6 +931,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 transaction.broadCastTimeMillis / 1000
             )
         }
+    }
+
+    override fun getAssistedWalletsLocal(): Flow<List<AssistedWalletBrief>> {
+        return assistedWalletDao.getAssistedWallets()
+            .map { list -> list.map { wallet -> AssistedWalletBrief(wallet.localId, wallet.plan, wallet.isSetupInheritance) } }
+    }
+
+    override suspend fun clearLocalData() {
+        assistedWalletDao.deleteAll()
     }
 
     private fun InheritanceDto.toInheritance(): Inheritance {

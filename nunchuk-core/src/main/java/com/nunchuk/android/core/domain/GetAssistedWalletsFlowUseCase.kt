@@ -17,14 +17,19 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.persistence
+package com.nunchuk.android.core.domain
 
-const val DATABASE_NAME = "NunchukDatabase.db"
-const val DATABASE_VERSION = 6
+import com.nunchuk.android.FlowUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.repository.PremiumWalletRepository
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-const val TABLE_CONTACT = "contact"
-const val TABLE_SYNC_FILE = "sync_file"
-const val TABLE_SYNC_EVENT = "sync_event"
-const val TABLE_HANDLED_EVENT = "handled_event"
-const val TABLE_MEMBERSHIP_STEP = "membership_flow"
-const val TABLE_ASSISTED_WALLET = "assisted_wallet"
+class GetAssistedWalletsFlowUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val repository: PremiumWalletRepository,
+) : FlowUseCase<Unit, List<AssistedWalletBrief>>(dispatcher) {
+    override fun execute(parameters: Unit): Flow<List<AssistedWalletBrief>> = repository.getAssistedWalletsLocal()
+}

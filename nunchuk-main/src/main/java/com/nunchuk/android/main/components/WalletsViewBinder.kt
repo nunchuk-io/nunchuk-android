@@ -17,7 +17,7 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.main.components.tabs.wallet
+package com.nunchuk.android.main.components
 
 import android.view.ViewGroup
 import androidx.core.view.get
@@ -33,14 +33,14 @@ import com.nunchuk.android.widget.util.AbsViewBinder
 internal class WalletsViewBinder(
     container: ViewGroup,
     wallets: List<WalletExtended>,
-    val assistedWalletId: String,
+    val assistedWalletIds: Set<String>,
     val callback: (String) -> Unit = {}
 ) : AbsViewBinder<WalletExtended, ItemWalletBinding>(container, wallets) {
 
     override fun initializeBinding() = ItemWalletBinding.inflate(inflater, container, false)
 
     override fun bindItem(position: Int, model: WalletExtended) {
-        val isAssistedWallet = assistedWalletId == model.wallet.id
+        val isAssistedWallet = assistedWalletIds.contains(model.wallet.id)
         val wallet = model.wallet
         val balance = "(${wallet.getUSDAmount()})"
         val binding = ItemWalletBinding.bind(container[position])

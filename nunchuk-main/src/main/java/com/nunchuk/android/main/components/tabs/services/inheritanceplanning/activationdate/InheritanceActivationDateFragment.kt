@@ -20,6 +20,7 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate
 
 import android.app.DatePickerDialog
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -95,7 +96,8 @@ class InheritanceActivationDateFragment : MembershipFragment() {
                                 activationDate = event.date,
                                 verifyToken = args.verifyToken,
                                 magicalPhrase = args.magicalPhrase,
-                                planFlow = args.planFlow
+                                planFlow = args.planFlow,
+                                walletId = args.walletId,
                             )
                         )
                     }
@@ -105,11 +107,13 @@ class InheritanceActivationDateFragment : MembershipFragment() {
     }
 
     private fun showDatePicker() {
-        val dialog = DatePickerDialog(requireContext(), R.style.NunchukDateTimePicker)
-        dialog.setOnDateSetListener { _, year, month, dayOfMonth ->
-            viewModel.setDate(year, month, dayOfMonth)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            val dialog = DatePickerDialog(requireContext(), R.style.NunchukDateTimePicker)
+            dialog.setOnDateSetListener { _, year, month, dayOfMonth ->
+                viewModel.setDate(year, month, dayOfMonth)
+            }
+            dialog.show()
         }
-        dialog.show()
     }
 
     companion object {
