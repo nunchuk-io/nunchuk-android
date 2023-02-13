@@ -75,6 +75,7 @@ const val RENEW_ACCOUNT_LINK = "https://nunchuk.io/my-account"
 
 const val DEFAULT_COLDCARD_WALLET_NAME = "My COLDCARD wallet"
 
+const val DELAY_DYNAMIC_QR = 1000L
 
 fun Double.formatRoundDecimal(): String {
     val df = DecimalFormat("#.##")

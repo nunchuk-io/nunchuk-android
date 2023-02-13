@@ -28,6 +28,7 @@ import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.core.util.DELAY_DYNAMIC_QR
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.*
@@ -111,7 +112,7 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
             lifecycleScope.launch {
                 repeat(Int.MAX_VALUE) {
                     bindQrCodes()
-                    delay(500L)
+                    delay(DELAY_DYNAMIC_QR)
                 }
             }
         }

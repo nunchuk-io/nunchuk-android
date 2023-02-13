@@ -27,6 +27,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.databinding.ActivityDynamicQrBinding
+import com.nunchuk.android.core.util.DELAY_DYNAMIC_QR
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
@@ -68,7 +69,7 @@ class DynamicQRCodeActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeat(Int.MAX_VALUE) {
                 bindQrCodes()
-                delay(INTERVAL)
+                delay(DELAY_DYNAMIC_QR)
             }
         }
 
@@ -88,8 +89,6 @@ class DynamicQRCodeActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val INTERVAL = 400L
-
         fun buildIntent(activityContext: Context, walletId: String, values: List<String>) =
             DynamicQRCodeArgs(walletId, values).buildIntent(
                 activityContext
