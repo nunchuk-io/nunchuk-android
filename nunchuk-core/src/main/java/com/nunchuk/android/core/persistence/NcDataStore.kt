@@ -24,7 +24,6 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.model.toMembershipPlan
 import com.nunchuk.android.type.Chain
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -94,11 +93,6 @@ class NcDataStore @Inject constructor(
             it[turnOnNotificationKey] ?: true
         }
 
-    val assistedWalletPlan: Flow<MembershipPlan>
-        get() = context.dataStore.data.map {
-            it[assistedWalletPlanKey].toMembershipPlan()
-        }
-
     val membershipPlan: Flow<MembershipPlan>
         get() = context.dataStore.data.map {
             val ordinal = it[membershipPlanKey] ?: 0
@@ -160,12 +154,6 @@ class NcDataStore @Inject constructor(
         }
     }
 
-    suspend fun setAssistedWalletPlan(plan: String) {
-        context.dataStore.edit { settings ->
-            settings[assistedWalletPlanKey] = plan
-        }
-    }
-
     suspend fun setMembershipPlan(plan: MembershipPlan) {
         context.dataStore.edit {
             it[membershipPlanKey] = plan.ordinal
@@ -200,8 +188,6 @@ class NcDataStore @Inject constructor(
         context.dataStore.edit {
             it.remove(syncEnableKey)
             it.remove(turnOnNotificationKey)
-            it.remove(assistedWalletLocalIdKey)
-            it.remove(assistedWalletPlanKey)
             it.remove(membershipPlanKey)
             it.remove(registerColdcardKey)
             it.remove(registerAirgapKey)

@@ -263,9 +263,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun getServerWallet(): WalletServerSync {
         val result = userWalletApiManager.walletApi.getServerWallet()
-        if (result.data.hasWalletCreated.not()) {
-            ncDataStore.setAssistedWalletPlan(MembershipPlan.NONE.name)
-        } else {
+        if (result.data.hasWalletCreated) {
             val partition = result.data.wallets.partition { it.status == WALLET_ACTIVE_STATUS }
             if (partition.second.isNotEmpty()) {
                 assistedWalletDao.deleteBatch(partition.second.map { it.localId.orEmpty() })

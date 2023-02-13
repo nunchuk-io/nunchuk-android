@@ -34,7 +34,6 @@ import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
-import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -63,7 +62,6 @@ internal class WalletsViewModel @Inject constructor(
     private val accountManager: AccountManager,
     private val getUserSubscriptionUseCase: GetUserSubscriptionUseCase,
     private val getServerWalletUseCase: GetServerWalletUseCase,
-    private val assistedWalletManager: AssistedWalletManager,
     private val getInheritanceUseCase: GetInheritanceUseCase,
     private val getBannerUseCase: GetBannerUseCase,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
@@ -263,7 +261,7 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     fun getGroupStage(): MembershipStage {
-        if (getState().assistedWallets.all { it.isSetupInheritance || it.plan == MembershipPlan.IRON_HAND }) return MembershipStage.DONE
+        if (getState().assistedWallets.all { it.isSetupInheritance || it.plan == MembershipPlan.IRON_HAND } && getState().assistedWallets.isNotEmpty()) return MembershipStage.DONE
         if (getState().assistedWallets.any { it.isSetupInheritance && it.plan == MembershipPlan.HONEY_BADGER }) return MembershipStage.SETUP_INHERITANCE
         if (membershipStepManager.isNotConfig()) return MembershipStage.NONE
         return MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
