@@ -49,7 +49,7 @@ class NcDataStore @Inject constructor(
     private val chainKey = intPreferencesKey("chain")
     private val hideUpsellBannerKey = booleanPreferencesKey("hide_upsell_banner")
     private val syncRoomSuccessKey = booleanPreferencesKey("sync_room_success")
-    private val createSyncRoomSuccessKey = booleanPreferencesKey("create_sync_room_success")
+    private val qrDensityKey = intPreferencesKey("qr_density")
 
     /**
      * Assisted wallet local id
@@ -136,6 +136,11 @@ class NcDataStore @Inject constructor(
             it[hideUpsellBannerKey] ?: false
         }
 
+    val qrDensity: Flow<Int>
+        get() = context.dataStore.data.map {
+            it[qrDensityKey] ?: 200
+        }
+
     suspend fun setChain(chain: Chain) {
         context.dataStore.edit { settings ->
             settings[chainKey] = chain.ordinal
@@ -205,6 +210,12 @@ class NcDataStore @Inject constructor(
     suspend fun setHideUpsellBanner() {
         context.dataStore.edit {
             it[hideUpsellBannerKey] = true
+        }
+    }
+
+    suspend fun setDensity(density: Int) {
+        context.dataStore.edit {
+            it[qrDensityKey] = density
         }
     }
 

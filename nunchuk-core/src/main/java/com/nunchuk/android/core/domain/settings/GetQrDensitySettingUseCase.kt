@@ -17,29 +17,21 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase
+package com.nunchuk.android.core.domain.settings
 
-import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.FlowUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.SettingRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
-interface ExportKeystoneTransactionUseCase {
-    fun execute(walletId: String, txId: String, density: Int): Flow<List<String>>
-}
+class GetQrDensitySettingUseCase @Inject constructor(
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+    private val repository: SettingRepository
+) : FlowUseCase<Unit, Int>(dispatcher) {
 
-internal class ExportKeystoneTransactionUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
-) : ExportKeystoneTransactionUseCase {
-
-    override fun execute(walletId: String, txId: String, density: Int): Flow<List<String>> = flow {
-        emit(
-            nativeSdk.exportKeystoneTransaction(
-                walletId = walletId,
-                txId = txId,
-                density = density
-            )
-        )
+    override fun execute(parameters: Unit): Flow<Int> {
+        return repository.qrDensity
     }
-
 }

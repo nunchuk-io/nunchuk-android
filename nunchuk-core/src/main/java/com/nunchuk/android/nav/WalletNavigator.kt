@@ -127,7 +127,7 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         keyPolicy: KeyPolicy? = null
     )
 
-    fun openDynamicQRScreen(activityContext: Context, launcher: ActivityResultLauncher<Intent>, walletId: String, values: List<String>)
+    fun openDynamicQRScreen(activityContext: Context, launcher: ActivityResultLauncher<Intent>, walletId: String)
 
     fun openWalletDetailsScreen(activityContext: Context, walletId: String)
 

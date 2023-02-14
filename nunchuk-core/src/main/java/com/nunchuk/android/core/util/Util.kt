@@ -77,6 +77,16 @@ const val DEFAULT_COLDCARD_WALLET_NAME = "My COLDCARD wallet"
 
 const val DELAY_DYNAMIC_QR = 500L
 
+const val LOW_DENSITY = 50
+const val MEDIUM_DENSITY = 100
+const val HIGH_DENSITY = 200
+
+fun Int.densityToLevel() : Float = when(this) {
+    LOW_DENSITY -> 0f
+    MEDIUM_DENSITY -> 1f
+    else -> 2f
+}
+
 fun Double.formatRoundDecimal(): String {
     val df = DecimalFormat("#.##")
     return df.format(this)

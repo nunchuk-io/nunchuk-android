@@ -22,6 +22,8 @@ package com.nunchuk.android.transaction.components.export
 import android.content.res.Resources
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.settings.GetQrDensitySettingUseCase
+import com.nunchuk.android.core.domain.settings.UpdateQrDensitySettingUseCase
 import com.nunchuk.android.core.qr.convertToQRCode
 import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
@@ -56,6 +58,8 @@ internal class ExportTransactionViewModel @Inject constructor(
     private val exportKeystoneTransactionUseCase: ExportKeystoneTransactionUseCase,
     private val exportKeystoneDummyTransaction: ExportKeystoneDummyTransaction,
     private val exportPassportDummyTransaction: ExportPassportDummyTransaction,
+    private val getQrDensitySettingUseCase: GetQrDensitySettingUseCase,
+    private val updateQrDensitySettingUseCase: UpdateQrDensitySettingUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<ExportTransactionState, ExportTransactionEvent>() {
 
@@ -63,9 +67,25 @@ internal class ExportTransactionViewModel @Inject constructor(
 
     override val initialState = ExportTransactionState()
 
+    init {
+        viewModelScope.launch {
+            getQrDensitySettingUseCase(Unit).map { it.getOrThrow() }.collect {
+                updateState { copy(density = it) }
+                if (this@ExportTransactionViewModel::args.isInitialized) {
+                    handleExportTransactionQRs()
+                }
+            }
+        }
+    }
     fun init(args: ExportTransactionArgs) {
         this.args = args
         handleExportTransactionQRs()
+    }
+
+    fun setQrDensity(density: Int) {
+        viewModelScope.launch {
+            updateQrDensitySettingUseCase(density)
+        }
     }
 
     private fun handleExportTransactionQRs() {
@@ -114,7 +134,7 @@ internal class ExportTransactionViewModel @Inject constructor(
     private fun exportDummyKeystoneTransaction() {
         val qrSize = getQrSize()
         viewModelScope.launch {
-            val result = exportKeystoneDummyTransaction(args.txToSign)
+            val result = exportKeystoneDummyTransaction(ExportKeystoneDummyTransaction.Param(args.txToSign, getState().density))
             if (result.isSuccess) {
                 val bitmaps = withContext(ioDispatcher) {
                     result.getOrThrow()
@@ -130,7 +150,7 @@ internal class ExportTransactionViewModel @Inject constructor(
     private fun exportDummyPassportTransaction() {
         val qrSize = getQrSize()
         viewModelScope.launch {
-            val result = exportPassportDummyTransaction(args.txToSign)
+            val result = exportPassportDummyTransaction(ExportPassportDummyTransaction.Param(args.txToSign, getState().density))
             if (result.isSuccess) {
                 val bitmaps = withContext(ioDispatcher) {
                     result.getOrThrow()
@@ -146,7 +166,7 @@ internal class ExportTransactionViewModel @Inject constructor(
     private fun exportTransactionToQRs() {
         val qrSize = getQrSize()
         viewModelScope.launch {
-            exportKeystoneTransactionUseCase.execute(args.walletId, args.txId)
+            exportKeystoneTransactionUseCase.execute(args.walletId, args.txId, getState().density)
                 .map { it.mapNotNull { qrCode -> qrCode.convertToQRCode(qrSize, qrSize) } }
                 .flowOn(IO)
                 .onException { event(ExportTransactionError(it.message.orUnknownError())) }
@@ -158,7 +178,7 @@ internal class ExportTransactionViewModel @Inject constructor(
     private fun exportPassportTransaction() {
         val qrSize = getQrSize()
         viewModelScope.launch {
-            exportPassportTransactionUseCase.execute(args.walletId, args.txId)
+            exportPassportTransactionUseCase.execute(args.walletId, args.txId, getState().density)
                 .map { it.mapNotNull { qrCode -> qrCode.convertToQRCode(qrSize, qrSize) } }
                 .flowOn(IO)
                 .onException { event(ExportTransactionError(it.message.orUnknownError())) }

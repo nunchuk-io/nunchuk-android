@@ -510,4 +510,8 @@
     <string name="nc_please_provide_valid_email_address">Please provide a valid email address</string>
     <string name="nc_your_account_has_been_signed_out">Your account has been signed out</string>
     <string name="nc_please_write_your_question">Please write your question</string>
+    <string name="nc_low">Low</string>
+    <string name="nc_medium">Medium</string>
+    <string name="nc_high">High</string>
+    <string name="nc_density">Density</string>
 </resources>
