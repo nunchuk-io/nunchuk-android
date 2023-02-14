@@ -44,4 +44,5 @@
     <string name="nc_try_assisted_wallet_desc">All Bitcoin features work exactly the same on testnet as they would on the real blockchain. See if an assisted wallet is a good fit for you by trying it out on testnet.</string>
     <string name="nc_try_assisted_wallet_hint">The testnet is an alternative Bitcoin blockchain used for testing. Testnet coins are separate and distinct from actual bitcoins and they do not hold any value.</string>
     <string name="nc_hint_config_spending_limit">You can bypass the spending limit by signing transactions using two of your own keys.</string>
+    <string name="nc_key_reuse_desc">Do you want to reuse the keys from one of the existing assisted wallets?</string>
 </resources>

@@ -33,6 +33,7 @@ import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.MAX_HONEY_BADGER_ASSISTED_WALLET_COUNT
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.membership.AssistedWalletBrief
@@ -113,7 +114,7 @@ internal class WalletsViewModel @Inject constructor(
 
     private suspend fun checkInheritance(wallets: List<AssistedWalletBrief>) {
         val honeyWalletsUnSetupInheritance =
-            wallets.filter { it.plan == MembershipPlan.HONEY_BADGER && it.isSetupInheritance.not() }
+            wallets.filter { it.plan == MembershipPlan.HONEY_BADGER }
         supervisorScope {
             honeyWalletsUnSetupInheritance.map {
                 async {
@@ -137,9 +138,9 @@ internal class WalletsViewModel @Inject constructor(
                 }
                 keyPolicyMap.clear()
                 keyPolicyMap.putAll(getServerWalletResult.getOrNull()?.keyPolicyMap.orEmpty())
-                updateState { copy(isPremiumUser = isPremiumUser) }
+                updateState { copy(plan = subscription.plan) }
             } else {
-                updateState { copy(isPremiumUser = false) }
+                updateState { copy(plan = MembershipPlan.NONE) }
             }
             if (result.getOrNull()?.subscriptionId.isNullOrEmpty() && isHideUpsellBanner.value.not()) {
                 val bannerResult = getBannerUseCase(Unit)
@@ -260,14 +261,33 @@ internal class WalletsViewModel @Inject constructor(
         } + singleSigners.map(SingleSigner::toModel)
     }
 
+    // Don't change, logic is very complicated :D
     fun getGroupStage(): MembershipStage {
-        if (getState().assistedWallets.all { it.isSetupInheritance || it.plan == MembershipPlan.IRON_HAND } && getState().assistedWallets.isNotEmpty()) return MembershipStage.DONE
-        if (getState().assistedWallets.any { it.isSetupInheritance && it.plan == MembershipPlan.HONEY_BADGER }) return MembershipStage.SETUP_INHERITANCE
-        if (membershipStepManager.isNotConfig()) return MembershipStage.NONE
-        return MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
+        val plan = getState().plan
+        val assistedWallets = getState().assistedWallets
+        when (plan) {
+            MembershipPlan.IRON_HAND -> {
+                return when {
+                    assistedWallets.isNotEmpty() -> MembershipStage.DONE
+                    membershipStepManager.isNotConfig() -> MembershipStage.NONE
+                    else -> MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
+                }
+            }
+            MembershipPlan.HONEY_BADGER -> {
+                return when {
+                    assistedWallets.all { it.isSetupInheritance } && assistedWallets.size == MAX_HONEY_BADGER_ASSISTED_WALLET_COUNT -> MembershipStage.DONE
+                    assistedWallets.all { it.isSetupInheritance } && assistedWallets.isNotEmpty() && membershipStepManager.isNotConfig() -> MembershipStage.DONE
+                    // Only show setup Inheritance banner with first assisted wallet
+                    assistedWallets.any { it.isSetupInheritance.not() } && assistedWallets.size > 1 -> MembershipStage.DONE
+                    assistedWallets.isEmpty() && membershipStepManager.isNotConfig() -> MembershipStage.NONE
+                    else -> MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
+                }
+            }
+            else -> return MembershipStage.DONE // no subscription plan it means done
+        }
     }
 
     fun getKeyPolicy(walletId: String) = keyPolicyMap[walletId]
 
-    fun isPremiumUser() = getState().isPremiumUser == true
+    fun isPremiumUser() = getState().plan != null && getState().plan != MembershipPlan.NONE
 }

@@ -32,6 +32,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MembershipViewModel @Inject constructor(
     private val restartWizardUseCase: RestartWizardUseCase,
+    private val membershipStepManager: MembershipStepManager,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<MembershipEvent>()
@@ -41,6 +42,7 @@ class MembershipViewModel @Inject constructor(
         viewModelScope.launch {
             val result = restartWizardUseCase(plan)
             if (result.isSuccess) {
+                membershipStepManager.restart()
                 _event.emit(MembershipEvent.RestartWizardSuccess)
             }
         }

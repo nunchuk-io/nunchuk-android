@@ -28,6 +28,7 @@ import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.SIGNER_PATH_PREFIX
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.model.*
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -36,6 +37,7 @@ import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.GetRemoteSignerUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
+import com.nunchuk.android.usecase.membership.ReuseKeyWalletUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -54,6 +56,7 @@ class AddKeyListViewModel @Inject constructor(
     private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
     private val gson: Gson,
+    private val reuseKeyWalletUseCase: ReuseKeyWalletUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     private val _event = MutableSharedFlow<AddKeyListEvent>()
@@ -205,6 +208,15 @@ class AddKeyListViewModel @Inject constructor(
 
     fun getAirgap() = _state.value.signers.filter { it.type == SignerType.AIRGAP && isSignerExist(it.fingerPrint).not() }
 
+    fun reuseKeyFromWallet(id: String) {
+        viewModelScope.launch {
+            val result = reuseKeyWalletUseCase(id)
+            if (result.isFailure) {
+                _event.emit(AddKeyListEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"
     }
@@ -214,6 +226,7 @@ sealed class AddKeyListEvent {
     data class OnAddKey(val data: AddKeyData) : AddKeyListEvent()
     data class OnVerifySigner(val signer: SignerModel, val filePath: String) : AddKeyListEvent()
     object OnAddAllKey : AddKeyListEvent()
+    data class ShowError(val message: String) : AddKeyListEvent()
 }
 
 data class AddKeyListState(val signers: List<SignerModel> = emptyList())

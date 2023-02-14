@@ -48,6 +48,9 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.SERVER_KEY_NAME
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -244,19 +247,12 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
         val response = userWalletApiManager.walletApi.createWallet(request)
         if (response.isSuccess) {
-            membershipRepository.saveStepInfo(
-                MembershipStepInfo(
-                    step = MembershipStep.CREATE_WALLET,
-                    verifyType = VerifyType.APP_VERIFIED,
-                    plan = plan
-                )
-            )
             assistedWalletDao.insert(
                 AssistedWalletEntity(
-                    localId = response.data.wallet.localId.orEmpty(),
-                    plan = plan
+                    localId = response.data.wallet.localId.orEmpty(), plan = plan
                 )
             )
+            membershipStepDao.deleteStepByChatId(chain.value, accountManager.getAccount().chatId)
         }
         return SeverWallet(response.data.wallet.id.orEmpty())
     }
@@ -634,18 +630,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = if (isUpdate) userWalletApiManager.walletApi.updateInheritance(
             headers, request
         ) else userWalletApiManager.walletApi.createInheritance(headers, request)
-        if (response.isSuccess && isUpdate.not()) {
-            membershipRepository.saveStepInfo(
-                MembershipStepInfo(
-                    step = MembershipStep.SETUP_INHERITANCE,
-                    verifyType = VerifyType.APP_VERIFIED,
-                    plan = plan
-                )
-            )
-        }
         if (response.data.inheritance == null) throw NullPointerException("Can not get inheritance")
         else return response.data.inheritance!!.toInheritance().also {
-            markSetupInheritance(it.walletLocalId)
+            markSetupInheritance(it.walletLocalId, true)
         }
     }
 
@@ -665,12 +652,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
         val response = userWalletApiManager.walletApi.inheritanceCancel(headers, request)
         if (response.isSuccess) {
-            val inheritanceStep = membershipStepDao.getStep(
-                accountManager.getAccount().chatId, chain.value, MembershipStep.SETUP_INHERITANCE
-            )
-            if (inheritanceStep != null) {
-                membershipRepository.deleteStepByChatId(MembershipStep.SETUP_INHERITANCE)
-            }
+            markSetupInheritance(walletId, false)
         }
     }
 
@@ -814,14 +796,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.walletApi.getInheritance(walletId)
         if (response.data.inheritance == null) throw NullPointerException("Can not get inheritance")
         else return response.data.inheritance!!.toInheritance().also {
-            markSetupInheritance(walletId)
+            markSetupInheritance(walletId, it.status != InheritanceStatus.PENDING_CREATION)
         }
     }
 
-    private suspend fun markSetupInheritance(walletId: String) {
+    private suspend fun markSetupInheritance(walletId: String, isSetupInheritance: Boolean) {
         val entity = assistedWalletDao.getById(walletId)
         if (entity.isSetupInheritance.not()) {
-            assistedWalletDao.updateOrInsert(entity.copy(isSetupInheritance = true))
+            assistedWalletDao.updateOrInsert(entity.copy(isSetupInheritance = isSetupInheritance))
         }
     }
 
@@ -932,12 +914,71 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override fun getAssistedWalletsLocal(): Flow<List<AssistedWalletBrief>> {
-        return assistedWalletDao.getAssistedWallets()
-            .map { list -> list.map { wallet -> AssistedWalletBrief(wallet.localId, wallet.plan, wallet.isSetupInheritance) } }
+        return assistedWalletDao.getAssistedWallets().map { list ->
+            list.map { wallet ->
+                AssistedWalletBrief(
+                    wallet.localId, wallet.plan, wallet.isSetupInheritance
+                )
+            }
+        }
     }
 
     override suspend fun clearLocalData() {
         assistedWalletDao.deleteAll()
+    }
+
+    override suspend fun reuseKeyWallet(walletId: String) {
+        val wallet = nunchukNativeSdk.getWallet(walletId)
+        val inheritanceKey = wallet.signers.find {
+            it.type == SignerType.NFC
+                    && nunchukNativeSdk.getMasterSigner(it.masterFingerprint).tags.contains(
+                SignerTag.INHERITANCE
+            )
+        } ?: throw NullPointerException("Can not find inheritance key")
+        val verifyMap = coroutineScope {
+            wallet.signers.filter { it.type == SignerType.NFC }
+                .map { it.masterFingerprint }.map { key ->
+                async {
+                    userWalletApiManager.walletApi.getKey(key)
+                }
+            }.awaitAll().associateBy { it.data.keyXfp }.mapValues { it.value.data.verificationType }
+        }
+        membershipRepository.saveStepInfo(
+            MembershipStepInfo(
+                step = MembershipStep.HONEY_ADD_TAP_SIGNER,
+                masterSignerId = inheritanceKey.masterFingerprint,
+                plan = MembershipPlan.HONEY_BADGER,
+                verifyType = verifyMap[inheritanceKey.masterFingerprint].toVerifyType(),
+                extraData = gson.toJson(
+                    SignerExtra(
+                        derivationPath = inheritanceKey.derivationPath,
+                        isAddNew = false,
+                        signerType = inheritanceKey.type
+                    )
+                )
+            )
+        )
+
+        val steps =
+            listOf(MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.HONEY_ADD_HARDWARE_KEY_2)
+        wallet.signers.filter { it.type != SignerType.SERVER && it != inheritanceKey }
+            .forEachIndexed { index, singleSigner ->
+                membershipRepository.saveStepInfo(
+                    MembershipStepInfo(
+                        step = steps[index],
+                        masterSignerId = singleSigner.masterFingerprint,
+                        plan = MembershipPlan.HONEY_BADGER,
+                        verifyType = verifyMap[singleSigner.masterFingerprint].toVerifyType(),
+                        extraData = gson.toJson(
+                            SignerExtra(
+                                derivationPath = singleSigner.derivationPath,
+                                isAddNew = false,
+                                signerType = singleSigner.type
+                            )
+                        )
+                    )
+                )
+            }
     }
 
     private fun InheritanceDto.toInheritance(): Inheritance {
@@ -947,8 +988,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             else -> InheritanceStatus.PENDING_CREATION
         }
         return Inheritance(
-            walletId = walletId.orEmpty(),
-            walletLocalId = walletLocalId.orEmpty(),
+            walletId = walletId.orEmpty(), walletLocalId = walletLocalId.orEmpty(),
             magic = magic.orEmpty(),
             note = note.orEmpty(),
             notificationEmails = notificationEmails.orEmpty(),

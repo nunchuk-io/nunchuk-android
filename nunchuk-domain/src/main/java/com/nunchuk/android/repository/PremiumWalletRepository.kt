@@ -196,4 +196,6 @@ interface PremiumWalletRepository {
     fun getAssistedWalletsLocal(): Flow<List<AssistedWalletBrief>>
 
     suspend fun clearLocalData()
+
+    suspend fun reuseKeyWallet(walletId: String)
 }

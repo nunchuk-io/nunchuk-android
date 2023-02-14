@@ -118,7 +118,7 @@ class AddKeyStepViewModel @Inject constructor(
             } else if (isCreateWalletDone.value && isRegisterAirgap.value && isRegisterColdcard.value) {
                 savedStateHandle[KEY_CURRENT_STEP] = MembershipStep.SETUP_INHERITANCE
                 _event.emit(AddKeyStepEvent.OpenInheritanceSetup)
-            } else if (isSetupRecoverKeyDone.value) {
+            } else if (isSetupRecoverKeyDone.value && isConfigKeyDone.value) {
                 savedStateHandle[KEY_CURRENT_STEP] = MembershipStep.CREATE_WALLET
                 if (isRegisterColdcard.value.not()) {
                     val walletId = assistedWallets.value.find { it.isSetupInheritance }?.localId.orEmpty()

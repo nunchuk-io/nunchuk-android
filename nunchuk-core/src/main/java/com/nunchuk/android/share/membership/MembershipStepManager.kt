@@ -27,6 +27,7 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
+import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import kotlinx.coroutines.CoroutineScope
@@ -58,6 +59,7 @@ class MembershipStepManager @Inject constructor(
 
     var currentStep: MembershipStep? = null
         private set
+    val assistedWallets = mutableListOf<AssistedWalletBrief>()
 
     private val _remainingTime = MutableStateFlow(0)
     val remainingTime = _remainingTime.asStateFlow()
@@ -69,6 +71,10 @@ class MembershipStepManager @Inject constructor(
             getAssistedWalletsFlowUseCase(Unit)
                 .map { it.getOrElse { emptyList() } }
                 .collect { wallets ->
+                    assistedWallets.apply {
+                        clear()
+                        addAll(wallets)
+                    }
                     val isNotSetupInheritance =
                         wallets.any { wallet -> wallet.isSetupInheritance.not() && plan == MembershipPlan.HONEY_BADGER }
                     if (isNotSetupInheritance) {
@@ -79,6 +85,8 @@ class MembershipStepManager @Inject constructor(
                         _stepDone.value =
                             steps.filter { it.key != MembershipStep.SETUP_INHERITANCE }.keys
                         _remainingTime.value = calculateRemainTime(steps.toMap().values)
+                    } else if (wallets.size > 1) {
+                        markStepDone(MembershipStep.SETUP_KEY_RECOVERY)
                     }
                 }
         }
@@ -121,16 +129,9 @@ class MembershipStepManager @Inject constructor(
                 .map { it.getOrElse { emptyList() } }
                 .collect { steps ->
                     stepInfo.value = steps
-                    if (steps.isEmpty()) {
-                        this@MembershipStepManager.steps.forEach { step ->
-                            step.value.currentStep = 0
-                        }
-                        updateRemainTime()
-                    } else {
-                        steps.forEach { step ->
-                            if (step.isVerifyOrAddKey) markStepDone(step.step)
-                            else addRequireStep(step.step)
-                        }
+                    steps.forEach { step ->
+                        if (step.isVerifyOrAddKey) markStepDone(step.step)
+                        else addRequireStep(step.step)
                     }
 
                     _stepDone.value = steps.filter { it.isVerifyOrAddKey }.map { it.step }.toSet()
@@ -154,6 +155,11 @@ class MembershipStepManager @Inject constructor(
         updateRemainTime()
     }
 
+    fun restart() {
+        steps.forEach { it.value.currentStep = 0 }
+        updateRemainTime()
+    }
+
     fun updateStep(isForward: Boolean) {
         val step = currentStep ?: return
         val stepInfo = steps[step] ?: return
@@ -166,7 +172,7 @@ class MembershipStepManager @Inject constructor(
         updateRemainTime()
     }
 
-    fun isNotConfig() = _stepDone.value.isEmpty()
+    fun isNotConfig() = _stepDone.value.none { it != MembershipStep.SETUP_INHERITANCE }
 
     fun isConfigKeyDone(): Boolean {
         val isConfigKeyDone = if (plan == MembershipPlan.IRON_HAND) {
@@ -191,7 +197,7 @@ class MembershipStepManager @Inject constructor(
     }
 
     fun isConfigRecoverKeyDone(): Boolean {
-        return isConfigKeyDone() && _stepDone.value.contains(MembershipStep.SETUP_KEY_RECOVERY)
+        return (isConfigKeyDone() && _stepDone.value.contains(MembershipStep.SETUP_KEY_RECOVERY)) || assistedWallets.isNotEmpty()
     }
 
     fun isCreatedAssistedWalletDone(): Boolean {

@@ -61,8 +61,10 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.AssistedWalletBottomSheet
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.AddKeyData
@@ -75,7 +77,9 @@ import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Collections.emptyList
 import javax.inject.Inject
@@ -86,6 +90,22 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     lateinit var navigator: NunchukNavigator
 
     private val viewModel by activityViewModels<AddKeyListViewModel>()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (membershipStepManager.assistedWallets.isNotEmpty() && membershipStepManager.isNotConfig()) {
+            NCWarningDialog(requireActivity()).showDialog(
+                title = getString(R.string.nc_key_resuse),
+                message = getString(R.string.nc_key_reuse_desc),
+                onYesClick = {
+                    AssistedWalletBottomSheet.show(
+                        childFragmentManager,
+                        membershipStepManager.assistedWallets.map { it.localId },
+                    )
+                }
+            )
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -118,6 +138,10 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 }
             }
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
+        }
+        childFragmentManager.setFragmentResultListener(AssistedWalletBottomSheet.TAG, viewLifecycleOwner) { _, bundle ->
+            val walletId = bundle.getString(GlobalResultKey.WALLET_ID).orEmpty()
+            viewModel.reuseKeyFromWallet(walletId)
         }
     }
 
@@ -175,6 +199,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 is AddKeyListEvent.OnAddKey -> handleOnAddKey(event.data)
                 is AddKeyListEvent.OnVerifySigner -> openVerifyTapSigner(event)
                 AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack()
+                is AddKeyListEvent.ShowError -> showError(event.message)
             }
         }
     }

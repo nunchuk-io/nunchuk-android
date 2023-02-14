@@ -228,7 +228,7 @@ fun AddKeyStepContent(
                 stringResource(R.string.nc_create_your_wallet),
                 groupRemainTime[2],
                 isCreateWalletDone,
-                isSetupRecoverKeyDone && isCreateWalletDone.not()
+                isConfigKeyDone && isSetupRecoverKeyDone && isCreateWalletDone.not()
             )
             if (plan == MembershipPlan.HONEY_BADGER) {
                 StepWithEstTime(

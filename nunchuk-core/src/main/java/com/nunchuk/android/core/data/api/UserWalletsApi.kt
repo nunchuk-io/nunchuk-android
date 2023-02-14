@@ -120,6 +120,11 @@ internal interface UserWalletsApi {
         @Body payload: ConfigSecurityQuestionPayload
     ): Data<KeyResponse>
 
+    @GET("/v1.1/user-wallets/user-keys/{key_id_or_xfp}")
+    suspend fun getKey(
+        @Path("key_id_or_xfp") id: String,
+    ): Data<KeyResponse>
+
     @POST("/v1.1/user-wallets/security-questions/calculate-required-signatures")
     suspend fun calculateRequiredSignaturesSecurityQuestions(
         @Body payload: CalculateRequiredSignaturesSecurityQuestionPayload

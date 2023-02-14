@@ -20,6 +20,7 @@
 package com.nunchuk.android.main.components.tabs.wallet
 
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.model.WalletExtended
@@ -33,7 +34,7 @@ internal data class WalletsState(
     val signers: List<SignerModel> = emptyList(),
     val connectionStatus: ConnectionStatus? = null,
     val chain: Chain = Chain.MAIN,
-    val isPremiumUser: Boolean? = null,
+    val plan: MembershipPlan? = null,
     val remainingTime: Int = 0,
     val assistedWallets: List<AssistedWalletBrief> = emptyList(),
     val isSetupInheritance: Boolean = false,

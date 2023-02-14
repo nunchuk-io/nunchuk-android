@@ -56,6 +56,7 @@ import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_ACTIVE
 import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_PENDING
 import com.nunchuk.android.messages.util.getMsgType
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.banner.Banner
@@ -68,7 +69,6 @@ import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningVerticalDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.filter
 import javax.inject.Inject
 
@@ -96,8 +96,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                 (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_AUTO_CARD_STATUS)
             }
         }
-
-    private var listenSubscriptionJob: Job? = null
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -183,7 +181,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                 }
             }
         }
-        if (walletsViewModel.state.value?.isPremiumUser != true) {
+        if (walletsViewModel.isPremiumUser().not()) {
             flowObserver(contactViewModel.noticeRoomEvent()) {
                 it.forEach { event ->
                     if ((event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_PENDING || event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_ACTIVE)
@@ -291,7 +289,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         showSigners(state.signers)
         showConnectionBlockchainStatus(state)
         showIntro(state)
-        if (state.isPremiumUser == true) listenSubscriptionJob?.cancel()
     }
 
     private fun showConnectionBlockchainStatus(state: WalletsState) {
@@ -358,11 +355,12 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun showIntro(state: WalletsState) {
-        binding.introContainer.isVisible = state.isPremiumUser == true
-        binding.containerNonSubscriber.isVisible = state.isPremiumUser == false
-        if (state.isPremiumUser != null) {
+        binding.introContainer.isVisible = state.plan != null && state.plan != MembershipPlan.NONE
+        binding.containerNonSubscriber.isVisible =
+            state.plan != null && state.plan == MembershipPlan.NONE
+        if (state.plan != null) {
             when {
-                state.isPremiumUser -> showAssistedWalletStart(
+                state.plan != MembershipPlan.NONE -> showAssistedWalletStart(
                     state.remainingTime,
                 )
                 else -> showNonSubscriberIntro(state.banner, state.isHideUpsellBanner)
