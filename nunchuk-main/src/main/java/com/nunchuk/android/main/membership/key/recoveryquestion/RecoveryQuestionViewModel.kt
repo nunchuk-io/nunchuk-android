@@ -50,8 +50,9 @@ class RecoveryQuestionViewModel @Inject constructor(
 
     private val args = RecoveryQuestionFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
-    private val walletId = getAssistedWalletIdsFlowUseCase(Unit).map { it.getOrElse { "" } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
+    private val assistedWallet = getAssistedWalletIdsFlowUseCase(Unit).map { it.getOrElse { emptyList() } }
+        .map { it.firstOrNull() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _event = MutableSharedFlow<RecoveryQuestionEvent>()
     val event = _event.asSharedFlow()
@@ -190,7 +191,7 @@ class RecoveryQuestionViewModel @Inject constructor(
     }
 
     private fun calculateRequiredSignatures() = viewModelScope.launch {
-        val walletId = "" // TODO Hai
+        val walletId = assistedWallet.value?.localId ?: return@launch
         val questionsAndAnswers = getQuestionsAndAnswers()
         if (questionsAndAnswers.isEmpty()) return@launch
         _event.emit(RecoveryQuestionEvent.Loading(true))

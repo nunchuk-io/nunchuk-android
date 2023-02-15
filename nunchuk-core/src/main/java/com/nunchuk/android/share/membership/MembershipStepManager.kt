@@ -75,19 +75,6 @@ class MembershipStepManager @Inject constructor(
                         clear()
                         addAll(wallets)
                     }
-                    val isNotSetupInheritance =
-                        wallets.any { wallet -> wallet.isSetupInheritance.not() && plan == MembershipPlan.HONEY_BADGER }
-                    if (isNotSetupInheritance) {
-                        steps.filter { it.key != MembershipStep.SETUP_INHERITANCE }
-                            .forEach { entry ->
-                                entry.value.currentStep = entry.value.totalStep
-                            }
-                        _stepDone.value =
-                            steps.filter { it.key != MembershipStep.SETUP_INHERITANCE }.keys
-                        _remainingTime.value = calculateRemainTime(steps.toMap().values)
-                    } else if (wallets.size > 1) {
-                        markStepDone(MembershipStep.SETUP_KEY_RECOVERY)
-                    }
                 }
         }
         applicationScope.launch {
@@ -201,11 +188,11 @@ class MembershipStepManager @Inject constructor(
     }
 
     fun isCreatedAssistedWalletDone(): Boolean {
-        return isConfigRecoverKeyDone() && _stepDone.value.contains(MembershipStep.CREATE_WALLET)
+        return isConfigRecoverKeyDone() && _stepDone.value.contains(MembershipStep.CREATE_WALLET) || assistedWallets.any { it.isSetupInheritance.not() }
     }
 
     fun isSetupInheritanceDone(): Boolean {
-        return isCreatedAssistedWalletDone() && _stepDone.value.contains(MembershipStep.SETUP_INHERITANCE)
+        return isCreatedAssistedWalletDone() && assistedWallets.isNotEmpty() && assistedWallets.all { it.isSetupInheritance }
     }
 
     fun getRemainTimeBySteps(querySteps: List<MembershipStep>) =

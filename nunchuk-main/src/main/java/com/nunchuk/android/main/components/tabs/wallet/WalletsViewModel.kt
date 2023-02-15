@@ -129,8 +129,6 @@ internal class WalletsViewModel @Inject constructor(
             val result = getUserSubscriptionUseCase(Unit)
             if (result.isSuccess) {
                 val subscription = result.getOrThrow()
-                val isPremiumUser = subscription.subscriptionId.isNullOrEmpty()
-                    .not() && subscription.plan != MembershipPlan.NONE
                 val getServerWalletResult = getServerWalletUseCase(Unit)
                 if (getServerWalletResult.isFailure) return@launch
                 if (getServerWalletResult.isSuccess && getServerWalletResult.getOrThrow().isNeedReload) {
