@@ -17,53 +17,22 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.repository
+package com.nunchuk.android.usecase
 
-import com.nunchuk.android.core.persistence.NcDataStore
+import com.nunchuk.android.FlowUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.repository.SettingRepository
-import com.nunchuk.android.type.Chain
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-internal class SettingRepositoryImpl @Inject constructor(
-    private val ncDataStore: NcDataStore
-): SettingRepository {
-    override val syncEnable: Flow<Boolean>
-        get() = ncDataStore.syncEnableFlow
+class GetWalletSecuritySettingUseCase @Inject constructor(
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+    private val repository: SettingRepository
+) : FlowUseCase<Unit, WalletSecuritySetting>(dispatcher) {
 
-    override val isShowNfcUniversal: Flow<Boolean>
-        get() = ncDataStore.isShowNfcUniversal
-
-    override val chain: Flow<Chain>
-        get() = ncDataStore.chain
-
-    override val syncRoomSuccess: Flow<Boolean>
-        get() = ncDataStore.syncRoomSuccess
-
-    override val qrDensity: Flow<Int>
-        get() = ncDataStore.qrDensity
-
-    override val walletSecuritySetting: Flow<WalletSecuritySetting>
-        get() = ncDataStore.walletSecuritySetting
-
-    override suspend fun markSyncRoomSuccess() {
-        ncDataStore.markSyncRoomSuccess()
-    }
-
-    override suspend fun setSyncEnable(isEnable: Boolean) {
-        ncDataStore.setSyncEnable(isEnable)
-    }
-
-    override suspend fun setQrDensity(density: Int) {
-        ncDataStore.setDensity(density)
-    }
-
-    override suspend fun markIsShowNfcUniversal() {
-        ncDataStore.markIsShowNfcUniversal()
-    }
-
-    override suspend fun setWalletSecuritySetting(config: String) {
-        ncDataStore.setWalletSecuritySetting(config)
+    override fun execute(parameters: Unit): Flow<WalletSecuritySetting> {
+        return repository.walletSecuritySetting
     }
 }

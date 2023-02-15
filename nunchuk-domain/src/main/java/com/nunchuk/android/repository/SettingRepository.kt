@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.repository
 
+import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.type.Chain
 import kotlinx.coroutines.flow.Flow
 
@@ -28,8 +29,10 @@ interface SettingRepository {
     val chain: Flow<Chain>
     val syncRoomSuccess: Flow<Boolean>
     val qrDensity: Flow<Int>
+    val walletSecuritySetting: Flow<WalletSecuritySetting>
     suspend fun setSyncEnable(isEnable: Boolean)
     suspend fun setQrDensity(density: Int)
     suspend fun markSyncRoomSuccess()
     suspend fun markIsShowNfcUniversal()
+    suspend fun setWalletSecuritySetting(config: String)
 }

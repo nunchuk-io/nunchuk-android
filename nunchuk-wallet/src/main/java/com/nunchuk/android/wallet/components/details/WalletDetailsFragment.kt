@@ -21,6 +21,7 @@ package com.nunchuk.android.wallet.components.details
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -128,7 +129,6 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupViews()
         observeEvent()
     }
@@ -263,10 +263,15 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         val wallet = state.walletExtended.wallet
 
         binding.toolbarTitle.text = wallet.name
-        binding.configuration.bindWalletConfiguration(wallet)
+        binding.configuration.bindWalletConfiguration(
+            wallet,
+            hideWalletDetail = state.hideWalletDetailLocal
+        )
 
-        binding.btcAmount.text = wallet.getBTCAmount()
-        binding.cashAmount.text = wallet.getUSDAmount()
+        adapter.setHideWalletDetail(state.hideWalletDetailLocal)
+
+        binding.btcAmount.text = maskText(wallet.getBTCAmount(), state.hideWalletDetailLocal)
+        binding.cashAmount.text = maskText(wallet.getUSDAmount(), state.hideWalletDetailLocal)
         binding.btnSend.isClickable = wallet.balance.value > 0
 
         binding.shareIcon.isVisible = state.walletExtended.isShared || state.isAssistedWallet
@@ -274,8 +279,14 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             binding.container.setBackgroundResource(R.drawable.nc_header_membership_gradient_background)
             requireActivity().window.statusBarColor =
                 ContextCompat.getColor(requireContext(), R.color.nc_wallet_premium_bg)
-            binding.shareIcon.text = getString(R.string.nc_assisted)
+            binding.shareIcon.text = maskText(getString(R.string.nc_assisted), state.hideWalletDetailLocal)
         }
+        updateFabIcon(state.hideWalletDetailLocal)
+    }
+
+    private fun maskText(originalText: String, hideWalletDetail: Boolean): String {
+        return if (hideWalletDetail) '\u2022'.toString()
+            .repeat(6) else originalText
     }
 
     private fun setupViews() {
@@ -324,8 +335,18 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
 
         binding.copyAddressLayout.setOnClickListener { copyAddress(binding.addressText.text.toString()) }
         binding.shareLayout.setOnClickListener { controller.shareText(binding.addressText.text.toString()) }
-
+        binding.fab.setOnClickListener {
+            viewModel.updateHideWalletDetailLocal()
+        }
         setupPaginationAdapter()
+    }
+
+    private fun updateFabIcon(hideWalletDetail: Boolean) {
+        val icon = if (hideWalletDetail) ContextCompat.getDrawable(
+            requireContext(),
+            R.drawable.ic_visibility
+        ) else ContextCompat.getDrawable(requireContext(), R.drawable.ic_hide_pass)
+        binding.fab.setImageDrawable(icon)
     }
 
     private fun handleInactiveAssistedWallet() {

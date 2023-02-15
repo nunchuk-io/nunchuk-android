@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/nc_padding_16">
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_title"
+        style="@style/NCText.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/nc_padding_14"
+        android:ellipsize="end"
+        android:maxLines="1"
+        app:layout_constraintEnd_toStartOf="@+id/switch_button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Hide wallet details" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_desc"
+        style="@style/NCText.Body.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:layout_marginEnd="@dimen/nc_padding_14"
+        android:textColor="@color/nc_grey_dark_color"
+        app:layout_constraintEnd_toStartOf="@+id/switch_button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_title"
+        tools:text="Hide your wallet balance, transaction amounts and addresses by default." />
+
+    <com.nunchuk.android.widget.NCSwitchButton
+        android:id="@+id/switch_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@id/tv_desc"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/tv_title"
+        app:sb_checked_color="@color/nc_primary_color" />
+</androidx.constraintlayout.widget.ConstraintLayout>

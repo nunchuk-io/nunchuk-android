@@ -210,13 +210,22 @@
                 app:layout_constraintTop_toBottomOf="@+id/account_settings" />
 
             <com.nunchuk.android.widget.NCFontTextView
+                android:id="@+id/wallet_security_settings"
+                style="@style/NCText.Settings"
+                android:drawableStart="@drawable/nc_ic_wallet_security_setting"
+                android:drawableEnd="@drawable/ic_arrow"
+                android:text="@string/nc_wallet_security_settings"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/network" />
+
+            <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/developerMode"
                 style="@style/NCText.Settings"
                 android:drawableStart="@drawable/ic_developer_mode"
                 android:drawableEnd="@drawable/ic_arrow"
                 android:text="@string/nc_settings_developer_mode"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/network" />
+                app:layout_constraintTop_toBottomOf="@+id/wallet_security_settings" />
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/about"

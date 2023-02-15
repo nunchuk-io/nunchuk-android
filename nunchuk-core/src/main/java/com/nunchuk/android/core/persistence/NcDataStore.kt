@@ -23,7 +23,9 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
+import com.google.gson.Gson
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.type.Chain
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -37,6 +39,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 @Singleton
 class NcDataStore @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val gson: Gson
 ) {
     private val btcPriceKey = doublePreferencesKey("btc_price")
     private val turnOnNotificationKey = booleanPreferencesKey("turn_on_notification")
@@ -48,6 +51,7 @@ class NcDataStore @Inject constructor(
     private val hideUpsellBannerKey = booleanPreferencesKey("hide_upsell_banner")
     private val syncRoomSuccessKey = booleanPreferencesKey("sync_room_success")
     private val qrDensityKey = intPreferencesKey("qr_density")
+    private val walletSecuritySettingKey = stringPreferencesKey("wallet_security_setting_key")
 
     /**
      * Assisted wallet local id
@@ -124,6 +128,11 @@ class NcDataStore @Inject constructor(
             it[qrDensityKey] ?: 200
         }
 
+    val walletSecuritySetting: Flow<WalletSecuritySetting>
+        get() = context.dataStore.data.map {
+            gson.fromJson(it[walletSecuritySettingKey].orEmpty(), WalletSecuritySetting::class.java)
+        }
+
     suspend fun setChain(chain: Chain) {
         context.dataStore.edit { settings ->
             settings[chainKey] = chain.ordinal
@@ -184,6 +193,12 @@ class NcDataStore @Inject constructor(
         }
     }
 
+    suspend fun setWalletSecuritySetting(config: String) {
+        context.dataStore.edit {
+            it[walletSecuritySettingKey] = config
+        }
+    }
+
     suspend fun clear() {
         context.dataStore.edit {
             it.remove(syncEnableKey)
@@ -193,6 +208,7 @@ class NcDataStore @Inject constructor(
             it.remove(registerAirgapKey)
             it.remove(hideUpsellBannerKey)
             it.remove(syncRoomSuccessKey)
+            it.remove(walletSecuritySettingKey)
         }
     }
 }

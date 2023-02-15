@@ -25,6 +25,7 @@ import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.banner.Banner
+import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
@@ -40,6 +41,7 @@ internal data class WalletsState(
     val isSetupInheritance: Boolean = false,
     val isHideUpsellBanner: Boolean = false,
     val banner: Banner? = null,
+    val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting()
 )
 
 internal sealed class WalletsEvent {

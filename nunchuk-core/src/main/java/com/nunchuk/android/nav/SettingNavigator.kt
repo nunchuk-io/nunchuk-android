@@ -28,4 +28,5 @@ interface SettingNavigator {
     fun openSyncSettingScreen(activityContext: Context)
     fun openUserDevicesScreen(activityContext: Context)
     fun openAboutScreen(activityContext: Context)
+    fun openWalletSecuritySettingScreen(activityContext: Context)
 }

@@ -285,7 +285,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun showWalletState(state: WalletsState) {
         val wallets = state.wallets
-        showWallets(wallets, state.assistedWallets.map { it.localId }.toSet())
+        showWallets(wallets, state.assistedWallets.map { it.localId }.toSet(), state.walletSecuritySetting.hideWalletDetail)
         showSigners(state.signers)
         showConnectionBlockchainStatus(state)
         showIntro(state)
@@ -380,11 +380,11 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         }
     }
 
-    private fun showWallets(wallets: List<WalletExtended>, assistedWalletId: Set<String>) {
+    private fun showWallets(wallets: List<WalletExtended>, assistedWalletId: Set<String>, hideWalletDetail: Boolean) {
         if (wallets.isEmpty()) {
             showWalletsEmptyView()
         } else {
-            showWalletsListView(wallets, assistedWalletId)
+            showWalletsListView(wallets, assistedWalletId, hideWalletDetail)
         }
     }
 
@@ -393,13 +393,14 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         binding.walletList.isVisible = false
     }
 
-    private fun showWalletsListView(wallets: List<WalletExtended>, assistedWalletIds: Set<String>) {
+    private fun showWalletsListView(wallets: List<WalletExtended>, assistedWalletIds: Set<String>, hideWalletDetail: Boolean) {
         binding.walletEmpty.isVisible = false
         binding.walletList.isVisible = true
         WalletsViewBinder(
             container = binding.walletList,
             wallets = wallets,
             assistedWalletIds = assistedWalletIds,
+            hideWalletDetail = hideWalletDetail,
             callback = ::openWalletDetailsScreen
         ).bindItems()
     }

@@ -27,6 +27,7 @@ import com.nunchuk.android.settings.devices.UserDevicesActivity
 import com.nunchuk.android.settings.network.NetworkSettingActivity
 import com.nunchuk.android.settings.sync.SyncSettingActivity
 import com.nunchuk.android.settings.unit.DisplayUnitActivity
+import com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingActivity
 
 interface SettingNavigatorDelegate : SettingNavigator {
 
@@ -52,5 +53,9 @@ interface SettingNavigatorDelegate : SettingNavigator {
 
     override fun openAboutScreen(activityContext: Context) {
         AboutActivity.start(activityContext)
+    }
+
+    override fun openWalletSecuritySettingScreen(activityContext: Context) {
+        WalletSecuritySettingActivity.start(activityContext)
     }
 }

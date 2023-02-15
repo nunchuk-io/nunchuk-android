@@ -34,6 +34,7 @@ internal class WalletsViewBinder(
     container: ViewGroup,
     wallets: List<WalletExtended>,
     val assistedWalletIds: Set<String>,
+    val hideWalletDetail: Boolean = false,
     val callback: (String) -> Unit = {}
 ) : AbsViewBinder<WalletExtended, ItemWalletBinding>(container, wallets) {
 
@@ -45,20 +46,25 @@ internal class WalletsViewBinder(
         val balance = "(${wallet.getUSDAmount()})"
         val binding = ItemWalletBinding.bind(container[position])
         binding.walletName.text = wallet.name
-        binding.btc.text = wallet.getBTCAmount()
-        binding.balance.text = balance
+
+        binding.btc.text = maskText(wallet.getBTCAmount())
+        binding.balance.text = maskText(balance)
         binding.shareIcon.isVisible = model.isShared || isAssistedWallet
         if (isAssistedWallet) {
-            binding.shareIcon.text = context.getString(R.string.nc_assisted)
+            binding.shareIcon.text = maskText(context.getString(R.string.nc_assisted))
         } else {
-            binding.shareIcon.text = context.getString(R.string.nc_text_shared)
+            binding.shareIcon.text = maskText(context.getString(R.string.nc_text_shared))
         }
-        binding.config.bindWalletConfiguration(wallet)
+        binding.config.bindWalletConfiguration(wallet, hideWalletDetail)
         binding.root.setOnClickListener { callback(wallet.id) }
         if (isAssistedWallet) {
             binding.root.setBackgroundResource(R.drawable.nc_gradient_premium_background)
         } else {
             binding.root.setBackgroundResource(R.drawable.nc_gradient_background)
         }
+    }
+
+    private fun maskText(originalText: String): String {
+        return if (hideWalletDetail) '\u2022'.toString().repeat(6) else originalText
     }
 }

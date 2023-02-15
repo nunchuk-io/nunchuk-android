@@ -37,9 +37,11 @@ import com.nunchuk.android.core.util.MAX_HONEY_BADGER_ASSISTED_WALLET_COUNT
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
+import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
@@ -66,6 +68,7 @@ internal class WalletsViewModel @Inject constructor(
     private val getInheritanceUseCase: GetInheritanceUseCase,
     private val getBannerUseCase: GetBannerUseCase,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
+    private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
     isShowNfcUniversalUseCase: IsShowNfcUniversalUseCase,
     isHideUpsellBannerUseCase: IsHideUpsellBannerUseCase,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
@@ -84,6 +87,12 @@ internal class WalletsViewModel @Inject constructor(
     override val initialState = WalletsState()
 
     init {
+        viewModelScope.launch {
+            getWalletSecuritySettingUseCase(Unit)
+                .collect {
+                    updateState { copy(walletSecuritySetting = it.getOrNull() ?: WalletSecuritySetting() ) }
+                }
+        }
         viewModelScope.launch {
             getAssistedWalletsFlowUseCase(Unit).map { it.getOrElse { emptyList() } }
                 .distinctUntilChanged()
