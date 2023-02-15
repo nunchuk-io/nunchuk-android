@@ -2,7 +2,6 @@ package com.nunchuk.android.core.repository
 
 import com.nunchuk.android.persistence.dao.HandledEventDao
 import com.nunchuk.android.persistence.entity.HandledEventEntity
-import com.nunchuk.android.persistence.updateOrInsert
 import com.nunchuk.android.repository.HandledEventRepository
 import javax.inject.Inject
 
@@ -14,6 +13,6 @@ class HandledEventRepositoryImpl @Inject constructor(
     }
 
     override suspend fun save(eventId: String) {
-        handledEventDao.updateOrInsert(HandledEventEntity(eventId))
+        handledEventDao.insert(HandledEventEntity(eventId))
     }
 }
