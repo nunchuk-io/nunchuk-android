@@ -22,7 +22,6 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.result.ActivityResultLauncher
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
@@ -107,7 +106,6 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val EXTRA_WALLET_ID = "wallet_id"
 
         fun navigate(
-            launcher: ActivityResultLauncher<Intent>?,
             walletId: String,
             activity: Context,
             verifyToken: String?,
@@ -121,7 +119,7 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
                 .putExtra(EXTRA_INHERITANCE, inheritance)
                 .putExtra(EXTRA_IS_OPEN_FROM_WIZARD, isOpenFromWizard)
                 .putExtra(EXTRA_WALLET_ID, walletId)
-            launcher?.launch(intent) ?: activity.startActivity(intent)
+            activity.startActivity(intent)
         }
     }
 }

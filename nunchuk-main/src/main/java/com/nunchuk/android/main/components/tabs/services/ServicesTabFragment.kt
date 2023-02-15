@@ -19,14 +19,12 @@
 
 package com.nunchuk.android.main.components.tabs.services
 
-import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.BuildConfig
@@ -47,19 +45,9 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
 
-    private val viewModel: ServicesTabViewModel by viewModels()
+    private val viewModel: ServicesTabViewModel by activityViewModels()
     private lateinit var adapter: ServicesTabAdapter
     private var currentSelectedItem: ServiceTabRowItem? = null
-
-    private val launcher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            val data = it.data?.extras
-            if (it.resultCode == Activity.RESULT_OK && data != null) {
-                val isUpdate =
-                    data.getBoolean(GlobalResultKey.UPDATE_INHERITANCE)
-                if (isUpdate) viewModel.updateInheritance(data.getString(GlobalResultKey.WALLET_ID).orEmpty())
-            }
-        }
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -95,7 +83,6 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 is ServicesTabEvent.CheckInheritance -> {
                     if (event.inheritanceCheck.isPaid) {
                         navigator.openInheritancePlanningScreen(
-                            launcher = launcher,
                             activityContext = requireContext(),
                             flowInfo = InheritancePlanFlow.CLAIM
                         )
@@ -151,7 +138,6 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             }
             ServiceTabRowItem.ViewInheritancePlan -> {
                 navigator.openInheritancePlanningScreen(
-                    launcher = launcher,
                     walletId = event.walletId,
                     requireContext(),
                     verifyToken = event.token,
@@ -215,9 +201,8 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 val walletId = viewModel.getUnSetupInheritanceWallet().orEmpty()
                 if (walletId.isNotEmpty()) {
                     navigator.openInheritancePlanningScreen(
-                        launcher = launcher,
                         walletId = walletId,
-                        requireContext(),
+                        activityContext = requireContext(),
                         flowInfo = InheritancePlanFlow.SETUP
                     )
                 }

@@ -80,4 +80,6 @@ object SheetOptionType {
     const val CHAT_ACTION_CAPTURE_VIDEO = 27
     const val CHAT_ACTION_SELECT_PHOTO_VIDEO = 28
     const val CHAT_ACTION_SELECT_FILE = 29
+
+    const val SET_UP_INHERITANCE = 30
 }

@@ -51,4 +51,8 @@ internal class AssistedWalletManagerImpl @Inject constructor(
     override fun isInactiveAssistedWallet(walletId: String): Boolean {
         return _assistedWalletId.value.any { it.localId == walletId } && plan.value == MembershipPlan.NONE
     }
+
+    override fun isShowSetupInheritance(walletId: String): Boolean {
+        return _assistedWalletId.value.any { it.localId == walletId && it.isSetupInheritance.not() }
+    }
 }

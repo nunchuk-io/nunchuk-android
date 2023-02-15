@@ -266,4 +266,6 @@ internal class WalletDetailsViewModel @Inject constructor(
         get() = getState().isLeaveRoom
 
     fun isInactiveAssistedWallet() = assistedWalletManager.isInactiveAssistedWallet(args.walletId)
+
+    fun isShowSetupInheritance() = assistedWalletManager.isShowSetupInheritance(args.walletId)
 }

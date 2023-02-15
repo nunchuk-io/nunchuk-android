@@ -140,6 +140,11 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             SheetOptionType.TYPE_PSBT_QR_KEY_STONE -> openImportTransactionScreen(TransactionOption.IMPORT_KEYSTONE)
             SheetOptionType.TYPE_PSBT_QR_PASSPORT -> openImportTransactionScreen(TransactionOption.IMPORT_PASSPORT)
             SheetOptionType.TYPE_SAVE_WALLET_CONFIG -> handleExportBSMS()
+            SheetOptionType.SET_UP_INHERITANCE -> navigator.openInheritancePlanningScreen(
+                walletId = args.walletId,
+                activityContext = requireContext(),
+                flowInfo = InheritancePlanFlow.SETUP
+            )
         }
     }
 
@@ -337,7 +342,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     }
 
     private fun onMoreClicked() {
-        val options = listOf(
+        val options = mutableListOf(
             SheetOption(
                 SheetOptionType.TYPE_IMPORT_PSBT,
                 R.drawable.ic_import,
@@ -354,6 +359,15 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                 R.string.nc_wallet_save_wallet_configuration
             ),
         )
+        if (viewModel.isShowSetupInheritance()) {
+            options.add(
+                0, SheetOption(
+                    SheetOptionType.SET_UP_INHERITANCE,
+                    R.drawable.ic_inheritance,
+                    R.string.nc_setup_inheritance_for_this_wallet
+                )
+            )
+        }
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(childFragmentManager, "BottomSheetOption")
     }
