@@ -234,4 +234,16 @@ internal interface UserWalletsApi {
 
     @GET("/v1.1/user-wallets/inheritance/buffer-period")
     suspend fun getInheritanceBufferPeriod(): Data<PeriodResponse>
+
+    @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/calculate-required-signatures")
+    suspend fun calculateRequiredSignaturesDeleteAssistedWallet(
+        @Path("wallet_id_or_local_id") walletId: String
+    ): Data<CalculateRequiredSignaturesResponse>
+
+    @HTTP(method = "DELETE", path = "/v1.1/user-wallets/wallets/{wallet_id_or_local_id}", hasBody = true)
+    suspend fun deleteAssistedWallet(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @HeaderMap headers: Map<String, String>,
+        @Body payload: DeleteAssistedWalletRequest
+    ): Data<TransactionResponse>
 }

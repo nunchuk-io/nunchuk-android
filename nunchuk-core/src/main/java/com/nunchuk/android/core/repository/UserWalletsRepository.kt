@@ -424,8 +424,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun calculateRequiredSignaturesSecurityQuestions(
         walletId: String, questions: List<QuestionsAndAnswer>
     ): CalculateRequiredSignatures {
-        val request = CalculateRequiredSignaturesSecurityQuestionPayload(
-            walletId = walletId,
+        val request = CalculateRequiredSignaturesSecurityQuestionPayload(walletId = walletId,
             questionsAndAnswerRequests = questions.map {
                 QuestionsAndAnswerRequest(
                     questionId = it.questionId, answer = it.answer
@@ -433,10 +432,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             })
         val response =
             userWalletApiManager.walletApi.calculateRequiredSignaturesSecurityQuestions(request)
-        return CalculateRequiredSignatures(
-            type = response.data.result?.type.orEmpty(),
-            requiredSignatures = response.data.result?.requiredSignatures ?: 0
-        )
+        return response.data.result.toCalculateRequiredSignatures()
     }
 
     override suspend fun calculateRequiredSignaturesUpdateKeyPolicy(
@@ -447,9 +443,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 walletId = walletId, keyPoliciesDtoPayload = keyPolicy.toDto(), name = null
             )
         )
+        return response.data.result.toCalculateRequiredSignatures()
+    }
+
+    private fun CalculateRequiredSignaturesResponse.Data?.toCalculateRequiredSignatures(): CalculateRequiredSignatures {
         return CalculateRequiredSignatures(
-            type = response.data.result?.type.orEmpty(),
-            requiredSignatures = response.data.result?.requiredSignatures ?: 0
+            type = this?.type.orEmpty(),
+            requiredSignatures = this?.requiredSignatures.orDefault(0),
+            requiredAnswers = this?.requiredAnswers.orDefault(0)
         )
     }
 
@@ -461,10 +462,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 walletId = walletId, periodId = periodId
             )
         )
-        return CalculateRequiredSignatures(
-            type = response.data.result?.type.orEmpty(),
-            requiredSignatures = response.data.result?.requiredSignatures ?: 0
-        )
+        return response.data.result.toCalculateRequiredSignatures()
     }
 
     override suspend fun generateInheritanceUserData(
@@ -502,14 +500,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun generateInheritanceClaimCreateTransactionUserData(
-        magic: String,
-        address: String,
-        feeRate: String
+        magic: String, address: String, feeRate: String
     ): String {
         val body = InheritanceClaimCreateTransactionRequest.Body(
-            magic = magic,
-            address = address,
-            feeRate = feeRate
+            magic = magic, address = address, feeRate = feeRate
         )
         val nonce = getNonce()
         val request = InheritanceClaimCreateTransactionRequest(
@@ -519,9 +513,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun inheritanceClaimStatus(
-        userData: String,
-        masterFingerprint: String,
-        signature: String
+        userData: String, masterFingerprint: String, signature: String
     ): InheritanceAdditional {
         val headers = mutableMapOf<String, String>()
         val signerToken = nunchukNativeSdk.createRequestToken(signature, masterFingerprint)
@@ -550,9 +542,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun inheritanceClaimCreateTransaction(
-        userData: String,
-        masterFingerprint: String,
-        signature: String
+        userData: String, masterFingerprint: String, signature: String
     ): TransactionAdditional {
         val headers = mutableMapOf<String, String>()
         val signerToken = nunchukNativeSdk.createRequestToken(signature, masterFingerprint)
@@ -608,10 +598,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 )
             )
         }
-        return CalculateRequiredSignatures(
-            type = response.data.result?.type.orEmpty(),
-            requiredSignatures = response.data.result?.requiredSignatures ?: 0
-        )
+        return response.data.result.toCalculateRequiredSignatures()
     }
 
     override suspend fun createOrUpdateInheritance(
@@ -676,8 +663,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun inheritanceClaimingClaim(
-        magic: String,
-        psbt: String
+        magic: String, psbt: String
     ): TransactionAdditional {
         val response = userWalletApiManager.walletApi.inheritanceClaimingClaim(
             InheritanceClaimClaimRequest(magic = magic, psbt = psbt)
@@ -849,8 +835,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteScheduleTransaction(
-        walletId: String,
-        transactionId: String
+        walletId: String, transactionId: String
     ): ServerTransaction {
         val response = userWalletApiManager.walletApi.deleteScheduleTransaction(
             walletId, transactionId,
@@ -884,9 +869,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 if (transition.psbt.isNullOrEmpty().not()) {
                     nunchukNativeSdk.importPsbt(walletId, transition.psbt.orEmpty())
                     updateScheduleTransactionIfNeed(
-                        walletId,
-                        transition.transactionId.orEmpty(),
-                        transition
+                        walletId, transition.transactionId.orEmpty(), transition
                     )
                 }
             }
@@ -900,17 +883,35 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     private fun updateScheduleTransactionIfNeed(
-        walletId: String,
-        transactionId: String,
-        transaction: TransactionServerDto
+        walletId: String, transactionId: String, transaction: TransactionServerDto
     ) {
         if (transaction.type == ServerTransactionType.SCHEDULED && transaction.broadCastTimeMillis > System.currentTimeMillis()) {
             nunchukNativeSdk.updateTransactionSchedule(
-                walletId,
-                transactionId,
-                transaction.broadCastTimeMillis / 1000
+                walletId, transactionId, transaction.broadCastTimeMillis / 1000
             )
         }
+    }
+
+    override suspend fun calculateRequiredSignaturesDeleteAssistedWallet(walletId: String): CalculateRequiredSignatures {
+        val response = userWalletApiManager.walletApi.calculateRequiredSignaturesDeleteAssistedWallet(walletId)
+        return response.data.result.toCalculateRequiredSignatures()
+    }
+
+    override suspend fun deleteAssistedWallet(
+        authorizations: List<String>,
+        verifyToken: String,
+        securityQuestionToken: String,
+        walletId: String
+    ) {
+        val nonce = getNonce()
+        val request = DeleteAssistedWalletRequest(nonce = nonce)
+        val headers = mutableMapOf<String, String>()
+        authorizations.forEachIndexed { index, value ->
+            headers["$AUTHORIZATION_X-${index + 1}"] = value
+        }
+        headers[VERIFY_TOKEN] = verifyToken
+        headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
+        userWalletApiManager.walletApi.deleteAssistedWallet(walletId, headers, request)
     }
 
     override fun getAssistedWalletsLocal(): Flow<List<AssistedWalletBrief>> {

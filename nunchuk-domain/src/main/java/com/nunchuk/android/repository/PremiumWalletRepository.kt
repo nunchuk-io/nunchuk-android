@@ -198,4 +198,15 @@ interface PremiumWalletRepository {
     suspend fun clearLocalData()
 
     suspend fun reuseKeyWallet(walletId: String)
+
+    suspend fun calculateRequiredSignaturesDeleteAssistedWallet(
+        walletId: String,
+    ): CalculateRequiredSignatures
+
+    suspend fun deleteAssistedWallet(
+        authorizations: List<String>,
+        verifyToken: String,
+        securityQuestionToken: String,
+        walletId: String
+    )
 }
