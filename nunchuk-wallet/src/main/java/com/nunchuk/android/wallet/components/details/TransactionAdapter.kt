@@ -79,7 +79,7 @@ internal class TransactionAdapter(
                 binding.amountBTC.text = maskText("- ${data.transaction.totalAmount.getBTCAmount()}")
                 binding.amountUSD.text = maskText("- ${data.transaction.totalAmount.getUSDAmount()}")
                 binding.receiverName.text =
-                    data.transaction.outputs.firstOrNull()?.first.orEmpty().truncatedAddress()
+                    maskText(data.transaction.outputs.firstOrNull()?.first.orEmpty().truncatedAddress())
             }
             binding.status.bindTransactionStatus(data.transaction)
             binding.date.text = data.transaction.getFormatDate()

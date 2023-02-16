@@ -96,7 +96,7 @@ internal class WalletConfigViewModel @Inject constructor(
                 .onException { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
                 .collect {
-                    if (isAssistedWallet() && it.walletExtended.wallet.balance.pureBTC() > 0) {
+                    if (isAssistedWallet() && it.walletExtended.wallet.balance.pureBTC() == 0.0) {
                         getTransactionHistory()
                     }
                     updateState { it }
@@ -185,6 +185,7 @@ internal class WalletConfigViewModel @Inject constructor(
             setEvent(WalletConfigEvent.Loading(true))
             getTransactionHistoryUseCase.execute(walletId).flowOn(Dispatchers.IO)
                 .collect { transations ->
+                    setEvent(WalletConfigEvent.Loading(false))
                     val isPendingTransactionExisting = transations.any { it.status.isPending() }
                     updateState { copy(isShowDeleteAssistedWallet = isPendingTransactionExisting.not()) }
                 }
