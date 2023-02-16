@@ -37,6 +37,7 @@ internal data class WalletsState(
     val isCreatedAssistedWallet: Boolean = false,
     val assistedWalletId: String = "",
     val isSetupInheritance: Boolean = false,
+    val isHideUpsellBanner: Boolean = false,
     val banner: Banner? = null,
 )
 

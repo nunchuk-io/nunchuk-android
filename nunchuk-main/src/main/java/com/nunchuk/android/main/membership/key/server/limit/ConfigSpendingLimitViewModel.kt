@@ -68,7 +68,7 @@ class ConfigSpendingLimitViewModel @Inject constructor(
         }
     }
 
-    fun onContinueClicked(value: Long) {
+    fun onContinueClicked(value: Double) {
         viewModelScope.launch {
             _event.emit(
                 ConfigSpendingLimitEvent.ContinueClicked(

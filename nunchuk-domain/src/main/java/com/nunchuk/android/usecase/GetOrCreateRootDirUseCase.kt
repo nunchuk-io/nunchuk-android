@@ -19,22 +19,15 @@
 
 package com.nunchuk.android.usecase
 
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.util.FileHelper
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface GetOrCreateRootDirUseCase {
-    fun execute(): Flow<String>
-}
+class GetOrCreateRootDirUseCase @Inject constructor(
+    private val filerHelper: FileHelper,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+) : UseCase<Unit, String>(ioDispatcher) {
 
-internal class GetOrCreateRootDirUseCaseImpl @Inject constructor(
-    private val filerHelper: FileHelper
-) : GetOrCreateRootDirUseCase {
-
-    override fun execute() = flow {
-        emit(
-            filerHelper.getOrCreateNunchukRootDir()
-        )
-    }
+    override suspend fun execute(parameters: Unit): String = filerHelper.getOrCreateNunchukRootDir()
 }

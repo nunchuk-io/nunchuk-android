@@ -21,7 +21,9 @@ package com.nunchuk.android.auth.data
 
 import com.nunchuk.android.auth.api.*
 import com.nunchuk.android.core.network.ApiInterceptedException
+import com.nunchuk.android.model.setting.QrSignInData
 import com.nunchuk.android.utils.CrashlyticsReporter
+import com.nunchuk.android.utils.DeviceManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -46,10 +48,15 @@ interface AuthRepository {
     suspend fun recoverPassword(email: String, oldPassword: String, newPassword: String)
 
     suspend fun forgotPassword(email: String)
+
+    suspend fun tryLogin(qr: String) : QrSignInData
+
+    suspend fun confirmLogin(uuid: String?, token: String)
 }
 
 internal class AuthRepositoryImpl @Inject constructor(
-    private val authApi: AuthApi
+    private val authApi: AuthApi,
+    private val deviceManager: DeviceManager,
 ) : AuthRepository {
 
     override suspend fun register(name: String, email: String): UserTokenResponse {
@@ -100,5 +107,20 @@ internal class AuthRepositoryImpl @Inject constructor(
         } catch (e: ApiInterceptedException) {
             CrashlyticsReporter.recordException(e)
         }
+    }
+
+    override suspend fun confirmLogin(uuid: String?, token: String) {
+        val response = authApi.confirmLogin(ConfirmQrLoginRequest(uuid = uuid, token = token))
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun tryLogin(qr: String): QrSignInData {
+        val response = authApi.tryLogin(TryLoginRequest(uuid = deviceManager.getDeviceId(), qrCode = qr))
+        return QrSignInData(
+            uuid = response.data.uuid,
+            token = response.data.token.orEmpty()
+        )
     }
 }

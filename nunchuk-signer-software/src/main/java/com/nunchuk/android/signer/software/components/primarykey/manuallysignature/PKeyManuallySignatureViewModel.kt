@@ -29,12 +29,9 @@ import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.InitNunchukUseCase
-import com.nunchuk.android.utils.onException
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 
 class PKeyManuallySignatureViewModel @AssistedInject constructor(
@@ -66,14 +63,14 @@ class PKeyManuallySignatureViewModel @AssistedInject constructor(
             )
         )
         if (result.isSuccess) {
-            initNunchukUseCase.execute(accountId = args.username)
-                .flowOn(Dispatchers.IO)
-                .onException { setEvent(PKeyManuallySignatureEvent.ProcessFailure(it.message.orUnknownError())) }
-                .collect {
-                    signInModeHolder.setCurrentMode(SignInMode.PRIMARY_KEY)
-                    setEvent(PKeyManuallySignatureEvent.LoadingEvent(false))
-                    setEvent(PKeyManuallySignatureEvent.SignInSuccess)
-                }
+            val initNunchukResult = initNunchukUseCase(InitNunchukUseCase.Param(accountId = args.username))
+            if (initNunchukResult.isSuccess) {
+                signInModeHolder.setCurrentMode(SignInMode.PRIMARY_KEY)
+                setEvent(PKeyManuallySignatureEvent.LoadingEvent(false))
+                setEvent(PKeyManuallySignatureEvent.SignInSuccess)
+            } else {
+                setEvent(PKeyManuallySignatureEvent.ProcessFailure(initNunchukResult.exceptionOrNull()?.message.orUnknownError()))
+            }
         } else {
             setEvent(PKeyManuallySignatureEvent.ProcessFailure(result.exceptionOrNull()?.message.orUnknownError()))
         }

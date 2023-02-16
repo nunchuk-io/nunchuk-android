@@ -29,7 +29,6 @@ import com.nunchuk.android.type.Chain
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -48,6 +47,9 @@ class NcDataStore @Inject constructor(
     private val registerAirgapKey = booleanPreferencesKey("register_airgap")
     private val setupInheritanceKey = booleanPreferencesKey("setup_inheritance")
     private val chainKey = intPreferencesKey("chain")
+    private val hideUpsellBannerKey = booleanPreferencesKey("hide_upsell_banner")
+    private val syncRoomSuccessKey = booleanPreferencesKey("sync_room_success")
+    private val qrDensityKey = intPreferencesKey("qr_density")
 
     /**
      * Assisted wallet local id
@@ -63,6 +65,17 @@ class NcDataStore @Inject constructor(
      * Current membership plan key
      */
     private val membershipPlanKey = intPreferencesKey("membership_plan")
+
+    val syncRoomSuccess: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[syncRoomSuccessKey] ?: false
+        }
+
+    suspend fun markSyncRoomSuccess() {
+        context.dataStore.edit { settings ->
+            settings[syncRoomSuccessKey] = true
+        }
+    }
 
     val btcPriceFlow: Flow<Double>
         get() = context.dataStore.data.map { it[btcPriceKey] ?: 45000.0 }
@@ -115,7 +128,17 @@ class NcDataStore @Inject constructor(
 
     val chain: Flow<Chain>
         get() = context.dataStore.data.map {
-           Chain.values()[it[chainKey] ?: 0]
+            Chain.values()[it[chainKey] ?: 0]
+        }
+
+    val isHideUpsellBanner: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[hideUpsellBannerKey] ?: false
+        }
+
+    val qrDensity: Flow<Int>
+        get() = context.dataStore.data.map {
+            it[qrDensityKey] ?: 200
         }
 
     suspend fun setChain(chain: Chain) {
@@ -184,18 +207,30 @@ class NcDataStore @Inject constructor(
         }
     }
 
-    fun clear() {
-        runBlocking {
-            context.dataStore.edit {
-                it.remove(syncEnableKey)
-                it.remove(turnOnNotificationKey)
-                it.remove(assistedWalletLocalIdKey)
-                it.remove(assistedWalletPlanKey)
-                it.remove(membershipPlanKey)
-                it.remove(registerColdcardKey)
-                it.remove(registerAirgapKey)
-                it.remove(setupInheritanceKey)
-            }
+    suspend fun setHideUpsellBanner() {
+        context.dataStore.edit {
+            it[hideUpsellBannerKey] = true
+        }
+    }
+
+    suspend fun setDensity(density: Int) {
+        context.dataStore.edit {
+            it[qrDensityKey] = density
+        }
+    }
+
+    suspend fun clear() {
+        context.dataStore.edit {
+            it.remove(syncEnableKey)
+            it.remove(turnOnNotificationKey)
+            it.remove(assistedWalletLocalIdKey)
+            it.remove(assistedWalletPlanKey)
+            it.remove(membershipPlanKey)
+            it.remove(registerColdcardKey)
+            it.remove(registerAirgapKey)
+            it.remove(setupInheritanceKey)
+            it.remove(hideUpsellBannerKey)
+            it.remove(syncRoomSuccessKey)
         }
     }
 }

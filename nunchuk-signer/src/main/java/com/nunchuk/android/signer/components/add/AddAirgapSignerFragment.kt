@@ -27,11 +27,14 @@ import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
-import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.base.BaseCameraFragment
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showWarning
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.*
@@ -45,21 +48,10 @@ import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class AddAirgapSignerFragment : BaseFragment<FragmentAddSignerBinding>(),
+class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
     BottomSheetOptionListener {
 
     private val viewModel: AddAirgapSignerViewModel by viewModels()
-
-    private val requestPermissionLauncher =
-        registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { isGranted: Boolean ->
-            if (isGranted) {
-                openScanDynamicQRScreen()
-            } else {
-                showError(getString(R.string.nc_give_app_permission))
-            }
-        }
 
     private val importFileLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -93,6 +85,10 @@ class AddAirgapSignerFragment : BaseFragment<FragmentAddSignerBinding>(),
         viewModel.signers.getOrNull(option.type)?.let {
             binding.signerSpec.getEditTextView().setText(it.descriptor)
         }
+    }
+
+    override fun onCameraPermissionGranted(fromUser: Boolean) {
+        openScanDynamicQRScreen()
     }
 
     private fun observeEvent() {
@@ -162,9 +158,7 @@ class AddAirgapSignerFragment : BaseFragment<FragmentAddSignerBinding>(),
         }
 
         binding.scanContainer.setOnClickListener {
-            if (requestPermissionLauncher.checkCameraPermission(requireActivity())) {
-                openScanDynamicQRScreen()
-            }
+            requestCameraPermissionOrExecuteAction()
         }
         binding.btnImportViaFile.setOnDebounceClickListener {
             importFileLauncher.launch("*/*")

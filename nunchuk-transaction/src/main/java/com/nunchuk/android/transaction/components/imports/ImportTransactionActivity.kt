@@ -19,18 +19,16 @@
 
 package com.nunchuk.android.transaction.components.imports
 
-import android.Manifest
 import android.app.Activity
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import com.google.zxing.client.android.Intents
-import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.base.BaseCameraActivity
 import com.nunchuk.android.core.manager.NcToastManager
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.CHOOSE_FILE_REQUEST_CODE
+import com.nunchuk.android.core.util.getFileFromUri
+import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.R
@@ -38,58 +36,32 @@ import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionSuccess
 import com.nunchuk.android.transaction.databinding.ActivityImportTransactionBinding
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>() {
+class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBinding>() {
 
     private val args: ImportTransactionArgs by lazy { ImportTransactionArgs.deserializeFrom(intent) }
 
     private val viewModel: ImportTransactionViewModel by viewModels()
-
-    private val requestPermissionLauncher =
-        registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { isGranted: Boolean ->
-            if (isGranted) {
-                recreate()
-            } else {
-                navigateSystemPermissionSetting()
-            }
-        }
-
-    private fun navigateSystemPermissionSetting() {
-        NCWarningDialog(this).showDialog(
-            message = getString(R.string.nc_give_app_permission),
-            onYesClick = {
-                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                    data = Uri.fromParts("package", packageName, null)
-                }
-                settingLauncher.launch(intent)
-            }
-        )
-    }
-
-    private val settingLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        if (isPermissionGranted(Manifest.permission.CAMERA)) {
-            recreate()
-        } else {
-            navigateSystemPermissionSetting()
-        }
-    }
 
     override fun initializeBinding() = ActivityImportTransactionBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        requestPermissionLauncher.checkCameraPermission(this)
+        requestCameraPermissionOrExecuteAction()
         setLightStatusBar()
         viewModel.init(args)
         setupViews()
         observeEvent()
+    }
+
+    override fun onCameraPermissionGranted(fromUser: Boolean) {
+        if (fromUser) {
+            recreate()
+        }
     }
 
     private fun observeEvent() {
@@ -99,6 +71,7 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
     private fun setupViews() {
         val barcodeViewIntent = intent
         barcodeViewIntent.putExtra(Intents.Scan.MODE, Intents.Scan.QR_CODE_MODE)
+        binding.barcodeView.cameraSettings.isContinuousFocusEnabled = true
         binding.barcodeView.initializeFromIntent(barcodeViewIntent)
         binding.barcodeView.decodeContinuous { viewModel.importTransactionViaQR(it.text) }
         binding.btnImportViaFile.setOnClickListener { openSelectFileChooser() }
@@ -113,11 +86,13 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
     }
 
     private fun onImportTransactionSuccess(event: ImportTransactionSuccess) {
+        val intent = Intent()
         if (event.transaction != null) {
-            setResult(Activity.RESULT_OK, Intent().apply {
+            intent.apply {
                 putExtra(GlobalResultKey.TRANSACTION_EXTRA, event.transaction)
-            })
+            }
         }
+        setResult(Activity.RESULT_OK, intent)
         hideLoading()
         NcToastManager.scheduleShowMessage(getString(R.string.nc_transaction_imported))
         finish()
@@ -125,7 +100,15 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
 
     private fun onImportTransactionError(event: ImportTransactionError) {
         hideLoading()
-        NCToastMessage(this).showWarning(getString(R.string.nc_transaction_imported_failed) + event.message)
+        if (args.isFinishWhenError) {
+            NcToastManager.scheduleShowMessage(
+                message = getString(R.string.nc_transaction_imported_failed) + event.message,
+                type = NcToastManager.MessageType.WARING
+            )
+            finish()
+        } else {
+            NCToastMessage(this).showWarning(getString(R.string.nc_transaction_imported_failed) + event.message)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
@@ -155,13 +138,15 @@ class ImportTransactionActivity : BaseActivity<ActivityImportTransactionBinding>
             masterFingerPrint: String = "",
             initEventId: String = "",
             isDummyTx: Boolean = false,
+            isFinishWhenError: Boolean = false
         ): Intent {
             return ImportTransactionArgs(
                 walletId = walletId,
                 transactionOption = transactionOption,
                 masterFingerPrint = masterFingerPrint,
                 initEventId = initEventId,
-                isDummyTx = isDummyTx
+                isDummyTx = isDummyTx,
+                isFinishWhenError = isFinishWhenError
             ).buildIntent(activityContext)
         }
     }

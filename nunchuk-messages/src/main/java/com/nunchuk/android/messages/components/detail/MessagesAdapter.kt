@@ -39,7 +39,9 @@ internal class MessagesAdapter(
     private val createSharedWalletListener: () -> Unit,
     private val senderLongPressListener: (message: Message, position: Int) -> Unit,
     private val onMessageRead: (eventId: String) -> Unit,
-    private val toggleSelected: (localId: Long) -> Unit
+    private val toggleSelected: (localId: Long) -> Unit,
+    private val onOpenMediaViewer: (eventId: String) -> Unit,
+    private val onDownloadOrOpen: (media: NunchukFileMessage) -> Unit
 ) : ListAdapter<AbsChatModel, ViewHolder>(ChatMessageDiffCallback) {
 
     private var roomWallet: RoomWallet? = null
@@ -151,6 +153,14 @@ internal class MessagesAdapter(
             dismissBannerNewChatListener = dismissBannerNewChatListener,
             createSharedWalletListener = createSharedWalletListener
         )
+        MessageType.TYPE_IMAGE_AND_VIDEO.index -> MessageMediaViewHolder(
+            binding = ItemMessageMediaBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+            onOpenMediaViewer = onOpenMediaViewer,
+        )
+        MessageType.TYPE_FILE.index -> MessageFileHolder(
+            binding = ItemFileAttachmentBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+            onDownloadOrOpen = onDownloadOrOpen
+        )
         else -> throw IllegalArgumentException("Invalid type")
     }
 
@@ -183,6 +193,16 @@ internal class MessagesAdapter(
             MessageType.TYPE_NUNCHUK_TRANSACTION_NOTIFICATION.index -> {
                 (holder as NunchukTransactionNotificationHolder).bind(
                     (messageData as MessageModel).message as NunchukTransactionMessage
+                )
+            }
+            MessageType.TYPE_IMAGE_AND_VIDEO.index -> {
+                (holder as MessageMediaViewHolder).bind(
+                    (messageData as MessageModel).message as NunchukMediaMessage
+                )
+            }
+            MessageType.TYPE_FILE.index -> {
+                (holder as MessageFileHolder).bind(
+                    (messageData as MessageModel).message as NunchukFileMessage
                 )
             }
             MessageType.TYPE_NUNCHUK_BANNER_NEW_CHAT.index -> {

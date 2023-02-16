@@ -28,14 +28,12 @@ import android.view.ViewGroup
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Switch
-import androidx.compose.material.SwitchDefaults
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -67,9 +65,10 @@ class ConfigureServerKeySettingFragment : MembershipFragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 ConfigureServerKeySettingScreen(
-                    viewModel,
-                    membershipStepManager,
-                    isCreateAssistedWalletFlow
+                    viewModel = viewModel,
+                    membershipStepManager = membershipStepManager,
+                    isCreateAssistedWalletFlow = isCreateAssistedWalletFlow,
+                    onMoreClicked = ::handleShowMore
                 )
             }
         }
@@ -121,6 +120,7 @@ fun ConfigureServerKeySettingScreen(
     viewModel: ConfigureServerKeySettingViewModel = viewModel(),
     membershipStepManager: MembershipStepManager,
     isCreateAssistedWalletFlow: Boolean,
+    onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -133,6 +133,7 @@ fun ConfigureServerKeySettingScreen(
         onCoSigningDelaMinuteTextChange = viewModel::updateCoSigningDelayMinuteText,
         onAutoBroadcastSwitchedChange = viewModel::updateAutoBroadcastSwitched,
         onEnableCoSigningSwitchedChange = viewModel::updateEnableCoSigningSwitched,
+        onMoreClicked = onMoreClicked,
     )
 }
 
@@ -140,6 +141,7 @@ fun ConfigureServerKeySettingScreen(
 fun ConfigureServerKeySettingScreenContent(
     state: ConfigureServerKeySettingState = ConfigureServerKeySettingState.Empty,
     onContinueClicked: () -> Unit = {},
+    onMoreClicked: () -> Unit = {},
     remainTime: Int = 0,
     isCreateAssistedWalletFlow: Boolean = false,
     onCoSigningDelaHourTextChange: (value: String) -> Unit = {},
@@ -160,6 +162,16 @@ fun ConfigureServerKeySettingScreenContent(
                         R.string.nc_estimate_remain_time,
                         remainTime
                     ) else "",
+                    actions = {
+                        if (isCreateAssistedWalletFlow) {
+                            IconButton(onClick = onMoreClicked) {
+                                Icon(
+                                    painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
+                                    contentDescription = "More icon"
+                                )
+                            }
+                        }
+                    }
                 )
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),

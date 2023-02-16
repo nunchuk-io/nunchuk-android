@@ -29,6 +29,7 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.isAtLeastStarted
 import com.nunchuk.android.messages.util.*
+import com.nunchuk.android.usecase.SaveHandledEventUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.utils.trySafe
@@ -65,6 +66,9 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
     @Inject
     lateinit var applicationScope: CoroutineScope
 
+    @Inject
+    lateinit var saveHandledEventUseCase: SaveHandledEventUseCase
+
     private val mUIHandler by lazy {
         Handler(Looper.getMainLooper())
     }
@@ -74,15 +78,25 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
             return
         }
         val event = getEvent(remoteMessage.data)?.also {
-            if (it.isCosignedEvent() || it.isCosignedAndBroadcastEvent()) {
+            if (it.isServerTransactionEvent()) {
                 applicationScope.launch {
-                    pushEventManager.push(PushEvent.CosigningEvent(it.getWalletId(), it.getTransactionId()))
+                    pushEventManager.push(
+                        PushEvent.ServerTransactionEvent(
+                            it.getWalletId(),
+                            it.getTransactionId()
+                        )
+                    )
                 }
             }
         }
 
         mUIHandler.post {
             parseMessageData(event)?.let(::showNotification)
+            if (ProcessLifecycleOwner.get().isAtLeastStarted().not() && event != null) {
+                applicationScope.launch {
+                    saveHandledEventUseCase.invoke(event.eventId)
+                }
+            }
         }
 
         mUIHandler.post {
@@ -132,7 +146,8 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         val event = timelineService.getTimelineEvent(eventId)
         if (event == null) {
             mUIHandler.postDelayed({
-                timelineService.getTimelineEvent(eventId)?.toPushNotificationData(roomId)?.let(::showNotification)
+                timelineService.getTimelineEvent(eventId)?.toPushNotificationData(roomId)
+                    ?.let(::showNotification)
             }, RETRY_DELAY)
         }
         Timber.d(event.toString())
@@ -161,14 +176,14 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         isContactUpdateEvent() -> {
             PushNotificationData(
                 title = getString(R.string.notification_contact_update),
-                message = lastMessageContent(),
+                message = lastMessageContent(this@PushNotificationMessagingService),
                 intent = intentProvider.getMainIntent()
             )
         }
         isMessageEvent() -> {
             PushNotificationData(
                 title = lastMessageSender(),
-                message = lastMessageContent(),
+                message = lastMessageContent(this@PushNotificationMessagingService),
                 intent = intentProvider.getRoomDetailsIntent(roomId)
             )
         }
@@ -176,16 +191,49 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
             PushNotificationData(
                 title = getString(R.string.notification_transaction_update),
                 message = getString(R.string.nc_notification_transaction_co_signed),
-                intent = intentProvider.getTransactionDetailIntent(getWalletId(), getTransactionId())
+                intent = intentProvider.getTransactionDetailIntent(
+                    getWalletId(),
+                    getTransactionId()
+                )
             )
         }
         isCosignedAndBroadcastEvent() -> {
             PushNotificationData(
                 title = getString(R.string.notification_transaction_update),
                 message = getString(R.string.nc_notification_cosign_and_broadcast),
-                intent = intentProvider.getTransactionDetailIntent(getWalletId(), getTransactionId())
+                intent = intentProvider.getTransactionDetailIntent(
+                    getWalletId(),
+                    getTransactionId()
+                )
             )
         }
+        isTransactionScheduleMissingSignaturesEvent() -> {
+            val message = this.getLastMessageContentSafe().orEmpty()
+            PushNotificationData(
+                title = getString(R.string.notification_transaction_update),
+                message = message,
+                intent = intentProvider.getTransactionDetailIntent(
+                    walletId = getWalletId(),
+                    txId = getTransactionId(),
+                    isCancelBroadcast = true,
+                    errorMessage = message
+                )
+            )
+        }
+        isTransactionScheduleNetworkRejectedEvent() -> {
+            val message = this.getLastMessageContentSafe().orEmpty()
+            PushNotificationData(
+                title = getString(R.string.notification_transaction_update),
+                message = message,
+                intent = intentProvider.getTransactionDetailIntent(
+                    walletId = getWalletId(),
+                    txId = getTransactionId(),
+                    isCancelBroadcast = true,
+                    errorMessage = message
+                )
+            )
+        }
+
         else -> defaultNotificationData()
     }
 
@@ -195,7 +243,8 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         getLastSession()
     }
 
-    private fun getLastSession(): Session? = trySafe(matrix.authenticationService()::getLastAuthenticatedSession)
+    private fun getLastSession(): Session? =
+        trySafe(matrix.authenticationService()::getLastAuthenticatedSession)
 
     private fun defaultNotificationData() = if (!ProcessLifecycleOwner.get().isAtLeastStarted()) {
         PushNotificationData(

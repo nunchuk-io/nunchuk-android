@@ -55,6 +55,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -63,11 +64,14 @@ import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate.InheritanceActivationDateFragment
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.bufferperiod.InheritanceBufferPeriodFragment
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note.InheritanceNoteFragment
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notifypref.InheritanceNotifyPrefFragment
+import com.nunchuk.android.model.Period
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.utils.simpleGlobalDateFormat
 import com.nunchuk.android.widget.NCWarningDialog
@@ -124,7 +128,8 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                             isUpdateRequest = true,
                             preIsNotify = isNotify,
                             preEmails = emails.toTypedArray(),
-                            planFlow = args.planFlow
+                            planFlow = args.planFlow,
+                            bufferPeriod = args.bufferPeriod
                         )
                     )
                 }, onDiscardChange = {
@@ -132,7 +137,8 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                 }, onShareSecretClicked = {
                     findNavController().navigate(
                         InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceShareSecretFragment(
-                            magicalPhrase = args.magicalPhrase
+                            magicalPhrase = args.magicalPhrase,
+                            planFlow = args.planFlow
                         )
                     )
                 }, onActionTopBarClick = {
@@ -140,8 +146,17 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                         showActionOptions()
                     }
                 }, onViewClaimingInstruction = {
-                    val link = if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/howtoclaim" else "https://www.nunchuk.io/howtoclaim"
+                    val link =
+                        if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/howtoclaim" else "https://www.nunchuk.io/howtoclaim"
                     requireActivity().openExternalLink(link)
+                }, onEditBufferPeriodClick = {
+                    findNavController().navigate(
+                        InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceBufferPeriodFragment(
+                            isUpdateRequest = true,
+                            preBufferPeriod = it,
+                            planFlow = args.planFlow
+                        )
+                    )
                 })
             }
         }
@@ -172,6 +187,11 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
             val emails = bundle.getStringArrayList(InheritanceNotifyPrefFragment.EXTRA_EMAILS)
             viewModel.updateNotifyPref(isNotify, emails.orEmpty())
         }
+        setFragmentResultListener(InheritanceBufferPeriodFragment.REQUEST_KEY) { _, bundle ->
+            val period =
+                bundle.parcelable<Period>(InheritanceBufferPeriodFragment.EXTRA_BUFFER_PERIOD)
+            viewModel.updateBufferPeriod(period)
+        }
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is InheritanceReviewPlanEvent.CalculateRequiredSignaturesSuccess -> {
@@ -188,18 +208,19 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                     if (args.planFlow == InheritancePlanFlow.SETUP) {
                         findNavController().navigate(
                             InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceCreateSuccessFragment(
-                                magicalPhrase = args.magicalPhrase
+                                magicalPhrase = args.magicalPhrase,
+                                planFlow = args.planFlow
                             )
                         )
                     } else if (args.planFlow == InheritancePlanFlow.VIEW) {
-                        showSuccess(message = getString(R.string.nc_inheritance_plan_updated_notify))
+                        NcToastManager.scheduleShowMessage(message = getString(R.string.nc_inheritance_plan_updated_notify))
                         handleResult()
                     }
                 }
                 is InheritanceReviewPlanEvent.Loading -> showOrHideLoading(loading = event.loading)
                 is InheritanceReviewPlanEvent.ProcessFailure -> showError(message = event.message)
                 is InheritanceReviewPlanEvent.CancelInheritanceSuccess -> {
-                    showSuccess(message = getString(R.string.nc_inheritance_plan_cancelled_notify))
+                    NcToastManager.scheduleShowMessage(message = getString(R.string.nc_inheritance_plan_cancelled_notify))
                     handleResult()
                 }
             }
@@ -222,8 +243,9 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
     }
 
     override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
         if (option.type == SheetOptionType.TYPE_CANCEL) {
-            viewModel.calculateRequiredSignatures(isCreateOrUpdate = false)
+            viewModel.calculateRequiredSignatures(isCreateOrUpdateFlow = false)
         }
     }
 
@@ -246,7 +268,8 @@ fun InheritanceReviewPlanScreen(
     onDiscardChange: () -> Unit,
     onShareSecretClicked: () -> Unit,
     onActionTopBarClick: () -> Unit,
-    onViewClaimingInstruction: () -> Unit = {}
+    onViewClaimingInstruction: () -> Unit = {},
+    onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -260,8 +283,9 @@ fun InheritanceReviewPlanScreen(
         magicalPhrase = args.magicalPhrase,
         activationDate = state.activationDate,
         walletName = state.walletName.orEmpty(),
+        bufferPeriod = state.bufferPeriod,
         onContinueClicked = {
-            viewModel.calculateRequiredSignatures(isCreateOrUpdate = true)
+            viewModel.calculateRequiredSignatures(isCreateOrUpdateFlow = true)
         },
         onEditActivationDateClick = {
             onEditActivationDateClick(state.activationDate)
@@ -275,7 +299,8 @@ fun InheritanceReviewPlanScreen(
         onDiscardChange = onDiscardChange,
         onShareSecretClicked = onShareSecretClicked,
         onActionTopBarClick = onActionTopBarClick,
-        onViewClaimingInstruction = onViewClaimingInstruction
+        onViewClaimingInstruction = onViewClaimingInstruction,
+        onEditBufferPeriodClick = onEditBufferPeriodClick
     )
 }
 
@@ -289,6 +314,7 @@ fun InheritanceReviewPlanScreenContent(
     emails: List<String> = emptyList(),
     activationDate: Long = 0,
     walletName: String = "",
+    bufferPeriod: Period? = null,
     onContinueClicked: () -> Unit = {},
     onShareSecretClicked: () -> Unit = {},
     onDiscardChange: () -> Unit = {},
@@ -296,7 +322,8 @@ fun InheritanceReviewPlanScreenContent(
     onEditNoteClick: () -> Unit = {},
     onNotifyPrefClick: () -> Unit = {},
     onActionTopBarClick: () -> Unit = {},
-    onViewClaimingInstruction: () -> Unit = {}
+    onViewClaimingInstruction: () -> Unit = {},
+    onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {}
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -478,6 +505,50 @@ fun InheritanceReviewPlanScreenContent(
                             ) {
                                 Text(
                                     text = note.ifBlank { stringResource(id = R.string.nc_no_note) },
+                                    style = NunchukTheme.typography.body,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                )
+                            }
+                        }
+
+                        Divider(
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
+                            thickness = 1.dp,
+                            color = NcColor.whisper
+                        )
+                        Column(
+                            modifier = Modifier.padding(
+                                start = 16.dp, end = 16.dp, top = 24.dp
+                            )
+                        ) {
+                            Row(horizontalArrangement = Arrangement.Center) {
+                                Text(
+                                    text = stringResource(id = R.string.nc_buffer_period),
+                                    style = NunchukTheme.typography.title
+                                )
+                                Spacer(modifier = Modifier.weight(weight = 1f))
+                                Text(
+                                    text = stringResource(id = R.string.nc_edit),
+                                    style = NunchukTheme.typography.title,
+                                    textDecoration = TextDecoration.Underline,
+                                    modifier = Modifier.clickable {
+                                        onEditBufferPeriodClick(bufferPeriod)
+                                    }
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Box(
+                                modifier = Modifier.background(
+                                    color = NcColor.greyLight, shape = RoundedCornerShape(8.dp)
+                                ),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    text = bufferPeriod?.displayName.orEmpty().ifBlank { stringResource(id = R.string.nc_no_buffer) },
                                     style = NunchukTheme.typography.body,
                                     modifier = Modifier
                                         .fillMaxWidth()

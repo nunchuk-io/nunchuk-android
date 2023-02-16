@@ -29,6 +29,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -60,7 +61,6 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
@@ -92,7 +92,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                AddKeyListScreen(viewModel, membershipStepManager)
+                AddKeyListScreen(viewModel, membershipStepManager, ::handleShowMore)
             }
         }
     }
@@ -122,6 +122,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
         when (option.type) {
             SignerType.NFC.ordinal -> handleShowKeysOrCreate(
                 viewModel.getTapSigners(),
@@ -142,7 +143,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_COLDCARD_FILE -> navigator.openSetupMk4(
                 requireActivity(),
                 true,
-                ColdcardAction.RECOVER
+                ColdcardAction.RECOVER_KEY
             )
         }
     }
@@ -172,7 +173,6 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is AddKeyListEvent.OnAddKey -> handleOnAddKey(event.data)
-                AddKeyListEvent.OnAddSameKey -> showSameSignerAdded()
                 is AddKeyListEvent.OnVerifySigner -> openVerifyTapSigner(event)
                 AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack()
             }
@@ -181,23 +181,19 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
 
     private fun handleOnAddKey(data: AddKeyData) {
         when (data.type) {
-            MembershipStep.ADD_TAP_SIGNER_1,
-            MembershipStep.ADD_TAP_SIGNER_2 -> handleShowKeysOrCreate(
-                viewModel.getTapSigners(),
-                SignerType.NFC,
-                ::openSetupTapSigner
-            )
             MembershipStep.ADD_SEVER_KEY -> {
                 findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToConfigureServerKeyIntroFragment())
             }
             MembershipStep.HONEY_ADD_TAP_SIGNER -> {
                 findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToTapSignerInheritanceIntroFragment())
             }
+            MembershipStep.IRON_ADD_HARDWARE_KEY_1,
+            MembershipStep.IRON_ADD_HARDWARE_KEY_2,
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> openSelectHardwareOption()
             MembershipStep.SETUP_KEY_RECOVERY,
             MembershipStep.SETUP_INHERITANCE,
             MembershipStep.CREATE_WALLET -> throw IllegalArgumentException("handleOnAddKey")
-            MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
-            MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> openSelectHardwareOption()
         }
     }
 
@@ -256,19 +252,11 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     private fun openCreateBackUpTapSigner(masterSignerId: String) {
-        if (viewModel.isSignerExist(masterSignerId).not()) {
-            navigator.openCreateBackUpTapSigner(
-                activity = requireActivity(),
-                fromMembershipFlow = true,
-                masterSignerId = masterSignerId
-            )
-        } else {
-            showSameSignerAdded()
-        }
-    }
-
-    private fun showSameSignerAdded() {
-        showError(getString(R.string.nc_error_add_same_key))
+        navigator.openCreateBackUpTapSigner(
+            activity = requireActivity(),
+            fromMembershipFlow = true,
+            masterSignerId = masterSignerId
+        )
     }
 }
 
@@ -276,7 +264,8 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
 @Composable
 fun AddKeyListScreen(
     viewModel: AddKeyListViewModel = viewModel(),
-    membershipStepManager: MembershipStepManager
+    membershipStepManager: MembershipStepManager,
+    onMoreClicked: () -> Unit = {}
 ) {
     val keys by viewModel.key.collectAsStateWithLifecycle()
     val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
@@ -286,6 +275,7 @@ fun AddKeyListScreen(
         onVerifyClicked = viewModel::onVerifyClicked,
         keys = keys,
         remainingTime = remainingTime,
+        onMoreClicked = onMoreClicked
     )
 }
 
@@ -294,6 +284,7 @@ fun AddKeyListContent(
     onAddClicked: (data: AddKeyData) -> Unit = {},
     onVerifyClicked: (data: AddKeyData) -> Unit = {},
     onContinueClicked: () -> Unit = {},
+    onMoreClicked: () -> Unit = {},
     keys: List<AddKeyData> = emptyList(),
     remainingTime: Int,
 ) {
@@ -306,7 +297,16 @@ fun AddKeyListContent(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainingTime))
+                NcTopAppBar(
+                    stringResource(R.string.nc_estimate_remain_time, remainingTime),
+                    actions = {
+                        IconButton(onClick = onMoreClicked) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
+                        }
+                    })
                 LazyColumn(
                     modifier = Modifier
                         .weight(1.0f)
@@ -332,7 +332,11 @@ fun AddKeyListContent(
                                 withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
                                     append(stringResource(id = R.string.nc_add_key_list_desc_two))
                                 }
-                                append(stringResource(id = R.string.nc_add_key_list_desc_three))
+                                if (keys.size > 3) {
+                                    append(stringResource(id = R.string.nc_honey_add_key_list_desc_three))
+                                } else {
+                                    append(stringResource(id = R.string.nc_add_key_list_desc_three))
+                                }
                                 if (keys.size > 3) {
                                     append("\n\n")
                                     append(stringResource(R.string.nc_among_three_key_select_inheritance))
@@ -517,13 +521,25 @@ fun AddKeyListScreenIronHandPreview() {
     AddKeyListContent(
         keys = listOf(
             AddKeyData(
-                type = MembershipStep.ADD_TAP_SIGNER_1,
-                SignerModel(id = "123", type = SignerType.NFC, name = "My Key", derivationPath = "", fingerPrint = "123456"),
+                type = MembershipStep.IRON_ADD_HARDWARE_KEY_1,
+                SignerModel(
+                    id = "123",
+                    type = SignerType.NFC,
+                    name = "My Key",
+                    derivationPath = "",
+                    fingerPrint = "123456"
+                ),
                 verifyType = VerifyType.APP_VERIFIED
             ),
             AddKeyData(
-                type = MembershipStep.ADD_TAP_SIGNER_2,
-                signer = SignerModel(id = "123", type = SignerType.NFC, name = "My Key", derivationPath = "", fingerPrint = "123456"),
+                type = MembershipStep.IRON_ADD_HARDWARE_KEY_2,
+                signer = SignerModel(
+                    id = "123",
+                    type = SignerType.NFC,
+                    name = "My Key",
+                    derivationPath = "",
+                    fingerPrint = "123456"
+                ),
                 verifyType = VerifyType.NONE
             ),
             AddKeyData(type = MembershipStep.ADD_SEVER_KEY),
@@ -543,7 +559,13 @@ fun AddKeyListScreenHoneyBadgerPreview() {
             ),
             AddKeyData(
                 type = MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
-                signer = SignerModel(id = "123", type = SignerType.COLDCARD_NFC, name = "TAPSIGNER", derivationPath = "", fingerPrint = "123456"),
+                signer = SignerModel(
+                    id = "123",
+                    type = SignerType.COLDCARD_NFC,
+                    name = "TAPSIGNER",
+                    derivationPath = "",
+                    fingerPrint = "123456"
+                ),
                 verifyType = VerifyType.NONE
             ),
             AddKeyData(

@@ -46,7 +46,7 @@ class MembershipRepositoryImpl @Inject constructor(
     private val gson: Gson,
     private val ncDataStore: NcDataStore,
     private val ncSharePreferences: NCSharePreferences,
-    private val applicationScope: CoroutineScope,
+    applicationScope: CoroutineScope,
 ) : MembershipRepository {
     private val chain = ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
     override fun getSteps(plan: MembershipPlan): Flow<List<MembershipStepInfo>> {
@@ -76,6 +76,10 @@ class MembershipRepositoryImpl @Inject constructor(
         membershipStepDao.deleteByMasterSignerId(accountManager.getAccount().chatId, chain.value, masterSignerId)
     }
 
+    override suspend fun deleteStepByChatId(step: MembershipStep) {
+        membershipStepDao.deleteStepByChatId(chain = chain.value, chatId = accountManager.getAccount().chatId, step)
+    }
+
     override suspend fun getSubscription(): MemberSubscription {
         val chain = gson.fromJson(
             ncSharePreferences.appSettings,
@@ -103,20 +107,21 @@ class MembershipRepositoryImpl @Inject constructor(
     }
 
     override suspend fun restart(plan: MembershipPlan) {
-        val steps = getSteps(plan).first()
+        val steps = getSteps(plan).firstOrNull().orEmpty()
         steps.filter { it.masterSignerId.isNotEmpty() }.forEach {
-            runCatching { gson.fromJson(it.extraData, SignerExtra::class.java) }
-                .getOrNull()
-                ?.takeIf { extra -> extra.isAddNew }
-                ?.let { extra ->
-                    if (extra.signerType == SignerType.NFC) {
-                        nativeSdk.deleteMasterSigner(it.masterSignerId)
-                    } else {
-                        nativeSdk.deleteRemoteSigner(it.masterSignerId, extra.derivationPath)
+            runCatching {
+               gson.fromJson(it.extraData, SignerExtra::class.java)
+                    ?.takeIf { extra -> extra.isAddNew }
+                    ?.let { extra ->
+                        if (extra.signerType == SignerType.NFC) {
+                            nativeSdk.deleteMasterSigner(it.masterSignerId)
+                        } else {
+                            nativeSdk.deleteRemoteSigner(it.masterSignerId, extra.derivationPath)
+                        }
                     }
-                }
+            }
         }
-        membershipStepDao.deleteStepByEmail(chain.value, accountManager.getAccount().chatId)
+        membershipStepDao.deleteStepByChatId(chain.value, accountManager.getAccount().chatId)
     }
 
     override fun getLocalCurrentPlan(): Flow<MembershipPlan> = ncDataStore.membershipPlan
@@ -125,9 +130,11 @@ class MembershipRepositoryImpl @Inject constructor(
     override fun isSetupInheritance(): Flow<Boolean> = ncDataStore.isSetupInheritance
 
     override fun isRegisterColdcard(): Flow<Boolean> = ncDataStore.isRegisterColdCard
+    override fun isHideUpsellBanner(): Flow<Boolean> = ncDataStore.isHideUpsellBanner
 
     override suspend fun setRegisterAirgap(value: Boolean) = ncDataStore.setRegisterAirgap(value)
     override suspend fun setSetupInheritance(value: Boolean) = ncDataStore.setSetupInheritance(value)
 
     override suspend fun setRegisterColdcard(value: Boolean) = ncDataStore.setRegisterColdcard(value)
+    override suspend fun setHideUpsellBanner() = ncDataStore.setHideUpsellBanner()
 }

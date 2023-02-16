@@ -19,12 +19,15 @@
 
 package com.nunchuk.android.notifications
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.google.android.gms.common.ConnectionResult
@@ -46,9 +49,12 @@ class PushNotificationHelper @Inject constructor(
         preferences.fcmToken = token
     }
 
-    fun retrieveFcmToken(isNotificationEnabled: Boolean, onTokenRetrieved: (String) -> Unit = {}, onServiceNotAvailable: () -> Unit) {
-        if (checkPlayServices()) {
-            try {
+    fun retrieveFcmToken(
+        isNotificationEnabled: Boolean,
+        onTokenRetrieved: (String) -> Unit = {},
+    ) {
+        try {
+            if (checkPlayServices()) {
                 FirebaseMessaging.getInstance().token
                     .addOnSuccessListener { token ->
                         storeFcmToken(token)
@@ -57,11 +63,9 @@ class PushNotificationHelper @Inject constructor(
                         }
                     }
                     .addOnFailureListener(CrashlyticsReporter::recordException)
-            } catch (e: Throwable) {
-                CrashlyticsReporter.recordException(e)
             }
-        } else {
-            onServiceNotAvailable()
+        } catch (e: Throwable) {
+            CrashlyticsReporter.recordException(e)
         }
     }
 
@@ -85,13 +89,26 @@ fun Context.showNotification(data: PushNotificationData) {
     val notificationManager = NotificationManagerCompat.from(applicationContext)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         builder.priority = NotificationManager.IMPORTANCE_HIGH
-        notificationManager.createNotificationChannel(NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH))
+        notificationManager.createNotificationChannel(
+            NotificationChannel(
+                CHANNEL_ID,
+                CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_HIGH
+            )
+        )
         builder.setChannelId(CHANNEL_ID)
     }
 
     val requestCode = (System.currentTimeMillis() % 10000).toInt()
-    val resultPendingIntent = PendingIntent.getActivity(this, requestCode, data.intent, PendingIntent.FLAG_IMMUTABLE)
+    val resultPendingIntent =
+        PendingIntent.getActivity(this, requestCode, data.intent, PendingIntent.FLAG_IMMUTABLE)
     builder.setContentIntent(resultPendingIntent)
 
-    notificationManager.notify(0, builder.build())
+    if (ActivityCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+    ) {
+        notificationManager.notify(0, builder.build())
+    }
 }

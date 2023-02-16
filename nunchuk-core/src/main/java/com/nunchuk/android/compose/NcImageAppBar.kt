@@ -43,6 +43,7 @@ import com.nunchuk.android.core.R
 fun NcImageAppBar(
     modifier: Modifier = Modifier,
     @DrawableRes backgroundRes: Int,
+    @DrawableRes backIconRes: Int = R.drawable.ic_back,
     onClosedClicked: (() -> Unit)? = null,
     title: String? = null,
     actions: @Composable RowScope.() -> Unit = {
@@ -74,7 +75,7 @@ fun NcImageAppBar(
             ) {
                 IconButton(onClick = onClick) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_back),
+                        painter = painterResource(id = backIconRes),
                         contentDescription = "Back Icon"
                     )
                 }

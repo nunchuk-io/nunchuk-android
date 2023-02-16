@@ -26,7 +26,8 @@ import com.nunchuk.android.model.Wallet
 data class ChatInfoState(
     val contact: Contact? = null,
     val roomWallet: RoomWallet? = null,
-    val wallet: Wallet? = null
+    val wallet: Wallet? = null,
+    val isSupportRoom: Boolean = false,
 )
 
 sealed class ChatInfoEvent {

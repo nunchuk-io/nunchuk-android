@@ -48,7 +48,6 @@ class WalletIntermediaryActivity : BaseNfcActivity<ActivityWalletIntermediaryBin
     }
     companion object {
         const val REQUEST_CODE = 1111
-        const val REQUEST_PERMISSION_CAMERA = 1112
 
         const val EXTRA_HAS_SIGNER = "EXTRA_HAS_SIGNER"
         fun start(activityContext: Context, hasSigner: Boolean) {

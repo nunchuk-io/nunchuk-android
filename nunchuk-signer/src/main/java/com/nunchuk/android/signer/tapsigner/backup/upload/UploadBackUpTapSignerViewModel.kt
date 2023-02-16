@@ -22,7 +22,7 @@ package com.nunchuk.android.signer.tapsigner.backup.upload
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
+import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.KeyUpload
 import com.nunchuk.android.model.MembershipStep
@@ -40,7 +40,7 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
     private val uploadBackupFileKeyUseCase: UploadBackupFileKeyUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val getMasterSignerUseCase: GetMasterSignerUseCase,
-    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
+    private val cardIdManager: CardIdManager,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val args = UploadBackUpTapSignerFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -59,14 +59,13 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
     fun upload() {
         viewModelScope.launch {
             val result = getMasterSignerUseCase(args.masterSignerId)
-            val status = getTapSignerStatusByIdUseCase(args.masterSignerId)
             uploadBackupFileKeyUseCase(
                 UploadBackupFileKeyUseCase.Param(
-                    step = membershipStepManager.currentStep ?: MembershipStep.ADD_TAP_SIGNER_1,
+                    step = membershipStepManager.currentStep ?: MembershipStep.IRON_ADD_HARDWARE_KEY_1,
                     keyName = result.getOrNull()?.name.orEmpty(),
                     keyType = SignerType.NFC.name,
                     xfp = args.masterSignerId,
-                    cardId = status.getOrNull()?.ident.orEmpty(),
+                    cardId = cardIdManager.getCardId(args.masterSignerId),
                     filePath = args.filePath,
                     isAddNewKey = isAddNewKey,
                     plan = membershipStepManager.plan

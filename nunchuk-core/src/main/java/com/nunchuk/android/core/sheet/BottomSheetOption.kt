@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.core.sheet
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -30,18 +29,6 @@ import com.nunchuk.android.core.databinding.FragmentSheetOptionBinding
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 
 class BottomSheetOption : BaseBottomSheet<FragmentSheetOptionBinding>() {
-    private lateinit var listener: BottomSheetOptionListener
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        listener = if (parentFragment is BottomSheetOptionListener) {
-            parentFragment as BottomSheetOptionListener
-        } else if (context is BottomSheetOptionListener) {
-            context
-        } else {
-            throw IllegalArgumentException("Activity or parent fragment should implement BottomSheetOptionListener")
-        }
-    }
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -57,7 +44,12 @@ class BottomSheetOption : BaseBottomSheet<FragmentSheetOptionBinding>() {
         binding.title.isVisible = title.isNotEmpty()
         val options = requireArguments().getParcelableArrayList<SheetOption>(EXTRA_OPTIONS).orEmpty()
         binding.recyclerView.adapter = SheetOptionAdapter(options) {
-            listener.onOptionClicked(it)
+            if (parentFragment is BottomSheetOptionListener) {
+                (parentFragment as BottomSheetOptionListener).onOptionClicked(it)
+            }
+            if (requireActivity() is BottomSheetOptionListener) {
+                (requireActivity() as BottomSheetOptionListener).onOptionClicked(it)
+            }
             dismissAllowingStateLoss()
         }
         binding.ivClose.isVisible = requireArguments().getBoolean(EXTRA_SHOW_CLOSE_ICON, false)

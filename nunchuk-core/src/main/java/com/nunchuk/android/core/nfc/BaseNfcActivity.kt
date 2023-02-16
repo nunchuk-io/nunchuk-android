@@ -108,6 +108,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>(),
                         NfcState.WrongCvc -> handleWrongCvc()
                         NfcState.LimitCvcInput -> handleLimitCvcInput()
                     }
+                    nfcViewModel.clearEvent()
                 }
             }
         }
@@ -119,7 +120,6 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>(),
                 errorMessage = getString(R.string.nc_incorrect_cvc_please_try_again),
                 descMessage = getString(R.string.nc_cvc_incorrect_3_times)
             )
-            nfcViewModel.clearEvent()
         } else {
             NCInfoDialog(this).showDialog(message = getString(R.string.nc_cvc_incorrect_3_times))
         }
@@ -128,7 +128,6 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>(),
     private fun handleWrongCvc() {
         if (shouldShowInputCvcFirst(requestCode)) {
             showInputCvcDialog(errorMessage = getString(R.string.nc_incorrect_cvc_please_try_again))
-            nfcViewModel.clearEvent()
         }
     }
 

@@ -27,16 +27,16 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.databinding.ActivityDynamicQrBinding
-import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class DynamicQRCodeActivity : AppCompatActivity() {
 
-    private val args: DynamicQRCodeArgs by lazy { DynamicQRCodeArgs.deserializeFrom(intent) }
     private val viewModel: DynamicQRCodeViewModel by viewModels()
 
     private lateinit var bitmaps: List<Bitmap>
@@ -44,6 +44,8 @@ class DynamicQRCodeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDynamicQrBinding
 
     private var index = 0
+
+    private var showQrJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,25 +56,38 @@ class DynamicQRCodeActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupViews()
-        flowObserver(viewModel.getWalletName(args.walletId)) {
-            binding.toolbarTitle.text = it
+        flowObserver(viewModel.state) {
+            binding.toolbarTitle.text = it.name
+            binding.slider.value = it.density.densityToLevel()
+            bitmaps = it.bitmaps
+            showQr()
         }
     }
 
     private fun setupViews() {
-        bitmaps = args.values.mapNotNull(String::convertToQRCode)
         binding.btnDoneScan.setOnClickListener {
             setResult(Activity.RESULT_OK)
             finish()
         }
-        lifecycleScope.launch {
-            repeat(Int.MAX_VALUE) {
-                bindQrCodes()
-                delay(INTERVAL)
-            }
-        }
 
         binding.toolbar.setNavigationOnClickListener { finish() }
+        val densities = listOf(LOW_DENSITY, MEDIUM_DENSITY, HIGH_DENSITY)
+        binding.slider.addOnChangeListener { _, value, fromUser ->
+            if (fromUser) {
+                viewModel.setQrDensity(densities[value.toInt()])
+            }
+        }
+    }
+
+    private fun showQr() {
+        if (bitmaps.isEmpty()) return
+        showQrJob?.cancel()
+        showQrJob = lifecycleScope.launch {
+            repeat(Int.MAX_VALUE) {
+                bindQrCodes()
+                delay(DELAY_DYNAMIC_QR)
+            }
+        }
     }
 
     private fun bindQrCodes() {
@@ -88,10 +103,8 @@ class DynamicQRCodeActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val INTERVAL = 400L
-
-        fun buildIntent(activityContext: Context, walletId: String, values: List<String>) =
-            DynamicQRCodeArgs(walletId, values).buildIntent(
+        fun buildIntent(activityContext: Context, walletId: String) =
+            DynamicQRCodeArgs(walletId).buildIntent(
                 activityContext
             )
     }

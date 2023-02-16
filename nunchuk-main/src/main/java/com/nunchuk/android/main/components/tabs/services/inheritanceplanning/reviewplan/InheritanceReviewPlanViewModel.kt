@@ -26,6 +26,7 @@ import com.nunchuk.android.core.domain.GetAssistedWalletIdFlowUseCase
 import com.nunchuk.android.core.domain.membership.*
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.Period
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.user.SetSetupInheritanceUseCase
@@ -81,7 +82,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
             }
     }
 
-    fun calculateRequiredSignatures(isCreateOrUpdate: Boolean) = viewModelScope.launch {
+    fun calculateRequiredSignatures(isCreateOrUpdateFlow: Boolean) = viewModelScope.launch {
         val stateValue = _state.value
         val walletId = stateValue.walletId ?: return@launch
         _event.emit(InheritanceReviewPlanEvent.Loading(true))
@@ -91,28 +92,31 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                 note = stateValue.note,
                 notificationEmails = stateValue.emails.toList(),
                 notifyToday = stateValue.isNotifyToday,
-                activationTimeMilis = stateValue.activationDate
+                activationTimeMilis = stateValue.activationDate,
+                bufferPeriodId = stateValue.bufferPeriod?.id,
+                isCancelInheritance = isCreateOrUpdateFlow.not()
             )
         )
-        val resultUserData = if (isCreateOrUpdate) {
+        val resultUserData = if (isCreateOrUpdateFlow.not()) {
+            cancelInheritanceUserDataUseCase(CancelInheritanceUserDataUseCase.Param(walletId = walletId))
+        } else {
             getInheritanceUserDataUseCase(
                 GetInheritanceUserDataUseCase.Param(
                     walletId = walletId,
                     note = stateValue.note,
                     notificationEmails = stateValue.emails.toList(),
                     notifyToday = stateValue.isNotifyToday,
-                    activationTimeMilis = stateValue.activationDate
+                    activationTimeMilis = stateValue.activationDate,
+                    bufferPeriodId = stateValue.bufferPeriod?.id
                 )
             )
-        } else {
-            cancelInheritanceUserDataUseCase(CancelInheritanceUserDataUseCase.Param(walletId = walletId))
         }
         val userData = resultUserData.getOrThrow()
         _state.update {
             it.copy(
                 userData = userData,
                 walletId = walletId,
-                isCreateOrUpdateFlow = isCreateOrUpdate
+                isCreateOrUpdateFlow = isCreateOrUpdateFlow
             )
         }
         _event.emit(InheritanceReviewPlanEvent.Loading(false))
@@ -134,7 +138,8 @@ class InheritanceReviewPlanViewModel @Inject constructor(
         _state.update {
             it.copy(
                 activationDate = args.activationDate, note = args.note,
-                isNotifyToday = args.isNotify, emails = args.emails.toList()
+                isNotifyToday = args.isNotify, emails = args.emails.toList(),
+                bufferPeriod = args.bufferPeriod
             )
         }
     }
@@ -149,6 +154,10 @@ class InheritanceReviewPlanViewModel @Inject constructor(
 
     fun updateNotifyPref(isNotify: Boolean, emails: List<String>) = viewModelScope.launch {
         _state.update { it.copy(isNotifyToday = isNotify, emails = emails) }
+    }
+
+    fun updateBufferPeriod(period: Period?) = viewModelScope.launch {
+        _state.update { it.copy(bufferPeriod = period) }
     }
 
     fun handleFlow(
@@ -175,7 +184,8 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                 verifyToken = args.verifyToken,
                 userData = state.userData.orEmpty(),
                 securityQuestionToken = securityQuestionToken,
-                isUpdate = isUpdate
+                isUpdate = isUpdate,
+                plan = membershipStepManager.plan
             )
         )
         _event.emit(InheritanceReviewPlanEvent.Loading(false))

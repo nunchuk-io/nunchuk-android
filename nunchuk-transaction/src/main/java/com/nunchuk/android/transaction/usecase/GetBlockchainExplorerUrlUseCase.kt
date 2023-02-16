@@ -23,27 +23,29 @@ import com.nunchuk.android.core.constants.Constants.GLOBAL_SIGNET_EXPLORER
 import com.nunchuk.android.core.constants.Constants.MAINNET_URL_TEMPLATE
 import com.nunchuk.android.core.constants.Constants.TESTNET_URL_TEMPLATE
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.type.Chain
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface GetBlockchainExplorerUrlUseCase {
-    fun execute(txId: String): Flow<String>
-}
+class GetBlockchainExplorerUrlUseCase @Inject constructor(
+    private val appSettingsUseCase: GetAppSettingUseCase,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+) : UseCase<String, String>(dispatcher) {
 
-internal class GetBlockchainExplorerUrlUseCaseImpl @Inject constructor(
-    private val appSettingsUseCase: GetAppSettingUseCase
-) : GetBlockchainExplorerUrlUseCase {
+    override suspend fun execute(parameters: String): String {
+        val settings = appSettingsUseCase(Unit).getOrThrow()
+        return formatUrl(settings.chain, parameters, settings.signetExplorerHost)
+    }
 
-    override fun execute(txId: String) = appSettingsUseCase.execute().map { formatUrl(it.chain, txId, it.signetExplorerHost) }
-
-    private fun formatUrl(chain: Chain, txId: String, signetExplorerHost: String) = getTemplate(chain, signetExplorerHost) + txId
+    private fun formatUrl(chain: Chain, txId: String, signetExplorerHost: String) =
+        getTemplate(chain, signetExplorerHost) + txId
 
     private fun getTemplate(chain: Chain, signetExplorerHost: String) = when (chain) {
         Chain.MAIN -> MAINNET_URL_TEMPLATE
         Chain.TESTNET -> TESTNET_URL_TEMPLATE
-        Chain.SIGNET -> if(signetExplorerHost.isEmpty()) "$GLOBAL_SIGNET_EXPLORER/tx/" else "$signetExplorerHost/tx/"
+        Chain.SIGNET -> if (signetExplorerHost.isEmpty()) "$GLOBAL_SIGNET_EXPLORER/tx/" else "$signetExplorerHost/tx/"
         else -> ""
     }
 

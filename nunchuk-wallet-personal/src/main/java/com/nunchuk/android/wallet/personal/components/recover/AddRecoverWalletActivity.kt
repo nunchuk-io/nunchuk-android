@@ -25,10 +25,10 @@ import android.os.Bundle
 import android.text.InputFilter.LengthFilter
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.util.DEFAULT_COLDCARD_WALLET_NAME
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
 import com.nunchuk.android.wallet.personal.R
-import com.nunchuk.android.wallet.personal.components.DEFAULT_COLDCARD_WALLET_NAME
 import com.nunchuk.android.wallet.personal.databinding.ActivityAddRecoverWalletBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback

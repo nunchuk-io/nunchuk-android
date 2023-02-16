@@ -60,7 +60,7 @@ internal class GuestModeIntroActivity : BaseActivity<ActivityGuestModeIntroBindi
         when (event) {
             GuestModeEvent.InitSuccessEvent -> handleInitGuestModeNunchukSuccess()
             is GuestModeEvent.InitErrorEvent -> NCToastMessage(this).showError(event.error)
-            is GuestModeEvent.LoadingEvent -> showLoading()
+            is GuestModeEvent.LoadingEvent -> showOrHideLoading(event.loading)
             GuestModeEvent.OpenSignInScreen -> {}
         }
     }

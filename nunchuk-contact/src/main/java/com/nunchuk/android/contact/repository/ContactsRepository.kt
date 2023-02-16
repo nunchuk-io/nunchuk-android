@@ -59,7 +59,7 @@ internal class ContactsRepositoryImpl @Inject constructor(
         deleteOutdated(accountId, oldContactIds)
     }
 
-    private fun storeContacts(accountId: String, contacts: List<UserResponse>) {
+    private suspend fun storeContacts(accountId: String, contacts: List<UserResponse>) {
         if (contacts.isNotEmpty()) {
             contactDao.updateOrInsert(contacts.toEntities(accountId))
         }

@@ -24,11 +24,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.network.UnauthorizedEventBus
 import com.nunchuk.android.core.network.UnauthorizedException
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.widget.NCLoadingDialogCreator
+import com.nunchuk.android.widget.NCToastMessage
+import kotlinx.coroutines.flow.filterIsInstance
 import javax.inject.Inject
 
 abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity() {
@@ -39,6 +45,9 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity() {
     @Inject
     lateinit var accountManager: AccountManager
 
+    @Inject
+    lateinit var pushEventManager: PushEventManager
+
     private val creator: NCLoadingDialogCreator by lazy(LazyThreadSafetyMode.NONE) {
         NCLoadingDialogCreator(this)
     }
@@ -47,7 +56,11 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity() {
 
     abstract fun initializeBinding(): Binding
 
-    fun showLoading(cancelable: Boolean = true, title: String = getString(R.string.nc_please_wait), message: String? = null) {
+    fun showLoading(
+        cancelable: Boolean = true,
+        title: String = getString(R.string.nc_please_wait),
+        message: String? = null
+    ) {
         creator.cancel()
         creator.showDialog(cancelable, title = title, message = message)
     }
@@ -56,16 +69,23 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity() {
         creator.cancel()
     }
 
-    fun showOrHideLoading(loading: Boolean, title: String = getString(R.string.nc_please_wait), message: String? = null) {
+    fun showOrHideLoading(
+        loading: Boolean,
+        title: String = getString(R.string.nc_please_wait),
+        message: String? = null
+    ) {
         if (loading) showLoading(title = title, message = message) else hideLoading()
     }
 
     override fun onResume() {
         super.onResume()
         UnauthorizedEventBus.instance().subscribe {
-            accountManager.clearUserData()
-            navigator.openSignInScreen(this)
-            CrashlyticsReporter.recordException(UnauthorizedException())
+            val loginType = accountManager.loginType()
+            if (loginType == SignInMode.EMAIL.value || loginType == SignInMode.PRIMARY_KEY.value) {
+                accountManager.clearUserData()
+                navigator.openSignInScreen(this)
+                CrashlyticsReporter.recordException(UnauthorizedException())
+            }
         }
     }
 
@@ -79,6 +99,10 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity() {
         binding = initializeBinding()
         setContentView(binding.root)
         overridePendingTransition(R.anim.enter, R.anim.exit)
+
+        flowObserver(pushEventManager.event.filterIsInstance<PushEvent.MessageEvent>()) {
+            if (it.message.isNotEmpty()) NCToastMessage(this@BaseActivity).showError(message = it.message)
+        }
     }
 
     override fun onDestroy() {

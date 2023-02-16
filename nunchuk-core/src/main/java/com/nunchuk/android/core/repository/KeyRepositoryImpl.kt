@@ -97,7 +97,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                 val response = if (result.isSuccess) result.data else null
                 val chatId = accountManager.getAccount().chatId
                 val verifyType =
-                    if (result.error.code == ALREADY_VERIFIED_CODE) VerifyType.APP_VERIFIED else VerifyType.NONE
+                    if (result.error.code == ALREADY_VERIFIED_CODE) VerifyType.SELF_VERIFIED else VerifyType.NONE
                 val info = MembershipStepEntity(
                     chatId = chatId,
                     step = step,

@@ -23,10 +23,11 @@ import android.util.Base64
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.ImportTapsignerMasterSignerContentUseCase
+import com.nunchuk.android.core.domain.membership.GetInheritanceClaimStateUseCase
 import com.nunchuk.android.core.domain.membership.InheritanceClaimDownloadBackupUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.network.NunchukApiException
-import com.nunchuk.android.core.util.countWords
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.lastWord
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.replaceLastWord
@@ -44,6 +45,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
     private val inheritanceClaimDownloadBackupUseCase: InheritanceClaimDownloadBackupUseCase,
     private val importTapsignerMasterSignerContentUseCase: ImportTapsignerMasterSignerContentUseCase,
     private val masterSignerMapper: MasterSignerMapper,
+    private val getInheritanceClaimStateUseCase: GetInheritanceClaimStateUseCase,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<InheritanceClaimInputEvent>()
@@ -81,11 +83,9 @@ class InheritanceClaimInputViewModel @Inject constructor(
                     )
                 )
                 if (resultImport.isSuccess) {
-                    _event.emit(
-                        InheritanceClaimInputEvent.ImportSuccess(
-                            masterSignerMapper(resultImport.getOrThrow()),
-                            magicalPhrase = stateValue.magicalPhrase
-                        )
+                    getStatus(
+                        masterSignerMapper(resultImport.getOrThrow()),
+                        stateValue.magicalPhrase
                     )
                 } else {
                     _event.emit(InheritanceClaimInputEvent.Error(resultImport.exceptionOrNull()?.message.orUnknownError()))
@@ -94,14 +94,36 @@ class InheritanceClaimInputViewModel @Inject constructor(
         } else {
             val exception = result.exceptionOrNull()
             if (exception is NunchukApiException) {
-                if (exception.code == 400) {
-                    _event.emit(InheritanceClaimInputEvent.SubscriptionExpired)
-                } else if (exception.code == 801) {
-                    _event.emit(InheritanceClaimInputEvent.InActivated(result.exceptionOrNull()?.message.orUnknownError()))
+                when (exception.code) {
+                    400 -> _event.emit(InheritanceClaimInputEvent.SubscriptionExpired)
+                    803 -> _event.emit(InheritanceClaimInputEvent.InActivated(result.exceptionOrNull()?.message.orUnknownError()))
+                    else -> _event.emit(InheritanceClaimInputEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
                 }
             } else {
                 _event.emit(InheritanceClaimInputEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
             }
+        }
+    }
+
+    private fun getStatus(signer: SignerModel, magic: String) = viewModelScope.launch {
+        _event.emit(InheritanceClaimInputEvent.Loading(true))
+        val result = getInheritanceClaimStateUseCase(
+            GetInheritanceClaimStateUseCase.Param(
+                signer = signer,
+                magic = magic
+            )
+        )
+        _event.emit(InheritanceClaimInputEvent.Loading(false))
+        if (result.isSuccess) {
+            _event.emit(
+                InheritanceClaimInputEvent.GetInheritanceStatusSuccess(
+                    inheritanceAdditional = result.getOrThrow(),
+                    signer = signer,
+                    magic = magic
+                )
+            )
+        } else {
+            _event.emit(InheritanceClaimInputEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 
@@ -123,7 +145,8 @@ class InheritanceClaimInputViewModel @Inject constructor(
     }
 
     private fun filter(word: String) {
-        val filteredWords = if (word.isNotBlank()) bip39Words.filter { it.startsWith(word) } else emptyList()
+        val filteredWords =
+            if (word.isNotBlank()) bip39Words.filter { it.startsWith(word) } else emptyList()
         _state.update { it.copy(suggestions = filteredWords) }
     }
 

@@ -21,10 +21,8 @@ package com.nunchuk.android.main.components.tabs.services.keyrecovery.intro
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
-import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.usecase.GetMasterSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -38,7 +36,7 @@ import javax.inject.Inject
 class KeyRecoveryIntroViewModel @Inject constructor(
     private val getMasterSignersUseCase: GetMasterSignersUseCase,
     private val masterSignerMapper: MasterSignerMapper,
-    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase
+    private val cardIdManager: CardIdManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(KeyRecoveryIntroState())
@@ -55,7 +53,7 @@ class KeyRecoveryIntroViewModel @Inject constructor(
                 .map { signer ->
                     masterSignerMapper(signer)
                 }.map {
-                    it.copy(cardId = getTapSignerStatusByIdUseCase(it.id).getOrThrow().ident.orEmpty())
+                    it.copy(cardId = cardIdManager.getCardId(signerId = it.id))
                 }.toList()
             _event.emit(KeyRecoveryIntroEvent.GetTapSignerSuccess(signers))
             _state.update {

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_marginTop="@dimen/nc_padding_12"
+    android:layout_height="wrap_content">
+
+    <FrameLayout
+        android:id="@+id/container_media"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/image"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:contentDescription="Image"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:layout_height="300dp" />
+
+        <ImageView
+            android:id="@+id/video_thumb"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:background="@drawable/nc_bg_primary_circle"
+            android:contentDescription="Play Icon"
+            android:src="@drawable/ic_video_thumbnail"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tv_error"
+        style="@style/NCText.Body.Small"
+        android:layout_width="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:gravity="end"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:layout_marginEnd="@dimen/nc_padding_12"
+        android:layout_marginVertical="@dimen/nc_padding_8"
+        android:textColor="@color/nc_red_color"
+        tools:text="File size exceeds 50Mb" />
+
+</LinearLayout>

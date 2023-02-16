@@ -17,42 +17,33 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.util
+package com.nunchuk.android.messages.usecase.media
 
-import android.Manifest.permission.CAMERA
-import android.Manifest.permission.READ_EXTERNAL_STORAGE
-import android.app.Activity
-import android.content.pm.PackageManager.PERMISSION_GRANTED
-import androidx.activity.result.ActivityResultLauncher
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.nunchuk.android.utils.CrashlyticsReporter
+import android.app.Application
+import android.net.Uri
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.messages.components.detail.media.getSelectedMediaFiles
+import com.nunchuk.android.messages.components.detail.media.toContentAttachmentData
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import org.matrix.android.sdk.api.session.room.Room
+import javax.inject.Inject
 
-private const val READ_STORAGE_PERMISSION_REQUEST_CODE = 0x2048
+class SendMediaUseCase @Inject constructor(
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+    private val application: Application,
+) : UseCase<SendMediaUseCase.Data, Unit>(dispatcher) {
 
-fun Activity.isPermissionGranted(permission: String) =
-    ContextCompat.checkSelfPermission(this, permission) == PERMISSION_GRANTED
-
-fun Activity.checkReadExternalPermission(): Boolean {
-    val isGranted = isPermissionGranted(READ_EXTERNAL_STORAGE)
-    if (!isGranted) {
-        requestReadExternalPermission()
+    override suspend fun execute(parameters: Data) {
+        parameters.room.sendService().sendMedias(
+            parameters.content.getSelectedMediaFiles(application).map { content -> content.toContentAttachmentData() },
+            false,
+            emptySet(),
+        )
     }
-    return isGranted
-}
 
-fun Activity.requestReadExternalPermission() = try {
-    ActivityCompat.requestPermissions(
-        this, arrayOf(READ_EXTERNAL_STORAGE), READ_STORAGE_PERMISSION_REQUEST_CODE
+    data class Data(
+        val room: Room,
+        val content: List<Uri>,
     )
-} catch (e: Exception) {
-    CrashlyticsReporter.recordException(e)
-}
-
-fun ActivityResultLauncher<String>.checkCameraPermission(activity: Activity): Boolean {
-    val isGranted = activity.isPermissionGranted(CAMERA)
-    if (!isGranted) {
-        launch(CAMERA)
-    }
-    return isGranted
 }

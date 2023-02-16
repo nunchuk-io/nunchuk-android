@@ -51,6 +51,7 @@ import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
 import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
 import com.nunchuk.android.main.intro.UniversalNfcIntroActivity
 import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
+import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_ACTIVE
 import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_PENDING
 import com.nunchuk.android.messages.util.getMsgType
@@ -77,6 +78,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     lateinit var accountManager: AccountManager
 
     private val walletsViewModel: WalletsViewModel by activityViewModels()
+
+    private val roomViewModel: RoomsViewModel by activityViewModels()
 
     private val contactViewModel: ContactsViewModel by activityViewModels()
 
@@ -124,18 +127,10 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             return@setOnMenuItemClickListener false
         }
         binding.introContainer.setOnDebounceClickListener {
-            val stage = walletsViewModel.getGroupStage()
-            if (stage == MembershipStage.SETUP_INHERITANCE && walletsViewModel.isRegisterWalletDone()) {
-                navigator.openInheritancePlanningScreen(
-                    activityContext = requireContext(),
-                    flowInfo = InheritancePlanFlow.SETUP
-                )
-            } else {
-                navigator.openMembershipActivity(
-                    requireActivity(),
-                    walletsViewModel.getGroupStage()
-                )
-            }
+            navigator.openMembershipActivity(
+                requireActivity(),
+                walletsViewModel.getGroupStage()
+            )
         }
         binding.containerNonSubscriber.setOnDebounceClickListener {
             NonSubscriberActivity.start(requireActivity(), it.tag as String)
@@ -177,12 +172,24 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         walletsViewModel.state.observe(viewLifecycleOwner, ::showWalletState)
         walletsViewModel.event.observe(viewLifecycleOwner, ::handleEvent)
         mainActivityViewModel.event.observe(viewLifecycleOwner, ::handleMainActivityEvent)
+        roomViewModel.state.observe(viewLifecycleOwner) {
+            if (walletsViewModel.isPremiumUser().not()) {
+                it.rooms.forEach { room ->
+                    room.latestPreviewableEvent?.takeIf { event ->
+                        event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_PENDING
+                                || event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_ACTIVE
+                    }?.let {
+                        walletsViewModel.reloadMembership()
+                    }
+                }
+            }
+        }
         if (walletsViewModel.state.value?.isPremiumUser != true) {
             flowObserver(contactViewModel.noticeRoomEvent()) {
                 it.forEach { event ->
                     if ((event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_PENDING || event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_ACTIVE)
                         && walletsViewModel.isPremiumUser().not()) {
-                        walletsViewModel.checkMemberMembership()
+                        walletsViewModel.reloadMembership()
                     }
                 }
             }
@@ -361,13 +368,13 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     state.isCreatedAssistedWallet,
                     state.isSetupInheritance,
                 )
-                else -> showNonSubscriberIntro(state.banner)
+                else -> showNonSubscriberIntro(state.banner, state.isHideUpsellBanner)
             }
         }
     }
 
-    private fun showNonSubscriberIntro(banner: Banner?) {
-        binding.containerNonSubscriber.isVisible = banner != null
+    private fun showNonSubscriberIntro(banner: Banner?, isHideUpsellBanner: Boolean) {
+        binding.containerNonSubscriber.isVisible = banner != null && isHideUpsellBanner.not()
         if (banner != null) {
             binding.containerNonSubscriber.tag = banner.id
             Glide.with(binding.ivNonSubscriber)

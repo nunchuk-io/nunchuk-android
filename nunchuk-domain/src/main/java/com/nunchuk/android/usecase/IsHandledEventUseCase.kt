@@ -17,24 +17,18 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.data.model.membership
+package com.nunchuk.android.usecase
 
-import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.HandledEventRepository
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-data class LockdownPeriodResponse(
-    @SerializedName("periods")
-    val periods: List<Data>? = null
-) {
-    data class Data(
-        @SerializedName("id")
-        val id: String? = null,
-        @SerializedName("interval")
-        val interval: String? = null,
-        @SerializedName("interval_count")
-        val intervalCount: Int? = null,
-        @SerializedName("enabled")
-        val enabled: Boolean? = null,
-        @SerializedName("display_name")
-        val displayName: String? = null,
-    )
+class IsHandledEventUseCase @Inject constructor(
+    private val repository: HandledEventRepository,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher
+) : UseCase<String, Boolean>(ioDispatcher) {
+    override suspend fun execute(parameters: String): Boolean {
+        return repository.isHandled(parameters)
+    }
 }

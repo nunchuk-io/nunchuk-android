@@ -145,8 +145,6 @@ fun RecyclerView.smoothScrollToLastItem() {
     }
 }
 
-const val DELAY = 100L
-
 
 @Suppress("unused")
 fun RecyclerView.isLastItemVisible(): Boolean {

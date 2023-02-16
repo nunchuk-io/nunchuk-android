@@ -26,6 +26,7 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
@@ -78,7 +79,16 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             SheetOptionType.TYPE_EXPORT_AS_QR -> showSubOptionsExportQr()
             SheetOptionType.TYPE_DELETE_WALLET -> handleDeleteWallet()
             SheetOptionType.TYPE_EXPORT_TO_COLD_CARD -> showExportColdcardOptions()
+            SheetOptionType.TYPE_FORCE_REFRESH_WALLET -> showForceRefreshWalletDialog()
         }
+    }
+
+    private fun showForceRefreshWalletDialog() {
+        NCWarningDialog(this).showDialog(title = getString(R.string.nc_confirmation),
+            message = getString(R.string.nc_force_refresh_desc),
+            onYesClick = {
+                viewModel.forceRefreshWallet()
+            })
     }
 
     private fun handleDeleteWallet() {
@@ -123,6 +133,14 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             is WalletConfigEvent.WalletDetailsError -> onGetWalletError(event)
             is WalletConfigEvent.VerifyPasswordSuccess -> openServerKeyDetail(event)
             is WalletConfigEvent.Loading -> showOrHideLoading(event.isLoading)
+            is WalletConfigEvent.Error -> NCToastMessage(this).showError(message = event.message)
+            WalletConfigEvent.ForceRefreshWalletSuccess -> {
+                NcToastManager.scheduleShowMessage(message = getString(R.string.nc_force_refresh_success))
+                setResult(Activity.RESULT_OK, Intent().apply {
+                    putExtra(EXTRA_WALLET_ACTION, WalletConfigAction.FORCE_REFRESH)
+                })
+                finish()
+            }
         }
     }
 
@@ -212,7 +230,16 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     isDeleted = true
                 ),
             )
+        } else {
+            options.add(
+                SheetOption(
+                    SheetOptionType.TYPE_FORCE_REFRESH_WALLET,
+                    R.drawable.ic_cached,
+                    R.string.nc_force_refresh
+                )
+            )
         }
+
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(supportFragmentManager, "BottomSheetOption")
     }
@@ -258,5 +285,5 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 }
 
 enum class WalletConfigAction {
-    DELETE, UPDATE_NAME
+    DELETE, UPDATE_NAME, FORCE_REFRESH
 }

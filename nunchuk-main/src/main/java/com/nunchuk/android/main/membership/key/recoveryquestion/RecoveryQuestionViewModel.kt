@@ -88,18 +88,24 @@ class RecoveryQuestionViewModel @Inject constructor(
         val recoveryList = mutableListOf<RecoveryData>()
         if (args.isRecoveryFlow) {
             val answeredQuestions = questions.filter { it.isAnswer }
-            (0..2).forEach {
-                val question = answeredQuestions[it]
-                recoveryList.add(
-                    RecoveryData(
-                        index = it,
-                        question = SecurityQuestionModel(
-                            id = question.id,
-                            question = question.question
-                        ),
-                        isShowMask = true
+            if (answeredQuestions.size < 3) {
+                (0..2).forEach {
+                    recoveryList.add(RecoveryData(index = it))
+                }
+            } else {
+                (0..2).forEach {
+                    val question = answeredQuestions[it]
+                    recoveryList.add(
+                        RecoveryData(
+                            index = it,
+                            question = SecurityQuestionModel(
+                                id = question.id,
+                                question = question.question
+                            ),
+                            isShowMask = true
+                        )
                     )
-                )
+                }
             }
         } else {
             (0..2).forEach {
@@ -117,10 +123,11 @@ class RecoveryQuestionViewModel @Inject constructor(
         val value = _state.value
         val selectedQuestionSet = hashSetOf<String>()
         value.recoveries.forEach {
-            selectedQuestionSet.add(it.question.id)
+            val question = if (it.question.question.isNullOrBlank().not()) it.question.question else it.question.customQuestion
+            selectedQuestionSet.add(question.orEmpty())
         }
         val questions = value.securityQuestions.filter {
-            selectedQuestionSet.contains(it.id).not()
+            selectedQuestionSet.contains(it.question).not()
         }
         if (questions.isNotEmpty()) {
             _state.update {

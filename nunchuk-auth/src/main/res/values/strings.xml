@@ -35,5 +35,5 @@
     <string name="nc_toolbar_title_new_device">Confirm it was you</string>
     <string name="nc_text_signin_guest_mode">Continue as guest</string>
     <string name="nc_text_signup_primary_key">Create account using Primary Key</string>
-    <string name="nc_text_signin_primary_key">Sign in using Primary Key</string>
+    <string name="nc_text_signin_primary_key">Sign in with Primary Key</string>
 </resources>

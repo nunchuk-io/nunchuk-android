@@ -21,12 +21,17 @@ package com.nunchuk.android.messages.util
 
 import com.nunchuk.android.core.util.gson
 import com.nunchuk.android.messages.components.detail.*
+import com.nunchuk.android.messages.components.detail.MessageType
+import com.nunchuk.android.messages.components.detail.model.RoomMediaSource
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.TransactionExtended
 import com.nunchuk.android.utils.CrashlyticsReporter
-import org.matrix.android.sdk.api.session.events.model.toModel
-import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
+import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
+import org.matrix.android.sdk.api.session.events.model.*
+import org.matrix.android.sdk.api.session.room.model.message.*
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import org.matrix.android.sdk.api.util.MimeTypes
 
 fun List<TimelineEvent>.toMessages(
     chatId: String,
@@ -104,7 +109,55 @@ fun TimelineEvent.toMessage(
                 transaction = transaction.transaction
             )
         }
-        isMessageEvent() -> {
+        root.isImageMessage() -> root.getClearContent().toModel<MessageImageContent>()
+            ?.let { messageImageContent ->
+                NunchukMediaMessage(
+                    sender = senderInfo,
+                    eventId = eventId,
+                    time = time(),
+                    filename = messageImageContent.body,
+                    mimeType = messageImageContent.mimeType,
+                    content = messageImageContent.getFileUrl().orEmpty(),
+                    elementToDecrypt = messageImageContent.encryptedFileInfo?.toElementToDecrypt(),
+                    height = messageImageContent.info?.height,
+                    width = messageImageContent.info?.width,
+                    allowNonMxcUrls = false,
+                    isMine = chatId == senderInfo.userId,
+                    error = root.sendStateError()?.message
+                )
+            }
+        root.isVideoMessage() -> root.getClearContent().toModel<MessageVideoContent>()
+            ?.let { messageVideoContent ->
+                val videoInfo = messageVideoContent.videoInfo
+                NunchukMediaMessage(
+                    sender = senderInfo,
+                    eventId = eventId,
+                    time = time(),
+                    filename = messageVideoContent.body,
+                    mimeType = videoInfo?.mimeType,
+                    content = videoInfo?.getThumbnailUrl().orEmpty(),
+                    elementToDecrypt = videoInfo?.thumbnailFile?.toElementToDecrypt(),
+                    height = videoInfo?.thumbnailInfo?.height,
+                    width = videoInfo?.thumbnailInfo?.width,
+                    allowNonMxcUrls = false,
+                    isMine = chatId == senderInfo.userId,
+                    error = root.sendStateError()?.message
+                )
+            }
+        root.isFileMessage() -> root.getClearContent().toModel<MessageFileContent>()?.let { messageFileContent ->
+            NunchukFileMessage(
+                sender = senderInfo,
+                eventId = eventId,
+                time = time(),
+                filename = messageFileContent.body,
+                mimeType = messageFileContent.mimeType,
+                content = messageFileContent.getFileUrl().orEmpty(),
+                elementToDecrypt = messageFileContent.encryptedFileInfo?.toElementToDecrypt(),
+                isMine = chatId == senderInfo.userId,
+                error = root.sendStateError()?.message
+            )
+        }
+        root.isTextMessage() -> {
             MatrixMessage(
                 sender = senderInfo,
                 content = root.getClearContent().toModel<MessageContent>()?.body.orEmpty(),
@@ -136,5 +189,51 @@ fun TimelineEvent.toMessage(
                 timelineEvent = this
             )
         }
+    }
+}
+
+fun List<TimelineEvent>.toMediaSources(): List<RoomMediaSource> = mapNotNull { it.toMediaSource() }
+
+fun TimelineEvent.toMediaSource(): RoomMediaSource? {
+    return when {
+        root.isImageMessage() -> root.getClearContent().toModel<MessageImageContent>()
+            ?.let { messageImageContent ->
+                if (messageImageContent.mimeType == MimeTypes.Gif) {
+                    RoomMediaSource.AnimatedImage(
+                        eventId = eventId,
+                        allowNonMxcUrls = root.sendState.isSending(),
+                        content = messageImageContent,
+                        error = root.sendStateError()?.message
+                    )
+                } else {
+                    RoomMediaSource.Image(
+                        eventId = eventId,
+                        allowNonMxcUrls = root.sendState.isSending(),
+                        content = messageImageContent,
+                        error = root.sendStateError()?.message
+                    )
+                }
+            }
+        root.isVideoMessage() -> root.getClearContent().toModel<MessageVideoContent>()
+            ?.let { messageVideoContent ->
+                val thumbnail = object : NunchukMedia {
+                    override val filename: String = messageVideoContent.body
+                    override val eventId: String = this@toMediaSource.eventId
+                    override val mimeType: String? =
+                        messageVideoContent.videoInfo?.thumbnailInfo?.mimeType
+                    override val url: String? = messageVideoContent.videoInfo?.getThumbnailUrl()
+                    override val elementToDecrypt: ElementToDecrypt? =
+                        messageVideoContent.videoInfo?.thumbnailFile?.toElementToDecrypt()
+                    override val error: String? = null
+                }
+                RoomMediaSource.Video(
+                    eventId,
+                    allowNonMxcUrls = root.sendState.isSending(),
+                    messageVideoContent,
+                    thumbnail,
+                    error = root.sendStateError()?.message
+                )
+            }
+        else -> null
     }
 }

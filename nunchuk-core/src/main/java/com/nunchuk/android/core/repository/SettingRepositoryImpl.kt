@@ -21,6 +21,7 @@ package com.nunchuk.android.core.repository
 
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.repository.SettingRepository
+import com.nunchuk.android.type.Chain
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -33,8 +34,25 @@ internal class SettingRepositoryImpl @Inject constructor(
     override val isShowNfcUniversal: Flow<Boolean>
         get() = ncDataStore.isShowNfcUniversal
 
+    override val chain: Flow<Chain>
+        get() = ncDataStore.chain
+
+    override val syncRoomSuccess: Flow<Boolean>
+        get() = ncDataStore.syncRoomSuccess
+
+    override val qrDensity: Flow<Int>
+        get() = ncDataStore.qrDensity
+
+    override suspend fun markSyncRoomSuccess() {
+        ncDataStore.markSyncRoomSuccess()
+    }
+
     override suspend fun setSyncEnable(isEnable: Boolean) {
         ncDataStore.setSyncEnable(isEnable)
+    }
+
+    override suspend fun setQrDensity(density: Int) {
+        ncDataStore.setDensity(density)
     }
 
     override suspend fun markIsShowNfcUniversal() {

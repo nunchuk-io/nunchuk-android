@@ -19,44 +19,59 @@
 
 package com.nunchuk.android.settings
 
-import android.Manifest.permission.CAMERA
-import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-import android.app.Activity.RESULT_OK
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.RequiresApi
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
-import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.base.BaseCameraFragment
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.guestmode.isPrimaryKey
+import com.nunchuk.android.core.media.NcMediaManager
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.settings.AccountEvent.SignOutEvent
 import com.nunchuk.android.settings.databinding.FragmentAccountBinding
+import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
-import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
 @AndroidEntryPoint
-internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
+internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
 
     @Inject
     lateinit var signInModeHolder: SignInModeHolder
 
+    @Inject
+    lateinit var ncMediaManager: NcMediaManager
+
     private val viewModel: AccountViewModel by activityViewModels()
+
+    private var currentCaptureUri: Uri? = null
+
+    private val selectPhotoAndVideoLauncher =
+        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) {
+            it ?: return@registerForActivityResult
+            viewModel.uploadPhotoToMaTrix(it)
+        }
+
+    private val takePictureLauncher =
+        registerForActivityResult(ActivityResultContracts.TakePicture()) { isSuccess ->
+            currentCaptureUri?.takeIf { isSuccess }?.let { uri ->
+                viewModel.uploadPhotoToMaTrix(uri)
+            }
+        }
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -65,9 +80,17 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        savedInstanceState?.let {
+            currentCaptureUri = it.parcelable(KEY_CURRENT_PHOTO_PATH)
+        }
         setupViews()
         setupData()
         observeEvent()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putParcelable(KEY_CURRENT_PHOTO_PATH, currentCaptureUri)
+        super.onSaveInstanceState(outState)
     }
 
     private fun observeEvent() {
@@ -133,29 +156,26 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
 
     private fun changeAvatar() {
         val bottomSheet = EditPhotoUserBottomSheet.show(
-            fragmentManager = childFragmentManager
+            fragmentManager = childFragmentManager,
+            viewModel.getCurrentAccountInfo().avatarUrl.isNullOrEmpty().not()
         )
         bottomSheet.listener = {
             when (it) {
                 EditPhotoOption.SelectAlbum -> {
-                    if (isPermissionPhotoGranted()) {
-                        openAlbum()
-                    } else {
-                        requestPermissions(REQUEST_PERMISSION_SELECT_PHOTO_CODE)
-                    }
+                    openAlbum()
                 }
                 EditPhotoOption.TakePhoto -> {
-                    if (isPermissionPhotoGranted()) {
-                        takePhoto()
-                    } else {
-                        requestPermissions(REQUEST_PERMISSION_TAKE_PHOTO_CODE)
-                    }
+                    requestCameraPermissionOrExecuteAction()
                 }
                 EditPhotoOption.RemovePhoto -> {
                     removePhoto()
                 }
             }
         }
+    }
+
+    override fun onCameraPermissionGranted(fromUser: Boolean) {
+        takePhoto()
     }
 
     private fun removePhoto() {
@@ -197,13 +217,8 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
                 )
             }
             is AccountEvent.GetUserProfileGuestEvent -> handleSetupGuestProfile()
-            is AccountEvent.LoadingEvent -> {
-                if (event.loading) {
-                    showLoading()
-                } else {
-                    hideLoading()
-                }
-            }
+            is AccountEvent.LoadingEvent -> showOrHideLoading(event.loading)
+            is AccountEvent.ShowError -> showError(event.message)
         }
     }
 
@@ -228,130 +243,27 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
     }
 
     private fun openAlbum() {
-        pickPhotoWithResult(REQUEST_SELECT_PHOTO_CODE)
+        selectPhotoAndVideoLauncher.launch(
+            PickVisualMediaRequest.Builder()
+                .setMediaType(
+                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                ).build()
+        )
     }
 
     private fun takePhoto() {
-        takePhotoWithResult(REQUEST_TAKE_PHOTO_CODE)
-    }
-
-    // TODO: refactor with registerForActivityResult later
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode != RESULT_OK) {
-            return
-        }
-
-        when (requestCode) {
-            REQUEST_TAKE_PHOTO_CODE -> {
-                val imageBitmap = data?.extras?.get("data") as Bitmap
-                uploadPhotoData(imageBitmap)
-            }
-
-            REQUEST_SELECT_PHOTO_CODE -> {
-                data?.data?.let {
-                    val bitmap = BitmapFactory.decodeStream(
-                        requireActivity().contentResolver.openInputStream(it)
-                    )
-                    uploadPhotoData(bitmap)
-                }
-            }
-            else -> {
-            }
-        }
-    }
-
-    private fun uploadPhotoData(bitmap: Bitmap) {
-        val byteArrayOutputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
-        val byteArray = byteArrayOutputStream.toByteArray()
-        viewModel.uploadPhotoToMaTrix(byteArray)
-    }
-
-    private fun requestPermissions(code: Int) {
-        if (isPermissionPhotoGranted()) {
-            return
-        }
-
-        when (code) {
-            REQUEST_PERMISSION_SELECT_PHOTO_CODE -> requestPermissions(
-                arrayOf(
-                    WRITE_EXTERNAL_STORAGE
-                ), code
+        runCatching {
+            ncMediaManager.createImageFile()
+        }.getOrNull()?.let {
+            val uri: Uri = FileProvider.getUriForFile(
+                requireActivity(),
+                "${requireActivity().packageName}.provider",
+                it
             )
-            REQUEST_PERMISSION_TAKE_PHOTO_CODE -> requestPermissions(
-                arrayOf(
-                    WRITE_EXTERNAL_STORAGE,
-                    CAMERA
-                ), code
-            )
-            else -> {
-            }
+            currentCaptureUri = uri
+            takePictureLauncher.launch(uri)
         }
     }
-
-    // TODO: refactor with registerForActivityResult later
-    @RequiresApi(Build.VERSION_CODES.M)
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_PERMISSION_TAKE_PHOTO_CODE || requestCode == REQUEST_PERMISSION_SELECT_PHOTO_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                handlePermissionGranted(requestCode)
-            } else if (shouldShowRequestPermissionRationale(WRITE_EXTERNAL_STORAGE) || shouldShowRequestPermissionRationale(
-                    CAMERA
-                )
-            ) {
-                showAlertPermissionNotGranted(requestCode)
-            } else {
-                showAlertPermissionDeniedPermanently()
-            }
-        }
-    }
-
-    private fun handlePermissionGranted(permissionCode: Int) {
-        if (permissionCode == REQUEST_PERMISSION_TAKE_PHOTO_CODE) {
-            takePhoto()
-        } else {
-            openAlbum()
-        }
-    }
-
-    private fun showAlertPermissionNotGranted(permissionCode: Int) {
-        requireActivity().showAlertDialog(
-            title = getString(R.string.nc_text_title_permission_denied),
-            message = getString(R.string.nc_text_des_permission_denied),
-            positiveButtonText = getString(android.R.string.ok),
-            negativeButtonText = getString(android.R.string.cancel),
-            positiveClick = {
-                requestPermissions(permissionCode)
-            },
-            negativeClick = {
-            }
-        )
-    }
-
-    private fun showAlertPermissionDeniedPermanently() {
-        requireActivity().showAlertDialog(
-            title = getString(R.string.nc_text_title_permission_denied_permanently),
-            message = getString(R.string.nc_text_des_permission_denied_permanently),
-            positiveButtonText = getString(android.R.string.ok),
-            negativeButtonText = getString(android.R.string.cancel),
-            positiveClick = {
-                requireActivity().startActivityAppSetting()
-            },
-            negativeClick = {
-            }
-        )
-    }
-
-    private fun isPermissionPhotoGranted() =
-        requireActivity().isPermissionGranted(WRITE_EXTERNAL_STORAGE) && requireActivity().isPermissionGranted(
-            CAMERA
-        )
 
     private fun setupViews() {
         binding.premiumBadge.isVisible = viewModel.plan != MembershipPlan.NONE
@@ -394,10 +306,8 @@ internal class AccountFragment : BaseFragment<FragmentAccountBinding>() {
     }
 
     companion object {
-        private const val REQUEST_PERMISSION_TAKE_PHOTO_CODE = 1247
-        private const val REQUEST_PERMISSION_SELECT_PHOTO_CODE = 1248
         private const val REQUEST_TAKE_PHOTO_CODE = 1249
-        private const val REQUEST_SELECT_PHOTO_CODE = 1250
+        private const val KEY_CURRENT_PHOTO_PATH = "_a"
     }
 
 }

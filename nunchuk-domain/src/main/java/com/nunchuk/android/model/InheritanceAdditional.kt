@@ -23,7 +23,17 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-class InheritanceAdditional(
-    val inheritance: Inheritance,
-    val balance: Double
+data class InheritanceAdditional(
+    val inheritance: Inheritance?,
+    val balance: Double,
+    val bufferPeriodCountdown: BufferPeriodCountdown?
+) : Parcelable
+
+@Parcelize
+data class BufferPeriodCountdown(
+    val activationTimeMilis: Long,
+    val bufferInterval: String,
+    val bufferIntervalCount: Int,
+    val remainingCount: Int,
+    val remainingDisplayName: String
 ) : Parcelable

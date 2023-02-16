@@ -11,7 +11,6 @@ apply plugin: 'androidx.navigation.safeargs.kotlin'
 android {
     compileSdkVersion androidConfig.compileSdkVersion
     buildToolsVersion androidConfig.buildToolsVersion
-    ndkVersion '21.0.6113669'
 
     buildFeatures {
         viewBinding true
@@ -70,6 +69,15 @@ android {
             multiDexKeepFile file('multidex-config.txt')
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard.conf'
             signingConfig signingConfigs.release
+
+            firebaseCrashlytics {
+                // Enable processing and uploading of native symbols to Firebase servers.
+                // By default, this is disabled to improve build speeds.
+                // This flag must be enabled to see properly-symbolicated native
+                // stack traces in the Crashlytics dashboard.
+                nativeSymbolUploadEnabled true
+                unstrippedNativeLibsDir file("src/main/obj")
+            }
         }
     }
 
@@ -158,8 +166,6 @@ dependencies {
     implementation platform(playServices.firebaseBom)
     implementation playServices.firebaseCrashlytics
     implementation playServices.firebaseNdkCrashlytics
-    implementation playServices.firebaseAnalytics
-    implementation playServices.firebasePerf
 
     implementation lifecycleDeps.values()
 

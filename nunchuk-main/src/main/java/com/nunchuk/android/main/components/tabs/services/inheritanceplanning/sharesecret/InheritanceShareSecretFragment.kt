@@ -25,6 +25,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -35,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -47,6 +49,7 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
@@ -63,7 +66,7 @@ class InheritanceShareSecretFragment : MembershipFragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                InheritanceShareSecretScreen(viewModel)
+                InheritanceShareSecretScreen(viewModel, args)
             }
         }
     }
@@ -76,7 +79,8 @@ class InheritanceShareSecretFragment : MembershipFragment() {
                     findNavController().navigate(
                         InheritanceShareSecretFragmentDirections.actionInheritanceShareSecretFragmentToInheritanceShareSecretInfoFragment(
                             magicalPhrase = args.magicalPhrase,
-                            type = event.type
+                            type = event.type,
+                            planFlow = args.planFlow
                         )
                     )
                 }
@@ -88,7 +92,8 @@ class InheritanceShareSecretFragment : MembershipFragment() {
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 private fun InheritanceShareSecretScreen(
-    viewModel: InheritanceShareSecretViewModel = viewModel()
+    viewModel: InheritanceShareSecretViewModel = viewModel(),
+    args: InheritanceShareSecretFragmentArgs
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -96,6 +101,7 @@ private fun InheritanceShareSecretScreen(
     InheritanceShareSecretContent(
         remainTime = remainTime,
         options = state.options,
+        planFlow = args.planFlow,
         onOptionClick = viewModel::onOptionClick,
         onContinueClicked = viewModel::onContinueClick
     )
@@ -105,6 +111,7 @@ private fun InheritanceShareSecretScreen(
 private fun InheritanceShareSecretContent(
     remainTime: Int = 0,
     options: List<InheritanceOption> = emptyList(),
+    planFlow: Int = InheritancePlanFlow.NONE,
     onOptionClick: (Int) -> Unit = {},
     onContinueClicked: () -> Unit = {}
 ) = NunchukTheme {
@@ -112,37 +119,44 @@ private fun InheritanceShareSecretContent(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
                 .statusBarsPadding()
                 .navigationBarsPadding(),
         ) {
-            NcTopAppBar(title = stringResource(
-                id = R.string.nc_estimate_remain_time,
-                remainTime
-            ))
-            Text(
-                modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                text = stringResource(R.string.nc_share_your_secrets),
-                style = NunchukTheme.typography.heading
-            )
-            Text(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                text = stringResource(R.string.nc_share_your_secrets_desc),
-                style = NunchukTheme.typography.body,
-            )
-            options.forEach { item ->
-                OptionItem(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                    isSelected = item.isSelected,
-                    desc = stringResource(id = item.desc),
-                    title = stringResource(id = item.title)
-                ) {
-                    onOptionClick(item.type)
+            val title = if (planFlow == InheritancePlanFlow.SETUP) {
+                stringResource(
+                    id = R.string.nc_estimate_remain_time,
+                    remainTime
+                )
+            } else {
+                ""
+            }
+            NcTopAppBar(title = title)
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                item {
+                    Text(
+                        modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
+                        text = stringResource(R.string.nc_share_your_secrets),
+                        style = NunchukTheme.typography.heading
+                    )
+                    Text(
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                        text = stringResource(R.string.nc_share_your_secrets_desc),
+                        style = NunchukTheme.typography.body,
+                    )
+                    options.forEach { item ->
+                        OptionItem(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                            isSelected = item.isSelected,
+                            desc = stringResource(id = item.desc),
+                            title = stringResource(id = item.title)
+                        ) {
+                            onOptionClick(item.type)
+                        }
+                    }
                 }
             }
-            Spacer(modifier = Modifier.weight(1.0f))
             NcPrimaryDarkButton(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -168,7 +182,7 @@ private fun OptionItem(
     Card(
         modifier = modifier, onClick = onClick,
         border = BorderStroke(
-            width = 2.dp, color = Color(0xFFDEDEDE)
+            width = 2.dp, color = if(isSelected) colorResource(id = R.color.nc_primary_color) else Color(0xFFDEDEDE)
         ),
         shape = RoundedCornerShape(12.dp)
     ) {

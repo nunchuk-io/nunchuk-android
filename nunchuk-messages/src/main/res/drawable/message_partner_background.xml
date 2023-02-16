@@ -5,7 +5,6 @@
         android:bottomRightRadius="24dp"
         android:topLeftRadius="0dp"
         android:topRightRadius="24dp" />
-    <solid android:color="@color/nc_white_color" />
     <stroke
         android:width="@dimen/nc_padding_1"
         android:color="#DEDEDE" />

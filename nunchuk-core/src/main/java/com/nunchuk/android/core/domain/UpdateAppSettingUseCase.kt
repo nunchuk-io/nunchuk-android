@@ -22,26 +22,26 @@ package com.nunchuk.android.core.domain
 import com.google.gson.Gson
 import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.core.persistence.NcDataStore
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.AppSettings
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface UpdateAppSettingUseCase {
-    fun execute(appSettings: AppSettings): Flow<AppSettings>
-}
-
-internal class UpdateAppSettingUseCaseImpl @Inject constructor(
+class UpdateAppSettingUseCase @Inject constructor(
     private val ncSharedPreferences: NCSharePreferences,
     private val ncDataStore: NcDataStore,
-    private val gson: Gson
-) : UpdateAppSettingUseCase {
+    private val gson: Gson,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+) : UseCase<AppSettings, AppSettings>(ioDispatcher) {
 
-    override fun execute(appSettings: AppSettings) = flow {
-        ncSharedPreferences.appSettings = gson.toJson(appSettings)
-        ncDataStore.setChain(appSettings.chain)
-        emit(
-            gson.fromJson(ncSharedPreferences.appSettings, AppSettings::class.java) as AppSettings
-        )
+
+    override suspend fun execute(parameters: AppSettings): AppSettings {
+        ncSharedPreferences.appSettings = gson.toJson(parameters)
+        ncDataStore.setChain(parameters.chain)
+        return gson.fromJson(
+            ncSharedPreferences.appSettings,
+            AppSettings::class.java
+        ) as AppSettings
     }
 }

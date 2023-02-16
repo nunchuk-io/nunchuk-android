@@ -17,20 +17,16 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.transaction.di
+package com.nunchuk.android.persistence.entity
 
-import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
-import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCaseImpl
-import dagger.Binds
-import dagger.Module
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import com.nunchuk.android.persistence.TABLE_HANDLED_EVENT
 
-@Module
-@InstallIn(SingletonComponent::class)
-internal interface TransactionDomainModule {
-
-    @Binds
-    fun bindGetBlockchainExplorerUrlUseCase(useCase: GetBlockchainExplorerUrlUseCaseImpl): GetBlockchainExplorerUrlUseCase
-
-}
+@Entity(tableName = TABLE_HANDLED_EVENT)
+data class HandledEventEntity(
+    @PrimaryKey
+    @ColumnInfo(name = "event_id")
+    val eventId: String
+)

@@ -19,11 +19,17 @@
 
 package com.nunchuk.android.repository
 
+import com.nunchuk.android.type.Chain
 import kotlinx.coroutines.flow.Flow
 
 interface SettingRepository {
     val syncEnable: Flow<Boolean>
     val isShowNfcUniversal: Flow<Boolean>
+    val chain: Flow<Chain>
+    val syncRoomSuccess: Flow<Boolean>
+    val qrDensity: Flow<Int>
     suspend fun setSyncEnable(isEnable: Boolean)
+    suspend fun setQrDensity(density: Int)
+    suspend fun markSyncRoomSuccess()
     suspend fun markIsShowNfcUniversal()
 }

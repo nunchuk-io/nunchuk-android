@@ -87,7 +87,7 @@ class InheritanceNoteFragment : MembershipFragment() {
                         findNavController().popBackStack()
                     } else {
                         findNavController().navigate(
-                            InheritanceNoteFragmentDirections.actionInheritanceNoteFragmentToInheritanceNotifyPrefFragment(
+                            InheritanceNoteFragmentDirections.actionInheritanceNoteFragmentToInheritanceBufferPeriodFragment(
                                 activationDate = args.activationDate,
                                 verifyToken = args.verifyToken,
                                 note = event.note,

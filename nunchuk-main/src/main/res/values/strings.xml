@@ -21,9 +21,6 @@
     <string name="nc_continue_setting_your_wallet">Continue setting up your wallet</string>
     <string name="nc_error_co_signing_delay_empty">Please input co-signing delay</string>
     <string name="nc_inheritance_plan_title">Thinking about setting up an inheritance plan?</string>
-    <string name="nc_restart_wizard">Restart wizard</string>
-    <string name="nc_exit_wizard">Exit wizard</string>
-    <string name="nc_resume_wizard_desc">You can resume the wizard anytime from the Wallets tab.</string>
     <string name="nc_inheritance_intro_hint">TAPSIGNER is a wireless NFC smart card that will sign transactions with a simple tap on your phone.</string>
     <string name="nc_tapsigner">TAPSIGNER</string>
     <string name="nc_coldcard">COLDCARD</string>
@@ -41,7 +38,7 @@
     <string name="nc_set_up_inheritance_hint">[B]Beneficiary[/B]: an individual who will inherit your bitcoin.\n\n[B]Trustee[/B]: an individual who will help manage and distribute your bitcoin to the Beneficiary.</string>
     <string name="nc_here_is_plan_magical_phrase">Here is your plan’s Magic Phrase</string>
     <string name="nc_inheritance_key_tip">Inheritance key tip</string>
-    <string name="nc_dummy_transaction_desc">To authorize these changes, two signatures are required. You will be asked to sign a dummy transaction that sends 10,000 sats (%1$s) to your own wallet.\n\n[B]The dummy transaction uses a fake input and does not move any of your real Bitcoins. It will not be broadcast and will immediately removed afterwards.[/B]</string>
+    <string name="nc_dummy_transaction_desc">To authorize these changes, two signatures are required. You will be asked to sign a dummy transaction that sends 10,000 sats (%1$s) to your own wallet.\n\n[B]The dummy transaction uses a fake input and does not move any of your real Bitcoins. It will not be broadcast and will be immediately removed afterwards.[/B]</string>
     <string name="nc_tell_me_more">Tell me more</string>
     <string name="nc_try_on_testnet">Try on testnet</string>
     <string name="nc_try_assisted_wallet_desc">All Bitcoin features work exactly the same on testnet as they would on the real blockchain. See if an assisted wallet is a good fit for you by trying it out on testnet.</string>

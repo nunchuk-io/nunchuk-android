@@ -81,8 +81,8 @@ class CreateWalletViewModel @Inject constructor(
                 .collect { steps ->
                     steps.forEach { stepInfo ->
                         when (stepInfo.step) {
-                            MembershipStep.ADD_TAP_SIGNER_1,
-                            MembershipStep.ADD_TAP_SIGNER_2,
+                            MembershipStep.IRON_ADD_HARDWARE_KEY_1,
+                            MembershipStep.IRON_ADD_HARDWARE_KEY_2,
                             MembershipStep.HONEY_ADD_TAP_SIGNER,
                             MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
                             MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> {

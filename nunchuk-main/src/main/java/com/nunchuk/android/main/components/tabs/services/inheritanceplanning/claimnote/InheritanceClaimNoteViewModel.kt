@@ -35,7 +35,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class InheritanceClaimNoteViewModel @Inject constructor(
-    private val getInheritanceClaimStateUseCase: GetInheritanceClaimStateUseCase,
     private val getWalletsUseCase: GetWalletsUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -49,23 +48,7 @@ class InheritanceClaimNoteViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
-        getStatus()
-    }
-
-    private fun getStatus() = viewModelScope.launch {
-        _event.emit(InheritanceClaimNoteEvent.Loading(true))
-        val result = getInheritanceClaimStateUseCase(
-            GetInheritanceClaimStateUseCase.Param(
-                signer = args.signer,
-                magic = args.magic
-            )
-        )
-        _event.emit(InheritanceClaimNoteEvent.Loading(false))
-        if (result.isSuccess) {
-            _state.update { it.copy(inheritanceAdditional = result.getOrThrow()) }
-        } else {
-            _event.emit(InheritanceClaimNoteEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
-        }
+        _state.update { it.copy(inheritanceAdditional = args.inheritanceAdditional) }
     }
 
     fun onWithdrawClick() = viewModelScope.launch {

@@ -94,12 +94,14 @@ internal class TransactionViewHolder(
                 0,
                 0
             )
-            val broadcastTime = Date(serverTransaction.broadcastTimeInMilis)
-            binding.status.text = context.getString(
-                R.string.nc_broadcast_on,
-                broadcastTime.simpleWeekDayYearFormat(),
-                broadcastTime.formatByHour()
-            )
+            if (serverTransaction.broadcastTimeInMilis > 0L) {
+                val broadcastTime = Date(serverTransaction.broadcastTimeInMilis)
+                binding.status.text = context.getString(
+                    R.string.nc_broadcast_on,
+                    broadcastTime.simpleWeekDayYearFormat(),
+                    broadcastTime.formatByHour()
+                )
+            }
         } else {
             binding.status.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
         }

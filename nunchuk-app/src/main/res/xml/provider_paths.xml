@@ -7,4 +7,5 @@
     <files-path
         name="files"
         path="." />
+    <external-files-path name="images" path="Pictures" />
 </paths>

@@ -36,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -50,6 +51,8 @@ import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.base.BaseComposeBottomSheet
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.toReadableDrawableResId
+import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.type.SignerType
@@ -212,7 +215,7 @@ private fun SignerCard(
         modifier = Modifier.clickable { onSignerSelected(signer) },
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        NcCircleImage(resId = R.drawable.ic_nfc_card)
+        NcCircleImage(resId = signer.type.toReadableDrawableResId())
         Column(
             modifier = Modifier
                 .padding(start = 12.dp)
@@ -231,7 +234,7 @@ private fun SignerCard(
             NcTag(
                 modifier = Modifier
                     .padding(top = 6.dp),
-                label = stringResource(id = R.string.nc_nfc),
+                label = signer.toReadableSignerType(LocalContext.current),
             )
         }
         RadioButton(selected = isSelected, onClick = { onSignerSelected(signer) })

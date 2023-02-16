@@ -40,6 +40,7 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.DeleteWalletUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.UpdateWalletUseCase
+import com.nunchuk.android.usecase.membership.ForceRefreshWalletUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.retrieveInfo
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
@@ -60,6 +61,7 @@ internal class WalletConfigViewModel @Inject constructor(
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
     private val assistedWalletManager: AssistedWalletManager,
     private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
+    private val forceRefreshWalletUseCase: ForceRefreshWalletUseCase,
     getContactsUseCase: GetContactsUseCase,
 ) : NunchukViewModel<WalletConfigState, WalletConfigEvent>() {
 
@@ -198,6 +200,17 @@ internal class WalletConfigViewModel @Inject constructor(
                 key.chatId == account.chatId, signers, contacts.value
             )
         } ?: signers
+    }
+
+    fun forceRefreshWallet() = viewModelScope.launch {
+        setEvent(WalletConfigEvent.Loading(true))
+        val result = forceRefreshWalletUseCase(walletId)
+        setEvent(WalletConfigEvent.Loading(false))
+        if (result.isSuccess) {
+            setEvent(WalletConfigEvent.ForceRefreshWalletSuccess)
+        } else {
+            setEvent(WalletConfigEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+        }
     }
 
     private fun isPrimaryKey(id: String) =

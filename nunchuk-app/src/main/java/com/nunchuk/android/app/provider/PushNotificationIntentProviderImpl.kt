@@ -21,8 +21,10 @@ package com.nunchuk.android.app.provider
 
 import android.content.Context
 import android.content.Intent
+import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.main.MainActivity
-import com.nunchuk.android.messages.components.detail.RoomDetailArgs
+import com.nunchuk.android.messages.components.detail.RoomDetailActivity
+import com.nunchuk.android.messages.components.detail.RoomDetailFragmentArgs
 import com.nunchuk.android.notifications.PushNotificationIntentProvider
 import com.nunchuk.android.transaction.components.details.TransactionDetailsActivity
 import javax.inject.Inject
@@ -31,11 +33,18 @@ class PushNotificationIntentProviderImpl @Inject constructor(
     private val context: Context
 ) : PushNotificationIntentProvider {
 
-    override fun getRoomDetailsIntent(roomId: String) = RoomDetailArgs(roomId).buildIntent(context)
+    override fun getRoomDetailsIntent(roomId: String) = Intent(context, RoomDetailActivity::class.java).apply {
+        putExtras(RoomDetailFragmentArgs(roomId, RoomAction.NONE).toBundle())
+    }
 
     override fun getMainIntent() = MainActivity.createIntent(context)
 
-    override fun getTransactionDetailIntent(walletId: String, txId: String): Intent {
-        return TransactionDetailsActivity.buildIntent(context, walletId = walletId, txId = txId)
+    override fun getTransactionDetailIntent(
+        walletId: String,
+        txId: String,
+        isCancelBroadcast: Boolean,
+        errorMessage: String
+    ): Intent {
+        return TransactionDetailsActivity.buildIntent(context, walletId = walletId, txId = txId, isCancelBroadcast = isCancelBroadcast, errorMessage = errorMessage)
     }
 }

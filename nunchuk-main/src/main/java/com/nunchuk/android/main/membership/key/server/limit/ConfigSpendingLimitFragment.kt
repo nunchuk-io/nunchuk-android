@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -56,6 +57,9 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.core.util.fixAfterDecimal
+import com.nunchuk.android.core.util.formatRoundDecimal
+import com.nunchuk.android.core.util.roundDecimal
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.SpendingCurrencyUnit
 import com.nunchuk.android.model.SpendingTimeUnit
@@ -73,7 +77,7 @@ class ConfigSpendingLimitFragment : MembershipFragment(), BottomSheetOptionListe
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                ConfigSpendingLimitScreen(viewModel, args)
+                ConfigSpendingLimitScreen(viewModel, args, ::handleShowMore)
             }
         }
     }
@@ -140,6 +144,7 @@ class ConfigSpendingLimitFragment : MembershipFragment(), BottomSheetOptionListe
     }
 
     override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
         if (option.type >= OFFSET) {
             val type = SpendingCurrencyUnit.values()[option.type - OFFSET]
             viewModel.setCurrencyUnit(type)
@@ -158,7 +163,8 @@ class ConfigSpendingLimitFragment : MembershipFragment(), BottomSheetOptionListe
 @Composable
 private fun ConfigSpendingLimitScreen(
     viewModel: ConfigSpendingLimitViewModel,
-    args: ConfigSpendingLimitFragmentArgs
+    args: ConfigSpendingLimitFragmentArgs,
+    onMoreClicked: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -169,8 +175,9 @@ private fun ConfigSpendingLimitScreen(
         onShowCurrencyUnitOption = viewModel::showCurrencyUnitOption,
         onShowTimeUnitOption = viewModel::showTimeUnitOption,
         onContinueClicked = viewModel::onContinueClicked,
+        onMoreClicked = onMoreClicked,
         spendingLimit = remember {
-            mutableStateOf(args.keyPolicy?.spendingPolicy?.limit?.toString() ?: "1000")
+            mutableStateOf(args.keyPolicy?.spendingPolicy?.limit?.formatRoundDecimal() ?: "1000")
         },
         isEditMode = args.keyPolicy != null
     )
@@ -181,9 +188,10 @@ private fun ConfigSpendingLimitContent(
     remainTime: Int = 0,
     currencyUnit: SpendingCurrencyUnit = SpendingCurrencyUnit.USD,
     timeUnit: SpendingTimeUnit = SpendingTimeUnit.DAILY,
-    onContinueClicked: (value: Long) -> Unit = {},
+    onContinueClicked: (value: Double) -> Unit = {},
     onShowTimeUnitOption: () -> Unit = {},
     onShowCurrencyUnitOption: () -> Unit = {},
+    onMoreClicked: () -> Unit = {},
     spendingLimit: MutableState<String> = mutableStateOf("5000"),
     isEditMode: Boolean = false,
 ) {
@@ -195,7 +203,22 @@ private fun ConfigSpendingLimitContent(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                NcTopAppBar(if (isEditMode) "" else stringResource(R.string.nc_estimate_remain_time, remainTime))
+                NcTopAppBar(
+                    title = if (isEditMode) "" else stringResource(
+                        R.string.nc_estimate_remain_time,
+                        remainTime
+                    ),
+                    actions = {
+                        if (!isEditMode) {
+                            IconButton(onClick = onMoreClicked) {
+                                Icon(
+                                    painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
+                                    contentDescription = "More icon"
+                                )
+                            }
+                        }
+                    }
+                )
                 Text(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     text = stringResource(R.string.nc_config_cosiging_spending_limit),
@@ -224,7 +247,7 @@ private fun ConfigSpendingLimitContent(
                         title = "",
                         value = spendingLimit.value,
                         onValueChange = {
-                            spendingLimit.value = it.take(15)
+                            spendingLimit.value = it.fixAfterDecimal().take(15)
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
@@ -285,10 +308,16 @@ private fun ConfigSpendingLimitContent(
                         .fillMaxWidth()
                         .padding(16.dp),
                     onClick = {
-                        onContinueClicked(spendingLimit.value.toLongOrNull() ?: 0L)
+                        onContinueClicked(
+                            (spendingLimit.value.toDoubleOrNull() ?: 0.0).roundDecimal()
+                        )
                     },
                 ) {
-                    Text(text = if (isEditMode) stringResource(R.string.nc_update_spending_limit) else stringResource(id = R.string.nc_text_continue))
+                    Text(
+                        text = if (isEditMode) stringResource(R.string.nc_update_spending_limit) else stringResource(
+                            id = R.string.nc_text_continue
+                        )
+                    )
                 }
             }
         }

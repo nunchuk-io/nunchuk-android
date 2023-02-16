@@ -28,6 +28,8 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.*
 
+internal const val TRANSACTION_PAGE_COUNT: Int = 20
+
 internal interface UserWalletsApi {
     @GET("/v1.1/user-wallets/server-keys/{key_id_or_xfp}")
     suspend fun getServerKey(@Path("key_id_or_xfp") keyIdOrXfp: String): Data<CreateServerKeyResponse>
@@ -152,7 +154,7 @@ internal interface UserWalletsApi {
     ): Data<TransactionResponse>
 
     @GET("/v1.1/user-wallets/lockdown/period")
-    suspend fun getLockdownPeriod(): Data<LockdownPeriodResponse>
+    suspend fun getLockdownPeriod(): Data<PeriodResponse>
 
     @POST("/v1.1/user-wallets/lockdown/lock")
     suspend fun lockdownUpdate(
@@ -218,4 +220,13 @@ internal interface UserWalletsApi {
     suspend fun inheritanceCheck(
         @Body payload: InheritanceCheckRequest
     ): Data<InheritanceCheckResponse>
+
+    @GET("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions?limit=${TRANSACTION_PAGE_COUNT}&status=PENDING_SIGNATURES,READY_TO_BROADCAST&type=STANDARD,SCHEDULED,CLAIMING,ROLLOVER")
+    suspend fun getTransactions(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Query("offset") offset: Int
+    ): Data<TransactionsResponse>
+
+    @GET("/v1.1/user-wallets/inheritance/buffer-period")
+    suspend fun getInheritanceBufferPeriod(): Data<PeriodResponse>
 }

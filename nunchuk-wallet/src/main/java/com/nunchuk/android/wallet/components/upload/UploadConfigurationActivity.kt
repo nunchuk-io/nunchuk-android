@@ -48,7 +48,7 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
     }
 
     private fun setupViews() {
-        binding.btnQRCode.setOnDebounceClickListener { sharedViewModel.handleExportWalletQR() }
+        binding.btnQRCode.setOnDebounceClickListener { openDynamicQRScreen(args.walletId) }
         binding.btnUpload.setOnDebounceClickListener { showExportColdcardOptions() }
         binding.btnSkipUpload.setOnDebounceClickListener {
             goToWalletConfigScreen()

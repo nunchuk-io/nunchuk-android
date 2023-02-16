@@ -31,12 +31,9 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.signer.software.components.name.AddSoftwareSignerNameEvent.SignerNameInputCompletedEvent
 import com.nunchuk.android.signer.software.components.name.AddSoftwareSignerNameEvent.SignerNameRequiredEvent
-import com.nunchuk.android.utils.onException
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 
 internal class AddSoftwareSignerNameViewModel @AssistedInject constructor(
@@ -58,10 +55,11 @@ internal class AddSoftwareSignerNameViewModel @AssistedInject constructor(
     }
 
     private fun initNunchuk() = viewModelScope.launch {
-        initNunchukUseCase.execute(accountId = args.username.orUnknownError())
-            .flowOn(Dispatchers.IO)
-            .onException { event(AddSoftwareSignerNameEvent.InitFailure(it.message.orUnknownError())) }
-            .collect {}
+        val result =
+            initNunchukUseCase(InitNunchukUseCase.Param(accountId = args.username.orEmpty()))
+        if (result.isFailure) {
+            setEvent(AddSoftwareSignerNameEvent.InitFailure(result.exceptionOrNull()?.message.orUnknownError()))
+        }
     }
 
     fun updateSignerName(signerName: String) {

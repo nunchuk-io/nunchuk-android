@@ -20,6 +20,7 @@
 package com.nunchuk.android.transaction.components.export
 
 import android.graphics.Bitmap
+import com.nunchuk.android.core.util.HIGH_DENSITY
 
 sealed class ExportTransactionEvent {
     data class ExportToFileSuccess(val filePath: String) : ExportTransactionEvent()
@@ -30,4 +31,5 @@ sealed class ExportTransactionEvent {
 data class ExportTransactionState(
     val qrCodeBitmap: List<Bitmap> = emptyList(),
     val filePath: String = "",
+    val density: Int = HIGH_DENSITY
 )

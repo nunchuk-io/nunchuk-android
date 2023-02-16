@@ -38,11 +38,11 @@ data class AddKeyData(
 val MembershipStep.resId: Int
     get() {
         return when (this) {
-            MembershipStep.ADD_TAP_SIGNER_1 -> R.drawable.ic_nfc_card
-            MembershipStep.ADD_TAP_SIGNER_2 -> R.drawable.ic_nfc_card
             MembershipStep.ADD_SEVER_KEY -> R.drawable.ic_server_key_dark
             MembershipStep.HONEY_ADD_TAP_SIGNER -> R.drawable.ic_nfc_card
-            MembershipStep.HONEY_ADD_HARDWARE_KEY_1 -> R.drawable.ic_hardware_key
+            MembershipStep.IRON_ADD_HARDWARE_KEY_1,
+            MembershipStep.IRON_ADD_HARDWARE_KEY_2,
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> R.drawable.ic_hardware_key
             MembershipStep.SETUP_KEY_RECOVERY,
             MembershipStep.SETUP_INHERITANCE,
@@ -52,8 +52,8 @@ val MembershipStep.resId: Int
 
 fun MembershipStep.getLabel(context: Context): String {
     return when (this) {
-        MembershipStep.ADD_TAP_SIGNER_1 -> "TAPSIGNER"
-        MembershipStep.ADD_TAP_SIGNER_2 -> "TAPSIGNER #2"
+        MembershipStep.IRON_ADD_HARDWARE_KEY_1 -> "Hardware key"
+        MembershipStep.IRON_ADD_HARDWARE_KEY_2 -> "Hardware key #2"
         MembershipStep.ADD_SEVER_KEY -> context.getString(R.string.nc_server_key)
         MembershipStep.HONEY_ADD_TAP_SIGNER -> TAPSIGNER_INHERITANCE_NAME
         MembershipStep.HONEY_ADD_HARDWARE_KEY_1 -> "Hardware key #2"

@@ -25,12 +25,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -70,7 +73,7 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                AddTapSignerIntroScreen(viewModel, membershipStepManager, args.isMembershipFlow)
+                AddTapSignerIntroScreen(viewModel, membershipStepManager, args.isMembershipFlow, ::handleShowMore)
             }
         }
     }
@@ -164,14 +167,16 @@ private fun AddTapSignerIntroScreen(
     viewModel: AddTapSignerIntroViewModel = viewModel(),
     membershipStepManager: MembershipStepManager,
     isMembershipFlow: Boolean,
+    onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
-    AddTapSignerIntroScreenContent(viewModel::onContinueClicked, remainTime, isMembershipFlow)
+    AddTapSignerIntroScreenContent(viewModel::onContinueClicked, onMoreClicked, remainTime, isMembershipFlow)
 }
 
 @Composable
 fun AddTapSignerIntroScreenContent(
     onContinueClicked: () -> Unit = {},
+    onMoreClicked: () -> Unit = {},
     remainTime: Int = 0,
     isMembershipFlow: Boolean = true,
 ) {
@@ -187,7 +192,17 @@ fun AddTapSignerIntroScreenContent(
                     title = if (isMembershipFlow) stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
-                    ) else ""
+                    ) else "",
+                    actions = {
+                        if (isMembershipFlow) {
+                            IconButton(onClick = onMoreClicked) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_more),
+                                    contentDescription = "More icon"
+                                )
+                            }
+                        }
+                    }
                 )
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),

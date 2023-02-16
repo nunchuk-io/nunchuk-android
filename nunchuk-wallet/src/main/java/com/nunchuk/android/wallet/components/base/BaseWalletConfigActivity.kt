@@ -31,7 +31,6 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.util.checkReadExternalPermission
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.wallet.R
@@ -44,18 +43,19 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
     BottomSheetOptionListener {
     protected val sharedViewModel by viewModels<SharedWalletConfigurationViewModel>()
 
-    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        if (it.resultCode == Activity.RESULT_OK) {
-            sharedViewModel.doneScanQr()
+    private val launcher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                sharedViewModel.doneScanQr()
+            }
         }
-    }
 
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
             SheetOptionType.EXPORT_COLDCARD_VIA_NFC -> handleColdcardExportToNfc()
             SheetOptionType.EXPORT_COLDCARD_VIA_FILE -> handleColdcardExportToFile()
-            SheetOptionType.TYPE_EXPORT_KEYSTONE_QR -> sharedViewModel.handleExportWalletQR()
-            SheetOptionType.TYPE_EXPORT_PASSPORT_QR -> sharedViewModel.handleExportPassport()
+            SheetOptionType.TYPE_EXPORT_KEYSTONE_QR,
+            SheetOptionType.TYPE_EXPORT_PASSPORT_QR -> openDynamicQRScreen(sharedViewModel.walletId)
         }
     }
 
@@ -67,6 +67,7 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
     private fun observer() {
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_EXPORT_WALLET_TO_MK4 }) {
             sharedViewModel.handleColdcardExportNfc(Ndef.get(it.tag) ?: return@flowObserver)
+            nfcViewModel.clearScanInfo()
         }
         sharedViewModel.event.observe(this, ::handleSharedEvent)
     }
@@ -75,7 +76,6 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
     protected open fun handleSharedEvent(event: UploadConfigurationEvent) {
         when (event) {
             is UploadConfigurationEvent.ShowError -> showError(event)
-            is UploadConfigurationEvent.OpenDynamicQRScreen -> openDynamicQRScreen(event)
             is UploadConfigurationEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading, true)
             else -> {}
         }
@@ -115,8 +115,8 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
         ).show(supportFragmentManager, "BottomSheetOption")
     }
 
-    private fun openDynamicQRScreen(event: UploadConfigurationEvent.OpenDynamicQRScreen) {
-        navigator.openDynamicQRScreen(this, launcher, event.walletId, event.values)
+    protected fun openDynamicQRScreen(walletId: String) {
+        navigator.openDynamicQRScreen(this, launcher, walletId)
     }
 
     protected fun showError(event: UploadConfigurationEvent.ShowError) {
@@ -128,8 +128,6 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
     }
 
     private fun handleColdcardExportToFile() {
-        if (checkReadExternalPermission()) {
-            sharedViewModel.handleColdcardExportToFile()
-        }
+        sharedViewModel.handleColdcardExportToFile()
     }
 }

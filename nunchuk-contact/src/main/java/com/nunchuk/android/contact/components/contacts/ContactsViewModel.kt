@@ -28,12 +28,17 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.messages.components.list.isServerNotices
 import com.nunchuk.android.messages.util.*
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.ReceiveContact
 import com.nunchuk.android.model.SentContact
 import com.nunchuk.android.share.GetContactsUseCase
+import com.nunchuk.android.usecase.IsHandledEventUseCase
+import com.nunchuk.android.usecase.SaveHandledEventUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
@@ -52,8 +57,10 @@ class ContactsViewModel @Inject constructor(
     private val getReceivedContactsUseCase: GetReceivedContactsUseCase,
     private val sessionHolder: SessionHolder,
     private val pushEventManager: PushEventManager,
+    private val isHandledEventUseCase: IsHandledEventUseCase,
+    private val saveHandledEventUseCase: SaveHandledEventUseCase,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<ContactsState, Unit>() {
-
     override val initialState = ContactsState.empty()
 
     private var timeline: Timeline? = null
@@ -76,10 +83,13 @@ class ContactsViewModel @Inject constructor(
             session.roomService().getRoomSummaries(roomSummaryQueryParams {
                 memberships = Membership.activeMemberships()
             }).find { roomSummary ->
-                roomSummary.hasTag(STATE_ROOM_SERVER_NOTICE)
+                roomSummary.isServerNotices()
             }?.let {
-                session.roomService().getRoom(it.roomId)
-                    ?.let(::retrieveTimelineEvents)
+                viewModelScope.launch(ioDispatcher) {
+                    session.roomService().joinRoom(it.roomId)
+                    session.roomService().getRoom(it.roomId)
+                        ?.let(::retrieveTimelineEvents)
+                }
             }
         }
     }
@@ -132,11 +142,25 @@ class ContactsViewModel @Inject constructor(
             }
     }
 
-    private fun handleTimelineEvents(events: List<TimelineEvent>) {
+    private suspend fun handleTimelineEvents(events: List<TimelineEvent>) {
         events.forEach { event ->
-            if (event.isCosignedEvent() || event.isCosignedAndBroadcastEvent()) {
-                viewModelScope.launch {
-                    pushEventManager.push(PushEvent.CosigningEvent(event.getWalletId(), event.getTransactionId()))
+            if (event.isTransactionHandleErrorMessageEvent() || event.isServerTransactionEvent()) {
+                val result = isHandledEventUseCase.invoke(event.eventId)
+                if (result.getOrDefault(false).not()) {
+                    saveHandledEventUseCase.invoke(event.eventId)
+                    if (event.isTransactionHandleErrorMessageEvent()) {
+                        pushEventManager.push(
+                            PushEvent.MessageEvent(
+                                event.getLastMessageContentSafe().orEmpty()
+                            )
+                        )
+                    }
+                    pushEventManager.push(
+                        PushEvent.ServerTransactionEvent(
+                            event.getWalletId(),
+                            event.getTransactionId()
+                        )
+                    )
                 }
             }
         }
