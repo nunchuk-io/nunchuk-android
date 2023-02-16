@@ -82,4 +82,9 @@ object SheetOptionType {
     const val CHAT_ACTION_SELECT_FILE = 29
 
     const val SET_UP_INHERITANCE = 30
+
+    const val TYPE_ADD_AIRGAP_KEYSTONE = 31
+    const val TYPE_ADD_AIRGAP_JADE = 32
+    const val TYPE_ADD_AIRGAP_PASSPORT = 33
+    const val TYPE_ADD_AIRGAP_SEEDSIGNER = 34
 }

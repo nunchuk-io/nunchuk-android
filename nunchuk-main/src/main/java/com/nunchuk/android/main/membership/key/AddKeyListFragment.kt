@@ -132,7 +132,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             } else {
                 when (data.type) {
                     SignerType.NFC -> openSetupTapSigner()
-                    SignerType.AIRGAP -> openAddAirgap()
+                    SignerType.AIRGAP -> showAirgapOptions()
                     SignerType.COLDCARD_NFC -> showAddColdcardOptions()
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
@@ -161,13 +161,20 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             SignerType.AIRGAP.ordinal -> handleShowKeysOrCreate(
                 viewModel.getAirgap(),
                 SignerType.AIRGAP,
-                ::openAddAirgap
+                ::showAirgapOptions
             )
             SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(requireActivity(), true)
             SheetOptionType.TYPE_ADD_COLDCARD_FILE -> navigator.openSetupMk4(
                 requireActivity(),
                 true,
                 ColdcardAction.RECOVER_KEY
+            )
+            SheetOptionType.TYPE_ADD_AIRGAP_JADE,
+            SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
+            SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
+            SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE -> navigator.openAddAirSignerScreen(
+                activityContext = requireActivity(),
+                isMembershipFlow = true
             )
         }
     }
@@ -189,8 +196,28 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         ).show(childFragmentManager, "BottomSheetOption")
     }
 
-    private fun openAddAirgap() {
-        navigator.openAddAirSignerScreen(requireActivity(), true)
+    private fun showAirgapOptions() {
+        BottomSheetOption.newInstance(
+            title = getString(R.string.nc_what_type_of_airgap_you_have),
+            options = listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
+                    label = getString(R.string.nc_keystone),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_JADE,
+                    label = getString(R.string.nc_blockstream_jade),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
+                    label = getString(R.string.nc_foudation_passport),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
+                    label = getString(R.string.nc_seedsigner),
+                ),
+            )
+        ).show(childFragmentManager, "BottomSheetOption")
     }
 
     private fun observer() {
