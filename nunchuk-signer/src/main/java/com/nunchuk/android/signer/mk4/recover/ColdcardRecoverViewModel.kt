@@ -80,7 +80,7 @@ class ColdcardRecoverViewModel @Inject constructor(
                     ParseJsonSignerUseCase.Params(content, SignerType.COLDCARD_NFC)
                 )
                 if (parseResult.isFailure) {
-                    _event.emit(ColdcardRecoverEvent.ShowError(parseResult.exceptionOrNull()?.message.orUnknownError()))
+                    _event.emit(ColdcardRecoverEvent.ParseFileError)
                     return@launch
                 }
                 val signer = parseResult.getOrThrow().first()
@@ -134,4 +134,5 @@ sealed class ColdcardRecoverEvent {
     object OnContinue : ColdcardRecoverEvent()
     object CreateSignerSuccess : ColdcardRecoverEvent()
     object AddSameKey : ColdcardRecoverEvent()
+    object ParseFileError : ColdcardRecoverEvent()
 }

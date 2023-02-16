@@ -25,5 +25,20 @@ class InheritanceClaimStatusResponse(
     @SerializedName("inheritance")
     val inheritance: InheritanceDto? = null,
     @SerializedName("balance")
-    val balance: Double? = null
+    val balance: Double? = null,
+    @SerializedName("buffer_period_countdown")
+    val bufferPeriodCountdown: BufferPeriodCountdownResponse? = null
+)
+
+class BufferPeriodCountdownResponse(
+    @SerializedName("activation_time_milis")
+    val activationTimeMilis: Long? = null,
+    @SerializedName("buffer_interval")
+    val bufferInterval: String? = null,
+    @SerializedName("buffer_interval_count")
+    val bufferIntervalCount: Int? = null,
+    @SerializedName("remaining_count")
+    val remainingCount: Int? = null,
+    @SerializedName("remaining_display_name")
+    val remainingDisplayName: String? = null
 )

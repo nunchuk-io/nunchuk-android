@@ -61,7 +61,7 @@ class UploadBackUpTapSignerViewModel @Inject constructor(
             val result = getMasterSignerUseCase(args.masterSignerId)
             uploadBackupFileKeyUseCase(
                 UploadBackupFileKeyUseCase.Param(
-                    step = membershipStepManager.currentStep ?: MembershipStep.ADD_TAP_SIGNER_1,
+                    step = membershipStepManager.currentStep ?: MembershipStep.IRON_ADD_HARDWARE_KEY_1,
                     keyName = result.getOrNull()?.name.orEmpty(),
                     keyType = SignerType.NFC.name,
                     xfp = args.masterSignerId,

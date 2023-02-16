@@ -80,9 +80,9 @@ class NCToastMessage(private val activity: Activity) : DefaultLifecycleObserver 
         val paddingVal = activity.resources.getDimension(offset).toInt()
         root.setPadding(paddingVal, paddingVal, paddingVal, paddingVal)
         toast.also {
-            it.setGravity(gravity, 0, 0)
             it.duration = duration
             it.view = root
+            it.setGravity(gravity, 0, 0)
             it.show()
             handler.postDelayed(dismissRunnable, dismissTime)
         }

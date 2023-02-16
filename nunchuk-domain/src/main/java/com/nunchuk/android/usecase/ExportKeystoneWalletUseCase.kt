@@ -27,14 +27,14 @@ import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface ExportKeystoneWalletUseCase {
-    fun execute(walletId: String): Flow<List<String>>
+    fun execute(walletId: String, density: Int): Flow<List<String>>
 }
 
 internal class ExportKeystoneWalletUseCaseImpl @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
 ) : ExportKeystoneWalletUseCase {
 
-    override fun execute(walletId: String) = flow {
-        emit(nativeSdk.exportKeystoneWallet(walletId))
+    override fun execute(walletId: String, density: Int): Flow<List<String>> = flow {
+        emit(nativeSdk.exportKeystoneWallet(walletId, density))
     }.flowOn(Dispatchers.IO)
 }

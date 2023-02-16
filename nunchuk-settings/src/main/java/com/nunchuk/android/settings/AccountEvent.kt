@@ -35,4 +35,6 @@ sealed class AccountEvent {
     object GetUserProfileGuestEvent : AccountEvent()
     data class UploadPhotoSuccessEvent(val matrixUri: String? = null) : AccountEvent()
     data class LoadingEvent(val loading: Boolean = false) : AccountEvent()
+
+    data class ShowError(val message: String? = null) : AccountEvent()
 }

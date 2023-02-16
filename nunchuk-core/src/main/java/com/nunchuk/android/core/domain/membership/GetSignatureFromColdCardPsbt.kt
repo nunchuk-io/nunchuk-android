@@ -32,7 +32,7 @@ class GetSignatureFromColdCardPsbt @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
 ) : UseCase<GetSignatureFromColdCardPsbt.Data, String>(dispatcher) {
     override suspend fun execute(parameters: Data): String {
-        return nativeSdk.getColdcardSignatureFromPsbt(parameters.signer, parameters.records.toTypedArray())
+        return nativeSdk.getColdcardSignatureFromPsbt(parameters.signer, parameters.records.toTypedArray()).orEmpty()
     }
 
     data class Data(val signer: SingleSigner, val records: List<NdefRecord>)

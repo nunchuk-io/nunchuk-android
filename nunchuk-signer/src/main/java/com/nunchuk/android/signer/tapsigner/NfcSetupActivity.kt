@@ -55,6 +55,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             RECOVER_NFC -> R.id.recoverNfcKeyGuideFragment
             VERIFY_TAP_SIGNER -> R.id.tapSignerVerifyBackUpOptionFragment
             CREATE_BACK_UP_KEY -> R.id.tapSignerIdFragment
+            CHANGE_CVC -> R.id.changeNfcCvcFragment
             else -> R.id.addNfcNameFragment
         }
         graph.setStartDestination(startDestinationId)

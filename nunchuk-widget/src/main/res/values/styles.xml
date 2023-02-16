@@ -24,12 +24,7 @@
 
     <style name="NunchukNoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar" />
 
-    <style name="NunchukNoActionBar.Light" parent="NunchukNoActionBar">
-        <item name="colorPrimary">@android:color/transparent</item>
-        <item name="colorPrimaryDark">@android:color/transparent</item>
-        <item name="colorAccent">@color/nc_accent_color</item>
-        <item name="android:windowBackground">@color/nc_white_color</item>
-    </style>
+    <style name="NunchukNoActionBar.Light" parent="NunchukTheme"/>
 
     <style name="NunchukNoActionBar.Dark" parent="NunchukNoActionBar">
         <item name="colorPrimary">@color/nc_primary_color</item>

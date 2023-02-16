@@ -56,6 +56,7 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideNfcLoading
+import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.R
@@ -85,16 +86,19 @@ class TapSignerIdFragment : MembershipFragment() {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle).collect { event ->
                 when (event) {
                     is TapSignerIdEvent.GetTapSignerBackupKeyError -> if (nfcViewModel.handleNfcError(event.e).not()) {
-                        showError(event.e?.message.orUnknownError())
+                        val message = if (event.e is NCNativeException && event.e.message.contains("-6100")) {
+                            getString(R.string.nc_card_id_does_not_match)
+                        } else {
+                            event.e?.message.orUnknownError()
+                        }
+                        showError(message)
                     }
                     is TapSignerIdEvent.GetTapSignerBackupKeyEvent -> handleBackUpKeySuccess(event.filePath)
                     is TapSignerIdEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
                     TapSignerIdEvent.OnContinueClicked -> (requireActivity() as NfcActionListener).startNfcFlow(
                         BaseNfcActivity.REQUEST_NFC_VIEW_BACKUP_KEY
                     )
-                    TapSignerIdEvent.OnAddNewOne -> {
-                        findNavController().navigate(TapSignerIdFragmentDirections.actionTapSignerIdFragmentToAddTapSignerIntroFragment(true))
-                    }
+                    TapSignerIdEvent.OnAddNewOne -> requireActivity().finish()
                 }
             }
         }

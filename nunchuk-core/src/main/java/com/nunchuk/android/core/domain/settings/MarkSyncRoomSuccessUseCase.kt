@@ -17,24 +17,20 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.data.model.membership
+package com.nunchuk.android.core.domain.settings
 
-import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.SettingRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-data class LockdownPeriodResponse(
-    @SerializedName("periods")
-    val periods: List<Data>? = null
-) {
-    data class Data(
-        @SerializedName("id")
-        val id: String? = null,
-        @SerializedName("interval")
-        val interval: String? = null,
-        @SerializedName("interval_count")
-        val intervalCount: Int? = null,
-        @SerializedName("enabled")
-        val enabled: Boolean? = null,
-        @SerializedName("display_name")
-        val displayName: String? = null,
-    )
+class MarkSyncRoomSuccessUseCase @Inject constructor(
+    private val repository: SettingRepository,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher
+) : UseCase<Unit, Unit>(dispatcher) {
+
+    override suspend fun execute(parameters: Unit) {
+        return repository.markSyncRoomSuccess()
+    }
 }

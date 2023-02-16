@@ -127,18 +127,10 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             return@setOnMenuItemClickListener false
         }
         binding.introContainer.setOnDebounceClickListener {
-            val stage = walletsViewModel.getGroupStage()
-            if (stage == MembershipStage.SETUP_INHERITANCE && walletsViewModel.isRegisterWalletDone()) {
-                navigator.openInheritancePlanningScreen(
-                    activityContext = requireContext(),
-                    flowInfo = InheritancePlanFlow.SETUP
-                )
-            } else {
-                navigator.openMembershipActivity(
-                    requireActivity(),
-                    walletsViewModel.getGroupStage()
-                )
-            }
+            navigator.openMembershipActivity(
+                requireActivity(),
+                walletsViewModel.getGroupStage()
+            )
         }
         binding.containerNonSubscriber.setOnDebounceClickListener {
             NonSubscriberActivity.start(requireActivity(), it.tag as String)

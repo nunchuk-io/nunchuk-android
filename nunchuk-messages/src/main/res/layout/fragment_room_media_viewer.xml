@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:id="@+id/container"
     android:layout_height="match_parent">
 
     <androidx.viewpager2.widget.ViewPager2
@@ -18,6 +19,7 @@
         android:paddingTop="@dimen/nc_padding_32"
         android:paddingBottom="@dimen/nc_padding_8"
         android:background="#55000000"
+        android:id="@+id/overlay"
         android:layout_height="wrap_content">
 
         <ImageView
@@ -27,13 +29,23 @@
             android:layout_marginStart="8dp"
             android:layout_marginEnd="16dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="6dp"
-            android:scaleType="centerInside"
+            android:scaleType="center"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_back_white"
+            tools:ignore="MissingPrefix" />
+
+        <ImageView
+            android:id="@+id/iv_download"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_download"
             tools:ignore="MissingPrefix" />
 
         <TextView

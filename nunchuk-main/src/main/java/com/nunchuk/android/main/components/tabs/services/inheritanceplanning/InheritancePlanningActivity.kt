@@ -43,6 +43,8 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
     @Inject
     internal lateinit var membershipStepManager: MembershipStepManager
 
+    val isOpenFromWizard: Boolean by lazy { intent.getBooleanExtra(EXTRA_IS_OPEN_FROM_WIZARD, false) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -76,7 +78,8 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
                     magicalPhrase = inheritance.magic,
                     note = inheritance.note,
                     verifyToken = intent.getStringExtra(EXTRA_VERIFY_TOKEN).orEmpty(),
-                    planFlow = planFlow
+                    planFlow = planFlow,
+                    bufferPeriod = inheritance.bufferPeriod
                 ).toBundle()
             }
             else -> null
@@ -99,18 +102,21 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val EXTRA_INHERITANCE_PLAN_FLOW = "extra_inheritance_plan_flow"
         private const val EXTRA_VERIFY_TOKEN = "extra_verify_token"
         private const val EXTRA_INHERITANCE = "extra_inheritance"
+        private const val EXTRA_IS_OPEN_FROM_WIZARD = "extra_is_open_from_wizard"
 
         fun navigate(
             launcher: ActivityResultLauncher<Intent>?,
             activity: Context,
             verifyToken: String?,
             inheritance: Inheritance?,
-            @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int
+            @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int,
+            isOpenFromWizard: Boolean
         ) {
             val intent = Intent(activity, InheritancePlanningActivity::class.java)
                 .putExtra(EXTRA_INHERITANCE_PLAN_FLOW, flowInfo)
                 .putExtra(EXTRA_VERIFY_TOKEN, verifyToken)
                 .putExtra(EXTRA_INHERITANCE, inheritance)
+                .putExtra(EXTRA_IS_OPEN_FROM_WIZARD, isOpenFromWizard)
             launcher?.launch(intent) ?: activity.startActivity(intent)
         }
     }

@@ -110,7 +110,7 @@
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/tv_error_email"
+        android:id="@+id/tv_error"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
@@ -125,22 +125,6 @@
         tools:visibility="visible" />
 
     <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/tv_error_userName"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_4"
-        android:drawableStart="@drawable/ic_error_outline"
-        android:gravity="start|center_vertical"
-        android:text="@string/nc_user_name_invalid"
-        android:textColor="@color/nc_red_color"
-        android:textSize="@dimen/nc_text_size_14"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@+id/tv_error_email"
-        tools:visibility="visible" />
-
-
-    <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/notify_title"
         style="@style/NCText.Body"
         android:layout_width="wrap_content"
@@ -149,7 +133,7 @@
         android:layout_marginTop="@dimen/nc_padding_26"
         android:text="@string/nc_notify_them_today"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_error_userName" />
+        app:layout_constraintTop_toBottomOf="@+id/tv_error" />
 
     <CheckBox
         android:id="@+id/notify_check"

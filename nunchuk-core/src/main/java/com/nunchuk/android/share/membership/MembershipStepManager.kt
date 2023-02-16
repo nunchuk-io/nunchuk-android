@@ -79,8 +79,8 @@ class MembershipStepManager @Inject constructor(
         synchronized(this) {
             steps.clear()
             if (currentPlan == MembershipPlan.IRON_HAND && currentPlan != assistedWalletPlan) {
-                steps[MembershipStep.ADD_TAP_SIGNER_1] = MembershipStepFlow(totalStep = 8)
-                steps[MembershipStep.ADD_TAP_SIGNER_2] = MembershipStepFlow(totalStep = 8)
+                steps[MembershipStep.IRON_ADD_HARDWARE_KEY_1] = MembershipStepFlow(totalStep = 8)
+                steps[MembershipStep.IRON_ADD_HARDWARE_KEY_2] = MembershipStepFlow(totalStep = 8)
                 steps[MembershipStep.HONEY_ADD_TAP_SIGNER] = MembershipStepFlow(totalStep = 8)
                 steps[MembershipStep.ADD_SEVER_KEY] = MembershipStepFlow(totalStep = 2)
                 steps[MembershipStep.SETUP_KEY_RECOVERY] = MembershipStepFlow(totalStep = 1)
@@ -154,8 +154,8 @@ class MembershipStepManager @Inject constructor(
         val isConfigKeyDone = if (plan == MembershipPlan.IRON_HAND) {
             _stepDone.value.containsAll(
                 listOf(
-                    MembershipStep.ADD_TAP_SIGNER_1,
-                    MembershipStep.ADD_TAP_SIGNER_2,
+                    MembershipStep.IRON_ADD_HARDWARE_KEY_1,
+                    MembershipStep.IRON_ADD_HARDWARE_KEY_2,
                     MembershipStep.ADD_SEVER_KEY
                 )
             )
@@ -228,8 +228,8 @@ class MembershipStepManager @Inject constructor(
             MembershipPlan.IRON_HAND ->
                 step == MembershipStep.CREATE_WALLET
                         || step == MembershipStep.ADD_SEVER_KEY
-                        || step == MembershipStep.ADD_TAP_SIGNER_1
-                        || step == MembershipStep.ADD_TAP_SIGNER_2
+                        || step == MembershipStep.IRON_ADD_HARDWARE_KEY_1
+                        || step == MembershipStep.IRON_ADD_HARDWARE_KEY_2
             MembershipPlan.HONEY_BADGER ->
                 step == MembershipStep.CREATE_WALLET
                         || step == MembershipStep.ADD_SEVER_KEY

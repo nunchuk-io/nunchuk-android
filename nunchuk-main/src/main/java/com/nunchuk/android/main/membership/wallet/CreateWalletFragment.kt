@@ -25,12 +25,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
@@ -62,7 +65,7 @@ class CreateWalletFragment : MembershipFragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                CreateWalletScreen(viewModel, membershipStepManager)
+                CreateWalletScreen(viewModel, ::handleShowMore, membershipStepManager)
             }
         }
     }
@@ -109,22 +112,25 @@ class CreateWalletFragment : MembershipFragment() {
 @Composable
 fun CreateWalletScreen(
     viewModel: CreateWalletViewModel = viewModel(),
+    onMoreClicked: () -> Unit = {},
     membershipStepManager: MembershipStepManager,
 ) {
     val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     CreateWalletScreenContent(
-        viewModel::onContinueClicked,
-        viewModel::updateWalletName,
-        remainTime,
-        state.walletName
+        onContinueClicked = viewModel::onContinueClicked,
+        onMoreClicked = onMoreClicked,
+        onWalletNameTextChange = viewModel::updateWalletName,
+        remainTime = remainTime,
+        walletName = state.walletName
     )
 }
 
 @Composable
 fun CreateWalletScreenContent(
     onContinueClicked: () -> Unit = {},
+    onMoreClicked: () -> Unit = {},
     onWalletNameTextChange: (value: String) -> Unit = {},
     remainTime: Int = 0,
     walletName: String = "",
@@ -137,7 +143,16 @@ fun CreateWalletScreenContent(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainTime))
+                NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainTime),
+                    actions = {
+                            IconButton(onClick = onMoreClicked) {
+                                Icon(
+                                    painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
+                                    contentDescription = "More icon"
+                                )
+                            }
+                        }
+                    )
 
                 Text(
                     modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),

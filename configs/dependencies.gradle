@@ -22,7 +22,7 @@ ext {
     coroutinesVersion = '1.6.4'
 
     // Plugins versions
-    gradleVersion = '7.3.1'
+    gradleVersion = '7.4.1'
     googleServiceVersion = '4.3.10'
     kotlinGradlePluginVersion = '1.7.20'
     kotlinStdlibVersion = '1.7.20'
@@ -31,7 +31,7 @@ ext {
     hiltVersion = "2.44.2"
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.1.55'
+    nativeSdkVersion = '1.1.56'
 
     // Matrix
     matrixSdkVersion = '1.4.27'
@@ -220,7 +220,7 @@ ext {
             'composeUiTool'          : "androidx.compose.ui:ui-tooling:$compose",
             'composeFoundation'      : "androidx.compose.foundation:foundation:$compose",
             'composeMaterial'        : "androidx.compose.material:material:$compose",
-            'composeActivity'        : "androidx.activity:activity-compose:1.5.1",
+            'composeActivity'        : "androidx.activity:activity-compose:1.6.1",
             'composeViewModel'       : "androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1",
             'composeSystemUi'        : "com.google.accompanist:accompanist-systemuicontroller:0.17.0",
             'composeInsets'          : "com.google.accompanist:accompanist-insets:0.25.1",

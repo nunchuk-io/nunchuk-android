@@ -104,14 +104,6 @@ fun Fragment.showOrHideLoading(
     activity?.showOrHideLoading(loading, title, message)
 }
 
-fun Fragment.pickPhotoWithResult(requestCode: Int) {
-    val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-    intent.type = "image/*"
-    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
-    intent.action = Intent.ACTION_GET_CONTENT
-    startActivityForResult(intent, requestCode)
-}
-
 fun Fragment.takePhotoWithResult(requestCode: Int) {
     val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
     startActivityForResult(takePictureIntent, requestCode)

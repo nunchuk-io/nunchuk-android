@@ -43,7 +43,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -53,26 +52,19 @@ import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.sheet.BottomSheetOption
-import com.nunchuk.android.core.sheet.BottomSheetOptionListener
-import com.nunchuk.android.core.sheet.SheetOption
-import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.nav.NunchukNavigator
-import com.nunchuk.android.widget.NCInfoDialog
-import com.nunchuk.android.widget.NCWarningDialog
+import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class AddKeyStepFragment : Fragment(), BottomSheetOptionListener {
+class AddKeyStepFragment : MembershipFragment() {
     private val viewModel by viewModels<AddKeyStepViewModel>()
 
-    @Inject
-    lateinit var nunchukNavigator: NunchukNavigator
-
+    override val isCountdown: Boolean = false
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -92,7 +84,6 @@ class AddKeyStepFragment : Fragment(), BottomSheetOptionListener {
                 AddKeyStepEvent.OpenRecoveryQuestion -> handleOpenRecoveryQuestion()
                 AddKeyStepEvent.OpenCreateWallet -> handleOpenCreateWallet()
                 AddKeyStepEvent.OnMoreClicked -> handleShowMore()
-                AddKeyStepEvent.RestartWizardSuccess -> requireActivity().finish()
                 AddKeyStepEvent.OpenInheritanceSetup -> handleOpenInheritanceSetup()
                 is AddKeyStepEvent.OpenRegisterAirgap -> handleOpenRegisterAirgap(event.walletId)
                 is AddKeyStepEvent.OpenRegisterColdCard -> handleOpenRegisterColdcard(
@@ -122,42 +113,9 @@ class AddKeyStepFragment : Fragment(), BottomSheetOptionListener {
     private fun handleOpenInheritanceSetup() {
         nunchukNavigator.openInheritancePlanningScreen(
             activityContext = requireContext(),
-            flowInfo = InheritancePlanFlow.SETUP
+            flowInfo = InheritancePlanFlow.SETUP,
+            isOpenFromWizard = true
         )
-    }
-
-    private fun handleShowMore() {
-        BottomSheetOption.newInstance(
-            listOf(
-                SheetOption(
-                    type = SheetOptionType.TYPE_RESTART_WIZARD,
-                    label = getString(R.string.nc_restart_wizard)
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_EXIT_WIZARD,
-                    label = getString(R.string.nc_exit_wizard)
-                )
-            )
-        ).show(childFragmentManager, "BottomSheetOption")
-    }
-
-    override fun onOptionClicked(option: SheetOption) {
-        if (option.type == SheetOptionType.TYPE_RESTART_WIZARD) {
-            NCWarningDialog(requireActivity()).showDialog(
-                title = getString(R.string.nc_confirmation),
-                message = getString(R.string.nc_confirm_restart_wizard),
-                onYesClick = {
-                    viewModel.resetWizard()
-                }
-            )
-        } else if (option.type == SheetOptionType.TYPE_EXIT_WIZARD) {
-            NCInfoDialog(requireActivity()).showDialog(
-                message = getString(R.string.nc_resume_wizard_desc),
-                onYesClick = {
-                    requireActivity().finish()
-                }
-            )
-        }
     }
 
     private fun handleOpenCreateWallet() {
@@ -179,13 +137,16 @@ fun AddKeyStepScreen(viewModel: AddKeyStepViewModel = viewModel()) {
     val isConfigKeyDone by viewModel.isConfigKeyDone.collectAsStateWithLifecycle()
     val isSetupRecoverKeyDone by viewModel.isSetupRecoverKeyDone.collectAsStateWithLifecycle()
     val isCreateWalletDone by viewModel.isCreateWalletDone.collectAsStateWithLifecycle()
+    val isRegisterAirgap by viewModel.isRegisterAirgap.collectAsStateWithLifecycle()
+    val isRegisterColdcard by viewModel.isRegisterColdcard.collectAsStateWithLifecycle()
     val isSetupInheritanceDone by viewModel.isSetupInheritanceDone.collectAsStateWithLifecycle()
     val groupRemainTime by viewModel.groupRemainTime.collectAsStateWithLifecycle()
 
     AddKeyStepContent(
         isConfigKeyDone = isConfigKeyDone,
         isSetupRecoverKeyDone = isSetupRecoverKeyDone,
-        isCreateWalletDone = isCreateWalletDone,
+        isCreateWalletDone = isCreateWalletDone && isRegisterAirgap && isRegisterColdcard,
+        isShowMoreOption = isCreateWalletDone.not(),
         isSetupInheritanceDone = isSetupInheritanceDone,
         groupRemainTime = groupRemainTime,
         onMoreClicked = viewModel::onMoreClicked,
@@ -201,6 +162,7 @@ fun AddKeyStepContent(
     isSetupRecoverKeyDone: Boolean = false,
     isCreateWalletDone: Boolean = false,
     isSetupInheritanceDone: Boolean = false,
+    isShowMoreOption: Boolean = false,
     groupRemainTime: IntArray = IntArray(4),
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
@@ -223,16 +185,20 @@ fun AddKeyStepContent(
                 .verticalScroll(rememberScrollState())
                 .navigationBarsPadding(),
         ) {
-            NcImageAppBar(backgroundRes = imageBannerId, actions = {
-                if (isCreateWalletDone.not()) {
-                    IconButton(onClick = onMoreClicked) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_more),
-                            contentDescription = "More icon"
-                        )
+            NcImageAppBar(
+                backgroundRes = imageBannerId,
+                actions = {
+                    if (isShowMoreOption) {
+                        IconButton(onClick = onMoreClicked) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
+                        }
                     }
-                }
-            })
+                },
+                backIconRes = R.drawable.ic_close,
+            )
             StepWithEstTime(
                 1,
                 stringResource(id = R.string.nc_add_your_keys),
@@ -251,7 +217,7 @@ fun AddKeyStepContent(
             }
             StepWithEstTime(
                 2,
-                stringResource(R.string.nc_setup_key_recovery),
+                stringResource(R.string.nc_setup_security_questions),
                 groupRemainTime[1],
                 isSetupRecoverKeyDone,
                 isConfigKeyDone && isSetupRecoverKeyDone.not()

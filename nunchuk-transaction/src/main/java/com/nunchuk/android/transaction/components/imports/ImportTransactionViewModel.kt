@@ -30,7 +30,7 @@ import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent
 import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCase
 import com.nunchuk.android.usecase.ImportPassportTransactionUseCase
 import com.nunchuk.android.usecase.ImportTransactionUseCase
-import com.nunchuk.android.usecase.membership.GetDummyTxFromPsbt
+import com.nunchuk.android.usecase.membership.GetDummyTxFromPsbtByteArrayUseCase
 import com.nunchuk.android.usecase.membership.ParseKeystoneDummyTransaction
 import com.nunchuk.android.usecase.membership.ParsePassportDummyTransaction
 import com.nunchuk.android.utils.onException
@@ -54,7 +54,7 @@ internal class ImportTransactionViewModel @Inject constructor(
     private val importPassportTransactionUseCase: ImportPassportTransactionUseCase,
     private val parseKeystoneDummyTransaction: ParseKeystoneDummyTransaction,
     private val parsePassportDummyTransaction: ParsePassportDummyTransaction,
-    private val getDummyTxFromPsbt: GetDummyTxFromPsbt,
+    private val getDummyTxFromPsbtByteArrayUseCase: GetDummyTxFromPsbtByteArrayUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<Unit, ImportTransactionEvent>() {
 
@@ -72,10 +72,10 @@ internal class ImportTransactionViewModel @Inject constructor(
     fun importTransactionViaFile(filePath: String) {
         viewModelScope.launch {
             if (isDummyFlow) {
-                val psbt = withContext(ioDispatcher) {
-                    File(filePath).readText().trim()
+                val bytes = withContext(ioDispatcher) {
+                    File(filePath).readBytes()
                 }
-                val result = getDummyTxFromPsbt(GetDummyTxFromPsbt.Param(args.walletId, psbt))
+                val result = getDummyTxFromPsbtByteArrayUseCase(GetDummyTxFromPsbtByteArrayUseCase.Param(args.walletId, bytes))
                 if (result.isSuccess) {
                     setEvent(ImportTransactionSuccess(result.getOrThrow()))
                 } else {

@@ -55,8 +55,6 @@ import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
-import java.text.SimpleDateFormat
-import java.util.*
 
 @AndroidEntryPoint
 class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDetailsBinding>(),
@@ -289,8 +287,6 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
             )
             binding.signatureStatus.text = getString(R.string.nc_transaction_enough_signers)
         }
-        binding.confirmTime.text = SimpleDateFormat("MM/dd/yyyy 'at' HH:mm aaa", Locale.US)
-            .format(Date())
         binding.status.bindTransactionStatus(transaction)
         binding.sendingBTC.text = transaction.totalAmount.getBTCAmount()
         binding.signersContainer.isVisible = !transaction.isReceive

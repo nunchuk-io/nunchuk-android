@@ -20,6 +20,7 @@
 package com.nunchuk.android.messages.components.list
 
 import com.nunchuk.android.core.BuildConfig
+import com.nunchuk.android.core.util.SUPPORT_ROOM_USER_ID
 import com.nunchuk.android.messages.util.STATE_NUNCHUK_SYNC
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 
@@ -38,10 +39,13 @@ fun RoomSummary.isDirectChat() = isDirect || getMembersCount() <= DIRECT_CHAT_ME
 
 fun RoomSummary.shouldShow() = BuildConfig.DEBUG || (!isServerNotices() && !isSyncRoom())
 
-fun RoomSummary.isServerNotices() = name == SERVER_NOTICES
+fun RoomSummary.isServerNotices() = otherMemberIds.contains(NOTICE_ROOM_INVITE_ID) || name == SERVER_NOTICES
 
 fun RoomSummary.isSyncRoom() = tags.isNotEmpty() && tags.any { it.name == STATE_NUNCHUK_SYNC }
 
+fun RoomSummary.isSupportRoom() = otherMemberIds.contains(SUPPORT_ROOM_USER_ID)
+
+const val NOTICE_ROOM_INVITE_ID = "@nunchuk-notices:nunchuk.io"
 const val SERVER_NOTICES = "Server Notices"
 
 const val DIRECT_CHAT_MEMBERS_COUNT = 2

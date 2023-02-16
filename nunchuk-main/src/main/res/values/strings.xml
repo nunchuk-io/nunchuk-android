@@ -21,9 +21,6 @@
     <string name="nc_continue_setting_your_wallet">Continue setting up your wallet</string>
     <string name="nc_error_co_signing_delay_empty">Please input co-signing delay</string>
     <string name="nc_inheritance_plan_title">Thinking about setting up an inheritance plan?</string>
-    <string name="nc_restart_wizard">Restart wizard</string>
-    <string name="nc_exit_wizard">Exit wizard</string>
-    <string name="nc_resume_wizard_desc">You can resume the wizard anytime from the Wallets tab.</string>
     <string name="nc_inheritance_intro_hint">TAPSIGNER is a wireless NFC smart card that will sign transactions with a simple tap on your phone.</string>
     <string name="nc_tapsigner">TAPSIGNER</string>
     <string name="nc_coldcard">COLDCARD</string>

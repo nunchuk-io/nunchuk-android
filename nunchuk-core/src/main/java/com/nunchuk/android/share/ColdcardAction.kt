@@ -20,5 +20,5 @@
 package com.nunchuk.android.share
 
 enum class ColdcardAction {
-    CREATE, RECOVER
+    CREATE, RECOVER_KEY, RECOVER_MULTI_SIG_WALLET, RECOVER_SINGLE_SIG_WALLET
 }

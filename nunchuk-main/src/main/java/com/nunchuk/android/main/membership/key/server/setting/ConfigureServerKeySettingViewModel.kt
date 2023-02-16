@@ -69,8 +69,8 @@ class ConfigureServerKeySettingViewModel @Inject constructor(
         val signingDelayInMinute =
             if (state.enableCoSigningSwitched) (state.cosigningTextMinutes.toIntOrNull()
                 ?: 0) else 0
-        val signingDelayInHourFinal = signingDelayInHour + signingDelayInMinute / ONE_MINUTE
-        if (signingDelayInHourFinal !in 0..MAX_DELAY_IN_HOUR) {
+        val signingDelayInMinuteFinal = signingDelayInHour * 60 + signingDelayInMinute
+        if (signingDelayInMinuteFinal > MAX_DELAY_IN_HOUR * 60) {
             _event.emit(ConfigureServerKeySettingEvent.DelaySigningInHourInvalid)
             return@launch
         }

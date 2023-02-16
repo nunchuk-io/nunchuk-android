@@ -1,3 +1,22 @@
+/**************************************************************************
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
+ * Copyright (C) 2022 Nunchuk								              *
+ *                                                                        *
+ * This program is free software; you can redistribute it and/or          *
+ * modify it under the terms of the GNU General Public License            *
+ * as published by the Free Software Foundation; either version 3         *
+ * of the License, or (at your option) any later version.                 *
+ *                                                                        *
+ * This program is distributed in the hope that it will be useful,        *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of         *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          *
+ * GNU General Public License for more details.                           *
+ *                                                                        *
+ * You should have received a copy of the GNU General Public License      *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.  *
+ *                                                                        *
+ **************************************************************************/
+
 package com.nunchuk.android.messages.components.detail.viewer
 
 import android.content.res.Resources
@@ -11,9 +30,10 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
 import com.nunchuk.android.core.di.singletonEntryPoint
 import com.nunchuk.android.messages.R
+import com.nunchuk.android.messages.components.detail.NunchukMedia
 import com.nunchuk.android.messages.components.detail.model.RoomMediaSource
+import com.nunchuk.android.messages.glide.GlideApp
 import com.nunchuk.android.messages.util.LocalFilesHelper
-import org.matrix.android.sdk.api.session.crypto.model.EncryptedFileInfo
 
 abstract class BaseMediaViewHolder(binding: ViewBinding) : ViewHolder(binding.root) {
     protected val sessionHolder = binding.root.context.singletonEntryPoint().sessionHolder()
@@ -24,8 +44,7 @@ abstract class BaseMediaViewHolder(binding: ViewBinding) : ViewHolder(binding.ro
     open fun onRecycled() {}
 
     protected fun buildRequestManager(
-        url: String?,
-        encryptedFileInfo: EncryptedFileInfo? = null,
+        data: NunchukMedia,
         allowNonMxcUrls: Boolean,
         image: ImageView,
     ): RequestBuilder<Drawable> {
@@ -35,12 +54,12 @@ abstract class BaseMediaViewHolder(binding: ViewBinding) : ViewHolder(binding.ro
         circularProgressDrawable.setColorSchemeColors(Color.WHITE)
         circularProgressDrawable.start()
 
-        return if (encryptedFileInfo != null) {
+        return if (data.elementToDecrypt != null) {
             // Encrypted image
-            Glide.with(image).load(url).placeholder(circularProgressDrawable)
+            GlideApp.with(image).load(data).placeholder(circularProgressDrawable)
         } else {
             // Clear image
-            val resolvedUrl = resolveUrl(url, allowNonMxcUrls)
+            val resolvedUrl = resolveUrl(data.url, allowNonMxcUrls)
             Glide.with(image).load(resolvedUrl).placeholder(circularProgressDrawable)
         }
     }
@@ -49,8 +68,8 @@ abstract class BaseMediaViewHolder(binding: ViewBinding) : ViewHolder(binding.ro
         (sessionHolder.getSafeActiveSession()?.contentUrlResolver()?.resolveFullSize(url)
             ?: url?.takeIf {
                 LocalFilesHelper.isLocalFile(
-                    url,
-                    itemView.context
+                    itemView.context,
+                    url
                 ) && allowNonMxcUrls
             })
 

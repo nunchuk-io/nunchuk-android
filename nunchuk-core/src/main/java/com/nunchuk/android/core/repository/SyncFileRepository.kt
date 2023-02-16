@@ -23,7 +23,6 @@ import com.nunchuk.android.core.data.model.SyncFileModel
 import com.nunchuk.android.core.data.model.toEntity
 import com.nunchuk.android.core.data.model.toModel
 import com.nunchuk.android.persistence.dao.SyncFileDao
-import com.nunchuk.android.persistence.updateOrInsert
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -31,10 +30,9 @@ import javax.inject.Inject
 interface SyncFileRepository {
 
     fun getSyncFiles(userId: String): Flow<List<SyncFileModel>>
-    fun createOrUpdateSyncFile(model: SyncFileModel)
     fun deleteSyncFile(model: SyncFileModel)
-    fun createSyncFile(model: SyncFileModel)
-    fun updateSyncFile(model: SyncFileModel)
+    suspend fun createSyncFile(model: SyncFileModel)
+    suspend fun updateSyncFile(model: SyncFileModel)
 }
 
 internal class SyncFileRepositoryImpl @Inject constructor(
@@ -44,19 +42,15 @@ internal class SyncFileRepositoryImpl @Inject constructor(
     override fun getSyncFiles(userId: String) =
         syncFileDao.getSyncFiles(userId).map { entities -> entities.map { entity -> entity.toModel() } }
 
-    override fun createOrUpdateSyncFile(model: SyncFileModel) {
-        syncFileDao.updateOrInsert(model.toEntity())
-    }
-
     override fun deleteSyncFile(model: SyncFileModel) {
         syncFileDao.deleteSyncFilesByInfo(listOf(model.fileJsonInfo))
     }
 
-    override fun createSyncFile(model: SyncFileModel) {
+    override suspend fun createSyncFile(model: SyncFileModel) {
         syncFileDao.insert(model.toEntity())
     }
 
-    override fun updateSyncFile(model: SyncFileModel) {
+    override suspend fun updateSyncFile(model: SyncFileModel) {
         syncFileDao.update(model.toEntity())
     }
 }

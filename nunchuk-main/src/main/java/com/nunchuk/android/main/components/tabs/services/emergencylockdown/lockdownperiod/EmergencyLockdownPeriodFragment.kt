@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
@@ -190,7 +191,7 @@ private fun OptionItem(
     Card(
         modifier = modifier, onClick = onClick,
         border = BorderStroke(
-            width = 2.dp, color = Color(0xFFDEDEDE)
+            width = 2.dp, color = if(isSelected) colorResource(id = R.color.nc_primary_color) else Color(0xFFDEDEDE)
         ),
         shape = RoundedCornerShape(12.dp)
     ) {

@@ -42,6 +42,10 @@ fun Activity.setTransparentStatusBar(useDarkTheme: Boolean = true) {
 
 @Suppress("DEPRECATION")
 fun Activity.setLightStatusBar(light: Boolean = true) {
+    window.apply {
+        statusBarColor = Color.WHITE
+        navigationBarColor =  Color.WHITE
+    }
     WindowInsetsControllerCompat(window, window.decorView).apply {
         isAppearanceLightStatusBars = light
         isAppearanceLightNavigationBars = light

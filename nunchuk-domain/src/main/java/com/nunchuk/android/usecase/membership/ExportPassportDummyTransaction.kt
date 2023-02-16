@@ -28,9 +28,11 @@ import javax.inject.Inject
 class ExportPassportDummyTransaction @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
-) : UseCase<String, List<String>>(ioDispatcher) {
+) : UseCase<ExportPassportDummyTransaction.Param, List<String>>(ioDispatcher) {
 
-    override suspend fun execute(parameters: String): List<String> {
-        return nativeSdk.exportPassportDummyTransaction(parameters)
+    override suspend fun execute(parameters: Param): List<String> {
+        return nativeSdk.exportPassportDummyTransaction(parameters.txToSign, parameters.density)
     }
+
+    data class Param(val txToSign: String, val density: Int,)
 }

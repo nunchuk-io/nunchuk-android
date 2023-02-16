@@ -17,12 +17,9 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.model
+package com.nunchuk.android.repository
 
-data class LockdownPeriod(
-    val id: String,
-    val interval: String,
-    val intervalCount: Int,
-    val enabled: Boolean,
-    val displayName: String
-)
+interface HandledEventRepository {
+    suspend fun save(eventId: String)
+    suspend fun isHandled(eventId: String): Boolean
+}

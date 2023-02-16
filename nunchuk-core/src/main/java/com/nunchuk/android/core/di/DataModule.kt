@@ -52,5 +52,9 @@ internal interface DataModule {
 
     @Binds
     @Singleton
-    abstract fun provideKeyRepository(implementation: KeyRepositoryImpl) : KeyRepository
+    fun provideKeyRepository(implementation: KeyRepositoryImpl) : KeyRepository
+
+    @Binds
+    @Singleton
+    fun bindHandledEventRepository(repository: HandledEventRepositoryImpl): HandledEventRepository
 }

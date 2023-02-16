@@ -212,7 +212,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         isTestnet = status.isTestNet,
                         isInheritance = inheritanceTapSigner?.masterSignerId == it.masterSignerId
                     ),
-                    tags = if (inheritanceTapSigner?.masterSignerId == it.masterSignerId) listOf(SignerTag.INHERITANCE.name) else null
+                    tags = if (inheritanceTapSigner?.masterSignerId == it.masterSignerId) listOf(
+                        SignerTag.INHERITANCE.name
+                    ) else null
                 )
             } else {
                 SignerServerDto(
@@ -324,18 +326,20 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             val signers = HashMap<String, SingleSigner>(wallet.signers.size)
             wallet.signers.associateByTo(signers) { it.masterFingerprint }
 
-            walletServer.signerServerDtos.filter { it.tags.isNullOrEmpty().not() }.forEach { serverSigner ->
-                signers[serverSigner.xfp]?.let { localSigner ->
-                    if (localSigner.hasMasterSigner) {
-                        val masterSigner = nunchukNativeSdk.getMasterSigner(localSigner.masterSignerId)
-                        val tags = serverSigner.tags.orEmpty().mapNotNull { it.toSignerTag() }
-                        if (tags.isNotEmpty()) {
-                            masterSigner.tags = tags
-                            nunchukNativeSdk.updateMasterSigner(masterSigner)
+            walletServer.signerServerDtos.filter { it.tags.isNullOrEmpty().not() }
+                .forEach { serverSigner ->
+                    signers[serverSigner.xfp]?.let { localSigner ->
+                        if (localSigner.hasMasterSigner) {
+                            val masterSigner =
+                                nunchukNativeSdk.getMasterSigner(localSigner.masterSignerId)
+                            val tags = serverSigner.tags.orEmpty().mapNotNull { it.toSignerTag() }
+                            if (tags.isNotEmpty()) {
+                                masterSigner.tags = tags
+                                nunchukNativeSdk.updateMasterSigner(masterSigner)
+                            }
                         }
                     }
                 }
-            }
         }
         val planWalletCreated = hashMapOf<String, String>()
         result.data.wallets.forEach { planWalletCreated[it.slug.orEmpty()] = it.localId.orEmpty() }
@@ -452,6 +456,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         notificationEmails: List<String>,
         notifyToday: Boolean,
         activationTimeMilis: Long,
+        bufferPeriodId: String?,
         walletId: String
     ): String {
         val body = CreateUpdateInheritancePlanRequest.Body(
@@ -459,6 +464,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             notifyToday = notifyToday,
             notificationEmails = notificationEmails,
             activationTimeMilis = activationTimeMilis,
+            bufferPeriodId = bufferPeriodId,
             walletId = walletId
         )
         val nonce = getNonce()
@@ -505,10 +511,25 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val signerToken = nunchukNativeSdk.createRequestToken(signature, masterFingerprint)
         headers["$AUTHORIZATION_X-1"] = signerToken
         val request = gson.fromJson(userData, InheritanceClaimStatusRequest::class.java)
-        val response = userWalletApiManager.walletApi.inheritanceClaimingStatus(headers, request)
+        val response =
+            userWalletApiManager.walletApi.inheritanceClaimingStatus(headers, request).data
+
+        val bufferPeriodCountdown = if (response.bufferPeriodCountdown == null) {
+            null
+        } else {
+            BufferPeriodCountdown(
+                activationTimeMilis = response.bufferPeriodCountdown.activationTimeMilis ?: 0,
+                bufferInterval = response.bufferPeriodCountdown.bufferInterval.orEmpty(),
+                bufferIntervalCount = response.bufferPeriodCountdown.bufferIntervalCount ?: 0,
+                remainingCount = response.bufferPeriodCountdown.remainingCount ?: 0,
+                remainingDisplayName = response.bufferPeriodCountdown.remainingDisplayName.orEmpty()
+            )
+        }
+
         return InheritanceAdditional(
-            inheritanceDtoMapper(response.data.inheritance),
-            response.data.balance ?: 0.0
+            inheritance = response.inheritance?.toInheritance(),
+            balance = response.balance ?: 0.0,
+            bufferPeriodCountdown = bufferPeriodCountdown
         )
     }
 
@@ -549,17 +570,28 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         notificationEmails: List<String>,
         notifyToday: Boolean,
         activationTimeMilis: Long,
-        walletId: String
+        walletId: String,
+        bufferPeriodId: String?,
+        isCancelInheritance: Boolean
     ): CalculateRequiredSignatures {
-        val response = userWalletApiManager.walletApi.calculateRequiredSignaturesInheritance(
-            CreateUpdateInheritancePlanRequest.Body(
-                walletId = walletId,
-                note = note,
-                notificationEmails = notificationEmails,
-                notifyToday = notifyToday,
-                activationTimeMilis = activationTimeMilis
+        val response = if (isCancelInheritance) {
+            userWalletApiManager.walletApi.calculateRequiredSignaturesInheritance(
+                CreateUpdateInheritancePlanRequest.Body(
+                    walletId = walletId
+                )
             )
-        )
+        } else {
+            userWalletApiManager.walletApi.calculateRequiredSignaturesInheritance(
+                CreateUpdateInheritancePlanRequest.Body(
+                    walletId = walletId,
+                    note = note,
+                    notificationEmails = notificationEmails,
+                    notifyToday = notifyToday,
+                    activationTimeMilis = activationTimeMilis,
+                    bufferPeriodId = bufferPeriodId
+                )
+            )
+        }
         return CalculateRequiredSignatures(
             type = response.data.result?.type.orEmpty(),
             requiredSignatures = response.data.result?.requiredSignatures ?: 0
@@ -593,7 +625,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 )
             )
         }
-        return inheritanceDtoMapper(response.data.inheritance)
+        if (response.data.inheritance == null) throw NullPointerException("Can not get inheritance")
+        else return response.data.inheritance!!.toInheritance()
     }
 
     override suspend fun cancelInheritance(
@@ -610,7 +643,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
         headers[VERIFY_TOKEN] = verifyToken
         headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
-        userWalletApiManager.walletApi.inheritanceCancel(headers, request)
+        val response = userWalletApiManager.walletApi.inheritanceCancel(headers, request)
+        if (response.isSuccess) {
+            val inheritanceStep = membershipStepDao.getStep(
+                accountManager.getAccount().chatId, chain.value, MembershipStep.SETUP_INHERITANCE
+            )
+            if (inheritanceStep != null) {
+                membershipRepository.deleteStepByChatId(MembershipStep.SETUP_INHERITANCE)
+            }
+        }
     }
 
     override suspend fun inheritanceClaimDownloadBackup(magic: String): BackupKey {
@@ -751,7 +792,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun getInheritance(walletId: String): Inheritance {
         val response = userWalletApiManager.walletApi.getInheritance(walletId)
-        return inheritanceDtoMapper(response.data.inheritance)
+        if (response.data.inheritance == null) throw NullPointerException("Can not get inheritance")
+        else return response.data.inheritance!!.toInheritance()
     }
 
     private fun handleServerTransaction(
@@ -809,15 +851,16 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             ?: throw NullPointerException("transaction from server null")
     }
 
-    override suspend fun getLockdownPeriod(): List<LockdownPeriod> {
+    override suspend fun getLockdownPeriod(): List<Period> {
         val response = userWalletApiManager.walletApi.getLockdownPeriod()
         return response.data.periods?.map {
-            LockdownPeriod(
+            Period(
                 id = it.id.orEmpty(),
                 interval = it.interval.orEmpty(),
                 intervalCount = it.intervalCount.orDefault(0),
                 enabled = it.enabled.orFalse(),
-                displayName = it.displayName.orEmpty()
+                displayName = it.displayName.orEmpty(),
+                isRecommended = false
             )
         }.orEmpty()
     }
@@ -840,6 +883,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getInheritanceBufferPeriod(): List<Period> {
+        val response = userWalletApiManager.walletApi.getInheritanceBufferPeriod()
+        return response.data.periods?.map { it.toPeriod() }.orEmpty()
+    }
+
     private fun updateScheduleTransactionIfNeed(
         walletId: String,
         transactionId: String,
@@ -854,25 +902,34 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    private fun inheritanceDtoMapper(inheritanceDto: InheritanceDto?): Inheritance {
-        inheritanceDto ?: throw NullPointerException("Can not get inheritance")
-        val status = when (inheritanceDto.status) {
+    private fun InheritanceDto.toInheritance(): Inheritance {
+        val status = when (this.status) {
             "ACTIVE" -> InheritanceStatus.ACTIVE
             "CLAIMED" -> InheritanceStatus.CLAIMED
             else -> InheritanceStatus.PENDING_CREATION
         }
         return Inheritance(
-            walletId = inheritanceDto.walletId.orEmpty(),
-            walletLocalId = inheritanceDto.walletLocalId.orEmpty(),
-            magic = inheritanceDto.magic.orEmpty(),
-            note = inheritanceDto.note.orEmpty(),
-            notificationEmails = inheritanceDto.notificationEmails,
+            walletId = walletId.orEmpty(),
+            walletLocalId = walletLocalId.orEmpty(),
+            magic = magic.orEmpty(),
+            note = note.orEmpty(),
+            notificationEmails = notificationEmails.orEmpty(),
             status = status,
-            activationTimeMilis = inheritanceDto.activationTimeMilis,
-            createdTimeMilis = inheritanceDto.createdTimeMilis,
-            lastModifiedTimeMilis = inheritanceDto.lastModifiedTimeMilis,
+            activationTimeMilis = activationTimeMilis ?: 0,
+            createdTimeMilis = createdTimeMilis ?: 0,
+            lastModifiedTimeMilis = lastModifiedTimeMilis ?: 0,
+            bufferPeriod = bufferPeriod?.toPeriod()
         )
     }
+
+    private fun PeriodResponse.Data.toPeriod() = Period(
+        id = id.orEmpty(),
+        interval = interval.orEmpty(),
+        intervalCount = intervalCount.orDefault(0),
+        enabled = enabled.orFalse(),
+        displayName = displayName.orEmpty(),
+        isRecommended = isRecommended.orFalse()
+    )
 
     companion object {
         private const val WALLET_ACTIVE_STATUS = "ACTIVE"

@@ -21,11 +21,13 @@ package com.nunchuk.android.messages.components.list
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.settings.MarkSyncRoomSuccessUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.matrix.roomSummariesFlow
 import com.nunchuk.android.core.util.SUPPORT_ROOM_TYPE
 import com.nunchuk.android.core.util.SUPPORT_TEST_NET_ROOM_TYPE
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCase
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
@@ -37,6 +39,7 @@ import com.nunchuk.android.usecase.membership.GetLocalCurrentSubscriptionPlan
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
@@ -51,7 +54,9 @@ class RoomsViewModel @Inject constructor(
     private val leaveRoomUseCase: LeaveRoomUseCase,
     private val sessionHolder: SessionHolder,
     private val getOrCreateSupportRoomUseCase: GetOrCreateSupportRoomUseCase,
+    private val markSyncRoomSuccessUseCase: MarkSyncRoomSuccessUseCase,
     getLocalCurrentSubscriptionPlan: GetLocalCurrentSubscriptionPlan,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<RoomsState, RoomsEvent>() {
 
     override val initialState = RoomsState.empty()
@@ -74,13 +79,16 @@ class RoomsViewModel @Inject constructor(
         listenJob?.cancel()
         val session = sessionHolder.getSafeActiveSession() ?: return
         listenJob = session.roomSummariesFlow()
-            .flowOn(Dispatchers.IO)
+            .flowOn(dispatcher)
             .distinctUntilChanged()
             .onStart { setEvent(RoomsEvent.LoadingEvent(true)) }
             .onEach {
                 fileLog("listenRoomSummaries($it)")
                 leaveDraftSyncRoom(it)
                 retrieveMessages(it)
+                if (it.isNotEmpty()) {
+                    markSyncRoomSuccessUseCase(Unit)
+                }
             }
             .onCompletion { setEvent(RoomsEvent.LoadingEvent(false)) }
             .flowOn(Dispatchers.Main)
@@ -90,7 +98,7 @@ class RoomsViewModel @Inject constructor(
     private suspend fun retrieveMessages(rooms: List<RoomSummary>) {
         getAllRoomWalletsUseCase.execute()
             .map { wallets -> rooms to wallets }
-            .flowOn(Dispatchers.IO)
+            .flowOn(dispatcher)
             .onException { onRetrieveMessageError(it) }
             .flowOn(Dispatchers.Main)
             .onEach {
@@ -103,7 +111,7 @@ class RoomsViewModel @Inject constructor(
 
     private fun leaveDraftSyncRoom(summaries: List<RoomSummary>) {
         // delete to avoid misunderstandings
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatcher) {
             val draftSyncRooms = summaries.filter {
                 it.displayName == TAG_SYNC && it.tags.isEmpty()
                         || ((it.roomType == SUPPORT_ROOM_TYPE || it.roomType == SUPPORT_TEST_NET_ROOM_TYPE)
@@ -112,7 +120,7 @@ class RoomsViewModel @Inject constructor(
             }
             draftSyncRooms.forEach {
                 leaveRoomUseCase.execute(it.roomId)
-                    .flowOn(Dispatchers.IO)
+                    .flowOn(dispatcher)
                     .onException { }
                     .collect()
             }
@@ -163,7 +171,7 @@ class RoomsViewModel @Inject constructor(
     private fun handleRemoveRoom(room: Room) {
         viewModelScope.launch {
             leaveRoomUseCase.execute(room.roomId)
-                .flowOn(Dispatchers.IO)
+                .flowOn(dispatcher)
                 .onException { RoomsEvent.LoadingEvent(false) }
                 .collect {
                     RoomsEvent.LoadingEvent(false)
