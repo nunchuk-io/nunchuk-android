@@ -274,6 +274,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     }
                 )
             }
+        } else {
+            assistedWalletDao.deleteAll()
         }
         var isNeedReload = false
 
