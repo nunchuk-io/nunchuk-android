@@ -180,7 +180,7 @@ class MembershipStepManager @Inject constructor(
                 )
             )
         }
-        return isConfigKeyDone
+        return isConfigKeyDone || assistedWallets.any { it.isSetupInheritance.not() }
     }
 
     fun isConfigRecoverKeyDone(): Boolean {

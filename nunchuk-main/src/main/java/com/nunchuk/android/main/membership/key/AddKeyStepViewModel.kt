@@ -149,7 +149,7 @@ class AddKeyStepViewModel @Inject constructor(
         }
     }
 
-    fun unSetupWallet() = assistedWallets.value.find { it.isSetupInheritance }
+    fun unSetupWallet() = assistedWallets.value.find { it.isSetupInheritance.not() }
 
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"
