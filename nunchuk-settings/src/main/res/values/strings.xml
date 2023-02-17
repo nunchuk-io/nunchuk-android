@@ -37,10 +37,10 @@
     <string name="nc_txt_dialog_sign_out_message">Are you sure you want to sign out %1$s?</string>
     <string name="nc_txt_dialog_sign_out_all_message">Are you sure you want to sign out all devices?</string>
     <string name="nc_txt_dialog_compromised_message">Are you sure you want to mark %1$s as compromised? The device’s access to messages and wallets will be removed.</string>
-    <string name="nc_text_device_deleted_msg">%1$s has been deleted</string>
+    <string name="nc_text_device_deleted_msg">Please check your email to complete sign out %1$s</string>
     <string name="nc_text_device_compromised_msg">%1$s has been marked as compromised</string>
     <string name="nc_text_error_get_devices">Error while fetching device list</string>
-    <string name="nc_text_signd_out_all_devices">All devices has been deleted</string>
+    <string name="nc_text_signd_out_devices">Please check your email to complete sign out devices</string>
     <string name="nc_text_toolbar_title_user_devices">Logged in devices</string>
     <string name="nc_text_sign_out_all_devices">Sign out all devices</string>
     <string name="nc_text_device_info">(This device)</string>
