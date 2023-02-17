@@ -146,6 +146,7 @@ internal class WalletConfigViewModel @Inject constructor(
                 password
             )
         )
+        setEvent(WalletConfigEvent.Loading(false))
         if (result.isSuccess) {
             val resultCalculate = calculateRequiredSignaturesDeleteAssistedWalletUseCase(walletId)
             if (resultCalculate.isSuccess) {

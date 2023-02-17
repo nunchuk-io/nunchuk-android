@@ -21,6 +21,7 @@ package com.nunchuk.android.wallet.components.details
 
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import com.nunchuk.android.core.base.BaseViewHolder
@@ -63,11 +64,14 @@ internal class TransactionAdapter(
 
         private val binding = ItemTransactionBinding.bind(itemView)
         private val maskValue by lazy { '\u2022'.toString().repeat(6) }
+        private val receivedAmountColor = ContextCompat.getColor(context, R.color.nc_slime_dark)
+        private val sentAmountColor = ContextCompat.getColor(context, R.color.nc_primary_color)
 
         override fun bind(data: ExtendedTransaction) {
             if (data.transaction.isReceive) {
                 binding.sendTo.text = context.getString(R.string.nc_transaction_receive_at)
                 binding.amountBTC.text = maskText(data.transaction.totalAmount.getBTCAmount())
+                binding.amountBTC.setTextColor(receivedAmountColor)
                 binding.amountUSD.text = maskText(data.transaction.totalAmount.getUSDAmount())
                 binding.receiverName.text = maskText(data.transaction.receiveOutputs.firstOrNull()?.first.orEmpty().truncatedAddress())
             } else {
@@ -77,6 +81,7 @@ internal class TransactionAdapter(
                     binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
                 }
                 binding.amountBTC.text = maskText("- ${data.transaction.totalAmount.getBTCAmount()}")
+                binding.amountBTC.setTextColor(sentAmountColor)
                 binding.amountUSD.text = maskText("- ${data.transaction.totalAmount.getUSDAmount()}")
                 binding.receiverName.text =
                     maskText(data.transaction.outputs.firstOrNull()?.first.orEmpty().truncatedAddress())
