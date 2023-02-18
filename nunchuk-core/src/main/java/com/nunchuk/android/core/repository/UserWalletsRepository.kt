@@ -259,24 +259,21 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun getServerWallet(): WalletServerSync {
         val result = userWalletApiManager.walletApi.getServerWallet()
-        if (result.data.hasWalletCreated) {
-            val partition = result.data.wallets.partition { it.status == WALLET_ACTIVE_STATUS }
-            if (partition.second.isNotEmpty()) {
-                partition.second.filter { it.status == WALLET_DELETED_STATUS }.forEach { nunchukNativeSdk.deleteWallet(it.localId.orEmpty()) }
-                assistedWalletDao.deleteBatch(partition.second.map { it.localId.orEmpty() })
-            }
-            if (partition.first.isNotEmpty()) {
-                assistedWalletDao.insert(
-                    partition.first.map { wallet ->
-                        AssistedWalletEntity(
-                            wallet.localId.orEmpty(),
-                            wallet.slug.toMembershipPlan()
-                        )
-                    }
-                )
-            }
-        } else {
-            assistedWalletDao.deleteAll()
+        val partition = result.data.wallets.partition { it.status == WALLET_ACTIVE_STATUS }
+        if (partition.second.isNotEmpty()) {
+            partition.second.filter { it.status == WALLET_DELETED_STATUS }
+                .forEach { nunchukNativeSdk.deleteWallet(it.localId.orEmpty()) }
+            assistedWalletDao.deleteBatch(partition.second.map { it.localId.orEmpty() })
+        }
+        if (partition.first.isNotEmpty()) {
+            assistedWalletDao.insert(
+                partition.first.map { wallet ->
+                    AssistedWalletEntity(
+                        wallet.localId.orEmpty(),
+                        wallet.slug.toMembershipPlan()
+                    )
+                }
+            )
         }
         var isNeedReload = false
 
