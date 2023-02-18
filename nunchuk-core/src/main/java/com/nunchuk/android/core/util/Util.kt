@@ -76,7 +76,7 @@ const val RENEW_ACCOUNT_LINK = "https://nunchuk.io/my-account"
 const val DEFAULT_COLDCARD_WALLET_NAME = "My COLDCARD wallet"
 const val MAX_HONEY_BADGER_ASSISTED_WALLET_COUNT = 3
 const val MAX_IRON_HAND_ASSISTED_WALLET_COUNT = 1
-const val DELAY_DYNAMIC_QR = 500L
+const val DELAY_DYNAMIC_QR = 1000L
 
 const val LOW_DENSITY = 50
 const val MEDIUM_DENSITY = 100

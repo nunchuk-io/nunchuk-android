@@ -44,6 +44,7 @@ import com.nunchuk.android.usecase.CreatePassportSignersUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.ParseJsonSignerUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
+import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -67,11 +68,15 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private val gson: Gson,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
+    private val analyzeQrUseCase: AnalyzeQrUseCase,
 ) : NunchukViewModel<Unit, AddAirgapSignerEvent>() {
     private val qrDataList = HashSet<String>()
     private var isProcessing = false
     override val initialState = Unit
     private var chain: Chain = Chain.MAIN
+
+    private val _state = MutableStateFlow(AddAirgapSignerState())
+    val uiState = _state.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -162,6 +167,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     fun handAddPassportSigners(qrData: String) {
         qrDataList.add(qrData)
         if (!isProcessing) {
+            analyzeQr()
             viewModelScope.launch {
                 Timber.tag(TAG).d("qrDataList::${qrDataList.size}")
                 createPassportSignersUseCase.execute(qrData = qrDataList.toList())
@@ -174,6 +180,16 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                         Timber.tag(TAG).d("add passport signer successful::$it")
                         event(ParseKeystoneAirgapSignerSuccess(it))
                     }
+            }
+        }
+    }
+
+    private fun analyzeQr() {
+        viewModelScope.launch {
+            val result = analyzeQrUseCase(qrDataList.toList())
+            if (result.isSuccess) {
+                Timber.d("analyzeQrUseCase: ${result.getOrThrow()}")
+                _state.update { it.copy(progress = result.getOrThrow().times(100.0)) }
             }
         }
     }
@@ -209,3 +225,5 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         private const val TAG = "AddSignerViewModel"
     }
 }
+
+data class AddAirgapSignerState(val progress: Double = 0.0)

@@ -27,6 +27,7 @@ import com.google.zxing.client.android.Intents
 import com.nunchuk.android.core.base.BaseCameraActivity
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.CHOOSE_FILE_REQUEST_CODE
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -37,6 +38,7 @@ import com.nunchuk.android.transaction.databinding.ActivityImportTransactionBind
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBinding>() {
@@ -65,6 +67,9 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
 
     private fun observeEvent() {
         viewModel.event.observe(this, ::handleEvent)
+        flowObserver(viewModel.uiState) {
+            binding.progressBar.progress = it.progress.roundToInt()
+        }
     }
 
     private fun setupViews() {

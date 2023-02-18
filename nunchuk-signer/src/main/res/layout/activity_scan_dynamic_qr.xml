@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:fitsSystemWindows="true">
 
     <androidx.appcompat.widget.Toolbar
@@ -35,5 +36,13 @@
         app:zxing_scanner_layout="@layout/view_scanner"
         app:zxing_use_texture_view="true" />
 
-
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progress_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="100"
+        app:indicatorColor="@color/nc_red_color"
+        app:layout_constraintTop_toTopOf="@+id/barcodeView"
+        app:trackColor="@color/nc_whisper_color"
+        tools:progress="50" />
 </androidx.constraintlayout.widget.ConstraintLayout>

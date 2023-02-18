@@ -30,14 +30,14 @@ import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCase
 import com.nunchuk.android.usecase.ImportTransactionUseCase
 import com.nunchuk.android.usecase.membership.GetDummyTxFromPsbtByteArrayUseCase
 import com.nunchuk.android.usecase.membership.ParseKeystoneDummyTransaction
+import com.nunchuk.android.usecase.membership.ParsePassportDummyTransaction
+import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -50,8 +50,11 @@ internal class ImportTransactionViewModel @Inject constructor(
     private val importKeystoneTransactionUseCase: ImportKeystoneTransactionUseCase,
     private val parseKeystoneDummyTransaction: ParseKeystoneDummyTransaction,
     private val getDummyTxFromPsbtByteArrayUseCase: GetDummyTxFromPsbtByteArrayUseCase,
+    private val analyzeQrUseCase: AnalyzeQrUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<Unit, ImportTransactionEvent>() {
+    private val _state = MutableStateFlow(ImportTransactionState())
+    val uiState = _state.asStateFlow()
 
     private lateinit var args: ImportTransactionArgs
     private var isProcessing = false
@@ -88,10 +91,21 @@ internal class ImportTransactionViewModel @Inject constructor(
 
     fun importTransactionViaQR(qrData: String) {
         qrDataList.add(qrData)
+        analyzeQr()
         if (isDummyFlow) {
             parseDummyTransaction()
         } else {
             parseNormalTransaction()
+        }
+    }
+
+    private fun analyzeQr() {
+        viewModelScope.launch {
+            val result = analyzeQrUseCase(qrDataList.toList())
+            if (result.isSuccess) {
+                Timber.d("analyzeQrUseCase: ${result.getOrThrow()}")
+                _state.update { it.copy(progress = result.getOrThrow().times(100.0)) }
+            }
         }
     }
 
@@ -131,3 +145,5 @@ internal class ImportTransactionViewModel @Inject constructor(
     private val isDummyFlow: Boolean
         get() = args.isDummyTx
 }
+
+data class ImportTransactionState(val progress: Double = 0.0)
