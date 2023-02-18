@@ -910,6 +910,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         headers[VERIFY_TOKEN] = verifyToken
         headers[SECURITY_QUESTION_TOKEN] = securityQuestionToken
         userWalletApiManager.walletApi.deleteAssistedWallet(walletId, headers, request)
+        assistedWalletDao.deleteBatch(listOf(walletId))
     }
 
     override fun getAssistedWalletsLocal(): Flow<List<AssistedWalletBrief>> {

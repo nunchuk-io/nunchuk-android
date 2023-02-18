@@ -116,9 +116,13 @@ class MembershipStepManager @Inject constructor(
                 .map { it.getOrElse { emptyList() } }
                 .collect { steps ->
                     stepInfo.value = steps
-                    steps.forEach { step ->
-                        if (step.isVerifyOrAddKey) markStepDone(step.step)
-                        else addRequireStep(step.step)
+                    if (steps.isEmpty()) {
+                        restart()
+                    } else {
+                        steps.forEach { step ->
+                            if (step.isVerifyOrAddKey) markStepDone(step.step)
+                            else addRequireStep(step.step)
+                        }
                     }
 
                     _stepDone.value = steps.filter { it.isVerifyOrAddKey }.map { it.step }.toSet()
@@ -143,8 +147,10 @@ class MembershipStepManager @Inject constructor(
     }
 
     fun restart() {
-        steps.forEach { it.value.currentStep = 0 }
-        updateRemainTime()
+        synchronized(this) {
+            steps.forEach { it.value.currentStep = 0 }
+            updateRemainTime()
+        }
     }
 
     fun updateStep(isForward: Boolean) {
