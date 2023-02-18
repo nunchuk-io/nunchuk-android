@@ -262,6 +262,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (result.data.hasWalletCreated) {
             val partition = result.data.wallets.partition { it.status == WALLET_ACTIVE_STATUS }
             if (partition.second.isNotEmpty()) {
+                partition.second.filter { it.status == WALLET_DELETED_STATUS }.forEach { nunchukNativeSdk.deleteWallet(it.localId.orEmpty()) }
                 assistedWalletDao.deleteBatch(partition.second.map { it.localId.orEmpty() })
             }
             if (partition.first.isNotEmpty()) {
@@ -280,7 +281,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         var isNeedReload = false
 
         val keyPolicyMap = hashMapOf<String, KeyPolicy>()
-        result.data.wallets.filter { it.localId.isNullOrEmpty().not() }.forEach { walletServer ->
+        result.data.wallets.filter { it.localId.isNullOrEmpty().not() && it.status != WALLET_DELETED_STATUS }.forEach { walletServer ->
             keyPolicyMap[walletServer.localId.orEmpty()] = KeyPolicy(
                 walletServer.serverKeyDto?.policies?.autoBroadcastTransaction ?: false,
                 (walletServer.serverKeyDto?.policies?.signingDelaySeconds
@@ -1012,6 +1013,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     companion object {
         private const val WALLET_ACTIVE_STATUS = "ACTIVE"
+        private const val WALLET_DELETED_STATUS = "DELETED"
         private const val VERIFY_TOKEN = "Verify-token"
         private const val SECURITY_QUESTION_TOKEN = "Security-Question-token"
         private const val AUTHORIZATION_X = "AuthorizationX"
