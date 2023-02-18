@@ -262,7 +262,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val partition = result.data.wallets.partition { it.status == WALLET_ACTIVE_STATUS }
         if (partition.second.isNotEmpty()) {
             partition.second.filter { it.status == WALLET_DELETED_STATUS }
-                .forEach { nunchukNativeSdk.deleteWallet(it.localId.orEmpty()) }
+                    .forEach { runCatching { nunchukNativeSdk.deleteWallet(it.localId.orEmpty()) } }
             assistedWalletDao.deleteBatch(partition.second.map { it.localId.orEmpty() })
         }
         if (partition.first.isNotEmpty()) {
