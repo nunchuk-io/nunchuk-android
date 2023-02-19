@@ -92,7 +92,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     override fun onOptionClicked(option: SheetOption) {
         super.onOptionClicked(option)
         when (option.type) {
-            SheetOptionType.TYPE_EXPORT_AS_QR -> showSubOptionsExportQr()
+            SheetOptionType.TYPE_EXPORT_AS_QR -> openDynamicQRScreen(sharedViewModel.walletId)
             SheetOptionType.TYPE_DELETE_WALLET -> handleDeleteWallet()
             SheetOptionType.TYPE_EXPORT_TO_COLD_CARD -> showExportColdcardOptions()
             SheetOptionType.TYPE_FORCE_REFRESH_WALLET -> showForceRefreshWalletDialog()

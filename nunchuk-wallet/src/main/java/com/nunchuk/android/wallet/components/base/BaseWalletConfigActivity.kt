@@ -115,7 +115,7 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
         ).show(supportFragmentManager, "BottomSheetOption")
     }
 
-    protected fun openDynamicQRScreen(walletId: String) {
+    fun openDynamicQRScreen(walletId: String) {
         navigator.openDynamicQRScreen(this, launcher, walletId)
     }
 

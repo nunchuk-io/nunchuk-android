@@ -99,11 +99,8 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
                 viewModel.setQrDensity(densities[value.toInt()])
             }
         }
-        if (args.transactionOption == TransactionOption.EXPORT_PASSPORT) {
-            binding.toolbarTitle.text = getText(R.string.nc_transaction_export_passport_transaction)
-        } else {
-            binding.toolbarTitle.text = getText(R.string.nc_transaction_export_transaction)
-        }
+
+        binding.toolbarTitle.text = getText(R.string.nc_export_transaction)
         binding.btnExportAsFile.setOnClickListener {
             viewModel.exportTransactionToFile()
         }

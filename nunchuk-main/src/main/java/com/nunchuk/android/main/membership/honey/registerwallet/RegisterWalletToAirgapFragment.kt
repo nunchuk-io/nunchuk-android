@@ -79,7 +79,7 @@ class RegisterWalletToAirgapFragment : MembershipFragment() {
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect {
-                    (requireActivity() as BaseWalletConfigActivity<*>).showSubOptionsExportQr()
+                    (requireActivity() as BaseWalletConfigActivity<*>).openDynamicQRScreen(sharedViewModel.walletId)
                 }
         }
 
