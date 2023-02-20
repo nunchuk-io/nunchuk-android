@@ -968,7 +968,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         step = steps[index],
                         masterSignerId = singleSigner.masterFingerprint,
                         plan = MembershipPlan.HONEY_BADGER,
-                        verifyType = verifyMap[singleSigner.masterFingerprint].toVerifyType(),
+                        verifyType = if (singleSigner.type == SignerType.NFC) verifyMap[singleSigner.masterFingerprint].toVerifyType() else VerifyType.APP_VERIFIED,
                         extraData = gson.toJson(
                             SignerExtra(
                                 derivationPath = singleSigner.derivationPath,
