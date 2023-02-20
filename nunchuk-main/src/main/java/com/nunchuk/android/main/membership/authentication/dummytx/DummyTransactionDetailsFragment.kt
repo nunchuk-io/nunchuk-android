@@ -81,18 +81,8 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
 
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
-            TransactionOption.EXPORT_KEYSTONE.ordinal -> openExportTransactionScreen(
-                TransactionOption.EXPORT_KEYSTONE
-            )
-            TransactionOption.IMPORT_KEYSTONE.ordinal -> openImportTransactionScreen(
-                TransactionOption.IMPORT_KEYSTONE,
-            )
-            TransactionOption.EXPORT_PASSPORT.ordinal -> openExportTransactionScreen(
-                TransactionOption.EXPORT_PASSPORT
-            )
-            TransactionOption.IMPORT_PASSPORT.ordinal -> openImportTransactionScreen(
-                TransactionOption.IMPORT_PASSPORT,
-            )
+            TransactionOption.EXPORT_TRANSACTION.ordinal -> openExportTransactionScreen()
+            TransactionOption.IMPORT_TRANSACTION.ordinal -> openImportTransactionScreen()
         }
     }
 
@@ -188,24 +178,14 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
         BottomSheetOption.newInstance(
             listOf(
                 SheetOption(
-                    type = TransactionOption.IMPORT_KEYSTONE.ordinal,
+                    type = TransactionOption.IMPORT_TRANSACTION.ordinal,
                     resId = R.drawable.ic_import,
                     label = getString(R.string.nc_transaction_import_signature),
                 ),
                 SheetOption(
-                    type = TransactionOption.EXPORT_KEYSTONE.ordinal,
+                    type = TransactionOption.EXPORT_TRANSACTION.ordinal,
                     resId = R.drawable.ic_export,
                     label = getString(R.string.nc_transaction_export_transaction),
-                ),
-                SheetOption(
-                    type = TransactionOption.IMPORT_PASSPORT.ordinal,
-                    resId = R.drawable.ic_import,
-                    label = getString(R.string.nc_transaction_import_passport_signature),
-                ),
-                SheetOption(
-                    type = TransactionOption.EXPORT_PASSPORT.ordinal,
-                    resId = R.drawable.ic_export,
-                    label = getString(R.string.nc_transaction_export_passport_transaction),
                 ),
             )
         ).show(childFragmentManager, "BottomSheetOption")
@@ -331,24 +311,20 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
         binding.estimatedFeeUSD.text = transaction.fee.getUSDAmount()
     }
 
-    private fun openExportTransactionScreen(transactionOption: TransactionOption) {
+    private fun openExportTransactionScreen() {
         navigator.openExportTransactionScreen(
             launcher = importTxLauncher,
             activityContext = requireActivity(),
             txToSign = walletAuthenticationViewModel.getDataToSign(),
-            transactionOption = transactionOption,
             isDummyTx = true,
             walletId = walletAuthenticationViewModel.getWalletId()
         )
     }
 
-    private fun openImportTransactionScreen(
-        transactionOption: TransactionOption,
-    ) {
+    private fun openImportTransactionScreen() {
         navigator.openImportTransactionScreen(
             launcher = importTxLauncher,
             activityContext = requireActivity(),
-            transactionOption = transactionOption,
             walletId = walletAuthenticationViewModel.getWalletId(),
             isDummyTx = true
         )

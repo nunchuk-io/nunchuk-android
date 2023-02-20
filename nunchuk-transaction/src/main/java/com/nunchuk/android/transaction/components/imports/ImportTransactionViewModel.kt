@@ -24,15 +24,12 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionError
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionSuccess
 import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCase
-import com.nunchuk.android.usecase.ImportPassportTransactionUseCase
 import com.nunchuk.android.usecase.ImportTransactionUseCase
 import com.nunchuk.android.usecase.membership.GetDummyTxFromPsbtByteArrayUseCase
 import com.nunchuk.android.usecase.membership.ParseKeystoneDummyTransaction
-import com.nunchuk.android.usecase.membership.ParsePassportDummyTransaction
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -51,9 +48,7 @@ import javax.inject.Inject
 internal class ImportTransactionViewModel @Inject constructor(
     private val importTransactionUseCase: ImportTransactionUseCase,
     private val importKeystoneTransactionUseCase: ImportKeystoneTransactionUseCase,
-    private val importPassportTransactionUseCase: ImportPassportTransactionUseCase,
     private val parseKeystoneDummyTransaction: ParseKeystoneDummyTransaction,
-    private val parsePassportDummyTransaction: ParsePassportDummyTransaction,
     private val getDummyTxFromPsbtByteArrayUseCase: GetDummyTxFromPsbtByteArrayUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<Unit, ImportTransactionEvent>() {
@@ -104,11 +99,7 @@ internal class ImportTransactionViewModel @Inject constructor(
         if (isProcessing) return
         viewModelScope.launch {
             isProcessing = true
-            val result = if (args.transactionOption == TransactionOption.IMPORT_KEYSTONE) {
-                parseKeystoneDummyTransaction(ParseKeystoneDummyTransaction.Param(args.walletId, qrDataList.toList()))
-            } else {
-                parsePassportDummyTransaction(ParsePassportDummyTransaction.Param(args.walletId, qrDataList.toList()))
-            }
+            val result = parseKeystoneDummyTransaction(ParseKeystoneDummyTransaction.Param(args.walletId, qrDataList.toList()))
             if (result.isSuccess) {
                 setEvent(ImportTransactionSuccess(result.getOrThrow()))
             }
@@ -121,21 +112,12 @@ internal class ImportTransactionViewModel @Inject constructor(
         if (!isProcessing) {
             viewModelScope.launch {
                 Timber.d("[ImportTransaction]execute($args.walletId, $qrDataList)")
-                if (args.transactionOption == TransactionOption.IMPORT_PASSPORT) {
-                    importPassportTransactionUseCase.execute(
-                        walletId = args.walletId,
-                        qrData = qrDataList.toList(),
-                        initEventId = args.initEventId,
-                        masterFingerPrint = args.masterFingerPrint
-                    )
-                } else {
                     importKeystoneTransactionUseCase.execute(
                         walletId = args.walletId,
                         qrData = qrDataList.toList(),
                         initEventId = args.initEventId,
                         masterFingerPrint = args.masterFingerPrint
                     )
-                }
                     .onStart { isProcessing = true }
                     .flowOn(IO)
                     .onException {  }

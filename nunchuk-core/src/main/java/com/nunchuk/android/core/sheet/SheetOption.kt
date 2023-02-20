@@ -41,13 +41,9 @@ object SheetOptionType {
     const val TYPE_IMPORT_PSBT = 1
     const val TYPE_IMPORT_PSBT_QR = 2
     const val TYPE_SAVE_WALLET_CONFIG = 3
-    const val TYPE_PSBT_QR_KEY_STONE = 4
-    const val TYPE_PSBT_QR_PASSPORT = 5
 
     // wallet config
     const val TYPE_EXPORT_AS_QR = 6
-    const val TYPE_EXPORT_KEYSTONE_QR = 7
-    const val TYPE_EXPORT_PASSPORT_QR = 8
     const val TYPE_EXPORT_TO_COLD_CARD = 9
     const val TYPE_DELETE_WALLET = 10
 

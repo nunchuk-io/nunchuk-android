@@ -44,7 +44,6 @@ import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
-import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.model.TransactionOption.*
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.*
@@ -504,19 +503,11 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         ).setListener {
             when (it) {
                 CANCEL -> promptCancelTransactionConfirmation()
-                EXPORT_KEYSTONE -> openExportTransactionScreen(
-                    EXPORT_KEYSTONE,
+                EXPORT_TRANSACTION -> openExportTransactionScreen(
                     event.masterFingerPrint
                 )
-                IMPORT_KEYSTONE -> openImportTransactionScreen(
-                    IMPORT_KEYSTONE, event.masterFingerPrint
-                )
-                EXPORT_PASSPORT -> openExportTransactionScreen(
-                    EXPORT_PASSPORT,
+                IMPORT_TRANSACTION -> openImportTransactionScreen(
                     event.masterFingerPrint
-                )
-                IMPORT_PASSPORT -> openImportTransactionScreen(
-                    IMPORT_PASSPORT, event.masterFingerPrint
                 )
                 EXPORT_PSBT -> viewModel.exportTransactionToFile()
                 REPLACE_BY_FEE -> handleOpenEditFee()
@@ -546,29 +537,22 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         )
     }
 
-    private fun openExportTransactionScreen(
-        transactionOption: TransactionOption,
-        masterFingerPrint: String
-    ) {
+    private fun openExportTransactionScreen(masterFingerPrint: String) {
         startActivity(
             ExportTransactionActivity.buildIntent(
                 activityContext = this,
                 walletId = args.walletId,
                 txId = args.txId,
-                transactionOption = transactionOption,
                 initEventId = viewModel.getInitEventId(),
                 masterFingerPrint = if (viewModel.isSharedTransaction()) masterFingerPrint else ""
             )
         )
     }
 
-    private fun openImportTransactionScreen(
-        transactionOption: TransactionOption, masterFingerPrint: String
-    ) {
+    private fun openImportTransactionScreen(masterFingerPrint: String) {
         navigator.openImportTransactionScreen(
             activityContext = this,
             walletId = args.walletId,
-            transactionOption = transactionOption,
             masterFingerPrint = if (viewModel.isSharedTransaction()) masterFingerPrint else "",
             initEventId = viewModel.getInitEventId()
         )

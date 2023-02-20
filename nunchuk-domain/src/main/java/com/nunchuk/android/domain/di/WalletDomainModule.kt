@@ -58,8 +58,4 @@ internal interface WalletDomainModule {
 
     @Binds
     fun bindImportWalletUseCase(useCase: ImportWalletUseCaseImpl): ImportWalletUseCase
-
-    @Binds
-    fun bindExportPassportWalletUseCase(useCase: ExportPassportWalletUseCaseImpl): ExportPassportWalletUseCase
-
 }

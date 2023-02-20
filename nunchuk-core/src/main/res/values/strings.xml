@@ -389,10 +389,9 @@
     <string name="nc_transaction_enough_signers">Enough signatures have been collected</string>
     <string name="nc_transaction_broadcast">Broadcast transaction</string>
     <string name="nc_transaction_less_details">Less details</string>
-    <string name="nc_transaction_export_transaction">Export to Keystone/SeedSigner/Jade</string>
+    <string name="nc_transaction_export_transaction">Export transaction</string>
     <string name="nc_transaction_export_passport_transaction">Export to Passport</string>
-    <string name="nc_transaction_import_signature">Import from Keystone/SeedSigner/Jade</string>
-    <string name="nc_transaction_import_passport_signature">Import from Passport</string>
+    <string name="nc_transaction_import_signature">Import signature</string>
     <string name="nc_sign_dummy_transaction">Sign dummy transaction</string>
     <string name="nc_schedule_broadcast_desc">A scheduled broadcast allows a transaction to be automatically broadcast at a later date.\n\n[B]This action will lock some or all of your coins (UTXOs)[/B]. These coins will not be spendable during this time. If you need to spend them immediately, please cancel the scheduled transaction first.\n\nPlease select a broadcast date and time.</string>
     <string name="nc_date">Date</string>

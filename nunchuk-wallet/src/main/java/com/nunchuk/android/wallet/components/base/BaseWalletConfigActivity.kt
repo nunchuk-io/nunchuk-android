@@ -54,8 +54,6 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
         when (option.type) {
             SheetOptionType.EXPORT_COLDCARD_VIA_NFC -> handleColdcardExportToNfc()
             SheetOptionType.EXPORT_COLDCARD_VIA_FILE -> handleColdcardExportToFile()
-            SheetOptionType.TYPE_EXPORT_KEYSTONE_QR,
-            SheetOptionType.TYPE_EXPORT_PASSPORT_QR -> openDynamicQRScreen(sharedViewModel.walletId)
         }
     }
 
@@ -79,23 +77,6 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
             is UploadConfigurationEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading, true)
             else -> {}
         }
-    }
-
-    fun showSubOptionsExportQr() {
-        val options = listOf(
-            SheetOption(
-                type = SheetOptionType.TYPE_EXPORT_KEYSTONE_QR,
-                resId = R.drawable.ic_qr,
-                stringId = R.string.nc_export_as_qr_keystone
-            ),
-            SheetOption(
-                type = SheetOptionType.TYPE_EXPORT_PASSPORT_QR,
-                resId = R.drawable.ic_qr,
-                stringId = R.string.nc_export_as_passport
-            ),
-        )
-        val bottomSheet = BottomSheetOption.newInstance(options)
-        bottomSheet.show(supportFragmentManager, "BottomSheetOption")
     }
 
     fun showExportColdcardOptions() {

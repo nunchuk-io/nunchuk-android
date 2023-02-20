@@ -27,7 +27,6 @@ import com.nunchuk.android.share.model.TransactionOption
 
 data class ImportTransactionArgs(
     val walletId: String,
-    val transactionOption: TransactionOption,
     val masterFingerPrint: String,
     val initEventId: String,
     val isDummyTx: Boolean,
@@ -36,7 +35,6 @@ data class ImportTransactionArgs(
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, ImportTransactionActivity::class.java).apply {
         putExtra(EXTRA_WALLET_ID, walletId)
-        putExtra(EXTRA_TRANSACTION_OPTION, transactionOption)
         putExtra(EXTRA_MASTER_FINGER_PRINT, masterFingerPrint)
         putExtra(EXTRA_INIT_EVENT_ID, initEventId)
         putExtra(EXTRA_IS_DUMMY_TX, isDummyTx)
@@ -45,7 +43,6 @@ data class ImportTransactionArgs(
 
     companion object {
         private const val EXTRA_WALLET_ID = "a"
-        private const val EXTRA_TRANSACTION_OPTION = "b"
         private const val EXTRA_MASTER_FINGER_PRINT = "c"
         private const val EXTRA_INIT_EVENT_ID = "d"
         private const val EXTRA_IS_DUMMY_TX = "e"
@@ -55,7 +52,6 @@ data class ImportTransactionArgs(
             val extras = intent.extras
             return ImportTransactionArgs(
                 walletId = extras.getStringValue(EXTRA_WALLET_ID),
-                transactionOption = extras?.getSerializable(EXTRA_TRANSACTION_OPTION) as TransactionOption? ?: TransactionOption.IMPORT_KEYSTONE,
                 masterFingerPrint = extras.getStringValue(EXTRA_MASTER_FINGER_PRINT),
                 initEventId = extras.getStringValue(EXTRA_INIT_EVENT_ID),
                 isDummyTx = extras?.getBoolean(EXTRA_IS_DUMMY_TX) ?: false,

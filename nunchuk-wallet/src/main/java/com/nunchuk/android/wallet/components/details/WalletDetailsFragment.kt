@@ -21,7 +21,6 @@ package com.nunchuk.android.wallet.components.details
 
 import android.app.Activity
 import android.content.Intent
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -136,9 +135,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
             SheetOptionType.TYPE_IMPORT_PSBT -> handleImportPSBT()
-            SheetOptionType.TYPE_IMPORT_PSBT_QR -> showSubImportPsbtViaQr()
-            SheetOptionType.TYPE_PSBT_QR_KEY_STONE -> openImportTransactionScreen(TransactionOption.IMPORT_KEYSTONE)
-            SheetOptionType.TYPE_PSBT_QR_PASSPORT -> openImportTransactionScreen(TransactionOption.IMPORT_PASSPORT)
+            SheetOptionType.TYPE_IMPORT_PSBT_QR -> openImportTransactionScreen(TransactionOption.IMPORT_TRANSACTION)
             SheetOptionType.TYPE_SAVE_WALLET_CONFIG -> handleExportBSMS()
             SheetOptionType.SET_UP_INHERITANCE -> navigator.openInheritancePlanningScreen(
                 walletId = args.walletId,
@@ -393,28 +390,10 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         bottomSheet.show(childFragmentManager, "BottomSheetOption")
     }
 
-    private fun showSubImportPsbtViaQr() {
-        val options = listOf(
-            SheetOption(
-                SheetOptionType.TYPE_PSBT_QR_KEY_STONE,
-                R.drawable.ic_import,
-                R.string.nc_wallet_import_keystone_seed_signer
-            ),
-            SheetOption(
-                SheetOptionType.TYPE_PSBT_QR_PASSPORT,
-                R.drawable.ic_import,
-                R.string.nc_wallet_import_passport
-            ),
-        )
-        val bottomSheet = BottomSheetOption.newInstance(options)
-        bottomSheet.show(childFragmentManager, "BottomSheetOption")
-    }
-
     private fun openImportTransactionScreen(transactionOption: TransactionOption) {
         navigator.openImportTransactionScreen(
             activityContext = requireActivity(),
-            walletId = args.walletId,
-            transactionOption = transactionOption
+            walletId = args.walletId
         )
     }
 

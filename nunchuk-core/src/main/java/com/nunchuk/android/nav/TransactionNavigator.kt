@@ -26,7 +26,6 @@ import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.share.model.TransactionOption
 
 interface TransactionNavigator {
 
@@ -127,7 +126,6 @@ interface TransactionNavigator {
         launcher: ActivityResultLauncher<Intent>? = null,
         activityContext: Activity,
         walletId: String,
-        transactionOption: TransactionOption,
         masterFingerPrint: String = "",
         initEventId: String = "",
         isDummyTx: Boolean = false,
@@ -140,7 +138,6 @@ interface TransactionNavigator {
         walletId: String = "",
         txId: String = "",
         txToSign: String = "",
-        transactionOption: TransactionOption,
         isDummyTx: Boolean = false
     )
 

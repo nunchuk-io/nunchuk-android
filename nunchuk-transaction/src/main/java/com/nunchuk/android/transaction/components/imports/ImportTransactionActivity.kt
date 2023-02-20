@@ -29,7 +29,6 @@ import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.CHOOSE_FILE_REQUEST_CODE
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.openSelectFileChooser
-import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionError
@@ -134,7 +133,6 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
         fun buildIntent(
             activityContext: Activity,
             walletId: String = "",
-            transactionOption: TransactionOption,
             masterFingerPrint: String = "",
             initEventId: String = "",
             isDummyTx: Boolean = false,
@@ -142,7 +140,6 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
         ): Intent {
             return ImportTransactionArgs(
                 walletId = walletId,
-                transactionOption = transactionOption,
                 masterFingerPrint = masterFingerPrint,
                 initEventId = initEventId,
                 isDummyTx = isDummyTx,

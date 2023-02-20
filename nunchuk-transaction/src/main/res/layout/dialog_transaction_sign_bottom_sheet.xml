@@ -11,18 +11,6 @@
     app:behavior_peekHeight="90dp">
 
     <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/btnCancel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackground"
-        android:drawableStart="@drawable/ic_cancel_red"
-        android:drawablePadding="@dimen/nc_padding_8"
-        android:padding="@dimen/nc_padding_16"
-        android:text="@string/nc_transaction_cancel_transaction"
-        android:textColor="@color/nc_orange_dark_color"
-        android:textSize="@dimen/nc_text_size_16" />
-
-    <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btnExportPSBT"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -57,33 +45,6 @@
         android:drawablePadding="@dimen/nc_padding_8"
         android:padding="@dimen/nc_padding_16"
         android:text="@string/nc_export_transaction"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
-        app:drawableTint="@color/nc_primary_color" />
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/btnImportPassport"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackground"
-        android:drawableStart="@drawable/ic_import"
-        android:drawablePadding="@dimen/nc_padding_8"
-        android:padding="@dimen/nc_padding_16"
-        android:text="@string/nc_transaction_import_passport_signature"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
-        app:drawableTint="@color/nc_primary_color" />
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/btnExportPassport"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackground"
-        android:drawableStart="@drawable/ic_export"
-        android:drawablePadding="@dimen/nc_padding_8"
-        android:padding="@dimen/nc_padding_16"
-        android:visibility="gone"
-        android:text="@string/nc_transaction_export_passport_transaction"
         android:textColor="@color/nc_black_color"
         android:textSize="@dimen/nc_text_size_16"
         app:drawableTint="@color/nc_primary_color" />
@@ -126,6 +87,18 @@
         android:textColor="@color/nc_black_color"
         android:textSize="@dimen/nc_text_size_16"
         app:drawableTint="@color/nc_primary_color" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btnCancel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:drawableStart="@drawable/ic_cancel_red"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:padding="@dimen/nc_padding_16"
+        android:text="@string/nc_transaction_cancel_transaction"
+        android:textColor="@color/nc_orange_dark_color"
+        android:textSize="@dimen/nc_text_size_16" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btnRemoveTransaction"
