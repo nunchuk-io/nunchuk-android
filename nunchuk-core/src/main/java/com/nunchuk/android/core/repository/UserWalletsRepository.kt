@@ -788,7 +788,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     private suspend fun markSetupInheritance(walletId: String, isSetupInheritance: Boolean) {
         val entity = assistedWalletDao.getById(walletId)
-        assistedWalletDao.updateOrInsert(entity.copy(isSetupInheritance = isSetupInheritance))
+        if (entity.isSetupInheritance != isSetupInheritance) {
+            assistedWalletDao.updateOrInsert(entity.copy(isSetupInheritance = isSetupInheritance))
+        }
     }
 
     private fun handleServerTransaction(
