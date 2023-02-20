@@ -55,6 +55,7 @@ class NetworkModule @Inject constructor() {
     @Singleton
     @Provides
     fun provideGson(): Gson = GsonBuilder()
+        .disableHtmlEscaping()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .create()
 
