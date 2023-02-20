@@ -28,6 +28,7 @@ import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
+import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.widget.util.AbsViewBinder
 
 internal class WalletsViewBinder(
@@ -47,13 +48,13 @@ internal class WalletsViewBinder(
         val binding = ItemWalletBinding.bind(container[position])
         binding.walletName.text = wallet.name
 
-        binding.btc.text = maskText(wallet.getBTCAmount())
-        binding.balance.text = maskText(balance)
+        binding.btc.text = Utils.maskValue(wallet.getBTCAmount(), hideWalletDetail)
+        binding.balance.text = Utils.maskValue(balance, hideWalletDetail)
         binding.shareIcon.isVisible = model.isShared || isAssistedWallet
         if (isAssistedWallet) {
-            binding.shareIcon.text = maskText(context.getString(R.string.nc_assisted))
+            binding.shareIcon.text = Utils.maskValue(context.getString(R.string.nc_assisted), hideWalletDetail)
         } else {
-            binding.shareIcon.text = maskText(context.getString(R.string.nc_text_shared))
+            binding.shareIcon.text = Utils.maskValue(context.getString(R.string.nc_text_shared), hideWalletDetail)
         }
         binding.config.bindWalletConfiguration(wallet, hideWalletDetail)
         binding.root.setOnClickListener { callback(wallet.id) }
@@ -62,9 +63,5 @@ internal class WalletsViewBinder(
         } else {
             binding.root.setBackgroundResource(R.drawable.nc_gradient_background)
         }
-    }
-
-    private fun maskText(originalText: String): String {
-        return if (hideWalletDetail) '\u2022'.toString().repeat(6) else originalText
     }
 }

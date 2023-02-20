@@ -51,6 +51,7 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
+import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.config.WalletConfigAction
@@ -105,16 +106,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
 
     private val viewModel: WalletDetailsViewModel by viewModels()
 
-    private val adapter: TransactionAdapter by lazy {
-        TransactionAdapter {
-            navigator.openTransactionDetailsScreen(
-                activityContext = requireActivity(),
-                walletId = args.walletId,
-                txId = it.txId,
-                roomId = viewModel.getRoomWallet()?.roomId.orEmpty()
-            )
-        }
-    }
+    private lateinit var adapter: TransactionAdapter
 
     private val args: WalletDetailsFragmentArgs by navArgs()
 
@@ -265,10 +257,8 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             hideWalletDetail = state.hideWalletDetailLocal
         )
 
-        adapter.setHideWalletDetail(state.hideWalletDetailLocal)
-
-        binding.btcAmount.text = maskText(wallet.getBTCAmount(), state.hideWalletDetailLocal)
-        binding.cashAmount.text = maskText(wallet.getUSDAmount(), state.hideWalletDetailLocal)
+        binding.btcAmount.text = Utils.maskValue(wallet.getBTCAmount(), state.hideWalletDetailLocal)
+        binding.cashAmount.text = Utils.maskValue(wallet.getUSDAmount(), state.hideWalletDetailLocal)
         binding.btnSend.isClickable = wallet.balance.value > 0
 
         binding.shareIcon.isVisible = state.walletExtended.isShared || state.isAssistedWallet
@@ -276,17 +266,20 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             binding.container.setBackgroundResource(R.drawable.nc_header_membership_gradient_background)
             requireActivity().window.statusBarColor =
                 ContextCompat.getColor(requireContext(), R.color.nc_wallet_premium_bg)
-            binding.shareIcon.text = maskText(getString(R.string.nc_assisted), state.hideWalletDetailLocal)
+            binding.shareIcon.text = Utils.maskValue(getString(R.string.nc_assisted), state.hideWalletDetailLocal)
         }
         updateFabIcon(state.hideWalletDetailLocal)
     }
 
-    private fun maskText(originalText: String, hideWalletDetail: Boolean): String {
-        return if (hideWalletDetail) '\u2022'.toString()
-            .repeat(6) else originalText
-    }
-
     private fun setupViews() {
+        adapter = TransactionAdapter(viewModel.isHideWalletDetail) {
+            navigator.openTransactionDetailsScreen(
+                activityContext = requireActivity(),
+                walletId = args.walletId,
+                txId = it.txId,
+                roomId = viewModel.getRoomWallet()?.roomId.orEmpty()
+            )
+        }
         binding.transactionList.layoutManager =
             LinearLayoutManager(context, RecyclerView.VERTICAL, false)
         binding.tvAssistedDowngradeHint.isVisible = viewModel.isInactiveAssistedWallet()

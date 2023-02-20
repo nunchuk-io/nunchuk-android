@@ -280,6 +280,9 @@ internal class WalletDetailsViewModel @Inject constructor(
     val isForceRefreshProcessing: Boolean
         get() = getState().isForceRefreshProcessing
 
+    val isHideWalletDetail: Boolean
+        get() = getState().hideWalletDetailLocal
+
     val isLeaveRoom: Boolean
         get() = getState().isLeaveRoom
 

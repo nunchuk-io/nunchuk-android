@@ -30,6 +30,7 @@ import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
+import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.utils.formatByHour
 import com.nunchuk.android.utils.simpleWeekDayYearFormat
 import com.nunchuk.android.wallet.R
@@ -38,18 +39,13 @@ import com.nunchuk.android.widget.util.inflate
 import java.util.*
 
 internal class TransactionAdapter(
-    private val listener: (Transaction) -> Unit
+    private val hideWalletDetail: Boolean,
+    private val listener: (Transaction) -> Unit,
 ) : PagingDataAdapter<ExtendedTransaction, TransactionAdapter.TransactionViewHolder>(TransactionDiffCallback) {
-
-    private var hideWalletDetail: Boolean = false
-
-    fun setHideWalletDetail(hide: Boolean) {
-        hideWalletDetail = hide
-        notifyDataSetChanged()
-    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = TransactionViewHolder(
         parent.inflate(R.layout.item_transaction),
+        hideWalletDetail,
         listener
     )
 
@@ -57,34 +53,34 @@ internal class TransactionAdapter(
         getItem(position)?.let(holder::bind)
     }
 
-    inner class TransactionViewHolder(
+    class TransactionViewHolder(
         itemView: View,
+        private val hideWalletDetail: Boolean,
         val onItemSelectedListener: (Transaction) -> Unit
     ) : BaseViewHolder<ExtendedTransaction>(itemView) {
 
         private val binding = ItemTransactionBinding.bind(itemView)
-        private val maskValue by lazy { '\u2022'.toString().repeat(6) }
         private val receivedAmountColor = ContextCompat.getColor(context, R.color.nc_slime_dark)
         private val sentAmountColor = ContextCompat.getColor(context, R.color.nc_primary_color)
 
         override fun bind(data: ExtendedTransaction) {
             if (data.transaction.isReceive) {
                 binding.sendTo.text = context.getString(R.string.nc_transaction_receive_at)
-                binding.amountBTC.text = maskText(data.transaction.totalAmount.getBTCAmount())
+                binding.amountBTC.text = Utils.maskValue(data.transaction.totalAmount.getBTCAmount(), hideWalletDetail)
                 binding.amountBTC.setTextColor(receivedAmountColor)
-                binding.amountUSD.text = maskText(data.transaction.totalAmount.getUSDAmount())
-                binding.receiverName.text = maskText(data.transaction.receiveOutputs.firstOrNull()?.first.orEmpty().truncatedAddress())
+                binding.amountUSD.text = Utils.maskValue(data.transaction.totalAmount.getUSDAmount(), hideWalletDetail)
+                binding.receiverName.text = Utils.maskValue(data.transaction.receiveOutputs.firstOrNull()?.first.orEmpty().truncatedAddress(), hideWalletDetail)
             } else {
                 if (data.transaction.status.isConfirmed()) {
                     binding.sendTo.text = context.getString(R.string.nc_transaction_sent_to)
                 } else {
                     binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
                 }
-                binding.amountBTC.text = maskText("- ${data.transaction.totalAmount.getBTCAmount()}")
+                binding.amountBTC.text = Utils.maskValue("- ${data.transaction.totalAmount.getBTCAmount()}", hideWalletDetail)
                 binding.amountBTC.setTextColor(sentAmountColor)
-                binding.amountUSD.text = maskText("- ${data.transaction.totalAmount.getUSDAmount()}")
+                binding.amountUSD.text = Utils.maskValue("- ${data.transaction.totalAmount.getUSDAmount()}", hideWalletDetail)
                 binding.receiverName.text =
-                    maskText(data.transaction.outputs.firstOrNull()?.first.orEmpty().truncatedAddress())
+                    Utils.maskValue(data.transaction.outputs.firstOrNull()?.first.orEmpty().truncatedAddress(), hideWalletDetail)
             }
             binding.status.bindTransactionStatus(data.transaction)
             binding.date.text = data.transaction.getFormatDate()
@@ -117,10 +113,6 @@ internal class TransactionAdapter(
             } else {
                 binding.status.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
             }
-        }
-
-        private fun maskText(originalText: String): String {
-            return if (hideWalletDetail) maskValue else originalText
         }
     }
 
