@@ -64,7 +64,7 @@ data class ServicesTabState(
             }
             MembershipPlan.IRON_HAND -> {
                 items.add(ServiceTabRowCategory.Emergency)
-                items.add(ServiceTabRowItem.KeyRecovery)
+                items.addAll(ServiceTabRowCategory.Emergency.items)
                 items.add(ServiceTabRowCategory.Subscription)
                 items.addAll(ServiceTabRowCategory.Subscription.items)
                 if (banner != null) {
