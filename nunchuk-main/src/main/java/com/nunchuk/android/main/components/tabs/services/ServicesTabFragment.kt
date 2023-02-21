@@ -91,7 +91,19 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     }
                 }
                 is ServicesTabEvent.EmailInvalid -> showError(getString(R.string.nc_text_email_invalid))
-                is ServicesTabEvent.OnSubmitEmailSuccess -> showSuccess(message = getString(R.string.nc_we_sent_an_email, event.email))
+                is ServicesTabEvent.OnSubmitEmailSuccess -> showSuccess(
+                    message = getString(
+                        R.string.nc_we_sent_an_email,
+                        event.email
+                    )
+                )
+                is ServicesTabEvent.GetInheritanceSuccess -> navigator.openInheritancePlanningScreen(
+                    walletId = event.walletId,
+                    requireContext(),
+                    verifyToken = event.token,
+                    inheritance = event.inheritance,
+                    flowInfo = InheritancePlanFlow.VIEW
+                )
             }
         }
         flowObserver(viewModel.state) { state ->
@@ -136,16 +148,11 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             ServiceTabRowItem.EmergencyLockdown -> {
                 navigator.openEmergencyLockdownScreen(requireContext(), event.token)
             }
-            ServiceTabRowItem.ViewInheritancePlan -> {
-                navigator.openInheritancePlanningScreen(
-                    walletId = event.walletId,
-                    requireContext(),
-                    verifyToken = event.token,
-                    inheritance = viewModel.getInheritance(event.walletId),
-                    flowInfo = InheritancePlanFlow.VIEW
-                )
-            }
-            else -> {}
+            ServiceTabRowItem.ViewInheritancePlan -> viewModel.getInheritance(
+                event.walletId,
+                event.token
+            )
+            else -> Unit
         }
     }
 
@@ -210,6 +217,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             ServiceTabRowItem.CoSigningPolicies,
             ServiceTabRowItem.ViewInheritancePlan -> {
                 val wallets = viewModel.getWallet(ignoreSetupInheritance = item != ServiceTabRowItem.ViewInheritancePlan)
+                if (wallets.isEmpty()) return
                 if (wallets.size == 1) {
                     enterPasswordDialog(item = item, walletId = wallets.first().localId)
                 } else {

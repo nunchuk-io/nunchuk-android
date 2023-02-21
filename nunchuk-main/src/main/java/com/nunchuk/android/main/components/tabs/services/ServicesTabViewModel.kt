@@ -42,8 +42,9 @@ import com.nunchuk.android.usecase.membership.InheritanceCheckUseCase
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -68,8 +69,6 @@ class ServicesTabViewModel @Inject constructor(
     private val _state = MutableStateFlow(ServicesTabState())
     val state = _state.asStateFlow()
 
-    private var inheritanceJob: Job? = null
-
     init {
         viewModelScope.launch {
             getLocalMembershipPlanFlowUseCase(Unit)
@@ -81,15 +80,13 @@ class ServicesTabViewModel @Inject constructor(
                     plan to wallets
                 }
                 .collect { (plan, wallets) ->
-                    _state.update { it.copy(assistedWalletIds = wallets) }
-                    getInheritance(wallets, plan)
+                    _state.update { it.copy(assistedWallets = wallets) }
+                    handleAssistedWallet(wallets, plan)
                 }
         }
     }
 
-    fun getInheritance(walletId: String) = _state.value.inheritances[walletId]
-
-    private fun getInheritance(assistedWallets: List<AssistedWalletBrief>, plan: MembershipPlan) {
+    private fun handleAssistedWallet(assistedWallets: List<AssistedWalletBrief>, plan: MembershipPlan) {
         if (plan == MembershipPlan.NONE) {
             getNonSubscriberPageContent()
         } else {
@@ -99,35 +96,7 @@ class ServicesTabViewModel @Inject constructor(
                     isPremiumUser = true,
                 )
             }
-            if (assistedWallets.isNotEmpty()) {
-                val honeyBadgerWallets =
-                    assistedWallets.filter { it.plan == MembershipPlan.HONEY_BADGER }
-                if (honeyBadgerWallets.isNotEmpty()) {
-                    inheritanceJob?.cancel()
-                    inheritanceJob = viewModelScope.launch {
-                        val result = honeyBadgerWallets.map { wallet ->
-                            async {
-                                getInheritanceUseCase(wallet.localId)
-                            }
-                        }.awaitAll()
-                        if (result.all { it.isSuccess }) {
-                            val map =
-                                honeyBadgerWallets.mapIndexedNotNull { index, assistedWalletBrief ->
-                                    if (result[index].isSuccess) {
-                                        assistedWalletBrief.localId to result[index].getOrThrow()
-                                    } else {
-                                        null
-                                    }
-                                }.toMap()
-                            _state.update {
-                                it.copy(
-                                    inheritances = map,
-                                )
-                            }
-                        }
-                    }
-                }
-            } else {
+            if (assistedWallets.isEmpty()) {
                 viewModelScope.launch {
                     val bannerResult = getBannerUseCase(Unit)
                     _state.update {
@@ -140,14 +109,11 @@ class ServicesTabViewModel @Inject constructor(
 
     fun getRowItems() = _state.value.initRowItems()
 
-    fun updateInheritance(walletId: String) = viewModelScope.launch {
-        val inheritanceResult = getInheritanceUseCase(walletId)
-        if (inheritanceResult.isSuccess) {
-            _state.update {
-                it.copy(inheritances = it.inheritances.toMutableMap().apply {
-                    put(walletId, inheritanceResult.getOrThrow())
-                })
-            }
+    fun getInheritance(walletId: String, token: String) = viewModelScope.launch {
+        getInheritanceUseCase(walletId).onSuccess {
+            _event.emit(ServicesTabEvent.GetInheritanceSuccess(walletId, it, token))
+        }.onFailure {
+            _event.emit(ServicesTabEvent.ProcessFailure(it.message.orUnknownError()))
         }
     }
 
@@ -244,7 +210,7 @@ class ServicesTabViewModel @Inject constructor(
     fun isLoggedIn() = accountManager.isAccountExisted()
 
     fun getGroupStage(): MembershipStage {
-        if (_state.value.assistedWalletIds.isNotEmpty()) return MembershipStage.DONE
+        if (_state.value.assistedWallets.isNotEmpty()) return MembershipStage.DONE
         if (membershipStepManager.isNotConfig()) return MembershipStage.NONE
         return MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
     }
@@ -287,10 +253,10 @@ class ServicesTabViewModel @Inject constructor(
     fun getEmail() = accountManager.getAccount().email
 
     fun getUnSetupInheritanceWallet() =
-        state.value.assistedWalletIds.find { it.isSetupInheritance.not() }?.localId
+        state.value.assistedWallets.find { it.isSetupInheritance.not() }?.localId
 
     fun getWallet(ignoreSetupInheritance: Boolean = true) : List<AssistedWalletBrief> {
-        if (ignoreSetupInheritance.not()) return state.value.assistedWalletIds.filter { it.isSetupInheritance }
-        return state.value.assistedWalletIds
+        if (ignoreSetupInheritance.not()) return state.value.assistedWallets.filter { it.isSetupInheritance }
+        return state.value.assistedWallets
     }
 }

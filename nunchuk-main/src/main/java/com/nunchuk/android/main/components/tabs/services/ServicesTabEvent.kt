@@ -21,7 +21,10 @@ package com.nunchuk.android.main.components.tabs.services
 
 import android.os.Parcelable
 import com.nunchuk.android.main.R
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.Inheritance
+import com.nunchuk.android.model.InheritanceCheck
+import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.banner.BannerPage
 import com.nunchuk.android.model.membership.AssistedWalletBrief
@@ -41,13 +44,13 @@ sealed class ServicesTabEvent {
     data class CheckInheritance(val inheritanceCheck: InheritanceCheck) : ServicesTabEvent()
     object EmailInvalid : ServicesTabEvent()
     data class OnSubmitEmailSuccess(val email: String) : ServicesTabEvent()
+    data class GetInheritanceSuccess(val walletId: String, val inheritance: Inheritance, val token: String) : ServicesTabEvent()
 }
 
 data class ServicesTabState(
     val isPremiumUser: Boolean? = null,
     val plan: MembershipPlan = MembershipPlan.NONE,
-    val assistedWalletIds: List<AssistedWalletBrief> = emptyList(),
-    val inheritances: Map<String, Inheritance> = emptyMap(),
+    val assistedWallets: List<AssistedWalletBrief> = emptyList(),
     val banner: Banner? = null,
     val bannerPage: BannerPage? = null
 ) {
@@ -75,7 +78,7 @@ data class ServicesTabState(
                 items.add(ServiceTabRowCategory.Emergency)
                 items.addAll(ServiceTabRowCategory.Emergency.items)
                 items.add(ServiceTabRowCategory.Inheritance)
-                if (inheritances.isEmpty() || inheritances.values.all { it.status == InheritanceStatus.PENDING_CREATION }) {
+                if (assistedWallets.isEmpty() || assistedWallets.all { it.isSetupInheritance.not() }) {
                     items.add(ServiceTabRowItem.SetUpInheritancePlan)
                 } else {
                     items.add(ServiceTabRowItem.ViewInheritancePlan)
