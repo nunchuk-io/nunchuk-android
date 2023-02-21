@@ -95,7 +95,6 @@ class WalletIntermediaryViewModel @Inject constructor(
     }
 
     fun getGroupStage(): MembershipStage {
-        if (state.value.assistedWallets.any { it.isSetupInheritance.not() && it.plan == MembershipPlan.HONEY_BADGER }) return MembershipStage.SETUP_INHERITANCE
         if (membershipStepManager.isNotConfig()) return MembershipStage.NONE
         return MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
     }

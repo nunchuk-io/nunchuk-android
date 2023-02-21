@@ -67,7 +67,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
                 keyPolicy = intent.parcelable(EXTRA_KEY_POLICY),
                 xfp = intent.getStringExtra(EXTRA_KEY_XFP)
             ).toBundle()
-            else -> null
+            else -> intent.extras
         }
         navHostFragment.navController.setGraph(graph, bundle)
     }
@@ -77,7 +77,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
     }
 
     companion object {
-        private const val EXTRA_GROUP_STEP = "group_step"
+        const val EXTRA_GROUP_STEP = "group_step"
         private const val EXTRA_KEY_POLICY = "key_policy"
         private const val EXTRA_KEY_XFP = "key_xfp"
 

@@ -23,7 +23,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.user.IsRegisterAirgapUseCase
@@ -39,7 +41,7 @@ class AddKeyStepViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     isRegisterColdcardUseCase: IsRegisterColdcardUseCase,
     isRegisterAirgapUseCase: IsRegisterAirgapUseCase,
-    getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase
+    getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<AddKeyStepEvent>()
     val event = _event.asSharedFlow()
@@ -59,18 +61,20 @@ class AddKeyStepViewModel @Inject constructor(
     private val currentStep =
         savedStateHandle.getStateFlow<MembershipStep?>(KEY_CURRENT_STEP, null)
 
+    private val currentStage = savedStateHandle.get<MembershipStage>(MembershipActivity.EXTRA_GROUP_STEP)
+
     val plan = membershipStepManager.plan
 
     val isConfigKeyDone =
-        membershipStepManager.stepDone.map { membershipStepManager.isConfigKeyDone() }
+        membershipStepManager.stepDone.map { membershipStepManager.isConfigKeyDone() || currentStage == MembershipStage.SETUP_INHERITANCE }
             .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val isSetupRecoverKeyDone =
-        membershipStepManager.stepDone.map { membershipStepManager.isConfigRecoverKeyDone() }
+        membershipStepManager.stepDone.map { membershipStepManager.isConfigRecoverKeyDone() || currentStage == MembershipStage.SETUP_INHERITANCE }
             .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val isCreateWalletDone =
-        membershipStepManager.stepDone.map { membershipStepManager.isCreatedAssistedWalletDone() }
+        membershipStepManager.stepDone.map { membershipStepManager.isCreatedAssistedWalletDone() || currentStage == MembershipStage.SETUP_INHERITANCE }
             .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val isSetupInheritanceDone =

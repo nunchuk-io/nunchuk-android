@@ -287,6 +287,7 @@ internal class WalletsViewModel @Inject constructor(
                     // Only show setup Inheritance banner with first assisted wallet
                     assistedWallets.any { it.isSetupInheritance.not() } && assistedWallets.size > 1 -> MembershipStage.DONE
                     assistedWallets.isEmpty() && membershipStepManager.isNotConfig() -> MembershipStage.NONE
+                    assistedWallets.size == 1 && assistedWallets.first().isSetupInheritance.not() && membershipStepManager.isNotConfig() -> MembershipStage.SETUP_INHERITANCE
                     else -> MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
                 }
             }

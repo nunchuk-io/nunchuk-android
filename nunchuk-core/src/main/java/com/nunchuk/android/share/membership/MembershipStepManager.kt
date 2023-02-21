@@ -186,7 +186,7 @@ class MembershipStepManager @Inject constructor(
                 )
             )
         }
-        return isConfigKeyDone || assistedWallets.any { it.isSetupInheritance.not() }
+        return isConfigKeyDone
     }
 
     fun isConfigRecoverKeyDone(): Boolean {
@@ -194,7 +194,7 @@ class MembershipStepManager @Inject constructor(
     }
 
     fun isCreatedAssistedWalletDone(): Boolean {
-        return isConfigRecoverKeyDone() && _stepDone.value.contains(MembershipStep.CREATE_WALLET) || assistedWallets.any { it.isSetupInheritance.not() }
+        return isConfigRecoverKeyDone() && _stepDone.value.contains(MembershipStep.CREATE_WALLET)
     }
 
     fun isSetupInheritanceDone(): Boolean {
