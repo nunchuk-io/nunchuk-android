@@ -97,9 +97,9 @@ internal class WalletsViewModel @Inject constructor(
             getAssistedWalletsFlowUseCase(Unit).map { it.getOrElse { emptyList() } }
                 .distinctUntilChanged()
                 .collect {
+                    updateState { copy(assistedWallets = it) }
                     checkMemberMembership()
                     checkInheritance(it)
-                    updateState { copy(assistedWallets = it) }
                 }
         }
         viewModelScope.launch {
