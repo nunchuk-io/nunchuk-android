@@ -19,10 +19,12 @@
 
 package com.nunchuk.android.transaction.components.imports
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import com.google.zxing.client.android.Intents
 import com.nunchuk.android.core.base.BaseCameraActivity
 import com.nunchuk.android.core.manager.NcToastManager
@@ -65,17 +67,19 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun observeEvent() {
         viewModel.event.observe(this, ::handleEvent)
         flowObserver(viewModel.uiState) {
             binding.progressBar.progress = it.progress.roundToInt()
+            binding.tvPercentage.isVisible = it.progress > 0.0
+            binding.tvPercentage.text = "${it.progress.roundToInt()}%"
         }
     }
 
     private fun setupViews() {
         val barcodeViewIntent = intent
         barcodeViewIntent.putExtra(Intents.Scan.MODE, Intents.Scan.QR_CODE_MODE)
-        binding.barcodeView.cameraSettings.isContinuousFocusEnabled = true
         binding.barcodeView.initializeFromIntent(barcodeViewIntent)
         binding.barcodeView.decodeContinuous { viewModel.importTransactionViaQR(it.text) }
         binding.btnImportViaFile.setOnClickListener { openSelectFileChooser() }
