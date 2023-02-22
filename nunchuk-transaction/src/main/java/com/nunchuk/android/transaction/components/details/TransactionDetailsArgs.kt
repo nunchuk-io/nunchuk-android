@@ -25,6 +25,7 @@ import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.utils.parcelable
 
 data class TransactionDetailsArgs(
     val walletId: String,
@@ -66,7 +67,7 @@ data class TransactionDetailsArgs(
                 txId = extras.getStringValue(EXTRA_TRANSACTION_ID),
                 initEventId = extras.getStringValue(EXTRA_INIT_EVENT_ID),
                 roomId = extras.getStringValue(EXTRA_ROOM_ID),
-                transaction = extras?.getParcelable(EXTRA_TRANSACTION),
+                transaction = extras?.parcelable(EXTRA_TRANSACTION),
                 isInheritanceClaimingFlow = extras.getBooleanValue(EXTRA_INHERITANCE_CLAIMING_FLOW),
                 isCancelBroadcast = extras.getBooleanValue(EXTRA_IS_CANCEL_BROADCAST),
                 errorMessage = extras.getStringValue(EXTRA_ERROR_MESSAGE)

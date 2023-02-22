@@ -30,7 +30,6 @@ import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCase
 import com.nunchuk.android.usecase.ImportTransactionUseCase
 import com.nunchuk.android.usecase.membership.GetDummyTxFromPsbtByteArrayUseCase
 import com.nunchuk.android.usecase.membership.ParseKeystoneDummyTransaction
-import com.nunchuk.android.usecase.membership.ParsePassportDummyTransaction
 import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
