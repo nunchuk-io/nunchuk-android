@@ -204,11 +204,11 @@ class CreateWalletViewModel @Inject constructor(
                         _event.emit(CreateWalletEvent.ShowError(it.message.orUnknownError()))
                     }
                     .collect {
-                        if (signers.any { it.value.signerType == SignerType.COLDCARD_NFC }) {
-                            setRegisterColdcardUseCase(false)
+                        if (signers.any { signer -> signer.value.signerType == SignerType.COLDCARD_NFC }) {
+                            setRegisterColdcardUseCase(SetRegisterColdcardUseCase.Params(it.id, false))
                         }
-                        if (signers.any { it.value.signerType == SignerType.AIRGAP }) {
-                            setRegisterAirgapUseCase(false)
+                        if (signers.any { signer -> signer.value.signerType == SignerType.AIRGAP }) {
+                            setRegisterAirgapUseCase(SetRegisterAirgapUseCase.Params(it.id, false))
                         }
                         _event.emit(
                             CreateWalletEvent.OnCreateWalletSuccess(

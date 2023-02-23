@@ -787,7 +787,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     private suspend fun markSetupInheritance(walletId: String, isSetupInheritance: Boolean) {
-        val entity = assistedWalletDao.getById(walletId)
+        val entity = assistedWalletDao.getById(walletId) ?: return
         if (entity.isSetupInheritance != isSetupInheritance) {
             assistedWalletDao.updateOrInsert(entity.copy(isSetupInheritance = isSetupInheritance))
         }
@@ -919,7 +919,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return assistedWalletDao.getAssistedWallets().map { list ->
             list.map { wallet ->
                 AssistedWalletBrief(
-                    wallet.localId, wallet.plan, wallet.isSetupInheritance
+                    localId = wallet.localId,
+                    plan = wallet.plan,
+                    isSetupInheritance = wallet.isSetupInheritance,
+                    isRegisterAirgap = wallet.isRegisterAirgap,
+                    isRegisterColdcard = wallet.isRegisterColdcard
                 )
             }
         }

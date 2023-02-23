@@ -26,6 +26,7 @@ import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.model.*
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.persistence.dao.AssistedWalletDao
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.entity.MembershipStepEntity
 import com.nunchuk.android.persistence.entity.toModel
@@ -45,6 +46,7 @@ class MembershipRepositoryImpl @Inject constructor(
     private val gson: Gson,
     private val ncDataStore: NcDataStore,
     private val ncSharePreferences: NCSharePreferences,
+    private val assistedWalletDao: AssistedWalletDao,
     applicationScope: CoroutineScope,
 ) : MembershipRepository {
     private val chain = ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
@@ -127,13 +129,16 @@ class MembershipRepositoryImpl @Inject constructor(
 
     override fun getLocalCurrentPlan(): Flow<MembershipPlan> = ncDataStore.membershipPlan
 
-    override fun isRegisterAirgap(): Flow<Boolean> = ncDataStore.isRegisterAirgap
-
-    override fun isRegisterColdcard(): Flow<Boolean> = ncDataStore.isRegisterColdCard
     override fun isHideUpsellBanner(): Flow<Boolean> = ncDataStore.isHideUpsellBanner
 
-    override suspend fun setRegisterAirgap(value: Boolean) = ncDataStore.setRegisterAirgap(value)
+    override suspend fun setRegisterAirgap(walletId: String, value: Boolean) {
+        val entity = assistedWalletDao.getById(walletId) ?: return
+        assistedWalletDao.update(entity.copy(isRegisterAirgap = value))
+    }
 
-    override suspend fun setRegisterColdcard(value: Boolean) = ncDataStore.setRegisterColdcard(value)
+    override suspend fun setRegisterColdcard(walletId: String, value: Boolean) {
+        val entity = assistedWalletDao.getById(walletId) ?: return
+        assistedWalletDao.update(entity.copy(isRegisterColdcard = value))
+    }
     override suspend fun setHideUpsellBanner() = ncDataStore.setHideUpsellBanner()
 }

@@ -19,5 +19,5 @@ interface AssistedWalletDao : BaseDao<AssistedWalletEntity> {
     suspend fun deleteAll()
 
     @Query("SELECT * FROM $TABLE_ASSISTED_WALLET WHERE local_id =:id ")
-    suspend fun getById(id: String): AssistedWalletEntity
+    suspend fun getById(id: String): AssistedWalletEntity?
 }

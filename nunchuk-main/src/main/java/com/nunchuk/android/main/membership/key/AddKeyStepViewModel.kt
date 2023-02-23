@@ -28,8 +28,6 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.share.membership.MembershipStepManager
-import com.nunchuk.android.usecase.user.IsRegisterAirgapUseCase
-import com.nunchuk.android.usecase.user.IsRegisterColdcardUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -39,43 +37,45 @@ import javax.inject.Inject
 class AddKeyStepViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val savedStateHandle: SavedStateHandle,
-    isRegisterColdcardUseCase: IsRegisterColdcardUseCase,
-    isRegisterAirgapUseCase: IsRegisterAirgapUseCase,
     getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<AddKeyStepEvent>()
     val event = _event.asSharedFlow()
 
-    val isRegisterAirgap = isRegisterAirgapUseCase(Unit)
-        .map { it.getOrElse { false } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    val isRegisterColdcard = isRegisterColdcardUseCase(Unit)
-        .map { it.getOrElse { false } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
     private val assistedWallets = getAssistedWalletsFlowUseCase(Unit)
         .map { it.getOrElse { emptyList() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    val isRegisterAirgap = assistedWallets
+        .map { it.lastOrNull()?.isRegisterAirgap == true }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val isRegisterColdcard = assistedWallets
+        .map { it.lastOrNull()?.isRegisterColdcard == true }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     private val currentStep =
         savedStateHandle.getStateFlow<MembershipStep?>(KEY_CURRENT_STEP, null)
 
-    private val currentStage = savedStateHandle.get<MembershipStage>(MembershipActivity.EXTRA_GROUP_STEP)
+    private val currentStage =
+        savedStateHandle.getStateFlow(MembershipActivity.EXTRA_GROUP_STEP, MembershipStage.NONE)
 
     val plan = membershipStepManager.plan
 
     val isConfigKeyDone =
-        membershipStepManager.stepDone.map { membershipStepManager.isConfigKeyDone() || currentStage == MembershipStage.SETUP_INHERITANCE }
-            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+        membershipStepManager.stepDone.combine(currentStage) { _, stage ->
+            membershipStepManager.isConfigKeyDone() || stage == MembershipStage.SETUP_INHERITANCE
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val isSetupRecoverKeyDone =
-        membershipStepManager.stepDone.map { membershipStepManager.isConfigRecoverKeyDone() || currentStage == MembershipStage.SETUP_INHERITANCE }
-            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+        membershipStepManager.stepDone.combine(currentStage) { _, stage ->
+            membershipStepManager.isConfigRecoverKeyDone() || stage == MembershipStage.SETUP_INHERITANCE
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val isCreateWalletDone =
-        membershipStepManager.stepDone.map { membershipStepManager.isCreatedAssistedWalletDone() || currentStage == MembershipStage.SETUP_INHERITANCE }
-            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+        membershipStepManager.stepDone.combine(currentStage) { _, stage ->
+            membershipStepManager.isCreatedAssistedWalletDone() || stage == MembershipStage.SETUP_INHERITANCE
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val isSetupInheritanceDone =
         membershipStepManager.stepDone.map { membershipStepManager.isSetupInheritanceDone() }
@@ -119,21 +119,21 @@ class AddKeyStepViewModel @Inject constructor(
         viewModelScope.launch {
             if (isSetupInheritanceDone.value) {
                 _event.emit(AddKeyStepEvent.SetupInheritanceSetupDone)
-            } else if (isCreateWalletDone.value && isRegisterAirgap.value && isRegisterColdcard.value) {
+            } else if (isCreateWalletDone.value && isRegisterWalletDone()) {
                 savedStateHandle[KEY_CURRENT_STEP] = MembershipStep.SETUP_INHERITANCE
                 _event.emit(AddKeyStepEvent.OpenInheritanceSetup)
             } else if (isSetupRecoverKeyDone.value && isConfigKeyDone.value) {
                 savedStateHandle[KEY_CURRENT_STEP] = MembershipStep.CREATE_WALLET
-                if (isRegisterColdcard.value.not()) {
-                    val walletId = assistedWallets.value.find { it.isSetupInheritance }?.localId.orEmpty()
+                if (isCreateWalletDone.value && isRegisterColdcard.value.not()) {
+                    val walletId = assistedWallets.value.lastOrNull()?.localId ?: return@launch
                     _event.emit(
                         AddKeyStepEvent.OpenRegisterColdCard(
                             walletId,
                             isRegisterAirgap.value
                         )
                     )
-                } else if (isRegisterAirgap.value.not()) {
-                    val walletId = assistedWallets.value.find { it.isSetupInheritance }?.localId.orEmpty()
+                } else if (isCreateWalletDone.value && isRegisterAirgap.value.not()) {
+                    val walletId = assistedWallets.value.lastOrNull()?.localId ?: return@launch
                     _event.emit(AddKeyStepEvent.OpenRegisterAirgap(walletId))
                 } else {
                     _event.emit(AddKeyStepEvent.OpenCreateWallet)
@@ -147,6 +147,9 @@ class AddKeyStepViewModel @Inject constructor(
         }
     }
 
+    private fun isRegisterWalletDone() = assistedWallets.value.lastOrNull()
+        ?.let { it.isRegisterAirgap && it.isRegisterColdcard } == true
+
     fun onMoreClicked() {
         viewModelScope.launch {
             _event.emit(AddKeyStepEvent.OnMoreClicked)
@@ -154,6 +157,10 @@ class AddKeyStepViewModel @Inject constructor(
     }
 
     fun unSetupWallet() = assistedWallets.value.find { it.isSetupInheritance.not() }
+
+    fun requireInheritance() {
+        savedStateHandle[MembershipActivity.EXTRA_GROUP_STEP] = MembershipStage.SETUP_INHERITANCE
+    }
 
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"

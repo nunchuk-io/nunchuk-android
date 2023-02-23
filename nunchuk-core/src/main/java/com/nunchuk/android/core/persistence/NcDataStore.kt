@@ -45,8 +45,6 @@ class NcDataStore @Inject constructor(
     private val turnOnNotificationKey = booleanPreferencesKey("turn_on_notification")
     private val syncEnableKey = booleanPreferencesKey("sync_enable")
     private val isShowNfcUniversalKey = booleanPreferencesKey("show_nfc_universal")
-    private val registerColdcardKey = booleanPreferencesKey("register_coldcard")
-    private val registerAirgapKey = booleanPreferencesKey("register_airgap")
     private val chainKey = intPreferencesKey("chain")
     private val hideUpsellBannerKey = booleanPreferencesKey("hide_upsell_banner")
     private val syncRoomSuccessKey = booleanPreferencesKey("sync_room_success")
@@ -101,16 +99,6 @@ class NcDataStore @Inject constructor(
         get() = context.dataStore.data.map {
             val ordinal = it[membershipPlanKey] ?: 0
             MembershipPlan.values()[ordinal]
-        }
-
-    val isRegisterColdCard: Flow<Boolean>
-        get() = context.dataStore.data.map {
-            it[registerColdcardKey] ?: true
-        }
-
-    val isRegisterAirgap: Flow<Boolean>
-        get() = context.dataStore.data.map {
-            it[registerAirgapKey] ?: true
         }
 
     val chain: Flow<Chain>
@@ -169,18 +157,6 @@ class NcDataStore @Inject constructor(
         }
     }
 
-    suspend fun setRegisterColdcard(value: Boolean) {
-        context.dataStore.edit {
-            it[registerColdcardKey] = value
-        }
-    }
-
-    suspend fun setRegisterAirgap(value: Boolean) {
-        context.dataStore.edit {
-            it[registerAirgapKey] = value
-        }
-    }
-
     suspend fun setHideUpsellBanner() {
         context.dataStore.edit {
             it[hideUpsellBannerKey] = true
@@ -204,8 +180,6 @@ class NcDataStore @Inject constructor(
             it.remove(syncEnableKey)
             it.remove(turnOnNotificationKey)
             it.remove(membershipPlanKey)
-            it.remove(registerColdcardKey)
-            it.remove(registerAirgapKey)
             it.remove(hideUpsellBannerKey)
             it.remove(syncRoomSuccessKey)
             it.remove(walletSecuritySettingKey)

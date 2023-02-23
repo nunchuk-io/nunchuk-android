@@ -28,6 +28,8 @@ import javax.inject.Inject
 class SetRegisterColdcardUseCase @Inject constructor(
     private val repository: MembershipRepository,
     @IoDispatcher ioDispatcher: CoroutineDispatcher
-) : UseCase<Boolean, Unit>(ioDispatcher) {
-    override suspend fun execute(parameters: Boolean) = repository.setRegisterColdcard(parameters)
+) : UseCase<SetRegisterColdcardUseCase.Params, Unit>(ioDispatcher) {
+    override suspend fun execute(parameters: Params) = repository.setRegisterColdcard(parameters.walletId, parameters.isRegister)
+
+    data class Params(val walletId: String, val isRegister: Boolean)
 }
