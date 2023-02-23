@@ -120,7 +120,7 @@ fun LockdownSuccessScreenContent(
                     text = stringResource(R.string.nc_emergency_lockdown_success_title),
                     style = NunchukTheme.typography.heading
                 )
-                Text(
+                NcHighlightText(
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
                     text = stringResource(id = R.string.nc_emergency_lockdown_success_info, period),
                     style = NunchukTheme.typography.body

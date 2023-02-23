@@ -21,13 +21,18 @@ package com.nunchuk.android.auth.components.recover
 
 import android.content.Context
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.recover.RecoverPasswordEvent.*
 import com.nunchuk.android.auth.databinding.ActivityRecoverPasswordBinding
+import com.nunchuk.android.auth.util.getTextTrimmed
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.network.ApiErrorCode
+import com.nunchuk.android.core.network.ErrorDetail
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showToast
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -39,6 +44,13 @@ class RecoverPasswordActivity : BaseActivity<ActivityRecoverPasswordBinding>() {
     private val viewModel: RecoverPasswordViewModel by viewModels()
 
     override fun initializeBinding() = ActivityRecoverPasswordBinding.inflate(layoutInflater)
+
+    private val signInLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                finish()
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,23 +78,42 @@ class RecoverPasswordActivity : BaseActivity<ActivityRecoverPasswordBinding>() {
             is ConfirmPasswordValidEvent -> binding.confirmPassword.hideError()
             is ConfirmPasswordNotMatchedEvent -> binding.confirmPassword.setError(getString(R.string.nc_text_password_does_not_match))
             is RecoverPasswordErrorEvent -> showChangePasswordError(event.errorMessage.orUnknownError())
-            is RecoverPasswordSuccessEvent -> openLoginScreen()
+            is RecoverPasswordSuccessEvent -> openMainScreen(event.token, event.deviceId)
             is LoadingEvent -> showLoading()
+            is SignInErrorEvent -> onSignInError(event.code, event.message.orEmpty(), event.errorDetail)
         }
     }
 
     private fun setupViews() {
+        binding.warning.text = getString(R.string.nc_text_change_your_password_info, args.email)
         binding.oldPassword.makeMaskedInput()
         binding.newPassword.makeMaskedInput()
         binding.confirmPassword.makeMaskedInput()
         binding.recoverPassword.setOnClickListener { onChangePasswordClicked() }
-        binding.signIn.setOnClickListener { openLoginScreen() }
+        binding.toolbar.setNavigationOnClickListener { finish() }
     }
 
-    private fun openLoginScreen() {
+    private fun openMainScreen(token: String, deviceId: String) {
         hideLoading()
         finish()
-        navigator.openSignInScreen(this)
+        navigator.openMainScreen(this, token, deviceId, isClearTask = true)
+    }
+
+    private fun onSignInError(code: Int?, message: String, errorDetail: ErrorDetail?) {
+        hideLoading()
+        when (code) {
+            ApiErrorCode.NEW_DEVICE -> {
+                navigator.openVerifyNewDeviceScreen(
+                    launcher = signInLauncher,
+                    activityContext = this,
+                    email = args.email.trim(),
+                    deviceId = errorDetail?.deviceID.orEmpty(),
+                    loginHalfToken = errorDetail?.halfToken.orEmpty(),
+                    staySignedIn = true
+                )
+            }
+            else -> NCToastMessage(this).showError(message)
+        }
     }
 
     private fun showChangePasswordError(errorMessage: String) {
