@@ -96,11 +96,13 @@ class MembershipRepositoryImpl @Inject constructor(
             val data = result.data
             val plan = if (chain == Chain.MAIN &&
                 (data.status == "PENDING"
-                        || (data.status == "ACTIVE" && Calendar.getInstance().timeInMillis < data.validUntilUtcMillis))
+                        || (data.status == "ACTIVE" && Calendar.getInstance().timeInMillis <= data.graceValidUntilUtcMillis))
             ) {
                 data.plan?.slug.toMembershipPlan()
+            } else if (chain == Chain.MAIN) {
+                MembershipPlan.NONE
             } else {
-                if (chain == Chain.MAIN) MembershipPlan.NONE else data.plan?.slug.toMembershipPlan()
+                data.plan?.slug.toMembershipPlan()
             }
             ncDataStore.setMembershipPlan(plan)
             return MemberSubscription(data.subscriptionId, data.plan?.slug, plan)
