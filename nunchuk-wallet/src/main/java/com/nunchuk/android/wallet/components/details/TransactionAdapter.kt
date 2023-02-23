@@ -39,13 +39,18 @@ import com.nunchuk.android.widget.util.inflate
 import java.util.*
 
 internal class TransactionAdapter(
-    private val hideWalletDetail: Boolean,
-    private val listener: (Transaction) -> Unit,
+    private val listener: (Transaction) -> Unit
 ) : PagingDataAdapter<ExtendedTransaction, TransactionAdapter.TransactionViewHolder>(TransactionDiffCallback) {
+
+    private var hideWalletDetail: Boolean = false
+
+    fun setHideWalletDetail(hideWalletDetail: Boolean) {
+        this.hideWalletDetail = hideWalletDetail
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = TransactionViewHolder(
         parent.inflate(R.layout.item_transaction),
-        hideWalletDetail,
         listener
     )
 
@@ -53,9 +58,8 @@ internal class TransactionAdapter(
         getItem(position)?.let(holder::bind)
     }
 
-    class TransactionViewHolder(
+    inner class TransactionViewHolder(
         itemView: View,
-        private val hideWalletDetail: Boolean,
         val onItemSelectedListener: (Transaction) -> Unit
     ) : BaseViewHolder<ExtendedTransaction>(itemView) {
 

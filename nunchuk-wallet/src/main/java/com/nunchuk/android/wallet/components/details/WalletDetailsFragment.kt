@@ -106,7 +106,14 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
 
     private val viewModel: WalletDetailsViewModel by viewModels()
 
-    private lateinit var adapter: TransactionAdapter
+    private val adapter: TransactionAdapter = TransactionAdapter {
+        navigator.openTransactionDetailsScreen(
+            activityContext = requireActivity(),
+            walletId = args.walletId,
+            txId = it.txId,
+            roomId = viewModel.getRoomWallet()?.roomId.orEmpty()
+        )
+    }
 
     private val args: WalletDetailsFragmentArgs by navArgs()
 
@@ -250,7 +257,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
 
     private fun handleState(state: WalletDetailsState) {
         val wallet = state.walletExtended.wallet
-
+        adapter.setHideWalletDetail(state.hideWalletDetailLocal)
         binding.toolbarTitle.text = wallet.name
         binding.configuration.bindWalletConfiguration(
             wallet,
@@ -272,14 +279,6 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     }
 
     private fun setupViews() {
-        adapter = TransactionAdapter(viewModel.isHideWalletDetail) {
-            navigator.openTransactionDetailsScreen(
-                activityContext = requireActivity(),
-                walletId = args.walletId,
-                txId = it.txId,
-                roomId = viewModel.getRoomWallet()?.roomId.orEmpty()
-            )
-        }
         binding.transactionList.layoutManager =
             LinearLayoutManager(context, RecyclerView.VERTICAL, false)
         binding.tvAssistedDowngradeHint.isVisible = viewModel.isInactiveAssistedWallet()
