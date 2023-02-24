@@ -116,7 +116,7 @@
     <string name="nc_export_via_nfc">Export via NFC</string>
     <string name="nc_export_via_file">Export via file (Advanced)</string>
     <string name="nc_transaction_exported">Transaction has been exported</string>
-    <string name="nc_export_transaction">Export transaction</string>
+    <string name="nc_export_transaction_qr">Export transaction via QR</string>
     <string name="nc_import_signature">Import signature</string>
     <string name="nc_signed_transaction">You’ve signed this transaction</string>
     <string name="nc_my_coldcard">My COLDCARD</string>

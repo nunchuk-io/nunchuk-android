@@ -18,7 +18,20 @@
         android:drawableStart="@drawable/ic_export"
         android:drawablePadding="@dimen/nc_padding_8"
         android:padding="@dimen/nc_padding_16"
-        android:text="@string/nc_transaction_export_psbt"
+        android:text="@string/nc_export_transaction_file"
+        android:textColor="@color/nc_black_color"
+        android:textSize="@dimen/nc_text_size_16"
+        app:drawableTint="@color/nc_primary_color" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/btnExport"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:drawableStart="@drawable/ic_export"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:padding="@dimen/nc_padding_16"
+        android:text="@string/nc_export_transaction_qr"
         android:textColor="@color/nc_black_color"
         android:textSize="@dimen/nc_text_size_16"
         app:drawableTint="@color/nc_primary_color" />
@@ -32,19 +45,6 @@
         android:drawablePadding="@dimen/nc_padding_8"
         android:padding="@dimen/nc_padding_16"
         android:text="@string/nc_transaction_import_signature"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16"
-        app:drawableTint="@color/nc_primary_color" />
-
-    <com.nunchuk.android.widget.NCFontTextView
-        android:id="@+id/btnExport"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackground"
-        android:drawableStart="@drawable/ic_export"
-        android:drawablePadding="@dimen/nc_padding_8"
-        android:padding="@dimen/nc_padding_16"
-        android:text="@string/nc_export_transaction"
         android:textColor="@color/nc_black_color"
         android:textSize="@dimen/nc_text_size_16"
         app:drawableTint="@color/nc_primary_color" />

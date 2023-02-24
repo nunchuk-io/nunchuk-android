@@ -629,7 +629,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 SheetOption(
                     type = SheetOptionType.EXPORT_TX_TO_Mk4,
                     resId = R.drawable.ic_export,
-                    label = getString(R.string.nc_export_transaction)
+                    label = getString(R.string.nc_export_transaction_qr)
                 ),
                 SheetOption(
                     type = SheetOptionType.IMPORT_TX_FROM_Mk4,

@@ -38,8 +38,8 @@
     <string name="nc_text_n_a">N/A</string>
     <string name="nc_transaction_view_blockchain">View on blockchain explorer</string>
     <string name="nc_transaction_enter_passphrase">Enter your passphrase</string>
-    <string name="nc_transaction_export_transaction_as_file">Export PSBT</string>
-    <string name="nc_transaction_import_signature_via_file">Import PSBT</string>
+    <string name="nc_transaction_export_transaction_as_file">Export via file</string>
+    <string name="nc_transaction_import_signature_via_file">Import via file</string>
     <string name="nc_transaction_import_signature_via_qr_code">Import signature via QR code</string>
 
     <string name="nc_transaction_confirmation">Are you sure you want to cancel this transaction?</string>
@@ -49,9 +49,9 @@
     <string name="nc_transaction_broadcast_successful">Transaction has been broadcast</string>
     <string name="nc_transaction_cancelled">Transaction cancelled</string>
     <string name="nc_transaction_removed">Transaction removed</string>
-    <string name="nc_transaction_imported">Transaction Imported</string>
+    <string name="nc_transaction_imported">Transaction imported</string>
     <string name="nc_transaction_imported_failed">Import failed :</string>
-    <string name="nc_transaction_export_psbt">Export PSBT</string>
+    <string name="nc_export_transaction_file">Export transaction via file</string>
     <string name="nc_input_fee_invalid_error">Rate cannot be lower than the minimum fee rate</string>
     <string name="nc_wait_to_estimate_fee">Please wait to estimate fee</string>
     <string name="nc_address_detected_please_enter_amount">Address detected. Please enter a send amount.</string>

@@ -99,7 +99,7 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
             }
         }
 
-        binding.toolbarTitle.text = getText(R.string.nc_export_transaction)
+        binding.toolbarTitle.text = getText(R.string.nc_export_transaction_qr)
         binding.btnExportAsFile.setOnClickListener {
             viewModel.exportTransactionToFile()
         }
