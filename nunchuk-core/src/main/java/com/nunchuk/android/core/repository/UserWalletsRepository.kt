@@ -233,6 +233,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     xpub = it.xpub,
                     pubkey = it.publicKey,
                     type = it.type.name,
+                    tags = it.tags.map { tag -> tag.name }
                 )
             }
         }
@@ -313,7 +314,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                                 publicKey = it.pubkey.orEmpty(),
                                 derivationPath = it.derivationPath.orEmpty(),
                                 masterFingerprint = it.xfp.orEmpty(),
-                                type = nunchukNativeSdk.signerTypeFromStr(it.type.orEmpty())
+                                type = nunchukNativeSdk.signerTypeFromStr(it.type.orEmpty()),
+                                tags = it.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() }
                             )
                         }
                     }

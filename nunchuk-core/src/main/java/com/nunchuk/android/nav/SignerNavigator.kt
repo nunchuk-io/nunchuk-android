@@ -23,6 +23,7 @@ import android.content.Context
 import androidx.fragment.app.Fragment
 import com.nunchuk.android.core.signer.PrimaryKeyFlow
 import com.nunchuk.android.model.PrimaryKey
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 
 interface SignerNavigator {
@@ -42,7 +43,7 @@ interface SignerNavigator {
         customMessage: String = ""
     )
 
-    fun openAddAirSignerScreen(activityContext: Context, isMembershipFlow: Boolean)
+    fun openAddAirSignerScreen(activityContext: Context, isMembershipFlow: Boolean, tag: SignerTag? = null)
 
     /**
      * @param passphrase only need for replacing primary key

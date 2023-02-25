@@ -22,6 +22,7 @@ package com.nunchuk.android.usecase
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -38,7 +39,8 @@ class CreateSignerUseCase @Inject constructor(
             publicKey = "",
             derivationPath = parameters.derivationPath,
             masterFingerprint = parameters.masterFingerprint,
-            type = parameters.type
+            type = parameters.type,
+            tags = parameters.tags
         )
     }
 
@@ -47,6 +49,7 @@ class CreateSignerUseCase @Inject constructor(
         val xpub: String,
         val type: SignerType,
         val derivationPath: String,
-        val masterFingerprint: String
+        val masterFingerprint: String,
+        val tags : List<SignerTag> = emptyList(),
     )
 }

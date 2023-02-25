@@ -39,6 +39,7 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.*
 import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.Chain
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreatePassportSignersUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
@@ -88,21 +89,22 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     val signers: List<SingleSigner>
         get() = _signers
 
-    fun handleAddAirgapSigner(signerName: String, signerSpec: String, isMembershipFlow: Boolean) {
+    fun handleAddAirgapSigner(signerName: String, signerSpec: String, isMembershipFlow: Boolean, signerTag: SignerTag?) {
         val newSignerName = if (isMembershipFlow) "Hardware key${
             membershipStepManager.getNextKeySuffixByType(
                 SignerType.AIRGAP
             )
         }" else signerName
         validateInput(newSignerName, signerSpec) {
-            doAfterValidate(newSignerName, it, isMembershipFlow)
+            doAfterValidate(newSignerName, it, isMembershipFlow, signerTag)
         }
     }
 
     private fun doAfterValidate(
         signerName: String,
         signerInput: SignerInput,
-        isMembershipFlow: Boolean
+        isMembershipFlow: Boolean,
+        signerTag: SignerTag?
     ) {
         viewModelScope.launch {
             if (membershipStepManager.isKeyExisted(signerInput.fingerPrint) && isMembershipFlow) {
@@ -116,7 +118,8 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     xpub = signerInput.xpub,
                     derivationPath = signerInput.derivationPath,
                     masterFingerprint = signerInput.fingerPrint.lowercase(),
-                    type = SignerType.AIRGAP
+                    type = SignerType.AIRGAP,
+                    tags = signerTag?.let { listOf(it) }.orEmpty()
                 )
             )
             if (result.isSuccess) {

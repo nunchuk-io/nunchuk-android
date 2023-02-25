@@ -78,6 +78,7 @@ import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -172,9 +173,25 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_AIRGAP_JADE,
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
-            SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE -> navigator.openAddAirSignerScreen(
+            SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE -> handleSelectAddAirgapType(option.type)
+        }
+    }
+
+    private fun handleSelectAddAirgapType(type: Int) {
+        val tag = when(type) {
+            SheetOptionType.TYPE_ADD_AIRGAP_JADE -> SignerTag.JADE
+            SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER -> SignerTag.SEEDSIGNER
+            SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT -> SignerTag.PASSPORT
+            SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE -> SignerTag.KEYSTONE
+            else -> throw IllegalArgumentException("Can not handleSelectAddAirgapType ${type}")
+        }
+        viewModel.getUpdateSigner()?.let {
+            viewModel.onUpdateSignerTag(it, tag)
+        } ?: run {
+            navigator.openAddAirSignerScreen(
                 activityContext = requireActivity(),
-                isMembershipFlow = true
+                isMembershipFlow = true,
+                tag = tag
             )
         }
     }
@@ -227,6 +244,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 is AddKeyListEvent.OnVerifySigner -> openVerifyTapSigner(event)
                 AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack()
                 is AddKeyListEvent.ShowError -> showError(event.message)
+                AddKeyListEvent.SelectAirgapType -> showAirgapOptions()
             }
         }
     }

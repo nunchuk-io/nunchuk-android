@@ -42,6 +42,7 @@ import com.nunchuk.android.signer.software.components.primarykey.notification.PK
 import com.nunchuk.android.signer.software.components.primarykey.passphrase.PKeyEnterPassphraseActivity
 import com.nunchuk.android.signer.software.components.primarykey.signin.PKeySignInActivity
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedActivity
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 
 interface SignerNavigatorDelegate : SignerNavigator {
@@ -78,8 +79,12 @@ interface SignerNavigatorDelegate : SignerNavigator {
         )
     }
 
-    override fun openAddAirSignerScreen(activityContext: Context, isMembershipFlow: Boolean) {
-        AddAirgapSignerActivity.start(activityContext, isMembershipFlow)
+    override fun openAddAirSignerScreen(
+        activityContext: Context,
+        isMembershipFlow: Boolean,
+        tag: SignerTag?
+    ) {
+        AddAirgapSignerActivity.start(activityContext, isMembershipFlow, tag)
     }
 
     override fun openAddSoftwareSignerScreen(
