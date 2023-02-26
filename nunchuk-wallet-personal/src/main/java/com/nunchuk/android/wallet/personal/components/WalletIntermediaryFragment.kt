@@ -25,6 +25,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
@@ -74,8 +75,12 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
 
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
-            SheetOptionType.IMPORT_MULTI_SIG_COLD_CARD -> navigator.openSetupMk4(requireActivity(), false, ColdcardAction.RECOVER_MULTI_SIG_WALLET)
-            SheetOptionType.IMPORT_SINGLE_SIG_COLD_CARD -> navigator.openSetupMk4(requireActivity(), false, ColdcardAction.RECOVER_SINGLE_SIG_WALLET)
+            SheetOptionType.IMPORT_MULTI_SIG_COLD_CARD -> navigator.openSetupMk4(
+                requireActivity(), false, ColdcardAction.RECOVER_MULTI_SIG_WALLET
+            )
+            SheetOptionType.IMPORT_SINGLE_SIG_COLD_CARD -> navigator.openSetupMk4(
+                requireActivity(), false, ColdcardAction.RECOVER_SINGLE_SIG_WALLET
+            )
         }
     }
 
@@ -88,14 +93,18 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             }
         }
         flowObserver(viewModel.state) {
+            val isCreateAssistedWalletVisible =
+                it.plan == MembershipPlan.HONEY_BADGER && it.assistedWallets.size < MAX_HONEY_BADGER_ASSISTED_WALLET_COUNT
             binding.btnCreateAssistedWallet.apply {
-                isVisible =
-                    it.plan == MembershipPlan.HONEY_BADGER && it.assistedWallets.size < MAX_HONEY_BADGER_ASSISTED_WALLET_COUNT
+                isVisible = isCreateAssistedWalletVisible
                 text = context.getString(
                     R.string.nc_create_assisted_wallet,
                     MAX_HONEY_BADGER_ASSISTED_WALLET_COUNT - it.assistedWallets.size
                 )
             }
+            binding.btnCreateNewWallet.setBackgroundResource(if (isCreateAssistedWalletVisible) R.drawable.nc_rounded_light_background else R.drawable.nc_rounded_dark_background)
+            val textColor = ContextCompat.getColor(requireActivity(), if (isCreateAssistedWalletVisible) R.color.nc_primary_color else R.color.nc_white_color)
+            binding.btnCreateNewWallet.setTextColor(textColor)
         }
     }
 
