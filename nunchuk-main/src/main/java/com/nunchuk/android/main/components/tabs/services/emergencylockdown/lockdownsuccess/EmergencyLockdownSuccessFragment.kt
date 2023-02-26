@@ -74,7 +74,7 @@ class LockdownSuccessFragment : Fragment() {
                 is EmergencyLockdownSuccessEvent.Loading -> showOrHideLoading(loading = event.isLoading)
                 is EmergencyLockdownSuccessEvent.SignOut -> {
                     showOrHideLoading(loading = false)
-                    NcToastManager.scheduleShowMessage(message = getString(R.string.nc_your_account_has_been_signed_out))
+                    NcToastManager.scheduleShowMessage(message = getString(R.string.nc_your_account_has_been_signed_out), delay = 500L)
                     navigator.restartApp(requireActivity())
                 }
             }

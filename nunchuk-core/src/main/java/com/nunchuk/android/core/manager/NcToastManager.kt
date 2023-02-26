@@ -32,6 +32,7 @@ import java.util.*
 
 object NcToastManager : DefaultLifecycleObserver {
     private const val DELAY = 150L
+    private var delay = DELAY
     private val queue = LinkedList<Pair<MessageType, String>>()
     private val handler = Handler(Looper.getMainLooper())
     private val showMessage = Runnable {
@@ -66,19 +67,24 @@ object NcToastManager : DefaultLifecycleObserver {
         }
     }
 
-    fun scheduleShowMessage(message: String, type: MessageType = MessageType.SUCCESS) {
+    fun scheduleShowMessage(
+        message: String,
+        delay: Long = DELAY,
+        type: MessageType = MessageType.SUCCESS
+    ) {
+        this.delay = delay
         queue.add(Pair(type, message))
         schedule()
     }
 
     private fun schedule() {
         handler.removeCallbacks(showMessage)
-        handler.postDelayed(showMessage, DELAY)
+        handler.postDelayed(showMessage, delay)
     }
 
     override fun onStart(owner: LifecycleOwner) {
         super.onStart(owner)
-        handler.postDelayed(showMessage, DELAY)
+        handler.postDelayed(showMessage, delay)
     }
 
     override fun onStop(owner: LifecycleOwner) {
