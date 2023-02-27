@@ -99,10 +99,5 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
-        <activity
-            android:name=".components.primarykey.notification.PKeyNotificationActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/NunchukNoActionBar.Light" />
-
     </application>
 </manifest>

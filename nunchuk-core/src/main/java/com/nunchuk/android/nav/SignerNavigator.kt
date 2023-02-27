@@ -142,12 +142,6 @@ interface SignerNavigator {
 
     fun openPrimaryKeyManuallySignatureScreen(activityContext: Context, username: String)
 
-    fun openPrimaryKeyNotificationScreen(
-        activityContext: Context,
-        messages: ArrayList<String>,
-        @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE
-    )
-
     fun openPrimaryKeyReplaceIntroScreen(
         activityContext: Context,
         @PrimaryKeyFlow.PrimaryFlowInfo primaryKeyFlow: Int = PrimaryKeyFlow.NONE

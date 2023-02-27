@@ -93,10 +93,9 @@ class PKeyManuallySignatureActivity : BaseActivity<ActivityPkeyManuallySignature
         val messages = ArrayList<String>()
         messages.add(String.format(getString(R.string.nc_text_signed_in_with_data), args.username))
         if (turnOn && isEnabledNotification) {
-            navigator.openPrimaryKeyNotificationScreen(
+            navigator.openTurnNotificationScreen(
                 this@PKeyManuallySignatureActivity,
-                messages = messages,
-                primaryKeyFlow = PrimaryKeyFlow.SIGN_IN
+                messages = messages
             )
         } else {
             navigator.openMainScreen(

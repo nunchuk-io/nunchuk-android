@@ -29,4 +29,8 @@ interface SettingNavigator {
     fun openUserDevicesScreen(activityContext: Context)
     fun openAboutScreen(activityContext: Context)
     fun openWalletSecuritySettingScreen(activityContext: Context)
+    fun openTurnNotificationScreen(
+        activityContext: Context,
+        messages: ArrayList<String> = arrayListOf()
+    )
 }

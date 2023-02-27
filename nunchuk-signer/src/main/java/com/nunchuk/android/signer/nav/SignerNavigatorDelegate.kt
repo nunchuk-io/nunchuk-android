@@ -38,7 +38,6 @@ import com.nunchuk.android.signer.software.components.primarykey.intro.PKeySignU
 import com.nunchuk.android.signer.software.components.primarykey.intro.replace.PKeyReplaceKeyIntroActivity
 import com.nunchuk.android.signer.software.components.primarykey.manuallysignature.PKeyManuallySignatureActivity
 import com.nunchuk.android.signer.software.components.primarykey.manuallyusername.PKeyManuallyUsernameActivity
-import com.nunchuk.android.signer.software.components.primarykey.notification.PKeyNotificationActivity
 import com.nunchuk.android.signer.software.components.primarykey.passphrase.PKeyEnterPassphraseActivity
 import com.nunchuk.android.signer.software.components.primarykey.signin.PKeySignInActivity
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedActivity
@@ -204,14 +203,6 @@ interface SignerNavigatorDelegate : SignerNavigator {
 
     override fun openPrimaryKeyManuallySignatureScreen(activityContext: Context, username: String) {
         PKeyManuallySignatureActivity.start(activityContext, username)
-    }
-
-    override fun openPrimaryKeyNotificationScreen(
-        activityContext: Context,
-        messages: ArrayList<String>,
-        primaryKeyFlow: Int
-    ) {
-        PKeyNotificationActivity.start(activityContext, messages, primaryKeyFlow)
     }
 
     override fun openPrimaryKeyReplaceIntroScreen(activityContext: Context, primaryKeyFlow: Int) {

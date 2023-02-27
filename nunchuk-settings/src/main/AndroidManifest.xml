@@ -50,5 +50,10 @@
             android:name=".walletsecurity.WalletSecuritySettingActivity"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
+            android:name=".notification.TurnNotificationActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
     </application>
 </manifest>

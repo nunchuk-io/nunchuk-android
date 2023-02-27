@@ -104,10 +104,9 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
         messages.add(String.format(getString(R.string.nc_text_signed_in_with_data), args.username))
         messages.add(String.format(getString(R.string.nc_text_key_has_been_added_data), viewModel.getSignerName()))
         if (turnOn && isEnabledNotification) {
-            navigator.openPrimaryKeyNotificationScreen(
+            navigator.openTurnNotificationScreen(
                 this,
-                messages = messages,
-                primaryKeyFlow = args.primaryKeyFlow
+                messages = messages
             )
         } else {
             navigator.openMainScreen(
