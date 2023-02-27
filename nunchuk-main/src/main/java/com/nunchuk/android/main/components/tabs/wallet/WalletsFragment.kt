@@ -146,6 +146,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun showAssistedWalletStart(
         remainingTime: Int,
+        walletName: String?,
     ) {
         val stage = walletsViewModel.getGroupStage()
         val isGone = stage == MembershipStage.DONE
@@ -156,6 +157,11 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             binding.tvIntroDesc.text =
                 getString(R.string.nc_assisted_wallet_intro_desc)
             binding.tvIntroAction.text = getString(R.string.nc_start_wizard)
+        } else if (stage == MembershipStage.SETUP_INHERITANCE) {
+            binding.tvIntroTitle.text = getString(R.string.nc_setup_inheritance_for, walletName.orEmpty())
+            binding.tvIntroDesc.text =
+                getString(R.string.nc_estimate_remain_time, remainingTime)
+            binding.tvIntroAction.text = getString(R.string.nc_do_it_now)
         } else if (stage != MembershipStage.DONE) {
             binding.tvIntroTitle.text = getString(R.string.nc_you_almost_done)
             binding.tvIntroDesc.text =
@@ -359,9 +365,12 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         binding.containerNonSubscriber.isVisible =
             state.plan != null && state.plan == MembershipPlan.NONE
         if (state.plan != null) {
+            val walletName = state.assistedWallets.firstOrNull()
+                ?.let { wallet -> state.wallets.find { wallet.localId == it.wallet.id }?.wallet?.name.orEmpty() }
             when {
                 state.plan != MembershipPlan.NONE -> showAssistedWalletStart(
                     state.remainingTime,
+                    walletName
                 )
                 else -> showNonSubscriberIntro(state.banner, state.isHideUpsellBanner)
             }
