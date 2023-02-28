@@ -49,7 +49,6 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.*
-import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.utils.serializable
@@ -134,7 +133,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
             SheetOptionType.TYPE_IMPORT_PSBT -> handleImportPSBT()
-            SheetOptionType.TYPE_IMPORT_PSBT_QR -> openImportTransactionScreen(TransactionOption.IMPORT_TRANSACTION)
+            SheetOptionType.TYPE_IMPORT_PSBT_QR -> openImportTransactionScreen()
             SheetOptionType.TYPE_SAVE_WALLET_CONFIG -> handleExportBSMS()
             SheetOptionType.SET_UP_INHERITANCE -> navigator.openInheritancePlanningScreen(
                 walletId = args.walletId,
@@ -382,7 +381,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         bottomSheet.show(childFragmentManager, "BottomSheetOption")
     }
 
-    private fun openImportTransactionScreen(transactionOption: TransactionOption) {
+    private fun openImportTransactionScreen() {
         navigator.openImportTransactionScreen(
             activityContext = requireActivity(),
             walletId = args.walletId

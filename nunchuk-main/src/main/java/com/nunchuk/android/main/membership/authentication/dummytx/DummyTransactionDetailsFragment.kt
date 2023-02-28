@@ -37,9 +37,11 @@ import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
+import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.R
@@ -62,6 +64,18 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
     private val viewModel: DummyTransactionDetailsViewModel by viewModels()
     private val walletAuthenticationViewModel: WalletAuthenticationViewModel by activityViewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
+    private val controller: IntentSharingController by lazy {
+        IntentSharingController.from(
+            requireActivity()
+        )
+    }
+
+    private val importFileLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let {
+                viewModel.importTransactionViaFile(walletAuthenticationViewModel.getWalletId(), it)
+            }
+        }
 
     private val importTxLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -81,8 +95,14 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
 
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
-            TransactionOption.EXPORT_TRANSACTION.ordinal -> openExportTransactionScreen()
-            TransactionOption.IMPORT_TRANSACTION.ordinal -> openImportTransactionScreen()
+            TransactionOption.EXPORT_TRANSACTION.ordinal -> showExportTransactionOptions()
+            TransactionOption.IMPORT_TRANSACTION.ordinal -> showImportTransactionOptions()
+            SheetOptionType.TYPE_EXPORT_QR -> openExportTransactionScreen()
+            SheetOptionType.TYPE_EXPORT_FILE -> viewModel.exportTransactionToFile(
+                walletAuthenticationViewModel.getDataToSign()
+            )
+            SheetOptionType.TYPE_IMPORT_QR -> openImportTransactionScreen()
+            SheetOptionType.TYPE_IMPORT_FILE -> importFileLauncher.launch("*/*")
         }
     }
 
@@ -90,6 +110,16 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
         flowObserver(walletAuthenticationViewModel.state, ::handleState)
         flowObserver(viewModel.state) {
             handleViewMore(it.viewMore)
+        }
+        flowObserver(viewModel.event) {
+            when (it) {
+                is DummyTransactionDetailEvent.ExportToFileSuccess -> shareTransactionFile(it.filePath)
+                is DummyTransactionDetailEvent.ImportTransactionSuccess -> walletAuthenticationViewModel.handleImportAirgapTransaction(
+                    it.transaction ?: return@flowObserver
+                )
+                is DummyTransactionDetailEvent.LoadingEvent -> showOrHideLoading(it.isLoading)
+                is DummyTransactionDetailEvent.TransactionError -> showError(it.error)
+            }
         }
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
             walletAuthenticationViewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
@@ -149,6 +179,10 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
             }
             nfcViewModel.clearScanInfo()
         }
+    }
+
+    private fun shareTransactionFile(filePath: String) {
+        controller.shareFile(filePath)
     }
 
     private fun handleExportToColdcardSuccess() {
@@ -328,6 +362,40 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
             walletId = walletAuthenticationViewModel.getWalletId(),
             isDummyTx = true
         )
+    }
+
+    private fun showExportTransactionOptions() {
+        BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_EXPORT_QR,
+                    resId = com.nunchuk.android.transaction.R.drawable.ic_qr,
+                    label = getString(com.nunchuk.android.transaction.R.string.nc_export_via_qr),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_EXPORT_FILE,
+                    resId = com.nunchuk.android.transaction.R.drawable.ic_export,
+                    label = getString(com.nunchuk.android.transaction.R.string.nc_export_via_file),
+                ),
+            )
+        ).show(childFragmentManager, "BottomSheetOption")
+    }
+
+    private fun showImportTransactionOptions() {
+        BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_IMPORT_QR,
+                    resId = com.nunchuk.android.transaction.R.drawable.ic_qr,
+                    label = getString(com.nunchuk.android.transaction.R.string.nc_import_via_qr),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_IMPORT_FILE,
+                    resId = com.nunchuk.android.transaction.R.drawable.ic_import,
+                    label = getString(com.nunchuk.android.transaction.R.string.nc_import_via_file),
+                ),
+            )
+        ).show(childFragmentManager, "BottomSheetOption")
     }
 
     private fun showError(message: String) {

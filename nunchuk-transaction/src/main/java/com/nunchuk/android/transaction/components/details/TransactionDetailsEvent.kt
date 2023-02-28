@@ -49,7 +49,7 @@ sealed class TransactionDetailsEvent {
 
     data class ExportToFileSuccess(val filePath: String) : TransactionDetailsEvent()
 
-    data class ExportTransactionError(val message: String) : TransactionDetailsEvent()
+    data class TransactionError(val message: String) : TransactionDetailsEvent()
 
     data class UpdateTransactionMemoSuccess(val newMemo: String) : TransactionDetailsEvent()
 
@@ -63,4 +63,5 @@ sealed class TransactionDetailsEvent {
     object CancelScheduleBroadcastTransactionSuccess : TransactionDetailsEvent()
 
     data class NfcLoadingEvent(val isColdcard: Boolean = false) : TransactionDetailsEvent()
+    object ImportTransactionSuccess : TransactionDetailsEvent()
 }

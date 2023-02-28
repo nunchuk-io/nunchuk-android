@@ -25,15 +25,10 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.settings.GetQrDensitySettingUseCase
 import com.nunchuk.android.core.domain.settings.UpdateQrDensitySettingUseCase
 import com.nunchuk.android.core.qr.convertToQRCode
-import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Result.Error
-import com.nunchuk.android.model.Result.Success
-import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.*
-import com.nunchuk.android.usecase.CreateShareFileUseCase
+import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.ExportTransactionError
 import com.nunchuk.android.usecase.ExportKeystoneTransactionUseCase
-import com.nunchuk.android.usecase.ExportTransactionUseCase
 import com.nunchuk.android.usecase.membership.ExportKeystoneDummyTransaction
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -44,13 +39,10 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.FileOutputStream
 import javax.inject.Inject
 
 @HiltViewModel
 internal class ExportTransactionViewModel @Inject constructor(
-    private val createShareFileUseCase: CreateShareFileUseCase,
-    private val exportTransactionUseCase: ExportTransactionUseCase,
     private val exportKeystoneTransactionUseCase: ExportKeystoneTransactionUseCase,
     private val exportKeystoneDummyTransaction: ExportKeystoneDummyTransaction,
     private val getQrDensitySettingUseCase: GetQrDensitySettingUseCase,
@@ -87,41 +79,6 @@ internal class ExportTransactionViewModel @Inject constructor(
         if (isDummyTxFlow) exportDummyKeystoneTransaction() else exportTransactionToQRs()
     }
 
-    fun exportTransactionToFile() {
-        viewModelScope.launch {
-            event(LoadingEvent)
-            when (val result = createShareFileUseCase.execute( if (isDummyTxFlow) "dummy.psbt" else "${args.walletId}_${args.txId}.psbt")) {
-                is Success -> exportTransaction(result.data)
-                is Error -> event(ExportTransactionError(result.exception.messageOrUnknownError()))
-            }
-        }
-    }
-
-    private fun exportTransaction(filePath: String) {
-        viewModelScope.launch {
-            if (isDummyTxFlow) {
-                val result = runCatching {
-                    withContext(ioDispatcher) {
-                        FileOutputStream(filePath).use {
-                            it.write(args.txToSign.toByteArray(Charsets.UTF_8))
-                        }
-                    }
-                }
-                if (result.isSuccess) {
-                    setEvent(ExportToFileSuccess(filePath))
-                } else {
-                    ExportTransactionError(result.exceptionOrNull()?.message.orUnknownError())
-                }
-            } else {
-                when (val result =
-                    exportTransactionUseCase.execute(args.walletId, args.txId, filePath)) {
-                    is Success -> event(ExportToFileSuccess(filePath))
-                    is Error -> event(ExportTransactionError(result.exception.messageOrUnknownError()))
-                }
-            }
-        }
-    }
-
     private fun exportDummyKeystoneTransaction() {
         val qrSize = getQrSize()
         viewModelScope.launch {
@@ -155,5 +112,5 @@ internal class ExportTransactionViewModel @Inject constructor(
     }
 
     private val isDummyTxFlow: Boolean
-        get() = args.txToSign.isNotEmpty()
+        get() = args.isDummyTx
 }

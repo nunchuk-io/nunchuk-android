@@ -114,9 +114,10 @@
     <string name="nc_add_coldcard_mk4">Add COLDCARD</string>
     <string name="nc_add_key">Add key</string>
     <string name="nc_export_via_nfc">Export via NFC</string>
-    <string name="nc_export_via_file">Export via file (Advanced)</string>
+    <string name="nc_export_via_file">Export via file</string>
+    <string name="nc_export_via_file_advance">Export via file (Advanced)</string>
     <string name="nc_transaction_exported">Transaction has been exported</string>
-    <string name="nc_export_transaction_qr">Export transaction via QR</string>
+    <string name="nc_export_via_qr">Export via QR</string>
     <string name="nc_import_signature">Import signature</string>
     <string name="nc_signed_transaction">You’ve signed this transaction</string>
     <string name="nc_my_coldcard">My COLDCARD</string>
@@ -521,4 +522,5 @@
     <string name="nc_what_type_of_airgap_you_have">What type of air-gapped device do you have?</string>
     <string name="nc_do_it_now">Do it now</string>
     <string name="nc_setup_inheritance_for">Set up an inheritance plan for %1$s</string>
+    <string name="nc_import_via_qr">Import via QR</string>
 </resources>

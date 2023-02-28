@@ -101,7 +101,7 @@ class RegisterWalletToColdcardFragment : MembershipFragment() {
                                     SheetOption(
                                         type = SheetOptionType.EXPORT_COLDCARD_VIA_FILE,
                                         resId = R.drawable.ic_export,
-                                        stringId = R.string.nc_export_via_file
+                                        stringId = R.string.nc_export_via_file_advance
                                     )
                                 ),
                                 showClosedIcon = true

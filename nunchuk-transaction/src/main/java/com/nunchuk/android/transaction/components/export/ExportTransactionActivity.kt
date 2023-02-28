@@ -27,10 +27,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.*
-import com.nunchuk.android.transaction.R
-import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.*
+import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.ExportTransactionError
+import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.LoadingEvent
 import com.nunchuk.android.transaction.databinding.ActivityExportTransactionBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -42,8 +41,6 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>() {
-
-    private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 
     private val args: ExportTransactionArgs by lazy { ExportTransactionArgs.deserializeFrom(intent) }
 
@@ -98,11 +95,6 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
                 viewModel.setQrDensity(densities[value.toInt()])
             }
         }
-
-        binding.toolbarTitle.text = getText(R.string.nc_export_transaction_qr)
-        binding.btnExportAsFile.setOnClickListener {
-            viewModel.exportTransactionToFile()
-        }
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
@@ -131,16 +123,8 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
                 hideLoading()
                 NCToastMessage(this).showError(event.message)
             }
-            is ExportToFileSuccess -> {
-                hideLoading()
-                shareTransactionFile(event.filePath)
-            }
             LoadingEvent -> showLoading()
         }
-    }
-
-    private fun shareTransactionFile(filePath: String) {
-        controller.shareFile(filePath)
     }
 
     private fun openImportTransactionScreen() {

@@ -111,6 +111,13 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             }
         }
 
+    private val importFileLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let {
+                viewModel.importTransactionViaFile(args.walletId, it)
+            }
+        }
+
     override fun initializeBinding() = ActivityTransactionDetailsBinding.inflate(layoutInflater)
 
     override fun onNewIntent(intent: Intent?) {
@@ -179,6 +186,12 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         when (option.type) {
             SheetOptionType.EXPORT_TX_TO_Mk4 -> startNfcFlow(REQUEST_MK4_EXPORT_TRANSACTION)
             SheetOptionType.IMPORT_TX_FROM_Mk4 -> startNfcFlow(REQUEST_MK4_IMPORT_SIGNATURE)
+            IMPORT_TRANSACTION.ordinal -> showImportTransactionOptions()
+            EXPORT_TRANSACTION.ordinal -> showExportTransactionOptions()
+            SheetOptionType.TYPE_EXPORT_QR -> openExportTransactionScreen()
+            SheetOptionType.TYPE_EXPORT_FILE -> viewModel.exportTransactionToFile()
+            SheetOptionType.TYPE_IMPORT_QR -> openImportTransactionScreen()
+            SheetOptionType.TYPE_IMPORT_FILE -> importFileLauncher.launch("*/*")
         }
     }
 
@@ -303,9 +316,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             listener = { signer ->
                 viewModel.setCurrentSigner(signer)
                 when (signer.type) {
-                    SignerType.COLDCARD_NFC -> {
-                        showSignByMk4Options()
-                    }
+                    SignerType.COLDCARD_NFC -> showSignByMk4Options()
                     SignerType.NFC -> {
                         if (viewModel.isInheritanceSigner(signer.fingerPrint)) {
                             NCWarningDialog(this).showDialog(
@@ -319,9 +330,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                             startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
                         }
                     }
-                    else -> {
-                        viewModel.handleSignEvent(signer)
-                    }
+                    SignerType.AIRGAP -> showSignByAirgapOptions()
+                    else -> viewModel.handleSignSoftwareKey(signer)
                 }
             }).bindItems()
     }
@@ -436,7 +446,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             LoadingEvent -> showLoading()
             is NfcLoadingEvent -> showOrHideNfcLoading(true, event.isColdcard)
             is ExportToFileSuccess -> showExportToFileSuccess(event)
-            is ExportTransactionError -> showExportToFileError(event)
+            is TransactionError -> showExportToFileError(event)
             is UpdateTransactionMemoFailed -> handleUpdateTransactionFailed(event)
             is UpdateTransactionMemoSuccess -> handleUpdateTransactionSuccess(event)
             ImportTransactionFromMk4Success -> handleImportTransactionFromMk4Success()
@@ -444,6 +454,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             CancelScheduleBroadcastTransactionSuccess -> NCToastMessage(this).show(
                 getString(R.string.nc_schedule_broadcast_has_been_canceled)
             )
+            ImportTransactionSuccess -> NCToastMessage(this).show(getString(R.string.nc_transaction_imported))
         }
     }
 
@@ -474,7 +485,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         if (nfcViewModel.handleNfcError(event.e).not()) showError(event.message)
     }
 
-    private fun showExportToFileError(event: ExportTransactionError) {
+    private fun showExportToFileError(event: TransactionError) {
         hideLoading()
         NCToastMessage(this).showError(event.message)
     }
@@ -503,13 +514,8 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         ).setListener {
             when (it) {
                 CANCEL -> promptCancelTransactionConfirmation()
-                EXPORT_TRANSACTION -> openExportTransactionScreen(
-                    event.masterFingerPrint
-                )
-                IMPORT_TRANSACTION -> openImportTransactionScreen(
-                    event.masterFingerPrint
-                )
-                EXPORT_PSBT -> viewModel.exportTransactionToFile()
+                EXPORT_TRANSACTION -> showExportTransactionOptions()
+                IMPORT_TRANSACTION -> showImportTransactionOptions()
                 REPLACE_BY_FEE -> handleOpenEditFee()
                 COPY_TRANSACTION_ID -> handleCopyContent(args.txId)
                 REMOVE_TRANSACTION -> viewModel.handleDeleteTransactionEvent(false)
@@ -537,23 +543,25 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         )
     }
 
-    private fun openExportTransactionScreen(masterFingerPrint: String) {
-        startActivity(
-            ExportTransactionActivity.buildIntent(
-                activityContext = this,
-                walletId = args.walletId,
-                txId = args.txId,
-                initEventId = viewModel.getInitEventId(),
-                masterFingerPrint = if (viewModel.isSharedTransaction()) masterFingerPrint else ""
+    private fun openExportTransactionScreen() {
+        viewModel.currentSigner()?.let {
+            startActivity(
+                ExportTransactionActivity.buildIntent(
+                    activityContext = this,
+                    walletId = args.walletId,
+                    txId = args.txId,
+                    initEventId = viewModel.getInitEventId(),
+                    masterFingerPrint = viewModel.currentSigner()?.fingerPrint.orEmpty(),
+                )
             )
-        )
+        }
     }
 
-    private fun openImportTransactionScreen(masterFingerPrint: String) {
+    private fun openImportTransactionScreen() {
         navigator.openImportTransactionScreen(
             activityContext = this,
             walletId = args.walletId,
-            masterFingerPrint = if (viewModel.isSharedTransaction()) masterFingerPrint else "",
+            masterFingerPrint = viewModel.currentSigner()?.fingerPrint.orEmpty(),
             initEventId = viewModel.getInitEventId()
         )
     }
@@ -629,12 +637,63 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 SheetOption(
                     type = SheetOptionType.EXPORT_TX_TO_Mk4,
                     resId = R.drawable.ic_export,
-                    label = getString(R.string.nc_export_transaction_qr)
+                    label = getString(R.string.nc_export_via_qr)
                 ),
                 SheetOption(
                     type = SheetOptionType.IMPORT_TX_FROM_Mk4,
                     resId = R.drawable.ic_import,
                     label = getString(R.string.nc_import_signature)
+                ),
+            )
+        ).show(supportFragmentManager, "BottomSheetOption")
+    }
+
+    private fun showSignByAirgapOptions() {
+        BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    type = IMPORT_TRANSACTION.ordinal,
+                    resId = R.drawable.ic_import,
+                    label = getString(R.string.nc_transaction_import_signature),
+                ),
+                SheetOption(
+                    type = EXPORT_TRANSACTION.ordinal,
+                    resId = R.drawable.ic_export,
+                    label = getString(R.string.nc_transaction_export_transaction),
+                ),
+            )
+        ).show(supportFragmentManager, "BottomSheetOption")
+    }
+
+    private fun showExportTransactionOptions() {
+        BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_EXPORT_QR,
+                    resId = R.drawable.ic_qr,
+                    label = getString(R.string.nc_export_via_qr),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_EXPORT_FILE,
+                    resId = R.drawable.ic_export,
+                    label = getString(R.string.nc_export_via_file),
+                ),
+            )
+        ).show(supportFragmentManager, "BottomSheetOption")
+    }
+
+    private fun showImportTransactionOptions() {
+        BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_IMPORT_QR,
+                    resId = R.drawable.ic_qr,
+                    label = getString(R.string.nc_import_via_qr),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_IMPORT_FILE,
+                    resId = R.drawable.ic_import,
+                    label = getString(R.string.nc_import_via_file),
                 ),
             )
         ).show(supportFragmentManager, "BottomSheetOption")

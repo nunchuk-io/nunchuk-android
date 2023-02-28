@@ -21,36 +21,24 @@ package com.nunchuk.android.transaction.components.imports
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.core.util.readableMessage
-import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionError
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionSuccess
 import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCase
-import com.nunchuk.android.usecase.ImportTransactionUseCase
-import com.nunchuk.android.usecase.membership.GetDummyTxFromPsbtByteArrayUseCase
 import com.nunchuk.android.usecase.membership.ParseKeystoneDummyTransaction
 import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
 internal class ImportTransactionViewModel @Inject constructor(
-    private val importTransactionUseCase: ImportTransactionUseCase,
     private val importKeystoneTransactionUseCase: ImportKeystoneTransactionUseCase,
     private val parseKeystoneDummyTransaction: ParseKeystoneDummyTransaction,
-    private val getDummyTxFromPsbtByteArrayUseCase: GetDummyTxFromPsbtByteArrayUseCase,
     private val analyzeQrUseCase: AnalyzeQrUseCase,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<Unit, ImportTransactionEvent>() {
     private val _state = MutableStateFlow(ImportTransactionState())
     val uiState = _state.asStateFlow()
@@ -64,28 +52,6 @@ internal class ImportTransactionViewModel @Inject constructor(
 
     fun init(args: ImportTransactionArgs) {
         this.args = args
-    }
-
-    fun importTransactionViaFile(filePath: String) {
-        viewModelScope.launch {
-            if (isDummyFlow) {
-                val bytes = withContext(ioDispatcher) {
-                    File(filePath).readBytes()
-                }
-                val result = getDummyTxFromPsbtByteArrayUseCase(GetDummyTxFromPsbtByteArrayUseCase.Param(args.walletId, bytes))
-                if (result.isSuccess) {
-                    setEvent(ImportTransactionSuccess(result.getOrThrow()))
-                } else {
-                    setEvent(ImportTransactionError(result.exceptionOrNull()?.message.orUnknownError()))
-                }
-            } else {
-                importTransactionUseCase.execute(args.walletId, filePath)
-                    .flowOn(IO)
-                    .onException { event(ImportTransactionError(it.readableMessage())) }
-                    .flowOn(Main)
-                    .collect { event(ImportTransactionSuccess()) }
-            }
-        }
     }
 
     fun importTransactionViaQR(qrData: String) {

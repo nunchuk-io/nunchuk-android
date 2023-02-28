@@ -28,10 +28,7 @@ import androidx.core.view.isVisible
 import com.google.zxing.client.android.Intents
 import com.nunchuk.android.core.base.BaseCameraActivity
 import com.nunchuk.android.core.manager.NcToastManager
-import com.nunchuk.android.core.util.CHOOSE_FILE_REQUEST_CODE
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.getFileFromUri
-import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionError
@@ -82,7 +79,6 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
         barcodeViewIntent.putExtra(Intents.Scan.MODE, Intents.Scan.QR_CODE_MODE)
         binding.barcodeView.initializeFromIntent(barcodeViewIntent)
         binding.barcodeView.decodeContinuous { viewModel.importTransactionViaQR(it.text) }
-        binding.btnImportViaFile.setOnClickListener { openSelectFileChooser() }
         binding.toolbar.setNavigationOnClickListener { finish() }
     }
 
@@ -116,15 +112,6 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
             finish()
         } else {
             NCToastMessage(this).showWarning(getString(R.string.nc_transaction_imported_failed) + event.message)
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
-        super.onActivityResult(requestCode, resultCode, intent)
-        if (requestCode == CHOOSE_FILE_REQUEST_CODE && resultCode == RESULT_OK) {
-            intent?.data?.let {
-                getFileFromUri(contentResolver, it, cacheDir)
-            }?.absolutePath?.let(viewModel::importTransactionViaFile)
         }
     }
 
