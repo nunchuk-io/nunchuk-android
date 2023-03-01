@@ -173,7 +173,8 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_AIRGAP_JADE,
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
-            SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE -> handleSelectAddAirgapType(option.type)
+            SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
+            SheetOptionType.TYPE_ADD_AIRGAP_OTHER -> handleSelectAddAirgapType(option.type)
         }
     }
 
@@ -183,10 +184,12 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER -> SignerTag.SEEDSIGNER
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT -> SignerTag.PASSPORT
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE -> SignerTag.KEYSTONE
-            else -> throw IllegalArgumentException("Can not handleSelectAddAirgapType ${type}")
+            else -> null
         }
         viewModel.getUpdateSigner()?.let {
-            viewModel.onUpdateSignerTag(it, tag)
+            if (tag != null) {
+                viewModel.onUpdateSignerTag(it, tag)
+            }
         } ?: run {
             navigator.openAddAirSignerScreen(
                 activityContext = requireActivity(),
@@ -232,6 +235,10 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
                     label = getString(R.string.nc_seedsigner),
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_AIRGAP_OTHER,
+                    label = getString(R.string.nc_other),
                 ),
             )
         ).show(childFragmentManager, "BottomSheetOption")
@@ -460,7 +467,7 @@ fun AddKeyCard(
                 modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically
             ) {
                 NcCircleImage(
-                    resId = item.signer.type.toReadableDrawableResId(),
+                    resId = item.signer.toReadableDrawableResId(),
                     color = colorResource(id = R.color.nc_white_color)
                 )
                 Column(

@@ -526,4 +526,5 @@
     <string name="nc_continue_setting_your_wallet">Continue setting up your wallet</string>
     <string name="nc_coldcard">COLDCARD</string>
     <string name="nc_bsms">BSMS</string>
+    <string name="nc_other">Other</string>
 </resources>

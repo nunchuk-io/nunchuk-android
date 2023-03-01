@@ -54,7 +54,7 @@ internal class SignersViewBinder(
         binding.avatar.isGone = model.localKey
         binding.ivSignerType.isVisible = model.localKey
         if (model.localKey) {
-            binding.ivSignerType.setImageDrawable(model.type.toReadableDrawable(context))
+            binding.ivSignerType.setImageDrawable(model.toReadableDrawable(context))
         } else {
             binding.avatar.text = model.name.shorten()
         }
