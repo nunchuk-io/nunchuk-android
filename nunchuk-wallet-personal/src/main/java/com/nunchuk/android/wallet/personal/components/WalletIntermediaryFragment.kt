@@ -36,6 +36,7 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
 import com.nunchuk.android.share.ColdcardAction
@@ -69,6 +70,21 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
         observer()
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (binding.btnCreateAssistedWallet.isVisible) {
+            binding.btnCreateAssistedWallet.text =
+                if (viewModel.getGroupStage() != MembershipStage.NONE) {
+                    getString(R.string.nc_continue_setting_your_wallet)
+                } else {
+                    getString(
+                        R.string.nc_create_assisted_wallet,
+                        MAX_HONEY_BADGER_ASSISTED_WALLET_COUNT - viewModel.state.value.assistedWallets.size
+                    )
+                }
+        }
+    }
+
     override fun onCameraPermissionGranted(fromUser: Boolean) {
         openScanQRCodeScreen()
     }
@@ -97,10 +113,14 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                 it.plan == MembershipPlan.HONEY_BADGER && it.assistedWallets.size < MAX_HONEY_BADGER_ASSISTED_WALLET_COUNT
             binding.btnCreateAssistedWallet.apply {
                 isVisible = isCreateAssistedWalletVisible
-                text = context.getString(
-                    R.string.nc_create_assisted_wallet,
-                    MAX_HONEY_BADGER_ASSISTED_WALLET_COUNT - it.assistedWallets.size
-                )
+                text = if (viewModel.getGroupStage() != MembershipStage.NONE) {
+                    getString(R.string.nc_continue_setting_your_wallet)
+                } else {
+                    context.getString(
+                        R.string.nc_create_assisted_wallet,
+                        MAX_HONEY_BADGER_ASSISTED_WALLET_COUNT - it.assistedWallets.size
+                    )
+                }
             }
             binding.btnCreateNewWallet.setBackgroundResource(if (isCreateAssistedWalletVisible) R.drawable.nc_rounded_light_background else R.drawable.nc_rounded_dark_background)
             val textColor = ContextCompat.getColor(requireActivity(), if (isCreateAssistedWalletVisible) R.color.nc_primary_color else R.color.nc_white_color)

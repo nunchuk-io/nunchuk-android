@@ -523,4 +523,5 @@
     <string name="nc_do_it_now">Do it now</string>
     <string name="nc_setup_inheritance_for">Set up an inheritance plan for %1$s</string>
     <string name="nc_import_via_qr">Import via QR</string>
+    <string name="nc_continue_setting_your_wallet">Continue setting up your wallet</string>
 </resources>
