@@ -39,6 +39,15 @@ class AddKeyStepViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
 ) : ViewModel() {
+    private val currentStep =
+        savedStateHandle.getStateFlow<MembershipStep?>(KEY_CURRENT_STEP, null)
+
+    private val currentStage =
+        savedStateHandle.getStateFlow(MembershipActivity.EXTRA_GROUP_STEP, MembershipStage.NONE)
+
+    private val walletId =
+        savedStateHandle.getStateFlow(MembershipActivity.EXTRA_KEY_WALLET_ID, "")
+
     private val _event = MutableSharedFlow<AddKeyStepEvent>()
     val event = _event.asSharedFlow()
 
@@ -46,19 +55,13 @@ class AddKeyStepViewModel @Inject constructor(
         .map { it.getOrElse { emptyList() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val isRegisterAirgap = assistedWallets
-        .map { it.lastOrNull()?.isRegisterAirgap == true }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val isRegisterAirgap = assistedWallets.combine(walletId) { assistedWallets, id ->
+        assistedWallets.find { it.localId == id }?.isRegisterAirgap == true
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val isRegisterColdcard = assistedWallets
-        .map { it.lastOrNull()?.isRegisterColdcard == true }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    private val currentStep =
-        savedStateHandle.getStateFlow<MembershipStep?>(KEY_CURRENT_STEP, null)
-
-    private val currentStage =
-        savedStateHandle.getStateFlow(MembershipActivity.EXTRA_GROUP_STEP, MembershipStage.NONE)
+    val isRegisterColdcard = assistedWallets.combine(walletId) { assistedWallets, id ->
+        assistedWallets.find { it.localId == id }?.isRegisterColdcard == true
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val plan = membershipStepManager.plan
 
@@ -156,10 +159,11 @@ class AddKeyStepViewModel @Inject constructor(
         }
     }
 
-    fun unSetupWallet() = assistedWallets.value.find { it.isSetupInheritance.not() }
+    fun activeWalletId() = walletId.value
 
-    fun requireInheritance() {
+    fun requireInheritance(walletId: String) {
         savedStateHandle[MembershipActivity.EXTRA_GROUP_STEP] = MembershipStage.SETUP_INHERITANCE
+        savedStateHandle[MembershipActivity.EXTRA_KEY_WALLET_ID] = walletId
     }
 
     companion object {

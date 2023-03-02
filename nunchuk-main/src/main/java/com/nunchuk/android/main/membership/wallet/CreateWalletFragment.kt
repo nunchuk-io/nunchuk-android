@@ -79,7 +79,7 @@ class CreateWalletFragment : MembershipFragment() {
             when (it) {
                 is CreateWalletEvent.Loading -> showOrHideLoading(it.isLoading)
                 is CreateWalletEvent.OnCreateWalletSuccess -> {
-                    addKeyStepViewModel.requireInheritance()
+                    addKeyStepViewModel.requireInheritance(it.walletId)
                     handleCreateWalletSuccess(it)
                 }
                 is CreateWalletEvent.ShowError -> showError(it.message)

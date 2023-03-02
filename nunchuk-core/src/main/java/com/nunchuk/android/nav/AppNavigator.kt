@@ -34,8 +34,7 @@ interface AppNavigator {
     fun openMembershipActivity(
         activityContext: Activity,
         groupStep: MembershipStage,
-        keyPolicy: KeyPolicy? = null,
-        xfp: String? = null,
+        walletId: String? = null,
         isClearTop: Boolean = false
     )
 

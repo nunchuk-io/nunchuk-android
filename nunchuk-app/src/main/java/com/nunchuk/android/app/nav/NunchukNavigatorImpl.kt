@@ -117,15 +117,13 @@ interface AppNavigatorDelegate : AppNavigator {
     override fun openMembershipActivity(
         activityContext: Activity,
         groupStep: MembershipStage,
-        keyPolicy: KeyPolicy?,
-        xfp: String?,
+        walletId: String?,
         isClearTop: Boolean
     ) {
         val intent = MembershipActivity.buildIntent(
             activity = activityContext,
             groupStep = groupStep,
-            keyPolicy = keyPolicy,
-            xfp = xfp
+            walletId = walletId
         )
         if (isClearTop) intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         activityContext.startActivity(intent)

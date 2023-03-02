@@ -127,8 +127,9 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         }
         binding.introContainer.setOnDebounceClickListener {
             navigator.openMembershipActivity(
-                requireActivity(),
-                walletsViewModel.getGroupStage()
+                activityContext = requireActivity(),
+                groupStep = walletsViewModel.getGroupStage(),
+                walletId = walletsViewModel.getAssistedWalletId()
             )
         }
         binding.containerNonSubscriber.setOnDebounceClickListener {

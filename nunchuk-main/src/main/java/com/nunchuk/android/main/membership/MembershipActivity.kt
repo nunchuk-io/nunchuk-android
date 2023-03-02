@@ -78,18 +78,21 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
 
     companion object {
         const val EXTRA_GROUP_STEP = "group_step"
+        const val EXTRA_KEY_WALLET_ID = "wallet_id"
         private const val EXTRA_KEY_POLICY = "key_policy"
         private const val EXTRA_KEY_XFP = "key_xfp"
 
         fun buildIntent(
             activity: Activity,
             groupStep: MembershipStage,
+            walletId: String? = null,
             keyPolicy: KeyPolicy? = null,
             xfp: String? = null
         ) = Intent(activity, MembershipActivity::class.java).apply {
             putExtra(EXTRA_GROUP_STEP, groupStep)
             putExtra(EXTRA_KEY_POLICY, keyPolicy)
             putExtra(EXTRA_KEY_XFP, xfp)
+            putExtra(EXTRA_KEY_WALLET_ID, walletId)
         }
     }
 }

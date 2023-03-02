@@ -295,6 +295,8 @@ internal class WalletsViewModel @Inject constructor(
         }
     }
 
+    fun getAssistedWalletId() = getState().assistedWallets.lastOrNull()?.localId
+
     fun getKeyPolicy(walletId: String) = keyPolicyMap[walletId]
 
     fun isPremiumUser() = getState().plan != null && getState().plan != MembershipPlan.NONE

@@ -49,6 +49,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.*
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.utils.serializable
@@ -135,10 +136,10 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             SheetOptionType.TYPE_IMPORT_PSBT -> handleImportPSBT()
             SheetOptionType.TYPE_IMPORT_PSBT_QR -> openImportTransactionScreen()
             SheetOptionType.TYPE_SAVE_WALLET_CONFIG -> handleExportBSMS()
-            SheetOptionType.SET_UP_INHERITANCE -> navigator.openInheritancePlanningScreen(
-                walletId = args.walletId,
-                activityContext = requireContext(),
-                flowInfo = InheritancePlanFlow.SETUP
+            SheetOptionType.SET_UP_INHERITANCE -> navigator.openMembershipActivity(
+                activityContext = requireActivity(),
+                groupStep = MembershipStage.SETUP_INHERITANCE,
+                walletId = args.walletId
             )
         }
     }
