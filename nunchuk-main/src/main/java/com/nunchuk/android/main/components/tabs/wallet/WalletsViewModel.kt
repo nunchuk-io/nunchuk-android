@@ -23,11 +23,10 @@ import android.nfc.tech.IsoDep
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.domain.BaseNfcUseCase
-import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
-import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
-import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
+import com.nunchuk.android.core.domain.*
 import com.nunchuk.android.core.domain.membership.GetServerWalletUseCase
+import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
+import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.mapper.MasterSignerMapper
@@ -37,11 +36,10 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.WalletSecuritySetting
+import com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingEvent
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
-import com.nunchuk.android.usecase.GetCompoundSignersUseCase
-import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
-import com.nunchuk.android.usecase.GetWalletsUseCase
+import com.nunchuk.android.usecase.*
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
@@ -68,6 +66,9 @@ internal class WalletsViewModel @Inject constructor(
     private val getBannerUseCase: GetBannerUseCase,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
+    private val checkWalletPinUseCase: CheckWalletPinUseCase,
+    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
+    private val getWalletPinUseCase: GetWalletPinUseCase,
     isShowNfcUniversalUseCase: IsShowNfcUniversalUseCase,
     isHideUpsellBannerUseCase: IsHideUpsellBannerUseCase,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
@@ -109,6 +110,11 @@ internal class WalletsViewModel @Inject constructor(
         viewModelScope.launch {
             isHideUpsellBanner.collect {
                 updateState { copy(isHideUpsellBanner = it) }
+            }
+        }
+        viewModelScope.launch {
+            getWalletPinUseCase(Unit).collect {
+                updateState { copy(currentWalletPin = it.getOrDefault("")) }
             }
         }
     }
@@ -298,4 +304,32 @@ internal class WalletsViewModel @Inject constructor(
     fun getKeyPolicy(walletId: String) = keyPolicyMap[walletId]
 
     fun isPremiumUser() = getState().plan != null && getState().plan != MembershipPlan.NONE
+
+    fun clearEvent() = event(None)
+
+    fun isWalletPinEnable() = getState().walletSecuritySetting.protectWalletPin && getState().currentWalletPin.isBlank().not()
+
+    fun isWalletPasswordEnable() = getState().walletSecuritySetting.protectWalletPassword
+
+    fun checkWalletPin(input: String, walletId: String) = viewModelScope.launch {
+        val match = checkWalletPinUseCase(input).getOrDefault(false)
+        event(CheckWalletPin(match, walletId))
+    }
+
+    fun confirmPassword(password: String, walletId: String) = viewModelScope.launch {
+        if (password.isBlank()) {
+            return@launch
+        }
+        val result = verifiedPasswordTokenUseCase(
+            VerifiedPasswordTokenUseCase.Param(
+                password = password,
+                targetAction = VerifiedPasswordTargetAction.PROTECT_WALLET.name
+            )
+        )
+        if (result.isSuccess) {
+            event(VerifyPasswordSuccess(walletId))
+        } else {
+            event(ShowErrorEvent(result.exceptionOrNull()))
+        }
+    }
 }

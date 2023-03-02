@@ -61,7 +61,6 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
-import com.nunchuk.android.model.BufferPeriodCountdown
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -191,7 +190,10 @@ private fun InheritanceClaimInputContent(
                         .padding(horizontal = 16.dp),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     title = stringResource(id = R.string.nc_magical_phrase),
-                    value = TextFieldValue(text = magicalPhrase, selection = TextRange(magicalPhrase.length)),
+                    value = TextFieldValue(
+                        text = magicalPhrase,
+                        selection = TextRange(magicalPhrase.length)
+                    ),
                     onValueChange = {
                         onMagicalPhraseTextChange(it.text)
                     },
@@ -236,7 +238,7 @@ private fun InheritanceClaimInputContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    enabled = magicalPhrase.countWords()  >= 1 && backupDownload.isNotBlank(),
+                    enabled = magicalPhrase.countWords() >= 1 && backupDownload.isNotBlank(),
                     onClick = onContinueClick,
                 ) {
                     Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))

@@ -25,8 +25,8 @@ import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.banner.Banner
-import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 
@@ -41,7 +41,8 @@ internal data class WalletsState(
     val isSetupInheritance: Boolean = false,
     val isHideUpsellBanner: Boolean = false,
     val banner: Banner? = null,
-    val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting()
+    val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting(),
+    val currentWalletPin: String = ""
 )
 
 internal sealed class WalletsEvent {
@@ -55,4 +56,7 @@ internal sealed class WalletsEvent {
     class GoToSatsCardScreen(val status: SatsCardStatus) : WalletsEvent()
     class GetTapSignerStatusSuccess(val status: TapSignerStatus) : WalletsEvent()
     class SatsCardUsedUp(val numberOfSlot: Int) : WalletsEvent()
+    class CheckWalletPin(val match: Boolean, val walletId: String) : WalletsEvent()
+    class VerifyPasswordSuccess(val walletId: String) : WalletsEvent()
+    object None: WalletsEvent()
 }

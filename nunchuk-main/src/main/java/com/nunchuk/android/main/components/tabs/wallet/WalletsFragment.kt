@@ -66,6 +66,8 @@ import com.nunchuk.android.signer.util.handleTapSignerStatus
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.widget.NCInfoDialog
+import com.nunchuk.android.widget.NCInputDialog
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningVerticalDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
@@ -159,7 +161,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                 getString(R.string.nc_assisted_wallet_intro_desc)
             binding.tvIntroAction.text = getString(R.string.nc_start_wizard)
         } else if (stage == MembershipStage.SETUP_INHERITANCE) {
-            binding.tvIntroTitle.text = getString(R.string.nc_setup_inheritance_for, walletName.orEmpty())
+            binding.tvIntroTitle.text =
+                getString(R.string.nc_setup_inheritance_for, walletName.orEmpty())
             binding.tvIntroDesc.text =
                 getString(R.string.nc_estimate_remain_time, remainingTime)
             binding.tvIntroAction.text = getString(R.string.nc_do_it_now)
@@ -192,7 +195,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             flowObserver(contactViewModel.noticeRoomEvent()) {
                 it.forEach { event ->
                     if ((event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_PENDING || event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_ACTIVE)
-                        && walletsViewModel.isPremiumUser().not()) {
+                        && walletsViewModel.isPremiumUser().not()
+                    ) {
                         walletsViewModel.reloadMembership()
                     }
                 }
@@ -235,7 +239,42 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             is SatsCardUsedUp -> handleSatsCardUsedUp(event.numberOfSlot)
             is Loading -> handleLoading(event)
             is NfcLoading -> showOrHideNfcLoading(event.loading)
+            is CheckWalletPin -> {
+                if (event.match) {
+                    openWalletDetailsScreen(event.walletId)
+                } else {
+                    showError(message = getString(R.string.nc_invalid_pin))
+                }
+            }
+            is VerifyPasswordSuccess -> {
+                if (walletsViewModel.isWalletPinEnable()) {
+                    showInputPinDialog(event.walletId)
+                } else {
+                    openWalletDetailsScreen(event.walletId)
+                }
+            }
+            None -> {}
         }
+        walletsViewModel.clearEvent()
+    }
+
+    private fun showInputPinDialog(walletId: String) {
+        NCInputDialog(requireContext()).showDialog(
+            title = getString(com.nunchuk.android.settings.R.string.nc_enter_your_pin),
+            onConfirmed = {
+                walletsViewModel.checkWalletPin(it, walletId)
+            }
+        )
+    }
+
+    private fun enterPasswordDialog(walletId: String) {
+        NCInputDialog(requireContext()).showDialog(
+            title = getString(com.nunchuk.android.settings.R.string.nc_re_enter_your_password),
+            descMessage = getString(com.nunchuk.android.settings.R.string.nc_re_enter_your_password_dialog_desc),
+            onConfirmed = {
+                walletsViewModel.confirmPassword(it, walletId)
+            }
+        )
     }
 
     private fun openSatsCardActiveSlotScreen(event: GoToSatsCardScreen) {
@@ -292,7 +331,11 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun showWalletState(state: WalletsState) {
         val wallets = state.wallets
-        showWallets(wallets, state.assistedWallets.map { it.localId }.toSet(), state.walletSecuritySetting.hideWalletDetail)
+        showWallets(
+            wallets,
+            state.assistedWallets.map { it.localId }.toSet(),
+            state.walletSecuritySetting.hideWalletDetail
+        )
         showSigners(state.signers)
         showConnectionBlockchainStatus(state)
         showIntro(state)
@@ -390,7 +433,11 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         }
     }
 
-    private fun showWallets(wallets: List<WalletExtended>, assistedWalletId: Set<String>, hideWalletDetail: Boolean) {
+    private fun showWallets(
+        wallets: List<WalletExtended>,
+        assistedWalletId: Set<String>,
+        hideWalletDetail: Boolean
+    ) {
         if (wallets.isEmpty()) {
             showWalletsEmptyView()
         } else {
@@ -403,7 +450,11 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         binding.walletList.isVisible = false
     }
 
-    private fun showWalletsListView(wallets: List<WalletExtended>, assistedWalletIds: Set<String>, hideWalletDetail: Boolean) {
+    private fun showWalletsListView(
+        wallets: List<WalletExtended>,
+        assistedWalletIds: Set<String>,
+        hideWalletDetail: Boolean
+    ) {
         binding.walletEmpty.isVisible = false
         binding.walletList.isVisible = true
         WalletsViewBinder(
@@ -411,8 +462,18 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             wallets = wallets,
             assistedWalletIds = assistedWalletIds,
             hideWalletDetail = hideWalletDetail,
-            callback = ::openWalletDetailsScreen
+            callback = ::checkWalletSecurity
         ).bindItems()
+    }
+
+    private fun checkWalletSecurity(walletId: String) {
+        if (walletsViewModel.isWalletPasswordEnable()) {
+            enterPasswordDialog(walletId)
+        } else if (walletsViewModel.isWalletPinEnable()) {
+            showInputPinDialog(walletId)
+        } else {
+            openWalletDetailsScreen(walletId)
+        }
     }
 
     private fun openWalletDetailsScreen(walletId: String) {

@@ -62,4 +62,21 @@
     <string name="scan_qr_to_sign_in_remotely">Scan QR to sign in remotely</string>
     <string name="nc_hide_wallet_details">Hide wallet details</string>
     <string name="nc_hide_wallet_details_desc">Hide your wallet balance, transaction amounts and addresses by default.</string>
+    <string name="nc_protect_wallet_with_account_password">Protect wallets with account password</string>
+    <string name="nc_protect_wallet_with_account_password_desc">Re-enter your account password for each wallet access.</string>
+    <string name="nc_protect_wallet_with_pin">Protect wallets with a PIN (advanced)</string>
+    <string name="nc_protect_wallet_with_pin_desc">Require a PIN for each wallet access.</string>
+    <string name="nc_create_a_wallet_pin">Create a wallet PIN</string>
+    <string name="nc_change_wallet_pin">Change wallet PIN</string>
+    <string name="nc_create_pin">Create PIN</string>
+    <string name="nc_invalid_pin">Invalid PIN</string>
+    <string name="nc_enter_pin">Enter PIN</string>
+    <string name="nc_confirm_pin">Confirm PIN</string>
+    <string name="nc_pin_created">PIN created.</string>
+    <string name="nc_pin_updated">PIN updated.</string>
+    <string name="nc_confirm_new_pin">Confirm new PIN</string>
+    <string name="nc_enter_new_pin">Enter new PIN</string>
+    <string name="nc_enter_current_pin">Enter current PIN</string>
+    <string name="nc_enter_your_pin">Enter your PIN</string>
+    <string name="nc_create_a_wallet_pin_desc">[B]Please make sure to remember your PIN. If you forget your PIN [/B]and have not backed up your wallets, you might not be able to access them again.</string>
 </resources>

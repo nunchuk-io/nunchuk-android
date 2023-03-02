@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/nc_padding_14"
         android:ellipsize="end"
-        android:maxLines="1"
+        android:maxLines="2"
         app:layout_constraintEnd_toStartOf="@+id/switch_button"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
