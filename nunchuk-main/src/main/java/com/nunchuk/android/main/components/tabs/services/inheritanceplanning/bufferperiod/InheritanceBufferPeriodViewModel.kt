@@ -60,7 +60,7 @@ class InheritanceBufferPeriodViewModel @Inject constructor(
         val result = getInheritanceBufferPeriodUseCase(Unit)
         if (result.isSuccess) {
             val options = result.getOrNull()?.map {
-                BufferPeriodOption(it, isSelected = false)
+                BufferPeriodOption(it, isSelected = it.isRecommended)
             }.orEmpty().toMutableList()
             options.add(getNoNeedPeriodItem())
             _state.update {
