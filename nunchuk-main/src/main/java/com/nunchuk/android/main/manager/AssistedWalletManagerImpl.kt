@@ -53,6 +53,6 @@ internal class AssistedWalletManagerImpl @Inject constructor(
     }
 
     override fun isShowSetupInheritance(walletId: String): Boolean {
-        return _assistedWalletId.value.any { it.localId == walletId && it.isSetupInheritance.not() }
+        return _assistedWalletId.value.any { it.localId == walletId && it.isSetupInheritance.not() && it.plan == MembershipPlan.HONEY_BADGER }
     }
 }
