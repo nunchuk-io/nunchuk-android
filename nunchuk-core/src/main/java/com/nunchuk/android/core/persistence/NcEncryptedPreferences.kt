@@ -39,6 +39,7 @@ class NcEncryptedPreferences @Inject constructor(context: Context) {
     }
 
     fun clear() {
+        walletPinFlow.value = ""
         prefs.edit().clear().apply()
     }
 

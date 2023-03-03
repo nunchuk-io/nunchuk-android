@@ -107,7 +107,7 @@ fun WalletSecurityCreatePinScreen(
 private fun WalletSecurityCreatePinContent(
     createPinFlow: Boolean = true,
     inputTitleArray: ArrayList<String> = arrayListOf(),
-    inputValue: MutableMap<Int, String> = hashMapOf(),
+    inputValue: MutableMap<Int, InputValue> = hashMapOf(),
     onContinueClick: () -> Unit = {},
     onInputChange: (Int, String) -> Unit = { _, _ -> },
 ) {
@@ -126,7 +126,7 @@ private fun WalletSecurityCreatePinContent(
                     textStyle = NunchukTheme.typography.titleLarge
                 )
                 NcHighlightText(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_create_a_wallet_pin_desc),
                     style = NunchukTheme.typography.body
                 )
@@ -134,18 +134,19 @@ private fun WalletSecurityCreatePinContent(
                     NcTextField(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 16.dp)
+                            .padding(top = 24.dp)
                             .padding(horizontal = 16.dp),
                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, keyboardType = KeyboardType.Number),
                         title = title,
-                        value = inputValue[index].orEmpty(),
+                        value = inputValue[index]?.value.orEmpty(),
+                        error = inputValue[index]?.errorMsg,
                         onValueChange = {
                             onInputChange(index, it)
                         },
                     )
                 }
 
-                val isButtonEnable = inputValue.all { it.value.isBlank().not() }
+                val isButtonEnable = inputValue.all { it.value.value.isBlank().not() }
                 if (createPinFlow) {
                     NcPrimaryDarkButton(
                         modifier = Modifier

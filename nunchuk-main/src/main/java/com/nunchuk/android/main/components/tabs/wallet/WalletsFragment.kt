@@ -67,7 +67,6 @@ import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
-import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningVerticalDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
@@ -243,7 +242,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                 if (event.match) {
                     openWalletDetailsScreen(event.walletId)
                 } else {
-                    showError(message = getString(R.string.nc_invalid_pin))
+                    showError(message = getString(R.string.nc_incorrect_pin))
                 }
             }
             is VerifyPasswordSuccess -> {

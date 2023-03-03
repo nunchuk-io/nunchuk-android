@@ -69,7 +69,8 @@
     <string name="nc_create_a_wallet_pin">Create a wallet PIN</string>
     <string name="nc_change_wallet_pin">Change wallet PIN</string>
     <string name="nc_create_pin">Create PIN</string>
-    <string name="nc_invalid_pin">Invalid PIN</string>
+    <string name="nc_incorrect_pin">PIN is incorrect</string>
+    <string name="nc_confirm_pin_does_not_match">Confirm PIN does not match</string>
     <string name="nc_enter_pin">Enter PIN</string>
     <string name="nc_confirm_pin">Confirm PIN</string>
     <string name="nc_pin_created">PIN created.</string>
@@ -78,5 +79,5 @@
     <string name="nc_enter_new_pin">Enter new PIN</string>
     <string name="nc_enter_current_pin">Enter current PIN</string>
     <string name="nc_enter_your_pin">Enter your PIN</string>
-    <string name="nc_create_a_wallet_pin_desc">[B]Please make sure to remember your PIN. If you forget your PIN [/B]and have not backed up your wallets, you might not be able to access them again.</string>
+    <string name="nc_create_a_wallet_pin_desc">[B]Please make sure to remember your PIN.[/B] If you forget your PIN and have not backed up your wallets, you might not be able to access them again.</string>
 </resources>

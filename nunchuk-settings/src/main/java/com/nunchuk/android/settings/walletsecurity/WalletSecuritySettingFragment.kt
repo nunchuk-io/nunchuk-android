@@ -68,7 +68,7 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
             is WalletSecuritySettingEvent.CheckWalletPin -> {
                 if (event.match.not()) {
                     NCToastMessage(requireActivity()).showError(
-                        message = getString(R.string.nc_invalid_pin)
+                        message = getString(R.string.nc_incorrect_pin)
                     )
                 }
             }
