@@ -544,17 +544,15 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     private fun openExportTransactionScreen() {
-        viewModel.currentSigner()?.let {
-            startActivity(
-                ExportTransactionActivity.buildIntent(
-                    activityContext = this,
-                    walletId = args.walletId,
-                    txId = args.txId,
-                    initEventId = viewModel.getInitEventId(),
-                    masterFingerPrint = viewModel.currentSigner()?.fingerPrint.orEmpty(),
-                )
+        startActivity(
+            ExportTransactionActivity.buildIntent(
+                activityContext = this,
+                walletId = args.walletId,
+                txId = args.txId,
+                initEventId = viewModel.getInitEventId(),
+                masterFingerPrint = viewModel.currentSigner()?.fingerPrint.orEmpty(),
             )
-        }
+        )
     }
 
     private fun openImportTransactionScreen() {
