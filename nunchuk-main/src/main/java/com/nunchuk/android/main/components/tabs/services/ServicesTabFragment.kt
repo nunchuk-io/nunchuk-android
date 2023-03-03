@@ -65,8 +65,16 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
         childFragmentManager.setFragmentResultListener(AssistedWalletBottomSheet.TAG, viewLifecycleOwner) { _, bundle ->
             val walletId = bundle.getString(GlobalResultKey.WALLET_ID).orEmpty()
             val item = currentSelectedItem
-            if (walletId.isNotEmpty() && item != null) {
-                enterPasswordDialog(item, walletId)
+            if (item == ServiceTabRowItem.SetUpInheritancePlan) {
+                navigator.openInheritancePlanningScreen(
+                    walletId = walletId,
+                    activityContext = requireContext(),
+                    flowInfo = InheritancePlanFlow.SETUP
+                )
+            } else {
+                if (walletId.isNotEmpty() && item != null) {
+                    enterPasswordDialog(item, walletId)
+                }
             }
         }
 
@@ -205,13 +213,15 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             ServiceTabRowItem.OrderNewHardware -> showOrderNewHardwareDialog()
             ServiceTabRowItem.RollOverAssistedWallet -> {}
             ServiceTabRowItem.SetUpInheritancePlan -> {
-                val walletId = viewModel.getUnSetupInheritanceWallet().orEmpty()
-                if (walletId.isNotEmpty()) {
+                val wallets = viewModel.getUnSetupInheritanceWallets()
+                if (wallets.size == 1) {
                     navigator.openInheritancePlanningScreen(
-                        walletId = walletId,
+                        walletId = wallets.first().localId,
                         activityContext = requireContext(),
                         flowInfo = InheritancePlanFlow.SETUP
                     )
+                } else {
+                    AssistedWalletBottomSheet.show(childFragmentManager, wallets.map { it.localId })
                 }
             }
             ServiceTabRowItem.CoSigningPolicies,

@@ -252,8 +252,8 @@ class ServicesTabViewModel @Inject constructor(
 
     fun getEmail() = accountManager.getAccount().email
 
-    fun getUnSetupInheritanceWallet() =
-        state.value.assistedWallets.find { it.isSetupInheritance.not() }?.localId
+    fun getUnSetupInheritanceWallets() =
+        state.value.assistedWallets.filter { it.isSetupInheritance.not() }
 
     fun getWallet(ignoreSetupInheritance: Boolean = true) : List<AssistedWalletBrief> {
         if (ignoreSetupInheritance.not()) return state.value.assistedWallets.filter { it.isSetupInheritance }
