@@ -295,7 +295,7 @@ internal class WalletsViewModel @Inject constructor(
         }
     }
 
-    fun getAssistedWalletId() = getState().assistedWallets.lastOrNull()?.localId
+    fun getAssistedWalletId() = getState().assistedWallets.firstOrNull()?.localId
 
     fun getKeyPolicy(walletId: String) = keyPolicyMap[walletId]
 
