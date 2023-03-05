@@ -47,9 +47,9 @@ ext {
     MAJOR_VERSION = 1
     MINOR_VERSION = 9
     PATCH_VERSION = 27
-    TASK_LABEL = "QR"
+    TASK_LABEL = "UAT"
 
-    VERSION_CODE = 198
+    VERSION_CODE = 199
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
