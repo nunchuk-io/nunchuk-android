@@ -38,7 +38,8 @@ import com.nunchuk.android.persistence.entity.*
     version = DATABASE_VERSION,
     exportSchema = true,
     autoMigrations = [
-        AutoMigration(from = 5, to = 6)
+        AutoMigration(from = 5, to = 6),
+        AutoMigration(from = 6, to = 7),
     ]
 )
 @TypeConverters(Converters::class)

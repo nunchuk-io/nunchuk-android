@@ -284,9 +284,9 @@ internal class WalletsViewModel @Inject constructor(
                 return when {
                     assistedWallets.all { it.isSetupInheritance } && assistedWallets.size == MAX_HONEY_BADGER_ASSISTED_WALLET_COUNT -> MembershipStage.DONE
                     assistedWallets.all { it.isSetupInheritance } && assistedWallets.isNotEmpty() && membershipStepManager.isNotConfig() -> MembershipStage.DONE
-                    assistedWallets.isEmpty() && membershipStepManager.isNotConfig() -> MembershipStage.NONE
                     // Only show setup Inheritance banner with first assisted wallet
                     assistedWallets.isNotEmpty() && assistedWallets.first().isSetupInheritance.not() && membershipStepManager.isNotConfig() -> MembershipStage.SETUP_INHERITANCE
+                    assistedWallets.isEmpty() && membershipStepManager.isNotConfig() -> MembershipStage.NONE
                     assistedWallets.isNotEmpty() && membershipStepManager.isNotConfig() -> MembershipStage.DONE
                     else -> MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
                 }

@@ -20,7 +20,7 @@
 package com.nunchuk.android.persistence
 
 const val DATABASE_NAME = "NunchukDatabase.db"
-const val DATABASE_VERSION = 6
+const val DATABASE_VERSION = 7
 
 const val TABLE_CONTACT = "contact"
 const val TABLE_SYNC_FILE = "sync_file"

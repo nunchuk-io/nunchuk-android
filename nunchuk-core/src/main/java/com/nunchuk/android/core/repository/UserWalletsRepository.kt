@@ -250,7 +250,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (response.isSuccess) {
             assistedWalletDao.insert(
                 AssistedWalletEntity(
-                    localId = response.data.wallet.localId.orEmpty(), plan = plan
+                    localId = response.data.wallet.localId.orEmpty(),
+                    plan = plan,
+                    id = response.data.wallet.id?.toLongOrNull() ?: 0L
                 )
             )
             membershipStepDao.deleteStepByChatId(chain.value, accountManager.getAccount().chatId)
@@ -270,8 +272,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             assistedWalletDao.insert(
                 partition.first.map { wallet ->
                     AssistedWalletEntity(
-                        wallet.localId.orEmpty(),
-                        wallet.slug.toMembershipPlan()
+                        localId = wallet.localId.orEmpty(),
+                        plan = wallet.slug.toMembershipPlan(),
+                        id = wallet.id?.toLongOrNull() ?: 0L
                     )
                 }
             )
