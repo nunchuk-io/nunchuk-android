@@ -99,7 +99,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
         if (option.type >= WALLET_OFFSET) {
             viewModel.createWallet(option.id.orEmpty())
         } else if (option.type >= SIGNER_OFFSET) {
-            val signer = viewModel.mk4Signers.getOrNull(option.type) ?: return
+            val signer = viewModel.mk4Signers.getOrNull(option.type - SIGNER_OFFSET) ?: return
             findNavController().navigate(
                 Mk4IntroFragmentDirections.actionMk4IntroFragmentToAddMk4NameFragment(
                     signer
