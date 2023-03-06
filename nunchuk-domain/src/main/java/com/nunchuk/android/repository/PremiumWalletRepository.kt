@@ -21,6 +21,7 @@ package com.nunchuk.android.repository
 
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.membership.AssistedWalletConfig
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import kotlinx.coroutines.flow.Flow
@@ -197,7 +198,7 @@ interface PremiumWalletRepository {
 
     suspend fun clearLocalData()
 
-    suspend fun reuseKeyWallet(walletId: String)
+    suspend fun reuseKeyWallet(walletId: String, plan: MembershipPlan)
 
     suspend fun calculateRequiredSignaturesDeleteAssistedWallet(
         walletId: String,
@@ -209,4 +210,6 @@ interface PremiumWalletRepository {
         securityQuestionToken: String,
         walletId: String
     )
+
+    suspend fun getAssistedWalletConfig() : AssistedWalletConfig
 }

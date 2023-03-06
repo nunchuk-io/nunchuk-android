@@ -34,8 +34,10 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.util.*
-import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.openSelectFileChooser
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
@@ -72,17 +74,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
 
     override fun onResume() {
         super.onResume()
-        if (binding.btnCreateAssistedWallet.isVisible) {
-            binding.btnCreateAssistedWallet.text =
-                if (viewModel.getGroupStage() != MembershipStage.NONE) {
-                    getString(R.string.nc_continue_setting_your_wallet)
-                } else {
-                    getString(
-                        R.string.nc_create_assisted_wallet,
-                        MAX_HONEY_BADGER_ASSISTED_WALLET_COUNT - viewModel.state.value.assistedWallets.size
-                    )
-                }
-        }
+        viewModel.getAssistedWalletConfig()
     }
 
     override fun onCameraPermissionGranted(fromUser: Boolean) {
@@ -109,8 +101,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             }
         }
         flowObserver(viewModel.state) {
-            val isCreateAssistedWalletVisible =
-                it.plan == MembershipPlan.HONEY_BADGER && it.assistedWallets.size < MAX_HONEY_BADGER_ASSISTED_WALLET_COUNT
+            val isCreateAssistedWalletVisible = it.remainWalletCount > 0
             binding.btnCreateAssistedWallet.apply {
                 isVisible = isCreateAssistedWalletVisible
                 text = if (viewModel.getGroupStage() != MembershipStage.NONE) {
@@ -118,7 +109,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                 } else {
                     context.getString(
                         R.string.nc_create_assisted_wallet,
-                        MAX_HONEY_BADGER_ASSISTED_WALLET_COUNT - it.assistedWallets.size
+                        it.remainWalletCount
                     )
                 }
             }

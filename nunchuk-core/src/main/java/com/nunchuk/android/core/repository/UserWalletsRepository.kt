@@ -33,6 +33,7 @@ import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.membership.AssistedWalletConfig
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
@@ -263,10 +264,12 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun getServerWallet(): WalletServerSync {
         val result = userWalletApiManager.walletApi.getServerWallet()
         val partition = result.data.wallets.partition { it.status == WALLET_ACTIVE_STATUS }
+        var deleteCount = 0
         if (partition.second.isNotEmpty()) {
             partition.second.filter { it.status == WALLET_DELETED_STATUS }
-                    .forEach { runCatching { nunchukNativeSdk.deleteWallet(it.localId.orEmpty()) } }
-            assistedWalletDao.deleteBatch(partition.second.map { it.localId.orEmpty() })
+                .forEach { runCatching { nunchukNativeSdk.deleteWallet(it.localId.orEmpty()) } }
+            deleteCount =
+                assistedWalletDao.deleteBatch(partition.second.map { it.localId.orEmpty() })
         }
         if (partition.first.isNotEmpty()) {
             assistedWalletDao.insert(
@@ -282,7 +285,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         var isNeedReload = false
 
         val keyPolicyMap = hashMapOf<String, KeyPolicy>()
-        result.data.wallets.filter { it.localId.isNullOrEmpty().not() && it.status != WALLET_DELETED_STATUS }.forEach { walletServer ->
+        result.data.wallets.filter {
+            it.localId.isNullOrEmpty().not() && it.status != WALLET_DELETED_STATUS
+        }.forEach { walletServer ->
             keyPolicyMap[walletServer.localId.orEmpty()] = KeyPolicy(
                 walletServer.serverKeyDto?.policies?.autoBroadcastTransaction ?: false,
                 (walletServer.serverKeyDto?.policies?.signingDelaySeconds
@@ -365,7 +370,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return WalletServerSync(
             planWalletCreated = planWalletCreated,
             keyPolicyMap = keyPolicyMap,
-            isNeedReload = isNeedReload
+            isNeedReload = isNeedReload || deleteCount > 0
         )
     }
 
@@ -898,7 +903,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun calculateRequiredSignaturesDeleteAssistedWallet(walletId: String): CalculateRequiredSignatures {
-        val response = userWalletApiManager.walletApi.calculateRequiredSignaturesDeleteAssistedWallet(walletId)
+        val response =
+            userWalletApiManager.walletApi.calculateRequiredSignaturesDeleteAssistedWallet(walletId)
         return response.data.result.toCalculateRequiredSignatures()
     }
 
@@ -920,6 +926,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         assistedWalletDao.deleteBatch(listOf(walletId))
     }
 
+    override suspend fun getAssistedWalletConfig(): AssistedWalletConfig {
+        val response = userWalletApiManager.walletApi.getAssistedWalletConfig()
+        return AssistedWalletConfig(
+            totalAllowedWallet = response.data.totalAllowedWallet,
+            activeWalletCount = response.data.activeWalletCount,
+            remainingWalletCount = response.data.remainingWalletCount
+        )
+    }
+
     override fun getAssistedWalletsLocal(): Flow<List<AssistedWalletBrief>> {
         return assistedWalletDao.getAssistedWallets().map { list ->
             list.map { wallet ->
@@ -938,47 +953,54 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         assistedWalletDao.deleteAll()
     }
 
-    override suspend fun reuseKeyWallet(walletId: String) {
+    override suspend fun reuseKeyWallet(walletId: String, plan: MembershipPlan) {
         val wallet = nunchukNativeSdk.getWallet(walletId)
-        val inheritanceKey = wallet.signers.find {
-            it.type == SignerType.NFC
-                    && nunchukNativeSdk.getMasterSigner(it.masterFingerprint).tags.contains(
-                SignerTag.INHERITANCE
-            )
-        } ?: throw NullPointerException("Can not find inheritance key")
         val verifyMap = coroutineScope {
             wallet.signers.filter { it.type == SignerType.NFC }
                 .map { it.masterFingerprint }.map { key ->
-                async {
-                    userWalletApiManager.walletApi.getKey(key)
-                }
-            }.awaitAll().associateBy { it.data.keyXfp }.mapValues { it.value.data.verificationType }
+                    async {
+                        userWalletApiManager.walletApi.getKey(key)
+                    }
+                }.awaitAll().associateBy { it.data.keyXfp }
+                .mapValues { it.value.data.verificationType }
         }
-        membershipRepository.saveStepInfo(
-            MembershipStepInfo(
-                step = MembershipStep.HONEY_ADD_TAP_SIGNER,
-                masterSignerId = inheritanceKey.masterFingerprint,
-                plan = MembershipPlan.HONEY_BADGER,
-                verifyType = verifyMap[inheritanceKey.masterFingerprint].toVerifyType(),
-                extraData = gson.toJson(
-                    SignerExtra(
-                        derivationPath = inheritanceKey.derivationPath,
-                        isAddNew = false,
-                        signerType = inheritanceKey.type
+        var inheritanceKey: SingleSigner? = null
+        if (plan == MembershipPlan.HONEY_BADGER) {
+            inheritanceKey = wallet.signers.find {
+                it.type == SignerType.NFC
+                        && nunchukNativeSdk.getMasterSigner(it.masterFingerprint).tags.contains(
+                    SignerTag.INHERITANCE
+                )
+            } ?: throw NullPointerException("Can not find inheritance key")
+            membershipRepository.saveStepInfo(
+                MembershipStepInfo(
+                    step = MembershipStep.HONEY_ADD_TAP_SIGNER,
+                    masterSignerId = inheritanceKey.masterFingerprint,
+                    plan = MembershipPlan.HONEY_BADGER,
+                    verifyType = verifyMap[inheritanceKey.masterFingerprint].toVerifyType(),
+                    extraData = gson.toJson(
+                        SignerExtra(
+                            derivationPath = inheritanceKey.derivationPath,
+                            isAddNew = false,
+                            signerType = inheritanceKey.type
+                        )
                     )
                 )
             )
-        )
+        }
 
-        val steps =
+        val steps = if (plan == MembershipPlan.HONEY_BADGER) {
             listOf(MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.HONEY_ADD_HARDWARE_KEY_2)
+        } else {
+            listOf(MembershipStep.IRON_ADD_HARDWARE_KEY_1, MembershipStep.IRON_ADD_HARDWARE_KEY_2)
+        }
         wallet.signers.filter { it.type != SignerType.SERVER && it != inheritanceKey }
             .forEachIndexed { index, singleSigner ->
                 membershipRepository.saveStepInfo(
                     MembershipStepInfo(
                         step = steps[index],
                         masterSignerId = singleSigner.masterFingerprint,
-                        plan = MembershipPlan.HONEY_BADGER,
+                        plan = plan,
                         verifyType = if (singleSigner.type == SignerType.NFC) verifyMap[singleSigner.masterFingerprint].toVerifyType() else VerifyType.APP_VERIFIED,
                         extraData = gson.toJson(
                             SignerExtra(

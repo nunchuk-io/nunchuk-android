@@ -33,7 +33,6 @@ import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.MAX_HONEY_BADGER_ASSISTED_WALLET_COUNT
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.membership.AssistedWalletBrief
@@ -275,14 +274,13 @@ internal class WalletsViewModel @Inject constructor(
         when (plan) {
             MembershipPlan.IRON_HAND -> {
                 return when {
-                    assistedWallets.isNotEmpty() -> MembershipStage.DONE
+                    assistedWallets.isNotEmpty() && membershipStepManager.isNotConfig() -> MembershipStage.DONE
                     membershipStepManager.isNotConfig() -> MembershipStage.NONE
                     else -> MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
                 }
             }
             MembershipPlan.HONEY_BADGER -> {
                 return when {
-                    assistedWallets.all { it.isSetupInheritance } && assistedWallets.size == MAX_HONEY_BADGER_ASSISTED_WALLET_COUNT -> MembershipStage.DONE
                     assistedWallets.all { it.isSetupInheritance } && assistedWallets.isNotEmpty() && membershipStepManager.isNotConfig() -> MembershipStage.DONE
                     // Only show setup Inheritance banner with first assisted wallet
                     assistedWallets.isNotEmpty() && assistedWallets.first().isSetupInheritance.not() && membershipStepManager.isNotConfig() -> MembershipStage.SETUP_INHERITANCE

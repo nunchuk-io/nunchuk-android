@@ -246,4 +246,7 @@ internal interface UserWalletsApi {
         @HeaderMap headers: Map<String, String>,
         @Body payload: DeleteAssistedWalletRequest
     ): Data<TransactionResponse>
+
+    @GET("/v1.1/user-wallets/configs")
+    suspend fun getAssistedWalletConfig(): Data<AssistedWalletConfigResponse>
 }

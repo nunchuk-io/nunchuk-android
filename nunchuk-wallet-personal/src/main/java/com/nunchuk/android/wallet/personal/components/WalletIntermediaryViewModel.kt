@@ -24,18 +24,18 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
+import com.nunchuk.android.usecase.membership.GetAssistedWalletConfigUseCase
 import com.nunchuk.android.usecase.membership.GetLocalCurrentSubscriptionPlan
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -47,14 +47,16 @@ class WalletIntermediaryViewModel @Inject constructor(
     private val getCompoundSignersUseCase: Lazy<GetCompoundSignersUseCase>,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val getLocalCurrentSubscriptionPlan: GetLocalCurrentSubscriptionPlan,
-    private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val application: Application,
+    private val getAssistedWalletConfigUseCase: GetAssistedWalletConfigUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletIntermediaryState())
     val state = _state.asStateFlow()
     private val _event = MutableSharedFlow<WalletIntermediaryEvent>()
     val event = _event.asSharedFlow()
+
+    private var getWalletConfigJob: Job? = null
 
     init {
         val args = WalletIntermediaryFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -73,12 +75,15 @@ class WalletIntermediaryViewModel @Inject constructor(
                         _state.update { it.copy(plan = plan) }
                     }
             }
-            viewModelScope.launch {
-                getAssistedWalletsFlowUseCase(Unit)
-                    .map { it.getOrElse { emptyList() } }
-                    .collect { assistedWallets ->
-                        _state.update { it.copy(assistedWallets = assistedWallets) }
-                    }
+        }
+        getAssistedWalletConfig()
+    }
+
+    fun getAssistedWalletConfig() {
+        if (getWalletConfigJob?.isActive == true) return
+        getWalletConfigJob = viewModelScope.launch {
+            getAssistedWalletConfigUseCase(Unit).onSuccess { configs ->
+                _state.update { it.copy(remainWalletCount = configs.remainingWalletCount) }
             }
         }
     }
@@ -112,6 +117,6 @@ sealed class WalletIntermediaryEvent {
 data class WalletIntermediaryState(
     val isHasSigner: Boolean = false,
     val plan: MembershipPlan = MembershipPlan.NONE,
-    val assistedWallets: List<AssistedWalletBrief> = emptyList(),
+    val remainWalletCount: Int = 0,
 )
 

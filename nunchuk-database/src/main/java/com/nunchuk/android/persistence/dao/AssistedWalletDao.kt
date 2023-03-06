@@ -13,7 +13,7 @@ interface AssistedWalletDao : BaseDao<AssistedWalletEntity> {
     fun getAssistedWallets(): Flow<List<AssistedWalletEntity>>
 
     @Query("DELETE FROM $TABLE_ASSISTED_WALLET where local_id in (:ids)")
-    suspend fun deleteBatch(ids: List<String>)
+    suspend fun deleteBatch(ids: List<String>) : Int
 
     @Query("DELETE FROM $TABLE_ASSISTED_WALLET")
     suspend fun deleteAll()

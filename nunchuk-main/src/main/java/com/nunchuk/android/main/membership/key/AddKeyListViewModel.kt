@@ -256,7 +256,7 @@ class AddKeyListViewModel @Inject constructor(
 
     fun reuseKeyFromWallet(id: String) {
         viewModelScope.launch {
-            val result = reuseKeyWalletUseCase(id)
+            val result = reuseKeyWalletUseCase(ReuseKeyWalletUseCase.Param(id, membershipStepManager.plan))
             if (result.isFailure) {
                 _event.emit(AddKeyListEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
             }

@@ -86,6 +86,11 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val serverTransactions = hashMapOf<String, ServerTransaction?>()
 
     init {
+        updateState {
+            copy(
+                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
+            )
+        }
         viewModelScope.launch {
             TransactionListener.transactionUpdateFlow.debounce(1000L).collect {
                 if (it.walletId == args.walletId) {
@@ -112,11 +117,6 @@ internal class WalletDetailsViewModel @Inject constructor(
             if (result.isSuccess) {
                 getTransactionHistory()
             }
-        }
-        updateState {
-            copy(
-                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
-            )
         }
     }
 
