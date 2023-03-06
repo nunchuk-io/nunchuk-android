@@ -86,11 +86,6 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val serverTransactions = hashMapOf<String, ServerTransaction?>()
 
     init {
-        updateState {
-            copy(
-                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
-            )
-        }
         viewModelScope.launch {
             TransactionListener.transactionUpdateFlow.debounce(1000L).collect {
                 if (it.walletId == args.walletId) {
@@ -135,7 +130,12 @@ internal class WalletDetailsViewModel @Inject constructor(
                 .onException { event(WalletDetailsError(it.message.orUnknownError())) }
                 .flowOn(Main)
                 .collect {
-                    updateState { copy(walletExtended = it) }
+                    updateState {
+                        copy(
+                            walletExtended = it,
+                            isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
+                        )
+                    }
                     if (shouldRefreshTransaction) {
                         checkUserInRoom(it.roomWallet)
                         getTransactionHistory()
