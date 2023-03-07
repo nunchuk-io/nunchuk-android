@@ -17,38 +17,13 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android
+package com.nunchuk.android.core.data.model.membership
 
-import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.nativelib.NunchukNativeSdk
-import com.nunchuk.android.repository.PremiumWalletRepository
-import com.nunchuk.android.usecase.UseCase
-import kotlinx.coroutines.CoroutineDispatcher
-import javax.inject.Inject
+import com.google.gson.annotations.SerializedName
 
-class ReplaceTransactionUseCase @Inject constructor(
-    @IoDispatcher dispatcher: CoroutineDispatcher,
-    private val nativeSdk: NunchukNativeSdk,
-    private val repository: PremiumWalletRepository,
-) : UseCase<ReplaceTransactionUseCase.Data, Transaction>(dispatcher) {
-
-    override suspend fun execute(parameters: Data): Transaction {
-        val transaction = nativeSdk.replaceTransaction(parameters.walletId, parameters.txId, Amount(value = parameters.newFee.toLong()))
-        if (parameters.isAssistedWallet) {
-            try {
-                repository.createServerTransaction(
-                    parameters.walletId,
-                    transaction.psbt,
-                    transaction.memo,
-                )
-            } catch (e: Exception) {
-                throw e
-            }
-        }
-        return transaction
-    }
-
-    data class Data(val walletId: String, val txId: String, val newFee: Int, val isAssistedWallet: Boolean)
-}
+data class CreateOrUpdateServerTransactionRequest(
+    @SerializedName("note")
+    val note: String? = null,
+    @SerializedName("psbt")
+    val psbt: String? = null
+)

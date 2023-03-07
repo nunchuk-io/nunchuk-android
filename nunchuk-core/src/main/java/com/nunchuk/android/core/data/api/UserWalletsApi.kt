@@ -83,7 +83,14 @@ internal interface UserWalletsApi {
     @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions")
     suspend fun createTransaction(
         @Path("wallet_id_or_local_id") walletId: String,
-        @Body payload: CreateServerTransactionRequest
+        @Body payload: CreateOrUpdateServerTransactionRequest
+    ): Data<TransactionResponse>
+
+    @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}")
+    suspend fun updateTransaction(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("transaction_id") transactionId: String,
+        @Body payload: CreateOrUpdateServerTransactionRequest
     ): Data<TransactionResponse>
 
     @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}/sign")
@@ -150,6 +157,13 @@ internal interface UserWalletsApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("transaction_id") transactionId: String,
         @Body payload: ScheduleTransactionRequest,
+    ): Data<TransactionResponse>
+
+    @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}/sync")
+    suspend fun syncTransaction(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("transaction_id") transactionId: String,
+        @Body payload: SyncTransactionRequest,
     ): Data<TransactionResponse>
 
     @DELETE("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}/schedule")

@@ -24,8 +24,7 @@ import com.nunchuk.android.type.TransactionStatus
 sealed class TransactionDetailsEvent {
     data class SignTransactionSuccess(
         val roomId: String = "",
-        val isAssistedWallet: Boolean = false,
-        val serverSigned: Boolean = false,
+        val serverSigned: Boolean? = null,
         val status: TransactionStatus? = null
     ) : TransactionDetailsEvent()
 
@@ -37,6 +36,8 @@ sealed class TransactionDetailsEvent {
 
     data class TransactionDetailsError(val message: String, val e: Throwable? = null) :
         TransactionDetailsEvent()
+
+    object NoInternetConnection : TransactionDetailsEvent()
 
     data class ViewBlockchainExplorer(val url: String) : TransactionDetailsEvent()
 

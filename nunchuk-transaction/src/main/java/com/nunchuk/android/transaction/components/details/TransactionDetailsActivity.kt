@@ -455,6 +455,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 getString(R.string.nc_schedule_broadcast_has_been_canceled)
             )
             ImportTransactionSuccess -> NCToastMessage(this).show(getString(R.string.nc_transaction_imported))
+            NoInternetConnection -> showError("There is no Internet connection. The platform key co-signing policies will apply once you are connected.")
         }
     }
 
@@ -572,19 +573,17 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private fun showSignTransactionSuccess(event: SignTransactionSuccess) {
         hideLoading()
-        if (event.isAssistedWallet.not()) {
+        if (viewModel.isAssistedWallet().not()) {
             NCToastMessage(this).show(getString(R.string.nc_transaction_signed_successful))
-        } else {
+        } else if (event.serverSigned != null) {
             lifecycleScope.launch {
+                NCToastMessage(this@TransactionDetailsActivity).show(getString(R.string.nc_transaction_signed_successful))
                 if (event.status == TransactionStatus.READY_TO_BROADCAST && event.serverSigned) {
                     delay(3000L)
                     NCToastMessage(this@TransactionDetailsActivity).show(getString(R.string.nc_server_key_signed))
-                }
-                if (event.status == TransactionStatus.PENDING_CONFIRMATION) {
-                    if (event.serverSigned) {
-                        delay(3000L)
-                        NCToastMessage(this@TransactionDetailsActivity).show(getString(R.string.nc_server_key_signed))
-                    }
+                } else if (event.status == TransactionStatus.PENDING_CONFIRMATION && event.serverSigned) {
+                    delay(3000L)
+                    NCToastMessage(this@TransactionDetailsActivity).show(getString(R.string.nc_server_key_signed))
                     delay(3000L)
                     NCToastMessage(this@TransactionDetailsActivity).show(getString(R.string.nc_transaction_has_succesfully_broadcast))
                 }

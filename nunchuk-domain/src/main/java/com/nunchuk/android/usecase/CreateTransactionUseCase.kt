@@ -48,7 +48,6 @@ class CreateTransactionUseCase @Inject constructor(
                     parameters.walletId,
                     transaction.psbt,
                     transaction.memo,
-                    transaction.txId
                 )
             } catch (e: Exception) {
                 throw e

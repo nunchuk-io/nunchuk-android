@@ -50,7 +50,8 @@ interface PremiumWalletRepository {
 
     suspend fun getServerWallet(): WalletServerSync
     suspend fun updateServerWallet(walletLocalId: String, name: String): SeverWallet
-    suspend fun createServerTransaction(walletId: String, psbt: String, note: String?, txId: String)
+    suspend fun createServerTransaction(walletId: String, psbt: String, note: String?)
+    suspend fun updateServerTransaction(walletId: String, txId: String, note: String?)
     suspend fun signServerTransaction(
         walletId: String,
         txId: String,

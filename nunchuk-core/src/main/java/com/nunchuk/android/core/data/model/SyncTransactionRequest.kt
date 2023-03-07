@@ -17,13 +17,13 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.data.model.membership
+package com.nunchuk.android.core.data.model
 
 import com.google.gson.annotations.SerializedName
 
-data class CreateServerTransactionRequest(
+data class SyncTransactionRequest(
     @SerializedName("note")
     val note: String? = null,
     @SerializedName("psbt")
-    val psbt: String
+    val psbt: String,
 )

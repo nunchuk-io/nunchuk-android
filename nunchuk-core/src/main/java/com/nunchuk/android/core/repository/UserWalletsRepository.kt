@@ -753,11 +753,26 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun createServerTransaction(
-        walletId: String, psbt: String, note: String?, txId: String
+        walletId: String, psbt: String, note: String?
     ) {
         val response = userWalletApiManager.walletApi.createTransaction(
-            walletId, CreateServerTransactionRequest(
+            walletId, CreateOrUpdateServerTransactionRequest(
                 note = note, psbt = psbt
+            )
+        )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun updateServerTransaction(
+        walletId: String,
+        txId: String,
+        note: String?,
+    ) {
+        val response = userWalletApiManager.walletApi.updateTransaction(
+            walletId, txId, CreateOrUpdateServerTransactionRequest(
+                note = note,
             )
         )
         if (response.isSuccess.not()) {
@@ -803,7 +818,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    private fun handleServerTransaction(
+    private suspend fun handleServerTransaction(
         walletId: String, transactionId: String, transaction: TransactionServerDto
     ): Transaction {
         return if (transaction.status == TransactionStatus.PENDING_CONFIRMATION.name || transaction.status == TransactionStatus.CONFIRMED.name || transaction.status == TransactionStatus.NETWORK_REJECTED.name) {
@@ -816,7 +831,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 transaction.rejectMsg.orEmpty()
             )
         } else {
-            nunchukNativeSdk.importPsbt(walletId, transaction.psbt.orEmpty())
+            val libTx = nunchukNativeSdk.importPsbt(walletId, transaction.psbt.orEmpty())
+            if (libTx.psbt != transaction.psbt) {
+                userWalletApiManager.walletApi.syncTransaction(walletId, transactionId, SyncTransactionRequest(psbt = libTx.psbt))
+            }
+            libTx
         }
     }
 
