@@ -41,11 +41,8 @@ import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
 import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -72,6 +69,8 @@ class CreateWalletViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     val plan = membershipStepManager.plan
+
+    private var createWalletJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -124,7 +123,8 @@ class CreateWalletViewModel @Inject constructor(
     private fun createQuickWallet() {
         val serverKey = serverKeyExtra ?: return
         val serverKeyId = serverKeyId ?: return
-        viewModelScope.launch {
+        if (createWalletJob?.isActive == true) return
+        createWalletJob = viewModelScope.launch {
             val addressType = AddressType.NATIVE_SEGWIT
             _event.emit(CreateWalletEvent.Loading(true))
             val masterSigners =
@@ -205,7 +205,12 @@ class CreateWalletViewModel @Inject constructor(
                     }
                     .collect {
                         if (signers.any { signer -> signer.value.signerType == SignerType.COLDCARD_NFC }) {
-                            setRegisterColdcardUseCase(SetRegisterColdcardUseCase.Params(it.id, false))
+                            setRegisterColdcardUseCase(
+                                SetRegisterColdcardUseCase.Params(
+                                    it.id,
+                                    false
+                                )
+                            )
                         }
                         if (signers.any { signer -> signer.value.signerType == SignerType.AIRGAP }) {
                             setRegisterAirgapUseCase(SetRegisterAirgapUseCase.Params(it.id, false))
