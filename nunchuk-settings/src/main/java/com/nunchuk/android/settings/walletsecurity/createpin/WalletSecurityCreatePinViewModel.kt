@@ -61,7 +61,7 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
         } else {
             val matchPin = checkWalletPinUseCase(inputValue[0]!!.value)
             if (matchPin.getOrDefault(false).not()) {
-                updateInputValue(0, inputValue[0]?.value!!, errorMsg = context.getString(R.string.nc_incorrect_pin))
+                updateInputValue(0, inputValue[0]?.value!!, errorMsg = context.getString(R.string.nc_incorrect_current_pin))
             } else if (inputValue[1] != inputValue[2]) {
                 updateInputValue(2, inputValue[2]?.value!!, errorMsg = context.getString(R.string.nc_confirm_pin_does_not_match))
             } else {

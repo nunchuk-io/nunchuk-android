@@ -242,7 +242,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                 if (event.match) {
                     openWalletDetailsScreen(event.walletId)
                 } else {
-                    showError(message = getString(R.string.nc_incorrect_pin))
+                    showError(message = getString(R.string.nc_incorrect_current_pin))
                 }
             }
             is VerifyPasswordSuccess -> {

@@ -1,16 +1,22 @@
 package com.nunchuk.android.core.persistence
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.guestmode.SignInMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class NcEncryptedPreferences @Inject constructor(context: Context) {
+class NcEncryptedPreferences @Inject constructor(
+    context: Context,
+    private val accountManager: AccountManager
+) {
 
     private val prefs = EncryptedSharedPreferences.create(
         context,
@@ -22,25 +28,27 @@ class NcEncryptedPreferences @Inject constructor(context: Context) {
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
 
-    private val walletPinFlow: MutableStateFlow<String> = MutableStateFlow(getWalletPin())
+    private fun getUserId(): String {
+        return if (accountManager.getAccount().loginType == SignInMode.EMAIL.value) accountManager.getAccount().chatId else "0"
+    }
 
-    private fun getWalletPin(): String = prefs.getString(SP_WALLET_PIN, "").orEmpty()
+    private fun getWalletPinKey() = "$SP_WALLET_PIN-${getUserId()}"
+
+    private fun getWalletPin(): String = prefs.getString(getWalletPinKey(), "").orEmpty()
+
+    private val walletPinFlow: MutableStateFlow<String> = MutableStateFlow(getWalletPin())
 
     fun setWalletPin(value: String) {
         prefs.edit {
-            putString(SP_WALLET_PIN, value)
+            putString(getWalletPinKey(), value)
             apply()
         }
         walletPinFlow.value = value
     }
 
     fun getWalletPinFlow(): Flow<String> {
+        walletPinFlow.value = getWalletPin()
         return walletPinFlow
-    }
-
-    fun clear() {
-        walletPinFlow.value = ""
-        prefs.edit().clear().apply()
     }
 
     companion object {

@@ -36,10 +36,11 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.WalletSecuritySetting
-import com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingEvent
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
-import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.GetCompoundSignersUseCase
+import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
+import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
@@ -88,12 +89,6 @@ internal class WalletsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getWalletSecuritySettingUseCase(Unit)
-                .collect {
-                    updateState { copy(walletSecuritySetting = it.getOrNull() ?: WalletSecuritySetting() ) }
-                }
-        }
-        viewModelScope.launch {
             getAssistedWalletsFlowUseCase(Unit).map { it.getOrElse { emptyList() } }
                 .distinctUntilChanged()
                 .collect {
@@ -111,6 +106,16 @@ internal class WalletsViewModel @Inject constructor(
             isHideUpsellBanner.collect {
                 updateState { copy(isHideUpsellBanner = it) }
             }
+        }
+        viewModelScope.launch {
+            getWalletSecuritySettingUseCase(Unit)
+                .collect {
+                    updateState {
+                        copy(
+                            walletSecuritySetting = it.getOrNull() ?: WalletSecuritySetting()
+                        )
+                    }
+                }
         }
         viewModelScope.launch {
             getWalletPinUseCase(Unit).collect {
@@ -307,7 +312,9 @@ internal class WalletsViewModel @Inject constructor(
 
     fun clearEvent() = event(None)
 
-    fun isWalletPinEnable() = getState().walletSecuritySetting.protectWalletPin && getState().currentWalletPin.isBlank().not()
+    fun isWalletPinEnable() =
+        getState().walletSecuritySetting.protectWalletPin && getState().currentWalletPin.isBlank()
+            .not()
 
     fun isWalletPasswordEnable() = getState().walletSecuritySetting.protectWalletPassword
 
