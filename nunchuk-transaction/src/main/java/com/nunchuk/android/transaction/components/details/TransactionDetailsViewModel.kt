@@ -61,14 +61,12 @@ import com.nunchuk.android.utils.TransactionException
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.retrieveInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -119,6 +117,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     override val initialState = TransactionDetailsState()
 
+    private var reloadTransactionJob: Job? = null
+
     init {
         viewModelScope.launch {
             BlockListener.getBlockChainFlow().collect {
@@ -135,6 +135,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             pushEventManager.event.filterIsInstance<PushEvent.ServerTransactionEvent>().collect {
                 if (it.transactionId == txId) {
+                    Timber.d("ServerTransactionEvent")
+                    delay(2000L)
                     getTransactionInfo()
                 }
             }
@@ -181,8 +183,21 @@ internal class TransactionDetailsViewModel @Inject constructor(
                                 requestServerSignTransaction(it.transaction.psbt)
                             }
                         }
+                        val signedTime = it.serverTransaction?.signedInMilis ?: 0L
+                        handleSignTime(signedTime)
                     }
                 }
+            }
+        }
+    }
+
+    private fun handleSignTime(signedTime : Long) {
+        if (signedTime < System.currentTimeMillis()) {
+            reloadTransactionJob?.cancel()
+            reloadTransactionJob = viewModelScope.launch {
+                delay(System.currentTimeMillis() - signedTime + 3000L)
+                Timber.d("handleSignTime")
+                getTransactionInfo()
             }
         }
     }
