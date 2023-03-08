@@ -69,7 +69,7 @@ class NcDataStore @Inject constructor(
     private val membershipPlanKey = intPreferencesKey("membership_plan")
 
     private fun getWalletSecuritySettingKey(): Preferences.Key<String> {
-        val userId = if (accountManager.getAccount().loginType == SignInMode.EMAIL.value) accountManager.getAccount().chatId else "0"
+        val userId = accountManager.getAccount().chatId
         return stringPreferencesKey("wallet_security_setting_key-${userId}")
     }
 

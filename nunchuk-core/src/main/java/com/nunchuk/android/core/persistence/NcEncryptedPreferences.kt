@@ -29,7 +29,7 @@ class NcEncryptedPreferences @Inject constructor(
     )
 
     private fun getUserId(): String {
-        return if (accountManager.getAccount().loginType == SignInMode.EMAIL.value) accountManager.getAccount().chatId else "0"
+        return accountManager.getAccount().chatId
     }
 
     private fun getWalletPinKey() = "$SP_WALLET_PIN-${getUserId()}"

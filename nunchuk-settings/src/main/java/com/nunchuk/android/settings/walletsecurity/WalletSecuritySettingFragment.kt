@@ -49,7 +49,7 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
         binding.hideWalletDetailOption.setOptionChecked(state.walletSecuritySetting.hideWalletDetail)
         binding.passwordOption.setOptionChecked(state.walletSecuritySetting.protectWalletPassword)
         binding.pinOption.setOptionChecked(state.walletSecuritySetting.protectWalletPin)
-        binding.passwordOption.isVisible = signInModeHolder.getCurrentMode() != SignInMode.GUEST_MODE
+        binding.passwordOption.isVisible = signInModeHolder.getCurrentMode() == SignInMode.EMAIL
         binding.pinOptionCreateButton.isVisible =
             state.walletPin.isBlank() && state.walletSecuritySetting.protectWalletPin
         binding.pinOptionChangeButton.isVisible =
