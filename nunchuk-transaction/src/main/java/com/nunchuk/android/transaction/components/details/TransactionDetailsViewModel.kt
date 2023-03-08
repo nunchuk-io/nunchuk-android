@@ -192,11 +192,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     private fun handleSignTime(signedTime : Long) {
-        if (signedTime < System.currentTimeMillis()) {
+        if (signedTime > 0L && signedTime > System.currentTimeMillis()) {
             reloadTransactionJob?.cancel()
             reloadTransactionJob = viewModelScope.launch {
-                delay(System.currentTimeMillis() - signedTime + 3000L)
-                Timber.d("handleSignTime")
+                val delay = signedTime - System.currentTimeMillis() + 3000L
+                delay(delay)
                 getTransactionInfo()
             }
         }
