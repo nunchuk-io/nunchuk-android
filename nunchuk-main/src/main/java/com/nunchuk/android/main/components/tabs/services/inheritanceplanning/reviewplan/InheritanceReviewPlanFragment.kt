@@ -111,7 +111,8 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                         InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceActivationDateFragment(
                             isUpdateRequest = true,
                             selectedActivationDate = it,
-                            planFlow = args.planFlow
+                            planFlow = args.planFlow,
+                            walletId = args.walletId,
                         )
                     )
                 }, onEditNoteClick = {
@@ -119,7 +120,8 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                         InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceNoteFragment(
                             isUpdateRequest = true,
                             preNoted = it,
-                            planFlow = args.planFlow
+                            planFlow = args.planFlow,
+                            walletId = args.walletId,
                         )
                     )
                 }, onNotifyPrefClick = { isNotify, emails ->
@@ -129,7 +131,8 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                             preIsNotify = isNotify,
                             preEmails = emails.toTypedArray(),
                             planFlow = args.planFlow,
-                            bufferPeriod = args.bufferPeriod
+                            bufferPeriod = args.bufferPeriod,
+                            walletId = args.walletId
                         )
                     )
                 }, onDiscardChange = {
@@ -138,7 +141,8 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                     findNavController().navigate(
                         InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceShareSecretFragment(
                             magicalPhrase = args.magicalPhrase,
-                            planFlow = args.planFlow
+                            planFlow = args.planFlow,
+                            walletId = args.walletId
                         )
                     )
                 }, onActionTopBarClick = {
@@ -154,7 +158,8 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                         InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceBufferPeriodFragment(
                             isUpdateRequest = true,
                             preBufferPeriod = it,
-                            planFlow = args.planFlow
+                            planFlow = args.planFlow,
+                            walletId = args.walletId,
                         )
                     )
                 })
@@ -209,7 +214,8 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                         findNavController().navigate(
                             InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceCreateSuccessFragment(
                                 magicalPhrase = args.magicalPhrase,
-                                planFlow = args.planFlow
+                                planFlow = args.planFlow,
+                                walletId = args.walletId
                             )
                         )
                     } else if (args.planFlow == InheritancePlanFlow.VIEW) {
@@ -252,6 +258,7 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
     private fun handleResult() {
         requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
             putExtra(GlobalResultKey.UPDATE_INHERITANCE, viewModel.isDataChanged())
+            putExtra(GlobalResultKey.WALLET_ID, args.walletId)
         })
         requireActivity().finish()
     }

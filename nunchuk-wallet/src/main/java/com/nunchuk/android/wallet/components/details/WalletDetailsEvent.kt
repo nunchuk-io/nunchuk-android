@@ -37,5 +37,6 @@ data class WalletDetailsState(
     val transactions: List<Transaction> = emptyList(),
     val isLeaveRoom: Boolean = false,
     val isAssistedWallet: Boolean = false,
-    val isForceRefreshProcessing: Boolean = false
+    val isForceRefreshProcessing: Boolean = false,
+    val hideWalletDetailLocal: Boolean = false
 )

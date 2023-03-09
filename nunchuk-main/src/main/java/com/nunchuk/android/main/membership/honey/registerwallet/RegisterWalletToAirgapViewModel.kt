@@ -45,9 +45,9 @@ class RegisterWalletToAirgapViewModel @Inject constructor(
         }
     }
 
-    fun setRegisterAirgapSuccess() {
+    fun setRegisterAirgapSuccess(walletId: String) {
         viewModelScope.launch {
-            setRegisterAirgapUseCase(true)
+            setRegisterAirgapUseCase(SetRegisterAirgapUseCase.Params(walletId, true))
         }
     }
 }

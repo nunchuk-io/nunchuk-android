@@ -23,6 +23,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.manager.ActivityManager
@@ -32,8 +33,10 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.model.KeyPolicy
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
@@ -59,6 +62,19 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         )
     }
 
+    private val launcher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data?.extras
+            if (it.resultCode == Activity.RESULT_OK && data != null) {
+                val signatureMap =
+                    data.serializable<HashMap<String, String>>(GlobalResultKey.SIGNATURE_EXTRA)
+                        ?: return@registerForActivityResult
+                val securityQuestionToken =
+                    data.getString(GlobalResultKey.SECURITY_QUESTION_TOKEN).orEmpty()
+                viewModel.deleteAssistedWallet(signatureMap, securityQuestionToken)
+            }
+        }
+
     private val args: WalletConfigArgs by lazy { WalletConfigArgs.deserializeFrom(intent) }
 
     override fun initializeBinding() = ActivityWalletConfigBinding.inflate(layoutInflater)
@@ -76,7 +92,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     override fun onOptionClicked(option: SheetOption) {
         super.onOptionClicked(option)
         when (option.type) {
-            SheetOptionType.TYPE_EXPORT_AS_QR -> showSubOptionsExportQr()
+            SheetOptionType.TYPE_EXPORT_AS_QR -> openDynamicQRScreen(sharedViewModel.walletId)
             SheetOptionType.TYPE_DELETE_WALLET -> handleDeleteWallet()
             SheetOptionType.TYPE_EXPORT_TO_COLD_CARD -> showExportColdcardOptions()
             SheetOptionType.TYPE_FORCE_REFRESH_WALLET -> showForceRefreshWalletDialog()
@@ -92,7 +108,9 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     }
 
     private fun handleDeleteWallet() {
-        if (viewModel.isSharedWallet()) {
+        if (viewModel.isAssistedWallet()) {
+            showReEnterPassword(true, "")
+        } else if (viewModel.isSharedWallet()) {
             NCWarningDialog(this).showDialog(
                 message = getString(R.string.nc_delete_collaborative_wallet),
                 onYesClick = { viewModel.handleDeleteWallet() }
@@ -136,11 +154,22 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             is WalletConfigEvent.Error -> NCToastMessage(this).showError(message = event.message)
             WalletConfigEvent.ForceRefreshWalletSuccess -> {
                 NcToastManager.scheduleShowMessage(message = getString(R.string.nc_force_refresh_success))
-                setResult(Activity.RESULT_OK, Intent().apply {
+                setResult(RESULT_OK, Intent().apply {
                     putExtra(EXTRA_WALLET_ACTION, WalletConfigAction.FORCE_REFRESH)
                 })
                 finish()
             }
+            is WalletConfigEvent.CalculateRequiredSignaturesSuccess -> {
+                navigator.openWalletAuthentication(
+                    walletId = event.walletId,
+                    userData = "",
+                    requiredSignatures = event.requiredSignatures,
+                    type = event.type,
+                    launcher = launcher,
+                    activityContext = this
+                )
+            }
+            WalletConfigEvent.DeleteAssistedWalletSuccess -> walletDeleted()
         }
     }
 
@@ -163,7 +192,16 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     }
 
     private fun walletDeleted() {
-        NCToastMessage(this).showMessage(getString(R.string.nc_wallet_delete_wallet_success))
+        if (viewModel.isAssistedWallet()) {
+            NcToastManager.scheduleShowMessage(
+                message = getString(
+                    R.string.nc_delete_assisted_wallet_success,
+                    viewModel.walletName()
+                )
+            )
+        } else {
+            NCToastMessage(this).showMessage(getString(R.string.nc_wallet_delete_wallet_success))
+        }
         setResult(Activity.RESULT_OK, Intent().apply {
             putExtra(EXTRA_WALLET_ACTION, WalletConfigAction.DELETE)
         })
@@ -190,7 +228,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             signers = state.signers,
             isInactiveAssistedWallet = viewModel.isInactiveAssistedWallet()
         ) {
-            showReEnterPassword(it.fingerPrint)
+            showReEnterPassword(false, it.fingerPrint)
         }.bindItems()
     }
 
@@ -221,7 +259,16 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 R.string.nc_wallet_export_coldcard
             ),
         )
-        if (viewModel.isAssistedWallet().not()) {
+        if (viewModel.isAssistedWallet()) {
+            options.add(
+                SheetOption(
+                    SheetOptionType.TYPE_FORCE_REFRESH_WALLET,
+                    R.drawable.ic_cached,
+                    R.string.nc_force_refresh
+                )
+            )
+        }
+        if (viewModel.isShowDeleteWallet()) {
             options.add(
                 SheetOption(
                     SheetOptionType.TYPE_DELETE_WALLET,
@@ -229,14 +276,6 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     R.string.nc_wallet_delete_wallet,
                     isDeleted = true
                 ),
-            )
-        } else {
-            options.add(
-                SheetOption(
-                    SheetOptionType.TYPE_FORCE_REFRESH_WALLET,
-                    R.drawable.ic_cached,
-                    R.string.nc_force_refresh
-                )
             )
         }
 
@@ -262,13 +301,17 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         }
     }
 
-    private fun showReEnterPassword(fingerPrint: String) {
+    private fun showReEnterPassword(isDeletedWalletFlow: Boolean, fingerPrint: String) {
         NCDeleteConfirmationDialog(this).showDialog(
             title = getString(R.string.nc_re_enter_password),
             isMaskInput = true,
             message = getString(R.string.nc_enter_your_password_desc),
             onConfirmed = { password ->
-                viewModel.verifyPassword(password, fingerPrint)
+                if (isDeletedWalletFlow) {
+                    viewModel.verifyPasswordToDeleteAssistedWallet(password)
+                } else {
+                    viewModel.verifyPassword(password, fingerPrint)
+                }
             }
         )
     }

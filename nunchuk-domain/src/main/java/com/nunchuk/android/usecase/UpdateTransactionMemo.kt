@@ -21,16 +21,24 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.repository.PremiumWalletRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
 class UpdateTransactionMemo @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
-    private val nativeSdk: NunchukNativeSdk
+    private val nativeSdk: NunchukNativeSdk,
+    private val repository: PremiumWalletRepository,
 ) : UseCase<UpdateTransactionMemo.Data, Boolean>(dispatcher) {
     override suspend fun execute(parameters: Data) : Boolean {
-        return nativeSdk.updateTransactionMemo(parameters.walletId, parameters.txId, parameters.newMemo)
+        return nativeSdk.updateTransactionMemo(parameters.walletId, parameters.txId, parameters.newMemo).also {
+            if (parameters.isAssistedWallet) {
+                runCatching {
+                    repository.updateServerTransaction(parameters.walletId, parameters.txId, parameters.newMemo)
+                }
+            }
+        }
     }
 
-    class Data(val walletId: String, val txId: String, val newMemo: String)
+    class Data(val walletId: String, val isAssistedWallet: Boolean, val txId: String, val newMemo: String)
 }

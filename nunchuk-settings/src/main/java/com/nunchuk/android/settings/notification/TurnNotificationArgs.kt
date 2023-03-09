@@ -17,22 +17,27 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase.membership
+package com.nunchuk.android.settings.notification
 
-import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.nativelib.NunchukNativeSdk
-import com.nunchuk.android.usecase.UseCase
-import kotlinx.coroutines.CoroutineDispatcher
-import javax.inject.Inject
+import android.content.Context
+import android.content.Intent
+import com.nunchuk.android.arch.args.ActivityArgs
 
-class ExportPassportDummyTransaction @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk,
-    @IoDispatcher ioDispatcher: CoroutineDispatcher,
-) : UseCase<ExportPassportDummyTransaction.Param, List<String>>(ioDispatcher) {
+data class TurnNotificationArgs(
+    val messages: ArrayList<String>
+) :
+    ActivityArgs {
 
-    override suspend fun execute(parameters: Param): List<String> {
-        return nativeSdk.exportPassportDummyTransaction(parameters.txToSign, parameters.density)
+    override fun buildIntent(activityContext: Context) =
+        Intent(activityContext, TurnNotificationActivity::class.java).apply {
+            putExtra(EXTRA_MESSAGE_LIST, messages)
+        }
+
+    companion object {
+        private const val EXTRA_MESSAGE_LIST = "EXTRA_MESSAGE_LIST"
+
+        fun deserializeFrom(intent: Intent) = TurnNotificationArgs(
+            intent.extras?.getStringArrayList(EXTRA_MESSAGE_LIST).orEmpty() as ArrayList<String>,
+        )
     }
-
-    data class Param(val txToSign: String, val density: Int,)
 }

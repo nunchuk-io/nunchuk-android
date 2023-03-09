@@ -29,6 +29,8 @@ data class CalculateRequiredSignaturesResponse(
         @SerializedName("type")
         val type: String? = null,
         @SerializedName("required_signatures")
-        val requiredSignatures: Int? = null
+        val requiredSignatures: Int? = null,
+        @SerializedName("required_answers")
+        val requiredAnswers: Int? = null
     )
 }

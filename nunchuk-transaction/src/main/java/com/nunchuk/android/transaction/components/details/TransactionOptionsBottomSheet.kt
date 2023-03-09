@@ -71,33 +71,16 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             listener(CANCEL)
             dismiss()
         }
-        binding.btnExportPSBT.isVisible = args.isPending
-        binding.btnExportPSBT.setOnClickListener {
-            listener(EXPORT_PSBT)
-            dismiss()
-        }
 
         binding.btnExport.isVisible = args.isPending
         binding.btnExport.setOnClickListener {
-            listener(EXPORT_KEYSTONE)
-            dismiss()
-        }
-
-        binding.btnExportPassport.isVisible = args.isPending
-        binding.btnExportPassport.setOnClickListener {
-            listener(EXPORT_PASSPORT)
+            listener(EXPORT_TRANSACTION)
             dismiss()
         }
 
         binding.btnImport.isVisible = args.isPending
         binding.btnImport.setOnClickListener {
-            listener(IMPORT_KEYSTONE)
-            dismiss()
-        }
-
-        binding.btnImportPassport.isVisible = args.isPending
-        binding.btnImportPassport.setOnClickListener {
-            listener(IMPORT_PASSPORT)
+            listener(IMPORT_TRANSACTION)
             dismiss()
         }
 

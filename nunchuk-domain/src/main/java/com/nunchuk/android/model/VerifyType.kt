@@ -19,6 +19,15 @@
 
 package com.nunchuk.android.model
 
+import androidx.annotation.Keep
+
+@Keep
 enum class VerifyType {
     NONE, APP_VERIFIED, SELF_VERIFIED
+}
+
+fun String?.toVerifyType() = when(this) {
+    VerifyType.APP_VERIFIED.name -> VerifyType.APP_VERIFIED
+    VerifyType.SELF_VERIFIED.name -> VerifyType.SELF_VERIFIED
+    else -> VerifyType.NONE
 }

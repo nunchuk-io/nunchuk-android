@@ -41,13 +41,9 @@ object SheetOptionType {
     const val TYPE_IMPORT_PSBT = 1
     const val TYPE_IMPORT_PSBT_QR = 2
     const val TYPE_SAVE_WALLET_CONFIG = 3
-    const val TYPE_PSBT_QR_KEY_STONE = 4
-    const val TYPE_PSBT_QR_PASSPORT = 5
 
     // wallet config
     const val TYPE_EXPORT_AS_QR = 6
-    const val TYPE_EXPORT_KEYSTONE_QR = 7
-    const val TYPE_EXPORT_PASSPORT_QR = 8
     const val TYPE_EXPORT_TO_COLD_CARD = 9
     const val TYPE_DELETE_WALLET = 10
 
@@ -80,4 +76,16 @@ object SheetOptionType {
     const val CHAT_ACTION_CAPTURE_VIDEO = 27
     const val CHAT_ACTION_SELECT_PHOTO_VIDEO = 28
     const val CHAT_ACTION_SELECT_FILE = 29
+
+    const val SET_UP_INHERITANCE = 30
+
+    const val TYPE_ADD_AIRGAP_KEYSTONE = 31
+    const val TYPE_ADD_AIRGAP_JADE = 32
+    const val TYPE_ADD_AIRGAP_PASSPORT = 33
+    const val TYPE_ADD_AIRGAP_SEEDSIGNER = 34
+
+    const val TYPE_EXPORT_QR = 35
+    const val TYPE_EXPORT_FILE = 36
+    const val TYPE_IMPORT_QR = 37
+    const val TYPE_IMPORT_FILE = 38
 }

@@ -26,6 +26,8 @@ import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -47,17 +49,20 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
     }
 
     val isMembershipFlow : Boolean by lazy { intent.getBooleanExtra(EXTRA_IS_MEMBERSHIP_FLOW, false) }
+    val signerTag : SignerTag? by lazy { intent.serializable(EXTRA_SIGNER_TAG) }
 
     companion object {
         private const val EXTRA_IS_MEMBERSHIP_FLOW = "is_membership_flow"
+        private const val EXTRA_SIGNER_TAG = "signer_tag"
 
-        fun start(activityContext: Context, isMembershipFlow: Boolean) {
+        fun start(activityContext: Context, isMembershipFlow: Boolean, tag: SignerTag?) {
             activityContext.startActivity(
                 Intent(
                     activityContext,
                     AddAirgapSignerActivity::class.java
                 ).apply {
                     putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
+                    putExtra(EXTRA_SIGNER_TAG, tag)
                 }
             )
         }

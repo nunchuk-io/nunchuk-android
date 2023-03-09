@@ -24,8 +24,7 @@ import com.nunchuk.android.type.TransactionStatus
 sealed class TransactionDetailsEvent {
     data class SignTransactionSuccess(
         val roomId: String = "",
-        val isAssistedWallet: Boolean = false,
-        val serverSigned: Boolean = false,
+        val serverSigned: Boolean? = null,
         val status: TransactionStatus? = null
     ) : TransactionDetailsEvent()
 
@@ -38,6 +37,8 @@ sealed class TransactionDetailsEvent {
     data class TransactionDetailsError(val message: String, val e: Throwable? = null) :
         TransactionDetailsEvent()
 
+    object NoInternetConnection : TransactionDetailsEvent()
+
     data class ViewBlockchainExplorer(val url: String) : TransactionDetailsEvent()
 
     data class PromptTransactionOptions(
@@ -49,7 +50,7 @@ sealed class TransactionDetailsEvent {
 
     data class ExportToFileSuccess(val filePath: String) : TransactionDetailsEvent()
 
-    data class ExportTransactionError(val message: String) : TransactionDetailsEvent()
+    data class TransactionError(val message: String) : TransactionDetailsEvent()
 
     data class UpdateTransactionMemoSuccess(val newMemo: String) : TransactionDetailsEvent()
 
@@ -63,4 +64,5 @@ sealed class TransactionDetailsEvent {
     object CancelScheduleBroadcastTransactionSuccess : TransactionDetailsEvent()
 
     data class NfcLoadingEvent(val isColdcard: Boolean = false) : TransactionDetailsEvent()
+    object ImportTransactionSuccess : TransactionDetailsEvent()
 }

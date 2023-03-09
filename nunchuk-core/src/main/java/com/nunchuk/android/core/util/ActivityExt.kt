@@ -150,7 +150,7 @@ fun Activity.sendEmail(email: String, subject: String = "", text: String = ""): 
     return result.isSuccess
 }
 
-fun getFileFromUri(contentResolver: ContentResolver, uri: Uri, directory: File) = try {
+fun getFileFromUri(contentResolver: ContentResolver, uri: Uri, directory: File): File? = try {
     val file = File.createTempFile("NCsuffix", ".prefixNC", directory)
     file.outputStream().use {
         contentResolver.openInputStream(uri)?.copyTo(it)

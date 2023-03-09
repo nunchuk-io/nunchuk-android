@@ -34,8 +34,7 @@ interface AppNavigator {
     fun openMembershipActivity(
         activityContext: Activity,
         groupStep: MembershipStage,
-        keyPolicy: KeyPolicy? = null,
-        xfp: String? = null,
+        walletId: String? = null,
         isClearTop: Boolean = false
     )
 
@@ -55,7 +54,7 @@ interface AppNavigator {
      * @param inheritance for view/update inheritance [InheritancePlanFlow.VIEW]
      */
     fun openInheritancePlanningScreen(
-        launcher: ActivityResultLauncher<Intent>? = null,
+        walletId: String = "",
         activityContext: Context,
         verifyToken: String? = null,
         inheritance: Inheritance? = null,

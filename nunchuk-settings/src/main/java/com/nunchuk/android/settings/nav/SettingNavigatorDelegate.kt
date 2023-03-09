@@ -25,8 +25,10 @@ import com.nunchuk.android.settings.about.AboutActivity
 import com.nunchuk.android.settings.developer.DeveloperSettingActivity
 import com.nunchuk.android.settings.devices.UserDevicesActivity
 import com.nunchuk.android.settings.network.NetworkSettingActivity
+import com.nunchuk.android.settings.notification.TurnNotificationActivity
 import com.nunchuk.android.settings.sync.SyncSettingActivity
 import com.nunchuk.android.settings.unit.DisplayUnitActivity
+import com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingActivity
 
 interface SettingNavigatorDelegate : SettingNavigator {
 
@@ -52,5 +54,19 @@ interface SettingNavigatorDelegate : SettingNavigator {
 
     override fun openAboutScreen(activityContext: Context) {
         AboutActivity.start(activityContext)
+    }
+
+    override fun openWalletSecuritySettingScreen(activityContext: Context) {
+        WalletSecuritySettingActivity.start(activityContext)
+    }
+
+    override fun openTurnNotificationScreen(
+        activityContext: Context,
+        messages: ArrayList<String>
+    ) {
+        TurnNotificationActivity.start(
+            activityContext,
+            messages = messages
+        )
     }
 }

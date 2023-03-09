@@ -25,5 +25,7 @@ import com.nunchuk.android.model.WalletExtended
 data class WalletConfigState(
     val walletExtended: WalletExtended = WalletExtended(),
     val signers: List<SignerModel> = emptyList(),
-    val isAssistedWallet: Boolean = false
+    val isAssistedWallet: Boolean = false,
+    val verifyToken: String? = null,
+    val isShowDeleteAssistedWallet: Boolean = false
 )

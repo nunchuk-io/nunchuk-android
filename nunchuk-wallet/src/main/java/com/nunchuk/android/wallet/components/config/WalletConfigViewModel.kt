@@ -23,21 +23,20 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
-import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
-import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
+import com.nunchuk.android.core.domain.membership.*
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.isPending
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
-import com.nunchuk.android.model.Result
-import com.nunchuk.android.model.RoomWallet
-import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.joinKeys
+import com.nunchuk.android.model.*
 import com.nunchuk.android.share.GetContactsUseCase
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.DeleteWalletUseCase
+import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.usecase.membership.ForceRefreshWalletUseCase
@@ -62,6 +61,9 @@ internal class WalletConfigViewModel @Inject constructor(
     private val assistedWalletManager: AssistedWalletManager,
     private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
     private val forceRefreshWalletUseCase: ForceRefreshWalletUseCase,
+    private val calculateRequiredSignaturesDeleteAssistedWalletUseCase: CalculateRequiredSignaturesDeleteAssistedWalletUseCase,
+    private val deleteAssistedWalletUseCase: DeleteAssistedWalletUseCase,
+    private val getTransactionHistoryUseCase: GetTransactionHistoryUseCase,
     getContactsUseCase: GetContactsUseCase,
 ) : NunchukViewModel<WalletConfigState, WalletConfigEvent>() {
 
@@ -93,7 +95,12 @@ internal class WalletConfigViewModel @Inject constructor(
                 .flowOn(Dispatchers.IO)
                 .onException { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
-                .collect { updateState { it } }
+                .collect {
+                    if (isAssistedWallet() && it.walletExtended.wallet.balance.pureBTC() == 0.0) {
+                        getTransactionHistory()
+                    }
+                    updateState { it }
+                }
         }
     }
 
@@ -131,6 +138,32 @@ internal class WalletConfigViewModel @Inject constructor(
         }
     }
 
+    fun verifyPasswordToDeleteAssistedWallet(password: String) = viewModelScope.launch {
+        setEvent(WalletConfigEvent.Loading(true))
+        val result = verifiedPasswordTokenUseCase(
+            VerifiedPasswordTokenUseCase.Param(
+                VerifiedPasswordTargetAction.DELETE_WALLET.name,
+                password
+            )
+        )
+        setEvent(WalletConfigEvent.Loading(false))
+        if (result.isSuccess) {
+            val resultCalculate = calculateRequiredSignaturesDeleteAssistedWalletUseCase(walletId)
+            if (resultCalculate.isSuccess) {
+                updateState { copy(verifyToken = result.getOrNull()) }
+                setEvent(
+                    WalletConfigEvent.CalculateRequiredSignaturesSuccess(
+                        walletId = walletId,
+                        requiredSignatures = resultCalculate.getOrThrow().requiredSignatures,
+                        type = resultCalculate.getOrThrow().type
+                    )
+                )
+            }
+        } else {
+            setEvent(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+        }
+    }
+
     fun handleEditCompleteEvent(walletName: String) {
         viewModelScope.launch {
             val newWallet = getState().walletExtended.wallet.copy(name = walletName)
@@ -144,6 +177,18 @@ internal class WalletConfigViewModel @Inject constructor(
                 .collect {
                     updateState { copy(walletExtended = walletExtended.copy(wallet = newWallet)) }
                     event(UpdateNameSuccessEvent)
+                }
+        }
+    }
+
+    private fun getTransactionHistory() {
+        viewModelScope.launch {
+            setEvent(WalletConfigEvent.Loading(true))
+            getTransactionHistoryUseCase.execute(walletId).flowOn(Dispatchers.IO)
+                .collect { transations ->
+                    setEvent(WalletConfigEvent.Loading(false))
+                    val isPendingTransactionExisting = transations.any { it.status.isPending() }
+                    updateState { copy(isShowDeleteAssistedWallet = isPendingTransactionExisting.not()) }
                 }
         }
     }
@@ -170,7 +215,13 @@ internal class WalletConfigViewModel @Inject constructor(
         viewModelScope.launch {
             leaveRoom {
                 when (val event = deleteWalletUseCase.execute(walletId)) {
-                    is Result.Success -> event(WalletConfigEvent.DeleteWalletSuccess)
+                    is Result.Success -> {
+                        if (isAssistedWallet()) {
+                            setEvent(WalletConfigEvent.DeleteAssistedWalletSuccess)
+                        } else {
+                            event(WalletConfigEvent.DeleteWalletSuccess)
+                        }
+                    }
                     is Result.Error -> showError(event.exception)
                 }
             }
@@ -213,12 +264,37 @@ internal class WalletConfigViewModel @Inject constructor(
         }
     }
 
+    fun deleteAssistedWallet(signatures: HashMap<String, String>,
+                             securityQuestionToken: String) = viewModelScope.launch {
+        val state = getState()
+        if (state.verifyToken == null) return@launch
+        setEvent(WalletConfigEvent.Loading(true))
+        val result = deleteAssistedWalletUseCase(
+            DeleteAssistedWalletUseCase.Param(
+                signatures = signatures,
+                verifyToken = state.verifyToken,
+                securityQuestionToken = securityQuestionToken,
+                walletId = walletId
+            )
+        )
+        setEvent(WalletConfigEvent.Loading(false))
+        if (result.isSuccess) {
+            handleDeleteWallet()
+        } else {
+            setEvent(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+        }
+    }
+
     private fun isPrimaryKey(id: String) =
         accountManager.loginType() == SignInMode.PRIMARY_KEY.value && accountManager.getPrimaryKeyInfo()?.xfp == id
 
     fun isAssistedWallet() = assistedWalletManager.isActiveAssistedWallet(walletId)
 
+    fun isShowDeleteWallet() = getState().isShowDeleteAssistedWallet || isAssistedWallet().not()
+
     fun isInactiveAssistedWallet() = assistedWalletManager.isInactiveAssistedWallet(walletId)
+
+    fun walletName() = getState().walletExtended.wallet.name
 
     override val initialState: WalletConfigState
         get() = WalletConfigState()

@@ -20,13 +20,16 @@
 package com.nunchuk.android.core.repository
 
 import com.nunchuk.android.core.persistence.NcDataStore
+import com.nunchuk.android.core.persistence.NcEncryptedPreferences
+import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.repository.SettingRepository
 import com.nunchuk.android.type.Chain
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 internal class SettingRepositoryImpl @Inject constructor(
-    private val ncDataStore: NcDataStore
+    private val ncDataStore: NcDataStore,
+    private val ncEncryptedPreferences: NcEncryptedPreferences
 ): SettingRepository {
     override val syncEnable: Flow<Boolean>
         get() = ncDataStore.syncEnableFlow
@@ -43,6 +46,12 @@ internal class SettingRepositoryImpl @Inject constructor(
     override val qrDensity: Flow<Int>
         get() = ncDataStore.qrDensity
 
+    override val walletSecuritySetting: Flow<WalletSecuritySetting>
+        get() = ncDataStore.walletSecuritySetting
+
+    override val walletPin: Flow<String>
+        get() = ncEncryptedPreferences.getWalletPinFlow()
+
     override suspend fun markSyncRoomSuccess() {
         ncDataStore.markSyncRoomSuccess()
     }
@@ -57,5 +66,13 @@ internal class SettingRepositoryImpl @Inject constructor(
 
     override suspend fun markIsShowNfcUniversal() {
         ncDataStore.markIsShowNfcUniversal()
+    }
+
+    override suspend fun setWalletSecuritySetting(config: String) {
+        ncDataStore.setWalletSecuritySetting(config)
+    }
+
+    override suspend fun setWalletPin(pin: String) {
+        ncEncryptedPreferences.setWalletPin(pin)
     }
 }

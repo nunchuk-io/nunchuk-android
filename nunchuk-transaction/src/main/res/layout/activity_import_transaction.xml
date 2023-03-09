@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:fitsSystemWindows="true">
 
     <androidx.appcompat.widget.Toolbar
@@ -20,7 +21,7 @@
             style="@style/NCToolbar.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/nc_transaction_import_signature_via_qr_code" />
+            android:text="@string/nc_import_signature" />
     </androidx.appcompat.widget.Toolbar>
 
     <com.journeyapps.barcodescanner.DecoratedBarcodeView
@@ -28,34 +29,32 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_alignParentTop="true"
-        android:layout_marginVertical="@dimen/nc_padding_24"
-        app:layout_constraintBottom_toTopOf="@+id/btnImportViaFile"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
         app:zxing_preview_scaling_strategy="fitXY"
         app:zxing_scanner_layout="@layout/view_scanner"
         app:zxing_use_texture_view="true" />
 
-    <LinearLayout
-        android:id="@+id/btnImportViaFile"
-        style="@style/NCOutlineButton.Light"
+    <TextView
+        android:id="@+id/tv_percentage"
+        style="@style/NCText.Body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/nc_padding_16"
+        android:textColor="@color/nc_white_color"
+        app:layout_constraintBottom_toBottomOf="@+id/barcodeView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="45%" />
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progress_bar"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/nc_height_48"
-        android:layout_margin="@dimen/nc_padding_16"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_import" />
-
-        <com.nunchuk.android.widget.NCFontTextView
-            style="@style/NCOutlineButton.Text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/nc_padding_6"
-            android:text="@string/nc_transaction_import_signature_via_file"
-            android:textColor="@color/nc_primary_color" />
-    </LinearLayout>
+        android:layout_height="wrap_content"
+        android:max="100"
+        app:indicatorColor="@color/nc_red_color"
+        app:layout_constraintTop_toTopOf="@+id/barcodeView"
+        app:trackColor="@color/nc_whisper_color"
+        tools:progress="50" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

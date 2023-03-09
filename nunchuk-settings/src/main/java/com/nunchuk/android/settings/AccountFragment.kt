@@ -282,6 +282,7 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
         binding.network.setOnClickListener { changeNetworkSetting() }
         binding.about.setOnClickListener { openAboutScreen() }
         binding.developerMode.setOnClickListener { openDeveloperScreen() }
+        binding.walletSecuritySettings.setOnClickListener { navigator.openWalletSecuritySettingScreen(requireContext()) }
         if (signInModeHolder.getCurrentMode().isGuestMode()) {
             binding.name.setOnClickListener(null)
             binding.takePicture.setOnClickListener(null)

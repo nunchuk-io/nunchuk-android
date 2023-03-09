@@ -86,9 +86,11 @@ class ContactsViewModel @Inject constructor(
                 roomSummary.isServerNotices()
             }?.let {
                 viewModelScope.launch(ioDispatcher) {
-                    session.roomService().joinRoom(it.roomId)
-                    session.roomService().getRoom(it.roomId)
-                        ?.let(::retrieveTimelineEvents)
+                    runCatching {
+                        session.roomService().joinRoom(it.roomId)
+                        session.roomService().getRoom(it.roomId)
+                            ?.let(::retrieveTimelineEvents)
+                    }
                 }
             }
         }

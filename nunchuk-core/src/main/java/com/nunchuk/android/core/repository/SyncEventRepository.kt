@@ -21,7 +21,6 @@ package com.nunchuk.android.core.repository
 
 import com.nunchuk.android.persistence.dao.SyncEventDao
 import com.nunchuk.android.persistence.entity.SyncEventEntity
-import com.nunchuk.android.persistence.updateOrInsert
 import javax.inject.Inject
 
 interface SyncEventRepository {

@@ -30,6 +30,7 @@ data class MembershipSubscription(
 //    @SerializedName("payment_method") val paymentMethod: String? = null,
 //    @SerializedName("valid_from_utc_millis") val validFromUtcMillis: Long = 0,
     @SerializedName("valid_until_utc_millis") val validUntilUtcMillis: Long = 0,
+    @SerializedName("grace_valid_until_utc_millis") val graceValidUntilUtcMillis: Long = 0L,
     @SerializedName("ended_at_utc_millis") val endedAtUtcMillis: Long = 0,
     @SerializedName("status") val status: String? = null,
 //    @SerializedName("payment_details") val paymentDetails: PaymentDetails? = null

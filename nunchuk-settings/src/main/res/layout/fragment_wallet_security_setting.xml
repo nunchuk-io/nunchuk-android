@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_back"
+        app:title="@string/nc_wallet_security_settings" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingItemView
+                android:id="@+id/hide_wallet_detail_option"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:wss_desc="@string/nc_hide_wallet_details_desc"
+                app:wss_title="@string/nc_hide_wallet_details" />
+
+            <com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingItemView
+                android:id="@+id/password_option"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:wss_desc="@string/nc_protect_wallet_with_account_password_desc"
+                app:wss_title="@string/nc_protect_wallet_with_account_password" />
+
+            <com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingItemView
+                android:id="@+id/pin_option"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:wss_desc="@string/nc_protect_wallet_with_pin_desc"
+                app:wss_title="@string/nc_protect_wallet_with_pin" />
+
+            <com.nunchuk.android.widget.NCFontButton
+                android:id="@+id/pin_option_create_button"
+                style="@style/NCPrimaryButton.Dark"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_8"
+                android:text="@string/nc_create_a_wallet_pin"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <com.nunchuk.android.widget.NCFontButton
+                android:id="@+id/pin_option_change_button"
+                style="@style/NCPrimaryButton.Light"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/nc_padding_16"
+                android:layout_marginTop="@dimen/nc_padding_8"
+                android:text="@string/nc_change_wallet_pin"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/signUp"
+                tools:visibility="visible" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

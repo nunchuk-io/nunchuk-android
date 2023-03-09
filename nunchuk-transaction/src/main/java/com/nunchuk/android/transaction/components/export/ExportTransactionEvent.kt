@@ -23,7 +23,6 @@ import android.graphics.Bitmap
 import com.nunchuk.android.core.util.HIGH_DENSITY
 
 sealed class ExportTransactionEvent {
-    data class ExportToFileSuccess(val filePath: String) : ExportTransactionEvent()
     data class ExportTransactionError(val message: String) : ExportTransactionEvent()
     object LoadingEvent : ExportTransactionEvent()
 }

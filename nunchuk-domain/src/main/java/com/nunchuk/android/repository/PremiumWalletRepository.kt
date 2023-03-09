@@ -20,8 +20,11 @@
 package com.nunchuk.android.repository
 
 import com.nunchuk.android.model.*
+import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.membership.AssistedWalletConfig
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
+import kotlinx.coroutines.flow.Flow
 
 interface PremiumWalletRepository {
     suspend fun getSecurityQuestions(verifyToken: String?): List<SecurityQuestion>
@@ -47,7 +50,8 @@ interface PremiumWalletRepository {
 
     suspend fun getServerWallet(): WalletServerSync
     suspend fun updateServerWallet(walletLocalId: String, name: String): SeverWallet
-    suspend fun createServerTransaction(walletId: String, psbt: String, note: String?, txId: String)
+    suspend fun createServerTransaction(walletId: String, psbt: String, note: String?)
+    suspend fun updateServerTransaction(walletId: String, txId: String, note: String?)
     suspend fun signServerTransaction(
         walletId: String,
         txId: String,
@@ -190,4 +194,23 @@ interface PremiumWalletRepository {
     suspend fun syncTransaction(walletId: String)
 
     suspend fun getInheritanceBufferPeriod(): List<Period>
+
+    fun getAssistedWalletsLocal(): Flow<List<AssistedWalletBrief>>
+
+    suspend fun clearLocalData()
+
+    suspend fun reuseKeyWallet(walletId: String, plan: MembershipPlan)
+
+    suspend fun calculateRequiredSignaturesDeleteAssistedWallet(
+        walletId: String,
+    ): CalculateRequiredSignatures
+
+    suspend fun deleteAssistedWallet(
+        authorizations: List<String>,
+        verifyToken: String,
+        securityQuestionToken: String,
+        walletId: String
+    )
+
+    suspend fun getAssistedWalletConfig() : AssistedWalletConfig
 }

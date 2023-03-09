@@ -21,6 +21,7 @@ package com.nunchuk.android.wallet.components.details
 
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import com.nunchuk.android.core.base.BaseViewHolder
@@ -29,6 +30,7 @@ import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
+import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.utils.formatByHour
 import com.nunchuk.android.utils.simpleWeekDayYearFormat
 import com.nunchuk.android.wallet.R
@@ -38,7 +40,14 @@ import java.util.*
 
 internal class TransactionAdapter(
     private val listener: (Transaction) -> Unit
-) : PagingDataAdapter<ExtendedTransaction, TransactionViewHolder>(TransactionDiffCallback) {
+) : PagingDataAdapter<ExtendedTransaction, TransactionAdapter.TransactionViewHolder>(TransactionDiffCallback) {
+
+    private var hideWalletDetail: Boolean = false
+
+    fun setHideWalletDetail(hideWalletDetail: Boolean) {
+        this.hideWalletDetail = hideWalletDetail
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = TransactionViewHolder(
         parent.inflate(R.layout.item_transaction),
@@ -49,71 +58,76 @@ internal class TransactionAdapter(
         getItem(position)?.let(holder::bind)
     }
 
-}
+    inner class TransactionViewHolder(
+        itemView: View,
+        val onItemSelectedListener: (Transaction) -> Unit
+    ) : BaseViewHolder<ExtendedTransaction>(itemView) {
 
-internal class TransactionViewHolder(
-    itemView: View,
-    val onItemSelectedListener: (Transaction) -> Unit
-) : BaseViewHolder<ExtendedTransaction>(itemView) {
+        private val binding = ItemTransactionBinding.bind(itemView)
+        private val receivedAmountColor = ContextCompat.getColor(context, R.color.nc_slime_dark)
+        private val sentAmountColor = ContextCompat.getColor(context, R.color.nc_primary_color)
 
-    private val binding = ItemTransactionBinding.bind(itemView)
-
-    override fun bind(data: ExtendedTransaction) {
-        if (data.transaction.isReceive) {
-            binding.sendTo.text = context.getString(R.string.nc_transaction_receive_at)
-            binding.amountBTC.text = data.transaction.totalAmount.getBTCAmount()
-            binding.amountUSD.text = data.transaction.totalAmount.getUSDAmount()
-            binding.receiverName.text =
-                data.transaction.receiveOutputs.firstOrNull()?.first.orEmpty().truncatedAddress()
-        } else {
-            if (data.transaction.status.isConfirmed()) {
-                binding.sendTo.text = context.getString(R.string.nc_transaction_sent_to)
+        override fun bind(data: ExtendedTransaction) {
+            if (data.transaction.isReceive) {
+                binding.sendTo.text = context.getString(R.string.nc_transaction_receive_at)
+                binding.amountBTC.text = Utils.maskValue(data.transaction.totalAmount.getBTCAmount(), hideWalletDetail)
+                binding.amountBTC.setTextColor(receivedAmountColor)
+                binding.amountUSD.text = Utils.maskValue(data.transaction.totalAmount.getUSDAmount(), hideWalletDetail)
+                binding.receiverName.text = Utils.maskValue(data.transaction.receiveOutputs.firstOrNull()?.first.orEmpty().truncatedAddress(), hideWalletDetail)
             } else {
-                binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
+                if (data.transaction.status.isConfirmed()) {
+                    binding.sendTo.text = context.getString(R.string.nc_transaction_sent_to)
+                } else {
+                    binding.sendTo.text = context.getString(R.string.nc_transaction_send_to)
+                }
+                binding.amountBTC.text = Utils.maskValue("- ${data.transaction.totalAmount.getBTCAmount()}", hideWalletDetail)
+                binding.amountBTC.setTextColor(sentAmountColor)
+                binding.amountUSD.text = Utils.maskValue("- ${data.transaction.totalAmount.getUSDAmount()}", hideWalletDetail)
+                binding.receiverName.text =
+                    Utils.maskValue(data.transaction.outputs.firstOrNull()?.first.orEmpty().truncatedAddress(), hideWalletDetail)
             }
-            binding.amountBTC.text = "- ${data.transaction.totalAmount.getBTCAmount()}"
-            binding.amountUSD.text = "- ${data.transaction.totalAmount.getUSDAmount()}"
-            binding.receiverName.text =
-                data.transaction.outputs.firstOrNull()?.first.orEmpty().truncatedAddress()
+            binding.status.bindTransactionStatus(data.transaction)
+            binding.date.text = data.transaction.getFormatDate()
+
+            binding.root.setOnClickListener {
+                if (hideWalletDetail.not()) onItemSelectedListener(data.transaction)
+            }
+            handleServerTransaction(data.transaction, data.serverTransaction)
         }
-        binding.status.bindTransactionStatus(data.transaction)
-        binding.date.text = data.transaction.getFormatDate()
 
-        binding.root.setOnClickListener { onItemSelectedListener(data.transaction) }
-        handleServerTransaction(data.transaction, data.serverTransaction)
-    }
-
-    private fun handleServerTransaction(
-        transaction: Transaction,
-        serverTransaction: ServerTransaction?
-    ) {
-        if (serverTransaction != null && transaction.status.canBroadCast() && serverTransaction.type == ServerTransactionType.SCHEDULED) {
-            binding.status.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                R.drawable.ic_schedule,
-                0,
-                0,
-                0
-            )
-            if (serverTransaction.broadcastTimeInMilis > 0L) {
-                val broadcastTime = Date(serverTransaction.broadcastTimeInMilis)
-                binding.status.text = context.getString(
-                    R.string.nc_broadcast_on,
-                    broadcastTime.simpleWeekDayYearFormat(),
-                    broadcastTime.formatByHour()
+        private fun handleServerTransaction(
+            transaction: Transaction,
+            serverTransaction: ServerTransaction?
+        ) {
+            if (serverTransaction != null && transaction.status.canBroadCast() && serverTransaction.type == ServerTransactionType.SCHEDULED) {
+                binding.status.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                    R.drawable.ic_schedule,
+                    0,
+                    0,
+                    0
                 )
+                if (serverTransaction.broadcastTimeInMilis > 0L) {
+                    val broadcastTime = Date(serverTransaction.broadcastTimeInMilis)
+                    binding.status.text = context.getString(
+                        R.string.nc_broadcast_on,
+                        broadcastTime.simpleWeekDayYearFormat(),
+                        broadcastTime.formatByHour()
+                    )
+                }
+            } else {
+                binding.status.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
             }
-        } else {
-            binding.status.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
         }
+    }
+
+    internal object TransactionDiffCallback : DiffUtil.ItemCallback<ExtendedTransaction>() {
+
+        override fun areItemsTheSame(item1: ExtendedTransaction, item2: ExtendedTransaction) =
+            item1.transaction.txId == item2.transaction.txId
+
+        override fun areContentsTheSame(item1: ExtendedTransaction, item2: ExtendedTransaction) =
+            item1.transaction.status == item2.transaction.status
+
     }
 }
 
-internal object TransactionDiffCallback : DiffUtil.ItemCallback<ExtendedTransaction>() {
-
-    override fun areItemsTheSame(item1: ExtendedTransaction, item2: ExtendedTransaction) =
-        item1.transaction.txId == item2.transaction.txId
-
-    override fun areContentsTheSame(item1: ExtendedTransaction, item2: ExtendedTransaction) =
-        item1.transaction.status == item2.transaction.status
-
-}

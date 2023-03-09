@@ -23,8 +23,11 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
+import com.google.gson.Gson
+import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.model.toMembershipPlan
+import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.type.Chain
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -38,14 +41,13 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 @Singleton
 class NcDataStore @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val gson: Gson,
+    private val accountManager: AccountManager
 ) {
     private val btcPriceKey = doublePreferencesKey("btc_price")
     private val turnOnNotificationKey = booleanPreferencesKey("turn_on_notification")
     private val syncEnableKey = booleanPreferencesKey("sync_enable")
     private val isShowNfcUniversalKey = booleanPreferencesKey("show_nfc_universal")
-    private val registerColdcardKey = booleanPreferencesKey("register_coldcard")
-    private val registerAirgapKey = booleanPreferencesKey("register_airgap")
-    private val setupInheritanceKey = booleanPreferencesKey("setup_inheritance")
     private val chainKey = intPreferencesKey("chain")
     private val hideUpsellBannerKey = booleanPreferencesKey("hide_upsell_banner")
     private val syncRoomSuccessKey = booleanPreferencesKey("sync_room_success")
@@ -54,7 +56,7 @@ class NcDataStore @Inject constructor(
     /**
      * Assisted wallet local id
      */
-    private val assistedWalletLocalIdKey = stringPreferencesKey("assisted_wallet_local_id")
+    private val assistedWalletLocalIdKey = stringSetPreferencesKey("assisted_wallet_local_id_set")
 
     /**
      * Plan of current assisted wallet
@@ -65,6 +67,11 @@ class NcDataStore @Inject constructor(
      * Current membership plan key
      */
     private val membershipPlanKey = intPreferencesKey("membership_plan")
+
+    private fun getWalletSecuritySettingKey(): Preferences.Key<String> {
+        val userId = accountManager.getAccount().chatId
+        return stringPreferencesKey("wallet_security_setting_key-${userId}")
+    }
 
     val syncRoomSuccess: Flow<Boolean>
         get() = context.dataStore.data.map {
@@ -95,35 +102,10 @@ class NcDataStore @Inject constructor(
             it[turnOnNotificationKey] ?: true
         }
 
-    val assistedWalletId: Flow<String>
-        get() = context.dataStore.data.map {
-            it[assistedWalletLocalIdKey].orEmpty()
-        }
-
-    val assistedWalletPlan: Flow<MembershipPlan>
-        get() = context.dataStore.data.map {
-            it[assistedWalletPlanKey].toMembershipPlan()
-        }
-
     val membershipPlan: Flow<MembershipPlan>
         get() = context.dataStore.data.map {
             val ordinal = it[membershipPlanKey] ?: 0
             MembershipPlan.values()[ordinal]
-        }
-
-    val isRegisterColdCard: Flow<Boolean>
-        get() = context.dataStore.data.map {
-            it[registerColdcardKey] ?: true
-        }
-
-    val isRegisterAirgap: Flow<Boolean>
-        get() = context.dataStore.data.map {
-            it[registerAirgapKey] ?: true
-        }
-
-    val isSetupInheritance: Flow<Boolean>
-        get() = context.dataStore.data.map {
-            it[setupInheritanceKey] ?: false
         }
 
     val chain: Flow<Chain>
@@ -139,6 +121,11 @@ class NcDataStore @Inject constructor(
     val qrDensity: Flow<Int>
         get() = context.dataStore.data.map {
             it[qrDensityKey] ?: 200
+        }
+
+    val walletSecuritySetting: Flow<WalletSecuritySetting>
+        get() = context.dataStore.data.map {
+            gson.fromJson(it[getWalletSecuritySettingKey()].orEmpty(), WalletSecuritySetting::class.java)
         }
 
     suspend fun setChain(chain: Chain) {
@@ -171,39 +158,9 @@ class NcDataStore @Inject constructor(
         }
     }
 
-    suspend fun setAssistedWalletId(id: String) {
-        context.dataStore.edit { settings ->
-            settings[assistedWalletLocalIdKey] = id
-        }
-    }
-
-    suspend fun setAssistedWalletPlan(plan: String) {
-        context.dataStore.edit { settings ->
-            settings[assistedWalletPlanKey] = plan
-        }
-    }
-
     suspend fun setMembershipPlan(plan: MembershipPlan) {
         context.dataStore.edit {
             it[membershipPlanKey] = plan.ordinal
-        }
-    }
-
-    suspend fun setRegisterColdcard(value: Boolean) {
-        context.dataStore.edit {
-            it[registerColdcardKey] = value
-        }
-    }
-
-    suspend fun setRegisterAirgap(value: Boolean) {
-        context.dataStore.edit {
-            it[registerAirgapKey] = value
-        }
-    }
-
-    suspend fun setSetupInheritance(value: Boolean) {
-        context.dataStore.edit {
-            it[setupInheritanceKey] = value
         }
     }
 
@@ -219,16 +176,17 @@ class NcDataStore @Inject constructor(
         }
     }
 
+    suspend fun setWalletSecuritySetting(config: String) {
+        context.dataStore.edit {
+            it[getWalletSecuritySettingKey()] = config
+        }
+    }
+
     suspend fun clear() {
         context.dataStore.edit {
             it.remove(syncEnableKey)
             it.remove(turnOnNotificationKey)
-            it.remove(assistedWalletLocalIdKey)
-            it.remove(assistedWalletPlanKey)
             it.remove(membershipPlanKey)
-            it.remove(registerColdcardKey)
-            it.remove(registerAirgapKey)
-            it.remove(setupInheritanceKey)
             it.remove(hideUpsellBannerKey)
             it.remove(syncRoomSuccessKey)
         }

@@ -39,11 +39,13 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.*
 import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.Chain
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreatePassportSignersUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.ParseJsonSignerUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
+import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -67,11 +69,15 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private val gson: Gson,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
+    private val analyzeQrUseCase: AnalyzeQrUseCase,
 ) : NunchukViewModel<Unit, AddAirgapSignerEvent>() {
     private val qrDataList = HashSet<String>()
     private var isProcessing = false
     override val initialState = Unit
     private var chain: Chain = Chain.MAIN
+
+    private val _state = MutableStateFlow(AddAirgapSignerState())
+    val uiState = _state.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -83,21 +89,22 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     val signers: List<SingleSigner>
         get() = _signers
 
-    fun handleAddAirgapSigner(signerName: String, signerSpec: String, isMembershipFlow: Boolean) {
+    fun handleAddAirgapSigner(signerName: String, signerSpec: String, isMembershipFlow: Boolean, signerTag: SignerTag?) {
         val newSignerName = if (isMembershipFlow) "Hardware key${
             membershipStepManager.getNextKeySuffixByType(
                 SignerType.AIRGAP
             )
         }" else signerName
         validateInput(newSignerName, signerSpec) {
-            doAfterValidate(newSignerName, it, isMembershipFlow)
+            doAfterValidate(newSignerName, it, isMembershipFlow, signerTag)
         }
     }
 
     private fun doAfterValidate(
         signerName: String,
         signerInput: SignerInput,
-        isMembershipFlow: Boolean
+        isMembershipFlow: Boolean,
+        signerTag: SignerTag?
     ) {
         viewModelScope.launch {
             if (membershipStepManager.isKeyExisted(signerInput.fingerPrint) && isMembershipFlow) {
@@ -111,7 +118,8 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     xpub = signerInput.xpub,
                     derivationPath = signerInput.derivationPath,
                     masterFingerprint = signerInput.fingerPrint.lowercase(),
-                    type = SignerType.AIRGAP
+                    type = SignerType.AIRGAP,
+                    tags = signerTag?.let { listOf(it) }.orEmpty()
                 )
             )
             if (result.isSuccess) {
@@ -162,6 +170,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     fun handAddPassportSigners(qrData: String) {
         qrDataList.add(qrData)
         if (!isProcessing) {
+            analyzeQr()
             viewModelScope.launch {
                 Timber.tag(TAG).d("qrDataList::${qrDataList.size}")
                 createPassportSignersUseCase.execute(qrData = qrDataList.toList())
@@ -174,6 +183,16 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                         Timber.tag(TAG).d("add passport signer successful::$it")
                         event(ParseKeystoneAirgapSignerSuccess(it))
                     }
+            }
+        }
+    }
+
+    private fun analyzeQr() {
+        viewModelScope.launch {
+            val result = analyzeQrUseCase(qrDataList.toList())
+            if (result.isSuccess) {
+                Timber.d("analyzeQrUseCase: ${result.getOrThrow()}")
+                _state.update { it.copy(progress = result.getOrThrow().times(100.0)) }
             }
         }
     }
@@ -209,3 +228,5 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         private const val TAG = "AddSignerViewModel"
     }
 }
+
+data class AddAirgapSignerState(val progress: Double = 0.0)

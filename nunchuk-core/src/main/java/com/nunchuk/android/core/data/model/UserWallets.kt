@@ -223,3 +223,7 @@ data class TransactionAdditionalResponse(
     @SerializedName("sub_amount") val subAmount: Double? = null
 )
 
+data class DeleteAssistedWalletRequest(
+    @SerializedName("nonce")
+    val nonce: String? = null
+)

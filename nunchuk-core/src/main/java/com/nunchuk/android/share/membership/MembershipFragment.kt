@@ -58,7 +58,11 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) {
             if (it is MembershipEvent.RestartWizardSuccess) {
-                nunchukNavigator.openMembershipActivity(requireActivity(),MembershipStage.NONE, isClearTop = true)
+                nunchukNavigator.openMembershipActivity(
+                    requireActivity(),
+                    MembershipStage.NONE,
+                    isClearTop = true
+                )
                 requireActivity().finish()
             }
         }

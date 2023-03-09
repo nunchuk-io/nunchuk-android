@@ -56,7 +56,6 @@ internal class SignInViewModel @Inject constructor(
     private val signInModeHolder: SignInModeHolder,
     private val getPrimaryKeyListUseCase: GetPrimaryKeyListUseCase,
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
-    @IoDispatcher private val dispatcher: CoroutineDispatcher,
     @Named(DEFAULT_RETRY_POLICY) private val retryPolicy: RetryPolicy
 ) : NunchukViewModel<Unit, SignInEvent>() {
 

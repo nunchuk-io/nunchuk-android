@@ -108,7 +108,8 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
                     planFlow = args.planFlow,
                     isNotify = isNotify,
                     magicalPhrase = args.magicalPhrase,
-                    bufferPeriod = args.bufferPeriod
+                    bufferPeriod = args.bufferPeriod,
+                    walletId = args.walletId,
                 )
             )
         }

@@ -22,7 +22,6 @@ package com.nunchuk.android.main.components.tabs.services.emergencylockdown.lock
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.GetAssistedWalletIdFlowUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesLockdownUseCase
 import com.nunchuk.android.core.domain.membership.GetLockdownPeriodUseCase
 import com.nunchuk.android.core.domain.membership.GetLockdownUserDataUseCase
@@ -36,7 +35,6 @@ import javax.inject.Inject
 @HiltViewModel
 class EmergencyLockdownPeriodViewModel @Inject constructor(
     private val getLockdownPeriodUseCase: GetLockdownPeriodUseCase,
-    private val getAssistedWalletIdsFlowUseCase: GetAssistedWalletIdFlowUseCase,
     private val calculateRequiredSignaturesLockdownUseCase: CalculateRequiredSignaturesLockdownUseCase,
     private val getLockdownUserDataUseCase: GetLockdownUserDataUseCase,
     private val lockdownUpdateUseCase: LockdownUpdateUseCase,
@@ -71,18 +69,17 @@ class EmergencyLockdownPeriodViewModel @Inject constructor(
     }
 
     fun calculateRequiredSignatures() = viewModelScope.launch {
-        val walletId = getAssistedWalletIdsFlowUseCase(Unit).firstOrNull()?.getOrNull() ?: return@launch
         _event.emit(LockdownPeriodEvent.Loading(true))
         val period = _state.value.options.first { it.isSelected }.period
         val resultCalculate = calculateRequiredSignaturesLockdownUseCase(
             CalculateRequiredSignaturesLockdownUseCase.Param(
-                walletId = walletId,
+                walletId = "",
                 periodId = period.id
             )
         )
         val resultUserData = getLockdownUserDataUseCase(
             GetLockdownUserDataUseCase.Param(
-                walletId = walletId,
+                walletId = "",
                 periodId = period.id
             )
         )
@@ -95,7 +92,7 @@ class EmergencyLockdownPeriodViewModel @Inject constructor(
             _event.emit(
                 LockdownPeriodEvent.CalculateRequiredSignaturesSuccess(
                     type = resultCalculate.getOrThrow().type,
-                    walletId = walletId,
+                    walletId = "",
                     userData = userData,
                     requiredSignatures = resultCalculate.getOrThrow().requiredSignatures
                 )

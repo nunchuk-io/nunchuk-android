@@ -146,6 +146,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
 
     private fun setupViews() {
         val isMembershipFlow = (requireActivity() as AddAirgapSignerActivity).isMembershipFlow
+        val signerTag = (requireActivity() as AddAirgapSignerActivity).signerTag
         binding.signerName.setMaxLength(MAX_LENGTH)
         updateCounter(0)
         with(isMembershipFlow) {
@@ -168,7 +169,8 @@ class AddAirgapSignerFragment : BaseCameraFragment<FragmentAddSignerBinding>(),
             viewModel.handleAddAirgapSigner(
                 signerName = binding.signerName.getEditText(),
                 signerSpec = binding.signerSpec.getEditText(),
-                isMembershipFlow = isMembershipFlow
+                isMembershipFlow = isMembershipFlow,
+                signerTag
             )
         }
         binding.toolbar.setNavigationOnClickListener {

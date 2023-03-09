@@ -38,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -52,6 +53,7 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.key.AddKeyStepViewModel
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -59,6 +61,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class CreateWalletFragment : MembershipFragment() {
     private val viewModel: CreateWalletViewModel by viewModels()
+    private val addKeyStepViewModel: AddKeyStepViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -75,7 +78,10 @@ class CreateWalletFragment : MembershipFragment() {
         flowObserver(viewModel.event) {
             when (it) {
                 is CreateWalletEvent.Loading -> showOrHideLoading(it.isLoading)
-                is CreateWalletEvent.OnCreateWalletSuccess -> handleCreateWalletSuccess(it)
+                is CreateWalletEvent.OnCreateWalletSuccess -> {
+                    addKeyStepViewModel.requireInheritance(it.walletId)
+                    handleCreateWalletSuccess(it)
+                }
                 is CreateWalletEvent.ShowError -> showError(it.message)
             }
         }

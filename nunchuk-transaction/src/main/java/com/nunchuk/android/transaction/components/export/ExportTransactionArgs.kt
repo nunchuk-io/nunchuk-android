@@ -24,14 +24,11 @@ import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.getStringValue
-import com.nunchuk.android.share.model.TransactionOption
-import com.nunchuk.android.utils.serializable
 
 data class ExportTransactionArgs(
     val walletId: String,
     val txId: String,
     val txToSign: String,
-    val transactionOption: TransactionOption,
     val initEventId: String,
     val masterFingerPrint: String,
     val isDummyTx: Boolean
@@ -41,7 +38,6 @@ data class ExportTransactionArgs(
         putExtra(EXTRA_WALLET_ID, walletId)
         putExtra(EXTRA_TRANSACTION_ID, txId)
         putExtra(EXTRA_TX_TO_SIGN, txToSign)
-        putExtra(EXTRA_TRANSACTION_OPTION, transactionOption)
         putExtra(EXTRA_INIT_EVENT_ID, initEventId)
         putExtra(EXTRA_MASTER_FINGERPRINT, masterFingerPrint)
         putExtra(EXTRA_IS_DUMMY_TX, isDummyTx)
@@ -51,7 +47,6 @@ data class ExportTransactionArgs(
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
         private const val EXTRA_TRANSACTION_ID = "EXTRA_TRANSACTION_ID"
         private const val EXTRA_TX_TO_SIGN = "EXTRA_TX_TO_SIGN"
-        private const val EXTRA_TRANSACTION_OPTION = "EXTRA_TRANSACTION_OPTION"
         private const val EXTRA_INIT_EVENT_ID = "EXTRA_INIT_EVENT_ID"
         private const val EXTRA_MASTER_FINGERPRINT = "EXTRA_MASTER_FINGERPRINT"
         private const val EXTRA_IS_DUMMY_TX = "EXTRA_IS_DUMMY_TX"
@@ -62,7 +57,6 @@ data class ExportTransactionArgs(
                 walletId = extras.getStringValue(EXTRA_WALLET_ID),
                 txId = extras.getStringValue(EXTRA_TRANSACTION_ID),
                 txToSign = extras.getStringValue(EXTRA_TX_TO_SIGN),
-                transactionOption = extras?.serializable(EXTRA_TRANSACTION_OPTION) ?: TransactionOption.EXPORT_KEYSTONE,
                 initEventId = extras.getStringValue(EXTRA_INIT_EVENT_ID),
                 masterFingerPrint = extras.getStringValue(EXTRA_MASTER_FINGERPRINT),
                 isDummyTx = extras.getBooleanValue(EXTRA_IS_DUMMY_TX)

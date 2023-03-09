@@ -63,4 +63,8 @@ internal object NunchukPersistenceModule {
     @Singleton
     @Provides
     fun provideHandledEventDao(database: NunchukDatabase) = database.handledEventDao()
+
+    @Singleton
+    @Provides
+    fun provideAssistedWalletDao(database: NunchukDatabase) = database.assistedWalletDao()
 }

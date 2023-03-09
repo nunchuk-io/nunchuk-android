@@ -17,7 +17,7 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.main.components.tabs.wallet
+package com.nunchuk.android.main.components
 
 import android.view.ViewGroup
 import androidx.core.view.get
@@ -28,32 +28,35 @@ import com.nunchuk.android.core.util.getUSDAmount
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
+import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.widget.util.AbsViewBinder
 
 internal class WalletsViewBinder(
     container: ViewGroup,
     wallets: List<WalletExtended>,
-    val assistedWalletId: String,
+    val assistedWalletIds: Set<String>,
+    val hideWalletDetail: Boolean = false,
     val callback: (String) -> Unit = {}
 ) : AbsViewBinder<WalletExtended, ItemWalletBinding>(container, wallets) {
 
     override fun initializeBinding() = ItemWalletBinding.inflate(inflater, container, false)
 
     override fun bindItem(position: Int, model: WalletExtended) {
-        val isAssistedWallet = assistedWalletId == model.wallet.id
+        val isAssistedWallet = assistedWalletIds.contains(model.wallet.id)
         val wallet = model.wallet
         val balance = "(${wallet.getUSDAmount()})"
         val binding = ItemWalletBinding.bind(container[position])
         binding.walletName.text = wallet.name
-        binding.btc.text = wallet.getBTCAmount()
-        binding.balance.text = balance
+
+        binding.btc.text = Utils.maskValue(wallet.getBTCAmount(), hideWalletDetail)
+        binding.balance.text = Utils.maskValue(balance, hideWalletDetail)
         binding.shareIcon.isVisible = model.isShared || isAssistedWallet
         if (isAssistedWallet) {
-            binding.shareIcon.text = context.getString(R.string.nc_assisted)
+            binding.shareIcon.text = Utils.maskValue(context.getString(R.string.nc_assisted), hideWalletDetail)
         } else {
-            binding.shareIcon.text = context.getString(R.string.nc_text_shared)
+            binding.shareIcon.text = Utils.maskValue(context.getString(R.string.nc_text_shared), hideWalletDetail)
         }
-        binding.config.bindWalletConfiguration(wallet)
+        binding.config.bindWalletConfiguration(wallet, hideWalletDetail)
         binding.root.setOnClickListener { callback(wallet.id) }
         if (isAssistedWallet) {
             binding.root.setBackgroundResource(R.drawable.nc_gradient_premium_background)

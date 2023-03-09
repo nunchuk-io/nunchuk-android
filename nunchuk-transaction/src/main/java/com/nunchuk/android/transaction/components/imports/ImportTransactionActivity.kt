@@ -19,17 +19,16 @@
 
 package com.nunchuk.android.transaction.components.imports
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import com.google.zxing.client.android.Intents
 import com.nunchuk.android.core.base.BaseCameraActivity
 import com.nunchuk.android.core.manager.NcToastManager
-import com.nunchuk.android.core.util.CHOOSE_FILE_REQUEST_CODE
-import com.nunchuk.android.core.util.getFileFromUri
-import com.nunchuk.android.core.util.openSelectFileChooser
-import com.nunchuk.android.share.model.TransactionOption
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionError
@@ -38,6 +37,7 @@ import com.nunchuk.android.transaction.databinding.ActivityImportTransactionBind
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBinding>() {
@@ -64,17 +64,21 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun observeEvent() {
         viewModel.event.observe(this, ::handleEvent)
+        flowObserver(viewModel.uiState) {
+            binding.progressBar.progress = it.progress.roundToInt()
+            binding.tvPercentage.isVisible = it.progress > 0.0
+            binding.tvPercentage.text = "${it.progress.roundToInt()}%"
+        }
     }
 
     private fun setupViews() {
         val barcodeViewIntent = intent
         barcodeViewIntent.putExtra(Intents.Scan.MODE, Intents.Scan.QR_CODE_MODE)
-        binding.barcodeView.cameraSettings.isContinuousFocusEnabled = true
         binding.barcodeView.initializeFromIntent(barcodeViewIntent)
         binding.barcodeView.decodeContinuous { viewModel.importTransactionViaQR(it.text) }
-        binding.btnImportViaFile.setOnClickListener { openSelectFileChooser() }
         binding.toolbar.setNavigationOnClickListener { finish() }
     }
 
@@ -111,15 +115,6 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
-        super.onActivityResult(requestCode, resultCode, intent)
-        if (requestCode == CHOOSE_FILE_REQUEST_CODE && resultCode == RESULT_OK) {
-            intent?.data?.let {
-                getFileFromUri(contentResolver, it, cacheDir)
-            }?.absolutePath?.let(viewModel::importTransactionViaFile)
-        }
-    }
-
     override fun onResume() {
         super.onResume()
         binding.barcodeView.resume()
@@ -134,7 +129,6 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
         fun buildIntent(
             activityContext: Activity,
             walletId: String = "",
-            transactionOption: TransactionOption,
             masterFingerPrint: String = "",
             initEventId: String = "",
             isDummyTx: Boolean = false,
@@ -142,7 +136,6 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
         ): Intent {
             return ImportTransactionArgs(
                 walletId = walletId,
-                transactionOption = transactionOption,
                 masterFingerPrint = masterFingerPrint,
                 initEventId = initEventId,
                 isDummyTx = isDummyTx,
