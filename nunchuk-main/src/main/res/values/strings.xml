@@ -18,7 +18,6 @@
     <string name="nc_setup_satscard_msg">No active slot is detected. Do you want to set up a new slot?</string>
     <string name="nc_assisted_wallet_intro_desc">This wizard will walk you through creating an assisted wallet step by step.</string>
     <string name="nc_you_almost_done">You’re almost done!</string>
-    <string name="nc_continue_setting_your_wallet">Continue setting up your wallet</string>
     <string name="nc_error_co_signing_delay_empty">Please input co-signing delay</string>
     <string name="nc_inheritance_plan_title">Thinking about setting up an inheritance plan?</string>
     <string name="nc_inheritance_intro_hint">TAPSIGNER is a wireless NFC smart card that will sign transactions with a simple tap on your phone.</string>
@@ -31,7 +30,7 @@
     <string name="nc_inheritance_claim_trustee">The inheritance can be claimed directly by the Beneficiary or indirectly through a third-party Trustee.</string>
     <string name="nc_plan_overview">Plan overview</string>
     <string name="nc_plan_overview_desc">The inheritance plan will have these main components:</string>
-    <string name="nc_activation_date">An activation date</string>
+    <string name="nc_activation_date">Activation Date</string>
     <string name="nc_plan_overview_bottom_desc">We will now go through them one-by-one.</string>
     <string name="nc_find_backup_password_desc">In your wallet, you have designated a TAPSIGNER to be the inheritance key. An encrypted backup of this key is stored on our server.\n\nOn or after the activation date, the Beneficiary or Trustee can recover this key using the Backup Password printed on the back of the TAPSIGNER (it might be listed under “Backup key”).\n\n[B]Make note of this Backup Password[/B]. You will need to share it with the Beneficiary or Trustee.</string>
     <string name="nc_find_backup_password">Find your Backup Password</string>
@@ -44,4 +43,6 @@
     <string name="nc_try_assisted_wallet_desc">All Bitcoin features work exactly the same on testnet as they would on the real blockchain. See if an assisted wallet is a good fit for you by trying it out on testnet.</string>
     <string name="nc_try_assisted_wallet_hint">The testnet is an alternative Bitcoin blockchain used for testing. Testnet coins are separate and distinct from actual bitcoins and they do not hold any value.</string>
     <string name="nc_hint_config_spending_limit">You can bypass the spending limit by signing transactions using two of your own keys.</string>
+    <string name="nc_key_reuse_desc">Do you want to reuse the keys from one of the existing assisted wallets?</string>
+    <string name="nc_seedsigner">SeedSigner</string>
 </resources>

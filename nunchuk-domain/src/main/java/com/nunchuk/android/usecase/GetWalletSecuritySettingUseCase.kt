@@ -17,18 +17,22 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase.user
+package com.nunchuk.android.usecase
 
 import com.nunchuk.android.FlowUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.repository.MembershipRepository
+import com.nunchuk.android.model.setting.WalletSecuritySetting
+import com.nunchuk.android.repository.SettingRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class IsSetupInheritanceUseCase @Inject constructor(
-    private val repository: MembershipRepository,
-    @IoDispatcher ioDispatcher: CoroutineDispatcher
-) : FlowUseCase<Unit, Boolean>(ioDispatcher) {
-    override fun execute(parameters: Unit): Flow<Boolean> = repository.isSetupInheritance()
+class GetWalletSecuritySettingUseCase @Inject constructor(
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+    private val repository: SettingRepository
+) : FlowUseCase<Unit, WalletSecuritySetting>(dispatcher) {
+
+    override fun execute(parameters: Unit): Flow<WalletSecuritySetting> {
+        return repository.walletSecuritySetting
+    }
 }

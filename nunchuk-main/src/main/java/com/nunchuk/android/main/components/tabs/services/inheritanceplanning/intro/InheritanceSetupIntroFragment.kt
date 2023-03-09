@@ -41,8 +41,6 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.flowWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -51,12 +49,12 @@ import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.tabs.services.emergencylockdown.intro.EmergencyLockdownIntroFragmentArgs
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class InheritanceSetupIntroFragment : MembershipFragment() {
+    private val args by navArgs<InheritanceSetupIntroFragmentArgs>()
     private val viewModel: InheritanceSetupIntroViewModel by viewModels()
 
     override fun onCreateView(
@@ -66,7 +64,7 @@ class InheritanceSetupIntroFragment : MembershipFragment() {
             setContent {
                 InheritanceSetupIntroScreen(viewModel) {
                     findNavController().navigate(
-                        InheritanceSetupIntroFragmentDirections.actionInheritanceSetupIntroFragmentToInheritancePlanOverviewFragment()
+                        InheritanceSetupIntroFragmentDirections.actionInheritanceSetupIntroFragmentToInheritancePlanOverviewFragment(walletId = args.walletId)
                     )
                 }
             }

@@ -92,7 +92,8 @@ class InheritanceNoteFragment : MembershipFragment() {
                                 verifyToken = args.verifyToken,
                                 note = event.note,
                                 magicalPhrase = args.magicalPhrase,
-                                planFlow = args.planFlow
+                                planFlow = args.planFlow,
+                                walletId = args.walletId,
                             )
                         )
                     }

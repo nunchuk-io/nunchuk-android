@@ -37,6 +37,7 @@ import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.*
@@ -73,6 +74,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val assistedWalletManager: AssistedWalletManager,
     private val getServerTransactionUseCase: GetServerTransactionUseCase,
     private val syncTransactionUseCase: SyncTransactionUseCase,
+    private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -92,6 +94,17 @@ internal class WalletDetailsViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
+            getWalletSecuritySettingUseCase(Unit)
+                .collect {
+                    updateState {
+                        copy(
+                            hideWalletDetailLocal = it.getOrNull()?.hideWalletDetail
+                                ?: WalletSecuritySetting().hideWalletDetail
+                        )
+                    }
+                }
+        }
+        viewModelScope.launch {
             selectedWalletUseCase(args.walletId)
         }
         viewModelScope.launch {
@@ -99,11 +112,6 @@ internal class WalletDetailsViewModel @Inject constructor(
             if (result.isSuccess) {
                 getTransactionHistory()
             }
-        }
-        updateState {
-            copy(
-                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
-            )
         }
     }
 
@@ -122,7 +130,12 @@ internal class WalletDetailsViewModel @Inject constructor(
                 .onException { event(WalletDetailsError(it.message.orUnknownError())) }
                 .flowOn(Main)
                 .collect {
-                    updateState { copy(walletExtended = it) }
+                    updateState {
+                        copy(
+                            walletExtended = it,
+                            isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId)
+                        )
+                    }
                     if (shouldRefreshTransaction) {
                         checkUserInRoom(it.roomWallet)
                         getTransactionHistory()
@@ -259,11 +272,21 @@ internal class WalletDetailsViewModel @Inject constructor(
         updateState { copy(isForceRefreshProcessing = isProcessing) }
     }
 
+    fun updateHideWalletDetailLocal() {
+        val hideWalletDetailLocal = getState().hideWalletDetailLocal.not()
+        updateState { copy(hideWalletDetailLocal = hideWalletDetailLocal) }
+    }
+
     val isForceRefreshProcessing: Boolean
         get() = getState().isForceRefreshProcessing
+
+    val isHideWalletDetail: Boolean
+        get() = getState().hideWalletDetailLocal
 
     val isLeaveRoom: Boolean
         get() = getState().isLeaveRoom
 
     fun isInactiveAssistedWallet() = assistedWalletManager.isInactiveAssistedWallet(args.walletId)
+
+    fun isShowSetupInheritance() = assistedWalletManager.isShowSetupInheritance(args.walletId)
 }

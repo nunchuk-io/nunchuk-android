@@ -94,7 +94,7 @@ class UserDevicesActivity : BaseActivity<ActivityUserDevicesBinding>() {
             UserDeviceEvent.SignOutAllSuccessEvent -> {
                 hideLoading()
                 NCToastMessage(this).showMessage(
-                    message = getString(R.string.nc_text_signd_out_all_devices),
+                    message = getString(R.string.nc_text_signd_out_devices),
                     icon = R.drawable.ic_check_circle_outline
                 )
                 viewModel.getUserDevices()

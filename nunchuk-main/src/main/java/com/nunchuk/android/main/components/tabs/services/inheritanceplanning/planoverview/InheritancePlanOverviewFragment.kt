@@ -40,6 +40,7 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
@@ -50,6 +51,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class InheritancePlanOverviewFragment : MembershipFragment() {
+    private val args by navArgs<InheritancePlanOverviewFragmentArgs>()
     private val viewModel: InheritancePlanOverviewViewModel by viewModels()
 
     override fun onCreateView(
@@ -70,7 +72,7 @@ class InheritancePlanOverviewFragment : MembershipFragment() {
                     when(event) {
                         InheritancePlanOverviewEvent.OnContinueClicked -> {
                             findNavController().navigate(
-                                InheritancePlanOverviewFragmentDirections.actionInheritancePlanOverviewFragmentToMagicalPhraseIntroFragment()
+                                InheritancePlanOverviewFragmentDirections.actionInheritancePlanOverviewFragmentToMagicalPhraseIntroFragment(walletId = args.walletId)
                             )
                         }
                     }

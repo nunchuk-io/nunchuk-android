@@ -23,6 +23,7 @@ import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.type.TransactionStatus
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -49,6 +50,7 @@ internal class GetTransactionUseCaseImpl @Inject constructor(
         val tx = nativeSdk.getTransaction(walletId = walletId, txId = txId)
         emit(ExtendedTransaction(transaction = tx.copy(height = tx.getConfirmations(chainTip))))
         if (isAssistedWallet && tx.status.isPending()) {
+            delay(100L)
             val extendedTransaction = repository.getServerTransaction(walletId, txId)
             val transaction = extendedTransaction.transaction.copy(
                 height = extendedTransaction.transaction.getConfirmations(chainTip)

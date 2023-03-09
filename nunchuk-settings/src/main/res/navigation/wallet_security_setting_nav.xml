@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/wallet_security_setting_nav"
+    app:startDestination="@id/walletSecuritySettingFragment">
+
+    <fragment
+        android:id="@+id/walletSecuritySettingFragment"
+        android:name="com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingFragment"
+        android:label="WalletSecuritySettingFragment"
+        tools:layout="@layout/fragment_wallet_security_setting">
+
+        <action
+            android:id="@+id/action_walletSecuritySettingFragment_to_walletSecurityCreatePinFragment"
+            app:destination="@id/walletSecurityCreatePinFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+    </fragment>
+    <fragment
+        android:id="@+id/walletSecurityCreatePinFragment"
+        android:name="com.nunchuk.android.settings.walletsecurity.createpin.WalletSecurityCreatePinFragment"
+        android:label="WalletSecurityCreatePinFragment">
+        <argument
+            android:name="current_pin"
+            android:defaultValue=""
+            app:argType="string" />
+    </fragment>
+</navigation>

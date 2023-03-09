@@ -24,7 +24,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.navArgs
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.emergencylockdown.intro.EmergencyLockdownIntroFragmentArgs

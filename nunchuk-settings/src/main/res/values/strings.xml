@@ -3,6 +3,7 @@
     <string name="nc_settings_sign_out">Sign out</string>
     <string name="nc_settings_unit">Display unit (%1$s)</string>
     <string name="nc_settings_network">Network settings</string>
+    <string name="nc_wallet_security_settings">Wallet security settings</string>
     <string name="nc_settings_change_password">Change password</string>
     <string name="nc_settings_replace_primary_key">Replace Primary Key</string>
     <string name="nc_settings_logged_in_devices">Logged-in devices</string>
@@ -37,10 +38,10 @@
     <string name="nc_txt_dialog_sign_out_message">Are you sure you want to sign out %1$s?</string>
     <string name="nc_txt_dialog_sign_out_all_message">Are you sure you want to sign out all devices?</string>
     <string name="nc_txt_dialog_compromised_message">Are you sure you want to mark %1$s as compromised? The device’s access to messages and wallets will be removed.</string>
-    <string name="nc_text_device_deleted_msg">%1$s has been deleted</string>
+    <string name="nc_text_device_deleted_msg">Please check your email to complete sign out %1$s</string>
     <string name="nc_text_device_compromised_msg">%1$s has been marked as compromised</string>
     <string name="nc_text_error_get_devices">Error while fetching device list</string>
-    <string name="nc_text_signd_out_all_devices">All devices has been deleted</string>
+    <string name="nc_text_signd_out_devices">Please check your email to complete sign out devices</string>
     <string name="nc_text_toolbar_title_user_devices">Logged in devices</string>
     <string name="nc_text_sign_out_all_devices">Sign out all devices</string>
     <string name="nc_text_device_info">(This device)</string>
@@ -59,4 +60,24 @@
     <string name="nc_follow_us">Follow us</string>
     <string name="nc_contact_us">Contact us</string>
     <string name="scan_qr_to_sign_in_remotely">Scan QR to sign in remotely</string>
+    <string name="nc_hide_wallet_details">Hide wallet details</string>
+    <string name="nc_hide_wallet_details_desc">Hide your wallet balance, transaction amounts and addresses by default.</string>
+    <string name="nc_protect_wallet_with_account_password">Protect wallets with account password</string>
+    <string name="nc_protect_wallet_with_account_password_desc">Re-enter your account password for each wallet access.</string>
+    <string name="nc_protect_wallet_with_pin">Protect wallets with a PIN (advanced)</string>
+    <string name="nc_protect_wallet_with_pin_desc">Require a PIN for each wallet access.</string>
+    <string name="nc_create_a_wallet_pin">Create a wallet PIN</string>
+    <string name="nc_change_wallet_pin">Change wallet PIN</string>
+    <string name="nc_create_pin">Create PIN</string>
+    <string name="nc_incorrect_current_pin">Incorrect current PIN</string>
+    <string name="nc_confirm_pin_does_not_match">Confirm PIN does not match</string>
+    <string name="nc_enter_pin">Enter PIN</string>
+    <string name="nc_confirm_pin">Confirm PIN</string>
+    <string name="nc_pin_created">PIN created.</string>
+    <string name="nc_pin_updated">PIN updated.</string>
+    <string name="nc_confirm_new_pin">Confirm new PIN</string>
+    <string name="nc_enter_new_pin">Enter new PIN</string>
+    <string name="nc_enter_current_pin">Enter current PIN</string>
+    <string name="nc_enter_your_pin">Enter your PIN</string>
+    <string name="nc_create_a_wallet_pin_desc">[B]Please make sure to remember your PIN.[/B] If you forget your PIN and have not backed up your wallets, you might not be able to access them again.</string>
 </resources>

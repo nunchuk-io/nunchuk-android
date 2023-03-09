@@ -44,6 +44,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.MainActivityViewModel
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.WalletsViewBinder
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.main.databinding.FragmentWalletsBinding
 import com.nunchuk.android.main.di.MainAppEvent
@@ -55,6 +56,7 @@ import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_ACTIVE
 import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_PENDING
 import com.nunchuk.android.messages.util.getMsgType
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.banner.Banner
@@ -64,10 +66,10 @@ import com.nunchuk.android.signer.util.handleTapSignerStatus
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.widget.NCInfoDialog
+import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCWarningVerticalDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.filter
 import javax.inject.Inject
 
@@ -95,8 +97,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                 (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_AUTO_CARD_STATUS)
             }
         }
-
-    private var listenSubscriptionJob: Job? = null
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -128,8 +128,9 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         }
         binding.introContainer.setOnDebounceClickListener {
             navigator.openMembershipActivity(
-                requireActivity(),
-                walletsViewModel.getGroupStage()
+                activityContext = requireActivity(),
+                groupStep = walletsViewModel.getGroupStage(),
+                walletId = walletsViewModel.getAssistedWalletId()
             )
         }
         binding.containerNonSubscriber.setOnDebounceClickListener {
@@ -147,11 +148,10 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun showAssistedWalletStart(
         remainingTime: Int,
-        isCreatedAssistedWallet: Boolean,
-        setupInheritance: Boolean
+        walletName: String?,
     ) {
         val stage = walletsViewModel.getGroupStage()
-        val isGone = stage == MembershipStage.DONE || (isCreatedAssistedWallet && setupInheritance)
+        val isGone = stage == MembershipStage.DONE
         binding.introContainer.isGone = isGone
         if (isVisible.not()) return
         if (stage == MembershipStage.NONE) {
@@ -159,6 +159,12 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             binding.tvIntroDesc.text =
                 getString(R.string.nc_assisted_wallet_intro_desc)
             binding.tvIntroAction.text = getString(R.string.nc_start_wizard)
+        } else if (stage == MembershipStage.SETUP_INHERITANCE) {
+            binding.tvIntroTitle.text =
+                getString(R.string.nc_setup_inheritance_for, walletName.orEmpty())
+            binding.tvIntroDesc.text =
+                getString(R.string.nc_estimate_remain_time, remainingTime)
+            binding.tvIntroAction.text = getString(R.string.nc_do_it_now)
         } else if (stage != MembershipStage.DONE) {
             binding.tvIntroTitle.text = getString(R.string.nc_you_almost_done)
             binding.tvIntroDesc.text =
@@ -184,11 +190,12 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                 }
             }
         }
-        if (walletsViewModel.state.value?.isPremiumUser != true) {
+        if (walletsViewModel.isPremiumUser().not()) {
             flowObserver(contactViewModel.noticeRoomEvent()) {
                 it.forEach { event ->
                     if ((event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_PENDING || event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_ACTIVE)
-                        && walletsViewModel.isPremiumUser().not()) {
+                        && walletsViewModel.isPremiumUser().not()
+                    ) {
                         walletsViewModel.reloadMembership()
                     }
                 }
@@ -231,7 +238,42 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             is SatsCardUsedUp -> handleSatsCardUsedUp(event.numberOfSlot)
             is Loading -> handleLoading(event)
             is NfcLoading -> showOrHideNfcLoading(event.loading)
+            is CheckWalletPin -> {
+                if (event.match) {
+                    openWalletDetailsScreen(event.walletId)
+                } else {
+                    showError(message = getString(R.string.nc_incorrect_current_pin))
+                }
+            }
+            is VerifyPasswordSuccess -> {
+                if (walletsViewModel.isWalletPinEnable()) {
+                    showInputPinDialog(event.walletId)
+                } else {
+                    openWalletDetailsScreen(event.walletId)
+                }
+            }
+            None -> {}
         }
+        walletsViewModel.clearEvent()
+    }
+
+    private fun showInputPinDialog(walletId: String) {
+        NCInputDialog(requireContext()).showDialog(
+            title = getString(com.nunchuk.android.settings.R.string.nc_enter_your_pin),
+            onConfirmed = {
+                walletsViewModel.checkWalletPin(it, walletId)
+            }
+        )
+    }
+
+    private fun enterPasswordDialog(walletId: String) {
+        NCInputDialog(requireContext()).showDialog(
+            title = getString(com.nunchuk.android.settings.R.string.nc_re_enter_your_password),
+            descMessage = getString(com.nunchuk.android.settings.R.string.nc_re_enter_your_password_dialog_desc),
+            onConfirmed = {
+                walletsViewModel.confirmPassword(it, walletId)
+            }
+        )
     }
 
     private fun openSatsCardActiveSlotScreen(event: GoToSatsCardScreen) {
@@ -288,11 +330,14 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun showWalletState(state: WalletsState) {
         val wallets = state.wallets
-        showWallets(wallets, state.assistedWalletId)
+        showWallets(
+            wallets,
+            state.assistedWallets.map { it.localId }.toSet(),
+            state.walletSecuritySetting.hideWalletDetail
+        )
         showSigners(state.signers)
         showConnectionBlockchainStatus(state)
         showIntro(state)
-        if (state.isPremiumUser == true) listenSubscriptionJob?.cancel()
     }
 
     private fun showConnectionBlockchainStatus(state: WalletsState) {
@@ -359,14 +404,16 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun showIntro(state: WalletsState) {
-        binding.introContainer.isVisible = state.isPremiumUser == true
-        binding.containerNonSubscriber.isVisible = state.isPremiumUser == false
-        if (state.isPremiumUser != null) {
+        binding.introContainer.isVisible = state.plan != null && state.plan != MembershipPlan.NONE
+        binding.containerNonSubscriber.isVisible =
+            state.plan != null && state.plan == MembershipPlan.NONE
+        if (state.plan != null) {
+            val walletName = state.assistedWallets.firstOrNull()
+                ?.let { wallet -> state.wallets.find { wallet.localId == it.wallet.id }?.wallet?.name.orEmpty() }
             when {
-                state.isPremiumUser -> showAssistedWalletStart(
+                state.plan != MembershipPlan.NONE -> showAssistedWalletStart(
                     state.remainingTime,
-                    state.isCreatedAssistedWallet,
-                    state.isSetupInheritance,
+                    walletName
                 )
                 else -> showNonSubscriberIntro(state.banner, state.isHideUpsellBanner)
             }
@@ -385,11 +432,15 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         }
     }
 
-    private fun showWallets(wallets: List<WalletExtended>, assistedWalletId: String) {
+    private fun showWallets(
+        wallets: List<WalletExtended>,
+        assistedWalletId: Set<String>,
+        hideWalletDetail: Boolean
+    ) {
         if (wallets.isEmpty()) {
             showWalletsEmptyView()
         } else {
-            showWalletsListView(wallets, assistedWalletId)
+            showWalletsListView(wallets, assistedWalletId, hideWalletDetail)
         }
     }
 
@@ -398,15 +449,30 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         binding.walletList.isVisible = false
     }
 
-    private fun showWalletsListView(wallets: List<WalletExtended>, assistedWalletId: String) {
+    private fun showWalletsListView(
+        wallets: List<WalletExtended>,
+        assistedWalletIds: Set<String>,
+        hideWalletDetail: Boolean
+    ) {
         binding.walletEmpty.isVisible = false
         binding.walletList.isVisible = true
         WalletsViewBinder(
             container = binding.walletList,
             wallets = wallets,
-            assistedWalletId = assistedWalletId,
-            callback = ::openWalletDetailsScreen
+            assistedWalletIds = assistedWalletIds,
+            hideWalletDetail = hideWalletDetail,
+            callback = ::checkWalletSecurity
         ).bindItems()
+    }
+
+    private fun checkWalletSecurity(walletId: String) {
+        if (walletsViewModel.isWalletPasswordEnable()) {
+            enterPasswordDialog(walletId)
+        } else if (walletsViewModel.isWalletPinEnable()) {
+            showInputPinDialog(walletId)
+        } else {
+            openWalletDetailsScreen(walletId)
+        }
     }
 
     private fun openWalletDetailsScreen(walletId: String) {

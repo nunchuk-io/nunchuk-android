@@ -17,13 +17,21 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.data.model.membership
+package com.nunchuk.android.usecase.membership
 
-import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.membership.AssistedWalletConfig
+import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-data class CreateServerTransactionRequest(
-    @SerializedName("note")
-    val note: String? = null,
-    @SerializedName("psbt")
-    val psbt: String
-)
+class GetAssistedWalletConfigUseCase @Inject constructor(
+    private val repository: PremiumWalletRepository,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<Unit, AssistedWalletConfig>(ioDispatcher) {
+
+    override suspend fun execute(parameters: Unit): AssistedWalletConfig {
+        return repository.getAssistedWalletConfig()
+    }
+}

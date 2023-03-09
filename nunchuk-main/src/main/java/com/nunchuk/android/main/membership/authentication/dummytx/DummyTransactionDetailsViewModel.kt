@@ -19,20 +19,100 @@
 
 package com.nunchuk.android.main.membership.authentication.dummytx
 
+import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.util.getFileFromUri
+import com.nunchuk.android.core.util.messageOrUnknownError
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.Result
+import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.usecase.CreateShareFileUseCase
+import com.nunchuk.android.usecase.membership.GetDummyTxFromPsbtByteArrayUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
 
 @HiltViewModel
 internal class DummyTransactionDetailsViewModel @Inject constructor(
+    private val getDummyTxFromPsbtByteArrayUseCase: GetDummyTxFromPsbtByteArrayUseCase,
+    private val createShareFileUseCase: CreateShareFileUseCase,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val application: Application,
 ) : ViewModel() {
     private val _state = MutableStateFlow(DummyTransactionState())
     val state = _state.asStateFlow()
 
+    private val _event = MutableSharedFlow<DummyTransactionDetailEvent>()
+    val event = _event.asSharedFlow()
+
+    fun importTransactionViaFile(walletId: String, uri: Uri) {
+        viewModelScope.launch {
+            _event.emit(DummyTransactionDetailEvent.LoadingEvent(true))
+            val bytes = withContext(ioDispatcher) {
+                getFileFromUri(application.contentResolver, uri, application.cacheDir)?.let {file ->
+                    File(file.absolutePath).readBytes()
+                }
+            } ?: return@launch
+            val result = getDummyTxFromPsbtByteArrayUseCase(
+                GetDummyTxFromPsbtByteArrayUseCase.Param(
+                    walletId,
+                    bytes
+                )
+            )
+            _event.emit(DummyTransactionDetailEvent.LoadingEvent(false))
+            if (result.isSuccess) {
+                _event.emit(DummyTransactionDetailEvent.ImportTransactionSuccess(result.getOrThrow()))
+            } else {
+                _event.emit(DummyTransactionDetailEvent.TransactionError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
+
+    fun exportTransactionToFile(dataToSign: String) {
+        viewModelScope.launch {
+            _event.emit(DummyTransactionDetailEvent.LoadingEvent(true))
+            when (val result = createShareFileUseCase.execute( "dummy.psbt")) {
+                is Result.Success -> exportTransaction(result.data, dataToSign)
+                is Result.Error -> _event.emit(DummyTransactionDetailEvent.TransactionError(result.exception.messageOrUnknownError()))
+            }
+            _event.emit(DummyTransactionDetailEvent.LoadingEvent(false))
+        }
+    }
+
+    private fun exportTransaction(filePath: String, dataToSign: String) {
+        viewModelScope.launch {
+                val result = runCatching {
+                    withContext(ioDispatcher) {
+                        FileOutputStream(filePath).use {
+                            it.write(dataToSign.toByteArray(Charsets.UTF_8))
+                        }
+                    }
+                }
+                if (result.isSuccess) {
+                    _event.emit(DummyTransactionDetailEvent.ExportToFileSuccess(filePath))
+                } else {
+                    _event.emit(DummyTransactionDetailEvent.TransactionError(result.exceptionOrNull()?.message.orUnknownError()))
+                }
+        }
+    }
+
     fun handleViewMoreEvent() {
         _state.update { it.copy(viewMore = it.viewMore.not()) }
     }
+}
+
+sealed class DummyTransactionDetailEvent {
+    data class LoadingEvent(val isLoading: Boolean) : DummyTransactionDetailEvent()
+    data class ImportTransactionSuccess(val transaction: Transaction?) : DummyTransactionDetailEvent()
+    data class ExportToFileSuccess(val filePath: String) : DummyTransactionDetailEvent()
+    data class TransactionError(val error: String) : DummyTransactionDetailEvent()
 }

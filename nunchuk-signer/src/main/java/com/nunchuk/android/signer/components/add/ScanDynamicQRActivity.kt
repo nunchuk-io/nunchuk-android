@@ -23,11 +23,14 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import com.google.zxing.client.android.Intents
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.signer.databinding.ActivityScanDynamicQrBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
@@ -53,12 +56,16 @@ class ScanDynamicQRActivity : BaseActivity<ActivityScanDynamicQrBinding>() {
                 finish()
             }
         }
+        flowObserver(viewModel.uiState) {
+            binding.progressBar.progress = it.progress.roundToInt()
+            binding.tvPercentage.isVisible = it.progress > 0.0
+            binding.tvPercentage.text = "${it.progress.roundToInt()}%"
+        }
     }
 
     private fun setupViews() {
         val barcodeViewIntent = intent
         barcodeViewIntent.putExtra(Intents.Scan.MODE, Intents.Scan.QR_CODE_MODE)
-        binding.barcodeView.cameraSettings.isContinuousFocusEnabled = true
         binding.barcodeView.initializeFromIntent(barcodeViewIntent)
         binding.barcodeView.decodeContinuous { result ->
             viewModel.handAddPassportSigners(result.text)

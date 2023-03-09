@@ -83,7 +83,14 @@ internal interface UserWalletsApi {
     @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions")
     suspend fun createTransaction(
         @Path("wallet_id_or_local_id") walletId: String,
-        @Body payload: CreateServerTransactionRequest
+        @Body payload: CreateOrUpdateServerTransactionRequest
+    ): Data<TransactionResponse>
+
+    @PUT("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}")
+    suspend fun updateTransaction(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("transaction_id") transactionId: String,
+        @Body payload: CreateOrUpdateServerTransactionRequest
     ): Data<TransactionResponse>
 
     @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}/sign")
@@ -120,6 +127,11 @@ internal interface UserWalletsApi {
         @Body payload: ConfigSecurityQuestionPayload
     ): Data<KeyResponse>
 
+    @GET("/v1.1/user-wallets/user-keys/{key_id_or_xfp}")
+    suspend fun getKey(
+        @Path("key_id_or_xfp") id: String,
+    ): Data<KeyResponse>
+
     @POST("/v1.1/user-wallets/security-questions/calculate-required-signatures")
     suspend fun calculateRequiredSignaturesSecurityQuestions(
         @Body payload: CalculateRequiredSignaturesSecurityQuestionPayload
@@ -145,6 +157,13 @@ internal interface UserWalletsApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("transaction_id") transactionId: String,
         @Body payload: ScheduleTransactionRequest,
+    ): Data<TransactionResponse>
+
+    @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}/sync")
+    suspend fun syncTransaction(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("transaction_id") transactionId: String,
+        @Body payload: SyncTransactionRequest,
     ): Data<TransactionResponse>
 
     @DELETE("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/transactions/{transaction_id}/schedule")
@@ -229,4 +248,19 @@ internal interface UserWalletsApi {
 
     @GET("/v1.1/user-wallets/inheritance/buffer-period")
     suspend fun getInheritanceBufferPeriod(): Data<PeriodResponse>
+
+    @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/calculate-required-signatures")
+    suspend fun calculateRequiredSignaturesDeleteAssistedWallet(
+        @Path("wallet_id_or_local_id") walletId: String
+    ): Data<CalculateRequiredSignaturesResponse>
+
+    @HTTP(method = "DELETE", path = "/v1.1/user-wallets/wallets/{wallet_id_or_local_id}", hasBody = true)
+    suspend fun deleteAssistedWallet(
+        @Path("wallet_id_or_local_id") walletId: String,
+        @HeaderMap headers: Map<String, String>,
+        @Body payload: DeleteAssistedWalletRequest
+    ): Data<TransactionResponse>
+
+    @GET("/v1.1/user-wallets/configs")
+    suspend fun getAssistedWalletConfig(): Data<AssistedWalletConfigResponse>
 }

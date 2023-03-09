@@ -95,7 +95,8 @@ class InheritanceActivationDateFragment : MembershipFragment() {
                                 activationDate = event.date,
                                 verifyToken = args.verifyToken,
                                 magicalPhrase = args.magicalPhrase,
-                                planFlow = args.planFlow
+                                planFlow = args.planFlow,
+                                walletId = args.walletId,
                             )
                         )
                     }
@@ -105,10 +106,19 @@ class InheritanceActivationDateFragment : MembershipFragment() {
     }
 
     private fun showDatePicker() {
-        val dialog = DatePickerDialog(requireContext(), R.style.NunchukDateTimePicker)
-        dialog.setOnDateSetListener { _, year, month, dayOfMonth ->
-            viewModel.setDate(year, month, dayOfMonth)
+        val calendar = Calendar.getInstance().apply {
+            val selectedDate = viewModel.state.value.date
+            timeInMillis = if (selectedDate == 0L) Calendar.getInstance().timeInMillis else selectedDate
         }
+        val dialog = DatePickerDialog(
+            requireContext(), R.style.NunchukDateTimePicker,
+            { _, year, month, dayOfMonth ->
+                viewModel.setDate(year, month, dayOfMonth)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH),
+        )
         dialog.show()
     }
 

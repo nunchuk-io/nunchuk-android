@@ -43,10 +43,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
@@ -55,14 +54,12 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipPlan
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class AddKeyStepFragment : MembershipFragment() {
-    private val viewModel by viewModels<AddKeyStepViewModel>()
+    private val viewModel by activityViewModels<AddKeyStepViewModel>()
 
     override val isCountdown: Boolean = false
     override fun onCreateView(
@@ -111,11 +108,15 @@ class AddKeyStepFragment : MembershipFragment() {
     }
 
     private fun handleOpenInheritanceSetup() {
-        nunchukNavigator.openInheritancePlanningScreen(
-            activityContext = requireContext(),
-            flowInfo = InheritancePlanFlow.SETUP,
-            isOpenFromWizard = true
-        )
+        val walletId = viewModel.activeWalletId()
+        if (walletId.isNotEmpty()) {
+            nunchukNavigator.openInheritancePlanningScreen(
+                walletId = walletId,
+                activityContext = requireContext(),
+                flowInfo = InheritancePlanFlow.SETUP,
+                isOpenFromWizard = true
+            )
+        }
     }
 
     private fun handleOpenCreateWallet() {
@@ -133,7 +134,7 @@ class AddKeyStepFragment : MembershipFragment() {
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
-fun AddKeyStepScreen(viewModel: AddKeyStepViewModel = viewModel()) {
+fun AddKeyStepScreen(viewModel: AddKeyStepViewModel) {
     val isConfigKeyDone by viewModel.isConfigKeyDone.collectAsStateWithLifecycle()
     val isSetupRecoverKeyDone by viewModel.isSetupRecoverKeyDone.collectAsStateWithLifecycle()
     val isCreateWalletDone by viewModel.isCreateWalletDone.collectAsStateWithLifecycle()
@@ -227,7 +228,7 @@ fun AddKeyStepContent(
                 stringResource(R.string.nc_create_your_wallet),
                 groupRemainTime[2],
                 isCreateWalletDone,
-                isSetupRecoverKeyDone && isCreateWalletDone.not()
+                isConfigKeyDone && isSetupRecoverKeyDone && isCreateWalletDone.not()
             )
             if (plan == MembershipPlan.HONEY_BADGER) {
                 StepWithEstTime(

@@ -204,13 +204,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         navView.setupWithNavController(navController)
     }
 
-    override fun onPause() {
-        super.onPause()
-        if (!NotificationUtils.areNotificationsEnabled(this)) {
-            NotificationUtils.openNotificationSettings(this)
-        }
-    }
-
     private fun setBottomNavViewPosition(@IdRes id: Int) {
         if (id != 0) {
             binding.navView.selectedItemId = id

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="WalletSecuritySettingItemView">
+        <attr name="wss_title" format="string" />
+        <attr name="wss_desc" format="string" />
+    </declare-styleable>
+</resources>

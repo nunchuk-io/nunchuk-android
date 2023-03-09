@@ -21,11 +21,8 @@ package com.nunchuk.android.share.model
 
 enum class TransactionOption {
     CANCEL,
-    EXPORT_PSBT,
-    EXPORT_KEYSTONE,
-    EXPORT_PASSPORT,
-    IMPORT_KEYSTONE,
-    IMPORT_PASSPORT,
+    EXPORT_TRANSACTION,
+    IMPORT_TRANSACTION,
     REPLACE_BY_FEE,
     COPY_TRANSACTION_ID,
     REMOVE_TRANSACTION,

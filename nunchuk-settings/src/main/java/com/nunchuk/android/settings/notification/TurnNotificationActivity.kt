@@ -17,12 +17,12 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.signer.software.components.primarykey.notification
+package com.nunchuk.android.settings.notification
 
 import android.content.Context
 import android.os.Bundle
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.signer.software.databinding.ActivityPkeyNotificationBinding
+import com.nunchuk.android.settings.databinding.ActivityTurnNotificationBinding
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -30,24 +30,24 @@ import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class PKeyNotificationActivity : BaseActivity<ActivityPkeyNotificationBinding>() {
+class TurnNotificationActivity : BaseActivity<ActivityTurnNotificationBinding>() {
 
-    private val args: PKeyNotificationArgs by lazy {
-        PKeyNotificationArgs.deserializeFrom(
+    private val args: TurnNotificationArgs by lazy {
+        TurnNotificationArgs.deserializeFrom(
             intent
         )
     }
 
     private var isNotificationSettingOpened = false
 
-    override fun initializeBinding() = ActivityPkeyNotificationBinding.inflate(layoutInflater)
+    override fun initializeBinding() = ActivityTurnNotificationBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
         setupViews()
-        showAlert()
+        showMessage()
     }
 
     override fun onResume() {
@@ -58,18 +58,18 @@ class PKeyNotificationActivity : BaseActivity<ActivityPkeyNotificationBinding>()
     }
 
     private fun openMainScreen() {
+        finish()
         navigator.openMainScreen(
             this,
             accountManager.getAccount().token,
             accountManager.getAccount().deviceId,
             isClearTask = true
         )
-        finish()
     }
 
-    private fun showAlert() {
+    private fun showMessage() {
         args.messages.forEachIndexed { index, message ->
-            NCToastMessage(this@PKeyNotificationActivity).showMessage(
+            NCToastMessage(this@TurnNotificationActivity).showMessage(
                 message = message, dismissTime = (index + 1) * DISMISS_TIME
             )
         }
@@ -93,13 +93,11 @@ class PKeyNotificationActivity : BaseActivity<ActivityPkeyNotificationBinding>()
         private const val DISMISS_TIME = 2000L
         fun start(
             activityContext: Context,
-            messages: ArrayList<String>,
-            primaryKeyFlow: Int,
+            messages: ArrayList<String>
         ) {
             activityContext.startActivity(
-                PKeyNotificationArgs(
-                    messages = messages,
-                    primaryKeyFlow = primaryKeyFlow,
+                TurnNotificationArgs(
+                    messages = messages
                 ).buildIntent(
                     activityContext
                 )

@@ -38,10 +38,10 @@ import com.nunchuk.android.signer.software.components.primarykey.intro.PKeySignU
 import com.nunchuk.android.signer.software.components.primarykey.intro.replace.PKeyReplaceKeyIntroActivity
 import com.nunchuk.android.signer.software.components.primarykey.manuallysignature.PKeyManuallySignatureActivity
 import com.nunchuk.android.signer.software.components.primarykey.manuallyusername.PKeyManuallyUsernameActivity
-import com.nunchuk.android.signer.software.components.primarykey.notification.PKeyNotificationActivity
 import com.nunchuk.android.signer.software.components.primarykey.passphrase.PKeyEnterPassphraseActivity
 import com.nunchuk.android.signer.software.components.primarykey.signin.PKeySignInActivity
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedActivity
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 
 interface SignerNavigatorDelegate : SignerNavigator {
@@ -78,8 +78,12 @@ interface SignerNavigatorDelegate : SignerNavigator {
         )
     }
 
-    override fun openAddAirSignerScreen(activityContext: Context, isMembershipFlow: Boolean) {
-        AddAirgapSignerActivity.start(activityContext, isMembershipFlow)
+    override fun openAddAirSignerScreen(
+        activityContext: Context,
+        isMembershipFlow: Boolean,
+        tag: SignerTag?
+    ) {
+        AddAirgapSignerActivity.start(activityContext, isMembershipFlow, tag)
     }
 
     override fun openAddSoftwareSignerScreen(
@@ -199,14 +203,6 @@ interface SignerNavigatorDelegate : SignerNavigator {
 
     override fun openPrimaryKeyManuallySignatureScreen(activityContext: Context, username: String) {
         PKeyManuallySignatureActivity.start(activityContext, username)
-    }
-
-    override fun openPrimaryKeyNotificationScreen(
-        activityContext: Context,
-        messages: ArrayList<String>,
-        primaryKeyFlow: Int
-    ) {
-        PKeyNotificationActivity.start(activityContext, messages, primaryKeyFlow)
     }
 
     override fun openPrimaryKeyReplaceIntroScreen(activityContext: Context, primaryKeyFlow: Int) {

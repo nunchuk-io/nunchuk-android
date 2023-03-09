@@ -38,18 +38,60 @@ class SetupTapSignerUseCase @Inject constructor(
     waitAutoCardUseCase: WaitAutoCardUseCase
 ) : BaseNfcUseCase<SetupTapSignerUseCase.Data, SetupTapSignerUseCase.Result>(dispatcher, waitAutoCardUseCase) {
     private val tapSignerStatus = AtomicReference<TapSignerStatus?>(null)
+    private var state: CardSetupState = CardSetupState.UNINITIATED
 
     override suspend fun executeNfc(parameters: Data): Result {
-        if (tapSignerStatus.get() == null) {
-            val tapStatus = nunchukNativeSdk.setupTapSigner(parameters.isoDep, parameters.oldCvc, parameters.newCvc, parameters.chainCode)
-            tapSignerStatus.set(tapStatus)
+        if (state == CardSetupState.UNINITIATED) {
+            nunchukNativeSdk.initTapSigner(
+                isoDep = parameters.isoDep,
+                oldCvc = parameters.oldCvc,
+                chainCode = parameters.chainCode
+            )
+            state = CardSetupState.NOT_BACKUP
         }
-        val masterSigner = nunchukNativeSdk.createTapSigner(parameters.isoDep, parameters.newCvc, parameters.name)
-        if (tapSignerStatus.get()?.backupKey?.isEmpty() == true) throw IllegalArgumentException("Can not get back up key")
-        val filePath = nfcFileManager.storeBackupKeyToFile(tapSignerStatus.get()!!)
-        return Result(filePath, masterSigner)
+        if (state == CardSetupState.NOT_BACKUP) {
+            tapSignerStatus.set(
+                nunchukNativeSdk.getBackupTapSignerKey(
+                    isoDep = parameters.isoDep,
+                    cvc = parameters.oldCvc,
+                    masterSignerId = ""
+                )
+            )
+            state = CardSetupState.NOT_CHANGED_CVC
+        }
+        if (state == CardSetupState.NOT_CHANGED_CVC) {
+            val changed = nunchukNativeSdk.changeCvcTapSigner(
+                isoDep = parameters.isoDep,
+                oldCvc = parameters.oldCvc,
+                newCvc = parameters.newCvc,
+                masterSignerId = ""
+            )
+            if (changed) {
+                state = CardSetupState.NOT_CREATED_KEY
+            }
+        }
+        if (state == CardSetupState.NOT_CREATED_KEY) {
+            val masterSigner =
+                nunchukNativeSdk.createTapSigner(parameters.isoDep, parameters.newCvc, parameters.name)
+            if (tapSignerStatus.get()?.backupKey?.isEmpty() == true) throw IllegalArgumentException("Can not get back up key")
+            val filePath = nfcFileManager.storeBackupKeyToFile(tapSignerStatus.get()!!)
+            state = CardSetupState.SUCCESS
+            return Result(filePath, masterSigner)
+        }
+        throw RuntimeException("Can not setup Tapsigner")
     }
 
-    class Data(isoDep: IsoDep, val oldCvc: String, val newCvc: String, val chainCode: String, val name: String = NFC_DEFAULT_NAME) : BaseNfcUseCase.Data(isoDep)
+    class Data(
+        isoDep: IsoDep,
+        val oldCvc: String,
+        val newCvc: String,
+        val chainCode: String,
+        val name: String = NFC_DEFAULT_NAME
+    ) : BaseNfcUseCase.Data(isoDep)
+
     class Result(val backUpKeyPath: String, val masterSigner: MasterSigner)
+}
+
+internal enum class CardSetupState {
+    UNINITIATED, NOT_BACKUP, NOT_CHANGED_CVC, NOT_CREATED_KEY, SUCCESS
 }

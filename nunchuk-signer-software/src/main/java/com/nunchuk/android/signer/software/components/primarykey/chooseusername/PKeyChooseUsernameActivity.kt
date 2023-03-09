@@ -30,7 +30,6 @@ import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.utils.viewModelProviderFactoryOf
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
-import com.nunchuk.android.widget.util.preventWhitespaceInput
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -87,10 +86,9 @@ class PKeyChooseUsernameActivity : BaseActivity<ActivityPkeyChooseUsernameBindin
             add(getString(R.string.nc_primary_key_account_created))
         }
         if (isTurnOn && isEnabledNotification.not()) {
-            navigator.openPrimaryKeyNotificationScreen(
+            navigator.openTurnNotificationScreen(
                 this@PKeyChooseUsernameActivity,
-                messages = messages,
-                primaryKeyFlow = PrimaryKeyFlow.SIGN_UP
+                messages = messages
             )
         } else {
             navigator.openMainScreen(

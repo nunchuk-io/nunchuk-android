@@ -30,6 +30,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
@@ -157,12 +158,14 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
 
     private fun handleSetupTapSignerSuccessMembershipFlow(state: ChangeNfcCvcEvent.SetupCvcSuccess) {
         findNavController().apply {
-            popBackStack()
             navigate(
                 ChangeNfcCvcFragmentDirections.actionChangeNfcCvcFragmentToUploadBackUpTapSignerFragment(
                     filePath = state.backupKeyPath,
                     masterSignerId = state.masterSigner.id
-                )
+                ),
+                navOptions = NavOptions.Builder().apply {
+                    popBackStack(findNavController().graph.startDestinationId, false)
+                }.build()
             )
         }
     }
@@ -206,7 +209,7 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
 
     private fun registerEvents() {
         binding.toolbar.setNavigationOnClickListener {
-            activity?.onBackPressed()
+            activity?.onBackPressedDispatcher?.onBackPressed()
         }
         binding.btnContinue.setOnClickListener {
             binding.editExistCvc.hideError()

@@ -38,6 +38,7 @@
     <string name="nc_wallet_upload_success">Upload wallet success</string>
     <string name="nc_wallet_delete_wallet">Delete wallet</string>
     <string name="nc_wallet_delete_wallet_success">Delete wallet success</string>
+    <string name="nc_delete_assisted_wallet_success">%s has been deleted</string>
     <string name="nc_txt_send_from_shared_description">For collaborative wallets, please initiate the send transaction from inside the chat room</string>
     <string name="nc_address_copy_to_clipboard">Address copied to clipboard</string>
 
@@ -52,4 +53,5 @@
     <string name="nc_continue_save_changes">Continue to save changes</string>
     <string name="nc_discard_changes">Discard changes</string>
     <string name="nc_assisted_wallet_downgrade_hint">Your assisted wallet has been downgraded to a regular wallet. Please renew your subscription to continue using our services.</string>
+    <string name="nc_setup_inheritance_for_this_wallet">Set up an inheritance plan for this wallet</string>
 </resources>

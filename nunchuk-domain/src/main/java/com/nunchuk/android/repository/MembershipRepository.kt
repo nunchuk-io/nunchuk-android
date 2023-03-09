@@ -33,12 +33,8 @@ interface MembershipRepository {
     suspend fun getSubscription() : MemberSubscription
     suspend fun restart(plan: MembershipPlan)
     fun getLocalCurrentPlan(): Flow<MembershipPlan>
-    fun isRegisterColdcard(): Flow<Boolean>
-    fun isRegisterAirgap(): Flow<Boolean>
-    fun isSetupInheritance(): Flow<Boolean>
     fun isHideUpsellBanner(): Flow<Boolean>
-    suspend fun setRegisterColdcard(value: Boolean)
-    suspend fun setRegisterAirgap(value: Boolean)
-    suspend fun setSetupInheritance(value: Boolean)
+    suspend fun setRegisterColdcard(walletId: String, value: Boolean)
+    suspend fun setRegisterAirgap(walletId: String, value: Boolean)
     suspend fun setHideUpsellBanner()
 }

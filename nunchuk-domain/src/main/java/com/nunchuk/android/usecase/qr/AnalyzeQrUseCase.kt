@@ -17,32 +17,20 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.signer.software.components.primarykey.notification
+package com.nunchuk.android.usecase.qr
 
-import android.content.Context
-import android.content.Intent
-import com.nunchuk.android.arch.args.ActivityArgs
-import com.nunchuk.android.core.signer.PrimaryKeyFlow
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-data class PKeyNotificationArgs(
-    val messages: ArrayList<String>,
-    val primaryKeyFlow: Int
-) :
-    ActivityArgs {
+class AnalyzeQrUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
+) : UseCase<List<String>, Double>(ioDispatcher) {
 
-    override fun buildIntent(activityContext: Context) =
-        Intent(activityContext, PKeyNotificationActivity::class.java).apply {
-            putExtra(EXTRA_MESSAGE_LIST, messages)
-            putExtra(EXTRA_PRIMARY_KEY_FLOW, primaryKeyFlow)
-        }
-
-    companion object {
-        private const val EXTRA_MESSAGE_LIST = "EXTRA_MESSAGE_LIST"
-        private const val EXTRA_PRIMARY_KEY_FLOW = "EXTRA_PRIMARY_KEY_FLOW"
-
-        fun deserializeFrom(intent: Intent) = PKeyNotificationArgs(
-            intent.extras?.getStringArrayList(EXTRA_MESSAGE_LIST).orEmpty() as ArrayList<String>,
-            intent.extras?.getInt(EXTRA_PRIMARY_KEY_FLOW) ?: PrimaryKeyFlow.NONE,
-        )
+    override suspend fun execute(parameters: List<String>): Double {
+        return nativeSdk.analyzeQr(parameters)
     }
 }

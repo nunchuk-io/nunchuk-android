@@ -205,6 +205,7 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
         adapter.update(state.messages.groupByDate(), state.roomWallet, count)
         val hasRoomWallet = state.roomWallet != null
         stickyBinding.root.isVisible = hasRoomWallet
+        binding.sendAction.isVisible = state.isSupportRoom
         binding.addWallet.isVisible = !hasRoomWallet && !state.isSupportRoom
         binding.sendBTC.isVisible = hasRoomWallet
         binding.receiveBTC.isVisible = hasRoomWallet

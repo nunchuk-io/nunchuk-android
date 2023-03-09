@@ -74,7 +74,7 @@ class LockdownSuccessFragment : Fragment() {
                 is EmergencyLockdownSuccessEvent.Loading -> showOrHideLoading(loading = event.isLoading)
                 is EmergencyLockdownSuccessEvent.SignOut -> {
                     showOrHideLoading(loading = false)
-                    NcToastManager.scheduleShowMessage(message = getString(R.string.nc_your_account_has_been_signed_out))
+                    NcToastManager.scheduleShowMessage(message = getString(R.string.nc_your_account_has_been_signed_out), delay = 500L)
                     navigator.restartApp(requireActivity())
                 }
             }
@@ -120,7 +120,7 @@ fun LockdownSuccessScreenContent(
                     text = stringResource(R.string.nc_emergency_lockdown_success_title),
                     style = NunchukTheme.typography.heading
                 )
-                Text(
+                NcHighlightText(
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
                     text = stringResource(id = R.string.nc_emergency_lockdown_success_info, period),
                     style = NunchukTheme.typography.body

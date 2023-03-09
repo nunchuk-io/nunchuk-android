@@ -80,7 +80,6 @@ internal class SignInQrFragment : BaseCameraFragment<FragmentSignInQrBinding>() 
     private fun setupViews() {
         val barcodeViewIntent = requireActivity().intent
         barcodeViewIntent.putExtra(Intents.Scan.MODE, Intents.Scan.QR_CODE_MODE)
-        binding.barcodeView.cameraSettings.isContinuousFocusEnabled = true
         binding.barcodeView.initializeFromIntent(barcodeViewIntent)
         binding.barcodeView.decodeContinuous {
             viewModel.trySignIn(it.text)

@@ -25,12 +25,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseCameraFragment
-import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -39,6 +38,7 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
 import com.nunchuk.android.share.ColdcardAction
@@ -46,13 +46,13 @@ import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletActionBottomSheet
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletOption
 import com.nunchuk.android.wallet.personal.databinding.FragmentWalletIntermediaryBinding
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediaryBinding>(),
     BottomSheetOptionListener {
     private val viewModel: WalletIntermediaryViewModel by viewModels()
-    private val nfcViewModel: NfcViewModel by activityViewModels()
     private val args: WalletIntermediaryFragmentArgs by navArgs()
 
     override fun initializeBinding(
@@ -72,14 +72,23 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
         observer()
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.getAssistedWalletConfig()
+    }
+
     override fun onCameraPermissionGranted(fromUser: Boolean) {
         openScanQRCodeScreen()
     }
 
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
-            SheetOptionType.IMPORT_MULTI_SIG_COLD_CARD -> navigator.openSetupMk4(requireActivity(), false, ColdcardAction.RECOVER_MULTI_SIG_WALLET)
-            SheetOptionType.IMPORT_SINGLE_SIG_COLD_CARD -> navigator.openSetupMk4(requireActivity(), false, ColdcardAction.RECOVER_SINGLE_SIG_WALLET)
+            SheetOptionType.IMPORT_MULTI_SIG_COLD_CARD -> navigator.openSetupMk4(
+                requireActivity(), false, ColdcardAction.RECOVER_MULTI_SIG_WALLET
+            )
+            SheetOptionType.IMPORT_SINGLE_SIG_COLD_CARD -> navigator.openSetupMk4(
+                requireActivity(), false, ColdcardAction.RECOVER_SINGLE_SIG_WALLET
+            )
         }
     }
 
@@ -90,6 +99,23 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                 is WalletIntermediaryEvent.ShowError -> showError(it.msg)
                 is WalletIntermediaryEvent.Loading -> showOrHideLoading(it.isLoading)
             }
+        }
+        flowObserver(viewModel.state) {
+            val isCreateAssistedWalletVisible = it.remainWalletCount > 0
+            binding.btnCreateAssistedWallet.apply {
+                isVisible = isCreateAssistedWalletVisible
+                text = if (viewModel.getGroupStage() != MembershipStage.NONE) {
+                    getString(R.string.nc_continue_setting_your_wallet)
+                } else {
+                    context.getString(
+                        R.string.nc_create_assisted_wallet,
+                        it.remainWalletCount
+                    )
+                }
+            }
+            binding.btnCreateNewWallet.setBackgroundResource(if (isCreateAssistedWalletVisible) R.drawable.nc_rounded_light_background else R.drawable.nc_rounded_dark_background)
+            val textColor = ContextCompat.getColor(requireActivity(), if (isCreateAssistedWalletVisible) R.color.nc_primary_color else R.color.nc_white_color)
+            binding.btnCreateNewWallet.setTextColor(textColor)
         }
     }
 
@@ -159,6 +185,12 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             } else {
                 openRecoverWalletScreen()
             }
+        }
+        binding.btnCreateAssistedWallet.setOnDebounceClickListener {
+            navigator.openMembershipActivity(
+                requireActivity(),
+                viewModel.getGroupStage()
+            )
         }
         binding.toolbar.setNavigationOnClickListener {
             activity?.onBackPressedDispatcher?.onBackPressed()

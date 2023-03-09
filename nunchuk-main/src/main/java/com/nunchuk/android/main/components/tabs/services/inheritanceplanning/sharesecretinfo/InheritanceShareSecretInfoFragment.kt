@@ -44,6 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.orFalse
@@ -83,10 +84,10 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
         NCInfoDialog(requireActivity()).showDialog(
             message = getString(R.string.nc_inheritance_share_secret_info_dialog_desc),
             onYesClick = {
+                ActivityManager.popUntilRoot()
                 if (isOpenFromWizard) {
-                    navigator.openWalletDetailsScreen(requireContext(), viewModel.walletId.value)
+                    navigator.openWalletDetailsScreen(requireContext(), args.walletId)
                 }
-                requireActivity().finish()
             }
         )
     }

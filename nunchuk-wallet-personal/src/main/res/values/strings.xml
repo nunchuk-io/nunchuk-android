@@ -17,5 +17,6 @@
     <string name="nc_wallet_taproot_hardware_support_title">Hardware support</string>
     <string name="nc_wallet_taproot_hardware_support_desc">If you plan to use hardware keys in the wallet, please make sure that they support Taproot as well. If you are unsure, use software keys only.</string>
     <string name="nc_wallet_qrcode">QRCode</string>
+    <string name="nc_create_assisted_wallet">Create new assisted wallet (%1$d remaining)</string>
 
 </resources>

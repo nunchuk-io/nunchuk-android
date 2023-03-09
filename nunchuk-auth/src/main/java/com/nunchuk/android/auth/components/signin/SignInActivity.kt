@@ -34,6 +34,7 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.network.ApiErrorCode.NEW_DEVICE
 import com.nunchuk.android.core.network.ErrorDetail
 import com.nunchuk.android.core.util.linkify
+import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
@@ -107,8 +108,12 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
 
     private fun openMainScreen(token: String, deviceId: String) {
         hideLoading()
+        if (NotificationUtils.areNotificationsEnabled(this).not()) {
+            navigator.openTurnNotificationScreen(this)
+        } else {
+            navigator.openMainScreen(this, token, deviceId)
+        }
         finish()
-        navigator.openMainScreen(this, token, deviceId)
     }
 
     private fun setupViews() {

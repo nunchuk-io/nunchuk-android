@@ -117,15 +117,13 @@ interface AppNavigatorDelegate : AppNavigator {
     override fun openMembershipActivity(
         activityContext: Activity,
         groupStep: MembershipStage,
-        keyPolicy: KeyPolicy?,
-        xfp: String?,
+        walletId: String?,
         isClearTop: Boolean
     ) {
         val intent = MembershipActivity.buildIntent(
             activity = activityContext,
             groupStep = groupStep,
-            keyPolicy = keyPolicy,
-            xfp = xfp
+            walletId = walletId
         )
         if (isClearTop) intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         activityContext.startActivity(intent)
@@ -157,7 +155,7 @@ interface AppNavigatorDelegate : AppNavigator {
     }
 
     override fun openInheritancePlanningScreen(
-        launcher: ActivityResultLauncher<Intent>?,
+        walletId: String,
         activityContext: Context,
         verifyToken: String?,
         inheritance: Inheritance?,
@@ -165,12 +163,12 @@ interface AppNavigatorDelegate : AppNavigator {
         isOpenFromWizard: Boolean
     ) {
         InheritancePlanningActivity.navigate(
-            launcher = launcher,
             activity = activityContext,
             verifyToken = verifyToken,
             flowInfo = flowInfo,
             inheritance = inheritance,
-            isOpenFromWizard = isOpenFromWizard
+            isOpenFromWizard = isOpenFromWizard,
+            walletId = walletId,
         )
     }
 

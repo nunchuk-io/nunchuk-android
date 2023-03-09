@@ -19,9 +19,12 @@
 
 package com.nunchuk.android.transaction.components.details
 
+import android.app.Application
+import android.net.Uri
 import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
@@ -35,6 +38,7 @@ import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.*
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.listener.BlockListener
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
@@ -57,11 +61,12 @@ import com.nunchuk.android.utils.TransactionException
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.retrieveInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -92,6 +97,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     private val signServerTransactionUseCase: SignServerTransactionUseCase,
     private val cancelScheduleBroadcastTransactionUseCase: CancelScheduleBroadcastTransactionUseCase,
+    private val importTransactionUseCase: ImportTransactionUseCase,
+    private val savedStateHandle: SavedStateHandle,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+    private val application: Application,
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
 
     private var walletId: String = ""
@@ -104,11 +113,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private var contacts: List<Contact> = emptyList()
 
-    private var currentSigner: SignerModel? = null
-
     private var initNumberOfSignedKey = INVALID_NUMBER_OF_SIGNED
 
     override val initialState = TransactionDetailsState()
+
+    private var reloadTransactionJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -126,6 +135,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             pushEventManager.event.filterIsInstance<PushEvent.ServerTransactionEvent>().collect {
                 if (it.transactionId == txId) {
+                    Timber.d("ServerTransactionEvent")
+                    delay(2000L)
                     getTransactionInfo()
                 }
             }
@@ -168,31 +179,40 @@ internal class TransactionDetailsViewModel @Inject constructor(
                             initNumberOfSignedKey = signedCount
                         } else if (signedCount > initNumberOfSignedKey) {
                             initNumberOfSignedKey = signedCount
-                            if (signedCount > 0) {
+                            if (signedCount > 0 && it.transaction.status.isPendingSignatures()) {
                                 requestServerSignTransaction(it.transaction.psbt)
                             }
                         }
+                        val signedTime = it.serverTransaction?.signedInMilis ?: 0L
+                        handleSignTime(signedTime)
                     }
                 }
             }
         }
     }
 
+    private fun handleSignTime(signedTime : Long) {
+        if (signedTime > 0L && signedTime > System.currentTimeMillis()) {
+            reloadTransactionJob?.cancel()
+            reloadTransactionJob = viewModelScope.launch {
+                val delay = signedTime - System.currentTimeMillis() + 3000L
+                delay(delay)
+                getTransactionInfo()
+            }
+        }
+    }
+
     private fun requestServerSignTransaction(psbt: String) {
         viewModelScope.launch {
-            val result = signServerTransactionUseCase(
+            signServerTransactionUseCase(
                 SignServerTransactionUseCase.Param(
-                    walletId,
-                    txId,
-                    psbt
+                    walletId, txId, psbt
                 )
-            )
-            if (result.isSuccess) {
-                val extendedTransaction = result.getOrThrow()
+            ).onSuccess { extendedTransaction ->
                 setEvent(
                     SignTransactionSuccess(
-                        isAssistedWallet = true,
-                        status = extendedTransaction.transaction.status
+                        status = extendedTransaction.transaction.status,
+                        serverSigned = isSignByServerKey(extendedTransaction.transaction)
                     )
                 )
                 updateState {
@@ -201,8 +221,12 @@ internal class TransactionDetailsViewModel @Inject constructor(
                         serverTransaction = extendedTransaction.serverTransaction
                     )
                 }
-            } else {
-                setEvent(TransactionDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+            }.onFailure {
+                if (it.isNoInternetException) {
+                    setEvent(NoInternetConnection)
+                } else {
+                    setEvent(TransactionDetailsError(it.message.orUnknownError()))
+                }
             }
         }
     }
@@ -244,7 +268,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun setCurrentSigner(signer: SignerModel) {
-        currentSigner = signer
+        savedStateHandle[KEY_CURRENT_SIGNER] = signer
     }
 
     private fun loadInitEventIdIfNeed() {
@@ -287,7 +311,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     fun updateTransactionMemo(newMemo: String) {
         viewModelScope.launch {
             setEvent(LoadingEvent)
-            val result = updateTransactionMemo(UpdateTransactionMemo.Data(walletId, txId, newMemo))
+            val result = updateTransactionMemo(UpdateTransactionMemo.Data(walletId, isAssistedWallet(), txId, newMemo))
             if (result.isSuccess) {
                 setEvent(UpdateTransactionMemoSuccess(newMemo))
             } else {
@@ -308,18 +332,14 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private fun loadLocalTransaction() {
         viewModelScope.launch {
             getTransactionUseCase.execute(
-                walletId,
-                txId,
-                assistedWalletManager.isActiveAssistedWallet(walletId)
-            ).flowOn(IO)
-                .onException {
+                walletId, txId, assistedWalletManager.isActiveAssistedWallet(walletId)
+            ).flowOn(IO).onException {
                     if ((it as? NunchukApiException)?.code == ApiErrorCode.TRANSACTION_CANCEL) {
                         handleDeleteTransactionEvent(isCancel = true, onlyLocal = true)
-                    } else {
+                    } else if (it.isNoInternetException.not()) {
                         setEvent(TransactionDetailsError(it.message.orEmpty()))
                     }
-                }
-                .collect {
+                }.collect {
                     updateTransaction(it.transaction, it.serverTransaction)
                 }
         }
@@ -421,32 +441,21 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    fun handleSignEvent(signer: SignerModel) {
-        if (signer.software) {
-            viewModelScope.launch {
-                val fingerPrint = signer.fingerPrint
-                val device =
-                    masterSigners.first { it.device.masterFingerprint == fingerPrint }.device
-                if (device.needPassPhraseSent) {
-                    setEvent(PromptInputPassphrase {
-                        viewModelScope.launch {
-                            sendSignerPassphrase.execute(signer.id, it).flowOn(IO)
-                                .onException { setEvent(TransactionDetailsError("${it.message.orEmpty()},walletId::$walletId,txId::$txId")) }
-                                .collect { signTransaction(device, signer.id) }
-                        }
-                    })
-                } else {
-                    signTransaction(device, signer.id)
-                }
+    fun handleSignSoftwareKey(signer: SignerModel) {
+        viewModelScope.launch {
+            val fingerPrint = signer.fingerPrint
+            val device = masterSigners.first { it.device.masterFingerprint == fingerPrint }.device
+            if (device.needPassPhraseSent) {
+                setEvent(PromptInputPassphrase {
+                    viewModelScope.launch {
+                        sendSignerPassphrase.execute(signer.id, it).flowOn(IO)
+                            .onException { setEvent(TransactionDetailsError("${it.message.orEmpty()},walletId::$walletId,txId::$txId")) }
+                            .collect { signTransaction(device, signer.id) }
+                    }
+                })
+            } else {
+                signTransaction(device, signer.id)
             }
-        } else {
-            setEvent(
-                PromptTransactionOptions(
-                    isPendingTransaction = true,
-                    isPendingConfirm = false,
-                    isRejected = false, masterFingerPrint = signer.fingerPrint
-                )
-            )
         }
     }
 
@@ -468,7 +477,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 is Error -> {
                     val message =
                         "${result.exception.messageOrUnknownError()},walletId::$walletId,txId::$txId"
-                    setEvent(ExportTransactionError(message))
+                    setEvent(TransactionError(message))
                     CrashlyticsReporter.recordException(TransactionException(message))
                 }
             }
@@ -482,7 +491,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 is Error -> {
                     val message =
                         "${result.exception.messageOrUnknownError()},walletId::$walletId,txId::$txId"
-                    setEvent(ExportTransactionError(message))
+                    setEvent(TransactionError(message))
                     CrashlyticsReporter.recordException(TransactionException(message))
                 }
             }
@@ -543,15 +552,12 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun handleImportTransactionFromMk4(records: List<NdefRecord>) {
-        val signer = currentSigner ?: return
+        val signer = savedStateHandle.get<SignerModel>(KEY_CURRENT_SIGNER) ?: return
         viewModelScope.launch {
             setEvent(LoadingEvent)
             val result = importTransactionFromMk4UseCase(
                 ImportTransactionFromMk4UseCase.Data(
-                    walletId,
-                    records,
-                    initEventId,
-                    signer.fingerPrint
+                    walletId, records, initEventId, signer.fingerPrint
                 )
             )
             val transaction = result.getOrNull()
@@ -569,9 +575,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             setEvent(NfcLoadingEvent())
             val result = signRoomTransactionByTapSignerUseCase(
                 SignRoomTransactionByTapSignerUseCase.Data(
-                    isoDep,
-                    inputCvc,
-                    initEventId
+                    isoDep, inputCvc, initEventId
                 )
             )
             if (result.isSuccess) {
@@ -606,6 +610,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
+    fun currentSigner() = savedStateHandle.get<SignerModel>(KEY_CURRENT_SIGNER)
+
     private fun fireSignError(e: Throwable?) {
         val message = "${e?.message.orEmpty()},walletId::$walletId,txId::$txId"
         setEvent(TransactionDetailsError(message, e))
@@ -616,9 +622,30 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     fun isScheduleBroadcast() = (getState().serverTransaction?.broadcastTimeInMilis ?: 0L) > 0L
 
-    fun isInheritanceSigner(xfp: String): Boolean = masterSigners.find { it.device.masterFingerprint == xfp }?.tags?.contains(SignerTag.INHERITANCE) == true
+    fun isInheritanceSigner(xfp: String): Boolean =
+        masterSigners.find { it.device.masterFingerprint == xfp }?.tags?.contains(SignerTag.INHERITANCE) == true
+
+    fun importTransactionViaFile(walletId: String, uri: Uri) {
+        viewModelScope.launch {
+            val file = withContext(dispatcher) {
+                getFileFromUri(application.contentResolver, uri, application.cacheDir)
+            } ?: return@launch
+            importTransactionUseCase.execute(walletId, file.absolutePath).flowOn(IO)
+                .onException { event(TransactionError(it.readableMessage())) }
+                .flowOn(Dispatchers.Main).collect {
+                    getTransactionInfo()
+                    event(ImportTransactionSuccess)
+                }
+        }
+    }
+
+    private fun isSignByServerKey(transaction: Transaction) : Boolean {
+        val fingerPrint = getState().signers.find { it.type == SignerType.SERVER }?.fingerPrint.orEmpty()
+        return transaction.signers[fingerPrint] == true
+    }
 
     companion object {
         private const val INVALID_NUMBER_OF_SIGNED = -1
+        private const val KEY_CURRENT_SIGNER = "current_signer"
     }
 }

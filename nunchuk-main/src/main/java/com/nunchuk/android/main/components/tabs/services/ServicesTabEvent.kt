@@ -19,10 +19,16 @@
 
 package com.nunchuk.android.main.components.tabs.services
 
+import android.os.Parcelable
 import com.nunchuk.android.main.R
-import com.nunchuk.android.model.*
+import com.nunchuk.android.model.Inheritance
+import com.nunchuk.android.model.InheritanceCheck
+import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.banner.BannerPage
+import com.nunchuk.android.model.membership.AssistedWalletBrief
+import kotlinx.parcelize.Parcelize
 
 sealed class ServicesTabEvent {
     data class ProcessFailure(val message: String) : ServicesTabEvent()
@@ -33,19 +39,18 @@ sealed class ServicesTabEvent {
     ) : ServicesTabEvent()
 
     data class Loading(val loading: Boolean) : ServicesTabEvent()
-    data class CheckPasswordSuccess(val token: String, val item: ServiceTabRowItem) : ServicesTabEvent()
+    data class CheckPasswordSuccess(val token: String, val walletId: String, val item: ServiceTabRowItem) : ServicesTabEvent()
     data class CreateSupportRoomSuccess(val roomId: String) : ServicesTabEvent()
     data class CheckInheritance(val inheritanceCheck: InheritanceCheck) : ServicesTabEvent()
     object EmailInvalid : ServicesTabEvent()
     data class OnSubmitEmailSuccess(val email: String) : ServicesTabEvent()
+    data class GetInheritanceSuccess(val walletId: String, val inheritance: Inheritance, val token: String) : ServicesTabEvent()
 }
 
 data class ServicesTabState(
     val isPremiumUser: Boolean? = null,
-    val isCreatedAssistedWallet: Boolean = false,
     val plan: MembershipPlan = MembershipPlan.NONE,
-    val walletId: String? = null,
-    val inheritance: Inheritance? = null,
+    val assistedWallets: List<AssistedWalletBrief> = emptyList(),
     val banner: Banner? = null,
     val bannerPage: BannerPage? = null
 ) {
@@ -62,7 +67,7 @@ data class ServicesTabState(
             }
             MembershipPlan.IRON_HAND -> {
                 items.add(ServiceTabRowCategory.Emergency)
-                items.add(ServiceTabRowItem.KeyRecovery)
+                items.addAll(ServiceTabRowCategory.Emergency.items)
                 items.add(ServiceTabRowCategory.Subscription)
                 items.addAll(ServiceTabRowCategory.Subscription.items)
                 if (banner != null) {
@@ -73,7 +78,7 @@ data class ServicesTabState(
                 items.add(ServiceTabRowCategory.Emergency)
                 items.addAll(ServiceTabRowCategory.Emergency.items)
                 items.add(ServiceTabRowCategory.Inheritance)
-                if (inheritance == null || inheritance.status == InheritanceStatus.PENDING_CREATION) {
+                if (assistedWallets.isEmpty() || assistedWallets.all { it.isSetupInheritance.not() }) {
                     items.add(ServiceTabRowItem.SetUpInheritancePlan)
                 } else {
                     items.add(ServiceTabRowItem.ViewInheritancePlan)
@@ -129,31 +134,32 @@ sealed class ServiceTabRowCategory(
             })
 }
 
-sealed class ServiceTabRowItem(val category: ServiceTabRowCategory, val title: Int) {
+sealed class ServiceTabRowItem(val category: ServiceTabRowCategory, val title: Int) : Parcelable {
+    @Parcelize
     object EmergencyLockdown :
         ServiceTabRowItem(ServiceTabRowCategory.Emergency, R.string.nc_emergency_lockdown)
-
+    @Parcelize
     object KeyRecovery :
         ServiceTabRowItem(ServiceTabRowCategory.Emergency, R.string.nc_key_recovery)
-
+    @Parcelize
     object SetUpInheritancePlan :
         ServiceTabRowItem(ServiceTabRowCategory.Inheritance, R.string.nc_set_up_inheritance_plan)
-
+    @Parcelize
     object ViewInheritancePlan :
         ServiceTabRowItem(ServiceTabRowCategory.Inheritance, R.string.nc_view_inheritance_plan)
-
+    @Parcelize
     object ClaimInheritance :
         ServiceTabRowItem(ServiceTabRowCategory.Inheritance, R.string.nc_claim_an_inheritance)
-
+    @Parcelize
     object CoSigningPolicies :
         ServiceTabRowItem(ServiceTabRowCategory.Subscription, R.string.nc_cosigning_policies)
-
+    @Parcelize
     object OrderNewHardware :
         ServiceTabRowItem(ServiceTabRowCategory.Subscription, R.string.nc_order_new_hardware)
-
+    @Parcelize
     object ManageSubscription :
         ServiceTabRowItem(ServiceTabRowCategory.Subscription, R.string.nc_manage_subscription)
-
+    @Parcelize
     object RollOverAssistedWallet :
         ServiceTabRowItem(ServiceTabRowCategory.Subscription, R.string.nc_roll_over_assisted_wallet)
 }

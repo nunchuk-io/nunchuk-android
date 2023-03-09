@@ -33,4 +33,10 @@ sealed class WalletConfigEvent {
     class Loading(val isLoading: Boolean) : WalletConfigEvent()
     class Error(val message: String) : WalletConfigEvent()
     object ForceRefreshWalletSuccess : WalletConfigEvent()
+    object DeleteAssistedWalletSuccess : WalletConfigEvent()
+    data class CalculateRequiredSignaturesSuccess(
+        val walletId: String,
+        val requiredSignatures: Int,
+        val type: String,
+    ) : WalletConfigEvent()
 }

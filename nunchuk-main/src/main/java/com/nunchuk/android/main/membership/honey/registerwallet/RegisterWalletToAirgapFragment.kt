@@ -79,13 +79,13 @@ class RegisterWalletToAirgapFragment : MembershipFragment() {
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect {
-                    (requireActivity() as BaseWalletConfigActivity<*>).showSubOptionsExportQr()
+                    (requireActivity() as BaseWalletConfigActivity<*>).openDynamicQRScreen(sharedViewModel.walletId)
                 }
         }
 
         sharedViewModel.event.observe(viewLifecycleOwner) {
             if (it == UploadConfigurationEvent.DoneScanQr) {
-                viewModel.setRegisterAirgapSuccess()
+                viewModel.setRegisterAirgapSuccess(args.walletId)
                 findNavController().navigate(
                     RegisterWalletToAirgapFragmentDirections.actionRegisterWalletToAirgapFragmentToCreateWalletSuccessFragment(
                         args.walletId
