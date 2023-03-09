@@ -34,16 +34,15 @@ import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.model.*
 import com.nunchuk.android.share.GetContactsUseCase
+import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.usecase.DeleteWalletUseCase
-import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
-import com.nunchuk.android.usecase.GetWalletUseCase
-import com.nunchuk.android.usecase.UpdateWalletUseCase
+import com.nunchuk.android.usecase.*
 import com.nunchuk.android.usecase.membership.ForceRefreshWalletUseCase
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.utils.retrieveInfo
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameErrorEvent
 import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateNameSuccessEvent
+import com.nunchuk.android.wallet.components.details.WalletDetailsEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -64,6 +63,8 @@ internal class WalletConfigViewModel @Inject constructor(
     private val calculateRequiredSignaturesDeleteAssistedWalletUseCase: CalculateRequiredSignaturesDeleteAssistedWalletUseCase,
     private val deleteAssistedWalletUseCase: DeleteAssistedWalletUseCase,
     private val getTransactionHistoryUseCase: GetTransactionHistoryUseCase,
+    private val createShareFileUseCase: CreateShareFileUseCase,
+    private val exportWalletUseCase: ExportWalletUseCase,
     getContactsUseCase: GetContactsUseCase,
 ) : NunchukViewModel<WalletConfigState, WalletConfigEvent>() {
 
@@ -261,6 +262,24 @@ internal class WalletConfigViewModel @Inject constructor(
             setEvent(WalletConfigEvent.ForceRefreshWalletSuccess)
         } else {
             setEvent(WalletConfigEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+        }
+    }
+
+    fun handleExportBSMS() {
+        viewModelScope.launch {
+            when (val event = createShareFileUseCase.execute("${walletId}.bsms")) {
+                is Result.Success -> exportWalletToFile(walletId, event.data, ExportFormat.BSMS)
+                is Result.Error -> showError(event.exception)
+            }
+        }
+    }
+
+    private fun exportWalletToFile(walletId: String, filePath: String, format: ExportFormat) {
+        viewModelScope.launch {
+            when (val event = exportWalletUseCase.execute(walletId, filePath, format)) {
+                is Result.Success -> event(WalletConfigEvent.UploadWalletConfigEvent(filePath))
+                is Result.Error -> showError(event.exception)
+            }
         }
     }
 

@@ -60,11 +60,9 @@ import javax.inject.Inject
 @HiltViewModel
 internal class WalletDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val createShareFileUseCase: CreateShareFileUseCase,
     private val getWalletUseCase: GetWalletUseCase,
     private val addressesUseCase: GetAddressesUseCase,
     private val newAddressUseCase: NewAddressUseCase,
-    private val exportWalletUseCase: ExportWalletUseCase,
     private val getTransactionHistoryUseCase: GetTransactionHistoryUseCase,
     private val importTransactionUseCase: ImportTransactionUseCase,
     private val sessionHolder: SessionHolder,
@@ -233,24 +231,6 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     fun handleSendMoneyEvent() {
         event(SendMoneyEvent(getState().walletExtended))
-    }
-
-    fun handleExportBSMS() {
-        viewModelScope.launch {
-            when (val event = createShareFileUseCase.execute("${args.walletId}.bsms")) {
-                is Success -> exportWalletToFile(args.walletId, event.data, ExportFormat.BSMS)
-                is Error -> showError(event)
-            }
-        }
-    }
-
-    private fun exportWalletToFile(walletId: String, filePath: String, format: ExportFormat) {
-        viewModelScope.launch {
-            when (val event = exportWalletUseCase.execute(walletId, filePath, format)) {
-                is Success -> event(UploadWalletConfigEvent(filePath))
-                is Error -> showError(event)
-            }
-        }
     }
 
     private fun showError(event: Error) {

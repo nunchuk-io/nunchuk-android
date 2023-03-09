@@ -88,4 +88,7 @@ object SheetOptionType {
     const val TYPE_EXPORT_FILE = 36
     const val TYPE_IMPORT_QR = 37
     const val TYPE_IMPORT_FILE = 38
+
+    const val TYPE_IMPORT_TX = 39
+    const val TYPE_EXPORT_BSMS = 40
 }
