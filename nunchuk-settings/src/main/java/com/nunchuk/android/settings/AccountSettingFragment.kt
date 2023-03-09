@@ -19,8 +19,6 @@
 
 package com.nunchuk.android.settings
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -160,16 +158,6 @@ class AccountSettingFragment : BaseFragment<FragmentAccountSettingBinding>() {
     }
 
     companion object {
-
         private const val CONFIRMATION_TEXT = "DELETE"
-
-        fun start(activityContext: Context) {
-            activityContext.startActivity(
-                Intent(
-                    activityContext,
-                    AccountSettingFragment::class.java
-                )
-            )
-        }
     }
 }

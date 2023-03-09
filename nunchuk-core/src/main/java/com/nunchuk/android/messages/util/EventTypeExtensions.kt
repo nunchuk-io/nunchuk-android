@@ -19,10 +19,7 @@
 
 package com.nunchuk.android.messages.util
 
-import org.matrix.android.sdk.api.session.events.model.EventType
-import org.matrix.android.sdk.api.session.events.model.isImageMessage
-import org.matrix.android.sdk.api.session.events.model.isTextMessage
-import org.matrix.android.sdk.api.session.events.model.isVideoMessage
+import org.matrix.android.sdk.api.session.events.model.*
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
 // Naming follow Matrix's convention
@@ -40,7 +37,8 @@ const val SUBSCRIPTION_SUBSCRIPTION_ACTIVE = "io.nunchuk.custom.subscription_act
 const val SUBSCRIPTION_SUBSCRIPTION_PENDING = "io.nunchuk.custom.subscription_pending"
 const val TRANSACTION_CO_SIGNED_AND_BROADCAST =
     "io.nunchuk.custom.transaction_co_signed_and_broadcast"
-const val STATE_ROOM_SERVER_NOTICE = "m.server_notice"
+const val TRANSACTION_SCHEDULE_MISSING_SIGNATURES = "io.nunchuk.custom.transaction_schedule_missing_signatures"
+const val TRANSACTION_SCHEDULE_NETWORK_REJECTED = "io.nunchuk.custom.transaction_schedule_network_rejected"
 const val STATE_ENCRYPTED_MESSAGE = "*Encrypted*"
 
 fun TimelineEvent.isDisplayable(isSupportRoom: Boolean) : Boolean {
@@ -62,7 +60,7 @@ fun TimelineEvent.isEncryptedEvent() = root.getClearType() == EventType.ENCRYPTE
 
 fun TimelineEvent.isRoomNameEvent() = root.getClearType() == EventType.STATE_ROOM_NAME
 
-fun TimelineEvent.isMessageEvent() = root.isTextMessage() || root.isVideoMessage() || root.isImageMessage()
+fun TimelineEvent.isMessageEvent() = root.isTextMessage() || root.isVideoMessage() || root.isImageMessage() || root.isFileMessage()
 
 fun TimelineEvent.isNunchukEvent() =
     isNunchukWalletEvent() || isNunchukTransactionEvent() || isNunchukErrorEvent()
@@ -97,6 +95,11 @@ fun TimelineEvent.isBroadcastEvent() = getMsgType() == TRANSACTION_SCHEDULE_BROA
 
 fun TimelineEvent.isCosignedAndBroadcastEvent() =
     getMsgType() == TRANSACTION_CO_SIGNED_AND_BROADCAST
+
+fun TimelineEvent.isTransactionScheduleMissingSignaturesEvent() = getMsgType() == TRANSACTION_SCHEDULE_MISSING_SIGNATURES
+fun TimelineEvent.isTransactionScheduleNetworkRejectedEvent() = getMsgType() == TRANSACTION_SCHEDULE_NETWORK_REJECTED
+
+fun TimelineEvent.isTransactionHandleErrorMessageEvent() = isTransactionScheduleMissingSignaturesEvent() || isTransactionScheduleNetworkRejectedEvent()
 
 fun TimelineEvent.getMsgType() = root.getClearContent()?.get("msgtype")
 

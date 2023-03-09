@@ -41,6 +41,7 @@ internal object NunchukPersistenceModule {
             .addMigrations(DBMigrations.MIGRATION_1_2)
             .addMigrations(DBMigrations.MIGRATION_2_3)
             .addMigrations(DBMigrations.MIGRATION_3_4)
+            .addMigrations(DBMigrations.MIGRATION_4_5)
             .build()
 
     @Singleton
@@ -58,4 +59,12 @@ internal object NunchukPersistenceModule {
     @Singleton
     @Provides
     fun provideSyncEventDao(database: NunchukDatabase) = database.syncEventDao()
+
+    @Singleton
+    @Provides
+    fun provideHandledEventDao(database: NunchukDatabase) = database.handledEventDao()
+
+    @Singleton
+    @Provides
+    fun provideAssistedWalletDao(database: NunchukDatabase) = database.assistedWalletDao()
 }

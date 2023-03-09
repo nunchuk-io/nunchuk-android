@@ -23,6 +23,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
@@ -37,15 +38,25 @@ import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.databinding.FragmentInheritanceNotifyPrefBinding
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.widget.util.setOnEnterOrSpaceListener
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPrefBinding>() {
 
+    @Inject
+    lateinit var membershipStepManager: MembershipStepManager
+
     private val viewModel: InheritanceNotifyPrefViewModel by viewModels()
     private val args: InheritanceNotifyPrefFragmentArgs by navArgs()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        membershipStepManager.updateStep(true)
+    }
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -59,11 +70,14 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
 
         flowObserver(viewModel.event) { event ->
             when (event) {
-                is InheritanceNotifyPrefEvent.ContinueClick -> {
-                    openReviewPlanScreen(isDiscard = false, event.emails, event.isNotify)
-                }
-                InheritanceNotifyPrefEvent.AllEmailValidEvent -> showErrorMessage(false)
-                InheritanceNotifyPrefEvent.InvalidEmailEvent -> showErrorMessage(true)
+                is InheritanceNotifyPrefEvent.ContinueClick -> openReviewPlanScreen(
+                    isDiscard = false,
+                    event.emails,
+                    event.isNotify
+                )
+                InheritanceNotifyPrefEvent.AllEmailValidEvent -> showErrorMessage(show = false)
+                InheritanceNotifyPrefEvent.InvalidEmailEvent -> showErrorMessage(show = true, isEmptyError = false)
+                InheritanceNotifyPrefEvent.EmptyEmailError -> showErrorMessage(show = true, isEmptyError = true)
             }
         }
         flowObserver(viewModel.state) { state ->
@@ -93,18 +107,30 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
                     emails = emails.toTypedArray(),
                     planFlow = args.planFlow,
                     isNotify = isNotify,
-                    magicalPhrase = args.magicalPhrase
+                    magicalPhrase = args.magicalPhrase,
+                    bufferPeriod = args.bufferPeriod,
+                    walletId = args.walletId,
                 )
             )
         }
     }
 
-    private fun showErrorMessage(show: Boolean) {
-        binding.tvErrorEmail.isVisible = show
+    private fun showErrorMessage(show: Boolean, isEmptyError: Boolean = false) {
+        binding.tvError.isVisible = show
+        if (isEmptyError) {
+            binding.inputLayout.background = ResourcesCompat.getDrawable(resources, R.drawable.nc_edit_text_error_bg, null)
+            binding.tvError.text = getString(R.string.nc_please_provide_valid_email_address)
+        }else {
+            binding.inputLayout.background = ResourcesCompat.getDrawable(resources, R.drawable.view_add_contact_background, null)
+            binding.tvError.text = getString(R.string.nc_contact_valid_email_address)
+        }
     }
 
     private fun setupViews() {
-        binding.toolbarTitle.text = if (isSetupFlow()) String.format(getString(R.string.nc_estimate_remain_time), viewModel.remainTime.value) else ""
+        binding.toolbarTitle.text = if (isSetupFlow()) String.format(
+            getString(R.string.nc_estimate_remain_time),
+            viewModel.remainTime.value
+        ) else ""
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
@@ -125,7 +151,8 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
         binding.btnNotification.setOnClickListener {
             openReviewPlanScreen(isDiscard = true, emptyList(), false)
         }
-        val continueBtnText = if (isSetupFlow()) getText(R.string.nc_text_continue) else getText(R.string.nc_update_notification_preferences)
+        val continueBtnText =
+            if (isSetupFlow()) getText(R.string.nc_text_continue) else getText(R.string.nc_update_notification_preferences)
         binding.btnContinue.text = continueBtnText
         binding.btnContinue.setOnClickListener {
             val currentText = binding.input.text.toString().trim()
@@ -137,7 +164,8 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
         }
     }
 
-    private fun isSetupFlow() = args.planFlow == InheritancePlanFlow.SETUP && args.isUpdateRequest.not()
+    private fun isSetupFlow() =
+        args.planFlow == InheritancePlanFlow.SETUP && args.isUpdateRequest.not()
 
     private fun bindEmailList(emails: List<EmailWithState>) {
         if (emails.isEmpty()) {
@@ -145,10 +173,13 @@ class InheritanceNotifyPrefFragment : BaseFragment<FragmentInheritanceNotifyPref
         } else {
             EmailsViewBinder(binding.emails, emails, viewModel::handleRemove).bindItems()
         }
-        val isHasErrorEmail = emails.any { it.valid.not() && EmailValidator.valid(it.email) }
-        val isHasErrorUserName = emails.any { it.valid.not() && !EmailValidator.valid(it.email) }
-        binding.tvErrorEmail.isVisible = isHasErrorEmail
-        binding.tvErrorUserName.isVisible = isHasErrorUserName
+        val isError = emails.any { it.valid.not() || EmailValidator.valid(it.email).not() }
+        showErrorMessage(show = isError, isEmptyError = false)
+    }
+
+    override fun onDestroy() {
+        membershipStepManager.updateStep(false)
+        super.onDestroy()
     }
 
     companion object {

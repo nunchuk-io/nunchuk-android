@@ -27,6 +27,7 @@ sealed class InheritanceNotifyPrefEvent {
 
     object InvalidEmailEvent : InheritanceNotifyPrefEvent()
     object AllEmailValidEvent : InheritanceNotifyPrefEvent()
+    object EmptyEmailError : InheritanceNotifyPrefEvent()
 }
 
 data class InheritanceNotifyPrefState(

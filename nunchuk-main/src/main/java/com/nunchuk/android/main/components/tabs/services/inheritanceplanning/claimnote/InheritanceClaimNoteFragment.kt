@@ -130,6 +130,7 @@ class InheritanceClaimNoteFragment : MembershipFragment(), BottomSheetOptionList
     }
 
     override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
         if (option.type == SheetOptionType.TYPE_SWEEP_TO_WALLET) {
             viewModel.checkWallet()
         } else if (option.type == SheetOptionType.TYPE_SWEEP_TO_EXTERNAL_ADDRESS) {

@@ -20,11 +20,13 @@
 package com.nunchuk.android.messages.components.detail
 
 import android.app.Activity
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -48,6 +50,7 @@ import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.RoomDetailEvent.*
 import com.nunchuk.android.messages.databinding.FragmentRoomDetailBinding
 import com.nunchuk.android.messages.databinding.ViewWalletStickyBinding
+import com.nunchuk.android.messages.util.safeStartActivity
 import com.nunchuk.android.model.TransactionExtended
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.util.*
@@ -57,7 +60,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(), BottomSheetOptionListener {
+class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
+    BottomSheetOptionListener {
 
     @Inject
     lateinit var imageLoader: ImageLoader
@@ -82,7 +86,8 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(), Bott
             senderLongPressListener = ::showSelectMessageBottomSheet,
             onMessageRead = viewModel::markMessageRead,
             toggleSelected = viewModel::toggleSelected,
-            onOpenMediaViewer = ::onOpenMediaViewer
+            onOpenMediaViewer = ::onOpenMediaViewer,
+            onDownloadOrOpen = ::downloadOrOpen
         )
     }
 
@@ -94,27 +99,31 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(), Bott
         }
 
     private val takePictureLauncher =
-        registerForActivityResult(ActivityResultContracts.TakePicture()) {
-            currentCaptureUri?.let { uri ->
+        registerForActivityResult(ActivityResultContracts.TakePicture()) { isSuccess ->
+            currentCaptureUri?.takeIf { isSuccess }?.let { uri ->
                 viewModel.sendMedia(listOf(uri))
             }
         }
 
     private val captureVideoLauncher =
-        registerForActivityResult(ActivityResultContracts.CaptureVideo()) {
-            currentCaptureUri?.let { uri ->
+        registerForActivityResult(ActivityResultContracts.CaptureVideo()) { isSuccess ->
+            currentCaptureUri?.takeIf { isSuccess }?.let { uri ->
                 viewModel.sendMedia(listOf(uri))
             }
         }
 
     private val selectPhotoAndVideoLauncher =
-        registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) {
-            viewModel.sendMedia(it)
+        registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(5)) {
+            if (it.isNotEmpty()) {
+                viewModel.sendMedia(it)
+            }
         }
 
     private val selectFileLauncher =
-        registerForActivityResult(ActivityResultContracts.OpenDocument()) {
-
+        registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) {
+            if (it.isNotEmpty()) {
+                viewModel.sendMedia(it)
+            }
         }
     private lateinit var stickyBinding: ViewWalletStickyBinding
 
@@ -156,7 +165,7 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(), Bott
     }
 
     override fun onCameraPermissionGranted(fromUser: Boolean) {
-        when(currentAction) {
+        when (currentAction) {
             SheetOptionType.CHAT_ACTION_TAKE_PHOTO -> handlePhoto(isTakePhoto = true)
             SheetOptionType.CHAT_ACTION_CAPTURE_VIDEO -> handlePhoto(isTakePhoto = false)
         }
@@ -167,7 +176,12 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(), Bott
     }
 
     private fun handleSelectPhotoAndVideo() {
-        selectPhotoAndVideoLauncher.launch(arrayOf("image/*", "video/*"))
+        selectPhotoAndVideoLauncher.launch(
+            PickVisualMediaRequest.Builder()
+                .setMediaType(
+                    ActivityResultContracts.PickVisualMedia.ImageAndVideo
+                ).build()
+        )
     }
 
     private fun observeEvent() {
@@ -177,15 +191,16 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(), Bott
 
     private fun handleState(state: RoomDetailState) {
         setupViewForSelectMode(state.isSelectEnable)
+        val count = state.roomInfo.memberCount
         if (state.isSupportRoom) {
             adapter.removeBannerNewChat()
+            binding.memberCount.text = resources.getString(R.string.nc_message_transaction_view_details)
+        } else {
+            binding.memberCount.text = resources.getQuantityString(R.plurals.nc_message_members, count, count)
         }
         binding.toolbarTitle.text = state.roomInfo.roomName
         binding.tvSelectedMessageCount.text =
             getString(R.string.nc_text_count_selected_message, state.selectedEventIds.size)
-        val count = state.roomInfo.memberCount
-        val membersCount = resources.getQuantityString(R.plurals.nc_message_members, count, count)
-        binding.memberCount.text = membersCount
 
         adapter.update(state.messages.groupByDate(), state.roomWallet, count)
         val hasRoomWallet = state.roomWallet != null
@@ -219,7 +234,10 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(), Bott
                 walletId = event.walletId,
                 availableAmount = event.availableAmount
             )
-            OpenChatGroupInfoEvent -> navigator.openChatGroupInfoScreen(requireActivity(), args.roomId)
+            OpenChatGroupInfoEvent -> navigator.openChatGroupInfoScreen(
+                requireActivity(),
+                args.roomId
+            )
             OpenChatInfoEvent -> navigator.openChatInfoScreen(requireActivity(), args.roomId)
             RoomWalletCreatedEvent -> showSuccess(getString(R.string.nc_message_wallet_created))
             HideBannerNewChatEvent -> adapter.removeBannerNewChat()
@@ -227,20 +245,34 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(), Bott
                 requireActivity(),
                 event.roomWalletData
             )
-            is ReceiveBTCEvent -> navigator.openReceiveTransactionScreen(requireActivity(), event.walletId)
+            is ReceiveBTCEvent -> navigator.openReceiveTransactionScreen(
+                requireActivity(),
+                event.walletId
+            )
             HasUpdatedEvent -> scrollToLastItem()
             GetRoomWalletSuccessEvent -> args.roomAction.let(::handleRoomAction)
             LeaveRoomEvent -> requireActivity().finish()
             is ShowError -> showError(event.message)
             is Loading -> showOrHideLoading(event.isLoading)
             None -> Unit
+            is OpenFile -> openFile(event)
+            OnSendMediaSuccess -> scrollToLastItem()
         }
         viewModel.clearEvent()
     }
 
+    private fun openFile(action: OpenFile) {
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndTypeAndNormalize(action.uri, action.mimeType)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+
+        requireActivity().safeStartActivity(intent)
+    }
+
     private fun handlePhoto(isTakePhoto: Boolean) {
         val file = runCatching {
-           if (isTakePhoto) ncMediaManager.createImageFile()  else ncMediaManager.createVideoFile()
+            if (isTakePhoto) ncMediaManager.createImageFile() else ncMediaManager.createVideoFile()
         }.getOrNull()
         file?.let {
             val uri: Uri = FileProvider.getUriForFile(
@@ -326,12 +358,11 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(), Bott
                         type = SheetOptionType.CHAT_ACTION_SELECT_PHOTO_VIDEO,
                         label = getString(R.string.nc_photo_and_video)
                     ),
-                    // coming soon
-//                    SheetOption(
-//                        resId = R.drawable.ic_attach_file,
-//                        type = SheetOptionType.CHAT_ACTION_SELECT_FILE,
-//                        label = getString(R.string.nc_upload_file)
-//                    ),
+                    SheetOption(
+                        resId = R.drawable.ic_attach_file,
+                        type = SheetOptionType.CHAT_ACTION_SELECT_FILE,
+                        label = getString(R.string.nc_upload_file)
+                    ),
                 )
             ).show(childFragmentManager, "BottomSheetOption")
         }
@@ -436,6 +467,10 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(), Bott
         findNavController().navigate(
             RoomDetailFragmentDirections.actionRoomDetailFragmentToRoomMediaViewerFragment(eventId)
         )
+    }
+
+    private fun downloadOrOpen(media: NunchukFileMessage) {
+        viewModel.downloadOrOpen(media)
     }
 
     private fun openTransactionDetails(walletId: String, txId: String, initEventId: String) {

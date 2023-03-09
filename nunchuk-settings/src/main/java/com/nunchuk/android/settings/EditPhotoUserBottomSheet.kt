@@ -23,6 +23,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.core.base.BaseBottomSheet
@@ -46,7 +47,7 @@ internal class EditPhotoUserBottomSheet : BaseBottomSheet<BottomSheetEditUserPho
         binding.btnChooseAlbum.setOnClickListener { onSaveClicked(EditPhotoOption.SelectAlbum) }
         binding.btnTakePhoto.setOnClickListener { onSaveClicked(EditPhotoOption.TakePhoto) }
         binding.btnRemovePhoto.setOnClickListener { onSaveClicked(EditPhotoOption.RemovePhoto) }
-        binding.btnRemovePhoto.isVisible = false // currently, we don't need remove photo feature.
+        binding.btnRemovePhoto.isVisible = requireArguments().getBoolean(EXTRA_HAS_AVATAR, false)
     }
 
     private fun onSaveClicked(option: EditPhotoOption) {
@@ -56,9 +57,13 @@ internal class EditPhotoUserBottomSheet : BaseBottomSheet<BottomSheetEditUserPho
 
     companion object {
         private const val TAG = "WalletUpdateBottomSheet"
+        private const val EXTRA_HAS_AVATAR = "_a"
 
-        fun show(fragmentManager: FragmentManager): EditPhotoUserBottomSheet {
-            return EditPhotoUserBottomSheet().apply { show(fragmentManager, TAG) }
+        fun show(fragmentManager: FragmentManager, hasAvatar: Boolean): EditPhotoUserBottomSheet {
+            return EditPhotoUserBottomSheet().apply {
+                arguments = bundleOf(EXTRA_HAS_AVATAR to hasAvatar)
+                show(fragmentManager, TAG)
+            }
         }
     }
 }

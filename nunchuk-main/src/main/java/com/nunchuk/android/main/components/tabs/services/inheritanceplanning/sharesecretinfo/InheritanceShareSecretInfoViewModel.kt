@@ -27,6 +27,7 @@ import javax.inject.Inject
 @HiltViewModel
 class InheritanceShareSecretInfoViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
-) : ViewModel() {
+    ) : ViewModel() {
+
     val remainTime = membershipStepManager.remainingTime
 }

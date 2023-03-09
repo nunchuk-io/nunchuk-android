@@ -142,6 +142,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     }
 
     private fun handleRemoveRoom(roomSummary: RoomSummary, hasSharedWallet: Boolean) {
+        if (isResumed.not()) return
         if (hasSharedWallet) {
             NCWarningDialog(requireActivity())
                 .showDialog(

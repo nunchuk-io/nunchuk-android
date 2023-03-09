@@ -41,11 +41,8 @@ import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
 import com.nunchuk.android.usecase.user.SetRegisterColdcardUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -73,6 +70,8 @@ class CreateWalletViewModel @Inject constructor(
 
     val plan = membershipStepManager.plan
 
+    private var createWalletJob: Job? = null
+
     init {
         viewModelScope.launch {
             getMembershipStepUseCase(membershipStepManager.plan)
@@ -81,8 +80,8 @@ class CreateWalletViewModel @Inject constructor(
                 .collect { steps ->
                     steps.forEach { stepInfo ->
                         when (stepInfo.step) {
-                            MembershipStep.ADD_TAP_SIGNER_1,
-                            MembershipStep.ADD_TAP_SIGNER_2,
+                            MembershipStep.IRON_ADD_HARDWARE_KEY_1,
+                            MembershipStep.IRON_ADD_HARDWARE_KEY_2,
                             MembershipStep.HONEY_ADD_TAP_SIGNER,
                             MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
                             MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> {
@@ -124,7 +123,8 @@ class CreateWalletViewModel @Inject constructor(
     private fun createQuickWallet() {
         val serverKey = serverKeyExtra ?: return
         val serverKeyId = serverKeyId ?: return
-        viewModelScope.launch {
+        if (createWalletJob?.isActive == true) return
+        createWalletJob = viewModelScope.launch {
             val addressType = AddressType.NATIVE_SEGWIT
             _event.emit(CreateWalletEvent.Loading(true))
             val masterSigners =
@@ -204,11 +204,16 @@ class CreateWalletViewModel @Inject constructor(
                         _event.emit(CreateWalletEvent.ShowError(it.message.orUnknownError()))
                     }
                     .collect {
-                        if (signers.any { it.value.signerType == SignerType.COLDCARD_NFC }) {
-                            setRegisterColdcardUseCase(false)
+                        if (signers.any { signer -> signer.value.signerType == SignerType.COLDCARD_NFC }) {
+                            setRegisterColdcardUseCase(
+                                SetRegisterColdcardUseCase.Params(
+                                    it.id,
+                                    false
+                                )
+                            )
                         }
-                        if (signers.any { it.value.signerType == SignerType.AIRGAP }) {
-                            setRegisterAirgapUseCase(false)
+                        if (signers.any { signer -> signer.value.signerType == SignerType.AIRGAP }) {
+                            setRegisterAirgapUseCase(SetRegisterAirgapUseCase.Params(it.id, false))
                         }
                         _event.emit(
                             CreateWalletEvent.OnCreateWalletSuccess(

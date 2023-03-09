@@ -28,9 +28,11 @@ import javax.inject.Inject
 class ExportKeystoneDummyTransaction @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
-) : UseCase<String, List<String>>(ioDispatcher) {
+) : UseCase<ExportKeystoneDummyTransaction.Param, List<String>>(ioDispatcher) {
 
-    override suspend fun execute(parameters: String): List<String> {
-        return nativeSdk.exportKeystoneDummyTransaction(parameters)
+    override suspend fun execute(parameters: Param): List<String> {
+        return nativeSdk.exportKeystoneDummyTransaction(parameters.txToSign, parameters.density)
     }
+
+    data class Param(val txToSign: String, val density: Int)
 }

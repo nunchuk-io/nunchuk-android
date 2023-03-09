@@ -28,7 +28,6 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.*
-import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.databinding.FragmentTransactionConfirmBinding
 import com.nunchuk.android.widget.NCToastMessage
@@ -55,7 +54,7 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
 
     private fun registerEvents() {
         binding.toolbar.setNavigationOnClickListener {
-            activity?.onBackPressed()
+            activity?.onBackPressedDispatcher?.onBackPressed()
         }
         binding.btnConfirm.setOnDebounceClickListener {
             viewModel.replaceTransaction(activityArgs.walletId, activityArgs.transaction.txId, args.newFee)

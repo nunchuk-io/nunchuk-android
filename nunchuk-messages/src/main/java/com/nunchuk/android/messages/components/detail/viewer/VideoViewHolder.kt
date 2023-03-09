@@ -1,3 +1,22 @@
+/**************************************************************************
+ * This file is part of the Nunchuk software (https://nunchuk.io/)        *							          *
+ * Copyright (C) 2022 Nunchuk								              *
+ *                                                                        *
+ * This program is free software; you can redistribute it and/or          *
+ * modify it under the terms of the GNU General Public License            *
+ * as published by the Free Software Foundation; either version 3         *
+ * of the License, or (at your option) any later version.                 *
+ *                                                                        *
+ * This program is distributed in the hope that it will be useful,        *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of         *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          *
+ * GNU General Public License for more details.                           *
+ *                                                                        *
+ * You should have received a copy of the GNU General Public License      *
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.  *
+ *                                                                        *
+ **************************************************************************/
+
 package com.nunchuk.android.messages.components.detail.viewer
 
 import androidx.core.view.isVisible
@@ -5,10 +24,9 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.nunchuk.android.messages.components.detail.model.RoomMediaSource
 import com.nunchuk.android.messages.databinding.ItemVideoViewerBinding
+import com.nunchuk.android.messages.util.downloadFile
 import kotlinx.coroutines.*
-import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
-import org.matrix.android.sdk.api.session.room.model.message.getThumbnailUrl
 import timber.log.Timber
 
 class VideoViewHolder(
@@ -18,7 +36,7 @@ class VideoViewHolder(
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
     private val fileService = sessionHolder.getSafeActiveSession()?.fileService()
     private var playWhenReady: Boolean = true
-    private var downloadJob : Job? = null
+    private var downloadJob: Job? = null
 
     init {
         lifecycleOwner.lifecycle.addObserver(this)
@@ -28,8 +46,7 @@ class VideoViewHolder(
         val data = item as RoomMediaSource.Video
 
         buildRequestManager(
-            data.content.videoInfo?.getThumbnailUrl(),
-            data.content.videoInfo?.thumbnailFile,
+            data.thumbnail,
             data.allowNonMxcUrls,
             binding.viewThumbnail
         ).override(maxImageWidth, maxImageHeight)
@@ -44,12 +61,7 @@ class VideoViewHolder(
             downloadJob = coroutineScope.launch {
                 val result = withContext(Dispatchers.IO) {
                     runCatching {
-                        fileService?.downloadFile(
-                            fileName = data.content.body,
-                            mimeType = data.content.mimeType,
-                            url = url,
-                            elementToDecrypt = data.content.encryptedFileInfo?.toElementToDecrypt()
-                        )
+                        fileService?.downloadFile(data)
                     }
                 }
                 ensureActive()

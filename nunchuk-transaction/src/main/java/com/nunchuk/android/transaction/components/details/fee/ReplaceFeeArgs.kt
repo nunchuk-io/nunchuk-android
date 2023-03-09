@@ -24,6 +24,7 @@ import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.utils.parcelable
 
 data class ReplaceFeeArgs(
     val walletId: String,
@@ -43,7 +44,7 @@ data class ReplaceFeeArgs(
             val extras = intent.extras
             return ReplaceFeeArgs(
                 walletId = extras.getStringValue(EXTRA_WALLET_ID),
-                transaction = extras!!.getParcelable(EXTRA_TRANSACTION)!!,
+                transaction = extras?.parcelable(EXTRA_TRANSACTION)!!,
             )
         }
     }

@@ -20,22 +20,99 @@
 package com.nunchuk.android.share.membership
 
 import android.os.Bundle
+import android.view.View
+import androidx.annotation.CallSuper
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import com.nunchuk.android.core.R
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.widget.NCInfoDialog
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-abstract class MembershipFragment : Fragment() {
+abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
     @Inject
     lateinit var membershipStepManager: MembershipStepManager
 
+    @Inject
+    lateinit var nunchukNavigator: NunchukNavigator
+
+    private val viewModel : MembershipViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        membershipStepManager.updateStep(true)
+        if (isCountdown) {
+            membershipStepManager.updateStep(true)
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        flowObserver(viewModel.event) {
+            if (it is MembershipEvent.RestartWizardSuccess) {
+                nunchukNavigator.openMembershipActivity(
+                    requireActivity(),
+                    MembershipStage.NONE,
+                    isClearTop = true
+                )
+                requireActivity().finish()
+            }
+        }
+    }
+
+    @CallSuper
+    override fun onOptionClicked(option: SheetOption) {
+        if (option.type == SheetOptionType.TYPE_RESTART_WIZARD) {
+            NCWarningDialog(requireActivity()).showDialog(
+                title = getString(R.string.nc_confirmation),
+                message = getString(R.string.nc_confirm_restart_wizard),
+                onYesClick = {
+                    resetWizard()
+                }
+            )
+        } else if (option.type == SheetOptionType.TYPE_EXIT_WIZARD) {
+            NCInfoDialog(requireActivity()).showDialog(
+                message = getString(R.string.nc_resume_wizard_desc),
+                onYesClick = {
+                    requireActivity().finish()
+                }
+            )
+        }
+    }
+
+    protected fun handleShowMore() {
+        BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_RESTART_WIZARD,
+                    label = getString(R.string.nc_restart_wizard)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_EXIT_WIZARD,
+                    label = getString(R.string.nc_exit_wizard)
+                )
+            )
+        ).show(childFragmentManager, "BottomSheetOption")
+    }
+
+    private fun resetWizard() {
+        viewModel.resetWizard(membershipStepManager.plan)
     }
 
     override fun onDestroy() {
-        membershipStepManager.updateStep(false)
+        if (isCountdown) {
+            membershipStepManager.updateStep(false)
+        }
         super.onDestroy()
     }
+
+    open val isCountdown: Boolean = true
 }

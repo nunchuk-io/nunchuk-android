@@ -28,14 +28,18 @@ import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.SIGNER_PATH_PREFIX
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.model.*
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.GetRemoteSignerUseCase
+import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
+import com.nunchuk.android.usecase.membership.ReuseKeyWalletUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -54,6 +58,8 @@ class AddKeyListViewModel @Inject constructor(
     private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
     private val gson: Gson,
+    private val reuseKeyWalletUseCase: ReuseKeyWalletUseCase,
+    private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     private val _event = MutableSharedFlow<AddKeyListEvent>()
@@ -69,6 +75,8 @@ class AddKeyListViewModel @Inject constructor(
     private val _keys = MutableStateFlow(listOf<AddKeyData>())
     val key = _keys.asStateFlow()
 
+    private val singleSigners = mutableListOf<SingleSigner>()
+
     init {
         viewModelScope.launch {
             currentStep.filterNotNull().collect {
@@ -77,8 +85,8 @@ class AddKeyListViewModel @Inject constructor(
         }
         if (membershipStepManager.plan == MembershipPlan.IRON_HAND) {
             _keys.value = listOf(
-                AddKeyData(type = MembershipStep.ADD_TAP_SIGNER_1),
-                AddKeyData(type = MembershipStep.ADD_TAP_SIGNER_2),
+                AddKeyData(type = MembershipStep.IRON_ADD_HARDWARE_KEY_1),
+                AddKeyData(type = MembershipStep.IRON_ADD_HARDWARE_KEY_2),
                 AddKeyData(type = MembershipStep.ADD_SEVER_KEY),
             )
         } else {
@@ -89,17 +97,7 @@ class AddKeyListViewModel @Inject constructor(
                 AddKeyData(type = MembershipStep.ADD_SEVER_KEY),
             )
         }
-        viewModelScope.launch {
-            getCompoundSignersUseCase.execute().collect { pair ->
-                _state.update {
-                    it.copy(
-                        signers = pair.first.map { signer ->
-                            masterSignerMapper(signer)
-                        } + pair.second.map { signer -> signer.toModel() }
-                    )
-                }
-            }
-        }
+        loadSigners()
         viewModelScope.launch {
             membershipStepState.collect {
                 val news = _keys.value.map { addKeyData ->
@@ -112,7 +110,12 @@ class AddKeyListViewModel @Inject constructor(
                             )
                         }.getOrNull()
                         if (extra?.signerType == SignerType.COLDCARD_NFC || extra?.signerType == SignerType.AIRGAP) {
-                            val result = getRemoteSignerUseCase(GetRemoteSignerUseCase.Data(info.masterSignerId, extra.derivationPath))
+                            val result = getRemoteSignerUseCase(
+                                GetRemoteSignerUseCase.Data(
+                                    info.masterSignerId,
+                                    extra.derivationPath
+                                )
+                            )
                             if (result.isSuccess) {
                                 return@map addKeyData.copy(
                                     signer = result.getOrThrow().toModel(),
@@ -138,9 +141,30 @@ class AddKeyListViewModel @Inject constructor(
         }
     }
 
+    private fun loadSigners() {
+        viewModelScope.launch {
+            getCompoundSignersUseCase.execute().collect { pair ->
+                _state.update {
+                    singleSigners.apply {
+                        clear()
+                        addAll(pair.second)
+                    }
+                    it.copy(
+                        signers = pair.first.map { signer ->
+                            masterSignerMapper(signer)
+                        } + pair.second.map { signer -> signer.toModel() }
+                    )
+                }
+            }
+        }
+    }
+
     // COLDCARD or Airgap
     fun onSelectedExistingHardwareSigner(signer: SignerModel) {
         viewModelScope.launch {
+            val hasTag =
+                signer.tags.any { it == SignerTag.SEEDSIGNER || it == SignerTag.KEYSTONE || it == SignerTag.PASSPORT || it == SignerTag.JADE }
+            if (hasTag) {
                 saveMembershipStepUseCase(
                     MembershipStepInfo(
                         step = membershipStepManager.currentStep
@@ -157,8 +181,31 @@ class AddKeyListViewModel @Inject constructor(
                         )
                     )
                 )
+            } else {
+                savedStateHandle[KEY_CURRENT_SIGNER] = signer
+                _event.emit(AddKeyListEvent.SelectAirgapType)
+            }
         }
     }
+
+    fun onUpdateSignerTag(signer: SignerModel, tag: SignerTag) {
+        viewModelScope.launch {
+            singleSigners.find { it.masterFingerprint == signer.fingerPrint && it.derivationPath == signer.derivationPath }
+                ?.let { singleSigner ->
+                    val result =
+                        updateRemoteSignerUseCase.execute(singleSigner.copy(tags = listOf(tag)))
+                    if (result is Result.Success) {
+                        savedStateHandle[KEY_CURRENT_SIGNER] = null
+                        loadSigners()
+                        onSelectedExistingHardwareSigner(signer.copy(tags = listOf(tag)))
+                    } else {
+                        _event.emit(AddKeyListEvent.ShowError((result as Result.Error).exception.message.orUnknownError()))
+                    }
+                }
+        }
+    }
+
+    fun getUpdateSigner(): SignerModel? = savedStateHandle.get<SignerModel>(KEY_CURRENT_SIGNER)
 
     fun onAddKeyClicked(data: AddKeyData) {
         viewModelScope.launch {
@@ -195,7 +242,8 @@ class AddKeyListViewModel @Inject constructor(
             MembershipStepInfo(step = step, plan = membershipStepManager.plan)
         }
 
-    fun getTapSigners() = _state.value.signers.filter { it.type == SignerType.NFC && isSignerExist(it.fingerPrint).not() }
+    fun getTapSigners() =
+        _state.value.signers.filter { it.type == SignerType.NFC && isSignerExist(it.fingerPrint).not() }
 
     fun getColdcard() = _state.value.signers.filter {
         it.type == SignerType.COLDCARD_NFC
@@ -203,10 +251,21 @@ class AddKeyListViewModel @Inject constructor(
                 && isSignerExist(it.fingerPrint).not()
     }
 
-    fun getAirgap() = _state.value.signers.filter { it.type == SignerType.AIRGAP && isSignerExist(it.fingerPrint).not() }
+    fun getAirgap() =
+        _state.value.signers.filter { it.type == SignerType.AIRGAP && isSignerExist(it.fingerPrint).not() }
+
+    fun reuseKeyFromWallet(id: String) {
+        viewModelScope.launch {
+            val result = reuseKeyWalletUseCase(ReuseKeyWalletUseCase.Param(id, membershipStepManager.plan))
+            if (result.isFailure) {
+                _event.emit(AddKeyListEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
 
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"
+        private const val KEY_CURRENT_SIGNER = "current_signer"
     }
 }
 
@@ -214,6 +273,8 @@ sealed class AddKeyListEvent {
     data class OnAddKey(val data: AddKeyData) : AddKeyListEvent()
     data class OnVerifySigner(val signer: SignerModel, val filePath: String) : AddKeyListEvent()
     object OnAddAllKey : AddKeyListEvent()
+    object SelectAirgapType : AddKeyListEvent()
+    data class ShowError(val message: String) : AddKeyListEvent()
 }
 
 data class AddKeyListState(val signers: List<SignerModel> = emptyList())

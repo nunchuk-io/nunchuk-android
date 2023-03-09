@@ -42,6 +42,8 @@ import com.nunchuk.android.utils.trySafe
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import org.matrix.android.sdk.api.extensions.tryOrNull
+import org.matrix.android.sdk.api.session.file.FileService
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.read.ReadService
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
@@ -122,21 +124,17 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun checkInviteUser(room: Room) {
         viewModelScope.launch {
-            getContactsUseCase.execute()
-                .catch { }
-                .collect {
-                    if (it.isNotEmpty() && (currentId in it.map(Contact::chatId))) {
-                        leaveRoom(room)
-                    }
+            getContactsUseCase.execute().catch { }.collect {
+                if (it.isNotEmpty() && (currentId in it.map(Contact::chatId))) {
+                    leaveRoom(room)
                 }
+            }
         }
     }
 
     private fun leaveRoom(room: Room) {
         viewModelScope.launch {
-            leaveRoomUseCase.execute(room.roomId)
-                .flowOn(ioDispatcher)
-                .onException { }
+            leaveRoomUseCase.execute(room.roomId).flowOn(ioDispatcher).onException { }
                 .collect { event(LeaveRoomEvent) }
         }
     }
@@ -154,27 +152,22 @@ class RoomDetailViewModel @Inject constructor(
 
     private fun getDeveloperSettings() {
         viewModelScope.launch {
-            getDeveloperSettingUseCase.execute()
-                .flowOn(ioDispatcher)
-                .onException { }
+            getDeveloperSettingUseCase.execute().flowOn(ioDispatcher).onException { }
                 .collect { debugMode = it.debugMode }
         }
     }
 
     private fun getRoomWallet() {
         viewModelScope.launch {
-            getRoomWalletUseCase.execute(roomId = room.roomId)
-                .flowOn(ioDispatcher)
-                .onException {
-                    handleUpdateMessagesContent(roomWallet = null)
-                    sendErrorEvent(it)
+            getRoomWalletUseCase.execute(roomId = room.roomId).flowOn(ioDispatcher).onException {
+                handleUpdateMessagesContent(roomWallet = null)
+                sendErrorEvent(it)
+            }.collect { roomWallet ->
+                if (roomWallet != getState().roomWallet) {
+                    getTransactions()
+                    handleUpdateMessagesContent(roomWallet = roomWallet)
                 }
-                .collect { roomWallet ->
-                    if (roomWallet != getState().roomWallet) {
-                        getTransactions()
-                        handleUpdateMessagesContent(roomWallet = roomWallet)
-                    }
-                }
+            }
         }
     }
 
@@ -186,10 +179,7 @@ class RoomDetailViewModel @Inject constructor(
     private fun initSendEventExecutor() {
         SendEventHelper.executor = object : SendEventExecutor {
             override fun execute(
-                roomId: String,
-                type: String,
-                content: String,
-                ignoreError: Boolean
+                roomId: String, type: String, content: String, ignoreError: Boolean
             ): String {
                 Timber.d(" (${type}):  $content")
                 trySafe {
@@ -224,13 +214,11 @@ class RoomDetailViewModel @Inject constructor(
 
     private suspend fun handleTimelineEvents(events: List<TimelineEvent>) {
         Timber.tag(TAG).d("handleTimelineEvents:${events.size}")
-        val displayableEvents =
-            events.filter { it.isDisplayable(isSupportRoom) }
-                .filterNot { !debugMode && it.isNunchukErrorEvent() }
-                .groupEvents(loadMore = ::handleLoadMore)
+        val displayableEvents = events.filter { it.isDisplayable(isSupportRoom) }
+            .filterNot { !debugMode && it.isNunchukErrorEvent() }
+            .groupEvents(loadMore = ::handleLoadMore)
         val nunchukEvents = displayableEvents.filter(TimelineEvent::isNunchukEvent)
-            .filterNot(TimelineEvent::isNunchukErrorEvent)
-            .sortedByDescending(TimelineEvent::time)
+            .filterNot(TimelineEvent::isNunchukErrorEvent).sortedByDescending(TimelineEvent::time)
         val consumableEvents = nunchukEvents.map(TimelineEvent::toNunchukMatrixEvent)
             .filterNot(NunchukMatrixEvent::isLocalEvent)
             .sortedByDescending(NunchukMatrixEvent::time)
@@ -241,30 +229,24 @@ class RoomDetailViewModel @Inject constructor(
         sortedEvents: List<NunchukMatrixEvent>
     ) {
         val unConsumeEvents = sortedEvents.filterNot { it.eventId in consumedEventIds }
-        unConsumeEvents.chunked(20).asFlow()
-            .onStart {
-                isConsumingEvents.set(true)
+        unConsumeEvents.chunked(20).asFlow().onStart {
+            isConsumingEvents.set(true)
+        }.map { events ->
+            supervisorScope {
+                val tasks = events.filterNot { it.eventId in consumedEventIds }
+                    .map { event -> async { consumeEventUseCase(event) } }
+                tasks.awaitAll()
             }
-            .map { events ->
-                supervisorScope {
-                    val tasks = events.filterNot { it.eventId in consumedEventIds }
-                        .map { event -> async { consumeEventUseCase(event) } }
-                    tasks.awaitAll()
-                }
-                consumedEventIds.addAll(events.map { event -> event.eventId })
-            }
-            .flowOn(ioDispatcher)
-            .onEach {
-                onConsumeEventCompleted()
-                handleUpdateMessagesContent()
-            }
-            .onCompletion {
-                Timber.tag(TAG).d("onConsumeEventCompleted:${sortedEvents.size}")
-                onConsumeEventCompleted()
-                handleUpdateMessagesContent()
-                isConsumingEvents.set(false)
-            }
-            .collect()
+            consumedEventIds.addAll(events.map { event -> event.eventId })
+        }.flowOn(ioDispatcher).onEach {
+            onConsumeEventCompleted()
+            handleUpdateMessagesContent()
+        }.onCompletion {
+            Timber.tag(TAG).d("onConsumeEventCompleted:${sortedEvents.size}")
+            onConsumeEventCompleted()
+            handleUpdateMessagesContent()
+            isConsumingEvents.set(false)
+        }.collect()
     }
 
     private fun onConsumeEventCompleted() {
@@ -294,10 +276,8 @@ class RoomDetailViewModel @Inject constructor(
         }.filter { consumedEventIds.contains(it.eventId) }
         viewModelScope.launch {
             val eventIds = mapTransactionEvents(eventFilterNotLocal)
-            getTransactionsUseCase.execute(walletId, eventIds)
-                .flowOn(ioDispatcher)
-                .onException { sendErrorEvent(it) }
-                .collect { newTrans ->
+            getTransactionsUseCase.execute(walletId, eventIds).flowOn(ioDispatcher)
+                .onException { sendErrorEvent(it) }.collect { newTrans ->
                     if (newTrans != getState().transactions) {
                         updateState { copy(transactions = newTrans) }
                         handleUpdateMessagesContent(transactions = newTrans)
@@ -315,7 +295,6 @@ class RoomDetailViewModel @Inject constructor(
     }
 
     fun handleTitleClick() {
-        if (getState().isSupportRoom) return
         if (room.isDirectChat()) {
             setEvent(OpenChatInfoEvent)
         } else {
@@ -335,19 +314,15 @@ class RoomDetailViewModel @Inject constructor(
 
     fun cancelWallet() {
         viewModelScope.launch {
-            cancelWalletUseCase.execute(room.roomId)
-                .flowOn(ioDispatcher)
-                .onException { sendErrorEvent(it) }
-                .collect { getRoomWallet() }
+            cancelWalletUseCase.execute(room.roomId).flowOn(ioDispatcher)
+                .onException { sendErrorEvent(it) }.collect { getRoomWallet() }
         }
     }
 
     fun finalizeWallet() {
         viewModelScope.launch {
-            createSharedWalletUseCase.execute(room.roomId)
-                .flowOn(ioDispatcher)
-                .onException { sendErrorEvent(it) }
-                .collect {
+            createSharedWalletUseCase.execute(room.roomId).flowOn(ioDispatcher)
+                .onException { sendErrorEvent(it) }.collect {
                     getRoomWallet()
                     setEvent(RoomWalletCreatedEvent)
                 }
@@ -371,10 +346,8 @@ class RoomDetailViewModel @Inject constructor(
             setEvent(CreateNewSharedWallet)
         } else {
             viewModelScope.launch {
-                getWalletUseCase.execute(walletId = roomWallet.walletId)
-                    .flowOn(ioDispatcher)
-                    .onException { sendErrorEvent(it) }
-                    .collect { onGetWallet(it.wallet) }
+                getWalletUseCase.execute(walletId = roomWallet.walletId).flowOn(ioDispatcher)
+                    .onException { sendErrorEvent(it) }.collect { onGetWallet(it.wallet) }
             }
         }
     }
@@ -402,23 +375,18 @@ class RoomDetailViewModel @Inject constructor(
 
     fun hideBannerNewChat() {
         viewModelScope.launch {
-            hideBannerNewChatUseCase.execute()
-                .flowOn(ioDispatcher)
-                .catch { }
+            hideBannerNewChatUseCase.execute().flowOn(ioDispatcher).catch { }
                 .collect { setEvent(HideBannerNewChatEvent) }
         }
     }
 
     fun checkShowBannerNewChat() {
         viewModelScope.launch {
-            checkShowBannerNewChatUseCase.execute()
-                .flowOn(ioDispatcher)
-                .onException { }
-                .collect {
-                    if (!it) {
-                        setEvent(HideBannerNewChatEvent)
-                    }
+            checkShowBannerNewChatUseCase.execute().flowOn(ioDispatcher).onException { }.collect {
+                if (!it) {
+                    setEvent(HideBannerNewChatEvent)
                 }
+            }
         }
     }
 
@@ -440,11 +408,10 @@ class RoomDetailViewModel @Inject constructor(
         loadMessageJob?.cancel()
         loadMessageJob = viewModelScope.launch {
             val newMessages = withContext(ioDispatcher) {
-                val displayableEvents =
-                    timelineListenerAdapter.getLastTimeEvents()
-                        .filter { it.isDisplayable(isSupportRoom) }
-                        .filterNot { !debugMode && it.isNunchukErrorEvent() }
-                        .groupEvents(loadMore = ::handleLoadMore)
+                val displayableEvents = timelineListenerAdapter.getLastTimeEvents()
+                    .filter { it.isDisplayable(isSupportRoom) }
+                    .filterNot { !debugMode && it.isNunchukErrorEvent() }
+                    .groupEvents(loadMore = ::handleLoadMore)
                 displayableEvents.toMessages(
                     currentId,
                     roomWallet,
@@ -489,7 +456,9 @@ class RoomDetailViewModel @Inject constructor(
             setEvent(Loading(true))
             val result = sendMediaUseCase(SendMediaUseCase.Data(room, uri))
             setEvent(Loading(false))
-            if (result.isFailure) {
+            if (result.isSuccess) {
+                setEvent(OnSendMediaSuccess)
+            } else {
                 setEvent(ShowError(result.exceptionOrNull()?.message.orUnknownError()))
             }
         }
@@ -500,6 +469,40 @@ class RoomDetailViewModel @Inject constructor(
     fun clearEvent() {
         if (event.value != None) {
             setEvent(None)
+        }
+    }
+
+    fun downloadOrOpen(message: NunchukFileMessage) {
+        val mxcUrl = message.url
+        val isLocalSendingFile = message.isMine && mxcUrl.startsWith("content://")
+        if (isLocalSendingFile) {
+            tryOrNull { Uri.parse(mxcUrl) }?.let {
+                setEvent(OpenFile(it, message.mimeType))
+            }
+        } else {
+            viewModelScope.launch {
+                val fileService =
+                    sessionHolder.getSafeActiveSession()?.fileService() ?: return@launch
+                val fileState = fileService.fileState(
+                    mxcUrl, message.filename, message.mimeType, message.elementToDecrypt
+                )
+                var canOpen =
+                    fileState is FileService.FileState.InCache && fileState.decryptedFileInCache
+                if (!canOpen) {
+                    // First download, or download and decrypt, or decrypt from cache
+                    val result = runCatching {
+                        fileService.downloadFile(message)
+                    }
+                    canOpen = result.isSuccess
+                }
+                if (canOpen) {
+                    fileService.getTemporarySharableURI(
+                        mxcUrl, message.filename, message.mimeType, message.elementToDecrypt
+                    )?.let { uri ->
+                        setEvent(OpenFile(uri, message.mimeType))
+                    }
+                }
+            }
         }
     }
 

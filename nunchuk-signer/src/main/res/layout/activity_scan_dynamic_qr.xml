@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:fitsSystemWindows="true">
 
     <androidx.appcompat.widget.Toolbar
@@ -35,5 +36,25 @@
         app:zxing_scanner_layout="@layout/view_scanner"
         app:zxing_use_texture_view="true" />
 
+    <TextView
+        android:id="@+id/tv_percentage"
+        style="@style/NCText.Body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/nc_padding_16"
+        android:textColor="@color/nc_white_color"
+        app:layout_constraintBottom_toBottomOf="@+id/barcodeView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="45%" />
 
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progress_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="100"
+        app:indicatorColor="@color/nc_red_color"
+        app:layout_constraintTop_toTopOf="@+id/barcodeView"
+        app:trackColor="@color/nc_whisper_color"
+        tools:progress="50" />
 </androidx.constraintlayout.widget.ConstraintLayout>

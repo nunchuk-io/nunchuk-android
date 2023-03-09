@@ -132,6 +132,8 @@ data class CreateUpdateInheritancePlanRequest(
         val activationTimeMilis: Long? = null,
         @SerializedName("wallet")
         val walletId: String? = null,
+        @SerializedName("buffer_period_id")
+        val bufferPeriodId: String? = null
     )
 }
 
@@ -221,3 +223,7 @@ data class TransactionAdditionalResponse(
     @SerializedName("sub_amount") val subAmount: Double? = null
 )
 
+data class DeleteAssistedWalletRequest(
+    @SerializedName("nonce")
+    val nonce: String? = null
+)

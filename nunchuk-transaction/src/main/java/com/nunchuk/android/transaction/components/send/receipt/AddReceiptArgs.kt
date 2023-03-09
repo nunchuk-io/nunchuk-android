@@ -27,6 +27,8 @@ import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.getDoubleValue
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.utils.parcelableArrayList
+import com.nunchuk.android.utils.serializable
 
 data class AddReceiptArgs(
     val walletId: String,
@@ -72,10 +74,10 @@ data class AddReceiptArgs(
             intent.extras.getDoubleValue(EXTRA_OUTPUT_AMOUNT),
             intent.extras.getDoubleValue(EXTRA_AVAILABLE_AMOUNT),
             intent.extras.getBooleanValue(EXTRA_SUBTRACT_FEE),
-            intent.extras!!.getParcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
+            intent.extras?.parcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
             intent.extras.getStringValue(EXTRA_ADDRESS),
             intent.extras.getStringValue(EXTRA_PRIVATE_NOTE),
-            intent.extras!!.getSerializable(EXTRA_SWEEP_TYPE) as SweepType,
+            intent.extras?.serializable(EXTRA_SWEEP_TYPE)!!,
             intent.extras.getStringValue(EXTRA_MASTER_SIGNER_ID),
             intent.extras.getStringValue(EXTRA_MAGICAL_PHRASE)
         )

@@ -21,6 +21,7 @@ package com.nunchuk.android.wallet.components.upload
 
 import android.content.Context
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
@@ -33,7 +34,12 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploadConfigurationBinding>() {
 
-    private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
+    private val launcher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            goToWalletConfigScreen()
+        }
+
+    private val controller: IntentSharingController by lazy { IntentSharingController.from(this, launcher) }
 
     private val args: UploadConfigurationArgs by lazy { UploadConfigurationArgs.deserializeFrom(intent) }
 
@@ -48,7 +54,7 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
     }
 
     private fun setupViews() {
-        binding.btnQRCode.setOnDebounceClickListener { sharedViewModel.handleExportWalletQR() }
+        binding.btnQRCode.setOnDebounceClickListener { openDynamicQRScreen(args.walletId) }
         binding.btnUpload.setOnDebounceClickListener { showExportColdcardOptions() }
         binding.btnSkipUpload.setOnDebounceClickListener {
             goToWalletConfigScreen()
@@ -67,7 +73,6 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
         if (filePath.isNullOrEmpty().not()) {
             controller.shareFile(filePath.orEmpty())
         }
-        goToWalletConfigScreen()
     }
 
     private fun goToWalletConfigScreen() {

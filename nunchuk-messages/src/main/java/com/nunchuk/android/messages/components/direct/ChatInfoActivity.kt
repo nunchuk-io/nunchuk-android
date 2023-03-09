@@ -22,6 +22,7 @@ package com.nunchuk.android.messages.components.direct
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.databinding.ItemWalletBinding
@@ -65,7 +66,12 @@ class ChatInfoActivity : BaseActivity<ActivityChatInfoBinding>() {
     }
 
     private fun openInputAmountScreen(roomId: String, walletId: String, amount: Double) {
-        navigator.openInputAmountScreen(activityContext = this, roomId = roomId, walletId = walletId, availableAmount = amount)
+        navigator.openInputAmountScreen(
+            activityContext = this,
+            roomId = roomId,
+            walletId = walletId,
+            availableAmount = amount
+        )
     }
 
     private fun observeEvent() {
@@ -74,21 +80,29 @@ class ChatInfoActivity : BaseActivity<ActivityChatInfoBinding>() {
     }
 
     private fun handleState(state: ChatInfoState) {
-        state.contact?.let {
-            binding.name.text = it.name
-            binding.email.text = it.email
-            binding.avatarHolder.text = it.name.shorten()
-        }
-        state.wallet?.let { wallet ->
-            walletBinding.root.isVisible = true
-            walletBinding.bindRoomWallet(wallet)
-            binding.joinWalletLabel.text = getString(R.string.nc_message_spend_from_shared_wallet)
-            binding.joinWallet.setImageResource(R.drawable.ic_spend)
-            walletBinding.root.setOnClickListener { openWalletDetailsScreen(wallet.id) }
-        } ?: run {
-            walletBinding.root.isVisible = false
-            binding.joinWalletLabel.text = getString(R.string.nc_message_create_shared_wallet)
-            binding.joinWallet.setImageResource(R.drawable.ic_joint_wallet)
+        binding.joinWalletLabel.isGone = state.isSupportRoom
+        binding.joinWalletContainer.isGone = state.isSupportRoom
+        binding.avatar.isVisible = state.isSupportRoom
+        if (state.isSupportRoom) {
+            binding.name.text = getString(R.string.nc_support)
+        } else {
+            state.contact?.let {
+                binding.name.text = it.name
+                binding.email.text = it.email
+                binding.avatarHolder.text = it.name.shorten()
+            }
+            state.wallet?.let { wallet ->
+                walletBinding.root.isVisible = true
+                walletBinding.bindRoomWallet(wallet)
+                binding.joinWalletLabel.text =
+                    getString(R.string.nc_message_spend_from_shared_wallet)
+                binding.joinWallet.setImageResource(R.drawable.ic_spend)
+                walletBinding.root.setOnClickListener { openWalletDetailsScreen(wallet.id) }
+            } ?: run {
+                walletBinding.root.isVisible = false
+                binding.joinWalletLabel.text = getString(R.string.nc_message_create_shared_wallet)
+                binding.joinWallet.setImageResource(R.drawable.ic_joint_wallet)
+            }
         }
     }
 
@@ -100,7 +114,11 @@ class ChatInfoActivity : BaseActivity<ActivityChatInfoBinding>() {
         when (event) {
             RoomNotFoundEvent -> NCToastMessage(this).showError(getString(R.string.nc_message_room_not_found))
             CreateSharedWalletEvent -> openCreateSharedWalletScreen()
-            is CreateTransactionEvent -> openInputAmountScreen(roomId = event.roomId, walletId = event.walletId, amount = event.availableAmount)
+            is CreateTransactionEvent -> openInputAmountScreen(
+                roomId = event.roomId,
+                walletId = event.walletId,
+                amount = event.availableAmount
+            )
         }
     }
 

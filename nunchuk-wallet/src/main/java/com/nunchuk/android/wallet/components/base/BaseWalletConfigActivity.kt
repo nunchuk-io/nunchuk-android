@@ -54,8 +54,6 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
         when (option.type) {
             SheetOptionType.EXPORT_COLDCARD_VIA_NFC -> handleColdcardExportToNfc()
             SheetOptionType.EXPORT_COLDCARD_VIA_FILE -> handleColdcardExportToFile()
-            SheetOptionType.TYPE_EXPORT_KEYSTONE_QR -> sharedViewModel.handleExportWalletQR()
-            SheetOptionType.TYPE_EXPORT_PASSPORT_QR -> sharedViewModel.handleExportPassport()
         }
     }
 
@@ -76,27 +74,9 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
     protected open fun handleSharedEvent(event: UploadConfigurationEvent) {
         when (event) {
             is UploadConfigurationEvent.ShowError -> showError(event)
-            is UploadConfigurationEvent.OpenDynamicQRScreen -> openDynamicQRScreen(event)
             is UploadConfigurationEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading, true)
             else -> {}
         }
-    }
-
-    fun showSubOptionsExportQr() {
-        val options = listOf(
-            SheetOption(
-                type = SheetOptionType.TYPE_EXPORT_KEYSTONE_QR,
-                resId = R.drawable.ic_qr,
-                stringId = R.string.nc_export_as_qr_keystone
-            ),
-            SheetOption(
-                type = SheetOptionType.TYPE_EXPORT_PASSPORT_QR,
-                resId = R.drawable.ic_qr,
-                stringId = R.string.nc_export_as_passport
-            ),
-        )
-        val bottomSheet = BottomSheetOption.newInstance(options)
-        bottomSheet.show(supportFragmentManager, "BottomSheetOption")
     }
 
     fun showExportColdcardOptions() {
@@ -110,14 +90,14 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
                 SheetOption(
                     type = SheetOptionType.EXPORT_COLDCARD_VIA_FILE,
                     resId = R.drawable.ic_export,
-                    stringId = R.string.nc_export_via_file
+                    stringId = R.string.nc_export_via_file_advance
                 )
             )
         ).show(supportFragmentManager, "BottomSheetOption")
     }
 
-    private fun openDynamicQRScreen(event: UploadConfigurationEvent.OpenDynamicQRScreen) {
-        navigator.openDynamicQRScreen(this, launcher, event.walletId, event.values)
+    fun openDynamicQRScreen(walletId: String) {
+        navigator.openDynamicQRScreen(this, launcher, walletId)
     }
 
     protected fun showError(event: UploadConfigurationEvent.ShowError) {

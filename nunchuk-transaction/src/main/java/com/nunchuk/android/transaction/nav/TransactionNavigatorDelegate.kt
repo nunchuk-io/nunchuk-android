@@ -27,7 +27,6 @@ import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nav.TransactionNavigator
-import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.transaction.components.details.TransactionDetailsActivity
 import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeActivity
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
@@ -212,7 +211,6 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         launcher: ActivityResultLauncher<Intent>?,
         activityContext: Activity,
         walletId: String,
-        transactionOption: TransactionOption,
         masterFingerPrint: String,
         initEventId: String,
         isDummyTx: Boolean,
@@ -221,7 +219,6 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         val intent = ImportTransactionActivity.buildIntent(
             activityContext = activityContext,
             walletId = walletId,
-            transactionOption = transactionOption,
             masterFingerPrint = masterFingerPrint,
             initEventId = initEventId,
             isDummyTx = isDummyTx,
@@ -240,7 +237,6 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         walletId: String,
         txId: String,
         txToSign: String,
-        transactionOption: TransactionOption,
         isDummyTx: Boolean
     ) {
         val intent = ExportTransactionActivity.buildIntent(
@@ -248,7 +244,6 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             walletId = walletId,
             txId = txId,
             txToSign = txToSign,
-            transactionOption = transactionOption,
             isDummyTx = isDummyTx
         )
         if (launcher != null) {

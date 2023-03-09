@@ -33,10 +33,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="@dimen/nc_padding_8"
-                android:lines="2"
                 android:gravity="center"
                 android:textColor="@color/nc_black_color"
-                android:textSize="@dimen/nc_text_size_16"
+                android:textSize="@dimen/nc_text_size_14"
                 tools:text="bc1qepuayeutds0ys0q82g3ucad7r0eqk0dpusmxwvlpn5wkjcmhv6sqyulylk" />
         </androidx.appcompat.widget.LinearLayoutCompat>
 

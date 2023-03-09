@@ -23,32 +23,32 @@ import android.nfc.tech.IsoDep
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.domain.BaseNfcUseCase
-import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
-import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
+import com.nunchuk.android.core.domain.*
 import com.nunchuk.android.core.domain.membership.GetServerWalletUseCase
+import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
+import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
-import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.*
+import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
+import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
-import com.nunchuk.android.usecase.user.*
+import com.nunchuk.android.usecase.user.IsHideUpsellBannerUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
@@ -63,33 +63,21 @@ internal class WalletsViewModel @Inject constructor(
     private val accountManager: AccountManager,
     private val getUserSubscriptionUseCase: GetUserSubscriptionUseCase,
     private val getServerWalletUseCase: GetServerWalletUseCase,
-    private val assistedWalletManager: AssistedWalletManager,
     private val getInheritanceUseCase: GetInheritanceUseCase,
     private val getBannerUseCase: GetBannerUseCase,
-    isRegisterAirgapUseCase: IsRegisterAirgapUseCase,
-    isRegisterColdcardUseCase: IsRegisterColdcardUseCase,
+    private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
+    private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
+    private val checkWalletPinUseCase: CheckWalletPinUseCase,
+    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
+    private val getWalletPinUseCase: GetWalletPinUseCase,
     isShowNfcUniversalUseCase: IsShowNfcUniversalUseCase,
-    isSetupInheritanceUseCase: IsSetupInheritanceUseCase,
     isHideUpsellBannerUseCase: IsHideUpsellBannerUseCase,
-    private val setSetupInheritanceUseCase: SetSetupInheritanceUseCase
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
 
     val isShownNfcUniversal = isShowNfcUniversalUseCase(Unit)
         .map { it.getOrElse { false } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
-
-    private val isRegisterAirgap = isRegisterAirgapUseCase(Unit)
-        .map { it.getOrElse { false } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    private val isRegisterColdcard = isRegisterColdcardUseCase(Unit)
-        .map { it.getOrElse { false } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    private val isSetupInheritance = isSetupInheritanceUseCase(Unit)
-        .map { it.getOrElse { false } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val isHideUpsellBanner = isHideUpsellBannerUseCase(Unit)
         .map { it.getOrElse { false } }
@@ -101,12 +89,13 @@ internal class WalletsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            assistedWalletManager.assistedWalletId.distinctUntilChanged().collect {
-                if (assistedWalletManager.isActiveAssistedWallet(it)) {
-                    updateState { copy(assistedWalletId = it) }
+            getAssistedWalletsFlowUseCase(Unit).map { it.getOrElse { emptyList() } }
+                .distinctUntilChanged()
+                .collect {
+                    updateState { copy(assistedWallets = it) }
+                    checkMemberMembership()
+                    checkInheritance(it)
                 }
-                checkMemberMembership()
-            }
         }
         viewModelScope.launch {
             membershipStepManager.remainingTime.collect {
@@ -114,21 +103,43 @@ internal class WalletsViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            isSetupInheritance.collect {
-                updateState { copy(isSetupInheritance = it) }
+            isHideUpsellBanner.collect {
+                updateState { copy(isHideUpsellBanner = it) }
             }
         }
         viewModelScope.launch {
-            isHideUpsellBanner.collect {
-                updateState { copy(isHideUpsellBanner = it) }
+            getWalletSecuritySettingUseCase(Unit)
+                .collect {
+                    updateState {
+                        copy(
+                            walletSecuritySetting = it.getOrNull() ?: WalletSecuritySetting()
+                        )
+                    }
+                }
+        }
+        viewModelScope.launch {
+            getWalletPinUseCase(Unit).collect {
+                updateState { copy(currentWalletPin = it.getOrDefault("")) }
             }
         }
     }
 
     fun reloadMembership() {
         viewModelScope.launch {
-            delay(300L)
+            delay(1000L)
             checkMemberMembership()
+        }
+    }
+
+    private suspend fun checkInheritance(wallets: List<AssistedWalletBrief>) {
+        val honeyWalletsUnSetupInheritance =
+            wallets.filter { it.plan == MembershipPlan.HONEY_BADGER }
+        supervisorScope {
+            honeyWalletsUnSetupInheritance.map {
+                async {
+                    getInheritanceUseCase(it.localId)
+                }
+            }.awaitAll()
         }
     }
 
@@ -137,8 +148,6 @@ internal class WalletsViewModel @Inject constructor(
             val result = getUserSubscriptionUseCase(Unit)
             if (result.isSuccess) {
                 val subscription = result.getOrThrow()
-                val isPremiumUser = subscription.subscriptionId.isNullOrEmpty()
-                    .not() && subscription.plan != MembershipPlan.NONE
                 val getServerWalletResult = getServerWalletUseCase(Unit)
                 if (getServerWalletResult.isFailure) return@launch
                 if (getServerWalletResult.isSuccess && getServerWalletResult.getOrThrow().isNeedReload) {
@@ -146,28 +155,9 @@ internal class WalletsViewModel @Inject constructor(
                 }
                 keyPolicyMap.clear()
                 keyPolicyMap.putAll(getServerWalletResult.getOrNull()?.keyPolicyMap.orEmpty())
-                val walletLocalId =
-                    getServerWalletResult.getOrThrow().planWalletCreated[subscription.slug].orEmpty()
-                var isSetupInheritance = subscription.plan != MembershipPlan.HONEY_BADGER
-                if (walletLocalId.isNotEmpty() && subscription.plan == MembershipPlan.HONEY_BADGER) {
-                    val inheritanceResult = getInheritanceUseCase(walletLocalId)
-                    isSetupInheritance =
-                        inheritanceResult.isSuccess && inheritanceResult.getOrThrow().status != InheritanceStatus.PENDING_CREATION
-                    setSetupInheritanceUseCase(isSetupInheritance)
-                }
-                updateState {
-                    copy(
-                        isPremiumUser = isPremiumUser,
-                        isCreatedAssistedWallet = walletLocalId.isNotEmpty(),
-                        isSetupInheritance = isSetupInheritance
-                    )
-                }
+                updateState { copy(plan = subscription.plan) }
             } else {
-                updateState {
-                    copy(
-                        isPremiumUser = false,
-                    )
-                }
+                updateState { copy(plan = MembershipPlan.NONE) }
             }
             if (result.getOrNull()?.subscriptionId.isNullOrEmpty() && isHideUpsellBanner.value.not()) {
                 val bannerResult = getBannerUseCase(Unit)
@@ -288,16 +278,65 @@ internal class WalletsViewModel @Inject constructor(
         } + singleSigners.map(SingleSigner::toModel)
     }
 
+    // Don't change, logic is very complicated :D
     fun getGroupStage(): MembershipStage {
-        if (getState().isCreatedAssistedWallet && getState().isSetupInheritance) return MembershipStage.DONE
-        if (getState().isCreatedAssistedWallet && getState().isSetupInheritance.not()) return MembershipStage.SETUP_INHERITANCE
-        if (membershipStepManager.isNotConfig()) return MembershipStage.NONE
-        return MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
+        val plan = getState().plan
+        val assistedWallets = getState().assistedWallets
+        when (plan) {
+            MembershipPlan.IRON_HAND -> {
+                return when {
+                    assistedWallets.isNotEmpty() && membershipStepManager.isNotConfig() -> MembershipStage.DONE
+                    membershipStepManager.isNotConfig() -> MembershipStage.NONE
+                    else -> MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
+                }
+            }
+            MembershipPlan.HONEY_BADGER -> {
+                return when {
+                    assistedWallets.all { it.isSetupInheritance } && assistedWallets.isNotEmpty() && membershipStepManager.isNotConfig() -> MembershipStage.DONE
+                    // Only show setup Inheritance banner with first assisted wallet
+                    assistedWallets.isNotEmpty() && assistedWallets.first().isSetupInheritance.not() && membershipStepManager.isNotConfig() -> MembershipStage.SETUP_INHERITANCE
+                    assistedWallets.isEmpty() && membershipStepManager.isNotConfig() -> MembershipStage.NONE
+                    assistedWallets.isNotEmpty() && membershipStepManager.isNotConfig() -> MembershipStage.DONE
+                    else -> MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
+                }
+            }
+            else -> return MembershipStage.DONE // no subscription plan it means done
+        }
     }
 
-    fun isRegisterWalletDone() = isRegisterAirgap.value && isRegisterColdcard.value
+    fun getAssistedWalletId() = getState().assistedWallets.firstOrNull()?.localId
 
     fun getKeyPolicy(walletId: String) = keyPolicyMap[walletId]
 
-    fun isPremiumUser() = getState().isPremiumUser == true
+    fun isPremiumUser() = getState().plan != null && getState().plan != MembershipPlan.NONE
+
+    fun clearEvent() = event(None)
+
+    fun isWalletPinEnable() =
+        getState().walletSecuritySetting.protectWalletPin && getState().currentWalletPin.isBlank()
+            .not()
+
+    fun isWalletPasswordEnable() = getState().walletSecuritySetting.protectWalletPassword
+
+    fun checkWalletPin(input: String, walletId: String) = viewModelScope.launch {
+        val match = checkWalletPinUseCase(input).getOrDefault(false)
+        event(CheckWalletPin(match, walletId))
+    }
+
+    fun confirmPassword(password: String, walletId: String) = viewModelScope.launch {
+        if (password.isBlank()) {
+            return@launch
+        }
+        val result = verifiedPasswordTokenUseCase(
+            VerifiedPasswordTokenUseCase.Param(
+                password = password,
+                targetAction = VerifiedPasswordTargetAction.PROTECT_WALLET.name
+            )
+        )
+        if (result.isSuccess) {
+            event(VerifyPasswordSuccess(walletId))
+        } else {
+            event(ShowErrorEvent(result.exceptionOrNull()))
+        }
+    }
 }

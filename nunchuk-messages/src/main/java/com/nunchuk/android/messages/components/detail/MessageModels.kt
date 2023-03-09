@@ -93,14 +93,34 @@ data class NunchukMediaMessage(
     override val sender: SenderInfo,
     override val content: String,
     override val time: Long,
-    val eventId: String,
+    override val eventId: String,
     val isMine: Boolean,
-    val filename: String,
-    val mimeType: String?,
-    val elementToDecrypt: ElementToDecrypt?,
+    override val filename: String,
+    override val mimeType: String?,
+    override val elementToDecrypt: ElementToDecrypt?,
     val height: Int?,
     val width: Int?,
-    val allowNonMxcUrls: Boolean = false
+    val allowNonMxcUrls: Boolean = false,
+    override val error: String?,
 ) : Message(
     sender, content, SendState.UNKNOWN, time, MessageType.TYPE_IMAGE_AND_VIDEO.index
-)
+), NunchukMedia {
+    override val url: String
+        get() = content
+}
+
+data class NunchukFileMessage(
+    override val sender: SenderInfo,
+    override val content: String,
+    override val time: Long,
+    val isMine: Boolean,
+    override val eventId: String,
+    override val filename: String,
+    override val mimeType: String?,
+    override val elementToDecrypt: ElementToDecrypt?,
+    override val error: String?,
+) : Message(
+    sender, content, SendState.UNKNOWN, time, MessageType.TYPE_FILE.index
+), NunchukMedia {
+    override val url: String = content
+}

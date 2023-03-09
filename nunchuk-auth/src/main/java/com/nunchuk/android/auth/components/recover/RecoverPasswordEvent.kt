@@ -19,6 +19,8 @@
 
 package com.nunchuk.android.auth.components.recover
 
+import com.nunchuk.android.core.network.ErrorDetail
+
 internal sealed class RecoverPasswordEvent {
     object OldPasswordRequiredEvent : RecoverPasswordEvent()
     object NewPasswordRequiredEvent : RecoverPasswordEvent()
@@ -27,7 +29,14 @@ internal sealed class RecoverPasswordEvent {
     object OldPasswordValidEvent : RecoverPasswordEvent()
     object NewPasswordValidEvent : RecoverPasswordEvent()
     object ConfirmPasswordValidEvent : RecoverPasswordEvent()
-    object RecoverPasswordSuccessEvent : RecoverPasswordEvent()
+    data class RecoverPasswordSuccessEvent(val token: String, val deviceId: String) :
+        RecoverPasswordEvent()
+
     object LoadingEvent : RecoverPasswordEvent()
     data class RecoverPasswordErrorEvent(val errorMessage: String?) : RecoverPasswordEvent()
+    data class SignInErrorEvent(
+        val code: Int? = null,
+        val message: String? = null,
+        val errorDetail: ErrorDetail? = null
+    ) : RecoverPasswordEvent()
 }

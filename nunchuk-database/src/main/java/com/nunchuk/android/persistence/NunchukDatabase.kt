@@ -19,17 +19,12 @@
 
 package com.nunchuk.android.persistence
 
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.nunchuk.android.persistence.dao.ContactDao
-import com.nunchuk.android.persistence.dao.MembershipStepDao
-import com.nunchuk.android.persistence.dao.SyncEventDao
-import com.nunchuk.android.persistence.dao.SyncFileDao
-import com.nunchuk.android.persistence.entity.ContactEntity
-import com.nunchuk.android.persistence.entity.MembershipStepEntity
-import com.nunchuk.android.persistence.entity.SyncEventEntity
-import com.nunchuk.android.persistence.entity.SyncFileEntity
+import com.nunchuk.android.persistence.dao.*
+import com.nunchuk.android.persistence.entity.*
 
 @Database(
     entities = [
@@ -37,9 +32,15 @@ import com.nunchuk.android.persistence.entity.SyncFileEntity
         SyncFileEntity::class,
         MembershipStepEntity::class,
         SyncEventEntity::class,
+        HandledEventEntity::class,
+        AssistedWalletEntity::class,
     ],
     version = DATABASE_VERSION,
     exportSchema = true,
+    autoMigrations = [
+        AutoMigration(from = 5, to = 6),
+        AutoMigration(from = 6, to = 7),
+    ]
 )
 @TypeConverters(Converters::class)
 internal abstract class NunchukDatabase : RoomDatabase() {
@@ -47,4 +48,6 @@ internal abstract class NunchukDatabase : RoomDatabase() {
     abstract fun syncFileDao(): SyncFileDao
     abstract fun membershipDao(): MembershipStepDao
     abstract fun syncEventDao(): SyncEventDao
+    abstract fun handledEventDao(): HandledEventDao
+    abstract fun assistedWalletDao(): AssistedWalletDao
 }

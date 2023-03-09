@@ -19,22 +19,22 @@
 
 package com.nunchuk.android.main.components.tabs.services
 
-import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.AssistedWalletBottomSheet
 import com.nunchuk.android.main.databinding.FragmentServicesTabBinding
 import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
@@ -45,27 +45,38 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
 
-    private val viewModel: ServicesTabViewModel by viewModels()
+    private val viewModel: ServicesTabViewModel by activityViewModels()
     private lateinit var adapter: ServicesTabAdapter
-
-    private val launcher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            val data = it.data?.extras
-            if (it.resultCode == Activity.RESULT_OK && data != null) {
-                val isUpdate =
-                    data.getBoolean(GlobalResultKey.UPDATE_INHERITANCE)
-                if (isUpdate) viewModel.updateInheritance()
-            }
-        }
+    private var currentSelectedItem: ServiceTabRowItem? = null
 
     override fun initializeBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
     ) = FragmentServicesTabBinding.inflate(inflater, container, false)
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        savedInstanceState?.let { currentSelectedItem = it.parcelable(EXTRA_SELECTED_ITEM) }
+    }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupViews()
+
+        childFragmentManager.setFragmentResultListener(AssistedWalletBottomSheet.TAG, viewLifecycleOwner) { _, bundle ->
+            val walletId = bundle.getString(GlobalResultKey.WALLET_ID).orEmpty()
+            val item = currentSelectedItem
+            if (item == ServiceTabRowItem.SetUpInheritancePlan) {
+                navigator.openInheritancePlanningScreen(
+                    walletId = walletId,
+                    activityContext = requireContext(),
+                    flowInfo = InheritancePlanFlow.SETUP
+                )
+            } else {
+                if (walletId.isNotEmpty() && item != null) {
+                    enterPasswordDialog(item, walletId)
+                }
+            }
+        }
 
         flowObserver(viewModel.event) { event ->
             when (event) {
@@ -80,8 +91,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 is ServicesTabEvent.CheckInheritance -> {
                     if (event.inheritanceCheck.isPaid) {
                         navigator.openInheritancePlanningScreen(
-                            launcher = launcher,
-                            requireContext(),
+                            activityContext = requireContext(),
                             flowInfo = InheritancePlanFlow.CLAIM
                         )
                     } else {
@@ -89,7 +99,19 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     }
                 }
                 is ServicesTabEvent.EmailInvalid -> showError(getString(R.string.nc_text_email_invalid))
-                is ServicesTabEvent.OnSubmitEmailSuccess -> showSuccess(message = getString(R.string.nc_we_sent_an_email, event.email))
+                is ServicesTabEvent.OnSubmitEmailSuccess -> showSuccess(
+                    message = getString(
+                        R.string.nc_we_sent_an_email,
+                        event.email
+                    )
+                )
+                is ServicesTabEvent.GetInheritanceSuccess -> navigator.openInheritancePlanningScreen(
+                    walletId = event.walletId,
+                    requireContext(),
+                    verifyToken = event.token,
+                    inheritance = event.inheritance,
+                    flowInfo = InheritancePlanFlow.VIEW
+                )
             }
         }
         flowObserver(viewModel.state) { state ->
@@ -100,6 +122,11 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 binding.claimLayout.isVisible = state.isPremiumUser.not()
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        currentSelectedItem?.let { outState.putParcelable(EXTRA_SELECTED_ITEM, it) }
     }
 
     private fun handleGoOurWebsite() {
@@ -124,21 +151,16 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
     private fun handleCheckPasswordSuccess(event: ServicesTabEvent.CheckPasswordSuccess) {
         when (event.item) {
             ServiceTabRowItem.CoSigningPolicies -> {
-                viewModel.getServiceKey(event.token)
+                viewModel.getServiceKey(event.token, event.walletId)
             }
             ServiceTabRowItem.EmergencyLockdown -> {
                 navigator.openEmergencyLockdownScreen(requireContext(), event.token)
             }
-            ServiceTabRowItem.ViewInheritancePlan -> {
-                navigator.openInheritancePlanningScreen(
-                    launcher = launcher,
-                    requireContext(),
-                    verifyToken = event.token,
-                    inheritance = viewModel.getInheritance(),
-                    flowInfo = InheritancePlanFlow.VIEW
-                )
-            }
-            else -> {}
+            ServiceTabRowItem.ViewInheritancePlan -> viewModel.getInheritance(
+                event.walletId,
+                event.token
+            )
+            else -> Unit
         }
     }
 
@@ -168,6 +190,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
     }
 
     private fun onTabItemClick(item: ServiceTabRowItem) {
+        currentSelectedItem = item
         if (isCheckWalletCreationState(item)) {
             val textAction =
                 if (viewModel.getGroupStage() == MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS) {
@@ -184,19 +207,33 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
         }
         when (item) {
             ServiceTabRowItem.ClaimInheritance -> viewModel.checkInheritance()
-            ServiceTabRowItem.CoSigningPolicies, ServiceTabRowItem.EmergencyLockdown -> enterPasswordDialog(item)
+            ServiceTabRowItem.EmergencyLockdown -> enterPasswordDialog(item)
             ServiceTabRowItem.KeyRecovery -> navigator.openKeyRecoveryScreen(requireContext())
             ServiceTabRowItem.ManageSubscription -> showManageSubscriptionDialog()
             ServiceTabRowItem.OrderNewHardware -> showOrderNewHardwareDialog()
             ServiceTabRowItem.RollOverAssistedWallet -> {}
             ServiceTabRowItem.SetUpInheritancePlan -> {
-                navigator.openInheritancePlanningScreen(
-                    launcher = launcher,
-                    requireContext(),
-                    flowInfo = InheritancePlanFlow.SETUP
-                )
+                val wallets = viewModel.getUnSetupInheritanceWallets()
+                if (wallets.size == 1) {
+                    navigator.openInheritancePlanningScreen(
+                        walletId = wallets.first().localId,
+                        activityContext = requireContext(),
+                        flowInfo = InheritancePlanFlow.SETUP
+                    )
+                } else {
+                    AssistedWalletBottomSheet.show(childFragmentManager, wallets.map { it.localId })
+                }
             }
-            ServiceTabRowItem.ViewInheritancePlan -> enterPasswordDialog(item)
+            ServiceTabRowItem.CoSigningPolicies,
+            ServiceTabRowItem.ViewInheritancePlan -> {
+                val wallets = viewModel.getWallet(ignoreSetupInheritance = item != ServiceTabRowItem.ViewInheritancePlan)
+                if (wallets.isEmpty()) return
+                if (wallets.size == 1) {
+                    enterPasswordDialog(item = item, walletId = wallets.first().localId)
+                } else {
+                    AssistedWalletBottomSheet.show(childFragmentManager, wallets.map { it.localId })
+                }
+            }
         }
     }
 
@@ -234,12 +271,12 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
         )
     }
 
-    private fun enterPasswordDialog(item: ServiceTabRowItem) {
+    private fun enterPasswordDialog(item: ServiceTabRowItem, walletId: String = "") {
         NCInputDialog(requireContext()).showDialog(
             title = getString(R.string.nc_re_enter_your_password),
             descMessage = getString(R.string.nc_re_enter_your_password_dialog_desc),
             onConfirmed = {
-                viewModel.confirmPassword(it, item)
+                viewModel.confirmPassword(walletId, it, item)
             }
         )
     }
@@ -272,5 +309,9 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 val link = if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/hardware-replacement" else "https://www.nunchuk.io/hardware-replacement"
                 requireActivity().openExternalLink(link)
             })
+    }
+
+    companion object {
+        private const val EXTRA_SELECTED_ITEM = "selected_item"
     }
 }

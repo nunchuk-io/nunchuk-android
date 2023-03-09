@@ -20,10 +20,13 @@
 package com.nunchuk.android.main.components.tabs.wallet
 
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.banner.Banner
+import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 
@@ -32,13 +35,14 @@ internal data class WalletsState(
     val signers: List<SignerModel> = emptyList(),
     val connectionStatus: ConnectionStatus? = null,
     val chain: Chain = Chain.MAIN,
-    val isPremiumUser: Boolean? = null,
+    val plan: MembershipPlan? = null,
     val remainingTime: Int = 0,
-    val isCreatedAssistedWallet: Boolean = false,
-    val assistedWalletId: String = "",
+    val assistedWallets: List<AssistedWalletBrief> = emptyList(),
     val isSetupInheritance: Boolean = false,
     val isHideUpsellBanner: Boolean = false,
     val banner: Banner? = null,
+    val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting(),
+    val currentWalletPin: String = ""
 )
 
 internal sealed class WalletsEvent {
@@ -52,4 +56,7 @@ internal sealed class WalletsEvent {
     class GoToSatsCardScreen(val status: SatsCardStatus) : WalletsEvent()
     class GetTapSignerStatusSuccess(val status: TapSignerStatus) : WalletsEvent()
     class SatsCardUsedUp(val numberOfSlot: Int) : WalletsEvent()
+    class CheckWalletPin(val match: Boolean, val walletId: String) : WalletsEvent()
+    class VerifyPasswordSuccess(val walletId: String) : WalletsEvent()
+    object None: WalletsEvent()
 }

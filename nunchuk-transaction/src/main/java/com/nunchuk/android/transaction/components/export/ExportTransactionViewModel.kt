@@ -22,20 +22,14 @@ package com.nunchuk.android.transaction.components.export
 import android.content.res.Resources
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.settings.GetQrDensitySettingUseCase
+import com.nunchuk.android.core.domain.settings.UpdateQrDensitySettingUseCase
 import com.nunchuk.android.core.qr.convertToQRCode
-import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Result.Error
-import com.nunchuk.android.model.Result.Success
-import com.nunchuk.android.share.model.TransactionOption
-import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.*
-import com.nunchuk.android.usecase.CreateShareFileUseCase
+import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.ExportTransactionError
 import com.nunchuk.android.usecase.ExportKeystoneTransactionUseCase
-import com.nunchuk.android.usecase.ExportPassportTransactionUseCase
-import com.nunchuk.android.usecase.ExportTransactionUseCase
 import com.nunchuk.android.usecase.membership.ExportKeystoneDummyTransaction
-import com.nunchuk.android.usecase.membership.ExportPassportDummyTransaction
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -45,17 +39,14 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.FileOutputStream
 import javax.inject.Inject
 
 @HiltViewModel
 internal class ExportTransactionViewModel @Inject constructor(
-    private val createShareFileUseCase: CreateShareFileUseCase,
-    private val exportTransactionUseCase: ExportTransactionUseCase,
-    private val exportPassportTransactionUseCase: ExportPassportTransactionUseCase,
     private val exportKeystoneTransactionUseCase: ExportKeystoneTransactionUseCase,
     private val exportKeystoneDummyTransaction: ExportKeystoneDummyTransaction,
-    private val exportPassportDummyTransaction: ExportPassportDummyTransaction,
+    private val getQrDensitySettingUseCase: GetQrDensitySettingUseCase,
+    private val updateQrDensitySettingUseCase: UpdateQrDensitySettingUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<ExportTransactionState, ExportTransactionEvent>() {
 
@@ -63,74 +54,35 @@ internal class ExportTransactionViewModel @Inject constructor(
 
     override val initialState = ExportTransactionState()
 
+    init {
+        viewModelScope.launch {
+            getQrDensitySettingUseCase(Unit).map { it.getOrThrow() }.collect {
+                updateState { copy(density = it) }
+                if (this@ExportTransactionViewModel::args.isInitialized) {
+                    handleExportTransactionQRs()
+                }
+            }
+        }
+    }
     fun init(args: ExportTransactionArgs) {
         this.args = args
         handleExportTransactionQRs()
     }
 
+    fun setQrDensity(density: Int) {
+        viewModelScope.launch {
+            updateQrDensitySettingUseCase(density)
+        }
+    }
+
     private fun handleExportTransactionQRs() {
-        if (args.transactionOption == TransactionOption.EXPORT_PASSPORT) {
-            if (isDummyTxFlow) exportDummyPassportTransaction() else exportPassportTransaction()
-        } else {
-            if (isDummyTxFlow) exportDummyKeystoneTransaction() else exportTransactionToQRs()
-        }
-    }
-
-    fun exportTransactionToFile() {
-        viewModelScope.launch {
-            event(LoadingEvent)
-            when (val result = createShareFileUseCase.execute( if (isDummyTxFlow) "dummy.psbt" else "${args.walletId}_${args.txId}.psbt")) {
-                is Success -> exportTransaction(result.data)
-                is Error -> event(ExportTransactionError(result.exception.messageOrUnknownError()))
-            }
-        }
-    }
-
-    private fun exportTransaction(filePath: String) {
-        viewModelScope.launch {
-            if (isDummyTxFlow) {
-                val result = runCatching {
-                    withContext(ioDispatcher) {
-                        FileOutputStream(filePath).use {
-                            it.write(args.txToSign.toByteArray(Charsets.UTF_8))
-                        }
-                    }
-                }
-                if (result.isSuccess) {
-                    setEvent(ExportToFileSuccess(filePath))
-                } else {
-                    ExportTransactionError(result.exceptionOrNull()?.message.orUnknownError())
-                }
-            } else {
-                when (val result =
-                    exportTransactionUseCase.execute(args.walletId, args.txId, filePath)) {
-                    is Success -> event(ExportToFileSuccess(filePath))
-                    is Error -> event(ExportTransactionError(result.exception.messageOrUnknownError()))
-                }
-            }
-        }
+        if (isDummyTxFlow) exportDummyKeystoneTransaction() else exportTransactionToQRs()
     }
 
     private fun exportDummyKeystoneTransaction() {
         val qrSize = getQrSize()
         viewModelScope.launch {
-            val result = exportKeystoneDummyTransaction(args.txToSign)
-            if (result.isSuccess) {
-                val bitmaps = withContext(ioDispatcher) {
-                    result.getOrThrow()
-                        .mapNotNull { it.convertToQRCode(qrSize, qrSize) }
-                }
-                updateState { copy(qrCodeBitmap = bitmaps) }
-            } else {
-                setEvent(ExportTransactionError(result.exceptionOrNull()?.message.orUnknownError()))
-            }
-        }
-    }
-
-    private fun exportDummyPassportTransaction() {
-        val qrSize = getQrSize()
-        viewModelScope.launch {
-            val result = exportPassportDummyTransaction(args.txToSign)
+            val result = exportKeystoneDummyTransaction(ExportKeystoneDummyTransaction.Param(args.txToSign, getState().density))
             if (result.isSuccess) {
                 val bitmaps = withContext(ioDispatcher) {
                     result.getOrThrow()
@@ -146,19 +98,7 @@ internal class ExportTransactionViewModel @Inject constructor(
     private fun exportTransactionToQRs() {
         val qrSize = getQrSize()
         viewModelScope.launch {
-            exportKeystoneTransactionUseCase.execute(args.walletId, args.txId)
-                .map { it.mapNotNull { qrCode -> qrCode.convertToQRCode(qrSize, qrSize) } }
-                .flowOn(IO)
-                .onException { event(ExportTransactionError(it.message.orUnknownError())) }
-                .flowOn(Main)
-                .collect { updateState { copy(qrCodeBitmap = it) } }
-        }
-    }
-
-    private fun exportPassportTransaction() {
-        val qrSize = getQrSize()
-        viewModelScope.launch {
-            exportPassportTransactionUseCase.execute(args.walletId, args.txId)
+            exportKeystoneTransactionUseCase.execute(args.walletId, args.txId, getState().density)
                 .map { it.mapNotNull { qrCode -> qrCode.convertToQRCode(qrSize, qrSize) } }
                 .flowOn(IO)
                 .onException { event(ExportTransactionError(it.message.orUnknownError())) }
@@ -171,6 +111,6 @@ internal class ExportTransactionViewModel @Inject constructor(
         return Resources.getSystem().displayMetrics.widthPixels
     }
 
-    val isDummyTxFlow: Boolean
-        get() = args.txToSign.isNotEmpty()
+    private val isDummyTxFlow: Boolean
+        get() = args.isDummyTx
 }

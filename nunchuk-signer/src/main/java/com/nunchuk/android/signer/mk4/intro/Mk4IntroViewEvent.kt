@@ -20,13 +20,18 @@
 package com.nunchuk.android.signer.mk4.intro
 
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.Wallet
 
 sealed class Mk4IntroViewEvent {
     data class Loading(val isLoading: Boolean) : Mk4IntroViewEvent()
     data class LoadMk4SignersSuccess(val signers: List<SingleSigner>) : Mk4IntroViewEvent()
     data class ShowError(val message: String) : Mk4IntroViewEvent()
+    class NfcLoading(val isLoading: Boolean) : Mk4IntroViewEvent()
+
     object OnContinueClicked : Mk4IntroViewEvent()
     object ErrorMk4TestNet : Mk4IntroViewEvent()
     object OnCreateSignerSuccess : Mk4IntroViewEvent()
     object OnSignerExistInAssistedWallet : Mk4IntroViewEvent()
+    data class ImportWalletFromMk4Success(val walletId: String) : Mk4IntroViewEvent()
+    data class ExtractWalletsFromColdCard(val wallets: List<Wallet>) : Mk4IntroViewEvent()
 }

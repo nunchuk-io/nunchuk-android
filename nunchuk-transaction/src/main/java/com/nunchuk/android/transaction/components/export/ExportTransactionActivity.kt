@@ -27,22 +27,20 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.share.model.TransactionOption
-import com.nunchuk.android.transaction.R
-import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.*
+import com.nunchuk.android.core.util.*
+import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.ExportTransactionError
+import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.LoadingEvent
 import com.nunchuk.android.transaction.databinding.ActivityExportTransactionBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>() {
-
-    private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 
     private val args: ExportTransactionArgs by lazy { ExportTransactionArgs.deserializeFrom(intent) }
 
@@ -59,6 +57,8 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
         }
 
     private val viewModel: ExportTransactionViewModel by viewModels()
+
+    private var showQrJob: Job? = null
 
     override fun initializeBinding() = ActivityExportTransactionBinding.inflate(layoutInflater)
 
@@ -89,13 +89,11 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
     }
 
     private fun setupViews() {
-        if (args.transactionOption == TransactionOption.EXPORT_PASSPORT) {
-            binding.toolbarTitle.text = getText(R.string.nc_transaction_export_passport_transaction)
-        } else {
-            binding.toolbarTitle.text = getText(R.string.nc_transaction_export_transaction)
-        }
-        binding.btnExportAsFile.setOnClickListener {
-            viewModel.exportTransactionToFile()
+        val densities = listOf(LOW_DENSITY, MEDIUM_DENSITY, HIGH_DENSITY)
+        binding.slider.addOnChangeListener { _, value, fromUser ->
+            if (fromUser) {
+                viewModel.setQrDensity(densities[value.toInt()])
+            }
         }
         binding.toolbar.setNavigationOnClickListener {
             finish()
@@ -106,12 +104,14 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
     }
 
     private fun handleState(state: ExportTransactionState) {
+        binding.slider.value = state.density.densityToLevel()
         if (state.qrCodeBitmap.isNotEmpty()) {
             bitmaps = state.qrCodeBitmap
-            lifecycleScope.launch {
+            showQrJob?.cancel()
+            showQrJob = lifecycleScope.launch {
                 repeat(Int.MAX_VALUE) {
                     bindQrCodes()
-                    delay(500L)
+                    delay(DELAY_DYNAMIC_QR)
                 }
             }
         }
@@ -123,16 +123,8 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
                 hideLoading()
                 NCToastMessage(this).showError(event.message)
             }
-            is ExportToFileSuccess -> {
-                hideLoading()
-                shareTransactionFile(event.filePath)
-            }
             LoadingEvent -> showLoading()
         }
-    }
-
-    private fun shareTransactionFile(filePath: String) {
-        controller.shareFile(filePath)
     }
 
     private fun openImportTransactionScreen() {
@@ -140,11 +132,10 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
             launcher = launcher,
             activityContext = this,
             walletId = args.walletId,
-            transactionOption = TransactionOption.IMPORT_KEYSTONE,
             masterFingerPrint = args.masterFingerPrint,
             initEventId = args.initEventId,
-            isFinishWhenError = true,
-            isDummyTx = args.isDummyTx
+            isDummyTx = args.isDummyTx,
+            isFinishWhenError = true
         )
     }
 
@@ -155,7 +146,6 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
             walletId: String,
             txId: String,
             txToSign: String = "",
-            transactionOption: TransactionOption,
             initEventId: String = "",
             masterFingerPrint: String = "",
             isDummyTx: Boolean = false
@@ -164,7 +154,6 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
                 walletId = walletId,
                 txId = txId,
                 txToSign = txToSign,
-                transactionOption = transactionOption,
                 initEventId = initEventId,
                 masterFingerPrint = masterFingerPrint,
                 isDummyTx = isDummyTx

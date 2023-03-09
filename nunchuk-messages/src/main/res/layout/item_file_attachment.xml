@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/nc_padding_12">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/container_attachment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/nc_rounded_whisper_background"
+        android:foreground="?android:attr/selectableItemBackgroundBorderless"
+        android:orientation="horizontal"
+        android:padding="@dimen/nc_padding_12">
+
+        <ImageView
+            android:id="@+id/iv_attachment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_attach_file"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tv_fileName"
+            style="@style/NCText.Body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/nc_padding_12"
+            android:ellipsize="start"
+            android:singleLine="true"
+            app:layout_constrainedWidth="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toEndOf="@+id/iv_attachment"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="akjfdjskfjkdslfjklfdksfkjsdjfjsdkfjsdfdjsfkjfkdjsfkjdskfljdskf.zip" />
+
+        <TextView
+            android:id="@+id/tv_error"
+            style="@style/NCText.Body.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_4"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/nc_red_color"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_fileName"
+            tools:text="File size exceeds 50Mb" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>

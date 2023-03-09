@@ -25,6 +25,7 @@ import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.utils.parcelable
 
 data class TransactionDetailsArgs(
     val walletId: String,
@@ -32,17 +33,22 @@ data class TransactionDetailsArgs(
     val initEventId: String,
     val roomId: String,
     val transaction: Transaction?,
-    val isInheritanceClaimingFlow: Boolean
+    val isInheritanceClaimingFlow: Boolean,
+    val isCancelBroadcast: Boolean,
+    val errorMessage: String
 ) : ActivityArgs {
 
-    override fun buildIntent(activityContext: Context) = Intent(activityContext, TransactionDetailsActivity::class.java).apply {
-        putExtra(EXTRA_WALLET_ID, walletId)
-        putExtra(EXTRA_TRANSACTION_ID, txId)
-        putExtra(EXTRA_INIT_EVENT_ID, initEventId)
-        putExtra(EXTRA_ROOM_ID, roomId)
-        putExtra(EXTRA_TRANSACTION, transaction)
-        putExtra(EXTRA_INHERITANCE_CLAIMING_FLOW, isInheritanceClaimingFlow)
-    }
+    override fun buildIntent(activityContext: Context) =
+        Intent(activityContext, TransactionDetailsActivity::class.java).apply {
+            putExtra(EXTRA_WALLET_ID, walletId)
+            putExtra(EXTRA_TRANSACTION_ID, txId)
+            putExtra(EXTRA_INIT_EVENT_ID, initEventId)
+            putExtra(EXTRA_ROOM_ID, roomId)
+            putExtra(EXTRA_TRANSACTION, transaction)
+            putExtra(EXTRA_INHERITANCE_CLAIMING_FLOW, isInheritanceClaimingFlow)
+            putExtra(EXTRA_IS_CANCEL_BROADCAST, isCancelBroadcast)
+            putExtra(EXTRA_ERROR_MESSAGE, errorMessage)
+        }
 
     companion object {
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
@@ -51,6 +57,8 @@ data class TransactionDetailsArgs(
         private const val EXTRA_ROOM_ID = "EXTRA_ROOM_ID"
         private const val EXTRA_TRANSACTION = "EXTRA_TRANSACTION"
         private const val EXTRA_INHERITANCE_CLAIMING_FLOW = "EXTRA_INHERITANCE_CLAIMING_FLOW"
+        private const val EXTRA_IS_CANCEL_BROADCAST = "EXTRA_IS_CANCEL_BROADCAST"
+        private const val EXTRA_ERROR_MESSAGE = "EXTRA_ERROR_MESSAGE"
 
         fun deserializeFrom(intent: Intent): TransactionDetailsArgs {
             val extras = intent.extras
@@ -59,8 +67,10 @@ data class TransactionDetailsArgs(
                 txId = extras.getStringValue(EXTRA_TRANSACTION_ID),
                 initEventId = extras.getStringValue(EXTRA_INIT_EVENT_ID),
                 roomId = extras.getStringValue(EXTRA_ROOM_ID),
-                transaction = extras?.getParcelable(EXTRA_TRANSACTION),
-                isInheritanceClaimingFlow = extras.getBooleanValue(EXTRA_INHERITANCE_CLAIMING_FLOW)
+                transaction = extras?.parcelable(EXTRA_TRANSACTION),
+                isInheritanceClaimingFlow = extras.getBooleanValue(EXTRA_INHERITANCE_CLAIMING_FLOW),
+                isCancelBroadcast = extras.getBooleanValue(EXTRA_IS_CANCEL_BROADCAST),
+                errorMessage = extras.getStringValue(EXTRA_ERROR_MESSAGE)
             )
         }
     }

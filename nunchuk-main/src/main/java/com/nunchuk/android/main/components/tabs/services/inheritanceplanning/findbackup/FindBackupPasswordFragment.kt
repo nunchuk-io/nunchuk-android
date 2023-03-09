@@ -65,7 +65,8 @@ class FindBackupPasswordFragment : MembershipFragment() {
                 FindBackupPasswordContent(remainTime) {
                     findNavController().navigate(
                         FindBackupPasswordFragmentDirections.actionFindBackupPasswordFragmentToInheritanceKeyTipFragment(
-                            magicalPhrase = args.magicalPhrase
+                            magicalPhrase = args.magicalPhrase,
+                            walletId = args.walletId
                         )
                     )
                 }

@@ -27,7 +27,6 @@ import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.model.*
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.entity.MembershipStepEntity
-import com.nunchuk.android.persistence.updateOrInsert
 import com.nunchuk.android.repository.KeyRepository
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
@@ -97,7 +96,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                 val response = if (result.isSuccess) result.data else null
                 val chatId = accountManager.getAccount().chatId
                 val verifyType =
-                    if (result.error.code == ALREADY_VERIFIED_CODE) VerifyType.APP_VERIFIED else VerifyType.NONE
+                    if (result.error.code == ALREADY_VERIFIED_CODE) VerifyType.SELF_VERIFIED else VerifyType.NONE
                 val info = MembershipStepEntity(
                     chatId = chatId,
                     step = step,

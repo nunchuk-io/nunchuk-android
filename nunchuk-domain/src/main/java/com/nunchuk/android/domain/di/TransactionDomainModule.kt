@@ -73,10 +73,4 @@ internal interface TransactionDomainModule {
 
     @Binds
     fun bindExportKeystoneTransactionUseCase(useCase: ExportKeystoneTransactionUseCaseImpl): ExportKeystoneTransactionUseCase
-
-    @Binds
-    fun bindImportPassportTransactionUseCase(useCase: ImportPassportTransactionUseCaseImpl): ImportPassportTransactionUseCase
-
-    @Binds
-    fun bindExportPassportTransactionUseCase(useCase: ExportPassportTransactionUseCaseImpl): ExportPassportTransactionUseCase
 }

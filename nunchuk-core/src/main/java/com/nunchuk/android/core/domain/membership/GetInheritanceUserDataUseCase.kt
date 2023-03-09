@@ -37,6 +37,7 @@ class GetInheritanceUserDataUseCase @Inject constructor(
             note = parameters.note,
             notificationEmails = parameters.notificationEmails,
             notifyToday = parameters.notifyToday,
+            bufferPeriodId = parameters.bufferPeriodId,
             activationTimeMilis = parameters.activationTimeMilis
         )
     }
@@ -46,6 +47,7 @@ class GetInheritanceUserDataUseCase @Inject constructor(
         val notificationEmails: List<String>,
         val notifyToday: Boolean,
         val activationTimeMilis: Long,
-        val walletId: String
+        val walletId: String,
+        val bufferPeriodId: String?
     )
 }

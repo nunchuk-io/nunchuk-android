@@ -62,7 +62,8 @@ class Mk4InfoFragment : MembershipFragment() {
                     onOpenGuideClicked = {
                         requireActivity().openExternalLink(COLDCARD_GUIDE_URL)
                     },
-                    isMembershipFlow = args.isMembershipFlow
+                    isMembershipFlow = args.isMembershipFlow,
+                    onMoreClicked = ::handleShowMore
                 )
             }
         }

@@ -24,5 +24,10 @@ import android.content.Intent
 interface PushNotificationIntentProvider {
     fun getRoomDetailsIntent(roomId: String): Intent
     fun getMainIntent(): Intent
-    fun getTransactionDetailIntent(walletId: String, txId: String): Intent
+    fun getTransactionDetailIntent(
+        walletId: String,
+        txId: String,
+        isCancelBroadcast: Boolean = false,
+        errorMessage: String = ""
+    ): Intent
 }

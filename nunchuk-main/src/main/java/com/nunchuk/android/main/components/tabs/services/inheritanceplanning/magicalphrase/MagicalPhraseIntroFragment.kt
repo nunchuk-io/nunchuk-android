@@ -46,6 +46,7 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -57,6 +58,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MagicalPhraseIntroFragment : MembershipFragment() {
     private val viewModel: MagicalPhraseIntroViewModel by viewModels()
+    private val args by navArgs<MagicalPhraseIntroFragmentArgs>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -77,7 +79,8 @@ class MagicalPhraseIntroFragment : MembershipFragment() {
                         is MagicalPhraseIntroEvent.OnContinueClicked -> {
                             findNavController().navigate(
                                 MagicalPhraseIntroFragmentDirections.actionMagicalPhraseIntroFragmentToFindBackupPasswordFragment(
-                                    event.magicalPhrase
+                                    magicalPhrase = event.magicalPhrase,
+                                    walletId = args.walletId
                                 )
                             )
                         }

@@ -21,44 +21,42 @@ package com.nunchuk.android.wallet.personal.components
 
 import android.app.Application
 import android.net.Uri
-import android.nfc.NdefRecord
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.CreateWallet2UseCase
-import com.nunchuk.android.core.domain.ImportWalletFromMk4UseCase
-import com.nunchuk.android.core.domain.coldcard.ExtractWalletsFromColdCard
 import com.nunchuk.android.core.util.getFileFromUri
-import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
+import com.nunchuk.android.usecase.membership.GetAssistedWalletConfigUseCase
+import com.nunchuk.android.usecase.membership.GetLocalCurrentSubscriptionPlan
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-
-const val DEFAULT_COLDCARD_WALLET_NAME = "My COLDCARD wallet"
 
 @HiltViewModel
 class WalletIntermediaryViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getCompoundSignersUseCase: Lazy<GetCompoundSignersUseCase>,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val getLocalCurrentSubscriptionPlan: GetLocalCurrentSubscriptionPlan,
+    private val membershipStepManager: MembershipStepManager,
     private val application: Application,
-    private val importWalletFromMk4UseCase: ImportWalletFromMk4UseCase,
-    private val extractWalletsFromColdCard: ExtractWalletsFromColdCard,
-    private val createWallet2UseCase: CreateWallet2UseCase,
+    private val getAssistedWalletConfigUseCase: GetAssistedWalletConfigUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletIntermediaryState())
+    val state = _state.asStateFlow()
     private val _event = MutableSharedFlow<WalletIntermediaryEvent>()
     val event = _event.asSharedFlow()
+
+    private var getWalletConfigJob: Job? = null
 
     init {
         val args = WalletIntermediaryFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -69,60 +67,41 @@ class WalletIntermediaryViewModel @Inject constructor(
                         WalletIntermediaryState(isHasSigner = it.first.isNotEmpty() || it.second.isNotEmpty())
                 }
             }
+        } else {
+            viewModelScope.launch {
+                getLocalCurrentSubscriptionPlan(Unit)
+                    .map { it.getOrElse { MembershipPlan.NONE } }
+                    .collect { plan ->
+                        _state.update { it.copy(plan = plan) }
+                    }
+            }
+        }
+        getAssistedWalletConfig()
+    }
+
+    fun getAssistedWalletConfig() {
+        if (getWalletConfigJob?.isActive == true) return
+        getWalletConfigJob = viewModelScope.launch {
+            getAssistedWalletConfigUseCase(Unit).onSuccess { configs ->
+                _state.update { it.copy(remainWalletCount = configs.remainingWalletCount) }
+            }
         }
     }
 
     fun extractFilePath(uri: Uri) {
         viewModelScope.launch {
-            _event.emit(WalletIntermediaryEvent.NfcLoading(true))
+            _event.emit(WalletIntermediaryEvent.Loading(true))
             val result = withContext(ioDispatcher) {
                 getFileFromUri(application.contentResolver, uri, application.cacheDir)
             }
-            _event.emit(WalletIntermediaryEvent.NfcLoading(false))
+            _event.emit(WalletIntermediaryEvent.Loading(false))
             _event.emit(WalletIntermediaryEvent.OnLoadFileSuccess(result?.absolutePath.orEmpty()))
         }
     }
 
-    fun importWalletFromMk4(records: List<NdefRecord>) {
-        viewModelScope.launch {
-            _event.emit(WalletIntermediaryEvent.NfcLoading(true))
-            val result = importWalletFromMk4UseCase(records)
-            _event.emit(WalletIntermediaryEvent.NfcLoading(false))
-            if (result.isSuccess && result.getOrThrow() != null) {
-                _event.emit(WalletIntermediaryEvent.ImportWalletFromMk4Success(result.getOrThrow()!!.id))
-            } else {
-                _event.emit(WalletIntermediaryEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
-            }
-        }
-    }
-
-    fun getWalletsFromColdCard(records: List<NdefRecord>) {
-        viewModelScope.launch {
-            _event.emit(WalletIntermediaryEvent.NfcLoading(true))
-            val result = extractWalletsFromColdCard(records)
-            _event.emit(WalletIntermediaryEvent.NfcLoading(false))
-            if (result.isSuccess && result.getOrThrow().isNotEmpty()) {
-                _state.update { it.copy(wallets = result.getOrThrow()) }
-                _event.emit(WalletIntermediaryEvent.ExtractWalletsFromColdCard(result.getOrThrow()))
-            } else {
-                _event.emit(WalletIntermediaryEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
-            }
-        }
-    }
-
-    fun createWallet(walletId: String) {
-        viewModelScope.launch {
-            _state.value.wallets.find { it.id == walletId }?.let { wallet ->
-                _event.emit(WalletIntermediaryEvent.Loading(true))
-                val result = createWallet2UseCase(wallet.copy(name = DEFAULT_COLDCARD_WALLET_NAME))
-                _event.emit(WalletIntermediaryEvent.Loading(false))
-                if (result.isSuccess) {
-                    _event.emit(WalletIntermediaryEvent.ImportWalletFromMk4Success(result.getOrThrow().id))
-                } else {
-                    _event.emit(WalletIntermediaryEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
-                }
-            }
-        }
+    fun getGroupStage(): MembershipStage {
+        if (membershipStepManager.isNotConfig()) return MembershipStage.NONE
+        return MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
     }
 
     val hasSigner: Boolean
@@ -130,16 +109,14 @@ class WalletIntermediaryViewModel @Inject constructor(
 }
 
 sealed class WalletIntermediaryEvent {
-    data class NfcLoading(val isLoading: Boolean) : WalletIntermediaryEvent()
     data class Loading(val isLoading: Boolean) : WalletIntermediaryEvent()
     data class OnLoadFileSuccess(val path: String) : WalletIntermediaryEvent()
-    data class ImportWalletFromMk4Success(val walletId: String) : WalletIntermediaryEvent()
-    data class ExtractWalletsFromColdCard(val wallets: List<Wallet>) : WalletIntermediaryEvent()
     data class ShowError(val msg: String) : WalletIntermediaryEvent()
 }
 
 data class WalletIntermediaryState(
-    val wallets: List<Wallet> = emptyList(),
-    val isHasSigner: Boolean = false
+    val isHasSigner: Boolean = false,
+    val plan: MembershipPlan = MembershipPlan.NONE,
+    val remainWalletCount: Int = 0,
 )
 

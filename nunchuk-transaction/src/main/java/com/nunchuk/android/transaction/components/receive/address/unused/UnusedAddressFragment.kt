@@ -106,7 +106,6 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
     private fun getCurrentAddress() = if (adapter.items.isNotEmpty()) adapter.items[binding.viewPager.currentItem] else null
 
     private fun observeEvent() {
-        viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
         viewModel.state.observe(viewLifecycleOwner, ::handleState)
     }
 
@@ -135,10 +134,6 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
         binding.btnShare.isVisible = hasUnusedAddresses
         binding.btnCopy.isVisible = hasUnusedAddresses
         binding.more.isVisible = hasUnusedAddresses
-    }
-
-    private fun handleEvent(event: UnusedAddressEvent) {
-
     }
 
     companion object {

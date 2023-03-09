@@ -62,7 +62,7 @@ class ReplaceFeeFragment : BaseFragment<FragmentReplaceByFeeBinding>() {
         binding.tvOldFeeBtc.text = previousFeeRate.toFeeRateInBtc()
         binding.tvNewFeeRateBtc.text = binding.feeRateInput.text.safeManualFee().toFeeRateInBtc()
         binding.toolbar.setNavigationOnClickListener {
-            activity?.onBackPressed()
+            activity?.onBackPressedDispatcher?.onBackPressed()
         }
         binding.feeRateInput.addTextChangedCallback {
             binding.tvNewFeeRateBtc.text = binding.feeRateInput.text.safeManualFee().toFeeRateInBtc()

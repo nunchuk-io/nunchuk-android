@@ -27,7 +27,7 @@ import com.nunchuk.android.core.util.gson
 import com.nunchuk.android.messages.components.detail.MessageType
 import com.nunchuk.android.model.NunchukMatrixEvent
 import com.nunchuk.android.utils.CrashlyticsReporter
-import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
+import org.matrix.android.sdk.api.session.events.model.isFileMessage
 import org.matrix.android.sdk.api.session.events.model.isImageMessage
 import org.matrix.android.sdk.api.session.events.model.isVideoMessage
 import org.matrix.android.sdk.api.session.events.model.toModel
@@ -46,7 +46,7 @@ fun TimelineEvent.lastMessage(context: Context) = "${lastMessageSender()}: ${las
 fun TimelineEvent.lastMessageContent(context: Context) = when {
     root.isImageMessage() -> context.getString(R.string.nc_photo_was_uploaded)
     root.isVideoMessage() -> context.getString(R.string.nc_video_was_uploaded)
-    root.isAttachmentMessage() -> context.getString(R.string.nc_attachment_was_uploaded)
+    root.isFileMessage() -> context.getString(R.string.nc_attachment_was_uploaded)
     else -> getLastMessageContentSafe() ?: getTextEditableContentSafe()
 }
 

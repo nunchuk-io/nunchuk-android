@@ -45,9 +45,9 @@ class RegisterWalletToColdcardViewModel @Inject constructor(
         }
     }
 
-    fun setRegisterColdcardSuccess() {
+    fun setRegisterColdcardSuccess(walletId: String) {
         viewModelScope.launch {
-            setRegisterColdcardUseCase(true)
+            setRegisterColdcardUseCase(SetRegisterColdcardUseCase.Params(walletId, true))
         }
     }
 }

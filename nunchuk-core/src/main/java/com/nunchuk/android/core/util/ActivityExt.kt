@@ -104,14 +104,6 @@ fun Fragment.showOrHideLoading(
     activity?.showOrHideLoading(loading, title, message)
 }
 
-fun Fragment.pickPhotoWithResult(requestCode: Int) {
-    val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-    intent.type = "image/*"
-    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
-    intent.action = Intent.ACTION_GET_CONTENT
-    startActivityForResult(intent, requestCode)
-}
-
 fun Fragment.takePhotoWithResult(requestCode: Int) {
     val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
     startActivityForResult(takePictureIntent, requestCode)
@@ -158,7 +150,7 @@ fun Activity.sendEmail(email: String, subject: String = "", text: String = ""): 
     return result.isSuccess
 }
 
-fun getFileFromUri(contentResolver: ContentResolver, uri: Uri, directory: File) = try {
+fun getFileFromUri(contentResolver: ContentResolver, uri: Uri, directory: File): File? = try {
     val file = File.createTempFile("NCsuffix", ".prefixNC", directory)
     file.outputStream().use {
         contentResolver.openInputStream(uri)?.copyTo(it)

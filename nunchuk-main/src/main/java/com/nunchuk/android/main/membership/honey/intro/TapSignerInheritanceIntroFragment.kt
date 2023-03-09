@@ -24,12 +24,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -70,7 +73,7 @@ class TapSignerInheritanceIntroFragment : MembershipFragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                TapSignerInheritanceIntroScreen(viewModel)
+                TapSignerInheritanceIntroScreen(viewModel, ::handleShowMore)
             }
         }
     }
@@ -86,7 +89,7 @@ class TapSignerInheritanceIntroFragment : MembershipFragment() {
                 }
         }
         setFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY) { _, bundle ->
-            findNavController().popBackStack(R.id.addKeyListFragment, false)
+            findNavController().popBackStack()
             bundle.parcelable<SignerModel>(TapSignerListBottomSheetFragment.EXTRA_SELECTED_SIGNER_ID)
                 ?.let {
                     openCreateBackUpTapSigner(it.id)
@@ -139,10 +142,12 @@ class TapSignerInheritanceIntroFragment : MembershipFragment() {
 @Composable
 private fun TapSignerInheritanceIntroScreen(
     viewModel: TapSignerInheritanceIntroViewModel = viewModel(),
+    onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     TapSignerInheritanceIntroContent(
         onContinueClicked = viewModel::onContinueClicked,
+        onMoreClicked = onMoreClicked,
         remainTime = remainTime
     )
 }
@@ -150,7 +155,8 @@ private fun TapSignerInheritanceIntroScreen(
 @Composable
 private fun TapSignerInheritanceIntroContent(
     remainTime: Int = 0,
-    onContinueClicked: () -> Unit = {}
+    onMoreClicked: () -> Unit = {},
+    onContinueClicked: () -> Unit = {},
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -165,6 +171,14 @@ private fun TapSignerInheritanceIntroContent(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
                     ),
+                    actions = {
+                        IconButton(onClick = onMoreClicked) {
+                            Icon(
+                                painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
+                        }
+                    }
                 )
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),

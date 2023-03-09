@@ -30,7 +30,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class InheritanceNoteViewModel @Inject constructor(
-    private val membershipStepManager: MembershipStepManager,
+    membershipStepManager: MembershipStepManager,
     savedStateHandle: SavedStateHandle
 ) :
     ViewModel() {

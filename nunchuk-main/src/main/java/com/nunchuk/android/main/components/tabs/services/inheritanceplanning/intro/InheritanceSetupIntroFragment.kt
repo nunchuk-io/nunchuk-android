@@ -41,8 +41,6 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.flowWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -51,45 +49,34 @@ import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.tabs.services.emergencylockdown.intro.EmergencyLockdownIntroFragmentArgs
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class InheritanceSetupIntroFragment : MembershipFragment() {
+    private val args by navArgs<InheritanceSetupIntroFragmentArgs>()
     private val viewModel: InheritanceSetupIntroViewModel by viewModels()
-    private val args: InheritanceSetupIntroFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                InheritanceSetupIntroScreen(viewModel)
-            }
-        }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-            viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                .collect { event ->
-                    when (event) {
-                        InheritanceSetupIntroEvent.OnContinueClicked -> findNavController().navigate(
-                            InheritanceSetupIntroFragmentDirections.actionInheritanceSetupIntroFragmentToInheritancePlanOverviewFragment()
-                        )
-                    }
+                InheritanceSetupIntroScreen(viewModel) {
+                    findNavController().navigate(
+                        InheritanceSetupIntroFragmentDirections.actionInheritanceSetupIntroFragmentToInheritancePlanOverviewFragment(walletId = args.walletId)
+                    )
                 }
+            }
         }
     }
 }
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
-private fun InheritanceSetupIntroScreen(viewModel: InheritanceSetupIntroViewModel = viewModel()) {
+private fun InheritanceSetupIntroScreen(viewModel: InheritanceSetupIntroViewModel = viewModel(), onContinueClicked: () -> Unit) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
-    InheritanceSetupIntroContent(remainTime, viewModel::onContinueClicked)
+    InheritanceSetupIntroContent(remainTime, onContinueClicked)
 }
 
 @Composable

@@ -22,10 +22,13 @@ package com.nunchuk.android.signer.mk4.info.component
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -38,6 +41,7 @@ internal fun Mk4InfoContent(
     remainTime: Int = 0,
     onContinueClicked: () -> Unit = {},
     onOpenGuideClicked: () -> Unit = {},
+    onMoreClicked: () -> Unit = {},
     isMembershipFlow: Boolean = true,
 ) {
     NunchukTheme {
@@ -54,7 +58,17 @@ internal fun Mk4InfoContent(
                     title = if (isMembershipFlow) stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
-                    ) else ""
+                    ) else "",
+                    actions = {
+                        if (isMembershipFlow) {
+                            IconButton(onClick = onMoreClicked) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_more),
+                                    contentDescription = "More icon"
+                                )
+                            }
+                        }
+                    }
                 )
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
@@ -109,6 +123,15 @@ internal fun Mk4InfoContent(
                     )
                 }
                 Spacer(modifier = Modifier.weight(1.0f))
+                NcHintMessage(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    messages = listOf(
+                        ClickAbleText(
+                            content = stringResource(R.string.nc_add_coldcard_from_file_hint)
+                        )
+                    )
+                )
+
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()

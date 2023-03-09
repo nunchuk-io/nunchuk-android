@@ -42,10 +42,12 @@
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:layout_marginTop="@dimen/nc_padding_24"
-        android:visibility="invisible"
+        android:scaleType="center"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        app:srcCompat="@drawable/ic_support_agent" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/name"
@@ -57,7 +59,7 @@
         android:gravity="center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/avatar"
+        app:layout_constraintTop_toBottomOf="@+id/avatarHolder"
         tools:text="Tom Nguyen" />
 
     <com.nunchuk.android.widget.NCFontTextView

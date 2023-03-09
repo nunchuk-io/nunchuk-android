@@ -22,6 +22,7 @@ package com.nunchuk.android.core.signer
 import android.os.Parcelable
 import com.nunchuk.android.model.JoinKey
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import kotlinx.parcelize.Parcelize
 import java.util.regex.Pattern
@@ -38,6 +39,7 @@ data class SignerModel(
     val localKey: Boolean = true,
     val isPrimaryKey: Boolean = false,
     val cardId: String = "",
+    val tags : List<SignerTag> = emptyList()
 ) : Parcelable {
     val isEditablePath: Boolean
         get() = type == SignerType.HARDWARE || type == SignerType.SOFTWARE
@@ -78,7 +80,8 @@ fun SingleSigner.toModel(isPrimaryKey: Boolean = false) = SignerModel(
     used = used,
     software = type == SignerType.SOFTWARE,
     fingerPrint = masterFingerprint,
-    isPrimaryKey = isPrimaryKey
+    isPrimaryKey = isPrimaryKey,
+    tags = tags
 )
 
 fun JoinKey.toSignerModel() = SignerModel(

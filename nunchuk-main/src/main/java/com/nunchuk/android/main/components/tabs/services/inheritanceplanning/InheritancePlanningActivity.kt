@@ -22,7 +22,6 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.result.ActivityResultLauncher
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
@@ -42,6 +41,8 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
 
     @Inject
     internal lateinit var membershipStepManager: MembershipStepManager
+
+    val isOpenFromWizard: Boolean by lazy { intent.getBooleanExtra(EXTRA_IS_OPEN_FROM_WIZARD, false) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,10 +77,12 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
                     magicalPhrase = inheritance.magic,
                     note = inheritance.note,
                     verifyToken = intent.getStringExtra(EXTRA_VERIFY_TOKEN).orEmpty(),
-                    planFlow = planFlow
+                    planFlow = planFlow,
+                    bufferPeriod = inheritance.bufferPeriod,
+                    walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty()
                 ).toBundle()
             }
-            else -> null
+            else -> intent.extras
         }
         navHostFragment.navController.setGraph(graph, bundle)
         navHostFragment.navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -99,19 +102,24 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val EXTRA_INHERITANCE_PLAN_FLOW = "extra_inheritance_plan_flow"
         private const val EXTRA_VERIFY_TOKEN = "extra_verify_token"
         private const val EXTRA_INHERITANCE = "extra_inheritance"
+        private const val EXTRA_IS_OPEN_FROM_WIZARD = "extra_is_open_from_wizard"
+        private const val EXTRA_WALLET_ID = "wallet_id"
 
         fun navigate(
-            launcher: ActivityResultLauncher<Intent>?,
+            walletId: String,
             activity: Context,
             verifyToken: String?,
             inheritance: Inheritance?,
-            @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int
+            @InheritancePlanFlow.InheritancePlanFlowInfo flowInfo: Int,
+            isOpenFromWizard: Boolean
         ) {
             val intent = Intent(activity, InheritancePlanningActivity::class.java)
                 .putExtra(EXTRA_INHERITANCE_PLAN_FLOW, flowInfo)
                 .putExtra(EXTRA_VERIFY_TOKEN, verifyToken)
                 .putExtra(EXTRA_INHERITANCE, inheritance)
-            launcher?.launch(intent) ?: activity.startActivity(intent)
+                .putExtra(EXTRA_IS_OPEN_FROM_WIZARD, isOpenFromWizard)
+                .putExtra(EXTRA_WALLET_ID, walletId)
+            activity.startActivity(intent)
         }
     }
 }

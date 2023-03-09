@@ -22,7 +22,7 @@ package com.nunchuk.android.main.membership.key.recoveryquestion
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.GetAssistedWalletIdFlowUseCase
+import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.*
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.SecurityQuestionModel
@@ -44,14 +44,15 @@ class RecoveryQuestionViewModel @Inject constructor(
     private val calculateRequiredSignaturesSecurityQuestionUseCase: CalculateRequiredSignaturesSecurityQuestionUseCase,
     private val getSecurityQuestionsUserDataUseCase: GetSecurityQuestionsUserDataUseCase,
     private val securityQuestionsUpdateUseCase: SecurityQuestionsUpdateUseCase,
-    getAssistedWalletIdsFlowUseCase: GetAssistedWalletIdFlowUseCase,
+    getAssistedWalletIdsFlowUseCase: GetAssistedWalletsFlowUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val args = RecoveryQuestionFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
-    private val walletId = getAssistedWalletIdsFlowUseCase(Unit).map { it.getOrElse { "" } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
+    private val assistedWallet = getAssistedWalletIdsFlowUseCase(Unit).map { it.getOrElse { emptyList() } }
+        .map { it.firstOrNull() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _event = MutableSharedFlow<RecoveryQuestionEvent>()
     val event = _event.asSharedFlow()
@@ -190,7 +191,7 @@ class RecoveryQuestionViewModel @Inject constructor(
     }
 
     private fun calculateRequiredSignatures() = viewModelScope.launch {
-        val walletId = walletId.value.ifBlank { return@launch }
+        val walletId = assistedWallet.value?.localId ?: return@launch
         val questionsAndAnswers = getQuestionsAndAnswers()
         if (questionsAndAnswers.isEmpty()) return@launch
         _event.emit(RecoveryQuestionEvent.Loading(true))

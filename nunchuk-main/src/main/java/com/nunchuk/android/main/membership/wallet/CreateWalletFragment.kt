@@ -25,16 +25,20 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -49,6 +53,7 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.key.AddKeyStepViewModel
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -56,13 +61,14 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class CreateWalletFragment : MembershipFragment() {
     private val viewModel: CreateWalletViewModel by viewModels()
+    private val addKeyStepViewModel: AddKeyStepViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                CreateWalletScreen(viewModel, membershipStepManager)
+                CreateWalletScreen(viewModel, ::handleShowMore, membershipStepManager)
             }
         }
     }
@@ -72,7 +78,10 @@ class CreateWalletFragment : MembershipFragment() {
         flowObserver(viewModel.event) {
             when (it) {
                 is CreateWalletEvent.Loading -> showOrHideLoading(it.isLoading)
-                is CreateWalletEvent.OnCreateWalletSuccess -> handleCreateWalletSuccess(it)
+                is CreateWalletEvent.OnCreateWalletSuccess -> {
+                    addKeyStepViewModel.requireInheritance(it.walletId)
+                    handleCreateWalletSuccess(it)
+                }
                 is CreateWalletEvent.ShowError -> showError(it.message)
             }
         }
@@ -109,22 +118,25 @@ class CreateWalletFragment : MembershipFragment() {
 @Composable
 fun CreateWalletScreen(
     viewModel: CreateWalletViewModel = viewModel(),
+    onMoreClicked: () -> Unit = {},
     membershipStepManager: MembershipStepManager,
 ) {
     val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     CreateWalletScreenContent(
-        viewModel::onContinueClicked,
-        viewModel::updateWalletName,
-        remainTime,
-        state.walletName
+        onContinueClicked = viewModel::onContinueClicked,
+        onMoreClicked = onMoreClicked,
+        onWalletNameTextChange = viewModel::updateWalletName,
+        remainTime = remainTime,
+        walletName = state.walletName
     )
 }
 
 @Composable
 fun CreateWalletScreenContent(
     onContinueClicked: () -> Unit = {},
+    onMoreClicked: () -> Unit = {},
     onWalletNameTextChange: (value: String) -> Unit = {},
     remainTime: Int = 0,
     walletName: String = "",
@@ -137,7 +149,16 @@ fun CreateWalletScreenContent(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainTime))
+                NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainTime),
+                    actions = {
+                            IconButton(onClick = onMoreClicked) {
+                                Icon(
+                                    painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
+                                    contentDescription = "More icon"
+                                )
+                            }
+                        }
+                    )
 
                 Text(
                     modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
