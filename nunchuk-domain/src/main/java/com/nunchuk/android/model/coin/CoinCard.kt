@@ -6,4 +6,5 @@ data class CoinCard(
     val isScheduleBroadCast: Boolean,
     val time: Long,
     val tags: List<CoinTag>,
+    val note: String,
 )
