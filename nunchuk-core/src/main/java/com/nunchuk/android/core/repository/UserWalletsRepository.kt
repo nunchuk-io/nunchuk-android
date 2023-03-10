@@ -947,6 +947,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun getAssistedWalletConfig(): AssistedWalletConfig {
         val response = userWalletApiManager.walletApi.getAssistedWalletConfig()
+        if (response.data.remainingWalletCount == 0) {
+            membershipStepDao.deleteStepByChatId(chain.value, accountManager.getAccount().chatId)
+        }
         return AssistedWalletConfig(
             totalAllowedWallet = response.data.totalAllowedWallet,
             activeWalletCount = response.data.activeWalletCount,

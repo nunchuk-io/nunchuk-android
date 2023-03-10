@@ -42,6 +42,7 @@ import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
+import com.nunchuk.android.usecase.membership.GetAssistedWalletConfigUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
 import com.nunchuk.android.usecase.user.IsHideUpsellBannerUseCase
@@ -70,6 +71,7 @@ internal class WalletsViewModel @Inject constructor(
     private val checkWalletPinUseCase: CheckWalletPinUseCase,
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
     private val getWalletPinUseCase: GetWalletPinUseCase,
+    private val getAssistedWalletConfigUseCase: GetAssistedWalletConfigUseCase,
     isShowNfcUniversalUseCase: IsShowNfcUniversalUseCase,
     isHideUpsellBannerUseCase: IsHideUpsellBannerUseCase,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
@@ -88,6 +90,9 @@ internal class WalletsViewModel @Inject constructor(
     override val initialState = WalletsState()
 
     init {
+        viewModelScope.launch {
+            getAssistedWalletConfigUseCase(Unit)
+        }
         viewModelScope.launch {
             getAssistedWalletsFlowUseCase(Unit).map { it.getOrElse { emptyList() } }
                 .distinctUntilChanged()
