@@ -26,6 +26,7 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
+import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -36,6 +37,7 @@ class SatsCardActivity : BaseNfcActivity<ActivityNavigationBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setLightStatusBar()
         val navHost = supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
         val inflater = navHost.navController.navInflater
         val graph = inflater.inflate(R.navigation.satscard_navigation)

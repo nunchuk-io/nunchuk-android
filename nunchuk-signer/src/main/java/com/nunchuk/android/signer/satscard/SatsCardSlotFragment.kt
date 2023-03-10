@@ -44,6 +44,7 @@ import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.SatscardNavigationDirections
 import com.nunchuk.android.signer.databinding.FragmentSatscardActiveSlotBinding
 import com.nunchuk.android.signer.satscard.wallets.SelectWalletFragment
+import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.signer.util.openSweepRecipeScreen
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
@@ -89,17 +90,29 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
     }
 
     override fun onOptionClicked(option: SheetOption) {
-        if (option.type == SheetOptionType.TYPE_VIEW_SATSCARD_UNSEAL) {
-            val action = SatsCardSlotFragmentDirections.actionSatsCardSlotFragmentToSatsCardUnsealSlotFragment(args.hasWallet)
-            findNavController().navigate(action)
-        } else if (option.type == SheetOptionType.TYPE_SWEEP_TO_WALLET) {
-            if (args.hasWallet) {
-                openSelectWallet(getInteractSlots().toTypedArray())
-            } else {
-                navigator.openQuickWalletScreen(launcher, requireActivity())
+        when (option.type) {
+            SheetOptionType.TYPE_SATSCARD_SKIP_SLOT -> {
+                NfcSetupActivity.navigate(
+                    activity = requireActivity(),
+                    setUpAction = NfcSetupActivity.SETUP_SATSCARD,
+                    hasWallet = args.hasWallet,
+                    slot = viewModel.getActiveSlot()
+                )
             }
-        } else if (option.type == SheetOptionType.TYPE_SWEEP_TO_EXTERNAL_ADDRESS) {
-            openSweepRecipeScreen(navigator, getInteractSlots(), isSweepActiveSlot)
+            SheetOptionType.TYPE_VIEW_SATSCARD_UNSEAL -> {
+                val action = SatsCardSlotFragmentDirections.actionSatsCardSlotFragmentToSatsCardUnsealSlotFragment(args.hasWallet)
+                findNavController().navigate(action)
+            }
+            SheetOptionType.TYPE_SWEEP_TO_WALLET -> {
+                if (args.hasWallet) {
+                    openSelectWallet(getInteractSlots().toTypedArray())
+                } else {
+                    navigator.openQuickWalletScreen(launcher, requireActivity())
+                }
+            }
+            SheetOptionType.TYPE_SWEEP_TO_EXTERNAL_ADDRESS -> {
+                openSweepRecipeScreen(navigator, getInteractSlots(), isSweepActiveSlot)
+            }
         }
     }
 
@@ -115,7 +128,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
 
     private fun registerEvents() {
         binding.toolbar.setNavigationOnClickListener {
-            activity?.onBackPressed()
+            activity?.onBackPressedDispatcher?.onBackPressed()
         }
         binding.toolbar.setOnMenuItemClickListener {
             when (it.itemId) {
@@ -165,10 +178,12 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
     }
 
     private fun showMore() {
+        val options = mutableListOf(SheetOption(SheetOptionType.TYPE_VIEW_SATSCARD_UNSEAL, stringId = R.string.nc_view_unsealed_slots))
+        if (viewModel.state.value.status.activeSlotIndex == 0) {
+            options.add(SheetOption(SheetOptionType.TYPE_SATSCARD_SKIP_SLOT, stringId = R.string.nc_skip_first_slot))
+        }
         val fragment = BottomSheetOption.newInstance(
-            listOf(
-                SheetOption(SheetOptionType.TYPE_VIEW_SATSCARD_UNSEAL, stringId = R.string.nc_view_unsealed_slots)
-            )
+            options = options
         )
         fragment.show(childFragmentManager, "BottomSheetOption")
     }

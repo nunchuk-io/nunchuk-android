@@ -26,11 +26,13 @@ import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcViewModel.Companion.EXTRA_MASTER_SIGNER_ID
+import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.tapsigner.backup.verify.TapSignerVerifyBackUpOptionFragmentArgs
 import com.nunchuk.android.signer.tapsigner.id.TapSignerIdFragmentArgs
 import com.nunchuk.android.signer.tapsigner.intro.AddTapSignerIntroFragmentArgs
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
+import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -40,6 +42,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setLightStatusBar()
         WindowCompat.setDecorFitsSystemWindows(window, false)
         initStartDestination()
     }
@@ -115,6 +118,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
         private const val EXTRA_HAS_WALLET = "EXTRA_HAS_WALLET"
         private const val EXTRA_FROM_MEMBERSHIP_FLOW = "isMembershipFlow"
         private const val EXTRA_BACKUP_FILE_PATH = "EXTRA_BACKUP_FILE_PATH"
+        const val EXTRA_SATSCARD_SLOT = "EXTRA_SATSCARD_SLOT"
 
         /**
          * Setup action
@@ -124,8 +128,8 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
         const val CHANGE_CVC = 3
         const val RECOVER_NFC = 4
         const val SETUP_SATSCARD = 5
-        const val VERIFY_TAP_SIGNER = 6
-        const val CREATE_BACK_UP_KEY = 7
+        const val VERIFY_TAP_SIGNER = 7
+        const val CREATE_BACK_UP_KEY = 8
 
         /**
          * @param masterSignerId need to setup satscard
@@ -137,7 +141,8 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             fromMembershipFlow: Boolean = false,
             masterSignerId: String? = null,
             backUpFilePath: String? = null,
-            hasWallet: Boolean = false
+            hasWallet: Boolean = false,
+            slot: SatsCardSlot? = null,
         ) {
             activity.startActivity(
                 buildIntent(
@@ -147,6 +152,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
                     masterSignerId = masterSignerId,
                     backUpFilePath = backUpFilePath,
                     hasWallet = hasWallet,
+                    slot = slot
                 )
             )
         }
@@ -157,13 +163,15 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             fromMembershipFlow: Boolean = false,
             masterSignerId: String? = null,
             backUpFilePath: String? = null,
-            hasWallet: Boolean = false
+            hasWallet: Boolean = false,
+            slot: SatsCardSlot? = null,
         ) = Intent(activity, NfcSetupActivity::class.java).apply {
             putExtra(EXTRA_ACTION, setUpAction)
             putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
             putExtra(EXTRA_HAS_WALLET, hasWallet)
             putExtra(EXTRA_FROM_MEMBERSHIP_FLOW, fromMembershipFlow)
             putExtra(EXTRA_BACKUP_FILE_PATH, backUpFilePath)
+            putExtra(EXTRA_SATSCARD_SLOT, slot)
         }
     }
 }

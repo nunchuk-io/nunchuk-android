@@ -92,4 +92,6 @@ object SheetOptionType {
 
     const val TYPE_IMPORT_TX = 40
     const val TYPE_EXPORT_BSMS = 41
+
+    const val TYPE_SATSCARD_SKIP_SLOT = 42
 }
