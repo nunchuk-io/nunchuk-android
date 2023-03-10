@@ -37,7 +37,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -98,7 +97,6 @@ class RegisterWalletToAirgapFragment : MembershipFragment() {
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 private fun RegisterWalletToAirgapScreen(viewModel: RegisterWalletToAirgapViewModel = viewModel()) {
     val remainingTime by viewModel.remainTime.collectAsStateWithLifecycle()

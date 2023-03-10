@@ -38,8 +38,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.*
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.clearFragmentResult
+import androidx.fragment.app.setFragmentResultListener
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -140,7 +142,6 @@ class TapSignerInheritanceIntroFragment : MembershipFragment() {
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 private fun TapSignerInheritanceIntroScreen(
     viewModel: TapSignerInheritanceIntroViewModel = viewModel(),

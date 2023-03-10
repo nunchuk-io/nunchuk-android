@@ -51,11 +51,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
-import com.nunchuk.android.compose.*
+import com.nunchuk.android.compose.NcImageAppBar
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTextField
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.countWords
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
@@ -125,7 +127,6 @@ class InheritanceClaimInputFragment : Fragment() {
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun InheritanceClaimScreen(
     viewModel: InheritanceClaimInputViewModel = viewModel(),
@@ -147,7 +148,6 @@ fun InheritanceClaimScreen(
 }
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
-@ExperimentalLifecycleComposeApi
 @Composable
 private fun InheritanceClaimInputContent(
     magicalPhrase: String = "",
@@ -248,7 +248,6 @@ private fun InheritanceClaimInputContent(
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Preview
 @Composable
 private fun InheritanceClaimInputScreenPreview() {

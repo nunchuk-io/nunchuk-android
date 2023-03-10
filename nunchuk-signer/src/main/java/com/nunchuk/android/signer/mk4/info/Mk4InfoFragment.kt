@@ -25,7 +25,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -36,7 +35,6 @@ import com.nunchuk.android.signer.mk4.info.component.Mk4InfoContent
 import com.nunchuk.android.signer.mk4.intro.Mk4IntroFragmentArgs
 import dagger.hilt.android.AndroidEntryPoint
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @AndroidEntryPoint
 class Mk4InfoFragment : MembershipFragment() {
 

@@ -34,7 +34,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -81,7 +80,6 @@ class InheritancePlanOverviewFragment : MembershipFragment() {
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 private fun InheritancePlanOverviewScreen(viewModel: InheritancePlanOverviewViewModel = viewModel()) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()

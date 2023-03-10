@@ -44,7 +44,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcHintMessage
@@ -132,7 +131,6 @@ class AddKeyStepFragment : MembershipFragment() {
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun AddKeyStepScreen(viewModel: AddKeyStepViewModel) {
     val isConfigKeyDone by viewModel.isConfigKeyDone.collectAsStateWithLifecycle()

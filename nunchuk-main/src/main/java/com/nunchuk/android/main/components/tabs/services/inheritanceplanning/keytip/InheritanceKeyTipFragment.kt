@@ -36,7 +36,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -50,7 +49,6 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @AndroidEntryPoint
 class InheritanceKeyTipFragment : MembershipFragment() {
     private val viewModel: InheritanceKeyTipViewModel by viewModels()

@@ -44,7 +44,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
@@ -107,7 +106,6 @@ class TapSignerListBottomSheetFragment : BaseComposeBottomSheet() {
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 private fun TapSignerListScreen(
     viewModel: TapSingerListBottomSheetViewModel,

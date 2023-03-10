@@ -22,9 +22,10 @@ package com.nunchuk.android.utils
 import java.text.SimpleDateFormat
 import java.util.*
 
-val SIMPLE_DATE = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
-val SIMPLE_GLOBAL_DATE = SimpleDateFormat("MM/dd/yyyy", Locale.ENGLISH)
-val SIMPLE_WEEK_DAY_YEAR = SimpleDateFormat("MMM dd, yyyy", Locale.ENGLISH)
+private val SIMPLE_DATE = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
+private val SIMPLE_GLOBAL_DATE = SimpleDateFormat("MM/dd/yyyy", Locale.ENGLISH)
+private val SIMPLE_WEEK_DAY_YEAR = SimpleDateFormat("MMM dd, yyyy", Locale.ENGLISH)
+private val SIMPLE_HOUR_MINUTE = SimpleDateFormat("hh:mm a", Locale.ENGLISH)
 
 fun Date.formatMessageDate(showToday: Boolean = false): String {
     val messageDate: Calendar = Calendar.getInstance()
@@ -57,7 +58,7 @@ fun Date.formatByWeek(): String = SimpleDateFormat("MMM dd", Locale.ENGLISH).for
 
 fun Date.formatByDay(): String = SimpleDateFormat("EEEE", Locale.ENGLISH).format(this)
 
-fun Date.formatByHour(): String = SimpleDateFormat("hh:mm a", Locale.ENGLISH).format(this)
+fun Date.formatByHour(): String = SIMPLE_HOUR_MINUTE.format(this)
 
 fun Date.simpleDateFormat(): String = SIMPLE_DATE.format(this)
 

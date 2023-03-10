@@ -47,7 +47,6 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -71,7 +70,6 @@ import com.nunchuk.android.main.nonsubscriber.intro.model.AssistedWalletPoint
 import com.nunchuk.android.widget.NCVerticalInputDialog
 import dagger.hilt.android.AndroidEntryPoint
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @AndroidEntryPoint
 class NonSubscriberIntroFragment : Fragment(), BottomSheetOptionListener {
     private val viewModel: NonSubscriberIntroViewModel by viewModels()

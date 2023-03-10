@@ -45,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
@@ -168,7 +167,6 @@ class InheritanceClaimNoteFragment : MembershipFragment(), BottomSheetOptionList
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun InheritanceClaimNoteScreen(
     viewModel: InheritanceClaimNoteViewModel = viewModel(),
@@ -185,7 +183,6 @@ fun InheritanceClaimNoteScreen(
     )
 }
 
-@ExperimentalLifecycleComposeApi
 @Composable
 private fun InheritanceClaimNoteContent(
     note: String = "",
@@ -308,7 +305,6 @@ private fun InheritanceClaimNoteContent(
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Preview
 @Composable
 private fun InheritanceClaimNotePreview() {

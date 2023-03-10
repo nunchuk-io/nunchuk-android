@@ -21,7 +21,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
@@ -72,7 +71,6 @@ class WalletSecurityCreatePinFragment : Fragment() {
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun WalletSecurityCreatePinScreen(
     viewModel: WalletSecurityCreatePinViewModel = viewModel(),
@@ -102,7 +100,6 @@ fun WalletSecurityCreatePinScreen(
         })
 }
 
-@ExperimentalLifecycleComposeApi
 @Composable
 private fun WalletSecurityCreatePinContent(
     createPinFlow: Boolean = true,
@@ -174,7 +171,6 @@ private fun WalletSecurityCreatePinContent(
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Preview
 @Composable
 private fun WalletSecurityCreatePinScreenPreview() {

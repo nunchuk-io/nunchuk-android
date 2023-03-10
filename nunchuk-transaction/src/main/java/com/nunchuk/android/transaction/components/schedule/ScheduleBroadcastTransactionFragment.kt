@@ -43,7 +43,6 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -136,7 +135,6 @@ class ScheduleBroadcastTransactionFragment : Fragment() {
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 private fun ScheduleBroadcastTransactionScreen(viewModel: ScheduleBroadcastTransactionViewModel = viewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()

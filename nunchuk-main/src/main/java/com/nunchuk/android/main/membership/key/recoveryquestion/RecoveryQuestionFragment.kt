@@ -56,7 +56,6 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
@@ -181,7 +180,6 @@ class RecoveryQuestionFragment : MembershipFragment() {
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun RecoveryQuestionScreen(
     viewModel: RecoveryQuestionViewModel = viewModel(),

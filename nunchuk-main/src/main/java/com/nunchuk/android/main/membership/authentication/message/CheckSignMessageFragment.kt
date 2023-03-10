@@ -43,7 +43,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -141,7 +140,6 @@ class CheckSignMessageFragment : Fragment() {
 }
 
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 private fun CheckSignMessageScreen(
     viewModel: WalletAuthenticationViewModel = viewModel()

@@ -49,7 +49,6 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
@@ -264,7 +263,6 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun InheritanceReviewPlanScreen(
     viewModel: InheritanceReviewPlanViewModel = viewModel(),

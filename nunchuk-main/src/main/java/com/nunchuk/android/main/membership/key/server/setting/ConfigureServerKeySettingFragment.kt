@@ -39,7 +39,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
@@ -114,7 +113,6 @@ class ConfigureServerKeySettingFragment : MembershipFragment() {
         get() = args.xfp.isNullOrEmpty()
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun ConfigureServerKeySettingScreen(
     viewModel: ConfigureServerKeySettingViewModel = viewModel(),

@@ -35,10 +35,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.*
-import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.compose.NcHighlightText
+import com.nunchuk.android.compose.NcImageAppBar
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.BufferPeriodCountdown
 
@@ -58,7 +59,6 @@ class InheritanceClaimBufferPeriodFragment : Fragment() {
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun InheritanceClaimScreen(
     args: InheritanceClaimBufferPeriodFragmentArgs,
@@ -70,7 +70,6 @@ fun InheritanceClaimScreen(
     )
 }
 
-@ExperimentalLifecycleComposeApi
 @Composable
 private fun InheritanceClaimBufferPeriodContent(
     countdown: BufferPeriodCountdown,
@@ -118,7 +117,6 @@ private fun InheritanceClaimBufferPeriodContent(
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Preview
 @Composable
 private fun InheritanceClaimBufferPeriodScreenPreview() {

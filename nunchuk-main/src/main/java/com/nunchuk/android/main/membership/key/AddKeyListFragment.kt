@@ -50,7 +50,6 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.setFragmentResultListener
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
@@ -337,7 +336,6 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun AddKeyListScreen(
     viewModel: AddKeyListViewModel = viewModel(),

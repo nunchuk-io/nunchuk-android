@@ -39,7 +39,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
@@ -72,7 +71,6 @@ class InheritanceSetupIntroFragment : MembershipFragment() {
     }
 }
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 private fun InheritanceSetupIntroScreen(viewModel: InheritanceSetupIntroViewModel = viewModel(), onContinueClicked: () -> Unit) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()

@@ -40,7 +40,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -54,7 +53,6 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @AndroidEntryPoint
 class MagicalPhraseIntroFragment : MembershipFragment() {
     private val viewModel: MagicalPhraseIntroViewModel by viewModels()
@@ -92,7 +90,6 @@ class MagicalPhraseIntroFragment : MembershipFragment() {
     }
 }
 
-@ExperimentalLifecycleComposeApi
 @Composable
 private fun MagicalPhraseIntroScreen(viewModel: MagicalPhraseIntroViewModel = viewModel()) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
