@@ -118,7 +118,6 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
 
     @SuppressLint("SetTextI18n")
     private fun initViews() {
-        binding.toolbar.menu.findItem(R.id.menu_more).isVisible = viewModel.getUnsealSlots().isNotEmpty()
         val activeSlot = viewModel.getActiveSlot() ?: return
         binding.tvSlot.text = "${getString(R.string.nc_slot)} ${args.status.activeSlotIndex.inc()}/${args.status.numberOfSlot}"
         binding.address.text = activeSlot.address
@@ -178,7 +177,10 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
     }
 
     private fun showMore() {
-        val options = mutableListOf(SheetOption(SheetOptionType.TYPE_VIEW_SATSCARD_UNSEAL, stringId = R.string.nc_view_unsealed_slots))
+        val options = mutableListOf<SheetOption>()
+        if (viewModel.getUnsealSlots().isNotEmpty()) {
+            options.add(SheetOption(SheetOptionType.TYPE_VIEW_SATSCARD_UNSEAL, stringId = R.string.nc_view_unsealed_slots))
+        }
         if (viewModel.state.value.status.activeSlotIndex == 0) {
             options.add(SheetOption(SheetOptionType.TYPE_SATSCARD_SKIP_SLOT, stringId = R.string.nc_skip_first_slot))
         }
@@ -191,6 +193,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
     private fun observer() {
         flowObserver(viewModel.event, ::handleEvent)
         flowObserver(viewModel.state) {
+            binding.toolbar.menu.findItem(R.id.menu_more).isVisible = viewModel.getUnsealSlots().isNotEmpty() || it.status.activeSlotIndex == 0
             if (it.isLoading) {
                 handleLoading()
             } else if (it.isNetworkError) {
