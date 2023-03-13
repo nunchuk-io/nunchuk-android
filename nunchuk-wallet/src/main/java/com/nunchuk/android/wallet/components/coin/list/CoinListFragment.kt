@@ -27,6 +27,7 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.coin.CoinCard
 import com.nunchuk.android.model.coin.CoinTag
 import com.nunchuk.android.wallet.R
@@ -47,7 +48,18 @@ class CoinListFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                CoinListScreen(viewModel)
+                CoinListScreen(
+                    viewModel = viewModel,
+                    onViewCoinDetail = {
+
+                    },
+                    onSendBtc = {
+
+                    },
+                    onShowSelectedCoinMoreOption = {
+
+                    },
+                )
             }
         }
     }
@@ -63,7 +75,12 @@ class CoinListFragment : Fragment() {
 }
 
 @Composable
-private fun CoinListScreen(viewModel: CoinListViewModel = viewModel()) {
+private fun CoinListScreen(
+    viewModel: CoinListViewModel = viewModel(),
+    onViewCoinDetail: (coinCard: CoinCard) -> Unit = {},
+    onShowSelectedCoinMoreOption: () -> Unit = {},
+    onSendBtc: () -> Unit = {},
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     CoinListContent(
@@ -75,6 +92,9 @@ private fun CoinListScreen(viewModel: CoinListViewModel = viewModel()) {
         onSelectDone = viewModel::onSelectDone,
         enableSelectMode = viewModel::enableSelectMode,
         enableSearchMode = viewModel::enableSearchMode,
+        onViewCoinDetail = onViewCoinDetail,
+        onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption,
+        onSendBtc = onSendBtc
     )
 }
 
@@ -87,6 +107,9 @@ private fun CoinListContent(
     enableSearchMode: () -> Unit = {},
     onSelectOrUnselectAll: (isSelect: Boolean) -> Unit = {},
     onSelectDone: () -> Unit = {},
+    onViewCoinDetail: (coinCard: CoinCard) -> Unit = {},
+    onSendBtc: () -> Unit = {},
+    onShowSelectedCoinMoreOption: () -> Unit = {},
     onSelectCoin: (coinCard: CoinCard, isSelected: Boolean) -> Unit = { _, _ -> }
 ) {
     NunchukTheme {
@@ -111,21 +134,26 @@ private fun CoinListContent(
             }
         }) { innerPadding ->
             Column {
-                LazyColumn(modifier = Modifier
-                    .weight(1f)
-                    .padding(innerPadding)) {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(innerPadding)
+                ) {
                     items(coins) { coin ->
                         PreviewCoinCard(
                             coinCard = coin,
                             onSelectCoin = onSelectCoin,
                             isSelected = selectedCoin.contains(coin),
-                            selectable = mode == CoinListMode.SELECT
+                            selectable = mode == CoinListMode.SELECT,
+                            onViewCoinDetail = onViewCoinDetail
                         )
                     }
                 }
                 if (mode == CoinListMode.SELECT && selectedCoin.isNotEmpty()) {
                     CoinListBottomBar(
-                        selectedCoin = selectedCoin
+                        selectedCoin = selectedCoin,
+                        onSendBtc = onSendBtc,
+                        onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption,
                     )
                 }
             }
@@ -137,8 +165,8 @@ private fun CoinListContent(
 @Composable
 private fun CoinListScreenPreview() {
     val coin = CoinCard(
-        amount = "100,000 sats",
-        isLock = true,
+        amount = Amount(1000000L),
+        isLocked = true,
         isScheduleBroadCast = true,
         time = System.currentTimeMillis(),
         tags = listOf(
@@ -156,11 +184,11 @@ private fun CoinListScreenPreview() {
     )
     CoinListContent(
         coins = listOf(
-            coin.copy(id = 1L),
-            coin.copy(id = 2L),
-            coin.copy(id = 3L),
-            coin.copy(id = 4L),
-            coin.copy(id = 5L)
+            coin.copy(id = 1),
+            coin.copy(id = 2),
+            coin.copy(id = 3),
+            coin.copy(id = 4),
+            coin.copy(id = 5)
         )
     )
 }

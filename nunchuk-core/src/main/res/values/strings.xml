@@ -530,4 +530,5 @@
     <string name="nc_select">Select</string>
     <string name="nc_select_all">Select all</string>
     <string name="nc_unselect_all">Unselect all</string>
+    <string name="nc_change">Change</string>
 </resources>

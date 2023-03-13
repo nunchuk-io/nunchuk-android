@@ -2,6 +2,7 @@ package com.nunchuk.android.wallet.components.coin.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -10,13 +11,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.coin.CoinCard
 import com.nunchuk.android.model.coin.CoinTag
 import com.nunchuk.android.utils.formatByHour
@@ -29,30 +34,24 @@ fun PreviewCoinCard(
     coinCard: CoinCard,
     selectable: Boolean = false,
     isSelected: Boolean = false,
+    onViewCoinDetail: (coinCard: CoinCard) -> Unit = {},
     onSelectCoin: (coinCard: CoinCard, isSelected: Boolean) -> Unit = { _, _ -> }
 ) {
-    Box {
+    Box(modifier = Modifier.clickable { onViewCoinDetail(coinCard) }) {
         Column(
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 12.dp)
                 .fillMaxWidth()
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = coinCard.amount, style = NunchukTheme.typography.title)
-                if (coinCard.isLock) {
-                    Icon(
-                        modifier = Modifier
-                            .padding(start = 4.dp)
-                            .background(
-                                color = colorResource(id = R.color.nc_whisper_color),
-                                shape = RoundedCornerShape(24.dp)
-                            )
-                            .padding(horizontal = 8.dp, vertical = 2.dp)
-                            .size(12.dp),
-                        painter = painterResource(id = R.drawable.ic_lock),
-                        contentDescription = "Lock"
-                    )
-                } else {
+                Text(
+                    text = if (LocalView.current.isInEditMode)
+                        "${coinCard.amount.value} sats"
+                    else
+                        coinCard.amount.getBTCAmount(),
+                    style = NunchukTheme.typography.title
+                )
+                if (coinCard.isChange) {
                     Text(
                         modifier = Modifier
                             .padding(start = 4.dp)
@@ -66,8 +65,22 @@ fun PreviewCoinCard(
                                 shape = RoundedCornerShape(24.dp)
                             )
                             .padding(horizontal = 8.dp, vertical = 2.dp),
-                        text = "Change",
+                        text = stringResource(R.string.nc_change),
                         style = NunchukTheme.typography.titleSmall.copy(fontSize = 10.sp)
+                    )
+                }
+                if (coinCard.isLocked) {
+                    Icon(
+                        modifier = Modifier
+                            .padding(start = 4.dp)
+                            .background(
+                                color = colorResource(id = R.color.nc_whisper_color),
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                            .size(12.dp),
+                        painter = painterResource(id = R.drawable.ic_lock),
+                        contentDescription = "Lock"
                     )
                 }
                 if (coinCard.isScheduleBroadCast) {
@@ -100,15 +113,18 @@ fun PreviewCoinCard(
         }
         if (selectable) {
             Checkbox(modifier = Modifier
-                .align(Alignment.TopEnd).padding(top = 8.dp), checked = isSelected, onCheckedChange = { select ->
-                onSelectCoin(coinCard, select)
-            })
+                .align(Alignment.TopEnd)
+                .padding(top = 8.dp),
+                checked = isSelected,
+                onCheckedChange = { select ->
+                    onSelectCoin(coinCard, select)
+                })
         } else {
             IconButton(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 8.dp),
-                onClick = { /*TODO*/ }) {
+                onClick = { onViewCoinDetail(coinCard) }) {
                 Icon(painter = painterResource(id = R.drawable.ic_arrow), contentDescription = "")
             }
         }
@@ -121,9 +137,10 @@ fun PreviewCoinCardPreview() {
     NunchukTheme {
         PreviewCoinCard(
             coinCard = CoinCard(
-                amount = "100,000 sats",
-                isLock = true,
+                amount = Amount(1000000L),
+                isLocked = true,
                 isScheduleBroadCast = true,
+                isChange = true,
                 time = System.currentTimeMillis(),
                 tags = listOf(
                     CoinTag(Color.Blue.toArgb(), "Badcoins"),
@@ -148,8 +165,8 @@ fun PreviewCoinCardPreview2() {
     NunchukTheme {
         PreviewCoinCard(
             coinCard = CoinCard(
-                amount = "100,000 sats",
-                isLock = false,
+                amount = Amount(1000000L),
+                isLocked = false,
                 isScheduleBroadCast = true,
                 time = System.currentTimeMillis(),
                 tags = listOf(),
@@ -165,8 +182,8 @@ fun PreviewCoinCardPreview3() {
     NunchukTheme {
         PreviewCoinCard(
             coinCard = CoinCard(
-                amount = "100,000 sats",
-                isLock = false,
+                amount = Amount(1000000L),
+                isLocked = false,
                 isScheduleBroadCast = true,
                 time = System.currentTimeMillis(),
                 tags = listOf(),

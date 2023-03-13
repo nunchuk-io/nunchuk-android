@@ -1,18 +1,21 @@
 package com.nunchuk.android.wallet.components.coin.list
 
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.model.coin.CoinCard
-import com.nunchuk.android.model.coin.CoinTag
+import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class CoinListViewModel @Inject constructor(
-
+    savedStateHandle: SavedStateHandle,
+    private val getAllCoinUseCase: GetAllCoinUseCase
 ) : ViewModel() {
+    private val args = CoinListFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _state = MutableStateFlow(CoinListUiState())
     val state = _state.asStateFlow()
 
@@ -20,33 +23,25 @@ class CoinListViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
     init {
-        val coin = CoinCard(
-            amount = "100,000 sats",
-            isLock = true,
-            isScheduleBroadCast = true,
-            time = System.currentTimeMillis(),
-            tags = listOf(
-                CoinTag(Color.Blue.toArgb(), "Badcoins"),
-                CoinTag(Color.Red.toArgb(), "Dirtycoins"),
-                CoinTag(Color.Gray.toArgb(), "Dirty"),
-                CoinTag(Color.Green.toArgb(), "Dirtys"),
-                CoinTag(Color.DarkGray.toArgb(), "Dirtycoins"),
-                CoinTag(Color.LightGray.toArgb(), "Dirtycoins"),
-                CoinTag(Color.Magenta.toArgb(), "Dirtycoins"),
-                CoinTag(Color.Cyan.toArgb(), "Dirtycoins"),
-                CoinTag(Color.Black.toArgb(), "Dirtycoins"),
-            ),
-            note = "Send to Bob on Silk Road",
-        )
-        val coins = listOf(
-            coin.copy(id = 1L),
-            coin.copy(id = 2L),
-            coin.copy(id = 3L),
-            coin.copy(id = 4L),
-            coin.copy(id = 5L)
-        )
-        _state.update {
-            it.copy(coins = coins)
+        viewModelScope.launch {
+            getAllCoinUseCase(args.walletId).onSuccess {
+                val coins = it.map { output ->
+                    CoinCard(
+                        id = output.vout,
+                        amount = output.amount,
+                        isLocked = output.isLocked,
+                        isChange = output.isChange,
+                        note = output.memo,
+                        tags = emptyList(),
+                        time = System.currentTimeMillis(),
+                        txId = output.txid,
+                        isScheduleBroadCast = true
+                    )
+                }
+                _state.update { state ->
+                    state.copy(coins = coins)
+                }
+            }
         }
     }
 
