@@ -56,7 +56,6 @@ import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.config.WalletConfigAction
 import com.nunchuk.android.wallet.components.config.WalletConfigActivity
-import com.nunchuk.android.wallet.components.config.WalletConfigEvent
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import com.nunchuk.android.wallet.databinding.FragmentWalletDetailBinding
 import com.nunchuk.android.widget.NCToastMessage
@@ -373,12 +372,12 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             title = getString(R.string.nc_select_import_method),
             options = listOf(
                 SheetOption(
-                    SheetOptionType.TYPE_IMPORT_PSBT,
+                    SheetOptionType.TYPE_IMPORT_PSBT_QR,
                     R.drawable.ic_qr,
                     R.string.nc_import_via_qr
                 ),
                 SheetOption(
-                    SheetOptionType.TYPE_IMPORT_PSBT_QR,
+                    SheetOptionType.TYPE_IMPORT_PSBT,
                     R.drawable.ic_import,
                     R.string.nc_import_via_file
                 )

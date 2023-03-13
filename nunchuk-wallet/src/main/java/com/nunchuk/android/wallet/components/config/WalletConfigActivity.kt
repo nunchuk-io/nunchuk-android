@@ -294,12 +294,12 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     stringId = R.string.nc_bsms
                 ),
                 SheetOption(
-                    type = SheetOptionType.TYPE_EXPORT_AS_QR,
-                    stringId = R.string.nc_text_wallet_qr_code
-                ),
-                SheetOption(
                     type = SheetOptionType.TYPE_EXPORT_TO_COLD_CARD,
                     stringId = R.string.nc_coldcard
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_EXPORT_AS_QR,
+                    stringId = R.string.nc_text_wallet_qr_code
                 ),
             )
         ).show(supportFragmentManager, "BottomSheetOption")
