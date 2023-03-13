@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -23,7 +22,7 @@ fun CoinTagView(modifier: Modifier = Modifier, tag: CoinTag) {
     Row(
         modifier
             .background(
-                color = MaterialTheme.colors.background,
+                color = NcColor.greyLight,
                 shape = RoundedCornerShape(24.dp)
             )
             .border(1.dp, color = NcColor.whisper, shape = RoundedCornerShape(24.dp))

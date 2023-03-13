@@ -526,4 +526,8 @@
     <string name="nc_coldcard">COLDCARD</string>
     <string name="nc_bsms">BSMS</string>
     <string name="nc_other">Other</string>
+    <string name="nc_coin">Coin</string>
+    <string name="nc_select">Select</string>
+    <string name="nc_select_all">Select all</string>
+    <string name="nc_unselect_all">Unselect all</string>
 </resources>

@@ -4,10 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,7 +25,12 @@ import com.nunchuk.android.wallet.R
 import java.util.*
 
 @Composable
-fun PreviewCoinCard(coinCard: CoinCard) {
+fun PreviewCoinCard(
+    coinCard: CoinCard,
+    selectable: Boolean = false,
+    isSelected: Boolean = false,
+    onSelectCoin: (coinCard: CoinCard, isSelected: Boolean) -> Unit = { _, _ -> }
+) {
     Box {
         Column(
             modifier = Modifier
@@ -96,8 +98,19 @@ fun PreviewCoinCard(coinCard: CoinCard) {
                 )
             }
         }
-        IconButton(modifier = Modifier.align(Alignment.TopEnd).padding(top = 8.dp), onClick = { /*TODO*/ }) {
-            Icon(painter = painterResource(id = R.drawable.ic_arrow), contentDescription = "")
+        if (selectable) {
+            Checkbox(modifier = Modifier
+                .align(Alignment.TopEnd).padding(top = 8.dp), checked = isSelected, onCheckedChange = { select ->
+                onSelectCoin(coinCard, select)
+            })
+        } else {
+            IconButton(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 8.dp),
+                onClick = { /*TODO*/ }) {
+                Icon(painter = painterResource(id = R.drawable.ic_arrow), contentDescription = "")
+            }
         }
     }
 }
@@ -142,6 +155,25 @@ fun PreviewCoinCardPreview2() {
                 tags = listOf(),
                 note = ""
             )
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewCoinCardPreview3() {
+    NunchukTheme {
+        PreviewCoinCard(
+            coinCard = CoinCard(
+                amount = "100,000 sats",
+                isLock = false,
+                isScheduleBroadCast = true,
+                time = System.currentTimeMillis(),
+                tags = listOf(),
+                note = ""
+            ),
+            selectable = true,
+            isSelected = true
         )
     }
 }

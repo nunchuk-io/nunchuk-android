@@ -54,11 +54,13 @@ import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.components.coin.CoinActivity
 import com.nunchuk.android.wallet.components.config.WalletConfigAction
 import com.nunchuk.android.wallet.components.config.WalletConfigActivity
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
 import com.nunchuk.android.wallet.databinding.FragmentWalletDetailBinding
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -86,7 +88,9 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                 when (data.serializable<WalletConfigAction>(WalletConfigActivity.EXTRA_WALLET_ACTION)) {
                     WalletConfigAction.DELETE -> requireActivity().onBackPressedDispatcher.onBackPressed()
                     WalletConfigAction.UPDATE_NAME -> viewModel.getWalletDetails(false)
-                    WalletConfigAction.FORCE_REFRESH -> viewModel.setForceRefreshWalletProcessing(true)
+                    WalletConfigAction.FORCE_REFRESH -> viewModel.setForceRefreshWalletProcessing(
+                        true
+                    )
                     null -> {}
                 }
             }
@@ -264,15 +268,17 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         )
 
         binding.btcAmount.text = Utils.maskValue(wallet.getBTCAmount(), state.hideWalletDetailLocal)
-        binding.cashAmount.text = Utils.maskValue(wallet.getCurrencyAmount(), state.hideWalletDetailLocal)
-        binding.btnSend.isClickable = wallet.balance.value > 0
+        binding.cashAmount.text =
+            Utils.maskValue(wallet.getCurrencyAmount(), state.hideWalletDetailLocal)
+        binding.ivSendBtc.isClickable = wallet.balance.value > 0
 
         binding.shareIcon.isVisible = state.walletExtended.isShared || state.isAssistedWallet
         if (state.isAssistedWallet) {
             binding.container.setBackgroundResource(R.drawable.nc_header_membership_gradient_background)
             requireActivity().window.statusBarColor =
                 ContextCompat.getColor(requireContext(), R.color.nc_wallet_premium_bg)
-            binding.shareIcon.text = Utils.maskValue(getString(R.string.nc_assisted), state.hideWalletDetailLocal)
+            binding.shareIcon.text =
+                Utils.maskValue(getString(R.string.nc_assisted), state.hideWalletDetailLocal)
         }
         updateFabIcon(state.hideWalletDetailLocal)
     }
@@ -297,12 +303,12 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                 keyPolicy = args.keyPolicy
             )
         }
-        binding.btnReceive.setOnClickListener {
+        binding.ivReceiveBtc.setOnClickListener {
             navigator.openReceiveTransactionScreen(
                 requireActivity(), args.walletId
             )
         }
-        binding.btnSend.setOnClickListener { viewModel.handleSendMoneyEvent() }
+        binding.ivSendBtc.setOnClickListener { viewModel.handleSendMoneyEvent() }
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
@@ -323,6 +329,9 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
 
         binding.copyAddressLayout.setOnClickListener { copyAddress(binding.addressText.text.toString()) }
         binding.shareLayout.setOnClickListener { controller.shareText(binding.addressText.text.toString()) }
+        binding.ivViewCoin.setOnDebounceClickListener {
+            startActivity(Intent(requireContext(), CoinActivity::class.java))
+        }
         binding.fab.setOnClickListener {
             viewModel.updateHideWalletDetailLocal()
         }

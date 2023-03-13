@@ -57,4 +57,6 @@
     <string name="nc_discard_changes">Discard changes</string>
     <string name="nc_assisted_wallet_downgrade_hint">Your assisted wallet has been downgraded to a regular wallet. Please renew your subscription to continue using our services.</string>
     <string name="nc_setup_inheritance_for_this_wallet">Set up an inheritance plan for this wallet</string>
+    <string name="nc_view_coins">View coins</string>
+    <string name="nc_number_of_coin_selected">%1$d coins selected</string>
 </resources>

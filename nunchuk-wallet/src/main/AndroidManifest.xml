@@ -83,6 +83,12 @@
             android:name=".components.cosigning.CosigningPolicyActivity"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar" />
+
+        <activity
+            android:name=".components.coin.CoinActivity"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar" />
     </application>
 
 </manifest>
