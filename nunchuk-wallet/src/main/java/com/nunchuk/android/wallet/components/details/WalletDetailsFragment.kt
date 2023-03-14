@@ -393,7 +393,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     }
 
     private fun handleImportPSBT() {
-        requireActivity().openSelectFileChooser()
+        openSelectFileChooser()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
