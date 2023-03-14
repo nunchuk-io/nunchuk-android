@@ -24,6 +24,7 @@ import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.coin.CoinCard
 import com.nunchuk.android.model.coin.CoinTag
+import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.formatByHour
 import com.nunchuk.android.utils.simpleDateFormat
 import com.nunchuk.android.wallet.R
@@ -98,12 +99,20 @@ fun PreviewCoinCard(
                     )
                 }
             }
-            val date = Date(coinCard.time)
-            Text(
-                modifier = Modifier.padding(top = 4.dp),
-                text = "${date.simpleDateFormat()} at ${date.formatByHour()}",
-                style = NunchukTheme.typography.bodySmall
-            )
+            if (coinCard.time > 0L) {
+                val date = Date(coinCard.time)
+                Text(
+                    modifier = Modifier.padding(top = 4.dp),
+                    text = "${date.simpleDateFormat()} at ${date.formatByHour()}",
+                    style = NunchukTheme.typography.bodySmall
+                )
+            } else {
+                Text(
+                    modifier = Modifier.padding(top = 4.dp),
+                    text = "--/--/--",
+                    style = NunchukTheme.typography.bodySmall
+                )
+            }
 
             if (coinCard.tags.isNotEmpty() || coinCard.note.isNotEmpty()) {
                 CoinTagGroupView(
@@ -154,6 +163,7 @@ fun PreviewCoinCardPreview() {
                     CoinTag(Color.Black.toArgb(), "Dirtycoins"),
                 ),
                 note = "Send to Bob on Silk Road",
+                status = TransactionStatus.PENDING_CONFIRMATION
             )
         )
     }
@@ -170,7 +180,8 @@ fun PreviewCoinCardPreview2() {
                 isScheduleBroadCast = true,
                 time = System.currentTimeMillis(),
                 tags = listOf(),
-                note = ""
+                note = "",
+                status = TransactionStatus.PENDING_CONFIRMATION
             )
         )
     }
@@ -187,7 +198,8 @@ fun PreviewCoinCardPreview3() {
                 isScheduleBroadCast = true,
                 time = System.currentTimeMillis(),
                 tags = listOf(),
-                note = ""
+                note = "",
+                status = TransactionStatus.PENDING_CONFIRMATION
             ),
             selectable = true,
             isSelected = true

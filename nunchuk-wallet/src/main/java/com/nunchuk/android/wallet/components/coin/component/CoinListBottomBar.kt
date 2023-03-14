@@ -22,6 +22,7 @@ import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.coin.CoinCard
 import com.nunchuk.android.model.coin.CoinTag
+import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.wallet.R
 
 @Composable
@@ -88,6 +89,7 @@ fun CoinListBottomBarPreview() {
                         CoinTag(Color.Black.toArgb(), "Dirtycoins"),
                     ),
                     note = "Send to Bob on Silk Road",
+                    status = TransactionStatus.PENDING_CONFIRMATION
                 )
             )
         )

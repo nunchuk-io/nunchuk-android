@@ -531,4 +531,10 @@
     <string name="nc_select_all">Select all</string>
     <string name="nc_unselect_all">Unselect all</string>
     <string name="nc_change">Change</string>
+    <string name="nc_add_to_a_collection">Add to a collection</string>
+    <string name="nc_add_tags">Add tags</string>
+    <string name="nc_lock_coin">Lock coins</string>
+    <string name="nc_unlock_coin">Unlock coins</string>
+    <string name="nc_coin_locked">Coins locked</string>
+    <string name="nc_coin_unlocked">Coins unlocked</string>
 </resources>

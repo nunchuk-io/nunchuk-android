@@ -94,4 +94,9 @@ object SheetOptionType {
     const val TYPE_EXPORT_BSMS = 41
 
     const val TYPE_SATSCARD_SKIP_SLOT = 42
+
+    const val TYPE_LOCK_COIN = 43
+    const val TYPE_UNLOCK_COIN = 44
+    const val TYPE_ADD_COLLECTION = 45
+    const val TYPE_ADD_TAG = 46
 }

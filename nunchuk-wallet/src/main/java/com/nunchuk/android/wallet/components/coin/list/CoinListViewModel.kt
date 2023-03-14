@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.model.coin.CoinCard
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
+import com.nunchuk.android.usecase.coin.LockCoinUseCase
+import com.nunchuk.android.usecase.coin.UnLockCoinUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -13,7 +15,9 @@ import javax.inject.Inject
 @HiltViewModel
 class CoinListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val getAllCoinUseCase: GetAllCoinUseCase
+    private val getAllCoinUseCase: GetAllCoinUseCase,
+    private val lockCoinUseCase: LockCoinUseCase,
+    private val unLockCoinUseCase: UnLockCoinUseCase,
 ) : ViewModel() {
     private val args = CoinListFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _state = MutableStateFlow(CoinListUiState())
@@ -23,7 +27,12 @@ class CoinListViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
     init {
+        getAllCoins()
+    }
+
+    private fun getAllCoins() {
         viewModelScope.launch {
+            _event.emit(CoinListEvent.Loading(true))
             getAllCoinUseCase(args.walletId).onSuccess {
                 val coins = it.map { output ->
                     CoinCard(
@@ -33,15 +42,42 @@ class CoinListViewModel @Inject constructor(
                         isChange = output.isChange,
                         note = output.memo,
                         tags = emptyList(),
-                        time = System.currentTimeMillis(),
+                        time = output.time * 1000L,
                         txId = output.txid,
-                        isScheduleBroadCast = true
+                        isScheduleBroadCast = output.scheduleTime > 0L,
+                        status = output.status
                     )
                 }
+                _event.emit(CoinListEvent.Loading(false))
                 _state.update { state ->
                     state.copy(coins = coins)
                 }
             }
+        }
+    }
+
+    fun onLockCoin() {
+        viewModelScope.launch {
+            val coins = state.value.selectedCoins
+            coins.asSequence().filter { it.isLocked.not() }.forEach {
+                lockCoinUseCase(LockCoinUseCase.Params(args.walletId, it.txId, it.id))
+            }
+            getAllCoins()
+            _event.emit(CoinListEvent.CoinLocked)
+            _state.update { it.copy(selectedCoins = emptySet(), mode = CoinListMode.NONE) }
+        }
+    }
+
+    fun onUnlockCoin() {
+        viewModelScope.launch {
+            val coins = state.value.selectedCoins
+
+            coins.asSequence().filter { it.isLocked }.forEach {
+                unLockCoinUseCase(UnLockCoinUseCase.Params(args.walletId, it.txId, it.id))
+            }
+            getAllCoins()
+            _event.emit(CoinListEvent.CoinUnlocked)
+            _state.update { it.copy(selectedCoins = emptySet(), mode = CoinListMode.NONE) }
         }
     }
 
@@ -76,4 +112,8 @@ class CoinListViewModel @Inject constructor(
     }
 }
 
-sealed class CoinListEvent
+sealed class CoinListEvent {
+    data class Loading(val isLoading: Boolean) : CoinListEvent()
+    object CoinLocked : CoinListEvent()
+    object CoinUnlocked : CoinListEvent()
+}

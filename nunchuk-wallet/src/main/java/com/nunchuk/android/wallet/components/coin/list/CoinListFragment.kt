@@ -27,9 +27,16 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.coin.CoinCard
 import com.nunchuk.android.model.coin.CoinTag
+import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.component.CoinListBottomBar
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarNoneMode
@@ -39,7 +46,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class CoinListFragment : Fragment() {
+class CoinListFragment : Fragment(), BottomSheetOptionListener {
     private val viewModel: CoinListViewModel by viewModels()
 
     override fun onCreateView(
@@ -57,18 +64,38 @@ class CoinListFragment : Fragment() {
 
                     },
                     onShowSelectedCoinMoreOption = {
-
+                        showSelectCoinOptions()
                     },
                 )
             }
         }
     }
 
+    override fun onOptionClicked(option: SheetOption) {
+        when(option.type) {
+            SheetOptionType.TYPE_LOCK_COIN -> viewModel.onLockCoin()
+            SheetOptionType.TYPE_UNLOCK_COIN -> viewModel.onUnlockCoin()
+        }
+    }
+
+    private fun showSelectCoinOptions() {
+        BottomSheetOption.newInstance(listOf(
+            SheetOption(type = SheetOptionType.TYPE_LOCK_COIN, label = getString(R.string.nc_lock_coin)),
+            SheetOption(type = SheetOptionType.TYPE_UNLOCK_COIN, label = getString(R.string.nc_unlock_coin)),
+            SheetOption(type = SheetOptionType.TYPE_ADD_COLLECTION, label = getString(R.string.nc_add_to_a_collection)),
+            SheetOption(type = SheetOptionType.TYPE_ADD_TAG, label = getString(R.string.nc_add_tags)),
+        )).show(childFragmentManager, "BottomSheetOption")
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle).collect { event ->
-
+                when(event) {
+                    is CoinListEvent.Loading -> showOrHideLoading(event.isLoading)
+                    CoinListEvent.CoinLocked -> showSuccess(getString(R.string.nc_coin_locked))
+                    CoinListEvent.CoinUnlocked -> showSuccess(getString(R.string.nc_coin_unlocked))
+                }
             }
         }
     }
@@ -181,6 +208,7 @@ private fun CoinListScreenPreview() {
             CoinTag(Color.Black.toArgb(), "Dirtycoins"),
         ),
         note = "Send to Bob on Silk Road",
+        status = TransactionStatus.PENDING_CONFIRMATION
     )
     CoinListContent(
         coins = listOf(
