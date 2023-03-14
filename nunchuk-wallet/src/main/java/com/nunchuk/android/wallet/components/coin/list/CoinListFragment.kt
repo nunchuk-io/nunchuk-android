@@ -45,6 +45,7 @@ import com.nunchuk.android.wallet.components.coin.component.CoinListBottomBar
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarNoneMode
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarSelectMode
 import com.nunchuk.android.wallet.components.coin.component.PreviewCoinCard
+import com.nunchuk.android.wallet.components.coin.tag.TagFlow
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -90,8 +91,18 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_LOCK_COIN -> viewModel.onLockCoin()
             SheetOptionType.TYPE_UNLOCK_COIN -> viewModel.onUnlockCoin()
             SheetOptionType.TYPE_ADD_COLLECTION -> TODO()
-            SheetOptionType.TYPE_ADD_TAG -> TODO()
-            SheetOptionType.TYPE_VIEW_TAG -> TODO()
+            SheetOptionType.TYPE_ADD_TAG -> findNavController().navigate(
+                CoinListFragmentDirections.actionCoinListFragmentToCoinTagListFragment(
+                    walletId = args.walletId,
+                    tagFlow = TagFlow.ADD
+                )
+            )
+            SheetOptionType.TYPE_VIEW_TAG -> findNavController().navigate(
+                CoinListFragmentDirections.actionCoinListFragmentToCoinTagListFragment(
+                    walletId = args.walletId,
+                    tagFlow = TagFlow.VIEW
+                )
+            )
             SheetOptionType.TYPE_VIEW_COLLECTION -> TODO()
             SheetOptionType.TYPE_VIEW_LOCKED_COIN -> findNavController().navigate(
                 CoinListFragmentDirections.actionCoinListFragmentSelf(

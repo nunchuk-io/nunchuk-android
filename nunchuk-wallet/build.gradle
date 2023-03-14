@@ -23,5 +23,7 @@ dependencies {
     implementation pagingDeps.values()
     implementation matrixDeps.values()
 
+    implementation 'de.charlex.compose:revealswipe:1.0.0'
+
     testImplementation otherTestDeps.junit
 }

@@ -41,7 +41,9 @@ fun PreviewCoinCard(
     onViewCoinDetail: (output: UnspentOutput) -> Unit = {},
     onSelectCoin: (output: UnspentOutput, isSelected: Boolean) -> Unit = { _, _ -> }
 ) {
-    Box(modifier = Modifier.run {
+    Box(modifier = Modifier
+        .background(color = Color.White)
+        .run {
         if (selectable.not()) {
             this.clickable { onViewCoinDetail(output) }
         } else {

@@ -554,4 +554,16 @@
     <string name="nc_pending_conf">pending conf.</string>
     <string name="nc_pending_sig">pending sig.</string>
     <string name="nc_pending_broadcast">pending broadcast</string>
+    <string name="nc_coin_tags">Coin tags</string>
+    <string name="nc_create_a_new_tag">Create a new tag</string>
+    <string name="nc_set_color">Set color</string>
+    <string name="nc_select_a_color">Select a color</string>
+    <string name="nc_num_coins_data">%s coins</string>
+    <string name="nc_tag_name">Tag name</string>
+    <string name="nc_tag_name_already_exists">Tag name already exists.</string>
+    <string name="nc_tag_deleted">Tag deleted</string>
+    <string name="nc_delete_tag">Delete tag</string>
+    <string name="nc_tag_updated">Tag updated</string>
+    <string name="nc_delete_tag_confirmation"><![CDATA[There are currently <b>[%s]</b> coins that have this tag. Are you sure you want to delete this tag?]]></string>
+    <string name="nc_remove_coin_confirmation"><![CDATA[Are you sure you want to remove this coin from <b>%s</b>?]]></string>
 </resources>

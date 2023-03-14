@@ -65,7 +65,7 @@ fun NcTextField(
     onFocusEvent: (FocusState) -> Unit = {},
     onValueChange: (value: String) -> Unit,
 ) {
-    val hasError = error != null && error.isNotEmpty()
+    val hasError = !error.isNullOrEmpty()
     var backgroundErrorColor = MaterialTheme.colors.surface
     var borderErrorColor = Color(0xFFDEDEDE)
     if (hasError && showErrorMessageOnly.not()) {

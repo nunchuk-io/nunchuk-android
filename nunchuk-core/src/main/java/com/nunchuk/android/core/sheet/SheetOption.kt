@@ -103,4 +103,5 @@ object SheetOptionType {
     const val TYPE_VIEW_COLLECTION = 48
     const val TYPE_VIEW_LOCKED_COIN = 49
     const val TYPE_SHOW_OUTPOINT = 50
+    const val TYPE_DELETE_TAG = 51
 }

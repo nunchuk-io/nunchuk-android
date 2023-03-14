@@ -24,6 +24,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.Window
+import androidx.core.text.HtmlCompat
 import com.nunchuk.android.widget.databinding.NcDeleteConfirmDialogBinding
 import javax.inject.Inject
 
@@ -46,7 +47,7 @@ class NCDeleteConfirmationDialog @Inject constructor(private val context: Contex
                 binding.input.makeMaskedInput()
             }
             binding.title.text = title
-            binding.message.text = message
+            binding.message.text = HtmlCompat.fromHtml(message, HtmlCompat.FROM_HTML_MODE_COMPACT)
             binding.btnYes.setOnClickListener {
                 onConfirmed(binding.input.text.toString())
                 dismiss()
