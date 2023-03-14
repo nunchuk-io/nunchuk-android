@@ -99,4 +99,7 @@ object SheetOptionType {
     const val TYPE_UNLOCK_COIN = 44
     const val TYPE_ADD_COLLECTION = 45
     const val TYPE_ADD_TAG = 46
+    const val TYPE_VIEW_TAG = 47
+    const val TYPE_VIEW_COLLECTION = 48
+    const val TYPE_VIEW_LOCKED_COIN = 49
 }

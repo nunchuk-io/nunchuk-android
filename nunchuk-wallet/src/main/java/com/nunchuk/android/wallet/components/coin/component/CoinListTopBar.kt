@@ -20,9 +20,14 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.wallet.R
 
 @Composable
-fun CoinListTopBarNoneMode(enableSelectMode: () -> Unit) {
+fun CoinListTopBarNoneMode(
+    enableSelectMode: () -> Unit,
+    onShowMoreOptions: () -> Unit,
+    title: String,
+    isShowMore: Boolean,
+) {
     NcTopAppBar(
-        title = stringResource(R.string.nc_coin),
+        title = title,
         textStyle = NunchukTheme.typography.titleLarge,
         isBack = false,
         actions = {
@@ -31,11 +36,13 @@ fun CoinListTopBarNoneMode(enableSelectMode: () -> Unit) {
                 text = stringResource(R.string.nc_select),
                 style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
             )
-            IconButton(onClick = { /*TODO*/ }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_more),
-                    contentDescription = "More icon"
-                )
+            if (isShowMore) {
+                IconButton(onClick = onShowMoreOptions) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_more),
+                        contentDescription = "More icon"
+                    )
+                }
             }
         },
     )

@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -26,6 +27,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -47,6 +50,7 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class CoinListFragment : Fragment(), BottomSheetOptionListener {
+    private val args: CoinListFragmentArgs by navArgs()
     private val viewModel: CoinListViewModel by viewModels()
 
     override fun onCreateView(
@@ -66,32 +70,78 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
                     onShowSelectedCoinMoreOption = {
                         showSelectCoinOptions()
                     },
+                    onShowMoreOptions = {
+                        showMoreOptions()
+                    }
                 )
             }
         }
     }
 
     override fun onOptionClicked(option: SheetOption) {
-        when(option.type) {
+        when (option.type) {
             SheetOptionType.TYPE_LOCK_COIN -> viewModel.onLockCoin()
             SheetOptionType.TYPE_UNLOCK_COIN -> viewModel.onUnlockCoin()
+            SheetOptionType.TYPE_ADD_COLLECTION -> TODO()
+            SheetOptionType.TYPE_ADD_TAG -> TODO()
+            SheetOptionType.TYPE_VIEW_TAG -> TODO()
+            SheetOptionType.TYPE_VIEW_COLLECTION -> TODO()
+            SheetOptionType.TYPE_VIEW_LOCKED_COIN -> findNavController().navigate(
+                CoinListFragmentDirections.actionCoinListFragmentSelf(
+                    args.walletId,
+                    CoinListType.LOCKED
+                )
+            )
         }
     }
 
     private fun showSelectCoinOptions() {
-        BottomSheetOption.newInstance(listOf(
-            SheetOption(type = SheetOptionType.TYPE_LOCK_COIN, label = getString(R.string.nc_lock_coin)),
-            SheetOption(type = SheetOptionType.TYPE_UNLOCK_COIN, label = getString(R.string.nc_unlock_coin)),
-            SheetOption(type = SheetOptionType.TYPE_ADD_COLLECTION, label = getString(R.string.nc_add_to_a_collection)),
-            SheetOption(type = SheetOptionType.TYPE_ADD_TAG, label = getString(R.string.nc_add_tags)),
-        )).show(childFragmentManager, "BottomSheetOption")
+        BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_LOCK_COIN,
+                    label = getString(R.string.nc_lock_coin)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_UNLOCK_COIN,
+                    label = getString(R.string.nc_unlock_coin)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_COLLECTION,
+                    label = getString(R.string.nc_add_to_a_collection)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_TAG,
+                    label = getString(R.string.nc_add_tags)
+                ),
+            )
+        ).show(childFragmentManager, "BottomSheetOption")
+    }
+
+    private fun showMoreOptions() {
+        BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_VIEW_TAG,
+                    label = getString(R.string.nc_view_tag)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_VIEW_COLLECTION,
+                    label = getString(R.string.nc_view_collection)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_VIEW_LOCKED_COIN,
+                    label = getString(R.string.nc_view_locked_coin)
+                ),
+            )
+        ).show(childFragmentManager, "BottomSheetOption")
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle).collect { event ->
-                when(event) {
+                when (event) {
                     is CoinListEvent.Loading -> showOrHideLoading(event.isLoading)
                     CoinListEvent.CoinLocked -> showSuccess(getString(R.string.nc_coin_locked))
                     CoinListEvent.CoinUnlocked -> showSuccess(getString(R.string.nc_coin_unlocked))
@@ -107,6 +157,7 @@ private fun CoinListScreen(
     onViewCoinDetail: (coinCard: CoinCard) -> Unit = {},
     onShowSelectedCoinMoreOption: () -> Unit = {},
     onSendBtc: () -> Unit = {},
+    onShowMoreOptions: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -121,13 +172,15 @@ private fun CoinListScreen(
         enableSearchMode = viewModel::enableSearchMode,
         onViewCoinDetail = onViewCoinDetail,
         onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption,
-        onSendBtc = onSendBtc
+        onSendBtc = onSendBtc,
+        onShowMoreOptions = onShowMoreOptions,
     )
 }
 
 @Composable
 private fun CoinListContent(
     mode: CoinListMode = CoinListMode.NONE,
+    type: CoinListType = CoinListType.ALL,
     coins: List<CoinCard> = emptyList(),
     selectedCoin: Set<CoinCard> = emptySet(),
     enableSelectMode: () -> Unit = {},
@@ -137,12 +190,20 @@ private fun CoinListContent(
     onViewCoinDetail: (coinCard: CoinCard) -> Unit = {},
     onSendBtc: () -> Unit = {},
     onShowSelectedCoinMoreOption: () -> Unit = {},
+    onShowMoreOptions: () -> Unit = {},
     onSelectCoin: (coinCard: CoinCard, isSelected: Boolean) -> Unit = { _, _ -> }
 ) {
     NunchukTheme {
         Scaffold(topBar = {
             if (mode == CoinListMode.NONE) {
-                CoinListTopBarNoneMode(enableSelectMode = enableSelectMode)
+                CoinListTopBarNoneMode(
+                    enableSelectMode = enableSelectMode,
+                    onShowMoreOptions = onShowMoreOptions,
+                    isShowMore = type == CoinListType.ALL,
+                    title = if (type == CoinListType.ALL)
+                        stringResource(R.string.nc_coin)
+                    else stringResource(R.string.nc_locked_coin)
+                )
             } else if (mode == CoinListMode.SELECT) {
                 CoinListTopBarSelectMode(
                     isSelectAll = coins.size == selectedCoin.size,

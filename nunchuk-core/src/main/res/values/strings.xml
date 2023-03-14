@@ -537,4 +537,8 @@
     <string name="nc_unlock_coin">Unlock coins</string>
     <string name="nc_coin_locked">Coins locked</string>
     <string name="nc_coin_unlocked">Coins unlocked</string>
+    <string name="nc_view_tag">View tags</string>
+    <string name="nc_view_collection">View collections</string>
+    <string name="nc_view_locked_coin">View locked coins</string>
+    <string name="nc_locked_coin">Locked coins</string>
 </resources>

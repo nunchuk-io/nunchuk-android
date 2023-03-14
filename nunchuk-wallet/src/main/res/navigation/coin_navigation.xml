@@ -7,10 +7,18 @@
     <fragment
         android:id="@+id/coinListFragment"
         android:name="com.nunchuk.android.wallet.components.coin.list.CoinListFragment"
-        android:label="CoinListFragment" >
+        android:label="CoinListFragment">
 
         <argument
             android:name="wallet_id"
             app:argType="string" />
+        <argument
+            android:name="list_type"
+            android:defaultValue="ALL"
+            app:argType="com.nunchuk.android.wallet.components.coin.list.CoinListType" />
+
+        <action
+            android:id="@+id/action_coinListFragment_self"
+            app:destination="@id/coinListFragment" />
     </fragment>
 </navigation>
