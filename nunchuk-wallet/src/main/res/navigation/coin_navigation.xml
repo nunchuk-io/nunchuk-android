@@ -28,8 +28,11 @@
     <fragment
         android:id="@+id/coinDetailFragment"
         android:name="com.nunchuk.android.wallet.components.coin.detail.CoinDetailFragment"
-        android:label="CoinDetailFragment" >
+        android:label="CoinDetailFragment">
 
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
         <argument
             android:name="output"
             app:argType="com.nunchuk.android.model.UnspentOutput" />

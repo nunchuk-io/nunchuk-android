@@ -65,9 +65,11 @@ fun String.truncatedAddress(): String = if (length < PREFIX_LENGTH + SUFFIX_LENG
 
 fun Transaction.formatAddress(context: Context) : String {
     return if (isReceive) {
-        "${context.getString(R.string.nc_transaction_receive_at)} ${receiveOutputs.firstOrNull()?.first.orEmpty()}"
+        val address = receiveOutputs.firstOrNull()?.first.orEmpty()
+        "${context.getString(R.string.nc_transaction_receive_at)} ${address.take(6)}...${address.takeLast(4)}"
     } else {
-        "${context.getString(R.string.nc_transaction_send_to)} ${outputs.firstOrNull()?.first.orEmpty()}"
+        val address = outputs.firstOrNull()?.first.orEmpty()
+        "${context.getString(R.string.nc_transaction_send_to)} ${address.take(6)}...${address.takeLast(4)}"
     }
 }
 

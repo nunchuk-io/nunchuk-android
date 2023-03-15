@@ -1,9 +1,11 @@
 package com.nunchuk.android.wallet.components.coin.list
 
-import com.nunchuk.android.model.coin.CoinCard
+import com.nunchuk.android.model.CoinTag
+import com.nunchuk.android.model.UnspentOutput
 
 data class CoinListUiState(
     val mode: CoinListMode = CoinListMode.NONE,
-    val coins: List<CoinCard> = emptyList(),
-    val selectedCoins: Set<CoinCard> = setOf()
+    val coins: List<UnspentOutput> = emptyList(),
+    val tags: Map<Int, CoinTag> = emptyMap(),
+    val selectedCoins: Set<UnspentOutput> = setOf()
 )

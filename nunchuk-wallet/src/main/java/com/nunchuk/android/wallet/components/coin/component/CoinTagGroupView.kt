@@ -9,19 +9,22 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.model.coin.CoinTag
+import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.wallet.R
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun CoinTagGroupView(modifier: Modifier = Modifier, note: String, tags: List<CoinTag>) {
+fun CoinTagGroupView(
+    modifier: Modifier = Modifier,
+    note: String,
+    tagIds: Set<Int>,
+    tags: Map<Int, CoinTag>
+) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -30,11 +33,15 @@ fun CoinTagGroupView(modifier: Modifier = Modifier, note: String, tags: List<Coi
         FlowRow(
             Modifier
                 .fillMaxWidth()
-                .padding(4.dp)) {
-            tags.forEach {
-                CoinTagView(
-                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp), tag = it
-                )
+                .padding(4.dp)
+        ) {
+            tagIds.forEach {
+                tags[it]?.let { coinTag ->
+                    CoinTagView(
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+                        tag = coinTag
+                    )
+                }
             }
         }
         Row(
@@ -62,42 +69,26 @@ fun CoinTagGroupView(modifier: Modifier = Modifier, note: String, tags: List<Coi
 
 @Preview(showBackground = true)
 @Composable
-fun CoinTagGroupView() {
+fun CoinTagGroupViewPreview() {
     NunchukTheme {
         CoinTagGroupView(
             modifier = Modifier.padding(16.dp),
-            tags = listOf(
-                CoinTag(Color.Blue.toArgb(), "Badcoins"),
-                CoinTag(Color.Red.toArgb(), "Dirtycoins"),
-                CoinTag(Color.Gray.toArgb(), "Dirty"),
-                CoinTag(Color.Green.toArgb(), "Dirtys"),
-                CoinTag(Color.DarkGray.toArgb(), "Dirtycoins"),
-                CoinTag(Color.LightGray.toArgb(), "Dirtycoins"),
-                CoinTag(Color.Magenta.toArgb(), "Dirtycoins"),
-                CoinTag(Color.Cyan.toArgb(), "Dirtycoins"),
-                CoinTag(Color.Black.toArgb(), "Dirtycoins"),
-            ), note = "Send to Bob on Silk Road"
+            tagIds = setOf(),
+            tags = emptyMap(),
+            note = "Send to Bob on Silk Road"
         )
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun CoinTagGroupViewNoNote() {
+fun CoinTagGroupViewPreviewNoNote() {
     NunchukTheme {
         CoinTagGroupView(
             modifier = Modifier.padding(16.dp),
-            tags = listOf(
-                CoinTag(Color.Blue.toArgb(), "Badcoins"),
-                CoinTag(Color.Red.toArgb(), "Dirtycoins"),
-                CoinTag(Color.Gray.toArgb(), "Dirty"),
-                CoinTag(Color.Green.toArgb(), "Dirtys"),
-                CoinTag(Color.DarkGray.toArgb(), "Dirtycoins"),
-                CoinTag(Color.LightGray.toArgb(), "Dirtycoins"),
-                CoinTag(Color.Magenta.toArgb(), "Dirtycoins"),
-                CoinTag(Color.Cyan.toArgb(), "Dirtycoins"),
-                CoinTag(Color.Black.toArgb(), "Dirtycoins"),
-            ), note = ""
+            tagIds = setOf(),
+            tags = emptyMap(),
+            note = "",
         )
     }
 }

@@ -9,8 +9,6 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -22,8 +20,8 @@ import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.coin.CoinCard
-import com.nunchuk.android.model.coin.CoinTag
+import com.nunchuk.android.model.CoinTag
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.formatByHour
 import com.nunchuk.android.utils.simpleDateFormat
@@ -32,15 +30,16 @@ import java.util.*
 
 @Composable
 fun PreviewCoinCard(
-    coinCard: CoinCard,
+    output: UnspentOutput,
+    tags: Map<Int, CoinTag>,
     selectable: Boolean = false,
     isSelected: Boolean = false,
-    onViewCoinDetail: (coinCard: CoinCard) -> Unit = {},
-    onSelectCoin: (coinCard: CoinCard, isSelected: Boolean) -> Unit = { _, _ -> }
+    onViewCoinDetail: (output: UnspentOutput) -> Unit = {},
+    onSelectCoin: (output: UnspentOutput, isSelected: Boolean) -> Unit = { _, _ -> }
 ) {
     Box(modifier = Modifier.run {
         if (selectable.not()) {
-            this.clickable { onViewCoinDetail(coinCard) }
+            this.clickable { onViewCoinDetail(output) }
         } else {
             this
         }
@@ -53,12 +52,12 @@ fun PreviewCoinCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = if (LocalView.current.isInEditMode)
-                        "${coinCard.amount.value} sats"
+                        "${output.amount.value} sats"
                     else
-                        coinCard.amount.getBTCAmount(),
+                        output.amount.getBTCAmount(),
                     style = NunchukTheme.typography.title
                 )
-                if (coinCard.isChange) {
+                if (output.isChange) {
                     Text(
                         modifier = Modifier
                             .padding(start = 4.dp)
@@ -76,7 +75,7 @@ fun PreviewCoinCard(
                         style = NunchukTheme.typography.titleSmall.copy(fontSize = 10.sp)
                     )
                 }
-                if (coinCard.isLocked) {
+                if (output.isLocked) {
                     Icon(
                         modifier = Modifier
                             .padding(start = 4.dp)
@@ -90,7 +89,7 @@ fun PreviewCoinCard(
                         contentDescription = "Lock"
                     )
                 }
-                if (coinCard.isScheduleBroadCast) {
+                if (output.scheduleTime > 0L) {
                     Icon(
                         modifier = Modifier
                             .padding(start = 4.dp)
@@ -105,8 +104,8 @@ fun PreviewCoinCard(
                     )
                 }
             }
-            if (coinCard.time > 0L) {
-                val date = Date(coinCard.time)
+            if (output.time > 0L) {
+                val date = Date(output.time)
                 Text(
                     modifier = Modifier.padding(top = 4.dp),
                     text = "${date.simpleDateFormat()} at ${date.formatByHour()}",
@@ -120,9 +119,12 @@ fun PreviewCoinCard(
                 )
             }
 
-            if (coinCard.tags.isNotEmpty() || coinCard.note.isNotEmpty()) {
+            if (output.tags.isNotEmpty() || output.memo.isNotEmpty()) {
                 CoinTagGroupView(
-                    Modifier.padding(top = 4.dp), note = coinCard.note, tags = coinCard.tags
+                    modifier = Modifier.padding(top = 4.dp),
+                    note = output.memo,
+                    tagIds = output.tags,
+                    tags = tags
                 )
             }
         }
@@ -132,14 +134,14 @@ fun PreviewCoinCard(
                 .padding(top = 8.dp),
                 checked = isSelected,
                 onCheckedChange = { select ->
-                    onSelectCoin(coinCard, select)
+                    onSelectCoin(output, select)
                 })
         } else {
             IconButton(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 8.dp),
-                onClick = { onViewCoinDetail(coinCard) }) {
+                onClick = { onViewCoinDetail(output) }) {
                 Icon(painter = painterResource(id = R.drawable.ic_arrow), contentDescription = "")
             }
         }
@@ -151,26 +153,17 @@ fun PreviewCoinCard(
 fun PreviewCoinCardPreview() {
     NunchukTheme {
         PreviewCoinCard(
-            coinCard = CoinCard(
+            output = UnspentOutput(
                 amount = Amount(1000000L),
                 isLocked = true,
-                isScheduleBroadCast = true,
+                scheduleTime = System.currentTimeMillis(),
                 isChange = true,
                 time = System.currentTimeMillis(),
-                tags = listOf(
-                    CoinTag(Color.Blue.toArgb(), "Badcoins"),
-                    CoinTag(Color.Red.toArgb(), "Dirtycoins"),
-                    CoinTag(Color.Gray.toArgb(), "Dirty"),
-                    CoinTag(Color.Green.toArgb(), "Dirtys"),
-                    CoinTag(Color.DarkGray.toArgb(), "Dirtycoins"),
-                    CoinTag(Color.LightGray.toArgb(), "Dirtycoins"),
-                    CoinTag(Color.Magenta.toArgb(), "Dirtycoins"),
-                    CoinTag(Color.Cyan.toArgb(), "Dirtycoins"),
-                    CoinTag(Color.Black.toArgb(), "Dirtycoins"),
-                ),
-                note = "Send to Bob on Silk Road",
+                tags = setOf(1, 2, 3, 4),
+                memo = "Send to Bob on Silk Road",
                 status = TransactionStatus.PENDING_CONFIRMATION
-            )
+            ),
+            tags = emptyMap()
         )
     }
 }
@@ -180,15 +173,16 @@ fun PreviewCoinCardPreview() {
 fun PreviewCoinCardPreview2() {
     NunchukTheme {
         PreviewCoinCard(
-            coinCard = CoinCard(
+            output = UnspentOutput(
                 amount = Amount(1000000L),
                 isLocked = false,
-                isScheduleBroadCast = true,
+                scheduleTime = System.currentTimeMillis(),
                 time = System.currentTimeMillis(),
-                tags = listOf(),
-                note = "",
+                tags = setOf(),
+                memo = "",
                 status = TransactionStatus.PENDING_CONFIRMATION
-            )
+            ),
+            tags = emptyMap()
         )
     }
 }
@@ -198,15 +192,16 @@ fun PreviewCoinCardPreview2() {
 fun PreviewCoinCardPreview3() {
     NunchukTheme {
         PreviewCoinCard(
-            coinCard = CoinCard(
+            output = UnspentOutput(
                 amount = Amount(1000000L),
                 isLocked = false,
-                isScheduleBroadCast = true,
+                scheduleTime = System.currentTimeMillis(),
                 time = System.currentTimeMillis(),
-                tags = listOf(),
-                note = "",
+                tags = setOf(),
+                memo = "",
                 status = TransactionStatus.PENDING_CONFIRMATION
             ),
+            tags = emptyMap(),
             selectable = true,
             isSelected = true
         )

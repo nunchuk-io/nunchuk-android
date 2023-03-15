@@ -10,8 +10,6 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -20,15 +18,14 @@ import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.coin.CoinCard
-import com.nunchuk.android.model.coin.CoinTag
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.wallet.R
 
 @Composable
 fun CoinListBottomBar(
     modifier: Modifier = Modifier,
-    selectedCoin: Set<CoinCard>,
+    selectedCoin: Set<UnspentOutput>,
     onSendBtc: () -> Unit = {},
     onShowSelectedCoinMoreOption: () -> Unit = {}
 ) {
@@ -72,23 +69,13 @@ fun CoinListBottomBarPreview() {
     NunchukTheme {
         CoinListBottomBar(
             selectedCoin = setOf(
-                CoinCard(
+                UnspentOutput(
                     amount = Amount(1000000L),
                     isLocked = true,
-                    isScheduleBroadCast = true,
+                    scheduleTime = System.currentTimeMillis(),
                     time = System.currentTimeMillis(),
-                    tags = listOf(
-                        CoinTag(Color.Blue.toArgb(), "Badcoins"),
-                        CoinTag(Color.Red.toArgb(), "Dirtycoins"),
-                        CoinTag(Color.Gray.toArgb(), "Dirty"),
-                        CoinTag(Color.Green.toArgb(), "Dirtys"),
-                        CoinTag(Color.DarkGray.toArgb(), "Dirtycoins"),
-                        CoinTag(Color.LightGray.toArgb(), "Dirtycoins"),
-                        CoinTag(Color.Magenta.toArgb(), "Dirtycoins"),
-                        CoinTag(Color.Cyan.toArgb(), "Dirtycoins"),
-                        CoinTag(Color.Black.toArgb(), "Dirtycoins"),
-                    ),
-                    note = "Send to Bob on Silk Road",
+                    tags = setOf(),
+                    memo = "Send to Bob on Silk Road",
                     status = TransactionStatus.PENDING_CONFIRMATION
                 )
             )

@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -24,38 +25,59 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcColor
-import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.formatAddress
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getBtcFormatDate
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.component.CoinBadge
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class CoinDetailFragment : Fragment() {
+    @Inject
+    lateinit var navigator: NunchukNavigator
     private val viewModel: CoinDetailViewModel by viewModels()
+    private val args by navArgs<CoinDetailFragmentArgs>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                CoinDetailScreen(viewModel)
+                CoinDetailScreen(viewModel,
+                    args = args,
+                    onShowMore = {
+
+                    },
+                    onViewTransactionDetail = {
+                        navigator.openTransactionDetailsScreen(
+                            activityContext = requireActivity(),
+                            walletId = args.walletId,
+                            txId = args.output.txid,
+                        )
+                    },
+                    onLockCoin = {
+
+                    })
             }
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+        viewLifecycleOwner.lifecycleScope.launch {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle).collect { event ->
 
             }
@@ -64,8 +86,21 @@ class CoinDetailFragment : Fragment() {
 }
 
 @Composable
-private fun CoinDetailScreen(viewModel: CoinDetailViewModel = viewModel()) {
-    CoinDetailContent()
+private fun CoinDetailScreen(
+    viewModel: CoinDetailViewModel = viewModel(),
+    args: CoinDetailFragmentArgs,
+    onShowMore: () -> Unit = {},
+    onViewTransactionDetail: () -> Unit = {},
+    onLockCoin: (isLocked: Boolean) -> Unit = {},
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    CoinDetailContent(
+        output = args.output,
+        transaction = state.transaction,
+        onShowMore = onShowMore,
+        onViewTransactionDetail = onViewTransactionDetail,
+        onLockCoin = onLockCoin
+    )
 }
 
 @Composable
@@ -77,66 +112,83 @@ private fun CoinDetailContent(
     onLockCoin: (isLocked: Boolean) -> Unit = {},
 ) {
     val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
-    // wrap your theme here
-    Scaffold(topBar = {
-        NcTopAppBar(
-            title = stringResource(R.string.nc_coin_detail),
-            backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
-            actions = {
-                IconButton(onClick = onShowMore) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_more),
-                        contentDescription = "More"
-                    )
-                }
-            },
-        )
-    }) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .navigationBarsPadding()
-                .verticalScroll(rememberScrollState())
-                .padding(innerPadding)
-        ) {
-            Column(
+    NunchukTheme {
+        Scaffold(topBar = {
+            Box(
                 modifier = Modifier
                     .background(color = colorResource(id = R.color.nc_denim_tint_color))
                     .statusBarsPadding()
             ) {
-                CoinBadgeRow()
-                Text(
-                    text = output.amount.getBTCAmount(),
-                    style = NunchukTheme.typography.heading,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                TopAppBar(
+                    elevation = 0.dp,
+                    navigationIcon = {
+                        IconButton(onClick = { onBackPressOwner?.onBackPressedDispatcher?.onBackPressed() }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_back),
+                                contentDescription = "Back"
+                            )
+                        }
+                    },
+                    title = {
+                        Text(text = stringResource(R.string.nc_coin_detail))
+                    },
+                    backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
+                    actions = {
+                        IconButton(onClick = onShowMore) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more),
+                                contentDescription = "More"
+                            )
+                        }
+                    },
                 )
-                Text(
-                    text = output.time.getBtcFormatDate(),
-                    style = NunchukTheme.typography.bodySmall,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                )
-
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
+            }
+        }) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .navigationBarsPadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(innerPadding)
+            ) {
+                Column(
                     modifier = Modifier
-                        .padding(start = 16.dp, end = 16.dp, top = 24.dp)
-                        .fillMaxWidth()
+                        .background(color = colorResource(id = R.color.nc_denim_tint_color))
                 ) {
+                    CoinBadgeRow()
                     Text(
-                        text = stringResource(R.string.nc_parent_transaction),
-                        style = NunchukTheme.typography.title,
+                        text = output.amount.getBTCAmount(),
+                        style = NunchukTheme.typography.heading,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    Text(
+                        text = output.time.getBtcFormatDate(),
+                        style = NunchukTheme.typography.bodySmall,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                     )
 
-                    Text(
-                        modifier = Modifier.clickable { onViewTransactionDetail() },
-                        text = stringResource(R.string.nc_message_transaction_view_details),
-                        style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline),
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .padding(start = 16.dp, end = 16.dp, top = 24.dp)
+                            .fillMaxWidth()
+                    ) {
+                        Text(
+                            text = stringResource(R.string.nc_parent_transaction),
+                            style = NunchukTheme.typography.title,
+                        )
+
+                        Text(
+                            modifier = Modifier.clickable { onViewTransactionDetail() },
+                            text = stringResource(R.string.nc_message_transaction_view_details),
+                            style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline),
+                        )
+                    }
+
+                    CoinTransactionCard(transaction)
                 }
 
-                CoinTransactionCard(transaction)
+                LockCoinRow(output, onLockCoin)
             }
-
-            LockCoinRow(output, onLockCoin)
         }
     }
 }

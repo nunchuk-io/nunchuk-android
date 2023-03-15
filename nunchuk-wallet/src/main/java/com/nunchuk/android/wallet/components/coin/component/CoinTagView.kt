@@ -10,12 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.model.coin.CoinTag
+import com.nunchuk.android.model.CoinTag
 
 @Composable
 fun CoinTagView(modifier: Modifier = Modifier, tag: CoinTag) {
@@ -33,7 +33,7 @@ fun CoinTagView(modifier: Modifier = Modifier, tag: CoinTag) {
             modifier = Modifier
                 .size(16.dp)
                 .clip(CircleShape)
-                .background(Color(tag.color))
+                .background(Color(tag.color.toColorInt()))
         )
         Text(
             modifier = Modifier.padding(start = 4.dp),
@@ -49,8 +49,9 @@ fun CoinTagViewPreview() {
     NunchukTheme {
         CoinTagView(
             tag = CoinTag(
-                Color.Blue.toArgb(),
-                "Kidding"
+                id = 1,
+                color = "blue",
+                name = "Kidding"
             )
         )
     }

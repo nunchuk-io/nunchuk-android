@@ -3,8 +3,9 @@ package com.nunchuk.android.wallet.components.coin.list
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.model.coin.CoinCard
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
+import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.coin.LockCoinUseCase
 import com.nunchuk.android.usecase.coin.UnLockCoinUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,6 +19,7 @@ class CoinListViewModel @Inject constructor(
     private val getAllCoinUseCase: GetAllCoinUseCase,
     private val lockCoinUseCase: LockCoinUseCase,
     private val unLockCoinUseCase: UnLockCoinUseCase,
+    private val getAllTagsUseCase: GetAllTagsUseCase,
 ) : ViewModel() {
     private val args = CoinListFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _state = MutableStateFlow(CoinListUiState())
@@ -33,21 +35,7 @@ class CoinListViewModel @Inject constructor(
     private fun getAllCoins() {
         viewModelScope.launch {
             _event.emit(CoinListEvent.Loading(true))
-            getAllCoinUseCase(args.walletId).onSuccess {
-                val coins = it.map { output ->
-                    CoinCard(
-                        id = output.vout,
-                        amount = output.amount,
-                        isLocked = output.isLocked,
-                        isChange = output.isChange,
-                        note = output.memo,
-                        tags = emptyList(),
-                        time = output.time * 1000L,
-                        txId = output.txid,
-                        isScheduleBroadCast = output.scheduleTime > 0L,
-                        status = output.status
-                    )
-                }
+            getAllCoinUseCase(args.walletId).onSuccess { coins ->
                 _event.emit(CoinListEvent.Loading(false))
                 val filterCoins = if (args.listType == CoinListType.LOCKED) {
                     coins.filter { coin -> coin.isLocked }
@@ -59,13 +47,20 @@ class CoinListViewModel @Inject constructor(
                 }
             }
         }
+        viewModelScope.launch {
+            getAllTagsUseCase(args.walletId).onSuccess { tags ->
+                _state.update { state ->
+                    state.copy(tags = tags.associateBy { it.id })
+                }
+            }
+        }
     }
 
     fun onLockCoin() {
         viewModelScope.launch {
             val coins = state.value.selectedCoins
             coins.asSequence().filter { it.isLocked.not() }.forEach {
-                lockCoinUseCase(LockCoinUseCase.Params(args.walletId, it.txId, it.id))
+                lockCoinUseCase(LockCoinUseCase.Params(args.walletId, it.txid, it.vout))
             }
             getAllCoins()
             _event.emit(CoinListEvent.CoinLocked)
@@ -78,7 +73,7 @@ class CoinListViewModel @Inject constructor(
             val coins = state.value.selectedCoins
 
             coins.asSequence().filter { it.isLocked }.forEach {
-                unLockCoinUseCase(UnLockCoinUseCase.Params(args.walletId, it.txId, it.id))
+                unLockCoinUseCase(UnLockCoinUseCase.Params(args.walletId, it.txid, it.vout))
             }
             getAllCoins()
             _event.emit(CoinListEvent.CoinUnlocked)
@@ -106,7 +101,7 @@ class CoinListViewModel @Inject constructor(
         _state.update { it.copy(mode = CoinListMode.NONE) }
     }
 
-    fun onCoinSelect(coin: CoinCard, isSelect: Boolean) {
+    fun onCoinSelect(coin: UnspentOutput, isSelect: Boolean) {
         val selectedCoins = state.value.selectedCoins.toMutableSet()
         if (isSelect) selectedCoins.add(coin) else selectedCoins.remove(coin)
         _state.update {

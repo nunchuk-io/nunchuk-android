@@ -16,8 +16,6 @@ import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
@@ -39,8 +37,8 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.coin.CoinCard
-import com.nunchuk.android.model.coin.CoinTag
+import com.nunchuk.android.model.CoinTag
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.component.CoinListBottomBar
@@ -65,7 +63,12 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
                     viewModel = viewModel,
                     args = args,
                     onViewCoinDetail = {
-
+                        findNavController().navigate(
+                            CoinListFragmentDirections.actionCoinListFragmentToCoinDetailFragment(
+                                walletId = args.walletId,
+                                output = it
+                            )
+                        )
                     },
                     onSendBtc = {
 
@@ -157,7 +160,7 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
 @Composable
 private fun CoinListScreen(
     viewModel: CoinListViewModel = viewModel(),
-    onViewCoinDetail: (coinCard: CoinCard) -> Unit = {},
+    onViewCoinDetail: (output: UnspentOutput) -> Unit = {},
     onShowSelectedCoinMoreOption: () -> Unit = {},
     onSendBtc: () -> Unit = {},
     onShowMoreOptions: () -> Unit = {},
@@ -169,6 +172,7 @@ private fun CoinListScreen(
         mode = state.mode,
         type = args.listType,
         coins = state.coins,
+        tags = state.tags,
         selectedCoin = state.selectedCoins,
         onSelectCoin = viewModel::onCoinSelect,
         onSelectOrUnselectAll = viewModel::onSelectOrUnselectAll,
@@ -186,17 +190,18 @@ private fun CoinListScreen(
 private fun CoinListContent(
     mode: CoinListMode = CoinListMode.NONE,
     type: CoinListType = CoinListType.ALL,
-    coins: List<CoinCard> = emptyList(),
-    selectedCoin: Set<CoinCard> = emptySet(),
+    coins: List<UnspentOutput> = emptyList(),
+    tags: Map<Int, CoinTag> = emptyMap(),
+    selectedCoin: Set<UnspentOutput> = emptySet(),
     enableSelectMode: () -> Unit = {},
     enableSearchMode: () -> Unit = {},
     onSelectOrUnselectAll: (isSelect: Boolean) -> Unit = {},
     onSelectDone: () -> Unit = {},
-    onViewCoinDetail: (coinCard: CoinCard) -> Unit = {},
+    onViewCoinDetail: (output: UnspentOutput) -> Unit = {},
     onSendBtc: () -> Unit = {},
     onShowSelectedCoinMoreOption: () -> Unit = {},
     onShowMoreOptions: () -> Unit = {},
-    onSelectCoin: (coinCard: CoinCard, isSelected: Boolean) -> Unit = { _, _ -> }
+    onSelectCoin: (output: UnspentOutput, isSelected: Boolean) -> Unit = { _, _ -> }
 ) {
     NunchukTheme {
         Scaffold(
@@ -238,11 +243,12 @@ private fun CoinListContent(
                 ) {
                     items(coins) { coin ->
                         PreviewCoinCard(
-                            coinCard = coin,
+                            output = coin,
                             onSelectCoin = onSelectCoin,
                             isSelected = selectedCoin.contains(coin),
                             selectable = mode == CoinListMode.SELECT,
-                            onViewCoinDetail = onViewCoinDetail
+                            onViewCoinDetail = onViewCoinDetail,
+                            tags = tags,
                         )
                     }
                 }
@@ -261,32 +267,22 @@ private fun CoinListContent(
 @Preview
 @Composable
 private fun CoinListScreenPreview() {
-    val coin = CoinCard(
+    val coin = UnspentOutput(
         amount = Amount(1000000L),
         isLocked = true,
-        isScheduleBroadCast = true,
+        scheduleTime = System.currentTimeMillis(),
         time = System.currentTimeMillis(),
-        tags = listOf(
-            CoinTag(Color.Blue.toArgb(), "Badcoins"),
-            CoinTag(Color.Red.toArgb(), "Dirtycoins"),
-            CoinTag(Color.Gray.toArgb(), "Dirty"),
-            CoinTag(Color.Green.toArgb(), "Dirtys"),
-            CoinTag(Color.DarkGray.toArgb(), "Dirtycoins"),
-            CoinTag(Color.LightGray.toArgb(), "Dirtycoins"),
-            CoinTag(Color.Magenta.toArgb(), "Dirtycoins"),
-            CoinTag(Color.Cyan.toArgb(), "Dirtycoins"),
-            CoinTag(Color.Black.toArgb(), "Dirtycoins"),
-        ),
-        note = "Send to Bob on Silk Road",
+        tags = setOf(),
+        memo = "Send to Bob on Silk Road",
         status = TransactionStatus.PENDING_CONFIRMATION
     )
     CoinListContent(
         coins = listOf(
-            coin.copy(id = 1),
-            coin.copy(id = 2),
-            coin.copy(id = 3),
-            coin.copy(id = 4),
-            coin.copy(id = 5)
+            coin.copy(vout = 1),
+            coin.copy(vout = 2),
+            coin.copy(vout = 3),
+            coin.copy(vout = 4),
+            coin.copy(vout = 5)
         )
     )
 }
