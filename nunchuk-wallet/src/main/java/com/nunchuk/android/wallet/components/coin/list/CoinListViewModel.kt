@@ -49,8 +49,13 @@ class CoinListViewModel @Inject constructor(
                     )
                 }
                 _event.emit(CoinListEvent.Loading(false))
+                val filterCoins = if (args.listType == CoinListType.LOCKED) {
+                    coins.filter { coin -> coin.isLocked }
+                } else {
+                    coins
+                }
                 _state.update { state ->
-                    state.copy(coins = coins)
+                    state.copy(coins = filterCoins)
                 }
             }
         }

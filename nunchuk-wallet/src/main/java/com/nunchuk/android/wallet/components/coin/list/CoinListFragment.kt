@@ -61,6 +61,7 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
             setContent {
                 CoinListScreen(
                     viewModel = viewModel,
+                    args = args,
                     onViewCoinDetail = {
 
                     },
@@ -158,11 +159,13 @@ private fun CoinListScreen(
     onShowSelectedCoinMoreOption: () -> Unit = {},
     onSendBtc: () -> Unit = {},
     onShowMoreOptions: () -> Unit = {},
+    args: CoinListFragmentArgs,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     CoinListContent(
         mode = state.mode,
+        type = args.listType,
         coins = state.coins,
         selectedCoin = state.selectedCoins,
         onSelectCoin = viewModel::onCoinSelect,
