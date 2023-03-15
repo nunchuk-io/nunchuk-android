@@ -22,8 +22,15 @@ import com.nunchuk.android.wallet.R
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CoinTagGroupView(modifier: Modifier = Modifier, note: String, tags: List<CoinTag>) {
-    Column(modifier = modifier.fillMaxWidth().border(1.dp, NcColor.border, RoundedCornerShape(12.dp))) {
-        FlowRow(Modifier.fillMaxWidth().padding(4.dp)) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .border(1.dp, NcColor.border, RoundedCornerShape(12.dp))
+    ) {
+        FlowRow(
+            Modifier
+                .fillMaxWidth()
+                .padding(4.dp)) {
             tags.forEach {
                 CoinTagView(
                     modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp), tag = it

@@ -1,0 +1,284 @@
+package com.nunchuk.android.wallet.components.coin.detail
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.nunchuk.android.compose.NcColor
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.formatAddress
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getBtcFormatDate
+import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.components.coin.component.CoinBadge
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
+class CoinDetailFragment : Fragment() {
+    private val viewModel: CoinDetailViewModel by viewModels()
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setContent {
+                CoinDetailScreen(viewModel)
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+            viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle).collect { event ->
+
+            }
+        }
+    }
+}
+
+@Composable
+private fun CoinDetailScreen(viewModel: CoinDetailViewModel = viewModel()) {
+    CoinDetailContent()
+}
+
+@Composable
+private fun CoinDetailContent(
+    output: UnspentOutput = UnspentOutput(),
+    transaction: Transaction = Transaction(),
+    onShowMore: () -> Unit = {},
+    onViewTransactionDetail: () -> Unit = {},
+    onLockCoin: (isLocked: Boolean) -> Unit = {},
+) {
+    val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
+    // wrap your theme here
+    Scaffold(topBar = {
+        NcTopAppBar(
+            title = stringResource(R.string.nc_coin_detail),
+            backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
+            actions = {
+                IconButton(onClick = onShowMore) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_more),
+                        contentDescription = "More"
+                    )
+                }
+            },
+        )
+    }) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(innerPadding)
+        ) {
+            Column(
+                modifier = Modifier
+                    .background(color = colorResource(id = R.color.nc_denim_tint_color))
+                    .statusBarsPadding()
+            ) {
+                CoinBadgeRow()
+                Text(
+                    text = output.amount.getBTCAmount(),
+                    style = NunchukTheme.typography.heading,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                Text(
+                    text = output.time.getBtcFormatDate(),
+                    style = NunchukTheme.typography.bodySmall,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .padding(start = 16.dp, end = 16.dp, top = 24.dp)
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = stringResource(R.string.nc_parent_transaction),
+                        style = NunchukTheme.typography.title,
+                    )
+
+                    Text(
+                        modifier = Modifier.clickable { onViewTransactionDetail() },
+                        text = stringResource(R.string.nc_message_transaction_view_details),
+                        style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline),
+                    )
+                }
+
+                CoinTransactionCard(transaction)
+            }
+
+            LockCoinRow(output, onLockCoin)
+        }
+    }
+}
+
+@Composable
+private fun LockCoinRow(
+    output: UnspentOutput,
+    onLockCoin: (isLocked: Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(24.dp),
+            painter = painterResource(id = R.drawable.ic_lock),
+            contentDescription = "Lock icon"
+        )
+        Text(
+            modifier = Modifier.padding(start = 8.dp),
+            text = stringResource(R.string.nc_lock_this_coin),
+            style = NunchukTheme.typography.title
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Switch(checked = output.isLocked, onCheckedChange = onLockCoin)
+    }
+}
+
+@Composable
+private fun CoinTransactionCard(transaction: Transaction) {
+    Column(
+        modifier = Modifier
+            .padding(
+                start = 16.dp, end = 16.dp, top = 12.dp, bottom = 24.dp
+            )
+            .fillMaxWidth()
+            .background(
+                color = MaterialTheme.colors.background, shape = RoundedCornerShape(12.dp)
+            )
+            .border(
+                width = 1.dp, color = NcColor.border, shape = RoundedCornerShape(12.dp)
+            )
+            .padding(16.dp)
+    ) {
+        Text(
+            text = transaction.formatAddress(LocalContext.current),
+            style = NunchukTheme.typography.bodySmall,
+        )
+        Text(
+            text = transaction.totalAmount.getBTCAmount(),
+            style = NunchukTheme.typography.body,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+        if (transaction.memo.isNotEmpty()) {
+            Row(
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .fillMaxWidth()
+                    .border(1.dp, NcColor.border, RoundedCornerShape(12.dp))
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    modifier = Modifier
+                        .border(1.dp, color = NcColor.border, shape = CircleShape)
+                        .padding(4.dp),
+                    painter = painterResource(id = R.drawable.ic_transaction_note),
+                    contentDescription = "Transaction Note"
+                )
+                Text(
+                    modifier = Modifier.padding(start = 4.dp),
+                    text = transaction.memo,
+                    style = NunchukTheme.typography.bodySmall
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CoinBadgeRow() {
+    Row(
+        modifier = Modifier
+            .padding(vertical = 16.dp, horizontal = 12.dp)
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+    ) {
+        CoinBadge {
+            Text(
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                text = stringResource(R.string.nc_change),
+                style = NunchukTheme.typography.titleSmall.copy(fontSize = 12.sp)
+            )
+        }
+
+        CoinBadge(
+            modifier = Modifier.padding(start = 4.dp),
+            border = 0.dp,
+            backgroundColor = NcColor.whisper
+        ) {
+            Icon(
+                modifier = Modifier.padding(start = 10.dp),
+                painter = painterResource(id = R.drawable.ic_lock),
+                contentDescription = "Locked"
+            )
+            Text(
+                modifier = Modifier.padding(
+                    start = 4.dp, end = 10.dp, top = 4.dp, bottom = 4.dp
+                ),
+                text = stringResource(R.string.nc_locked),
+                style = NunchukTheme.typography.titleSmall.copy(fontSize = 12.sp)
+            )
+        }
+
+        CoinBadge(
+            modifier = Modifier.padding(start = 4.dp),
+            border = 0.dp,
+            backgroundColor = NcColor.whisper
+        ) {
+            Icon(
+                modifier = Modifier.padding(start = 10.dp),
+                painter = painterResource(id = R.drawable.ic_schedule),
+                contentDescription = "Locked"
+            )
+            Text(
+                modifier = Modifier.padding(
+                    start = 4.dp, end = 10.dp, top = 4.dp, bottom = 4.dp
+                ),
+                text = stringResource(R.string.nc_scheduled_transaction),
+                style = NunchukTheme.typography.titleSmall.copy(fontSize = 12.sp)
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun CoinDetailScreenPreview() {
+    NunchukTheme {
+        CoinDetailContent(
+
+        )
+    }
+}

@@ -59,4 +59,5 @@
     <string name="nc_setup_inheritance_for_this_wallet">Set up an inheritance plan for this wallet</string>
     <string name="nc_view_coins">View coins</string>
     <string name="nc_number_of_coin_selected">%1$d coins selected</string>
+    <string name="nc_scheduled_transaction">Scheduled transaction</string>
 </resources>

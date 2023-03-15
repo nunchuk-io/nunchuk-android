@@ -19,6 +19,8 @@
 
 package com.nunchuk.android.core.util
 
+import android.content.Context
+import com.nunchuk.android.core.R
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.type.TransactionStatus.*
@@ -59,6 +61,14 @@ fun String.truncatedAddress(): String = if (length < PREFIX_LENGTH + SUFFIX_LENG
     this
 } else {
     "${take(PREFIX_LENGTH)}...${takeLast(SUFFIX_LENGTH)}"
+}
+
+fun Transaction.formatAddress(context: Context) : String {
+    return if (isReceive) {
+        "${context.getString(R.string.nc_transaction_receive_at)} ${receiveOutputs.firstOrNull()?.first.orEmpty()}"
+    } else {
+        "${context.getString(R.string.nc_transaction_send_to)} ${outputs.firstOrNull()?.first.orEmpty()}"
+    }
 }
 
 fun Transaction.hasChangeIndex() = outputs.isNotEmpty() && changeIndex >= 0 && changeIndex < outputs.size

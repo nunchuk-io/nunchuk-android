@@ -5,7 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.FloatingActionButton
@@ -197,33 +199,37 @@ private fun CoinListContent(
     onSelectCoin: (coinCard: CoinCard, isSelected: Boolean) -> Unit = { _, _ -> }
 ) {
     NunchukTheme {
-        Scaffold(topBar = {
-            if (mode == CoinListMode.NONE) {
-                CoinListTopBarNoneMode(
-                    enableSelectMode = enableSelectMode,
-                    onShowMoreOptions = onShowMoreOptions,
-                    isShowMore = type == CoinListType.ALL,
-                    title = if (type == CoinListType.ALL)
-                        stringResource(R.string.nc_coin)
-                    else stringResource(R.string.nc_locked_coin)
-                )
-            } else if (mode == CoinListMode.SELECT) {
-                CoinListTopBarSelectMode(
-                    isSelectAll = coins.size == selectedCoin.size,
-                    onSelectOrUnselectAll = onSelectOrUnselectAll,
-                    onSelectDone = onSelectDone
-                )
-            }
-        }, floatingActionButton = {
-            if (mode == CoinListMode.NONE) {
-                FloatingActionButton(onClick = enableSearchMode) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_search_white),
-                        contentDescription = "Search"
+        Scaffold(
+            modifier = Modifier
+                .statusBarsPadding()
+                .navigationBarsPadding(),
+            topBar = {
+                if (mode == CoinListMode.NONE) {
+                    CoinListTopBarNoneMode(
+                        enableSelectMode = enableSelectMode,
+                        onShowMoreOptions = onShowMoreOptions,
+                        isShowMore = type == CoinListType.ALL,
+                        title = if (type == CoinListType.ALL)
+                            stringResource(R.string.nc_coin)
+                        else stringResource(R.string.nc_locked_coin)
+                    )
+                } else if (mode == CoinListMode.SELECT) {
+                    CoinListTopBarSelectMode(
+                        isSelectAll = coins.size == selectedCoin.size,
+                        onSelectOrUnselectAll = onSelectOrUnselectAll,
+                        onSelectDone = onSelectDone
                     )
                 }
-            }
-        }) { innerPadding ->
+            }, floatingActionButton = {
+                if (mode == CoinListMode.NONE) {
+                    FloatingActionButton(onClick = enableSearchMode) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_search_white),
+                            contentDescription = "Search"
+                        )
+                    }
+                }
+            }) { innerPadding ->
             Column {
                 LazyColumn(
                     modifier = Modifier

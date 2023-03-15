@@ -541,4 +541,9 @@
     <string name="nc_view_collection">View collections</string>
     <string name="nc_view_locked_coin">View locked coins</string>
     <string name="nc_locked_coin">Locked coins</string>
+    <string name="nc_locked">Locked</string>
+    <string name="nc_coin_detail">Coin details</string>
+    <string name="nc_parent_transaction">Parent transaction</string>
+    <string name="nc_message_transaction_view_details">View details</string>
+    <string name="nc_lock_this_coin">Lock this coin</string>
 </resources>

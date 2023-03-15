@@ -109,6 +109,7 @@ fun Double.roundDecimal(): Double = formatRoundDecimal().toDoubleOrNull() ?: 0.0
 fun Long.formatDate(): String = SimpleDateFormat("MM/dd/yyyy 'at' HH:mm aaa", Locale.US).format(Date(this * 1000))
 
 fun Transaction.getFormatDate(): String = if (blockTime <= 0) "--/--/--" else (blockTime).formatDate()
+fun Long.getBtcFormatDate(): String = if (this <= 0) "--/--/--" else (this).formatDate()
 
 fun String.fromMxcUriToMatrixDownloadUrl(): String {
     if (this.isEmpty()) return ""

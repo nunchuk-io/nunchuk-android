@@ -20,5 +20,18 @@
         <action
             android:id="@+id/action_coinListFragment_self"
             app:destination="@id/coinListFragment" />
+        <action
+            android:id="@+id/action_coinListFragment_to_coinDetailFragment"
+            app:destination="@id/coinDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/coinDetailFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.detail.CoinDetailFragment"
+        android:label="CoinDetailFragment" >
+
+        <argument
+            android:name="output"
+            app:argType="com.nunchuk.android.model.UnspentOutput" />
     </fragment>
 </navigation>

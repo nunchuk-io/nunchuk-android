@@ -38,7 +38,13 @@ fun PreviewCoinCard(
     onViewCoinDetail: (coinCard: CoinCard) -> Unit = {},
     onSelectCoin: (coinCard: CoinCard, isSelected: Boolean) -> Unit = { _, _ -> }
 ) {
-    Box(modifier = Modifier.clickable { onViewCoinDetail(coinCard) }) {
+    Box(modifier = Modifier.run {
+        if (selectable.not()) {
+            this.clickable { onViewCoinDetail(coinCard) }
+        } else {
+            this
+        }
+    }) {
         Column(
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 12.dp)
