@@ -87,7 +87,6 @@ class VerifyNewDeviceActivity : BaseActivity<ActivityVerifyNewDeviceBinding>() {
             activityContext = this,
             loginHalfToken = token,
             deviceId = deviceId,
-            isNewDevice = true,
             isClearTask = true
         )
     }
