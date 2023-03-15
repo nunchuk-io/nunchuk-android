@@ -23,7 +23,6 @@
     <string name="nc_inheritance_intro_hint">TAPSIGNER is a wireless NFC smart card that will sign transactions with a simple tap on your phone.</string>
     <string name="nc_tapsigner">TAPSIGNER</string>
     <string name="nc_add_coldcard_via_nfc">Add COLDCARD via NFC</string>
-    <string name="nc_cosigning_limit_hint">If you have configured a co-signing spending limit for the platform key, it is safe to carry one key with you. Use two of your own keys when you want to withdraw more than the limit.</string>
     <string name="nc_register_wallet_to_airgap_title">Please register this wallet with your air-gapped device</string>
     <string name="nc_register_wallet_to_airgap_desc">You must register this wallet with your air-gapped device before you can use it to sign transactions.\n\nPlease do so by scanning the QR code on the next screen using your device.</string>
     <string name="nc_inheritance_claim_trustee">The inheritance can be claimed directly by the Beneficiary or indirectly through a third-party Trustee.</string>
