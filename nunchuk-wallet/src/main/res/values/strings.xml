@@ -60,4 +60,6 @@
     <string name="nc_view_coins">View coins</string>
     <string name="nc_number_of_coin_selected">%1$d coins selected</string>
     <string name="nc_scheduled_transaction">Scheduled transaction</string>
+    <string name="nc_show_out_point">Show outpoint</string>
+    <string name="nc_copied">Copied</string>
 </resources>
