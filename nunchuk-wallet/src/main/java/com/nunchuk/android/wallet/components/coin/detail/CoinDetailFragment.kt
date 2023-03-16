@@ -87,7 +87,7 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
             SheetOptionType.TYPE_SHOW_OUTPOINT ->
-                OutpointBottomSheet.newInstance("${args.output.txid}${args.output.vout}")
+                OutpointBottomSheet.newInstance("${args.output.txid}:${args.output.vout}")
                     .show(
                         childFragmentManager, "OutpointBottomSheet"
                     )

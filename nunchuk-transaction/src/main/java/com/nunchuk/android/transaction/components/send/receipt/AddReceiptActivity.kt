@@ -289,7 +289,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
     }
 
     companion object {
-        private const val MAX_NOTE_LENGTH = 80
+        private const val MAX_NOTE_LENGTH = 280
 
         fun start(
             activityContext: Context,

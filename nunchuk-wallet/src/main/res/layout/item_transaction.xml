@@ -11,8 +11,8 @@
         style="@style/NCText.Body.Small"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/nc_grey_dark_color"
         android:text="@string/nc_transaction_send_to"
+        android:textColor="@color/nc_grey_dark_color"
         app:layout_constraintBottom_toBottomOf="@+id/status"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/status" />
@@ -22,8 +22,8 @@
         style="@style/NCText.Badges"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:drawablePadding="@dimen/nc_padding_4"
         android:background="@drawable/nc_rounded_tag_whisper_background"
+        android:drawablePadding="@dimen/nc_padding_4"
         android:text="@string/nc_transaction_pending_confirmation"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -39,8 +39,8 @@
         android:id="@+id/receiverName"
         style="@style/NCText.Body"
         android:layout_width="0dp"
-        android:layout_marginTop="@dimen/nc_padding_4"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_4"
         android:layout_marginEnd="@dimen/nc_padding_8"
         android:ellipsize="middle"
         android:singleLine="true"
@@ -55,8 +55,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:fontTextStyle="semi_bold"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="@+id/receiverName"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/receiverName"
 
         tools:text="- 0.120000982 BTC" />
@@ -70,9 +70,9 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/date"
-        android:layout_marginTop="@dimen/nc_padding_4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_4"
         android:textColor="@color/nc_primary_dark_color"
         android:textSize="@dimen/nc_text_size_12"
         app:layout_constraintBottom_toBottomOf="@+id/amountUSD"
@@ -89,5 +89,20 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/bottomBarrier"
         tools:text="$193,090.98" />
+
+    <TextView
+        android:id="@+id/tv_note"
+        style="@style/NCText.Body.Small"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        android:background="@drawable/nc_rounded_12dp_stroke_border"
+        android:drawablePadding="@dimen/nc_padding_4"
+        android:gravity="center_vertical"
+        android:padding="@dimen/nc_padding_12"
+        app:drawableStartCompat="@drawable/ic_note_circle"
+        app:layout_constraintTop_toBottomOf="@+id/date"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:text="Send to Bob on Silk Road" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

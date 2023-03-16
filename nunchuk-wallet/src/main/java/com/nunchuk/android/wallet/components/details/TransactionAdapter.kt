@@ -22,6 +22,7 @@ package com.nunchuk.android.wallet.components.details
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import com.nunchuk.android.core.base.BaseViewHolder
@@ -93,6 +94,8 @@ internal class TransactionAdapter(
                 if (hideWalletDetail.not()) onItemSelectedListener(data.transaction)
             }
             handleServerTransaction(data.transaction, data.serverTransaction)
+            binding.tvNote.isVisible = data.transaction.memo.isNotEmpty()
+            binding.tvNote.text = data.transaction.memo
         }
 
         private fun handleServerTransaction(
