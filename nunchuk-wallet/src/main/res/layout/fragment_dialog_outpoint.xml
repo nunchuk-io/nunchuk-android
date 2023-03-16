@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/nc_padding_16"
+    android:paddingVertical="@dimen/nc_padding_24"
+    android:orientation="vertical">
+
+    <TextView
+        style="@style/NCText.Title.Large"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/nc_outpoint" />
+
+    <TextView
+        android:id="@+id/tv_outpoint_value"
+        style="@style/NCText.Body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_12"
+        tools:text="37d61958f3535299327c5a9d3482ee6525237a0dc294d38e43c44d1cdca124e:1" />
+
+    <com.nunchuk.android.widget.NCFontButton
+        android:id="@+id/btn_copy"
+        style="@style/NCPrimaryButton.Dark"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_24"
+        android:text="@string/nc_copy_outpoint" />
+</LinearLayout>
