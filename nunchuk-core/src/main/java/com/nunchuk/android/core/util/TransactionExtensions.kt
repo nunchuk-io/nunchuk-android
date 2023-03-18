@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.util
 
 import android.content.Context
+import androidx.core.content.ContextCompat
 import com.nunchuk.android.core.R
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.type.TransactionStatus
@@ -66,14 +67,32 @@ fun String.truncatedAddress(): String = if (length < PREFIX_LENGTH + SUFFIX_LENG
 fun Transaction.formatAddress(context: Context) : String {
     return if (isReceive) {
         val address = receiveOutputs.firstOrNull()?.first.orEmpty()
-        "${context.getString(R.string.nc_transaction_receive_at)} ${address.take(6)}...${address.takeLast(4)}"
+        "${context.getString(R.string.nc_transaction_receive_at)} ${address.truncatedAddress()}"
     } else {
         val address = outputs.firstOrNull()?.first.orEmpty()
-        "${context.getString(R.string.nc_transaction_send_to)} ${address.take(6)}...${address.takeLast(4)}"
+        "${context.getString(R.string.nc_transaction_send_to)} ${address.truncatedAddress()}"
     }
 }
 
 fun Transaction.hasChangeIndex() = outputs.isNotEmpty() && changeIndex >= 0 && changeIndex < outputs.size
+
+fun TransactionStatus.toName(context: Context) : String {
+    return when(this) {
+        PENDING_CONFIRMATION -> context.getString(R.string.nc_pending_conf)
+        PENDING_SIGNATURES -> context.getString(R.string.nc_pending_sig)
+        READY_TO_BROADCAST -> context.getString(R.string.nc_pending_broadcast)
+        else -> ""
+    }
+}
+
+fun TransactionStatus.toColor(context: Context) : Int {
+    return when(this) {
+        PENDING_CONFIRMATION -> ContextCompat.getColor(context, R.color.nc_lavender_tint_color)
+        PENDING_SIGNATURES -> ContextCompat.getColor(context, R.color.nc_red_tint_color)
+        READY_TO_BROADCAST -> ContextCompat.getColor(context, R.color.nc_beeswax_tint)
+        else -> ContextCompat.getColor(context, R.color.nc_beeswax_tint)
+    }
+}
 
 internal const val PREFIX_LENGTH = 5
 internal const val SUFFIX_LENGTH = 4

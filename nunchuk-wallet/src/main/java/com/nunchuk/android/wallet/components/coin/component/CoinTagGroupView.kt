@@ -32,17 +32,25 @@ fun CoinTagGroupView(
             .border(1.dp, NcColor.border, RoundedCornerShape(12.dp))
     ) {
         FlowRow(
-            Modifier
+            modifier = Modifier
                 .fillMaxWidth()
-                .padding(4.dp)
+                .padding(4.dp),
+            maxItemsInEachRow = 3
         ) {
-            tagIds.forEach {
+            tagIds.take(5).forEach {
                 tags[it]?.let { coinTag ->
                     CoinTagView(
                         modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
                         tag = coinTag
                     )
                 }
+            }
+            if (tagIds.size > 5) {
+                Text(
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
+                    text = "+${tagIds.size - 5}",
+                    style = NunchukTheme.typography.body,
+                )
             }
         }
         Row(
@@ -76,8 +84,16 @@ fun CoinTagGroupViewPreview() {
     NunchukTheme {
         CoinTagGroupView(
             modifier = Modifier.padding(16.dp),
-            tagIds = setOf(),
-            tags = emptyMap(),
+            tagIds = setOf(1, 2, 3, 4, 5, 6, 7),
+            tags = mapOf(
+                1 to CoinTag(id = 1, name = "badcoins", color = "#000000"),
+                2 to CoinTag(id = 2, name = "badcoins", color = "#000000"),
+                3 to CoinTag(id = 3, name = "badcoins", color = "#000000"),
+                4 to CoinTag(id = 4, name = "badcoins", color = "#000000"),
+                5 to CoinTag(id = 5, name = "badcoins", color = "#000000"),
+                6 to CoinTag(id = 6, name = "badcoins", color = "#000000"),
+                7 to CoinTag(id = 7, name = "badcoins", color = "#000000"),
+            ),
             note = "Send to Bob on Silk Road"
         )
     }
@@ -89,8 +105,16 @@ fun CoinTagGroupViewPreviewNoNote() {
     NunchukTheme {
         CoinTagGroupView(
             modifier = Modifier.padding(16.dp),
-            tagIds = setOf(),
-            tags = emptyMap(),
+            tagIds = setOf(1, 2, 3, 4, 5, 6, 7),
+            tags = mapOf(
+                1 to CoinTag(id = 1, name = "badcoins", color = "#DDFFFF"),
+                2 to CoinTag(id = 2, name = "badcoins", color = "#000000"),
+                3 to CoinTag(id = 3, name = "badcoins", color = "#000000"),
+                4 to CoinTag(id = 4, name = "badcoins", color = "#000000"),
+                5 to CoinTag(id = 5, name = "badcoins", color = "#000000"),
+                6 to CoinTag(id = 6, name = "badcoins", color = "#000000"),
+                7 to CoinTag(id = 7, name = "badcoins", color = "#000000"),
+            ),
             note = "",
         )
     }

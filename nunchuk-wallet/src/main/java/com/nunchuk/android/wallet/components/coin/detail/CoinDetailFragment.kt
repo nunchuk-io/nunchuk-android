@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -42,6 +43,7 @@ import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.component.CoinBadge
+import com.nunchuk.android.wallet.components.coin.component.CoinStatusBadge
 import com.nunchuk.android.wallet.components.coin.detail.component.CoinTransactionCard
 import com.nunchuk.android.wallet.components.coin.detail.component.TagHorizontalList
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
@@ -187,11 +189,14 @@ private fun CoinDetailContent(
                         style = NunchukTheme.typography.heading,
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
-                    Text(
-                        text = output.time.getBtcFormatDate(),
-                        style = NunchukTheme.typography.bodySmall,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = output.time.getBtcFormatDate(),
+                            style = NunchukTheme.typography.bodySmall,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                        )
+                        CoinStatusBadge(output)
+                    }
 
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
