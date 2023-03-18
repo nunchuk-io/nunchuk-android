@@ -330,7 +330,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         binding.copyAddressLayout.setOnClickListener { copyAddress(binding.addressText.text.toString()) }
         binding.shareLayout.setOnClickListener { controller.shareText(binding.addressText.text.toString()) }
         binding.ivViewCoin.setOnDebounceClickListener {
-            CoinActivity.navigate(requireContext(), args.walletId)
+            CoinActivity.navigate(context = requireContext(), walletId = args.walletId)
         }
         binding.fab.setOnClickListener {
             viewModel.updateHideWalletDetailLocal()

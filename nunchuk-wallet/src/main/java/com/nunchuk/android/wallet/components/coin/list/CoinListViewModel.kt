@@ -37,13 +37,8 @@ class CoinListViewModel @Inject constructor(
             _event.emit(CoinListEvent.Loading(true))
             getAllCoinUseCase(args.walletId).onSuccess { coins ->
                 _event.emit(CoinListEvent.Loading(false))
-                val filterCoins = if (args.listType == CoinListType.LOCKED) {
-                    coins.filter { coin -> coin.isLocked }
-                } else {
-                    coins
-                }
                 _state.update { state ->
-                    state.copy(coins = filterCoins)
+                    state.copy(coins = coins)
                 }
             }
         }
@@ -98,7 +93,7 @@ class CoinListViewModel @Inject constructor(
     }
 
     fun onSelectDone() {
-        _state.update { it.copy(mode = CoinListMode.NONE) }
+        _state.update { it.copy(mode = CoinListMode.NONE, selectedCoins = emptySet()) }
     }
 
     fun onCoinSelect(coin: UnspentOutput, isSelect: Boolean) {

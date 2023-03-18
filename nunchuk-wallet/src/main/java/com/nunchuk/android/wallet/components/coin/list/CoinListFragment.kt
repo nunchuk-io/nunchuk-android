@@ -22,7 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -51,7 +51,7 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class CoinListFragment : Fragment(), BottomSheetOptionListener {
     private val args: CoinListFragmentArgs by navArgs()
-    private val viewModel: CoinListViewModel by viewModels()
+    private val viewModel: CoinListViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -66,7 +66,8 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
                         findNavController().navigate(
                             CoinListFragmentDirections.actionCoinListFragmentToCoinDetailFragment(
                                 walletId = args.walletId,
-                                output = it
+                                txId = it.txid,
+                                vout = it.vout
                             )
                         )
                     },
@@ -94,8 +95,8 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_VIEW_COLLECTION -> TODO()
             SheetOptionType.TYPE_VIEW_LOCKED_COIN -> findNavController().navigate(
                 CoinListFragmentDirections.actionCoinListFragmentSelf(
-                    args.walletId,
-                    CoinListType.LOCKED
+                    walletId = args.walletId,
+                    listType = CoinListType.LOCKED
                 )
             )
         }
@@ -168,10 +169,16 @@ private fun CoinListScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    val filterCoins = when {
+        args.txId.isNotEmpty() -> state.coins.filter { it.txid == args.txId }
+        args.listType == CoinListType.LOCKED -> state.coins.filter { it.isLocked }
+        else -> state.coins
+    }
+
     CoinListContent(
         mode = state.mode,
         type = args.listType,
-        coins = state.coins,
+        coins = filterCoins,
         tags = state.tags,
         selectedCoin = state.selectedCoins,
         onSelectCoin = viewModel::onCoinSelect,

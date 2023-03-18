@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -24,14 +25,41 @@ class CoinActivity : BaseActivity<ActivityNavigationBinding>() {
             supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.coin_navigation)
+        graph.setStartDestination(
+            when (intent.serializable<CoinScreen>(KEY_SCREEN)!!) {
+                CoinScreen.SELECTION_VIEW -> R.id.coinListFragment
+                CoinScreen.DETAIL -> R.id.coinDetailFragment
+            }
+        )
         navHostFragment.navController.setGraph(graph, intent.extras)
     }
 
     companion object {
         private const val KEY_WALLET_ID = "wallet_id"
-        fun navigate(context: Context, walletId: String) {
+        private const val KEY_SCREEN = "screen"
+        private const val KEY_TX_ID = "txId"
+        private const val KEY_VOUT = "vout"
+
+        fun navigate(
+            context: Context,
+            walletId: String,
+            txId: String = "",
+        ) {
             context.startActivity(Intent(context, CoinActivity::class.java).apply {
                 putExtra(KEY_WALLET_ID, walletId)
+                putExtra(KEY_TX_ID, txId)
+                putExtra(KEY_SCREEN, CoinScreen.SELECTION_VIEW)
+            })
+        }
+
+        fun navigate(
+            context: Context, walletId: String, txId: String, vout: Int
+        ) {
+            context.startActivity(Intent(context, CoinActivity::class.java).apply {
+                putExtra(KEY_WALLET_ID, walletId)
+                putExtra(KEY_SCREEN, CoinScreen.DETAIL)
+                putExtra(KEY_TX_ID, txId)
+                putExtra(KEY_VOUT, vout)
             })
         }
     }

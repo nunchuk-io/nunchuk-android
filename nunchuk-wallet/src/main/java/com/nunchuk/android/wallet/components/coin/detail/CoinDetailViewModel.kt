@@ -22,7 +22,7 @@ class CoinDetailViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
-        getTransactionUseCase.execute(args.walletId, args.output.txid, false)
+        getTransactionUseCase.execute(args.walletId, args.txId, false)
             .onEach { transition ->
                 _state.update { it.copy(transaction = transition.transaction) }
             }

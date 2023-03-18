@@ -50,6 +50,7 @@ import com.nunchuk.android.settings.nav.SettingNavigatorDelegate
 import com.nunchuk.android.signer.nav.NfcNavigatorDelegate
 import com.nunchuk.android.signer.nav.SignerNavigatorDelegate
 import com.nunchuk.android.transaction.nav.TransactionNavigatorDelegate
+import com.nunchuk.android.wallet.components.coin.CoinActivity
 import com.nunchuk.android.wallet.nav.WalletNavigatorDelegate
 import javax.inject.Inject
 
@@ -101,6 +102,14 @@ internal class NunchukNavigatorImpl @Inject constructor(
     override fun openCreateNewSeedScreen(fragment: Fragment, isQuickWallet: Boolean) {
         fragment.findNavController()
             .navigate(QuickWalletNavigationDirections.showCreateNewSeedFragment(isQuickWallet))
+    }
+
+    override fun openCoinList(context: Context, walletId: String, txId: String) {
+        CoinActivity.navigate(context = context, walletId = walletId, txId = txId)
+    }
+
+    override fun openCoinDetail(context: Context, walletId: String, txId: String, vout: Int) {
+        CoinActivity.navigate(context, walletId, txId, vout)
     }
 }
 

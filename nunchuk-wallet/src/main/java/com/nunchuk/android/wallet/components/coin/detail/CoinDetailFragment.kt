@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
@@ -43,6 +44,7 @@ import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.component.CoinBadge
 import com.nunchuk.android.wallet.components.coin.detail.component.CoinTransactionCard
 import com.nunchuk.android.wallet.components.coin.detail.component.TagHorizontalList
+import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -52,6 +54,7 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
     @Inject
     lateinit var navigator: NunchukNavigator
     private val viewModel: CoinDetailViewModel by viewModels()
+    private val coinViewModel: CoinListViewModel by activityViewModels()
     private val args by navArgs<CoinDetailFragmentArgs>()
 
     override fun onCreateView(
@@ -60,7 +63,9 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                CoinDetailScreen(viewModel,
+                CoinDetailScreen(
+                    viewModel = viewModel,
+                    coinViewModel = coinViewModel,
                     args = args,
                     onShowMore = {
                         BottomSheetOption.newInstance(
@@ -71,15 +76,14 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
                                 )
                             )
                         ).show(childFragmentManager, "BottomSheetOption")
-                    },
-                    onViewTransactionDetail = {
-                        navigator.openTransactionDetailsScreen(
-                            activityContext = requireActivity(),
-                            walletId = args.walletId,
-                            txId = args.output.txid,
-                        )
                     }
-                )
+                ) {
+                    navigator.openTransactionDetailsScreen(
+                        activityContext = requireActivity(),
+                        walletId = args.walletId,
+                        txId = args.txId,
+                    )
+                }
             }
         }
     }
@@ -87,7 +91,7 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
             SheetOptionType.TYPE_SHOW_OUTPOINT ->
-                OutpointBottomSheet.newInstance("${args.output.txid}:${args.output.vout}")
+                OutpointBottomSheet.newInstance("${args.txId}:${args.vout}")
                     .show(
                         childFragmentManager, "OutpointBottomSheet"
                     )
@@ -107,13 +111,18 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
 @Composable
 private fun CoinDetailScreen(
     viewModel: CoinDetailViewModel = viewModel(),
+    coinViewModel: CoinListViewModel,
     args: CoinDetailFragmentArgs,
     onShowMore: () -> Unit = {},
     onViewTransactionDetail: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val coinListState by coinViewModel.state.collectAsStateWithLifecycle()
+
+    val output = coinListState.coins.find { it.txid == args.txId && it.vout == args.vout } ?: UnspentOutput()
+
     CoinDetailContent(
-        output = args.output,
+        output = output,
         transaction = state.transaction,
         onShowMore = onShowMore,
         onViewTransactionDetail = onViewTransactionDetail,

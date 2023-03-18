@@ -141,4 +141,7 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
     )
 
     fun openQuickWalletScreen(launcher: ActivityResultLauncher<Intent>, activityContext: Context)
+
+    fun openCoinList(context: Context, walletId: String, txId: String)
+    fun openCoinDetail(context: Context, walletId: String, txId: String, vout: Int)
 }

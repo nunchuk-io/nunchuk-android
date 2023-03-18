@@ -133,6 +133,21 @@
                     app:layout_constraintTop_toBottomOf="@+id/sendingBTC"
                     tools:text="07/22/2020 at 11:32 PM" />
 
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/tv_manage_coin"
+                    style="@style/NCText.Title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_16"
+                    android:layout_marginEnd="@dimen/nc_padding_16"
+                    android:drawableEnd="@drawable/ic_arrow"
+                    android:drawablePadding="@dimen/nc_padding_6"
+                    android:text="@string/nc_manage_coin"
+                    android:visibility="gone"
+                    tools:visibility="visible"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/confirm_time" />
+
                 <View
                     android:id="@+id/topDivider"
                     android:layout_width="match_parent"
@@ -140,7 +155,7 @@
                     android:layout_marginTop="@dimen/nc_padding_24"
                     android:background="@color/nc_whisper_color"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/confirm_time" />
+                    app:layout_constraintTop_toBottomOf="@+id/tv_manage_coin" />
 
                 <com.nunchuk.android.widget.NCFontTextView
                     android:id="@+id/viewMore"

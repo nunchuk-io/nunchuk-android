@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcColor
@@ -58,8 +59,10 @@ fun CoinTagGroupView(
                     contentDescription = "Transaction Note"
                 )
                 Text(
-                    modifier = Modifier.padding(start = 4.dp),
+                    modifier = Modifier.padding(start = 4.dp, end = 8.dp),
                     text = note,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     style = NunchukTheme.typography.bodySmall
                 )
             }

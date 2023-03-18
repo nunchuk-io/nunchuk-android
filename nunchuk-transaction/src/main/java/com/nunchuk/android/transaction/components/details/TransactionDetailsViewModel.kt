@@ -52,6 +52,7 @@ import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.coin.IsMyCoinUseCase
 import com.nunchuk.android.usecase.membership.SignServerTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.GetPendingTransactionUseCase
@@ -98,6 +99,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val signServerTransactionUseCase: SignServerTransactionUseCase,
     private val cancelScheduleBroadcastTransactionUseCase: CancelScheduleBroadcastTransactionUseCase,
     private val importTransactionUseCase: ImportTransactionUseCase,
+    private val isMyCoinUseCase: IsMyCoinUseCase,
     private val savedStateHandle: SavedStateHandle,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val application: Application,
@@ -191,7 +193,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun handleSignTime(signedTime : Long) {
+    private fun handleSignTime(signedTime: Long) {
         if (signedTime > 0L && signedTime > System.currentTimeMillis()) {
             reloadTransactionJob?.cancel()
             reloadTransactionJob = viewModelScope.launch {
@@ -311,7 +313,14 @@ internal class TransactionDetailsViewModel @Inject constructor(
     fun updateTransactionMemo(newMemo: String) {
         viewModelScope.launch {
             setEvent(LoadingEvent)
-            val result = updateTransactionMemo(UpdateTransactionMemo.Data(walletId, isAssistedWallet(), txId, newMemo))
+            val result = updateTransactionMemo(
+                UpdateTransactionMemo.Data(
+                    walletId,
+                    isAssistedWallet(),
+                    txId,
+                    newMemo
+                )
+            )
             if (result.isSuccess) {
                 setEvent(UpdateTransactionMemoSuccess(newMemo))
             } else {
@@ -334,14 +343,23 @@ internal class TransactionDetailsViewModel @Inject constructor(
             getTransactionUseCase.execute(
                 walletId, txId, assistedWalletManager.isActiveAssistedWallet(walletId)
             ).flowOn(IO).onException {
-                    if ((it as? NunchukApiException)?.code == ApiErrorCode.TRANSACTION_CANCEL) {
-                        handleDeleteTransactionEvent(isCancel = true, onlyLocal = true)
-                    } else if (it.isNoInternetException.not()) {
-                        setEvent(TransactionDetailsError(it.message.orEmpty()))
-                    }
-                }.collect {
-                    updateTransaction(it.transaction, it.serverTransaction)
+                if ((it as? NunchukApiException)?.code == ApiErrorCode.TRANSACTION_CANCEL) {
+                    handleDeleteTransactionEvent(isCancel = true, onlyLocal = true)
+                } else if (it.isNoInternetException.not()) {
+                    setEvent(TransactionDetailsError(it.message.orEmpty()))
                 }
+            }.collect {
+                val coinIndex = it.transaction.outputs.mapIndexedNotNull { index, txOutput ->
+                    if (isMyCoinUseCase(IsMyCoinUseCase.Param(walletId, txOutput.first))
+                            .getOrDefault(false))
+                        index else null
+                }
+                updateTransaction(
+                    transaction = it.transaction,
+                    serverTransaction = it.serverTransaction,
+                    coinIndex = coinIndex
+                )
+            }
         }
     }
 
@@ -351,9 +369,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private fun updateTransaction(
         transaction: Transaction,
-        serverTransaction: ServerTransaction? = getState().serverTransaction
+        serverTransaction: ServerTransaction? = getState().serverTransaction,
+        coinIndex: List<Int> = getState().coinIndex
     ) {
-        updateState { copy(transaction = transaction, serverTransaction = serverTransaction) }
+        updateState { copy(transaction = transaction, serverTransaction = serverTransaction, coinIndex = coinIndex) }
     }
 
     fun handleViewMoreEvent() {
@@ -640,8 +659,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun isSignByServerKey(transaction: Transaction) : Boolean {
-        val fingerPrint = getState().signers.find { it.type == SignerType.SERVER }?.fingerPrint.orEmpty()
+    fun coinIndex() = getState().coinIndex
+
+    private fun isSignByServerKey(transaction: Transaction): Boolean {
+        val fingerPrint =
+            getState().signers.find { it.type == SignerType.SERVER }?.fingerPrint.orEmpty()
         return transaction.signers[fingerPrint] == true
     }
 

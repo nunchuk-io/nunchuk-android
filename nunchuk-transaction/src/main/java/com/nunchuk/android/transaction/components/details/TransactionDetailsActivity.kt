@@ -249,6 +249,17 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 title = getString(R.string.nc_transaction_private_note_off_chain_data)
             )
         }
+        binding.tvManageCoin.setOnDebounceClickListener {
+            when (viewModel.coinIndex().size) {
+                1 -> navigator.openCoinDetail(
+                    this,
+                    args.walletId,
+                    args.txId,
+                    viewModel.coinIndex().first()
+                )
+                else -> navigator.openCoinList(this, args.walletId, args.txId)
+            }
+        }
     }
 
     private fun handleMenuMore() {
@@ -279,7 +290,12 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             )
         }
         handleServerTransaction(state.transaction, state.serverTransaction)
+        handleManageCoin(state.coinIndex)
         hideLoading()
+    }
+
+    private fun handleManageCoin(coinIndex: List<Int>) {
+        binding.tvManageCoin.isVisible = coinIndex.isNotEmpty()
     }
 
     private fun handleServerTransaction(

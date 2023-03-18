@@ -27,5 +27,6 @@ data class TransactionDetailsState(
     val viewMore: Boolean = false,
     val transaction: Transaction = Transaction(),
     val serverTransaction: ServerTransaction? = null,
-    val signers: List<SignerModel> = emptyList()
+    val signers: List<SignerModel> = emptyList(),
+    val coinIndex : List<Int> = emptyList()
 )
