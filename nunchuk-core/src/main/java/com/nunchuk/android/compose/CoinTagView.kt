@@ -1,4 +1,4 @@
-package com.nunchuk.android.wallet.components.coin.component
+package com.nunchuk.android.compose
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,8 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
-import com.nunchuk.android.compose.NcColor
-import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.model.CoinTag
 
 @Composable

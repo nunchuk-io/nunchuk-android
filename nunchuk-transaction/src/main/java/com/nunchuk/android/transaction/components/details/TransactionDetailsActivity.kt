@@ -234,10 +234,6 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 else -> false
             }
         }
-        binding.sendAddressLabel.setOnLongClickListener {
-            handleCopyContent(binding.sendAddressLabel.text.toString())
-            true
-        }
         binding.changeAddressLabel.setOnLongClickListener {
             handleCopyContent(binding.changeAddressLabel.text.toString())
             true
@@ -405,14 +401,12 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     private fun bindAddress(transaction: Transaction) {
-        val output = if (transaction.isReceive) {
-            transaction.receiveOutputs.firstOrNull()
-        } else {
-            transaction.outputs.firstOrNull()
+        val coins = viewModel.coinIndex().mapNotNull { transaction.outputs.getOrNull(it) }
+        if (coins.isNotEmpty()) {
+            TransactionAddressViewBinder(binding.containerAddress, coins, viewModel.allTags(), viewModel.tagIds()) {
+                handleCopyContent(it)
+            }.bindItems()
         }
-        binding.sendAddressLabel.text = output?.first.orEmpty()
-        binding.sendAddressBTC.text = output?.second?.getBTCAmount().orEmpty()
-        binding.sendAddressUSD.text = output?.second?.getCurrencyAmount().orEmpty()
 
         if (transaction.isReceive) {
             binding.sendingToLabel.text = getString(R.string.nc_transaction_receive_at)

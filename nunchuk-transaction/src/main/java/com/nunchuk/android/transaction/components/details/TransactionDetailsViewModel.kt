@@ -52,6 +52,8 @@ import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
+import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.coin.IsMyCoinUseCase
 import com.nunchuk.android.usecase.membership.SignServerTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
@@ -101,6 +103,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val importTransactionUseCase: ImportTransactionUseCase,
     private val isMyCoinUseCase: IsMyCoinUseCase,
     private val savedStateHandle: SavedStateHandle,
+    private val getAllTagsUseCase: GetAllTagsUseCase,
+    private val getAllCoinUseCase: GetAllCoinUseCase,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val application: Application,
 ) : NunchukViewModel<TransactionDetailsState, TransactionDetailsEvent>() {
@@ -114,6 +118,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private var masterSigners: List<MasterSigner> = emptyList()
 
     private var contacts: List<Contact> = emptyList()
+    private val allCoins: MutableList<UnspentOutput> = mutableListOf()
 
     private var initNumberOfSignedKey = INVALID_NUMBER_OF_SIGNED
 
@@ -169,6 +174,27 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
         loadMasterSigner()
         listenSignKey()
+        getAllTags()
+        getAllCoins()
+    }
+
+    private fun getAllTags() {
+        viewModelScope.launch {
+            getAllTagsUseCase(walletId).onSuccess { allTags ->
+                updateState { copy(tags = allTags.associateBy { tag -> tag.id }) }
+            }
+        }
+    }
+
+    private fun getAllCoins() {
+        viewModelScope.launch {
+            getAllCoinUseCase(walletId).onSuccess { coins ->
+                allCoins.apply {
+                    clear()
+                    addAll(coins)
+                }
+            }
+        }
     }
 
     private fun listenSignKey() {
@@ -351,13 +377,19 @@ internal class TransactionDetailsViewModel @Inject constructor(
             }.collect {
                 val coinIndex = it.transaction.outputs.mapIndexedNotNull { index, txOutput ->
                     if (isMyCoinUseCase(IsMyCoinUseCase.Param(walletId, txOutput.first))
-                            .getOrDefault(false))
-                        index else null
+                            .getOrDefault(false)
+                    ) index else null
                 }
+
+                val tagIds = coinIndex.map { vout ->
+                    allCoins.find { coin -> coin.txid == txId && coin.vout == vout }?.tags ?: emptySet()
+                }
+
                 updateTransaction(
                     transaction = it.transaction,
                     serverTransaction = it.serverTransaction,
-                    coinIndex = coinIndex
+                    coinIndex = coinIndex,
+                    tagIds = tagIds
                 )
             }
         }
@@ -370,9 +402,17 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private fun updateTransaction(
         transaction: Transaction,
         serverTransaction: ServerTransaction? = getState().serverTransaction,
-        coinIndex: List<Int> = getState().coinIndex
+        coinIndex: List<Int> = getState().coinIndex,
+        tagIds: List<Set<Int>> = getState().tagIds
     ) {
-        updateState { copy(transaction = transaction, serverTransaction = serverTransaction, coinIndex = coinIndex) }
+        updateState {
+            copy(
+                transaction = transaction,
+                serverTransaction = serverTransaction,
+                coinIndex = coinIndex,
+                tagIds = tagIds,
+            )
+        }
     }
 
     fun handleViewMoreEvent() {
@@ -660,6 +700,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun coinIndex() = getState().coinIndex
+    fun allTags() = getState().tags
+    fun tagIds() = getState().tagIds
 
     private fun isSignByServerKey(transaction: Transaction): Boolean {
         val fingerPrint =

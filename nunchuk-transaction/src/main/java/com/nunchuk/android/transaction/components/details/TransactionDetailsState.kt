@@ -20,6 +20,7 @@
 package com.nunchuk.android.transaction.components.details
 
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 
@@ -28,5 +29,7 @@ data class TransactionDetailsState(
     val transaction: Transaction = Transaction(),
     val serverTransaction: ServerTransaction? = null,
     val signers: List<SignerModel> = emptyList(),
-    val coinIndex : List<Int> = emptyList()
+    val coinIndex : List<Int> = emptyList(),
+    val tags: Map<Int, CoinTag> = emptyMap(),
+    val tagIds: List<Set<Int>> = emptyList(),
 )

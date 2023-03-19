@@ -16,11 +16,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.CoinTagView
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.wallet.R
-import com.nunchuk.android.wallet.components.coin.component.CoinTagView
 
 @Composable
 fun TagHorizontalList(

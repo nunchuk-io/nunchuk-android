@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -18,11 +17,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nunchuk.android.compose.CoinTagGroupView
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.toColor
-import com.nunchuk.android.core.util.toName
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput

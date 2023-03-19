@@ -30,6 +30,7 @@ class CoinListViewModel @Inject constructor(
 
     init {
         getAllCoins()
+        getAllTags()
     }
 
     private fun getAllCoins() {
@@ -42,6 +43,9 @@ class CoinListViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun getAllTags() {
         viewModelScope.launch {
             getAllTagsUseCase(args.walletId).onSuccess { tags ->
                 _state.update { state ->
