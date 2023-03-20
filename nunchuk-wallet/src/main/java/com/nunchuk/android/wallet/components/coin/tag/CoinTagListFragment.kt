@@ -16,7 +16,8 @@ import androidx.compose.material.Checkbox
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -75,8 +76,6 @@ class CoinTagListFragment : Fragment() {
                             coinTag = it.coinTag
                         )
                     )
-                }, onSaveClick = {
-
                 })
             }
         }
@@ -133,7 +132,6 @@ fun CoinTagListScreen(
     @TagFlow.TagFlowInfo tagFlow: Int = TagFlow.NONE,
     onSelectColorClick: (String) -> Unit = {},
     onTagClick: (CoinTagAddition) -> Unit = {},
-    onSaveClick: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     CoinTagListScreenContent(tags = state.tags,
@@ -307,7 +305,7 @@ fun InputTagItem(
             ),
             title = "",
             value = input,
-            visualTransformation = MaxLengthTransformation(CoinTagListFragment.LIMIT_TAG_NAME),
+            visualTransformation = MaxLengthTransformation(CoinTagListFragment.LIMIT_TAG_NAME, "#"),
             onValueChange = { newValue ->
                 if (newValue.length <= CoinTagListFragment.LIMIT_TAG_NAME) {
                     onValueChange(newValue)
@@ -383,14 +381,27 @@ fun TagItem(
     }
 }
 
-private class MaxLengthTransformation(private val maxLength: Int) : VisualTransformation {
+private class MaxLengthTransformation(private val maxLength: Int, private val prefix: String) : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
+        val prefixOffset = prefix.length
+
+        val numberOffsetTranslator = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                return offset + prefixOffset
+            }
+
+            override fun transformedToOriginal(offset: Int): Int {
+                if (offset < prefixOffset) return 0
+                return offset - prefixOffset
+            }
+        }
         val truncatedText = if (text.text.length > maxLength) {
             text.text.substring(0, maxLength)
         } else {
             text.text
         }
-        return TransformedText(AnnotatedString(truncatedText), OffsetMapping.Identity)
+        val out = prefix + truncatedText
+        return TransformedText(AnnotatedString(out), numberOffsetTranslator)
     }
 }
 

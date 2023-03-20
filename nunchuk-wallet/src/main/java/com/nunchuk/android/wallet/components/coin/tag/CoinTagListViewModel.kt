@@ -9,13 +9,8 @@ import com.nunchuk.android.model.CoinTagAddition
 import com.nunchuk.android.usecase.coin.AddToCoinTagUseCase
 import com.nunchuk.android.usecase.coin.CreateCoinTagUseCase
 import com.nunchuk.android.usecase.coin.GetCoinTagAdditionListUseCase
-import com.nunchuk.android.usecase.coin.UpdateCoinTagUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,7 +18,6 @@ import javax.inject.Inject
 class CoinTagListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getCoinTagAdditionListUseCase: GetCoinTagAdditionListUseCase,
-    private val updateCoinTagUseCase: UpdateCoinTagUseCase,
     private val createCoinTagUseCase: CreateCoinTagUseCase,
     private val addToCoinTagUseCase: AddToCoinTagUseCase
 ) : ViewModel() {
@@ -122,7 +116,7 @@ class CoinTagListViewModel @Inject constructor(
         val result = createCoinTagUseCase(
             CreateCoinTagUseCase.Param(
                 walletId = args.walletId,
-                name = coinTagInputHolder.name,
+                name = "#${coinTagInputHolder.name}",
                 color = coinTagInputHolder.color
             )
         )
