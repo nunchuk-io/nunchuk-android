@@ -10,9 +10,9 @@ import javax.inject.Inject
 class UpdateCoinTagUseCase @Inject constructor(
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
     private val nunchukNativeSdk: NunchukNativeSdk,
-) : UseCase<UpdateCoinTagUseCase.Param, Unit>(ioDispatcher) {
-    override suspend fun execute(parameters: Param) {
-        nunchukNativeSdk.updateCoinTag(
+) : UseCase<UpdateCoinTagUseCase.Param, Boolean>(ioDispatcher) {
+    override suspend fun execute(parameters: Param): Boolean {
+        return nunchukNativeSdk.updateCoinTag(
             walletId = parameters.walletId,
             coinTag = parameters.coinTag
         )

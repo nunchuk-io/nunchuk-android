@@ -52,12 +52,12 @@ class CoinTagDetailViewModel @Inject constructor(
             ).onSuccess { coins ->
                 _state.update { it.copy(coins = coins) }
             }
+        }
 
-            viewModelScope.launch {
-                getAllTagsUseCase(args.walletId).onSuccess { tags ->
-                    _state.update { state ->
-                        state.copy(tags = tags.associateBy { it.id })
-                    }
+        viewModelScope.launch {
+            getAllTagsUseCase(args.walletId).onSuccess { tags ->
+                _state.update { state ->
+                    state.copy(tags = tags.associateBy { it.id })
                 }
             }
         }
@@ -100,19 +100,22 @@ class CoinTagDetailViewModel @Inject constructor(
         }
     }
 
-    fun removeCoin(coin: UnspentOutput) = viewModelScope.launch {
+    fun removeCoin(coins: List<UnspentOutput>) = viewModelScope.launch {
         val result = removeCoinFromTagUseCase(
             RemoveCoinFromTagUseCase.Param(
                 walletId = args.walletId,
-                txId = coin.txid,
                 tagId = args.coinTag.id,
-                vout = coin.vout
+                coins = coins
             )
         )
         if (result.isSuccess) {
-            val coins = _state.value.coins.toMutableList()
-            coins.removeIf { it.txid == coin.txid }
-            _state.update { it.copy(coins = coins) }
+            val coinList = _state.value.coins.toMutableList()
+            coins.forEach {
+                coinList.removeIf { coin ->
+                    it.txid == coin.txid
+                }
+            }
+            _state.update { it.copy(coins = coinList) }
         } else {
             _event.emit(CoinTagDetailEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
         }

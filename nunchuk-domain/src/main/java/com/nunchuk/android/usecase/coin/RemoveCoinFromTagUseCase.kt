@@ -1,6 +1,7 @@
 package com.nunchuk.android.usecase.coin
 
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -11,13 +12,15 @@ class RemoveCoinFromTagUseCase @Inject constructor(
     private val nunchukNativeSdk: NunchukNativeSdk,
 ) : UseCase<RemoveCoinFromTagUseCase.Param, Unit>(ioDispatcher) {
     override suspend fun execute(parameters: Param) {
-        nunchukNativeSdk.removeFromCoinTag(
-            walletId = parameters.walletId,
-            txId = parameters.txId,
-            tagId = parameters.tagId,
-            vout = parameters.vout
-        )
+        parameters.coins.forEach {
+            nunchukNativeSdk.removeFromCoinTag(
+                walletId = parameters.walletId,
+                txId = it.txid,
+                tagId = parameters.tagId,
+                vout = it.vout
+            )
+        }
     }
 
-    class Param(val walletId: String, val txId: String, val tagId: Int, val vout: Int)
+    class Param(val walletId: String, val tagId: Int, val coins: List<UnspentOutput>)
 }

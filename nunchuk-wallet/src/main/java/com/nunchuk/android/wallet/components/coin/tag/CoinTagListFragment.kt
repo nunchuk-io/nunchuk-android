@@ -48,6 +48,7 @@ import com.nunchuk.android.model.CoinTagAddition
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagColorUtil.hexColors
+import com.nunchuk.android.wallet.components.coin.util.MaxLengthTransformation
 import com.nunchuk.android.wallet.util.hexToColor
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -380,32 +381,6 @@ fun TagItem(
         }
     }
 }
-
-private class MaxLengthTransformation(private val maxLength: Int, private val prefix: String) : VisualTransformation {
-    override fun filter(text: AnnotatedString): TransformedText {
-        val prefixOffset = prefix.length
-
-        val numberOffsetTranslator = object : OffsetMapping {
-            override fun originalToTransformed(offset: Int): Int {
-                return offset + prefixOffset
-            }
-
-            override fun transformedToOriginal(offset: Int): Int {
-                if (offset < prefixOffset) return 0
-                return offset - prefixOffset
-            }
-        }
-        val truncatedText = if (text.text.length > maxLength) {
-            text.text.substring(0, maxLength)
-        } else {
-            text.text
-        }
-        val out = prefix + truncatedText
-        return TransformedText(AnnotatedString(out), numberOffsetTranslator)
-    }
-}
-
-
 @Preview
 @Composable
 private fun CoinTagListScreenContentPreview() {

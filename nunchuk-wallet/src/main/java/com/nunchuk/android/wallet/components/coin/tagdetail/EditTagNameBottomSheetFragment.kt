@@ -38,6 +38,8 @@ import com.nunchuk.android.core.base.BaseComposeBottomSheet
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.components.coin.tag.CoinTagListFragment
+import com.nunchuk.android.wallet.components.coin.util.MaxLengthTransformation
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -64,7 +66,7 @@ class EditTagNameBottomSheetFragment : BaseComposeBottomSheet() {
                 EditTagNameBottomSheetEvent.UpdateTagNameSuccess -> {
                     setFragmentResult(
                         REQUEST_KEY,
-                        bundleOf(EXTRA_TAG_NAME to viewModel.getCoinTag().name)
+                        bundleOf(EXTRA_TAG_NAME to viewModel.getCoinTagName())
                     )
                     dismissAllowingStateLoss()
                 }
@@ -118,11 +120,11 @@ private fun EditTagNameBottomSheetScreenContent(
                 modifier = Modifier
                     .padding(start = 12.dp)
                     .clickable {
-                        if (coinTag.name
-                                .isBlank()
-                                .not() && coinTag.name.startsWith("#")
-                        )
+                        if (coinTag.name.isBlank() ||
+                            coinTag.name.isBlank().not() && coinTag.name.contains(" ").not()
+                        ) {
                             onSaveClick()
+                        }
                     },
                 style = NunchukTheme.typography.title,
                 textDecoration = TextDecoration.Underline,
@@ -139,6 +141,10 @@ private fun EditTagNameBottomSheetScreenContent(
             BasicTextField(
                 value = coinTag.name,
                 onValueChange = onValueChange,
+                visualTransformation = MaxLengthTransformation(
+                    CoinTagListFragment.LIMIT_TAG_NAME,
+                    "#"
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)

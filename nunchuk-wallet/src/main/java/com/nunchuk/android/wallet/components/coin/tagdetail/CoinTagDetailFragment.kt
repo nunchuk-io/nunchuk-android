@@ -110,7 +110,7 @@ class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
                                 R.string.nc_remove_coin_confirmation,
                                 args.coinTag.name
                             ), onYesClick = {
-                                viewModel.removeCoin(coin)
+                                viewModel.removeCoin(listOf(coin))
                             })
                     }
                 )
