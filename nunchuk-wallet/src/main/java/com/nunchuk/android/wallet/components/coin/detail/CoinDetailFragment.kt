@@ -81,21 +81,24 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
                             )
                         ).show(childFragmentManager, "BottomSheetOption")
                     },
-                    onUpdateTag = {
-                        findNavController().navigate(
-                            CoinDetailFragmentDirections.actionCoinDetailFragmentToCoinTagListFragment(
-                                walletId = args.walletId,
-                                tagFlow = TagFlow.ADD,
-                                coins = emptyArray()
-                            )
-                        )
-                    },
                     onViewTransactionDetail = {
                         navigator.openTransactionDetailsScreen(
                             activityContext = requireActivity(),
                             walletId = args.walletId,
                             txId = args.txId,
                         )
+                    },
+                    onUpdateTag = {
+                        findNavController().navigate(
+                            CoinDetailFragmentDirections.actionCoinDetailFragmentToCoinTagListFragment(
+                                walletId = args.walletId,
+                                tagFlow = TagFlow.ADD,
+                                coins = listOf(it).toTypedArray()
+                            )
+                        )
+                    },
+                    onViewTagDetail = {
+
                     }
                 )
             }
@@ -129,7 +132,8 @@ private fun CoinDetailScreen(
     args: CoinDetailFragmentArgs,
     onShowMore: () -> Unit = {},
     onViewTransactionDetail: () -> Unit = {},
-    onUpdateTag: () -> Unit = {}
+    onUpdateTag: (output: UnspentOutput) -> Unit,
+    onViewTagDetail: (tag: CoinTag) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val coinListState by coinViewModel.state.collectAsStateWithLifecycle()
@@ -141,7 +145,8 @@ private fun CoinDetailScreen(
         transaction = state.transaction,
         onShowMore = onShowMore,
         onViewTransactionDetail = onViewTransactionDetail,
-        onUpdateTag = onUpdateTag
+        onUpdateTag = onUpdateTag,
+        coinTags = coinListState.tags
     )
 }
 
@@ -152,7 +157,8 @@ private fun CoinDetailContent(
     transaction: Transaction = Transaction(),
     onShowMore: () -> Unit = {},
     onViewTransactionDetail: () -> Unit = {},
-    onUpdateTag: () -> Unit = {},
+    onUpdateTag: (output: UnspentOutput) -> Unit = {},
+    onViewTagDetail: (tag: CoinTag) -> Unit = {},
 ) {
     val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
     NunchukTheme {
@@ -237,7 +243,8 @@ private fun CoinDetailContent(
                     modifier = Modifier.padding(top = 8.dp),
                     output = output,
                     onUpdateTag = onUpdateTag,
-                    coinTags = coinTags
+                    coinTags = coinTags,
+                    onViewTagDetail = onViewTagDetail
                 )
             }
         }

@@ -29,8 +29,13 @@ class CoinListViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
     init {
+        refresh()
+    }
+
+    fun refresh() {
         getAllCoins()
         getAllTags()
+        _state.update { it.copy(selectedCoins = emptySet(), mode = CoinListMode.NONE) }
     }
 
     private fun getAllCoins() {

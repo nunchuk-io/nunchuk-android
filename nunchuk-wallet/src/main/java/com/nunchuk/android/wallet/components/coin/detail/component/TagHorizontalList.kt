@@ -26,8 +26,9 @@ import com.nunchuk.android.wallet.R
 fun TagHorizontalList(
     modifier: Modifier = Modifier,
     output: UnspentOutput,
-    onUpdateTag: () -> Unit,
-    coinTags: Map<Int, CoinTag>
+    onUpdateTag: (output: UnspentOutput) -> Unit,
+    coinTags: Map<Int, CoinTag>,
+    onViewTagDetail: (tag: CoinTag) -> Unit
 ) {
     Row(
         modifier = modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
@@ -47,13 +48,13 @@ fun TagHorizontalList(
         Spacer(modifier = Modifier.weight(1f))
         if (output.tags.isNotEmpty()) {
             Text(
-                modifier = Modifier.clickable { onUpdateTag() },
+                modifier = Modifier.clickable { onUpdateTag(output) },
                 text = stringResource(id = R.string.nc_edit),
                 style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline),
             )
         } else {
             Icon(
-                modifier = Modifier.clickable { onUpdateTag() },
+                modifier = Modifier.clickable { onUpdateTag(output) },
                 imageVector = Icons.Default.Add,
                 contentDescription = "Add"
             )
@@ -63,9 +64,14 @@ fun TagHorizontalList(
         val tags = output.tags.mapNotNull {
             coinTags[it]
         }
-        LazyRow {
-            items(tags) {
-                CoinTagView(tag = it)
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(tags) {tag ->
+                CoinTagView(tag = tag, circleSize = 24.dp, textStyle = NunchukTheme.typography.body, clickAble = true) {
+                    onViewTagDetail(tag)
+                }
             }
         }
     } else {

@@ -7,15 +7,7 @@ import android.view.ViewGroup
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -24,27 +16,20 @@ import androidx.compose.material.Checkbox
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.OffsetMapping
-import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.clearFragmentResult
-import androidx.fragment.app.setFragmentResultListener
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
@@ -60,6 +45,7 @@ import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.CoinTagAddition
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagColorUtil.hexColors
 import com.nunchuk.android.wallet.util.hexToColor
 import dagger.hilt.android.AndroidEntryPoint
@@ -68,6 +54,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class CoinTagListFragment : Fragment() {
 
     private val viewModel: CoinTagListViewModel by viewModels()
+    private val coinListViewModel: CoinListViewModel by activityViewModels()
     private val args: CoinTagListFragmentArgs by navArgs()
 
     override fun onCreateView(
@@ -102,6 +89,7 @@ class CoinTagListFragment : Fragment() {
                 is CoinTagListEvent.Error -> showError(message = event.message)
                 is CoinTagListEvent.Loading -> showOrHideLoading(loading = event.show)
                 CoinTagListEvent.AddCoinToTagSuccess -> {
+                    coinListViewModel.refresh()
                     showSuccess(message = getString(R.string.nc_coin_updated))
                     findNavController().popBackStack()
                 }
@@ -197,7 +185,10 @@ fun CoinTagListScreenContent(
                     stringResource(id = R.string.nc_coin_tags),
                     textStyle = NunchukTheme.typography.titleLarge,
                     isBack = false,
-                    isDisableElevation = true
+                    isDisableElevation = true,
+                    actions = {
+                        Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
+                    }
                 )
                 Row(
                     Modifier

@@ -13,8 +13,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.core.R
+import com.nunchuk.android.model.CoinTag
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -33,7 +33,7 @@ fun CoinTagGroupView(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(4.dp),
-            maxItemsInEachRow = 3
+            maxItemsInEachRow = 4
         ) {
             tagIds.take(5).forEach {
                 tags[it]?.let { coinTag ->
