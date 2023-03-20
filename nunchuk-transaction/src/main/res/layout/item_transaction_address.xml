@@ -56,6 +56,9 @@
 
     <androidx.compose.ui.platform.ComposeView
         android:id="@+id/tags"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        app:layout_constraintTop_toBottomOf="@+id/sendAddressBarrier"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 </androidx.constraintlayout.widget.ConstraintLayout>

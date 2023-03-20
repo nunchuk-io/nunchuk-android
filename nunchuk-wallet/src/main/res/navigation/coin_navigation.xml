@@ -73,6 +73,13 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_coinDetailFragment_to_coinTagDetailFragment"
+            app:destination="@id/coinTagDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
     </fragment>
 
     <fragment
@@ -128,8 +135,8 @@
             app:argType="string" />
 
         <argument
-            android:name="coin_tag_addition"
-            app:argType="com.nunchuk.android.model.CoinTagAddition" />
+            android:name="coin_tag"
+            app:argType="com.nunchuk.android.model.CoinTag" />
 
         <action
             android:id="@+id/action_coinTagDetailFragment_to_editTagNameBottomSheetFragment"

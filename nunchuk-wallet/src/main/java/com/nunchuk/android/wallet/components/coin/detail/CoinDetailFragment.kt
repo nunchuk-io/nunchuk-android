@@ -93,12 +93,17 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
                             CoinDetailFragmentDirections.actionCoinDetailFragmentToCoinTagListFragment(
                                 walletId = args.walletId,
                                 tagFlow = TagFlow.ADD,
-                                coins = listOf(it).toTypedArray()
+                                coins = arrayOf(it)
                             )
                         )
                     },
                     onViewTagDetail = {
-
+                        findNavController().navigate(
+                            CoinDetailFragmentDirections.actionCoinDetailFragmentToCoinTagDetailFragment(
+                                walletId = args.walletId,
+                                coinTag = it
+                            )
+                        )
                     }
                 )
             }
@@ -146,7 +151,8 @@ private fun CoinDetailScreen(
         onShowMore = onShowMore,
         onViewTransactionDetail = onViewTransactionDetail,
         onUpdateTag = onUpdateTag,
-        coinTags = coinListState.tags
+        coinTags = coinListState.tags,
+        onViewTagDetail = onViewTagDetail
     )
 }
 

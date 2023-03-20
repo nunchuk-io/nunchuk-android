@@ -47,7 +47,7 @@ fun CoinTagView(
         )
         Text(
             modifier = Modifier.padding(start = 4.dp),
-            text = tag.name.take(20),
+            text = if (tag.name.length < 20) tag.name else "${tag.name.take(20)}...",
             style = textStyle,
         )
     }
