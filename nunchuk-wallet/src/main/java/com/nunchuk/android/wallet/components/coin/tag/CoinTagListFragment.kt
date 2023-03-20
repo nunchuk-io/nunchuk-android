@@ -26,9 +26,6 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,10 +41,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.clearFragmentResult
-import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -61,12 +56,11 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.CoinTagAddition
-import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagColorUtil.hexColors
-import com.nunchuk.android.wallet.components.coin.tagdetail.CoinTagDetailFragment
 import com.nunchuk.android.wallet.util.hexToColor
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -91,15 +85,11 @@ class CoinTagListFragment : Fragment() {
                     findNavController().navigate(
                         CoinTagListFragmentDirections.actionCoinTagListFragmentToCoinTagDetailFragment(
                             walletId = args.walletId,
-                            coinTagAddition = it
+                            coinTag = it.coinTag
                         )
                     )
                 }, onSaveClick = {
-                    setFragmentResult(
-                        REQUEST_KEY,
-                        bundleOf(EXTRA_SELECTED_TAG_LIST to viewModel.getSelectedCoinTagList())
-                    )
-                    findNavController().popBackStack()
+
                 })
             }
         }
@@ -111,6 +101,10 @@ class CoinTagListFragment : Fragment() {
             when (event) {
                 is CoinTagListEvent.Error -> showError(message = event.message)
                 is CoinTagListEvent.Loading -> showOrHideLoading(loading = event.show)
+                CoinTagListEvent.AddCoinToTagSuccess -> {
+                    showSuccess(message = getString(R.string.nc_coin_updated))
+                    findNavController().popBackStack()
+                }
             }
         }
 
@@ -158,7 +152,9 @@ fun CoinTagListScreen(
         tagFlow = tagFlow,
         coinTagInputHolder = state.coinTagInputHolder,
         selectedCoinTags = state.selectedCoinTags,
-        onSaveClick = onSaveClick,
+        onSaveClick = {
+            viewModel.addCoinTag()
+        },
         onValueChange = {
             viewModel.onInputValueChange(it)
         }, onDoneClick = {
@@ -189,8 +185,6 @@ fun CoinTagListScreenContent(
     onTagClick: (CoinTagAddition) -> Unit = {},
     onCheckedChange: ((Int, Boolean) -> Unit) = { _, _ -> }
 ) {
-    var isShowCreateInput by remember { mutableStateOf(false) }
-
     NunchukTheme {
         Scaffold { innerPadding ->
             Column(
@@ -202,16 +196,16 @@ fun CoinTagListScreenContent(
                 NcTopAppBar(
                     stringResource(id = R.string.nc_coin_tags),
                     textStyle = NunchukTheme.typography.titleLarge,
-                    isBack = false
+                    isBack = false,
+                    isDisableElevation = true
                 )
                 Row(
                     Modifier
                         .fillMaxWidth()
                         .padding(start = 16.dp, top = 12.dp, bottom = 12.dp)
                         .clickable {
-                            if (isShowCreateInput.not()) {
+                            if (coinTagInputHolder == null) {
                                 onCreateNewTagClick()
-                                isShowCreateInput = true
                             }
                         },
                     horizontalArrangement = Arrangement.Start,
@@ -232,15 +226,17 @@ fun CoinTagListScreenContent(
                     modifier = Modifier.weight(1.0f),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    if (isShowCreateInput && coinTagInputHolder != null) {
+                    if (coinTagInputHolder != null) {
                         item {
                             InputTagItem(
                                 input = coinTagInputHolder.name,
                                 color = coinTagInputHolder.color,
                                 onValueChange = onValueChange,
                                 onDoneClick = {
-                                    if (coinTagInputHolder.name.isBlank().not() && coinTagInputHolder.name.startsWith("#")) {
-                                        isShowCreateInput = false
+                                    val input = coinTagInputHolder.name
+                                    if (input.isBlank() ||
+                                        input.isBlank().not() && input.contains(" ").not()
+                                    ) {
                                         onDoneClick()
                                     }
                                 }, onSelectColorClick = onSelectColorClick

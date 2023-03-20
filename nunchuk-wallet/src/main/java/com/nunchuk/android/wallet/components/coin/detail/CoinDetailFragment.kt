@@ -28,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NunchukTheme
@@ -47,6 +48,7 @@ import com.nunchuk.android.wallet.components.coin.component.CoinStatusBadge
 import com.nunchuk.android.wallet.components.coin.detail.component.CoinTransactionCard
 import com.nunchuk.android.wallet.components.coin.detail.component.TagHorizontalList
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
+import com.nunchuk.android.wallet.components.coin.tag.TagFlow
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -78,14 +80,24 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
                                 )
                             )
                         ).show(childFragmentManager, "BottomSheetOption")
+                    },
+                    onUpdateTag = {
+                        findNavController().navigate(
+                            CoinDetailFragmentDirections.actionCoinDetailFragmentToCoinTagListFragment(
+                                walletId = args.walletId,
+                                tagFlow = TagFlow.ADD,
+                                coins = emptyArray()
+                            )
+                        )
+                    },
+                    onViewTransactionDetail = {
+                        navigator.openTransactionDetailsScreen(
+                            activityContext = requireActivity(),
+                            walletId = args.walletId,
+                            txId = args.txId,
+                        )
                     }
-                ) {
-                    navigator.openTransactionDetailsScreen(
-                        activityContext = requireActivity(),
-                        walletId = args.walletId,
-                        txId = args.txId,
-                    )
-                }
+                )
             }
         }
     }
@@ -117,6 +129,7 @@ private fun CoinDetailScreen(
     args: CoinDetailFragmentArgs,
     onShowMore: () -> Unit = {},
     onViewTransactionDetail: () -> Unit = {},
+    onUpdateTag: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val coinListState by coinViewModel.state.collectAsStateWithLifecycle()
@@ -128,6 +141,7 @@ private fun CoinDetailScreen(
         transaction = state.transaction,
         onShowMore = onShowMore,
         onViewTransactionDetail = onViewTransactionDetail,
+        onUpdateTag = onUpdateTag
     )
 }
 

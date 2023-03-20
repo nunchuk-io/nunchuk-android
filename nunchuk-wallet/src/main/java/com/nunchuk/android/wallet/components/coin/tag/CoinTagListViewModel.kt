@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.CoinTagAddition
+import com.nunchuk.android.usecase.coin.AddToCoinTagUseCase
 import com.nunchuk.android.usecase.coin.CreateCoinTagUseCase
 import com.nunchuk.android.usecase.coin.GetCoinTagAdditionListUseCase
 import com.nunchuk.android.usecase.coin.UpdateCoinTagUseCase
@@ -23,7 +24,8 @@ class CoinTagListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getCoinTagAdditionListUseCase: GetCoinTagAdditionListUseCase,
     private val updateCoinTagUseCase: UpdateCoinTagUseCase,
-    private val createCoinTagUseCase: CreateCoinTagUseCase
+    private val createCoinTagUseCase: CreateCoinTagUseCase,
+    private val addToCoinTagUseCase: AddToCoinTagUseCase
 ) : ViewModel() {
     val args = CoinTagListFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
@@ -61,8 +63,19 @@ class CoinTagListViewModel @Inject constructor(
         return hexColor!!
     }
 
-    private fun updateCoinTag() = viewModelScope.launch {
-
+    fun addCoinTag() = viewModelScope.launch {
+        val result = addToCoinTagUseCase(
+            AddToCoinTagUseCase.Param(
+                walletId = args.walletId,
+                tagIds = _state.value.selectedCoinTags,
+                coins = args.coins.toList()
+            )
+        )
+        if (result.isSuccess) {
+            _event.emit(CoinTagListEvent.AddCoinToTagSuccess)
+        } else {
+            _event.emit(CoinTagListEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+        }
     }
 
     fun onCreateNewCoinTagClick() {
@@ -101,7 +114,10 @@ class CoinTagListViewModel @Inject constructor(
 
     fun onDoneInputClick() = viewModelScope.launch {
         val coinTagInputHolder = _state.value.coinTagInputHolder ?: return@launch
-        if (coinTagInputHolder.name.isBlank()) return@launch
+        if (coinTagInputHolder.name.isBlank()) {
+            _state.update { it.copy(coinTagInputHolder = null) }
+            return@launch
+        }
         _event.emit(CoinTagListEvent.Loading(true))
         val result = createCoinTagUseCase(
             CreateCoinTagUseCase.Param(

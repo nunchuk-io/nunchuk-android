@@ -94,13 +94,15 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_TAG -> findNavController().navigate(
                 CoinListFragmentDirections.actionCoinListFragmentToCoinTagListFragment(
                     walletId = args.walletId,
-                    tagFlow = TagFlow.ADD
+                    tagFlow = TagFlow.ADD,
+                    coins = viewModel.getSelectedCoins().toTypedArray()
                 )
             )
             SheetOptionType.TYPE_VIEW_TAG -> findNavController().navigate(
                 CoinListFragmentDirections.actionCoinListFragmentToCoinTagListFragment(
                     walletId = args.walletId,
-                    tagFlow = TagFlow.VIEW
+                    tagFlow = TagFlow.VIEW,
+                    coins = emptyArray()
                 )
             )
             SheetOptionType.TYPE_VIEW_COLLECTION -> TODO()

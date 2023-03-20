@@ -109,6 +109,8 @@ class CoinListViewModel @Inject constructor(
             )
         }
     }
+
+    fun getSelectedCoins() = _state.value.selectedCoins
 }
 
 sealed class CoinListEvent {

@@ -555,6 +555,7 @@
     <string name="nc_pending_sig">pending sig.</string>
     <string name="nc_pending_broadcast">pending broadcast</string>
     <string name="nc_coin_tags">Coin tags</string>
+    <string name="nc_coin_updated">Coins updated</string>
     <string name="nc_create_a_new_tag">Create a new tag</string>
     <string name="nc_set_color">Set color</string>
     <string name="nc_select_a_color">Select a color</string>

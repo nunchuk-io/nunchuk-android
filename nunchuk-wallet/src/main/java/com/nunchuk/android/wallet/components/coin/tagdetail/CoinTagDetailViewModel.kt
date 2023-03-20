@@ -38,7 +38,7 @@ class CoinTagDetailViewModel @Inject constructor(
     private val args = CoinTagDetailFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
     init {
-        _state.update { it.copy(coinTagAddition = args.coinTagAddition) }
+        _state.update { it.copy(coinTag = args.coinTag) }
         getListCoinByTag()
     }
 
@@ -47,7 +47,7 @@ class CoinTagDetailViewModel @Inject constructor(
             getListCoinByTagUseCase(
                 GetListCoinByTagUseCase.Param(
                     walletId = args.walletId,
-                    tagId = args.coinTagAddition.coinTag.id
+                    tagId = args.coinTag.id
                 )
             ).onSuccess { coins ->
                 _state.update { it.copy(coins = coins) }
@@ -67,7 +67,7 @@ class CoinTagDetailViewModel @Inject constructor(
         val result = deleteCoinTagUseCase(
             DeleteCoinTagUseCase.Param(
                 walletId = args.walletId,
-                tagId = args.coinTagAddition.coinTag.id
+                tagId = args.coinTag.id
             )
         )
         if (result.isSuccess) {
@@ -77,14 +77,15 @@ class CoinTagDetailViewModel @Inject constructor(
         }
     }
 
+    fun getNumCoins() = _state.value.coins.size
+
     fun updateTagName(name: String) {
-        val coinTag = _state.value.coinTagAddition?.coinTag?.copy(name = name) ?: return
-        val coinTagAddition = _state.value.coinTagAddition?.copy(coinTag = coinTag) ?: return
-        _state.update { it.copy(coinTagAddition = coinTagAddition) }
+        val coinTag = _state.value.coinTag?.copy(name = name) ?: return
+        _state.update { it.copy(coinTag = coinTag) }
     }
 
     fun updateColor(color: String) = viewModelScope.launch {
-        val coinTag = _state.value.coinTagAddition?.coinTag?.copy(color = color) ?: return@launch
+        val coinTag = _state.value.coinTag?.copy(color = color) ?: return@launch
         val result = updateCoinTagUseCase(
             UpdateCoinTagUseCase.Param(
                 walletId = args.walletId,
@@ -92,9 +93,7 @@ class CoinTagDetailViewModel @Inject constructor(
             )
         )
         if (result.isSuccess) {
-            val coinTagAddition =
-                _state.value.coinTagAddition?.copy(coinTag = coinTag) ?: return@launch
-            _state.update { it.copy(coinTagAddition = coinTagAddition) }
+            _state.update { it.copy(coinTag = coinTag) }
             _event.emit(CoinTagDetailEvent.UpdateTagColorSuccess)
         } else {
             _event.emit(CoinTagDetailEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
@@ -106,7 +105,7 @@ class CoinTagDetailViewModel @Inject constructor(
             RemoveCoinFromTagUseCase.Param(
                 walletId = args.walletId,
                 txId = coin.txid,
-                tagId = args.coinTagAddition.coinTag.id,
+                tagId = args.coinTag.id,
                 vout = coin.vout
             )
         )
