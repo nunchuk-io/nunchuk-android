@@ -90,7 +90,7 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
         when (option.type) {
             SheetOptionType.TYPE_LOCK_COIN -> viewModel.onLockCoin()
             SheetOptionType.TYPE_UNLOCK_COIN -> viewModel.onUnlockCoin()
-            SheetOptionType.TYPE_ADD_COLLECTION -> TODO()
+            SheetOptionType.TYPE_ADD_COLLECTION -> Unit
             SheetOptionType.TYPE_ADD_TAG -> findNavController().navigate(
                 CoinListFragmentDirections.actionCoinListFragmentToCoinTagListFragment(
                     walletId = args.walletId,
@@ -105,7 +105,7 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
                     coins = emptyArray()
                 )
             )
-            SheetOptionType.TYPE_VIEW_COLLECTION -> TODO()
+            SheetOptionType.TYPE_VIEW_COLLECTION -> Unit
             SheetOptionType.TYPE_VIEW_LOCKED_COIN -> findNavController().navigate(
                 CoinListFragmentDirections.actionCoinListFragmentSelf(
                     walletId = args.walletId,
@@ -118,18 +118,18 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
     private fun showSelectCoinOptions() {
         BottomSheetOption.newInstance(
             listOf(
-                SheetOption(
-                    type = SheetOptionType.TYPE_LOCK_COIN,
-                    label = getString(R.string.nc_lock_coin)
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_UNLOCK_COIN,
-                    label = getString(R.string.nc_unlock_coin)
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_COLLECTION,
-                    label = getString(R.string.nc_add_to_a_collection)
-                ),
+//                SheetOption(
+//                    type = SheetOptionType.TYPE_LOCK_COIN,
+//                    label = getString(R.string.nc_lock_coin)
+//                ),
+//                SheetOption(
+//                    type = SheetOptionType.TYPE_UNLOCK_COIN,
+//                    label = getString(R.string.nc_unlock_coin)
+//                ),
+//                SheetOption(
+//                    type = SheetOptionType.TYPE_ADD_COLLECTION,
+//                    label = getString(R.string.nc_add_to_a_collection)
+//                ),
                 SheetOption(
                     type = SheetOptionType.TYPE_ADD_TAG,
                     label = getString(R.string.nc_add_tags)
@@ -145,14 +145,14 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
                     type = SheetOptionType.TYPE_VIEW_TAG,
                     label = getString(R.string.nc_view_tag)
                 ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_VIEW_COLLECTION,
-                    label = getString(R.string.nc_view_collection)
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_VIEW_LOCKED_COIN,
-                    label = getString(R.string.nc_view_locked_coin)
-                ),
+//                SheetOption(
+//                    type = SheetOptionType.TYPE_VIEW_COLLECTION,
+//                    label = getString(R.string.nc_view_collection)
+//                ),
+//                SheetOption(
+//                    type = SheetOptionType.TYPE_VIEW_LOCKED_COIN,
+//                    label = getString(R.string.nc_view_locked_coin)
+//                ),
             )
         ).show(childFragmentManager, "BottomSheetOption")
     }
