@@ -178,7 +178,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         getAllCoins()
     }
 
-    private fun getAllTags() {
+    fun getAllTags() {
         viewModelScope.launch {
             getAllTagsUseCase(walletId).onSuccess { allTags ->
                 updateState { copy(tags = allTags.associateBy { tag -> tag.id }) }
@@ -186,13 +186,14 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun getAllCoins() {
+    fun getAllCoins() {
         viewModelScope.launch {
             getAllCoinUseCase(walletId).onSuccess { coins ->
                 allCoins.apply {
                     clear()
                     addAll(coins)
                 }
+                updateState { copy(coins = coins.filter { it.txid == txId }) }
             }
         }
     }
@@ -388,7 +389,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 updateTransaction(
                     transaction = it.transaction,
                     serverTransaction = it.serverTransaction,
-                    coinIndex = coinIndex,
                     tagIds = tagIds
                 )
             }
@@ -402,14 +402,12 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private fun updateTransaction(
         transaction: Transaction,
         serverTransaction: ServerTransaction? = getState().serverTransaction,
-        coinIndex: List<Int> = getState().coinIndex,
         tagIds: List<Set<Int>> = getState().tagIds
     ) {
         updateState {
             copy(
                 transaction = transaction,
                 serverTransaction = serverTransaction,
-                coinIndex = coinIndex,
                 tagIds = tagIds,
             )
         }
@@ -527,7 +525,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    fun isSharedTransaction() = roomId.isNotEmpty()
+    private fun isSharedTransaction() = roomId.isNotEmpty()
 
     fun exportTransactionToFile() {
         viewModelScope.launch {
@@ -699,9 +697,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    fun coinIndex() = getState().coinIndex
     fun allTags() = getState().tags
     fun tagIds() = getState().tagIds
+    fun coins() = getState().coins
+
+    fun isMyCoin(output: TxOutput) = runBlocking { isMyCoinUseCase(IsMyCoinUseCase.Param(walletId, output.first)) }.getOrDefault(false)
 
     private fun isSignByServerKey(transaction: Transaction): Boolean {
         val fingerPrint =

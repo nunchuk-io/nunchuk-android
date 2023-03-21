@@ -104,12 +104,34 @@ internal class NunchukNavigatorImpl @Inject constructor(
             .navigate(QuickWalletNavigationDirections.showCreateNewSeedFragment(isQuickWallet))
     }
 
-    override fun openCoinList(context: Context, walletId: String, txId: String) {
-        CoinActivity.navigate(context = context, walletId = walletId, txId = txId)
+    override fun openCoinList(
+        launcher: ActivityResultLauncher<Intent>?,
+        context: Context,
+        walletId: String,
+        txId: String
+    ) {
+        val intent = CoinActivity.buildIntent(
+            context = context,
+            walletId = walletId,
+            txId = txId,
+        )
+        launcher?.launch(intent) ?: context.startActivity(intent)
     }
 
-    override fun openCoinDetail(context: Context, walletId: String, txId: String, vout: Int) {
-        CoinActivity.navigate(context, walletId, txId, vout)
+    override fun openCoinDetail(
+        launcher: ActivityResultLauncher<Intent>?,
+        context: Context,
+        walletId: String,
+        txId: String,
+        vout: Int
+    ) {
+        val intent = CoinActivity.buildIntent(
+            context = context,
+            walletId = walletId,
+            txId = txId,
+            vout = vout
+        )
+        launcher?.launch(intent) ?: context.startActivity(intent)
     }
 }
 

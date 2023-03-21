@@ -8,20 +8,14 @@ import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.CoinTagAddition
 import com.nunchuk.android.usecase.coin.AddToCoinTagUseCase
 import com.nunchuk.android.usecase.coin.CreateCoinTagUseCase
-import com.nunchuk.android.usecase.coin.GetCoinTagAdditionListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class CoinTagListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val getCoinTagAdditionListUseCase: GetCoinTagAdditionListUseCase,
     private val createCoinTagUseCase: CreateCoinTagUseCase,
     private val addToCoinTagUseCase: AddToCoinTagUseCase
 ) : ViewModel() {
@@ -35,30 +29,19 @@ class CoinTagListViewModel @Inject constructor(
 
     private val hexColorUsedList = hashSetOf<String>()
 
-    init {
-        getCoinTags()
-    }
-
-    fun getCoinTags(loadSilent: Boolean = false) = viewModelScope.launch {
-        if (loadSilent) _event.emit(CoinTagListEvent.Loading(true))
-        val result = getCoinTagAdditionListUseCase(args.walletId)
-        if (result.isSuccess) {
-            val tags = result.getOrDefault(emptyList()).map {
-                hexColorUsedList.add(it.coinTag.color)
-                it
-            }
-            _state.update { it.copy(tags = tags) }
-        } else {
-            if (loadSilent) _event.emit(CoinTagListEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
-        }
-        _event.emit(CoinTagListEvent.Loading(false))
-    }
-
     private fun getNextAvailableHexColor(): String {
         val hexColor = CoinTagColorUtil.hexColors.firstOrNull {
             hexColorUsedList.contains(it).not()
-        }?.also { CoinTagColorUtil.hexColors.first() }
-        return hexColor!!
+        } ?: CoinTagColorUtil.hexColors.first()
+        return hexColor
+    }
+
+    fun updateCoins(allTags: List<CoinTag>, numberOfCoinByTagId: Map<Int, Int>) {
+        _state.update {
+            it.copy(
+                tags = allTags.map { tag -> CoinTagAddition(tag, numberOfCoinByTagId[tag.id] ?: 0) }
+            )
+        }
     }
 
     fun addCoinTag() = viewModelScope.launch {
@@ -102,12 +85,6 @@ class CoinTagListViewModel @Inject constructor(
             selectedCoinTags.remove(id)
         }
         _state.update { it.copy(selectedCoinTags = selectedCoinTags) }
-    }
-
-    fun getSelectedCoinTagList(): List<CoinTag> {
-        val selectedCoinTags = _state.value.selectedCoinTags
-        return _state.value.tags.filter { selectedCoinTags.contains(it.coinTag.id) }
-            .map { it.coinTag }
     }
 
     fun onDoneInputClick() = viewModelScope.launch {

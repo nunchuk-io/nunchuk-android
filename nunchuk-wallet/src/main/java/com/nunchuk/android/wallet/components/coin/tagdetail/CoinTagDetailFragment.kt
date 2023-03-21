@@ -1,27 +1,17 @@
 package com.nunchuk.android.wallet.components.coin.tagdetail
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -35,11 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.clearFragmentResult
-import androidx.fragment.app.setFragmentResultListener
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
@@ -60,6 +46,7 @@ import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.component.PreviewCoinCard
+import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagColorUtil
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragment
 import com.nunchuk.android.wallet.util.hexToColor
@@ -72,6 +59,7 @@ import de.charlex.compose.RevealSwipe
 @AndroidEntryPoint
 class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
     private val viewModel: CoinTagDetailViewModel by viewModels()
+    private val coinListViewModel: CoinListViewModel by activityViewModels()
     private val args: CoinTagDetailFragmentArgs by navArgs()
 
     override fun onCreateView(
@@ -126,14 +114,15 @@ class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
                 is CoinTagDetailEvent.Loading -> showOrHideLoading(loading = event.show)
                 CoinTagDetailEvent.DeleteTagSuccess -> {
                     NcToastManager.scheduleShowMessage(message = getString(R.string.nc_tag_deleted))
-//                    setFragmentResult(
-//                        REQUEST_KEY,
-//                        bundleOf(EXTRA_DELETE_TAG to args.coinTagAddition)
-//                    )
+                    handleTagInfoChange()
                     findNavController().popBackStack()
                 }
 
-                CoinTagDetailEvent.UpdateTagColorSuccess -> showTagUpdated()
+                CoinTagDetailEvent.UpdateTagColorSuccess -> {
+                    handleTagInfoChange()
+                    showTagUpdated()
+                }
+                CoinTagDetailEvent.RemoveCoinSuccess -> handleTagInfoChange()
             }
         }
 
@@ -155,6 +144,11 @@ class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
                 clearFragmentResult(CoinTagSelectColorBottomSheetFragment.REQUEST_KEY)
             }
         }
+    }
+
+    private fun handleTagInfoChange() {
+        coinListViewModel.refresh()
+        requireActivity().setResult(Activity.RESULT_OK)
     }
 
     private fun showTagUpdated() {
@@ -193,7 +187,6 @@ class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
 
     companion object {
         const val REQUEST_KEY = "CoinTagDetailFragment"
-        const val EXTRA_DELETE_TAG = "EXTRA_DELETE_TAG"
     }
 }
 

@@ -127,7 +127,11 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         keyPolicy: KeyPolicy? = null
     )
 
-    fun openDynamicQRScreen(activityContext: Context, launcher: ActivityResultLauncher<Intent>, walletId: String)
+    fun openDynamicQRScreen(
+        activityContext: Context,
+        launcher: ActivityResultLauncher<Intent>,
+        walletId: String
+    )
 
     fun openWalletDetailsScreen(activityContext: Context, walletId: String)
 
@@ -142,6 +146,18 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
 
     fun openQuickWalletScreen(launcher: ActivityResultLauncher<Intent>, activityContext: Context)
 
-    fun openCoinList(context: Context, walletId: String, txId: String)
-    fun openCoinDetail(context: Context, walletId: String, txId: String, vout: Int)
+    fun openCoinList(
+        launcher: ActivityResultLauncher<Intent>? = null,
+        context: Context,
+        walletId: String,
+        txId: String = "",
+    )
+
+    fun openCoinDetail(
+        launcher: ActivityResultLauncher<Intent>? = null,
+        context: Context,
+        walletId: String,
+        txId: String,
+        vout: Int
+    )
 }

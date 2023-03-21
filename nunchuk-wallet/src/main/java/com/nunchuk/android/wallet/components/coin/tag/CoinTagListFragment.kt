@@ -1,5 +1,6 @@
 package com.nunchuk.android.wallet.components.coin.tag
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -25,8 +26,8 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.input.*
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -89,11 +90,21 @@ class CoinTagListFragment : Fragment() {
                 is CoinTagListEvent.Error -> showError(message = event.message)
                 is CoinTagListEvent.Loading -> showOrHideLoading(loading = event.show)
                 CoinTagListEvent.AddCoinToTagSuccess -> {
-                    coinListViewModel.refresh()
+                    handleTagInfoChange()
                     showSuccess(message = getString(R.string.nc_coin_updated))
                     findNavController().popBackStack()
                 }
             }
+        }
+
+        flowObserver(coinListViewModel.state) { coinListState ->
+            val numberOfCoinByTagId = mutableMapOf<Int, Int>()
+            coinListState.coins.forEach { output ->
+                output.tags.forEach { tagId ->
+                    numberOfCoinByTagId[tagId] = numberOfCoinByTagId.getOrPut(tagId) { 0 } + 1
+                }
+            }
+            viewModel.updateCoins(coinListState.tags.values.toList(), numberOfCoinByTagId)
         }
 
         setFragmentResultListener(CoinTagSelectColorBottomSheetFragment.REQUEST_KEY) { _, bundle ->
@@ -104,26 +115,16 @@ class CoinTagListFragment : Fragment() {
                 clearFragmentResult(CoinTagSelectColorBottomSheetFragment.REQUEST_KEY)
             }
         }
-
-//        setFragmentResultListener(CoinTagDetailFragment.REQUEST_KEY) { _, bundle ->
-//            bundle.parcelable<CoinTagAddition>(CoinTagDetailFragment.EXTRA_DELETE_TAG)
-//                ?.let {
-//                    viewModel.getCoinTags()
-//                } ?: run {
-//                clearFragmentResult(CoinTagDetailFragment.REQUEST_KEY)
-//            }
-//        }
     }
 
-    override fun onResume() {
-        super.onResume()
-        viewModel.getCoinTags(loadSilent = true)
+    private fun handleTagInfoChange() {
+        coinListViewModel.refresh()
+        requireActivity().setResult(Activity.RESULT_OK)
     }
 
     companion object {
         const val LIMIT_TAG_NAME = 40
         const val REQUEST_KEY = "CoinTagListFragment"
-        const val EXTRA_SELECTED_TAG_LIST = "EXTRA_SELECTED_TAG_LIST"
     }
 }
 
@@ -135,7 +136,7 @@ fun CoinTagListScreen(
     onTagClick: (CoinTagAddition) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    CoinTagListScreenContent(tags = state.tags,
+    CoinTagListScreenContent(tags = state.tags.sortedBy { it.coinTag.name },
         tagFlow = tagFlow,
         coinTagInputHolder = state.coinTagInputHolder,
         selectedCoinTags = state.selectedCoinTags,
@@ -381,6 +382,7 @@ fun TagItem(
         }
     }
 }
+
 @Preview
 @Composable
 private fun CoinTagListScreenContentPreview() {

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -61,6 +62,7 @@ fun CoinTagGroupView(
                         .padding(start = 8.dp)
                         .border(1.dp, color = NcColor.border, shape = CircleShape)
                         .padding(4.dp),
+                    tint = MaterialTheme.colors.primary,
                     painter = painterResource(id = R.drawable.ic_transaction_note),
                     contentDescription = "Transaction Note"
                 )

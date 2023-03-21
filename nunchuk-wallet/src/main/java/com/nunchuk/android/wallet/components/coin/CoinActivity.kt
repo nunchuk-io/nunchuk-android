@@ -40,27 +40,23 @@ class CoinActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val KEY_TX_ID = "txId"
         private const val KEY_VOUT = "vout"
 
-        fun navigate(
+        fun buildIntent(
             context: Context,
             walletId: String,
             txId: String = "",
-        ) {
-            context.startActivity(Intent(context, CoinActivity::class.java).apply {
-                putExtra(KEY_WALLET_ID, walletId)
-                putExtra(KEY_TX_ID, txId)
-                putExtra(KEY_SCREEN, CoinScreen.SELECTION_VIEW)
-            })
+        ) = Intent(context, CoinActivity::class.java).apply {
+            putExtra(KEY_WALLET_ID, walletId)
+            putExtra(KEY_TX_ID, txId)
+            putExtra(KEY_SCREEN, CoinScreen.SELECTION_VIEW)
         }
 
-        fun navigate(
+        fun buildIntent(
             context: Context, walletId: String, txId: String, vout: Int
-        ) {
-            context.startActivity(Intent(context, CoinActivity::class.java).apply {
-                putExtra(KEY_WALLET_ID, walletId)
-                putExtra(KEY_SCREEN, CoinScreen.DETAIL)
-                putExtra(KEY_TX_ID, txId)
-                putExtra(KEY_VOUT, vout)
-            })
+        ) = Intent(context, CoinActivity::class.java).apply {
+            putExtra(KEY_WALLET_ID, walletId)
+            putExtra(KEY_SCREEN, CoinScreen.DETAIL)
+            putExtra(KEY_TX_ID, txId)
+            putExtra(KEY_VOUT, vout)
         }
     }
 }

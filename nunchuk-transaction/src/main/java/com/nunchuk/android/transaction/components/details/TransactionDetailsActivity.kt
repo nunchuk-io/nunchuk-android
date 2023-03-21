@@ -118,6 +118,13 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             }
         }
 
+    private val coinLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            viewModel.getAllCoins()
+            viewModel.getAllTags()
+        }
+    }
+
     override fun initializeBinding() = ActivityTransactionDetailsBinding.inflate(layoutInflater)
 
     override fun onNewIntent(intent: Intent?) {
@@ -246,14 +253,20 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             )
         }
         binding.tvManageCoin.setOnDebounceClickListener {
-            when (viewModel.coinIndex().size) {
+            when (viewModel.coins().size) {
                 1 -> navigator.openCoinDetail(
-                    this,
-                    args.walletId,
-                    args.txId,
-                    viewModel.coinIndex().first()
+                    launcher = coinLauncher,
+                    context = this,
+                    walletId = args.walletId,
+                    txId = args.txId,
+                    vout = viewModel.coins().first().vout
                 )
-                else -> navigator.openCoinList(this, args.walletId, args.txId)
+                else -> navigator.openCoinList(
+                    launcher = coinLauncher,
+                    context = this,
+                    walletId = args.walletId,
+                    txId = args.txId
+                )
             }
         }
     }
@@ -286,12 +299,12 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             )
         }
         handleServerTransaction(state.transaction, state.serverTransaction)
-        handleManageCoin(state.coinIndex)
+        handleManageCoin(state.coins.size)
         hideLoading()
     }
 
-    private fun handleManageCoin(coinIndex: List<Int>) {
-        binding.tvManageCoin.isVisible = coinIndex.isNotEmpty()
+    private fun handleManageCoin(numberOfCoin: Int) {
+        binding.tvManageCoin.isVisible = numberOfCoin > 0
     }
 
     private fun handleServerTransaction(
@@ -331,13 +344,11 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                     SignerType.COLDCARD_NFC -> showSignByMk4Options()
                     SignerType.NFC -> {
                         if (viewModel.isInheritanceSigner(signer.fingerPrint)) {
-                            NCWarningDialog(this).showDialog(
-                                title = getString(R.string.nc_text_confirmation),
+                            NCWarningDialog(this).showDialog(title = getString(R.string.nc_text_confirmation),
                                 message = getString(R.string.nc_inheritance_key_warning),
                                 onYesClick = {
                                     startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
-                                }
-                            )
+                                })
                         } else {
                             startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
                         }
@@ -401,9 +412,11 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     private fun bindAddress(transaction: Transaction) {
-        val coins = viewModel.coinIndex().mapNotNull { transaction.outputs.getOrNull(it) }
+        val coins = transaction.outputs.filter { viewModel.isMyCoin(it) == transaction.isReceive }
         if (coins.isNotEmpty()) {
-            TransactionAddressViewBinder(binding.containerAddress, coins, viewModel.allTags(), viewModel.tagIds()) {
+            TransactionAddressViewBinder(
+                binding.containerAddress, coins, viewModel.allTags(), viewModel.tagIds()
+            ) {
                 handleCopyContent(it)
             }.bindItems()
         }

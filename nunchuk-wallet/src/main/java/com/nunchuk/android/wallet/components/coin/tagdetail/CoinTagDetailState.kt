@@ -14,4 +14,5 @@ sealed class CoinTagDetailEvent {
     data class Error(val message: String) : CoinTagDetailEvent()
     object DeleteTagSuccess : CoinTagDetailEvent()
     object UpdateTagColorSuccess : CoinTagDetailEvent()
+    object RemoveCoinSuccess : CoinTagDetailEvent()
 }

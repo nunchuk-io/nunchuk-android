@@ -5,17 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.UnspentOutput
-import com.nunchuk.android.usecase.coin.DeleteCoinTagUseCase
-import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
-import com.nunchuk.android.usecase.coin.GetListCoinByTagUseCase
-import com.nunchuk.android.usecase.coin.RemoveCoinFromTagUseCase
-import com.nunchuk.android.usecase.coin.UpdateCoinTagUseCase
+import com.nunchuk.android.usecase.coin.*
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -116,6 +108,7 @@ class CoinTagDetailViewModel @Inject constructor(
                 }
             }
             _state.update { it.copy(coins = coinList) }
+            _event.emit(CoinTagDetailEvent.RemoveCoinSuccess)
         } else {
             _event.emit(CoinTagDetailEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
         }
