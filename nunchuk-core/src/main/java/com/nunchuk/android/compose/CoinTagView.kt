@@ -25,15 +25,18 @@ fun CoinTagView(
     textStyle: TextStyle = NunchukTheme.typography.bodySmall,
     circleSize: Dp = 16.dp,
     tag: CoinTag,
-    clickAble: Boolean = false,
+    clickable: Boolean = false,
     onClick: () -> Unit = {}
 ) {
     Row(
         modifier
             .background(
                 color = NcColor.greyLight, shape = RoundedCornerShape(24.dp)
-            )
-            .clickable(enabled = clickAble, onClick = onClick)
+            ).let {
+                if (clickable) {
+                    it.clickable(onClick = onClick)
+                } else it
+            }
             .border(1.dp, color = NcColor.whisper, shape = RoundedCornerShape(24.dp))
             .padding(horizontal = 6.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.Center,

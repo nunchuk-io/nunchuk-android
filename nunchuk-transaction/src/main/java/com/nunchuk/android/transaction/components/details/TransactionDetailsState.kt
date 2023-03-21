@@ -32,5 +32,4 @@ data class TransactionDetailsState(
     val signers: List<SignerModel> = emptyList(),
     val coins : List<UnspentOutput> = emptyList(),
     val tags: Map<Int, CoinTag> = emptyMap(),
-    val tagIds: List<Set<Int>> = emptyList(),
 )

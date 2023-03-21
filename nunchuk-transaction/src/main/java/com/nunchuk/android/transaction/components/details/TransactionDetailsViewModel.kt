@@ -376,20 +376,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     setEvent(TransactionDetailsError(it.message.orEmpty()))
                 }
             }.collect {
-                val coinIndex = it.transaction.outputs.mapIndexedNotNull { index, txOutput ->
-                    if (isMyCoinUseCase(IsMyCoinUseCase.Param(walletId, txOutput.first))
-                            .getOrDefault(false)
-                    ) index else null
-                }
-
-                val tagIds = coinIndex.map { vout ->
-                    allCoins.find { coin -> coin.txid == txId && coin.vout == vout }?.tags ?: emptySet()
-                }
-
                 updateTransaction(
                     transaction = it.transaction,
                     serverTransaction = it.serverTransaction,
-                    tagIds = tagIds
                 )
             }
         }
@@ -402,13 +391,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private fun updateTransaction(
         transaction: Transaction,
         serverTransaction: ServerTransaction? = getState().serverTransaction,
-        tagIds: List<Set<Int>> = getState().tagIds
     ) {
         updateState {
             copy(
                 transaction = transaction,
                 serverTransaction = serverTransaction,
-                tagIds = tagIds,
             )
         }
     }
@@ -698,7 +685,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun allTags() = getState().tags
-    fun tagIds() = getState().tagIds
     fun coins() = getState().coins
 
     fun isMyCoin(output: TxOutput) = runBlocking { isMyCoinUseCase(IsMyCoinUseCase.Param(walletId, output.first)) }.getOrDefault(false)

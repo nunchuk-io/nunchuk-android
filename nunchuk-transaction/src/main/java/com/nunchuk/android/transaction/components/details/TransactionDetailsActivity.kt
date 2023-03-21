@@ -30,6 +30,7 @@ import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import com.nunchuk.android.compose.CoinTagGroupView
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.share.IntentSharingController
@@ -42,6 +43,7 @@ import com.nunchuk.android.core.sheet.input.InputBottomSheetListener
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.share.model.TransactionOption.*
@@ -118,12 +120,13 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             }
         }
 
-    private val coinLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        if (it.resultCode == Activity.RESULT_OK) {
-            viewModel.getAllCoins()
-            viewModel.getAllTags()
+    private val coinLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                viewModel.getAllCoins()
+                viewModel.getAllTags()
+            }
         }
-    }
 
     override fun initializeBinding() = ActivityTransactionDetailsBinding.inflate(layoutInflater)
 
@@ -220,6 +223,17 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     private fun setupViews() {
+        binding.tvEditNote.setUnderline()
+        binding.tvEditChangeAddress.setUnderline()
+        binding.tvEditChangeAddress.setOnDebounceClickListener {
+            navigator.openCoinDetail(
+                launcher = coinLauncher,
+                context = this,
+                walletId = args.walletId,
+                txId = args.txId,
+                vout = viewModel.getTransaction().changeIndex
+            )
+        }
         binding.viewMore.setOnClickListener {
             viewModel.handleViewMoreEvent()
         }
@@ -245,7 +259,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             handleCopyContent(binding.changeAddressLabel.text.toString())
             true
         }
-        binding.ivNote.setOnDebounceClickListener(coroutineScope = lifecycleScope) {
+        binding.tvEditNote.setOnDebounceClickListener(coroutineScope = lifecycleScope) {
             InputBottomSheet.show(
                 fragmentManager = supportFragmentManager,
                 currentInput = viewModel.getTransaction().memo,
@@ -289,7 +303,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
         binding.transactionDetailsContainer.isVisible = state.viewMore
 
-        bindTransaction(state.transaction)
+        bindTransaction(state.transaction, state.coins)
         if (state.transaction.isReceive.not()) {
             bindSigners(
                 state.transaction.signers,
@@ -299,12 +313,12 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             )
         }
         handleServerTransaction(state.transaction, state.serverTransaction)
-        handleManageCoin(state.coins.size)
+        handleManageCoin(state.coins)
         hideLoading()
     }
 
-    private fun handleManageCoin(numberOfCoin: Int) {
-        binding.tvManageCoin.isVisible = numberOfCoin > 0
+    private fun handleManageCoin(coins: List<UnspentOutput>) {
+        binding.tvManageCoin.isVisible = coins.isNotEmpty()
     }
 
     private fun handleServerTransaction(
@@ -359,7 +373,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             }).bindItems()
     }
 
-    private fun bindTransaction(transaction: Transaction) {
+    private fun bindTransaction(transaction: Transaction, coins: List<UnspentOutput>) {
         binding.tvReplaceByFee.isVisible = transaction.replacedTxid.isNotEmpty()
         val output = if (transaction.isReceive) {
             transaction.receiveOutputs.firstOrNull()
@@ -392,7 +406,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             transaction.isReceive || transaction.status.hadBroadcast()
 
         bindAddress(transaction)
-        bindChangeAddress(transaction)
+        bindChangeAddress(transaction, coins)
         bindTransactionFee(transaction)
         bindingTotalAmount(transaction)
         bindViewSendOrReceive(transaction)
@@ -415,7 +429,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         val coins = transaction.outputs.filter { viewModel.isMyCoin(it) == transaction.isReceive }
         if (coins.isNotEmpty()) {
             TransactionAddressViewBinder(
-                binding.containerAddress, coins, viewModel.allTags(), viewModel.tagIds()
+                binding.containerAddress, coins,
             ) {
                 handleCopyContent(it)
             }.bindItems()
@@ -444,13 +458,22 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         binding.estimatedFeeUSD.text = transaction.fee.getCurrencyAmount()
     }
 
-    private fun bindChangeAddress(transaction: Transaction) {
+    private fun bindChangeAddress(transaction: Transaction, coins: List<UnspentOutput>) {
         val hasChange: Boolean = transaction.hasChangeIndex()
         if (hasChange) {
+            binding.tvEditChangeAddress.isVisible = coins.any { it.vout == transaction.changeIndex }
             val txOutput = transaction.outputs[transaction.changeIndex]
             binding.changeAddressLabel.text = txOutput.first
             binding.changeAddressBTC.text = txOutput.second.getBTCAmount()
             binding.changeAddressUSD.text = txOutput.second.getCurrencyAmount()
+
+            val changeOutput = coins.find { it.vout == transaction.changeIndex }
+            binding.tags.isVisible = changeOutput != null && changeOutput.tags.isNotEmpty()
+            if (changeOutput != null && changeOutput.tags.isNotEmpty()) {
+                binding.tags.setContent {
+                    CoinTagGroupView(tagIds =  changeOutput.tags, tags = viewModel.allTags())
+                }
+            }
         }
         binding.changeAddressLabel.isVisible = hasChange
         binding.changeAddressBTC.isVisible = hasChange

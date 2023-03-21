@@ -46,19 +46,4 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="tb1qgu4hrgq6elva2px86xefkkhsjkeh8a5sellryg" />
-
-    <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/sendAddressBarrier"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:barrierDirection="bottom"
-        app:constraint_referenced_ids="sendAddressUSD,sendAddressLabel" />
-
-    <androidx.compose.ui.platform.ComposeView
-        android:id="@+id/tags"
-        android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_4"
-        app:layout_constraintTop_toBottomOf="@+id/sendAddressBarrier"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
 </androidx.constraintlayout.widget.ConstraintLayout>

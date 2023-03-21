@@ -69,7 +69,7 @@ fun TagHorizontalList(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(tags) {tag ->
-                CoinTagView(tag = tag, circleSize = 24.dp, textStyle = NunchukTheme.typography.body, clickAble = true) {
+                CoinTagView(tag = tag, circleSize = 24.dp, textStyle = NunchukTheme.typography.body, clickable = true) {
                     onViewTagDetail(tag)
                 }
             }
