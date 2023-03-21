@@ -16,6 +16,10 @@
             android:defaultValue=""
             app:argType="string" />
         <argument
+            android:name="tagId"
+            android:defaultValue="0"
+            app:argType="integer" />
+        <argument
             android:name="list_type"
             android:defaultValue="ALL"
             app:argType="com.nunchuk.android.wallet.components.coin.list.CoinListType" />
@@ -79,7 +83,7 @@
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <fragment
@@ -149,6 +153,13 @@
         <action
             android:id="@+id/action_coinTagDetailFragment_to_coinTagSelectColorBottomSheetFragment"
             app:destination="@id/coinTagSelectColorBottomSheetFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_coinTagDetailFragment_to_coinListFragment2"
+            app:destination="@id/coinListFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"

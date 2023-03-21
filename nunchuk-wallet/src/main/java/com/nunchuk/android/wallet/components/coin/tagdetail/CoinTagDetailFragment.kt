@@ -46,6 +46,7 @@ import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.component.PreviewCoinCard
+import com.nunchuk.android.wallet.components.coin.list.CoinListType
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagColorUtil
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragment
@@ -100,6 +101,15 @@ class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
                             ), onYesClick = {
                                 viewModel.removeCoin(listOf(coin))
                             })
+                    },
+                    enableSelectMode = {
+                        findNavController().navigate(
+                            CoinTagDetailFragmentDirections.actionCoinTagDetailFragmentToCoinListFragment(
+                                walletId = args.walletId,
+                                listType = CoinListType.ALL,
+                                tagId = args.coinTag.id
+                            )
+                        )
                     }
                 )
             }
@@ -197,7 +207,8 @@ private fun CoinTagDetailScreen(
     onEditTagNameClick: (CoinTag) -> Unit = {},
     onEditTagColorClick: (String) -> Unit = {},
     onShowMoreOptions: () -> Unit = {},
-    onRemoveCoin: (UnspentOutput) -> Unit = {}
+    onRemoveCoin: (UnspentOutput) -> Unit = {},
+    enableSelectMode: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val coinTag = state.coinTag ?: return
@@ -214,7 +225,8 @@ private fun CoinTagDetailScreen(
             onEditTagColorClick(coinTag.color)
         },
         onShowMoreOptions = onShowMoreOptions,
-        onRemoveCoin = onRemoveCoin
+        onRemoveCoin = onRemoveCoin,
+        enableSelectMode = enableSelectMode
     )
 }
 

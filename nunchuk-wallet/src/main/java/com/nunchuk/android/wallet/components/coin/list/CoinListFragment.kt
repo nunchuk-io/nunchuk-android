@@ -183,6 +183,7 @@ private fun CoinListScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     val filterCoins = when {
+        args.tagId > 0 -> state.coins.filter { it.tags.contains(args.tagId) }
         args.txId.isNotEmpty() -> state.coins.filter { it.txid == args.txId }
         args.listType == CoinListType.LOCKED -> state.coins.filter { it.isLocked }
         else -> state.coins
