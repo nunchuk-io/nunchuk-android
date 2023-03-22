@@ -70,9 +70,18 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
                     NCToastMessage(requireActivity()).showError(
                         message = getString(R.string.nc_incorrect_current_pin)
                     )
+                } else if (event.isHideWalletDetailFlow) {
+                    viewModel.updateHideWalletDetail()
                 }
             }
             WalletSecuritySettingEvent.None -> {}
+            WalletSecuritySettingEvent.CheckPasswordSuccess -> {
+                if (viewModel.getWalletSecuritySetting().protectWalletPin && viewModel.getWalletPin().isNotBlank()) {
+                    showInputPinDialog(true)
+                } else {
+                    viewModel.updateHideWalletDetail()
+                }
+            }
         }
         viewModel.clearEvent()
     }
@@ -80,18 +89,22 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
     private fun setupViews() {
         binding.toolbar.setNavigationOnClickListener { requireActivity().finish() }
         binding.hideWalletDetailOption.setOptionChangeListener {
-            viewModel.updateHideWalletDetail(it)
+            if (it.not()) {
+                checkWalletSecurity()
+            } else {
+                viewModel.updateHideWalletDetail()
+            }
         }
         binding.passwordOption.setOptionChangeListener {
             if (it.not()) {
-                enterPasswordDialog()
+                enterPasswordDialog(false)
             } else {
                 viewModel.updateProtectWalletPassword(it)
             }
         }
         binding.pinOption.setOptionChangeListener {
             if (it.not() && viewModel.getWalletPin().isNotBlank()) {
-                showInputPinDialog()
+                showInputPinDialog(false)
             } else {
                 viewModel.updateProtectWalletPin(it)
             }
@@ -112,19 +125,29 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
         }
     }
 
-    private fun showInputPinDialog() {
+    private fun checkWalletSecurity() {
+        if (viewModel.getWalletSecuritySetting().protectWalletPassword) {
+            enterPasswordDialog(true)
+        } else if (viewModel.getWalletSecuritySetting().protectWalletPin && viewModel.getWalletPin().isNotBlank()) {
+            showInputPinDialog(true)
+        } else {
+            viewModel.updateHideWalletDetail()
+        }
+    }
+
+    private fun showInputPinDialog(isHideWalletDetailFlow: Boolean) {
         NCInputDialog(requireContext()).showDialog(
             title = getString(R.string.nc_enter_your_pin),
             onCanceled = {
                 viewModel.updateProtectWalletPin(true)
             },
             onConfirmed = {
-                viewModel.checkWalletPin(it)
+                viewModel.checkWalletPin(it, isHideWalletDetailFlow)
             }
         )
     }
 
-    private fun enterPasswordDialog() {
+    private fun enterPasswordDialog(isHideWalletDetailFlow: Boolean) {
         NCInputDialog(requireContext()).showDialog(
             title = getString(R.string.nc_re_enter_your_password),
             descMessage = getString(R.string.nc_re_enter_your_password_dialog_desc),
@@ -132,7 +155,7 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
                 viewModel.updateProtectWalletPassword(true)
             },
             onConfirmed = {
-                viewModel.confirmPassword(it)
+                viewModel.confirmPassword(it, isHideWalletDetailFlow)
             }
         )
     }
