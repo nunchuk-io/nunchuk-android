@@ -3,11 +3,9 @@ package com.nunchuk.android.wallet.components.coin.list
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.UnspentOutput
-import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
-import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
-import com.nunchuk.android.usecase.coin.LockCoinUseCase
-import com.nunchuk.android.usecase.coin.UnLockCoinUseCase
+import com.nunchuk.android.usecase.coin.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -20,8 +18,9 @@ class CoinListViewModel @Inject constructor(
     private val lockCoinUseCase: LockCoinUseCase,
     private val unLockCoinUseCase: UnLockCoinUseCase,
     private val getAllTagsUseCase: GetAllTagsUseCase,
+    private val removeCoinFromTagUseCase: RemoveCoinFromTagUseCase,
 ) : ViewModel() {
-    private val args = CoinListFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    private val walletId = savedStateHandle.get<String>("wallet_id").orEmpty()
     private val _state = MutableStateFlow(CoinListUiState())
     val state = _state.asStateFlow()
 
@@ -41,7 +40,7 @@ class CoinListViewModel @Inject constructor(
     private fun getAllCoins() {
         viewModelScope.launch {
             _event.emit(CoinListEvent.Loading(true))
-            getAllCoinUseCase(args.walletId).onSuccess { coins ->
+            getAllCoinUseCase(walletId).onSuccess { coins ->
                 _event.emit(CoinListEvent.Loading(false))
                 _state.update { state ->
                     state.copy(coins = coins)
@@ -52,7 +51,7 @@ class CoinListViewModel @Inject constructor(
 
     private fun getAllTags() {
         viewModelScope.launch {
-            getAllTagsUseCase(args.walletId).onSuccess { tags ->
+            getAllTagsUseCase(walletId).onSuccess { tags ->
                 _state.update { state ->
                     state.copy(tags = tags.associateBy { it.id })
                 }
@@ -60,11 +59,11 @@ class CoinListViewModel @Inject constructor(
         }
     }
 
-    fun onLockCoin() {
+    fun onLockCoin(walletId: String) {
         viewModelScope.launch {
             val coins = state.value.selectedCoins
             coins.asSequence().filter { it.isLocked.not() }.forEach {
-                lockCoinUseCase(LockCoinUseCase.Params(args.walletId, it.txid, it.vout))
+                lockCoinUseCase(LockCoinUseCase.Params(walletId, it.txid, it.vout))
             }
             getAllCoins()
             _event.emit(CoinListEvent.CoinLocked)
@@ -72,16 +71,31 @@ class CoinListViewModel @Inject constructor(
         }
     }
 
-    fun onUnlockCoin() {
+    fun onUnlockCoin(walletId: String) {
         viewModelScope.launch {
             val coins = state.value.selectedCoins
 
             coins.asSequence().filter { it.isLocked }.forEach {
-                unLockCoinUseCase(UnLockCoinUseCase.Params(args.walletId, it.txid, it.vout))
+                unLockCoinUseCase(UnLockCoinUseCase.Params(walletId, it.txid, it.vout))
             }
             getAllCoins()
             _event.emit(CoinListEvent.CoinUnlocked)
             _state.update { it.copy(selectedCoins = emptySet(), mode = CoinListMode.NONE) }
+        }
+    }
+
+    fun removeCoin(walletId: String, tagId: Int) = viewModelScope.launch {
+        val result = removeCoinFromTagUseCase(
+            RemoveCoinFromTagUseCase.Param(
+                walletId = walletId,
+                tagId = tagId,
+                coins = _state.value.selectedCoins.toList()
+            )
+        )
+        if (result.isSuccess) {
+            _event.emit(CoinListEvent.RemoveCoinSuccess)
+        } else {
+            _event.emit(CoinListEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 
@@ -120,6 +134,8 @@ class CoinListViewModel @Inject constructor(
 
 sealed class CoinListEvent {
     data class Loading(val isLoading: Boolean) : CoinListEvent()
+    data class Error(val message: String) : CoinListEvent()
     object CoinLocked : CoinListEvent()
     object CoinUnlocked : CoinListEvent()
+    object RemoveCoinSuccess : CoinListEvent()
 }

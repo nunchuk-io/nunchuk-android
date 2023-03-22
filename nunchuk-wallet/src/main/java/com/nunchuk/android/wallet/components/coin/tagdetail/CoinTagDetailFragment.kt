@@ -40,6 +40,7 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
@@ -51,7 +52,6 @@ import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagColorUtil
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragment
 import com.nunchuk.android.wallet.util.hexToColor
-import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import de.charlex.compose.RevealDirection
@@ -72,8 +72,10 @@ class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
                     viewModel = viewModel,
                     onViewCoinDetail = {
                         findNavController().navigate(
-                            CoinTagDetailFragmentDirections.actionCoinTagDetailFragmentToCoinListFragment(
-                                walletId = args.walletId
+                            CoinTagDetailFragmentDirections.actionCoinTagDetailFragmentToCoinDetailFragment(
+                                walletId = args.walletId,
+                                txId = it.txid,
+                                vout = it.vout
                             )
                         )
                     }, onEditTagNameClick = {
@@ -136,6 +138,10 @@ class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
             }
         }
 
+        flowObserver(coinListViewModel.state) { state ->
+            viewModel.getListCoinByTag(state.coins, state.tags)
+        }
+
         setFragmentResultListener(CoinTagSelectColorBottomSheetFragment.REQUEST_KEY) { _, bundle ->
             bundle.getString(CoinTagSelectColorBottomSheetFragment.EXTRA_SELECT_COLOR)
                 ?.let {
@@ -162,7 +168,7 @@ class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
     }
 
     private fun showTagUpdated() {
-        NCToastMessage(requireActivity()).showMessage(message = getString(R.string.nc_tag_updated))
+        showSuccess(message = getString(R.string.nc_tag_updated))
     }
 
     private fun showDeleteTagOption() {

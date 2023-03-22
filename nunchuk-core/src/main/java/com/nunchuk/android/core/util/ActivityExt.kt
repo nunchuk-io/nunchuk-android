@@ -24,8 +24,6 @@ import android.content.ActivityNotFoundException
 import android.content.ContentResolver
 import android.content.Intent
 import android.net.Uri
-import android.provider.MediaStore
-import android.provider.Settings
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -58,13 +56,6 @@ fun Activity.showOrHideLoading(
 ) {
     (this as BaseActivity<*>).showOrHideLoading(loading, title, message)
 }
-
-fun Activity.startActivityAppSetting() = startActivity(
-    Intent(
-        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-        Uri.parse("package:" + application.packageName)
-    )
-)
 
 fun Fragment.showLoading() {
     activity?.let(FragmentActivity::showLoading)
@@ -102,11 +93,6 @@ fun Fragment.showOrHideLoading(
     loading: Boolean, title: String = getString(R.string.nc_please_wait), message: String? = null
 ) {
     activity?.showOrHideLoading(loading, title, message)
-}
-
-fun Fragment.takePhotoWithResult(requestCode: Int) {
-    val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-    startActivityForResult(takePictureIntent, requestCode)
 }
 
 fun View.hideKeyboard() =

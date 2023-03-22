@@ -34,7 +34,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
@@ -88,8 +88,8 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
 
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
-            SheetOptionType.TYPE_LOCK_COIN -> viewModel.onLockCoin()
-            SheetOptionType.TYPE_UNLOCK_COIN -> viewModel.onUnlockCoin()
+            SheetOptionType.TYPE_LOCK_COIN -> viewModel.onLockCoin(args.walletId)
+            SheetOptionType.TYPE_UNLOCK_COIN -> viewModel.onUnlockCoin(args.walletId)
             SheetOptionType.TYPE_ADD_COLLECTION -> Unit
             SheetOptionType.TYPE_ADD_TAG -> findNavController().navigate(
                 CoinListFragmentDirections.actionCoinListFragmentToCoinTagListFragment(
@@ -112,12 +112,14 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
                     listType = CoinListType.LOCKED
                 )
             )
+            SheetOptionType.TYPE_REMOVE_COIN_FROM_TAG -> {
+                viewModel.removeCoin(args.walletId, args.tagId)
+            }
         }
     }
 
     private fun showSelectCoinOptions() {
-        BottomSheetOption.newInstance(
-            listOf(
+        val options = if (args.tagId == 0) listOf(
 //                SheetOption(
 //                    type = SheetOptionType.TYPE_LOCK_COIN,
 //                    label = getString(R.string.nc_lock_coin)
@@ -130,12 +132,17 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
 //                    type = SheetOptionType.TYPE_ADD_COLLECTION,
 //                    label = getString(R.string.nc_add_to_a_collection)
 //                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_TAG,
-                    label = getString(R.string.nc_add_tags)
-                ),
-            )
-        ).show(childFragmentManager, "BottomSheetOption")
+            SheetOption(
+                type = SheetOptionType.TYPE_ADD_TAG,
+                label = getString(R.string.nc_add_tags)
+            ),
+        ) else listOf(
+            SheetOption(
+                type = SheetOptionType.TYPE_REMOVE_COIN_FROM_TAG,
+                label = getString(R.string.nc_remove_coin_from_this_tag)
+            ),
+        )
+        BottomSheetOption.newInstance(options).show(childFragmentManager, "BottomSheetOption")
     }
 
     private fun showMoreOptions() {
@@ -162,9 +169,15 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle).collect { event ->
                 when (event) {
-                    is CoinListEvent.Loading -> showOrHideLoading(event.isLoading)
+                    is CoinListEvent.Loading -> Unit
                     CoinListEvent.CoinLocked -> showSuccess(getString(R.string.nc_coin_locked))
                     CoinListEvent.CoinUnlocked -> showSuccess(getString(R.string.nc_coin_unlocked))
+                    is CoinListEvent.Error -> showError(event.message)
+                    CoinListEvent.RemoveCoinSuccess -> {
+                        viewModel.refresh()
+                        showSuccess(getString(R.string.nc_tag_updated))
+                        requireActivity().onBackPressedDispatcher.onBackPressed()
+                    }
                 }
             }
         }

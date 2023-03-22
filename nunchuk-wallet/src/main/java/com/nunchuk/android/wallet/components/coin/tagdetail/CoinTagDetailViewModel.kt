@@ -4,8 +4,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
-import com.nunchuk.android.usecase.coin.*
+import com.nunchuk.android.usecase.coin.DeleteCoinTagUseCase
+import com.nunchuk.android.usecase.coin.RemoveCoinFromTagUseCase
+import com.nunchuk.android.usecase.coin.UpdateCoinTagUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -14,11 +17,9 @@ import javax.inject.Inject
 @HiltViewModel
 class CoinTagDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val getListCoinByTagUseCase: GetListCoinByTagUseCase,
     private val deleteCoinTagUseCase: DeleteCoinTagUseCase,
     private val updateCoinTagUseCase: UpdateCoinTagUseCase,
     private val removeCoinFromTagUseCase: RemoveCoinFromTagUseCase,
-    private val getAllTagsUseCase: GetAllTagsUseCase,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<CoinTagDetailEvent>()
@@ -31,27 +32,12 @@ class CoinTagDetailViewModel @Inject constructor(
 
     init {
         _state.update { it.copy(coinTag = args.coinTag) }
-        getListCoinByTag()
     }
 
-    private fun getListCoinByTag() {
-        viewModelScope.launch {
-            getListCoinByTagUseCase(
-                GetListCoinByTagUseCase.Param(
-                    walletId = args.walletId,
-                    tagId = args.coinTag.id
-                )
-            ).onSuccess { coins ->
-                _state.update { it.copy(coins = coins) }
-            }
-        }
-
-        viewModelScope.launch {
-            getAllTagsUseCase(args.walletId).onSuccess { tags ->
-                _state.update { state ->
-                    state.copy(tags = tags.associateBy { it.id })
-                }
-            }
+    fun getListCoinByTag(allCoins: List<UnspentOutput>, tags: Map<Int, CoinTag>) {
+        val coins = allCoins.filter { it.tags.contains(args.coinTag.id) }
+        _state.update {
+            it.copy(coins = coins, tags = tags)
         }
     }
 

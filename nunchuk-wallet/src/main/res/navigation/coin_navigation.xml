@@ -127,8 +127,8 @@
         android:label="CoinTagDetailFragment">
 
         <action
-            android:id="@+id/action_coinTagDetailFragment_to_coinListFragment"
-            app:destination="@id/coinListFragment"
+            android:id="@+id/action_coinTagDetailFragment_to_coinDetailFragment"
+            app:destination="@id/coinDetailFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -158,7 +158,7 @@
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <action
-            android:id="@+id/action_coinTagDetailFragment_to_coinListFragment2"
+            android:id="@+id/action_coinTagDetailFragment_to_coinListFragment"
             app:destination="@id/coinListFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"

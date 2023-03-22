@@ -90,6 +90,7 @@ fun PreviewCoinCard(
                             .padding(horizontal = 8.dp, vertical = 2.dp)
                             .size(12.dp),
                         painter = painterResource(id = R.drawable.ic_lock),
+                        tint = MaterialTheme.colors.primary,
                         contentDescription = "Lock"
                     )
                 }
@@ -104,6 +105,7 @@ fun PreviewCoinCard(
                             .padding(horizontal = 8.dp, vertical = 2.dp)
                             .size(12.dp),
                         painter = painterResource(id = R.drawable.ic_schedule),
+                        tint = MaterialTheme.colors.primary,
                         contentDescription = "Schedule"
                     )
                 }
@@ -151,7 +153,7 @@ fun PreviewCoinCard(
                     .align(Alignment.TopEnd)
                     .padding(top = 8.dp),
                 onClick = { onViewCoinDetail(output) }) {
-                Icon(painter = painterResource(id = R.drawable.ic_arrow), contentDescription = "")
+                Icon(painter = painterResource(id = R.drawable.ic_arrow), contentDescription = "", tint = MaterialTheme.colors.primary)
             }
         }
     }
