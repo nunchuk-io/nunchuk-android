@@ -253,7 +253,7 @@
                 android:layout_marginTop="@dimen/nc_padding_24"
                 android:background="@color/nc_whisper_color"
                 android:padding="@dimen/nc_padding_16"
-                android:text="@string/nc_transaction_private_note_off_chain_data"
+                android:text="@string/nc_transaction_note"
                 android:textColor="@color/nc_primary_dark_color"
                 android:textSize="@dimen/nc_text_size_14"
                 app:layout_constraintStart_toStartOf="parent"

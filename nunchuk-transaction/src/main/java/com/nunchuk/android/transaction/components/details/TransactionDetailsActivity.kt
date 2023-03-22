@@ -263,7 +263,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             InputBottomSheet.show(
                 fragmentManager = supportFragmentManager,
                 currentInput = viewModel.getTransaction().memo,
-                title = getString(R.string.nc_transaction_private_note_off_chain_data)
+                title = getString(R.string.nc_transaction_note)
             )
         }
         binding.tvManageCoin.setOnDebounceClickListener {
