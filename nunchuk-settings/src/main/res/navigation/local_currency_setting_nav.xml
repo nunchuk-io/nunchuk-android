@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/wallet_security_setting_nav"
+    app:startDestination="@id/localCurrencyFragment">
+
+    <fragment
+        android:id="@+id/localCurrencyFragment"
+        android:name="com.nunchuk.android.settings.localcurrency.LocalCurrencyFragment"
+        android:label="LocalCurrencyFragment"
+        tools:layout="@layout/fragment_wallet_security_setting" />
+</navigation>

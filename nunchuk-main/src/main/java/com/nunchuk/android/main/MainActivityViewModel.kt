@@ -133,7 +133,7 @@ internal class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             getLocalBtcPriceFlowUseCase(Unit).collect {
                 if (it.isSuccess) {
-                    BTC_USD_EXCHANGE_RATE = it.getOrThrow()
+                    BTC_CURRENCY_EXCHANGE_RATE = it.getOrThrow()
                 }
             }
         }
@@ -226,10 +226,7 @@ internal class MainActivityViewModel @Inject constructor(
 
     private fun getBTCConvertPrice() {
         viewModelScope.launch {
-            getRemotePriceConvertBTCUseCase.execute()
-                .flowOn(IO)
-                .onException {}
-                .collect()
+            getRemotePriceConvertBTCUseCase(Unit)
         }
     }
 

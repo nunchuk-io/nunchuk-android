@@ -31,10 +31,12 @@ interface SettingRepository {
     val qrDensity: Flow<Int>
     val walletSecuritySetting: Flow<WalletSecuritySetting>
     val walletPin: Flow<String>
+    val localCurrency: Flow<String>
     suspend fun setSyncEnable(isEnable: Boolean)
     suspend fun setQrDensity(density: Int)
     suspend fun markSyncRoomSuccess()
     suspend fun markIsShowNfcUniversal()
     suspend fun setWalletSecuritySetting(config: String)
     suspend fun setWalletPin(pin: String)
+    suspend fun setLocalCurrency(currency: String)
 }

@@ -25,7 +25,7 @@ import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.util.USD_CURRENCY
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.type.Chain
@@ -71,6 +71,11 @@ class NcDataStore @Inject constructor(
     private fun getWalletSecuritySettingKey(): Preferences.Key<String> {
         val userId = accountManager.getAccount().chatId
         return stringPreferencesKey("wallet_security_setting_key-${userId}")
+    }
+
+    private fun getLocalCurrencyKey(): Preferences.Key<String> {
+        val userId = accountManager.getAccount().chatId
+        return stringPreferencesKey("local_currency-${userId}")
     }
 
     val syncRoomSuccess: Flow<Boolean>
@@ -128,6 +133,11 @@ class NcDataStore @Inject constructor(
             gson.fromJson(it[getWalletSecuritySettingKey()].orEmpty(), WalletSecuritySetting::class.java)
         }
 
+    val localCurrencyFlow: Flow<String>
+        get() = context.dataStore.data.map {
+            it[getLocalCurrencyKey()] ?: USD_CURRENCY
+        }
+
     suspend fun setChain(chain: Chain) {
         context.dataStore.edit { settings ->
             settings[chainKey] = chain.ordinal
@@ -179,6 +189,12 @@ class NcDataStore @Inject constructor(
     suspend fun setWalletSecuritySetting(config: String) {
         context.dataStore.edit {
             it[getWalletSecuritySettingKey()] = config
+        }
+    }
+
+    suspend fun setLocalCurrency(currency: String) {
+        context.dataStore.edit {
+            it[getLocalCurrencyKey()] = currency
         }
     }
 

@@ -396,7 +396,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         }
         binding.sendAddressLabel.text = output?.first.orEmpty()
         binding.sendAddressBTC.text = output?.second?.getBTCAmount().orEmpty()
-        binding.sendAddressUSD.text = output?.second?.getUSDAmount().orEmpty()
+        binding.sendAddressUSD.text = output?.second?.getCurrencyAmount().orEmpty()
 
         if (transaction.isReceive) {
             binding.sendingToLabel.text = getString(R.string.nc_transaction_receive_at)
@@ -413,12 +413,12 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
 
     private fun bindingTotalAmount(transaction: Transaction) {
         binding.totalAmountBTC.text = transaction.totalAmount.getBTCAmount()
-        binding.totalAmountUSD.text = transaction.totalAmount.getUSDAmount()
+        binding.totalAmountUSD.text = transaction.totalAmount.getCurrencyAmount()
     }
 
     private fun bindTransactionFee(transaction: Transaction) {
         binding.estimatedFeeBTC.text = transaction.fee.getBTCAmount()
-        binding.estimatedFeeUSD.text = transaction.fee.getUSDAmount()
+        binding.estimatedFeeUSD.text = transaction.fee.getCurrencyAmount()
     }
 
     private fun bindChangeAddress(transaction: Transaction) {
@@ -427,7 +427,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             val txOutput = transaction.outputs[transaction.changeIndex]
             binding.changeAddressLabel.text = txOutput.first
             binding.changeAddressBTC.text = txOutput.second.getBTCAmount()
-            binding.changeAddressUSD.text = txOutput.second.getUSDAmount()
+            binding.changeAddressUSD.text = txOutput.second.getCurrencyAmount()
         }
         binding.changeAddressLabel.isVisible = hasChange
         binding.changeAddressBTC.isVisible = hasChange

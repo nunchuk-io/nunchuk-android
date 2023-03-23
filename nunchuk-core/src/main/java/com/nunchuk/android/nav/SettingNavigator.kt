@@ -33,4 +33,5 @@ interface SettingNavigator {
         activityContext: Context,
         messages: ArrayList<String> = arrayListOf()
     )
+    fun openLocalCurrencyScreen(activityContext: Context)
 }

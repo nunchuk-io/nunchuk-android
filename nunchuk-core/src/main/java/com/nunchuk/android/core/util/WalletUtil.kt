@@ -32,7 +32,7 @@ import kotlin.math.roundToLong
 
 fun Wallet.getBTCAmount() = balance.getBTCAmount()
 
-fun Wallet.getUSDAmount() = balance.getUSDAmount()
+fun Wallet.getCurrencyAmount() = balance.getCurrencyAmount()
 
 fun Amount.getBTCAmount() = when (CURRENT_DISPLAY_UNIT_TYPE) {
     SAT -> "${value.beautifySATFormat()} sat"
@@ -40,11 +40,13 @@ fun Amount.getBTCAmount() = when (CURRENT_DISPLAY_UNIT_TYPE) {
     else -> "${NativeSdkProvider.instance.nativeSdk.valueFromAmount(this)} BTC"
 }
 
-fun Amount.getUSDAmount() = "$${fromBTCToUSD().formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"
+fun Amount.getCurrencyAmount(): String {
+    return "${getDisplayCurrency()}${fromBTCToCurrency().formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"
+}
 
-fun Double.fromBTCToUSD() = this * BTC_USD_EXCHANGE_RATE
+fun Double.fromBTCToCurrency() = this * BTC_CURRENCY_EXCHANGE_RATE
 
-fun Double.fromUSDToBTC() = this / BTC_USD_EXCHANGE_RATE
+fun Double.fromCurrencyToBTC() = this / BTC_CURRENCY_EXCHANGE_RATE
 
 fun Amount.pureBTC() = value.toDouble().fromSATtoBTC()
 
@@ -54,9 +56,11 @@ fun Double.getBTCAmount() = when (CURRENT_DISPLAY_UNIT_TYPE) {
     else -> "${formatDecimal(minFractionDigits = MAX_FRACTION_DIGITS)} BTC"
 }
 
-fun Double.getUSDAmount() = "$${fromBTCToUSD().formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"
+fun Double.getCurrencyAmount() = "${getDisplayCurrency()}${fromBTCToCurrency().formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"
 
-private fun Amount.fromBTCToUSD() = value * SATOSHI_BTC_EXCHANGE_RATE * BTC_USD_EXCHANGE_RATE
+fun getDisplayCurrency() = if (LOCAL_CURRENCY == USD_CURRENCY) "$" else "$LOCAL_CURRENCY "
+
+private fun Amount.fromBTCToCurrency() = value * SATOSHI_BTC_EXCHANGE_RATE * BTC_CURRENCY_EXCHANGE_RATE
 
 fun Double.fromSATtoBTC() = (this * SATOSHI_BTC_EXCHANGE_RATE)
 

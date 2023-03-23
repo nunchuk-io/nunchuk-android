@@ -91,16 +91,18 @@ internal class InputAmountViewModel @Inject constructor(
                 updateState {
                     copy(
                         amountBTC = if (CURRENT_DISPLAY_UNIT_TYPE == SAT) inputValue.fromSATtoBTC() else inputValue,
-                        amountUSD = if (CURRENT_DISPLAY_UNIT_TYPE == SAT) inputValue.fromSATtoBTC().fromBTCToUSD() else inputValue.fromBTCToUSD()
+                        amountUSD = if (CURRENT_DISPLAY_UNIT_TYPE == SAT) inputValue.fromSATtoBTC().fromBTCToCurrency() else inputValue.fromBTCToCurrency()
                     )
                 }
             }
         } else {
             if (inputValue != currentState.amountUSD) {
-                updateState { copy(amountBTC = inputValue.fromUSDToBTC(), amountUSD = inputValue) }
+                updateState { copy(amountBTC = inputValue.fromCurrencyToBTC(), amountUSD = inputValue) }
             }
         }
     }
+
+    fun getUseBTC() = getState().useBtc
 
     fun handleContinueEvent() {
         val amount = getState().amountBTC

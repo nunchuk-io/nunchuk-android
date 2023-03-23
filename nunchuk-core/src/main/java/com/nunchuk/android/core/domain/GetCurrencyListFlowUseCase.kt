@@ -19,18 +19,18 @@
 
 package com.nunchuk.android.core.domain
 
+import com.nunchuk.android.FlowUseCase
 import com.nunchuk.android.core.repository.BtcPriceRepository
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class GetRemotePriceConvertBTCUseCase @Inject constructor(
-    @IoDispatcher ioDispatcher: CoroutineDispatcher,
-    private val priceRepository: BtcPriceRepository,
-) : UseCase<Unit, Unit>(ioDispatcher) {
-
-    override suspend fun execute(parameters: Unit) {
-        return priceRepository.getRemotePrice()
+class GetCurrencyListFlowUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val repository: BtcPriceRepository
+) : FlowUseCase<Unit, Double>(dispatcher) {
+    override fun execute(parameters: Unit): Flow<Double> {
+        return repository.getLocalPrice()
     }
 }

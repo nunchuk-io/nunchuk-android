@@ -27,7 +27,7 @@ import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getUSDAmount
+import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.EstimateFeeRates
@@ -117,12 +117,12 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 
     private fun bindSubtotal(subtotal: Double) {
         binding.totalAmountBTC.text = subtotal.getBTCAmount()
-        binding.totalAmountUSD.text = subtotal.getUSDAmount()
+        binding.totalAmountUSD.text = subtotal.getCurrencyAmount()
     }
 
     private fun handleState(state: EstimatedFeeState) {
         binding.estimatedFeeBTC.text = state.estimatedFee.getBTCAmount()
-        binding.estimatedFeeUSD.text = state.estimatedFee.getUSDAmount()
+        binding.estimatedFeeUSD.text = state.estimatedFee.getCurrencyAmount()
 
         if (state.subtractFeeFromAmount) {
             bindSubtotal(args.outputAmount)

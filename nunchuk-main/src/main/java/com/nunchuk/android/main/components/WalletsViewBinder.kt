@@ -24,7 +24,7 @@ import androidx.core.view.get
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.databinding.ItemWalletBinding
 import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getUSDAmount
+import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
@@ -44,7 +44,7 @@ internal class WalletsViewBinder(
     override fun bindItem(position: Int, model: WalletExtended) {
         val isAssistedWallet = assistedWalletIds.contains(model.wallet.id)
         val wallet = model.wallet
-        val balance = "(${wallet.getUSDAmount()})"
+        val balance = "(${wallet.getCurrencyAmount()})"
         val binding = ItemWalletBinding.bind(container[position])
         binding.walletName.text = wallet.name
 
@@ -52,9 +52,11 @@ internal class WalletsViewBinder(
         binding.balance.text = Utils.maskValue(balance, hideWalletDetail)
         binding.shareIcon.isVisible = model.isShared || isAssistedWallet
         if (isAssistedWallet) {
-            binding.shareIcon.text = Utils.maskValue(context.getString(R.string.nc_assisted), hideWalletDetail)
+            binding.shareIcon.text =
+                Utils.maskValue(context.getString(R.string.nc_assisted), hideWalletDetail)
         } else {
-            binding.shareIcon.text = Utils.maskValue(context.getString(R.string.nc_text_shared), hideWalletDetail)
+            binding.shareIcon.text =
+                Utils.maskValue(context.getString(R.string.nc_text_shared), hideWalletDetail)
         }
         binding.config.bindWalletConfiguration(wallet, hideWalletDetail)
         binding.root.setOnClickListener { callback(wallet.id) }

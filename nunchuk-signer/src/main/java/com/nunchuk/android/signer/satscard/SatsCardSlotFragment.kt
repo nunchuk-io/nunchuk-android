@@ -265,7 +265,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(), 
         binding.btnUnsealAndSweep.isEnabled = slot.balance.value > 0L
         binding.tvBalanceBtc.text = slot.balance.getBTCAmount()
         if (slot.isConfirmed) {
-            binding.tvBalanceUsd.text = slot.balance.getUSDAmount()
+            binding.tvBalanceUsd.text = slot.balance.getCurrencyAmount()
         } else {
             binding.tvBalanceUsd.text = "(${getString(R.string.nc_unconfirmed)})"
         }

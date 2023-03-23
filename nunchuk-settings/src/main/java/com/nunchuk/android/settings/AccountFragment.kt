@@ -136,6 +136,8 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
         binding.signUp.isVisible = isGuestMode
         binding.accountSettings.isVisible = !isGuestMode
 
+        binding.localCurrency.text = getString(R.string.nc_local_currency_data, state.localCurrency)
+
         binding.unit.text = when (CURRENT_DISPLAY_UNIT_TYPE) {
             SAT -> getString(R.string.nc_settings_unit, getString(R.string.nc_currency_sat))
             else -> getString(R.string.nc_settings_unit, getString(R.string.nc_currency_btc))
@@ -283,6 +285,7 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
         binding.about.setOnClickListener { openAboutScreen() }
         binding.developerMode.setOnClickListener { openDeveloperScreen() }
         binding.walletSecuritySettings.setOnClickListener { navigator.openWalletSecuritySettingScreen(requireContext()) }
+        binding.localCurrency.setOnClickListener { navigator.openLocalCurrencyScreen(requireContext()) }
         if (signInModeHolder.getCurrentMode().isGuestMode()) {
             binding.name.setOnClickListener(null)
             binding.takePicture.setOnClickListener(null)

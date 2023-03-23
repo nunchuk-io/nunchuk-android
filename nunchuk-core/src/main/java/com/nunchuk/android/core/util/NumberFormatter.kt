@@ -29,7 +29,7 @@ const val MIN_FRACTION_DIGITS = 2
 const val MAX_FRACTION_DIGITS = 8
 
 fun Number.formatDecimal(minFractionDigits: Int = MIN_FRACTION_DIGITS, maxFractionDigits: Int = MAX_FRACTION_DIGITS): String {
-    return DecimalFormat("##.############").apply {
+    return DecimalFormat("#,##0.00").apply {
         minimumFractionDigits = minFractionDigits
         maximumFractionDigits = maxFractionDigits
     }.format(this)

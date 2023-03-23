@@ -64,11 +64,11 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
     private fun updateTransaction(transaction: Transaction) {
         binding.sendAddressLabel.text = transaction.outputs.firstOrNull()?.first
         binding.estimatedFeeBTC.text = transaction.fee.pureBTC().getBTCAmount()
-        binding.estimatedFeeUSD.text = transaction.fee.pureBTC().getUSDAmount()
+        binding.estimatedFeeUSD.text = transaction.fee.pureBTC().getCurrencyAmount()
         binding.sendAddressBTC.text = transaction.subAmount.pureBTC().getBTCAmount()
-        binding.sendAddressUSD.text = transaction.subAmount.pureBTC().getUSDAmount()
+        binding.sendAddressUSD.text = transaction.subAmount.pureBTC().getCurrencyAmount()
         binding.totalAmountBTC.text = transaction.totalAmount.pureBTC().getBTCAmount()
-        binding.totalAmountUSD.text = transaction.totalAmount.pureBTC().getUSDAmount()
+        binding.totalAmountUSD.text = transaction.totalAmount.pureBTC().getCurrencyAmount()
         binding.noteContent.text = transaction.memo
 
         val txOutput = transaction.outputs.getOrNull(transaction.changeIndex)
@@ -77,7 +77,7 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
             val amount = txOutput.second
             binding.changeAddressLabel.text = changeAddress
             binding.changeAddressBTC.text = amount.getBTCAmount()
-            binding.changeAddressUSD.text = amount.getUSDAmount()
+            binding.changeAddressUSD.text = amount.getCurrencyAmount()
         } else {
             binding.changeAddress.visibility = View.GONE
             binding.changeAddressLabel.visibility = View.GONE
