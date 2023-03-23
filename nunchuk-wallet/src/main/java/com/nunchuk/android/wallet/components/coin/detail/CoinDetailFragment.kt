@@ -247,7 +247,7 @@ private fun CoinDetailContent(
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = output.time.times(1000L).getBtcFormatDate(),
+                            text = output.time.getBtcFormatDate(),
                             style = NunchukTheme.typography.bodySmall,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                         )
