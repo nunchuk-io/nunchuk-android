@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -143,7 +144,8 @@ private fun CoinDetailScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val coinListState by coinViewModel.state.collectAsStateWithLifecycle()
 
-    val output = coinListState.coins.find { it.txid == args.txId && it.vout == args.vout } ?: UnspentOutput()
+    val output =
+        coinListState.coins.find { it.txid == args.txId && it.vout == args.vout } ?: UnspentOutput()
 
     CoinDetailContent(
         output = output,
@@ -185,7 +187,11 @@ private fun CoinDetailContent(
                         }
                     },
                     title = {
-                        Text(text = stringResource(R.string.nc_coin_detail))
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                            text = stringResource(R.string.nc_coin_detail)
+                        )
                     },
                     backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
                     actions = {
@@ -217,7 +223,7 @@ private fun CoinDetailContent(
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = output.time.getBtcFormatDate(),
+                            text = output.time.times(1000L).getBtcFormatDate(),
                             style = NunchukTheme.typography.bodySmall,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                         )

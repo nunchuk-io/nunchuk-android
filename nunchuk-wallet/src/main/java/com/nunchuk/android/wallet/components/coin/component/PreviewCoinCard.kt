@@ -115,7 +115,7 @@ fun PreviewCoinCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (output.time > 0L) {
-                    val date = Date(output.time)
+                    val date = Date(output.time * 1000L)
                     Text(
                         text = "${date.simpleDateFormat()} at ${date.formatByHour()}",
                         style = NunchukTheme.typography.bodySmall

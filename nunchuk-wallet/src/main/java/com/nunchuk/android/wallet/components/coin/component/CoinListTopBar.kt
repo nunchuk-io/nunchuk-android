@@ -73,7 +73,7 @@ fun CoinListTopBarSelectMode(
             Text(
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
-                text = stringResource(R.string.nc_coin), style = NunchukTheme.typography.titleLarge
+                text = stringResource(R.string.nc_select_coins), style = NunchukTheme.typography.titleLarge
             )
             Text(
                 modifier = Modifier
