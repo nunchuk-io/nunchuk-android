@@ -118,7 +118,7 @@ interface TransactionNavigator {
         walletId: String,
         txId: String,
         initEventId: String = "",
-        roomId: String,
+        roomId: String = "",
         transaction: Transaction? = null
     )
 

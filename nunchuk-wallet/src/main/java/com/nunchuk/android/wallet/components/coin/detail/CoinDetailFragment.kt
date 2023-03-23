@@ -1,10 +1,13 @@
 package com.nunchuk.android.wallet.components.coin.detail
 
+import android.app.Activity
 import android.os.Bundle
+import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -39,6 +42,7 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getBtcFormatDate
+import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
@@ -62,6 +66,13 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
     private val coinViewModel: CoinListViewModel by activityViewModels()
     private val args by navArgs<CoinDetailFragmentArgs>()
 
+    private val transactionDetailLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            viewModel.getTransactionDetail()
+            coinViewModel.refresh()
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -84,6 +95,7 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
                     },
                     onViewTransactionDetail = {
                         navigator.openTransactionDetailsScreen(
+                            launcher = transactionDetailLauncher,
                             activityContext = requireActivity(),
                             walletId = args.walletId,
                             txId = args.txId,
@@ -105,6 +117,15 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
                                 coinTag = it
                             )
                         )
+                    },
+                    onNoteClick = {
+                        runCatching {
+                            val matcher = Patterns.WEB_URL.matcher(it)
+                            if (matcher.find()) {
+                                val link = it.substring(matcher.start(1), matcher.end())
+                                requireActivity().openExternalLink(link)
+                            }
+                        }
                     }
                 )
             }
@@ -140,6 +161,7 @@ private fun CoinDetailScreen(
     onViewTransactionDetail: () -> Unit = {},
     onUpdateTag: (output: UnspentOutput) -> Unit,
     onViewTagDetail: (tag: CoinTag) -> Unit = {},
+    onNoteClick: (note: String) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val coinListState by coinViewModel.state.collectAsStateWithLifecycle()
@@ -154,7 +176,8 @@ private fun CoinDetailScreen(
         onViewTransactionDetail = onViewTransactionDetail,
         onUpdateTag = onUpdateTag,
         coinTags = coinListState.tags,
-        onViewTagDetail = onViewTagDetail
+        onViewTagDetail = onViewTagDetail,
+        onNoteClick = onNoteClick
     )
 }
 
@@ -167,6 +190,7 @@ private fun CoinDetailContent(
     onViewTransactionDetail: () -> Unit = {},
     onUpdateTag: (output: UnspentOutput) -> Unit = {},
     onViewTagDetail: (tag: CoinTag) -> Unit = {},
+    onNoteClick: (note: String) -> Unit = {},
 ) {
     val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
     NunchukTheme {
@@ -248,7 +272,7 @@ private fun CoinDetailContent(
                         )
                     }
 
-                    CoinTransactionCard(transaction)
+                    CoinTransactionCard(transaction, onNoteClick)
                 }
 
                 TagHorizontalList(

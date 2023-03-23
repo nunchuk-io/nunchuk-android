@@ -522,6 +522,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
     }
 
     private fun handleUpdateTransactionSuccess(event: UpdateTransactionMemoSuccess) {
+        setResult(Activity.RESULT_OK)
         hideLoading()
         NCToastMessage(this).show(getString(R.string.nc_private_note_updated))
         binding.noteContent.text = event.newMemo

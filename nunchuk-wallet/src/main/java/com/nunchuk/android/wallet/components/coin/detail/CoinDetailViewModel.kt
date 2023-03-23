@@ -10,7 +10,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CoinDetailViewModel @Inject constructor(
-    getTransactionUseCase: GetTransactionUseCase,
+    private val getTransactionUseCase: GetTransactionUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val args: CoinDetailFragmentArgs =
@@ -22,6 +22,10 @@ class CoinDetailViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
+        getTransactionDetail()
+    }
+
+    fun getTransactionDetail() {
         getTransactionUseCase.execute(args.walletId, args.txId, false)
             .onEach { transition ->
                 _state.update { it.copy(transaction = transition.transaction) }
