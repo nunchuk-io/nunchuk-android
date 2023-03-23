@@ -555,7 +555,7 @@
     <string name="nc_pending_sig">pending sig.</string>
     <string name="nc_pending_broadcast">pending broadcast</string>
     <string name="nc_coin_tags">Coin tags</string>
-    <string name="nc_coin_updated">Coins updated</string>
+    <string name="nc_coins_updated">Coins updated</string>
     <string name="nc_create_a_new_tag">Create a new tag</string>
     <string name="nc_set_color">Set color</string>
     <string name="nc_select_a_color">Select a color</string>
@@ -569,4 +569,5 @@
     <string name="nc_remove_coin_confirmation"><![CDATA[Are you sure you want to remove this coin from <b>%s</b>?]]></string>
     <string name="nc_remove_coin_from_this_tag">Remove coins from this tag</string>
     <string name="nc_select_coins">Select coins</string>
+    <string name="nc_coin_updated">Coin updated</string>
 </resources>

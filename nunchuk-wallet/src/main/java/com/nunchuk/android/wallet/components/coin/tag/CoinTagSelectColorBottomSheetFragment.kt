@@ -106,15 +106,15 @@ private fun CoinTagSelectColorBottomSheetScreenContent(
             style = NunchukTheme.typography.title
         )
         var index = 0
-        Column() {
-            repeat(2) {
+        Column {
+            repeat(3) {
                 LazyRow(
                     Modifier
                         .fillMaxWidth()
                         .padding(top = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    items(6) {
+                    items(4) {
                         val color = colors[index]
                         val selected = color == selectedColor
                         Box(

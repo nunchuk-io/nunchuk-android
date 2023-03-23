@@ -53,7 +53,7 @@ class CoinTagListViewModel @Inject constructor(
             )
         )
         if (result.isSuccess) {
-            _event.emit(CoinTagListEvent.AddCoinToTagSuccess)
+            _event.emit(CoinTagListEvent.AddCoinToTagSuccess(_state.value.selectedCoinTags.size))
         } else {
             _event.emit(CoinTagListEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
         }

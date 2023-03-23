@@ -12,6 +12,6 @@ data class CoinTagListState(
 sealed class CoinTagListEvent {
     data class Loading(val show: Boolean) : CoinTagListEvent()
     data class Error(val message: String) : CoinTagListEvent()
-    object AddCoinToTagSuccess : CoinTagListEvent()
+    data class AddCoinToTagSuccess(val numsCoin: Int) : CoinTagListEvent()
 }
 

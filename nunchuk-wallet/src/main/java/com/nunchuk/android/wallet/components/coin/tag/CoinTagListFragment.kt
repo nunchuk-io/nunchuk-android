@@ -89,9 +89,9 @@ class CoinTagListFragment : Fragment() {
             when (event) {
                 is CoinTagListEvent.Error -> showError(message = event.message)
                 is CoinTagListEvent.Loading -> showOrHideLoading(loading = event.show)
-                CoinTagListEvent.AddCoinToTagSuccess -> {
+                is CoinTagListEvent.AddCoinToTagSuccess -> {
                     handleTagInfoChange()
-                    showSuccess(message = getString(R.string.nc_coin_updated))
+                    showSuccess(message = if (event.numsCoin > 1) getString(R.string.nc_coins_updated) else getString(R.string.nc_coin_updated))
                     findNavController().popBackStack()
                 }
             }
