@@ -125,6 +125,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     override val initialState = TransactionDetailsState()
 
     private var reloadTransactionJob: Job? = null
+    private var getTransactionJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -357,7 +358,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     private fun getTransactionFromNetwork() {
-        viewModelScope.launch {
+        if (getTransactionJob?.isActive == true) return
+        getTransactionJob = viewModelScope.launch {
             val result = getTransactionFromNetworkUseCase(txId)
             if (result.isSuccess) {
                 updateState { copy(transaction = result.getOrThrow()) }
@@ -366,7 +368,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     private fun loadLocalTransaction() {
-        viewModelScope.launch {
+        if (getTransactionJob?.isActive == true) return
+        getTransactionJob = viewModelScope.launch {
             getTransactionUseCase.execute(
                 walletId, txId, assistedWalletManager.isActiveAssistedWallet(walletId)
             ).flowOn(IO).onException {

@@ -36,13 +36,11 @@ fun CoinTagGroupView(
                 .padding(4.dp),
             maxItemsInEachRow = 4
         ) {
-            tagIds.take(5).forEach {
-                tags[it]?.let { coinTag ->
-                    CoinTagView(
-                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
-                        tag = coinTag
-                    )
-                }
+            tagIds.take(5).mapNotNull { tags[it] }.sortedBy { it.name }.forEach { coinTag ->
+                CoinTagView(
+                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+                    tag = coinTag
+                )
             }
             if (tagIds.size > 5) {
                 Text(

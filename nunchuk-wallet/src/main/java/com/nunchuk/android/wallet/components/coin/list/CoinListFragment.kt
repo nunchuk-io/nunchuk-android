@@ -120,18 +120,18 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
 
     private fun showSelectCoinOptions() {
         val options = if (args.tagId == 0) listOf(
-//                SheetOption(
-//                    type = SheetOptionType.TYPE_LOCK_COIN,
-//                    label = getString(R.string.nc_lock_coin)
-//                ),
-//                SheetOption(
-//                    type = SheetOptionType.TYPE_UNLOCK_COIN,
-//                    label = getString(R.string.nc_unlock_coin)
-//                ),
-//                SheetOption(
-//                    type = SheetOptionType.TYPE_ADD_COLLECTION,
-//                    label = getString(R.string.nc_add_to_a_collection)
-//                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_LOCK_COIN,
+                    label = getString(R.string.nc_lock_coin)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_UNLOCK_COIN,
+                    label = getString(R.string.nc_unlock_coin)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_ADD_COLLECTION,
+                    label = getString(R.string.nc_add_to_a_collection)
+                ),
             SheetOption(
                 type = SheetOptionType.TYPE_ADD_TAG,
                 label = getString(R.string.nc_add_tags)
@@ -152,14 +152,14 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
                     type = SheetOptionType.TYPE_VIEW_TAG,
                     label = getString(R.string.nc_view_tag)
                 ),
-//                SheetOption(
-//                    type = SheetOptionType.TYPE_VIEW_COLLECTION,
-//                    label = getString(R.string.nc_view_collection)
-//                ),
-//                SheetOption(
-//                    type = SheetOptionType.TYPE_VIEW_LOCKED_COIN,
-//                    label = getString(R.string.nc_view_locked_coin)
-//                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_VIEW_COLLECTION,
+                    label = getString(R.string.nc_view_collection)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_VIEW_LOCKED_COIN,
+                    label = getString(R.string.nc_view_locked_coin)
+                ),
             )
         ).show(childFragmentManager, "BottomSheetOption")
     }

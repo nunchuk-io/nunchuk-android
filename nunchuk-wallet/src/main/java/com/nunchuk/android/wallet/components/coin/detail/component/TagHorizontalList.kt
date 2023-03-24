@@ -63,7 +63,7 @@ fun TagHorizontalList(
     if (output.tags.isNotEmpty()) {
         val tags = output.tags.mapNotNull {
             coinTags[it]
-        }
+        }.sortedBy { it.name }
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
