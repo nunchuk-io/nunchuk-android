@@ -62,4 +62,5 @@
     <string name="nc_scheduled_transaction">Scheduled transaction</string>
     <string name="nc_show_out_point">Show outpoint</string>
     <string name="nc_copied">Copied</string>
+    <string name="nc_search_coins">Search coins</string>
 </resources>

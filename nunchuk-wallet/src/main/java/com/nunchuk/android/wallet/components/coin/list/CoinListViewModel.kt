@@ -59,28 +59,23 @@ class CoinListViewModel @Inject constructor(
         }
     }
 
-    fun onLockCoin(walletId: String) {
+    fun onLockCoin(walletId: String, selectedCoins: List<UnspentOutput>) {
         viewModelScope.launch {
-            val coins = state.value.selectedCoins
-            coins.asSequence().filter { it.isLocked.not() }.forEach {
+            selectedCoins.asSequence().filter { it.isLocked.not() }.forEach {
                 lockCoinUseCase(LockCoinUseCase.Params(walletId, it.txid, it.vout))
             }
             getAllCoins()
             _event.emit(CoinListEvent.CoinLocked)
-            _state.update { it.copy(selectedCoins = emptySet(), mode = CoinListMode.NONE) }
         }
     }
 
-    fun onUnlockCoin(walletId: String) {
+    fun onUnlockCoin(walletId: String, selectedCoins: List<UnspentOutput>) {
         viewModelScope.launch {
-            val coins = state.value.selectedCoins
-
-            coins.asSequence().filter { it.isLocked }.forEach {
+            selectedCoins.asSequence().filter { it.isLocked }.forEach {
                 unLockCoinUseCase(UnLockCoinUseCase.Params(walletId, it.txid, it.vout))
             }
             getAllCoins()
             _event.emit(CoinListEvent.CoinUnlocked)
-            _state.update { it.copy(selectedCoins = emptySet(), mode = CoinListMode.NONE) }
         }
     }
 
@@ -101,10 +96,6 @@ class CoinListViewModel @Inject constructor(
 
     fun enableSelectMode() {
         _state.update { it.copy(mode = CoinListMode.SELECT) }
-    }
-
-    fun enableSearchMode() {
-        _state.update { it.copy(mode = CoinListMode.SEARCH) }
     }
 
     fun onSelectOrUnselectAll(isSelect: Boolean) {
@@ -129,7 +120,11 @@ class CoinListViewModel @Inject constructor(
         }
     }
 
-    fun getSelectedCoins() = _state.value.selectedCoins
+    fun resetSelect() {
+        _state.update { it.copy(selectedCoins = emptySet(), mode = CoinListMode.NONE) }
+    }
+
+    fun getSelectedCoins() = _state.value.selectedCoins.toList()
 }
 
 sealed class CoinListEvent {

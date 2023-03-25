@@ -68,8 +68,13 @@ fun TagHorizontalList(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(tags) {tag ->
-                CoinTagView(tag = tag, circleSize = 24.dp, textStyle = NunchukTheme.typography.body, clickable = true) {
+            items(tags) { tag ->
+                CoinTagView(
+                    tag = tag,
+                    circleSize = 24.dp,
+                    textStyle = NunchukTheme.typography.body,
+                    clickable = true
+                ) {
                     onViewTagDetail(tag)
                 }
             }
@@ -83,5 +88,48 @@ fun TagHorizontalList(
             textAlign = TextAlign.Center,
             style = NunchukTheme.typography.body
         )
+    }
+}
+
+@Composable
+fun TagHorizontalList(
+    modifier: Modifier = Modifier,
+    tags: List<CoinTag>,
+    onViewAll: () -> Unit,
+) {
+    Row(
+        modifier = modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(24.dp),
+            painter = painterResource(id = R.drawable.ic_coin_tag),
+            contentDescription = "Lock icon"
+        )
+        Text(
+            modifier = Modifier.padding(start = 8.dp),
+            text = stringResource(R.string.nc_tags),
+            style = NunchukTheme.typography.title
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Text(
+            modifier = Modifier.clickable { onViewAll() },
+            text = stringResource(R.string.nc_view_all),
+            style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline),
+        )
+    }
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(tags) { tag ->
+            CoinTagView(
+                tag = tag,
+                circleSize = 24.dp,
+                textStyle = NunchukTheme.typography.body,
+                clickable = false
+            )
+        }
     }
 }

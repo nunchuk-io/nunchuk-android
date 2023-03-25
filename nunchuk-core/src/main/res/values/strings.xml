@@ -570,4 +570,5 @@
     <string name="nc_remove_coin_from_this_tag">Remove coins from this tag</string>
     <string name="nc_select_coins">Select coins</string>
     <string name="nc_coin_updated">Coin updated</string>
+    <string name="nc_view_all">View all</string>
 </resources>

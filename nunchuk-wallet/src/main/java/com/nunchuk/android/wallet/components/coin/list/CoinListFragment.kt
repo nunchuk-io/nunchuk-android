@@ -21,38 +21,31 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.flowWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.sheet.BottomSheetOption
-import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.wallet.CoinNavigationDirections
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.components.coin.base.BaseCoinListFragment
 import com.nunchuk.android.wallet.components.coin.component.CoinListBottomBar
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarNoneMode
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarSelectMode
 import com.nunchuk.android.wallet.components.coin.component.PreviewCoinCard
 import com.nunchuk.android.wallet.components.coin.tag.TagFlow
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class CoinListFragment : Fragment(), BottomSheetOptionListener {
+class CoinListFragment : BaseCoinListFragment() {
     private val args: CoinListFragmentArgs by navArgs()
-    private val viewModel: CoinListViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -61,7 +54,7 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 CoinListScreen(
-                    viewModel = viewModel,
+                    viewModel = coinListViewModel,
                     args = args,
                     onViewCoinDetail = {
                         findNavController().navigate(
@@ -80,6 +73,13 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
                     },
                     onShowMoreOptions = {
                         showMoreOptions()
+                    },
+                    enableSearchMode = {
+                        findNavController().navigate(
+                            CoinListFragmentDirections.actionCoinListFragmentToCoinSearchFragmentFragment(
+                                walletId = args.walletId,
+                            )
+                        )
                     }
                 )
             }
@@ -87,19 +87,10 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
     }
 
     override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
         when (option.type) {
-            SheetOptionType.TYPE_LOCK_COIN -> viewModel.onLockCoin(args.walletId)
-            SheetOptionType.TYPE_UNLOCK_COIN -> viewModel.onUnlockCoin(args.walletId)
-            SheetOptionType.TYPE_ADD_COLLECTION -> Unit
-            SheetOptionType.TYPE_ADD_TAG -> findNavController().navigate(
-                CoinListFragmentDirections.actionCoinListFragmentToCoinTagListFragment(
-                    walletId = args.walletId,
-                    tagFlow = TagFlow.ADD,
-                    coins = viewModel.getSelectedCoins().toTypedArray()
-                )
-            )
             SheetOptionType.TYPE_VIEW_TAG -> findNavController().navigate(
-                CoinListFragmentDirections.actionCoinListFragmentToCoinTagListFragment(
+                CoinNavigationDirections.actionGlobalCoinTagListFragment(
                     walletId = args.walletId,
                     tagFlow = TagFlow.VIEW,
                     coins = emptyArray()
@@ -113,36 +104,26 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
                 )
             )
             SheetOptionType.TYPE_REMOVE_COIN_FROM_TAG -> {
-                viewModel.removeCoin(args.walletId, args.tagId)
+                coinListViewModel.removeCoin(args.walletId, args.tagId)
             }
         }
     }
 
-    private fun showSelectCoinOptions() {
-        val options = if (args.tagId == 0) listOf(
-                SheetOption(
-                    type = SheetOptionType.TYPE_LOCK_COIN,
-                    label = getString(R.string.nc_lock_coin)
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_UNLOCK_COIN,
-                    label = getString(R.string.nc_unlock_coin)
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_COLLECTION,
-                    label = getString(R.string.nc_add_to_a_collection)
-                ),
-            SheetOption(
-                type = SheetOptionType.TYPE_ADD_TAG,
-                label = getString(R.string.nc_add_tags)
-            ),
-        ) else listOf(
+    override fun showSelectCoinOptions() {
+        if (args.tagId > 0) {
+            showRemoveCoinFromTag()
+        } else {
+            super.showSelectCoinOptions()
+        }
+    }
+
+    private fun showRemoveCoinFromTag() {
+        BottomSheetOption.newInstance(listOf(
             SheetOption(
                 type = SheetOptionType.TYPE_REMOVE_COIN_FROM_TAG,
                 label = getString(R.string.nc_remove_coin_from_this_tag)
             ),
-        )
-        BottomSheetOption.newInstance(options).show(childFragmentManager, "BottomSheetOption")
+        )).show(childFragmentManager, "BottomSheetOption")
     }
 
     private fun showMoreOptions() {
@@ -164,23 +145,15 @@ class CoinListFragment : Fragment(), BottomSheetOptionListener {
         ).show(childFragmentManager, "BottomSheetOption")
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle).collect { event ->
-                when (event) {
-                    is CoinListEvent.Loading -> Unit
-                    CoinListEvent.CoinLocked -> showSuccess(getString(R.string.nc_coin_locked))
-                    CoinListEvent.CoinUnlocked -> showSuccess(getString(R.string.nc_coin_unlocked))
-                    is CoinListEvent.Error -> showError(event.message)
-                    CoinListEvent.RemoveCoinSuccess -> {
-                        viewModel.refresh()
-                        showSuccess(getString(R.string.nc_tag_updated))
-                        requireActivity().onBackPressedDispatcher.onBackPressed()
-                    }
-                }
-            }
-        }
+    override val walletId: String
+        get() = args.walletId
+
+    override fun getSelectedCoins(): List<UnspentOutput> {
+        return coinListViewModel.getSelectedCoins()
+    }
+
+    override fun resetSelect() {
+        coinListViewModel.resetSelect()
     }
 }
 
@@ -191,6 +164,7 @@ private fun CoinListScreen(
     onShowSelectedCoinMoreOption: () -> Unit = {},
     onSendBtc: () -> Unit = {},
     onShowMoreOptions: () -> Unit = {},
+    enableSearchMode: () -> Unit = {},
     args: CoinListFragmentArgs,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -212,7 +186,7 @@ private fun CoinListScreen(
         onSelectOrUnselectAll = viewModel::onSelectOrUnselectAll,
         onSelectDone = viewModel::onSelectDone,
         enableSelectMode = viewModel::enableSelectMode,
-        enableSearchMode = viewModel::enableSearchMode,
+        enableSearchMode = enableSearchMode,
         onViewCoinDetail = onViewCoinDetail,
         onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption,
         onSendBtc = onSendBtc,
@@ -269,11 +243,9 @@ private fun CoinListContent(
                     }
                 }
             }) { innerPadding ->
-            Column {
+            Column(modifier = Modifier.padding(innerPadding)) {
                 LazyColumn(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(innerPadding)
+                    modifier = Modifier.weight(1f)
                 ) {
                     items(coins) { coin ->
                         PreviewCoinCard(

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/coin_navigation">
+    android:id="@+id/coin_navigation"
+    app:startDestination="@id/coinSearchFragmentFragment">
 
     <fragment
         android:id="@+id/coinListFragment"
@@ -48,8 +49,8 @@
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
 
         <action
-            android:id="@+id/action_coinListFragment_to_coinTagListFragment"
-            app:destination="@id/coinTagListFragment"
+            android:id="@+id/action_coinListFragment_to_coinSearchFragmentFragment"
+            app:destination="@id/coinSearchFragmentFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -190,6 +191,28 @@
             android:name="coin_tag"
             app:argType="com.nunchuk.android.model.CoinTag" />
     </dialog>
+    <fragment
+        android:id="@+id/coinSearchFragmentFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.search.CoinSearchFragmentFragment"
+        android:label="CoinSearchFragmentFragment">
 
-
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_coinSearchFragmentFragment_to_coinDetailFragment"
+            app:destination="@id/coinDetailFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+    <action
+        android:id="@+id/action_global_coinTagListFragment"
+        app:destination="@id/coinTagListFragment"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:launchSingleTop="true"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim" />
 </navigation>
