@@ -122,9 +122,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         MatrixEvenBus.instance.subscribe(matrixEventListener)
         AppEvenBus.instance.subscribe(appEventListener)
         viewModel.checkAppUpdateRecommend(false)
-        if (savedInstanceState == null && intent.getBooleanExtra(EXTRAS_IS_NEW_DEVICE, false)) {
-            showUnverifiedDeviceWarning()
-        }
 
         messages.forEachIndexed { index, message ->
             NCToastMessage(this).showMessage(
@@ -189,13 +186,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         }
     }
 
-    private fun showUnverifiedDeviceWarning() {
-        NCInfoDialog(this).showDialog(
-            message = getString(R.string.nc_unverified_device),
-            cancelable = true
-        )
-    }
-
     private fun setupNavigationView() {
         val navView: BottomNavigationView = binding.navView
         val navHostFragment =
@@ -253,7 +243,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
             loginHalfToken: String? = null,
             deviceId: String? = null,
             position: Int? = null,
-            isNewDevice: Boolean = false,
             messages: ArrayList<String>? = null,
             isClearTask: Boolean = false
         ) {
@@ -264,7 +253,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
                     deviceId = deviceId,
                     bottomNavViewPosition = position,
                     messages = messages,
-                    isNewDevice = isNewDevice,
                     isClearTask = isClearTask
                 )
             )
@@ -276,7 +264,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
             loginHalfToken: String? = null,
             deviceId: String? = null,
             @IdRes bottomNavViewPosition: Int? = null,
-            isNewDevice: Boolean = false,
             messages: ArrayList<String>? = null,
             isClearTask: Boolean = false
         ): Intent {
@@ -289,7 +276,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
                 putExtra(EXTRAS_LOGIN_HALF_TOKEN, loginHalfToken)
                 putExtra(EXTRAS_ENCRYPTED_DEVICE_ID, deviceId)
                 putExtra(EXTRAS_BOTTOM_NAV_VIEW_POSITION, bottomNavViewPosition)
-                putExtra(EXTRAS_IS_NEW_DEVICE, isNewDevice)
                 putExtra(EXTRAS_MESSAGE_LIST, messages)
             }
         }

@@ -9,7 +9,8 @@ data class WalletSecuritySettingState(
 
 sealed class WalletSecuritySettingEvent {
     object UpdateConfigSuccess : WalletSecuritySettingEvent()
-    data class CheckWalletPin(val match: Boolean) : WalletSecuritySettingEvent()
+    object CheckPasswordSuccess : WalletSecuritySettingEvent()
+    data class CheckWalletPin(val match: Boolean, val isHideWalletDetailFlow: Boolean) : WalletSecuritySettingEvent()
     data class Loading(val loading: Boolean) : WalletSecuritySettingEvent()
     data class Error(val message: String) : WalletSecuritySettingEvent()
     object None : WalletSecuritySettingEvent()

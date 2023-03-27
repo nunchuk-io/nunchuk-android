@@ -3,6 +3,7 @@
     <string name="nc_settings_sign_out">Sign out</string>
     <string name="nc_settings_unit">Display unit (%1$s)</string>
     <string name="nc_settings_network">Network settings</string>
+    <string name="nc_local_currency_data">Local currency (%1$s)</string>
     <string name="nc_wallet_security_settings">Wallet security settings</string>
     <string name="nc_settings_change_password">Change password</string>
     <string name="nc_settings_replace_primary_key">Replace Primary Key</string>
@@ -80,4 +81,6 @@
     <string name="nc_enter_current_pin">Enter current PIN</string>
     <string name="nc_enter_your_pin">Enter your PIN</string>
     <string name="nc_create_a_wallet_pin_desc">[B]Please make sure to remember your PIN.[/B] If you forget your PIN and have not backed up your wallets, you might not be able to access them again.</string>
+    <string name="nc_local_currency">Local currency</string>
+    <string name="nc_local_currency_updated">Local currency updated</string>
 </resources>

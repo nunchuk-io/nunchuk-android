@@ -34,14 +34,17 @@ import com.nunchuk.android.core.matrix.UploadFileUseCase
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.core.profile.UpdateUseProfileUseCase
+import com.nunchuk.android.core.util.USD_CURRENCY
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
 import java.io.ByteArrayOutputStream
@@ -58,6 +61,7 @@ internal class AccountViewModel @Inject constructor(
     private val signInModeHolder: SignInModeHolder,
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
     private val membershipStepManager: MembershipStepManager,
+    private val getLocalCurrencyUseCase: GetLocalCurrencyUseCase,
     private val application: Application,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<AccountState, AccountEvent>() {
@@ -78,6 +82,11 @@ internal class AccountViewModel @Inject constructor(
                         syncProgress = progress
                     )
                 }
+            }
+        }
+        viewModelScope.launch {
+            getLocalCurrencyUseCase(Unit).collect { result ->
+                updateState { copy(localCurrency = result.getOrDefault(USD_CURRENCY)) }
             }
         }
     }

@@ -47,7 +47,7 @@ internal class SignersViewBinder(
         binding.signerType.text = model.toReadableSignerType(context, isIgnorePrimary = true)
         binding.avatar.isVisible = false
         binding.ivSignerType.isVisible = true
-        binding.ivSignerType.setImageDrawable(model.type.toReadableDrawable(context))
+        binding.ivSignerType.setImageDrawable(model.toReadableDrawable(context))
         binding.signerName.text = model.name
         binding.xfp.text = model.getXfpOrCardIdLabel()
         binding.tvBip32Path.isVisible = model.derivationPath.isNotEmpty() && isShowPath

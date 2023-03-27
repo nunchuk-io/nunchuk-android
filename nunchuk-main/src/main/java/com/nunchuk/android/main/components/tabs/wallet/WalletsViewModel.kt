@@ -32,6 +32,9 @@ import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.LOCAL_CURRENCY
+import com.nunchuk.android.core.util.USD_CURRENCY
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.*
 import com.nunchuk.android.model.*
 import com.nunchuk.android.model.membership.AssistedWalletBrief
@@ -39,9 +42,11 @@ import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
+import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
+import com.nunchuk.android.usecase.membership.GetAssistedWalletConfigUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
 import com.nunchuk.android.usecase.user.IsHideUpsellBannerUseCase
@@ -70,8 +75,12 @@ internal class WalletsViewModel @Inject constructor(
     private val checkWalletPinUseCase: CheckWalletPinUseCase,
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
     private val getWalletPinUseCase: GetWalletPinUseCase,
+    private val getAssistedWalletConfigUseCase: GetAssistedWalletConfigUseCase,
+    private val getLocalCurrencyUseCase: GetLocalCurrencyUseCase,
+    private val getRemotePriceConvertBTCUseCase: GetRemotePriceConvertBTCUseCase,
     isShowNfcUniversalUseCase: IsShowNfcUniversalUseCase,
     isHideUpsellBannerUseCase: IsHideUpsellBannerUseCase,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
 
@@ -88,6 +97,9 @@ internal class WalletsViewModel @Inject constructor(
     override val initialState = WalletsState()
 
     init {
+        viewModelScope.launch {
+            getAssistedWalletConfigUseCase(Unit)
+        }
         viewModelScope.launch {
             getAssistedWalletsFlowUseCase(Unit).map { it.getOrElse { emptyList() } }
                 .distinctUntilChanged()
@@ -120,6 +132,12 @@ internal class WalletsViewModel @Inject constructor(
         viewModelScope.launch {
             getWalletPinUseCase(Unit).collect {
                 updateState { copy(currentWalletPin = it.getOrDefault("")) }
+            }
+        }
+        viewModelScope.launch {
+            getLocalCurrencyUseCase(Unit).collect {
+                LOCAL_CURRENCY = it.getOrDefault(USD_CURRENCY)
+                getRemotePriceConvertBTCUseCase(Unit)
             }
         }
     }

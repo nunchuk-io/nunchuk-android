@@ -20,10 +20,12 @@
 package com.nunchuk.android.core.util
 
 import android.content.Context
-import android.graphics.drawable.Drawable
 import androidx.core.content.ContextCompat
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.SignerType.*
 
@@ -43,26 +45,39 @@ fun SignerType.toReadableString(context: Context, isPrimaryKey: Boolean): String
 fun SignerModel.toReadableSignerType(context: Context, isIgnorePrimary: Boolean = false) =
     type.toReadableString(context, if (isIgnorePrimary) false else isPrimaryKey)
 
-fun SignerType.toReadableDrawable(context: Context, isPrimaryKey: Boolean = false): Drawable {
-    return ContextCompat.getDrawable(
-        context,
-        toReadableDrawableResId(isPrimaryKey)
-    ) ?: throw NullPointerException("Nunchuk can not get drawable")
-}
-
-fun SignerType.toReadableDrawableResId(isPrimaryKey: Boolean = false): Int {
+private fun toReadableDrawableResId(type: SignerType, tags: List<SignerTag>, isPrimaryKey: Boolean = false): Int {
     if (isPrimaryKey) return R.drawable.ic_signer_type_primary_key_small
-    return when (this) {
-        AIRGAP -> R.drawable.ic_air_gapped
-        COLDCARD_NFC -> R.drawable.ic_coldcard_small
-        SOFTWARE -> R.drawable.ic_logo_dark_small
-        HARDWARE -> R.drawable.ic_signer_type_wired
-        FOREIGN_SOFTWARE -> R.drawable.ic_logo_dark_small
-        NFC -> R.drawable.ic_nfc_card
-        UNKNOWN -> R.drawable.ic_unknown_key
-        SERVER -> R.drawable.ic_server_key_dark
+    return when {
+        type == AIRGAP && tags.contains(SignerTag.JADE) -> R.drawable.ic_air_gapped_jade
+        type == AIRGAP && tags.contains(SignerTag.SEEDSIGNER) -> R.drawable.ic_air_gapped_seedsigner
+        type == AIRGAP && tags.contains(SignerTag.PASSPORT) -> R.drawable.ic_air_gapped_passport
+        type == AIRGAP && tags.contains(SignerTag.KEYSTONE) -> R.drawable.ic_air_gapped_keystone
+        type == AIRGAP -> R.drawable.ic_air_gapped_other
+        type == COLDCARD_NFC -> R.drawable.ic_coldcard_small
+        type == SOFTWARE -> R.drawable.ic_logo_dark_small
+        type == HARDWARE -> R.drawable.ic_signer_type_wired
+        type == FOREIGN_SOFTWARE -> R.drawable.ic_logo_dark_small
+        type == NFC -> R.drawable.ic_nfc_card
+        type == SERVER -> R.drawable.ic_server_key_dark
+        else -> R.drawable.ic_unknown_key
     }
 }
 
-fun SignerModel.toReadableSignerTypeDrawable(context: Context, isPrimaryKey: Boolean = false) =
-    type.toReadableDrawable(context, isPrimaryKey)
+fun SignerModel.toReadableDrawable(context: Context, isPrimaryKey: Boolean = false) = ContextCompat.getDrawable(
+        context,
+        toReadableDrawableResId(type, tags, isPrimaryKey)
+    ) ?: throw NullPointerException("Nunchuk can not get drawable")
+
+fun SignerModel.toReadableDrawableResId(isPrimaryKey: Boolean = false): Int {
+    return toReadableDrawableResId(type, tags, isPrimaryKey)
+}
+
+fun MasterSigner.toReadableDrawable(context: Context, isPrimaryKey: Boolean = false) = ContextCompat.getDrawable(
+    context,
+    toReadableDrawableResId(type, tags, isPrimaryKey)
+) ?: throw NullPointerException("Nunchuk can not get drawable")
+
+fun SingleSigner.toReadableDrawable(context: Context, isPrimaryKey: Boolean = false) = ContextCompat.getDrawable(
+    context,
+    toReadableDrawableResId(type, tags, isPrimaryKey)
+) ?: throw NullPointerException("Nunchuk can not get drawable")

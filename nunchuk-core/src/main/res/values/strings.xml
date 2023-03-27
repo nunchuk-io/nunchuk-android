@@ -49,7 +49,6 @@
     <string name="nc_address_share">Share address</string>
     <string name="nc_address_copy">Copy address</string>
 
-    <string name="nc_unverified_device">You might not be able to read encrypted messages from the original device. A Device Verification feature will allow you to do so in the future. Follow us on Twitter for updates.</string>
     <string name="nc_version">Version</string>
     <string name="nc_transaction_no_app_to_open_link">There is no apps found to open link</string>
     <string name="nc_account_deleted_message">Your account has successfully been deleted</string>
@@ -524,4 +523,7 @@
     <string name="nc_setup_inheritance_for">Set up an inheritance plan for %1$s</string>
     <string name="nc_import_via_qr">Import via QR</string>
     <string name="nc_continue_setting_your_wallet">Continue setting up your wallet</string>
+    <string name="nc_coldcard">COLDCARD</string>
+    <string name="nc_bsms">BSMS</string>
+    <string name="nc_other">Other</string>
 </resources>

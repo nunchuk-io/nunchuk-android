@@ -83,9 +83,15 @@ object SheetOptionType {
     const val TYPE_ADD_AIRGAP_JADE = 32
     const val TYPE_ADD_AIRGAP_PASSPORT = 33
     const val TYPE_ADD_AIRGAP_SEEDSIGNER = 34
+    const val TYPE_ADD_AIRGAP_OTHER = 35
 
-    const val TYPE_EXPORT_QR = 35
-    const val TYPE_EXPORT_FILE = 36
-    const val TYPE_IMPORT_QR = 37
-    const val TYPE_IMPORT_FILE = 38
+    const val TYPE_EXPORT_QR = 36
+    const val TYPE_EXPORT_FILE = 37
+    const val TYPE_IMPORT_QR = 38
+    const val TYPE_IMPORT_FILE = 39
+
+    const val TYPE_IMPORT_TX = 40
+    const val TYPE_EXPORT_BSMS = 41
+
+    const val TYPE_SATSCARD_SKIP_SLOT = 42
 }

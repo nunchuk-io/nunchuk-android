@@ -46,7 +46,7 @@ internal class TransactionSignersViewBinder(
         val binding = ItemTransactionSignerBinding.bind(container[position])
         binding.avatar.isVisible = false
         binding.ivSignerType.isVisible = true
-        binding.ivSignerType.setImageDrawable(model.type.toReadableDrawable(context))
+        binding.ivSignerType.setImageDrawable(model.toReadableDrawable(context))
         binding.signerName.text = model.name
         binding.xpf.text = model.getXfpOrCardIdLabel()
         binding.signerType.text = model.toReadableSignerType(context)

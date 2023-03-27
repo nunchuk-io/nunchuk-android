@@ -71,11 +71,10 @@ internal class NunchukNavigatorImpl @Inject constructor(
         deviceId: String?,
         bottomNavViewPosition: Int?,
         messages: ArrayList<String>?,
-        isNewDevice: Boolean,
         isClearTask: Boolean
     ) {
         MainActivity.start(
-            activityContext, loginHalfToken, deviceId, bottomNavViewPosition, isNewDevice,
+            activityContext, loginHalfToken, deviceId, bottomNavViewPosition,
             messages = messages, isClearTask = isClearTask
         )
     }

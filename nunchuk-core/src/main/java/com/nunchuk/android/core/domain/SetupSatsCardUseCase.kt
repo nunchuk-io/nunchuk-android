@@ -19,19 +19,16 @@
 
 package com.nunchuk.android.core.domain
 
-import android.content.Context
 import android.nfc.tech.IsoDep
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
 @Suppress("BlockingMethodInNonBlockingContext")
 class SetupSatsCardUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
-    @ApplicationContext private val context: Context,
     private val nunchukNativeSdk: NunchukNativeSdk,
     waitAutoCardUseCase: WaitAutoCardUseCase
 ) : BaseNfcUseCase<SetupSatsCardUseCase.Data, SatsCardStatus>(dispatcher, waitAutoCardUseCase) {

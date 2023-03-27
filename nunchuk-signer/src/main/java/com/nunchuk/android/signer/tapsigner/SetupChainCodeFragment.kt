@@ -47,6 +47,7 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.FragmentSetupChainCodeBinding
 import com.nunchuk.android.signer.satscard.SatsCardActivity
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.util.heightExtended
 import com.nunchuk.android.widget.util.setMaxLength
 import dagger.hilt.android.AndroidEntryPoint
@@ -136,13 +137,21 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
             if ((activity as NfcSetupActivity).setUpAction == NfcSetupActivity.SETUP_SATSCARD) {
                 (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_SATSCARD_SETUP)
             } else {
-                findNavController().navigate(R.id.changeNfcCvcFragment, ChangeNfcCvcFragment.buildArguments(binding.etChainCode.getEditText()))
+                findNavController().navigate(
+                    R.id.changeNfcCvcFragment,
+                    ChangeNfcCvcFragment.buildArguments(binding.etChainCode.getEditText())
+                )
             }
         }
     }
 
     private fun handleSetupSatscard(info: NfcScanInfo) {
-        viewModel.setUpSatsCard(IsoDep.get(info.tag), nfcViewModel.inputCvc.orEmpty(), binding.etChainCode.getEditText())
+        viewModel.setUpSatsCard(
+            IsoDep.get(info.tag),
+            nfcViewModel.inputCvc.orEmpty(),
+            binding.etChainCode.getEditText(),
+            requireActivity().intent.parcelable(NfcSetupActivity.EXTRA_SATSCARD_SLOT)
+        )
     }
 
     private fun handleState(state: SetupChainCodeState) {

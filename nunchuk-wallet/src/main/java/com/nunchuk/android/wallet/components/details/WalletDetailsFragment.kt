@@ -133,9 +133,9 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
 
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
+            SheetOptionType.TYPE_IMPORT_TX -> showImportTransactionOption()
             SheetOptionType.TYPE_IMPORT_PSBT -> handleImportPSBT()
             SheetOptionType.TYPE_IMPORT_PSBT_QR -> openImportTransactionScreen()
-            SheetOptionType.TYPE_SAVE_WALLET_CONFIG -> handleExportBSMS()
             SheetOptionType.SET_UP_INHERITANCE -> navigator.openMembershipActivity(
                 activityContext = requireActivity(),
                 groupStep = MembershipStage.SETUP_INHERITANCE,
@@ -189,7 +189,6 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             is WalletDetailsError -> onGetWalletError(event)
             is SendMoneyEvent -> openInputAmountScreen(event)
             is UpdateUnusedAddress -> bindUnusedAddress(event.address)
-            is UploadWalletConfigEvent -> shareConfigurationFile(event.filePath)
             is Loading -> showOrHideLoading(event.loading)
             ImportPSBTSuccess -> onPSBTImported()
             is PaginationTransactions -> startPagination(event.hasTransactions)
@@ -265,7 +264,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         )
 
         binding.btcAmount.text = Utils.maskValue(wallet.getBTCAmount(), state.hideWalletDetailLocal)
-        binding.cashAmount.text = Utils.maskValue(wallet.getUSDAmount(), state.hideWalletDetailLocal)
+        binding.cashAmount.text = Utils.maskValue(wallet.getCurrencyAmount(), state.hideWalletDetailLocal)
         binding.btnSend.isClickable = wallet.balance.value > 0
 
         binding.shareIcon.isVisible = state.walletExtended.isShared || state.isAssistedWallet
@@ -347,26 +346,12 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         )
     }
 
-    private fun shareConfigurationFile(filePath: String) {
-        controller.shareFile(filePath)
-    }
-
     private fun onMoreClicked() {
         val options = mutableListOf(
             SheetOption(
-                SheetOptionType.TYPE_IMPORT_PSBT,
+                SheetOptionType.TYPE_IMPORT_TX,
                 R.drawable.ic_import,
-                R.string.nc_wallet_import_psbt
-            ),
-            SheetOption(
-                SheetOptionType.TYPE_IMPORT_PSBT_QR,
-                R.drawable.ic_import,
-                R.string.nc_import_psbt_via_qr
-            ),
-            SheetOption(
-                SheetOptionType.TYPE_SAVE_WALLET_CONFIG,
-                R.drawable.ic_backup,
-                R.string.nc_wallet_save_wallet_configuration
+                R.string.nc_import_transaction
             ),
         )
         if (viewModel.isShowSetupInheritance()) {
@@ -382,6 +367,24 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         bottomSheet.show(childFragmentManager, "BottomSheetOption")
     }
 
+    private fun showImportTransactionOption() {
+        BottomSheetOption.newInstance(
+            title = getString(R.string.nc_select_import_method),
+            options = listOf(
+                SheetOption(
+                    SheetOptionType.TYPE_IMPORT_PSBT_QR,
+                    R.drawable.ic_qr,
+                    R.string.nc_import_via_qr
+                ),
+                SheetOption(
+                    SheetOptionType.TYPE_IMPORT_PSBT,
+                    R.drawable.ic_import,
+                    R.string.nc_import_via_file
+                )
+            )
+        ).show(childFragmentManager, "BottomSheetOption")
+    }
+
     private fun openImportTransactionScreen() {
         navigator.openImportTransactionScreen(
             activityContext = requireActivity(),
@@ -389,12 +392,8 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         )
     }
 
-    private fun handleExportBSMS() {
-        viewModel.handleExportBSMS()
-    }
-
     private fun handleImportPSBT() {
-        requireActivity().openSelectFileChooser()
+        openSelectFileChooser()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {

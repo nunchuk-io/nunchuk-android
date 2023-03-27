@@ -24,7 +24,6 @@ import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -190,7 +189,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
     private fun bindMasterSigner(signer: MasterSigner) {
         val isPrimaryKey = isPrimaryKey(signer.device.masterFingerprint)
         binding.signerName.text = signer.name
-        binding.signerTypeIcon.setImageDrawable(signer.type.toReadableDrawable(this, isPrimaryKey))
+        binding.signerTypeIcon.setImageDrawable(signer.toReadableDrawable(this, isPrimaryKey))
         binding.fingerprint.isVisible = true
         binding.fingerprint.text = signer.device.masterFingerprint
         binding.signerSpec.isVisible = false
@@ -200,12 +199,7 @@ class SignerInfoActivity : BaseNfcActivity<ActivitySignerInfoBinding>(),
 
     private fun bindRemoteSigner(signer: SingleSigner) {
         binding.signerName.text = signer.name
-        binding.signerTypeIcon.setImageDrawable(
-            ContextCompat.getDrawable(
-                this,
-                R.drawable.ic_air_signer_big
-            )
-        )
+        binding.signerTypeIcon.setImageDrawable(signer.toReadableDrawable(this))
         binding.signerSpec.isVisible = true
         binding.signerSpec.text = signer.descriptor
         binding.fingerprint.isVisible = false

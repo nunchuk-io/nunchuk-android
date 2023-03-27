@@ -30,8 +30,6 @@ import dagger.hilt.components.SingletonComponent
 @Module
 @InstallIn(SingletonComponent::class)
 internal interface DomainModule {
-    @Binds
-    fun bindGetPriceConvertBTCUseCase(repository: GetRemotePriceConvertBTCUseCaseImpl): GetRemotePriceConvertBTCUseCase
 
     @Binds
     fun bindScheduleGetPriceConvertBTCUseCase(repository: ScheduleGetPriceConvertBTCUseCaseImpl): ScheduleGetPriceConvertBTCUseCase

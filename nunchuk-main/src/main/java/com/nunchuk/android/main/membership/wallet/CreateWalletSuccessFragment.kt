@@ -37,11 +37,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.nav.NunchukNavigator
@@ -127,12 +125,6 @@ fun CreateWalletSuccessScreenContent(
                     style = NunchukTheme.typography.body
                 )
                 Spacer(modifier = Modifier.weight(1.0f))
-                if (plan == MembershipPlan.HONEY_BADGER) {
-                    NcHintMessage(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        messages = listOf(ClickAbleText(stringResource(com.nunchuk.android.main.R.string.nc_cosigning_limit_hint)))
-                    )
-                }
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()

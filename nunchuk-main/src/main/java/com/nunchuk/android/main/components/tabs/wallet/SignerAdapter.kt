@@ -29,7 +29,7 @@ import com.nunchuk.android.core.R
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.getString
 import com.nunchuk.android.core.util.toReadableSignerType
-import com.nunchuk.android.core.util.toReadableSignerTypeDrawable
+import com.nunchuk.android.core.util.toReadableDrawable
 import com.nunchuk.android.signer.databinding.ItemSignerBinding
 
 class SignerAdapter(
@@ -85,7 +85,7 @@ class SingerViewHolder(
         binding.xpf.text = model.getXfpOrCardIdLabel()
         binding.signerType.text = model.toReadableSignerType(binding.root.context)
         binding.icPin.setImageDrawable(
-            model.toReadableSignerTypeDrawable(
+            model.toReadableDrawable(
                 binding.root.context,
                 model.isPrimaryKey
             )

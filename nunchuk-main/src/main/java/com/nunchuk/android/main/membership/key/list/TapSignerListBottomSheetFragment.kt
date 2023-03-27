@@ -215,7 +215,7 @@ private fun SignerCard(
         modifier = Modifier.clickable { onSignerSelected(signer) },
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        NcCircleImage(resId = signer.type.toReadableDrawableResId())
+        NcCircleImage(resId = signer.toReadableDrawableResId())
         Column(
             modifier = Modifier
                 .padding(start = 12.dp)

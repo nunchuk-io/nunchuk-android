@@ -24,9 +24,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GenerateRandomChainCodeUseCase
 import com.nunchuk.android.core.domain.SetupSatsCardUseCase
+import com.nunchuk.android.core.domain.UnsealSatsCardSlotUseCase
 import com.nunchuk.android.core.util.CHAIN_CODE_LENGTH
+import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SatsCardStatus
-import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,7 +39,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SetupChainCodeViewModel @Inject constructor(
     private val generateRandomChainCodeUseCase: GenerateRandomChainCodeUseCase,
-    private val setupSatsCardUseCase: Lazy<SetupSatsCardUseCase>
+    private val unsealSatsCardSlotUseCase: UnsealSatsCardSlotUseCase,
+    private val setupSatsCardUseCase: SetupSatsCardUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow<SetupChainCodeState?>(null)
     private val _event = MutableSharedFlow<SetupChainCodeEvent>()
@@ -60,11 +62,17 @@ class SetupChainCodeViewModel @Inject constructor(
         }
     }
 
-    fun setUpSatsCard(isoDep: IsoDep?, cvc: String, chainCode: String) {
+    fun setUpSatsCard(isoDep: IsoDep?, cvc: String, chainCode: String, slot: SatsCardSlot?) {
         isoDep ?: return
         viewModelScope.launch {
             _event.emit(SetupChainCodeEvent.NfcLoading(true))
-            val result = setupSatsCardUseCase.get()(SetupSatsCardUseCase.Data(isoDep, cvc, chainCode))
+            if (slot != null) {
+                unsealSatsCardSlotUseCase(UnsealSatsCardSlotUseCase.Data(isoDep, cvc, slot)).onFailure {
+                    _event.emit(SetupChainCodeEvent.ShowError(it))
+                    return@launch
+                }
+            }
+            val result = setupSatsCardUseCase(SetupSatsCardUseCase.Data(isoDep, cvc, chainCode))
             _event.emit(SetupChainCodeEvent.NfcLoading(false))
             if (result.isSuccess) {
                 _event.emit(SetupChainCodeEvent.SetupSatsCardSuccess(result.getOrThrow()))

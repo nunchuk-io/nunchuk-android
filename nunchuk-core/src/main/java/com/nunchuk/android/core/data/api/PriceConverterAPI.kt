@@ -27,4 +27,10 @@ interface PriceConverterAPI {
 
     @GET("prices")
     suspend fun getPrices(): Data<PriceWrapperResponse>
+
+    @GET("/v1.1/forex/rates")
+    suspend fun getForexRates(): HashMap<String, Double>
+
+    @GET("/v1.1/forex/currencies")
+    suspend fun getForexCurrencies(): HashMap<String, String>
 }

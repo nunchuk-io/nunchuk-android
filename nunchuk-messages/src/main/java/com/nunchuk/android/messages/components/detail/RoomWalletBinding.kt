@@ -55,7 +55,7 @@ fun ViewWalletStickyBinding.bindRoomWallet(
 fun ItemWalletBinding.bindRoomWallet(wallet: Wallet) {
     walletName.text = wallet.name
     config.bindRatio(isEscrow = wallet.escrow, requireSigners = wallet.totalRequireSigns, totalSigners = wallet.signers.size)
-    val balanceVal = "(${wallet.getUSDAmount()})"
+    val balanceVal = "(${wallet.getCurrencyAmount()})"
     btc.text = wallet.getBTCAmount()
     balance.text = balanceVal
 }
