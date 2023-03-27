@@ -30,7 +30,7 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getUSDAmount
+import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.share.satscard.SweepSatscardViewModel
@@ -98,7 +98,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
         }
         binding.sendAddressLabel.text = args.address
         binding.estimatedFeeBTC.text = args.estimatedFee.getBTCAmount()
-        binding.estimatedFeeUSD.text = args.estimatedFee.getUSDAmount()
+        binding.estimatedFeeUSD.text = args.estimatedFee.getCurrencyAmount()
         val sendAmount: Double
         val totalAmount: Double
         if (args.subtractFeeFromAmount) {
@@ -109,9 +109,9 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             totalAmount = args.outputAmount + args.estimatedFee
         }
         binding.sendAddressBTC.text = sendAmount.getBTCAmount()
-        binding.sendAddressUSD.text = sendAmount.getUSDAmount()
+        binding.sendAddressUSD.text = sendAmount.getCurrencyAmount()
         binding.totalAmountBTC.text = totalAmount.getBTCAmount()
-        binding.totalAmountUSD.text = totalAmount.getUSDAmount()
+        binding.totalAmountUSD.text = totalAmount.getCurrencyAmount()
         binding.noteContent.text = args.privateNote
 
         binding.btnConfirm.setOnClickListener {
@@ -152,7 +152,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
         if (changeAddress.isNotBlank()) {
             binding.changeAddressLabel.text = changeAddress
             binding.changeAddressBTC.text = amount.getBTCAmount()
-            binding.changeAddressUSD.text = amount.getUSDAmount()
+            binding.changeAddressUSD.text = amount.getCurrencyAmount()
         } else {
             binding.changeAddress.visibility = View.GONE
             binding.changeAddressLabel.visibility = View.GONE

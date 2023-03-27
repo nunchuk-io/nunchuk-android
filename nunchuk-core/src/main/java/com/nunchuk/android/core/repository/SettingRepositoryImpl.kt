@@ -52,6 +52,9 @@ internal class SettingRepositoryImpl @Inject constructor(
     override val walletPin: Flow<String>
         get() = ncEncryptedPreferences.getWalletPinFlow()
 
+    override val localCurrency: Flow<String>
+        get() = ncDataStore.localCurrencyFlow
+
     override suspend fun markSyncRoomSuccess() {
         ncDataStore.markSyncRoomSuccess()
     }
@@ -74,5 +77,9 @@ internal class SettingRepositoryImpl @Inject constructor(
 
     override suspend fun setWalletPin(pin: String) {
         ncEncryptedPreferences.setWalletPin(pin)
+    }
+
+    override suspend fun setLocalCurrency(currency: String) {
+        ncDataStore.setLocalCurrency(currency)
     }
 }

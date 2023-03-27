@@ -72,7 +72,7 @@ internal class TransactionAdapter(
                 binding.sendTo.text = context.getString(R.string.nc_transaction_receive_at)
                 binding.amountBTC.text = Utils.maskValue(data.transaction.totalAmount.getBTCAmount(), hideWalletDetail)
                 binding.amountBTC.setTextColor(receivedAmountColor)
-                binding.amountUSD.text = Utils.maskValue(data.transaction.totalAmount.getUSDAmount(), hideWalletDetail)
+                binding.amountUSD.text = Utils.maskValue(data.transaction.totalAmount.getCurrencyAmount(), hideWalletDetail)
                 binding.receiverName.text = Utils.maskValue(data.transaction.receiveOutputs.firstOrNull()?.first.orEmpty().truncatedAddress(), hideWalletDetail)
             } else {
                 if (data.transaction.status.isConfirmed()) {
@@ -82,7 +82,7 @@ internal class TransactionAdapter(
                 }
                 binding.amountBTC.text = Utils.maskValue("- ${data.transaction.totalAmount.getBTCAmount()}", hideWalletDetail)
                 binding.amountBTC.setTextColor(sentAmountColor)
-                binding.amountUSD.text = Utils.maskValue("- ${data.transaction.totalAmount.getUSDAmount()}", hideWalletDetail)
+                binding.amountUSD.text = Utils.maskValue("- ${data.transaction.totalAmount.getCurrencyAmount()}", hideWalletDetail)
                 binding.receiverName.text =
                     Utils.maskValue(data.transaction.outputs.firstOrNull()?.first.orEmpty().truncatedAddress(), hideWalletDetail)
             }

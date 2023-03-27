@@ -329,7 +329,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
         }
         binding.sendAddressLabel.text = output?.first.orEmpty()
         binding.sendAddressBTC.text = output?.second?.getBTCAmount().orEmpty()
-        binding.sendAddressUSD.text = output?.second?.getUSDAmount().orEmpty()
+        binding.sendAddressUSD.text = output?.second?.getCurrencyAmount().orEmpty()
 
         binding.sendingToLabel.text = getString(R.string.nc_transaction_sending_to)
         binding.sendToAddress.text = getString(R.string.nc_transaction_send_to_address)
@@ -337,12 +337,12 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
 
     private fun bindingTotalAmount(transaction: Transaction) {
         binding.totalAmountBTC.text = transaction.totalAmount.getBTCAmount()
-        binding.totalAmountUSD.text = transaction.totalAmount.getUSDAmount()
+        binding.totalAmountUSD.text = transaction.totalAmount.getCurrencyAmount()
     }
 
     private fun bindTransactionFee(transaction: Transaction) {
         binding.estimatedFeeBTC.text = transaction.fee.getBTCAmount()
-        binding.estimatedFeeUSD.text = transaction.fee.getUSDAmount()
+        binding.estimatedFeeUSD.text = transaction.fee.getCurrencyAmount()
     }
 
     private fun openExportTransactionScreen() {

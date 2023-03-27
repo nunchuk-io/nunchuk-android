@@ -20,16 +20,17 @@
 package com.nunchuk.android.core.repository
 
 import com.nunchuk.android.core.data.api.PriceConverterAPI
-import com.nunchuk.android.core.data.model.PriceResponse
 import com.nunchuk.android.core.persistence.NcDataStore
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 interface BtcPriceRepository {
-    fun getRemotePrice(): Flow<PriceResponse>
+    suspend fun getRemotePrice()
     fun getLocalPrice(): Flow<Double>
+    suspend fun getForexCurrencies(): HashMap<String, String>
 }
 
 internal class BtcPriceRepositoryImpl @Inject constructor(
@@ -37,17 +38,21 @@ internal class BtcPriceRepositoryImpl @Inject constructor(
     private val ncDataStore: NcDataStore
 ) : BtcPriceRepository {
 
-    override fun getRemotePrice(
-    ) = flow {
-        emit(
-            priceConverterAPI.getPrices()
-        )
-    }.map {
-        it.data.prices.btc?.usd?.let { priceUsd ->
-            ncDataStore.updateBtcPrice(priceUsd)
+    override suspend fun getRemotePrice() {
+        coroutineScope {
+            val ratesResult = async { priceConverterAPI.getForexRates() }
+            val btcPriceResult = async { priceConverterAPI.getPrices() }
+            val rates = ratesResult.await()
+            val btcPrice = btcPriceResult.await().data.prices.btc?.usd ?: 0.0
+            val localCurrency = ncDataStore.localCurrencyFlow.first()
+            val rate = rates[localCurrency] ?: 0.0
+            ncDataStore.updateBtcPrice(rate * btcPrice)
         }
-        it.data.prices
     }
 
     override fun getLocalPrice(): Flow<Double> = ncDataStore.btcPriceFlow
+
+    override suspend fun getForexCurrencies(): HashMap<String, String> {
+        return priceConverterAPI.getForexCurrencies()
+    }
 }

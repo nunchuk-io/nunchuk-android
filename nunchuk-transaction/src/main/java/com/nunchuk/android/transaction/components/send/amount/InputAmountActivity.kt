@@ -21,7 +21,10 @@ package com.nunchuk.android.transaction.components.send.amount
 
 import android.content.Context
 import android.os.Bundle
+import android.util.TypedValue
 import androidx.activity.viewModels
+import androidx.core.view.doOnPreDraw
+import androidx.core.widget.doOnTextChanged
 import com.journeyapps.barcodescanner.ScanContract
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
@@ -77,7 +80,6 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             true
         }
         binding.mainCurrency.setText("")
-        binding.mainCurrency.addTextChangedCallback(viewModel::handleAmountChanged)
         binding.mainCurrency.requestFocus()
         binding.btnSendAll.setOnClickListener { openAddReceiptScreen(args.availableAmount, true) }
         binding.btnSwitch.setOnClickListener { viewModel.switchCurrency() }
@@ -85,8 +87,29 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             viewModel.handleContinueEvent()
         }
         binding.amountBTC.text = args.availableAmount.getBTCAmount()
-        binding.amountUSD.text = "(${args.availableAmount.getUSDAmount()})"
+        binding.amountUSD.text = "(${args.availableAmount.getCurrencyAmount()})"
         binding.mainCurrencyLabel.text = handleTextCurrency()
+
+        val originalTextSize = binding.mainCurrency.textSize
+        binding.tvMainCurrency.doOnPreDraw {
+            val tvWidth = resources.displayMetrics.widthPixels - resources.getDimensionPixelSize(R.dimen.nc_padding_16) * 3 - it.measuredWidth
+            binding.tvMainCurrency.width = tvWidth
+        }
+        binding.mainCurrency.doOnTextChanged { text, _, _, _ ->
+            binding.tvMainCurrency.text = text
+            viewModel.handleAmountChanged(text.toString())
+            binding.mainCurrency.post {
+                if (text.isNullOrBlank()) {
+                    binding.mainCurrency.setTextSize(TypedValue.COMPLEX_UNIT_PX, originalTextSize)
+                    binding.mainCurrencyLabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, originalTextSize)
+                    binding.tvMainCurrency.setTextSize(TypedValue.COMPLEX_UNIT_PX, originalTextSize)
+                } else {
+                    val optimalSize = binding.tvMainCurrency.textSize
+                    binding.mainCurrency.setTextSize(TypedValue.COMPLEX_UNIT_PX, optimalSize)
+                    binding.mainCurrencyLabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, optimalSize)
+                }
+            }
+        }
     }
 
     private fun handleTextCurrency() = when (CURRENT_DISPLAY_UNIT_TYPE) {
@@ -109,12 +132,16 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
     private fun handleState(state: InputAmountState) {
         if (state.useBtc) {
             binding.mainCurrencyLabel.text = handleTextCurrency()
-            binding.btnSwitch.text = getString(R.string.nc_transaction_switch_to_usd)
+            binding.btnSwitch.text = getString(R.string.nc_transaction_switch_to_currency_data, LOCAL_CURRENCY)
 
-            val secondaryCurrency = "${state.amountUSD.formatCurrencyDecimal()} ${getString(R.string.nc_currency_usd)}"
+            val secondaryCurrency = if (LOCAL_CURRENCY == USD_CURRENCY) {
+                state.amountUSD.formatCurrencyDecimal()
+            } else {
+                "${state.amountUSD.formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)} $LOCAL_CURRENCY"
+            }
             binding.secondaryCurrency.text = secondaryCurrency
         } else {
-            binding.mainCurrencyLabel.text = getString(R.string.nc_currency_usd)
+            binding.mainCurrencyLabel.text = LOCAL_CURRENCY
             binding.btnSwitch.text = getString(R.string.nc_transaction_switch_to_btc)
 
             val secondaryCurrency = "${state.amountBTC.formatDecimal()} ${getString(R.string.nc_currency_btc)}"
@@ -124,7 +151,15 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
 
     private fun handleEvent(event: InputAmountEvent) {
         when (event) {
-            is SwapCurrencyEvent -> binding.mainCurrency.setText(if (event.amount > 0) event.amount.formatCurrencyDecimal() else "")
+            is SwapCurrencyEvent -> {
+                binding.mainCurrency.setText(if (event.amount > 0) {
+                    if (LOCAL_CURRENCY == USD_CURRENCY || viewModel.getUseBTC()) {
+                        "${event.amount.formatDecimal()}"
+                    } else {
+                        "${event.amount.formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"
+                    }
+                } else "")
+            }
             is AcceptAmountEvent -> openAddReceiptScreen(event.amount)
             InsufficientFundsEvent -> NCToastMessage(this).showError(getString(R.string.nc_transaction_insufficient_funds))
             is ParseBtcUriSuccess -> {

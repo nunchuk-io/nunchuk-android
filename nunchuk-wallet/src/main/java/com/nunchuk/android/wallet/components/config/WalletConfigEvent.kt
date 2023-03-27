@@ -39,4 +39,6 @@ sealed class WalletConfigEvent {
         val requiredSignatures: Int,
         val type: String,
     ) : WalletConfigEvent()
+
+    data class UploadWalletConfigEvent(val filePath: String) : WalletConfigEvent()
 }

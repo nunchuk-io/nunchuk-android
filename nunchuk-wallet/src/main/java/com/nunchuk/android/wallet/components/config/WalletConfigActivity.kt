@@ -96,6 +96,8 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             SheetOptionType.TYPE_DELETE_WALLET -> handleDeleteWallet()
             SheetOptionType.TYPE_EXPORT_TO_COLD_CARD -> showExportColdcardOptions()
             SheetOptionType.TYPE_FORCE_REFRESH_WALLET -> showForceRefreshWalletDialog()
+            SheetOptionType.TYPE_SAVE_WALLET_CONFIG -> showSaveWalletConfigurationOption()
+            SheetOptionType.TYPE_EXPORT_BSMS -> handleExportBSMS()
         }
     }
 
@@ -170,6 +172,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 )
             }
             WalletConfigEvent.DeleteAssistedWalletSuccess -> walletDeleted()
+            is WalletConfigEvent.UploadWalletConfigEvent -> shareConfigurationFile(event.filePath)
         }
     }
 
@@ -246,17 +249,16 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         binding.toolbar.setNavigationOnClickListener { finish() }
     }
 
+    private fun handleExportBSMS() {
+        viewModel.handleExportBSMS()
+    }
+
     private fun showMoreOptions() {
         val options = mutableListOf(
             SheetOption(
-                SheetOptionType.TYPE_EXPORT_AS_QR,
-                R.drawable.ic_qr,
-                R.string.nc_show_as_qr_code
-            ),
-            SheetOption(
-                SheetOptionType.TYPE_EXPORT_TO_COLD_CARD,
-                R.drawable.ic_export,
-                R.string.nc_wallet_export_coldcard
+                SheetOptionType.TYPE_SAVE_WALLET_CONFIG,
+                R.drawable.ic_backup,
+                R.string.nc_wallet_save_wallet_configuration
             ),
         )
         if (viewModel.isAssistedWallet()) {
@@ -281,6 +283,26 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
         val bottomSheet = BottomSheetOption.newInstance(options)
         bottomSheet.show(supportFragmentManager, "BottomSheetOption")
+    }
+
+    private fun showSaveWalletConfigurationOption() {
+        BottomSheetOption.newInstance(
+            title = getString(R.string.nc_select_export_format),
+            options = listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_EXPORT_BSMS,
+                    stringId = R.string.nc_bsms
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_EXPORT_TO_COLD_CARD,
+                    stringId = R.string.nc_coldcard
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_EXPORT_AS_QR,
+                    stringId = R.string.nc_text_wallet_qr_code
+                ),
+            )
+        ).show(supportFragmentManager, "BottomSheetOption")
     }
 
     private fun onEditClicked() {

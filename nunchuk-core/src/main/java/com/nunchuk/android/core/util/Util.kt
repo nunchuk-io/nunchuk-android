@@ -48,7 +48,7 @@ const val MIN_CVC_LENGTH = 6
 
 const val CHAIN_CODE_LENGTH = 64
 
-var BTC_USD_EXCHANGE_RATE = 45000.0
+var BTC_CURRENCY_EXCHANGE_RATE = 45000.0
 
 var BLOCKCHAIN_STATUS: ConnectionStatus? = null
 
@@ -79,6 +79,10 @@ const val DELAY_DYNAMIC_QR = 1000L
 const val LOW_DENSITY = 50
 const val MEDIUM_DENSITY = 100
 const val HIGH_DENSITY = 200
+
+const val USD_CURRENCY = "USD"
+
+var LOCAL_CURRENCY = USD_CURRENCY
 
 fun Int.densityToLevel() : Float = when(this) {
     LOW_DENSITY -> 0f

@@ -246,7 +246,7 @@ private fun InheritanceClaimNoteContent(
                                 modifier = Modifier
                                     .padding(horizontal = 16.dp)
                                     .fillMaxWidth(),
-                                text = balance.toAmount().getUSDAmount(),
+                                text = balance.toAmount().getCurrencyAmount(),
                                 style = NunchukTheme.typography.title,
                                 textAlign = TextAlign.Center
                             )

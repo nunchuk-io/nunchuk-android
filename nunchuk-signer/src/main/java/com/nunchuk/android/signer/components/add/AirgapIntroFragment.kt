@@ -46,6 +46,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.type.SignerTag
 import dagger.hilt.android.AndroidEntryPoint
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
@@ -57,10 +58,11 @@ class AirgapIntroFragment : MembershipFragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         val isMembershipFlow = (requireActivity() as AddAirgapSignerActivity).isMembershipFlow
+        val signerTag = (requireActivity() as AddAirgapSignerActivity).signerTag
         return ComposeView(requireContext()).apply {
             setContent {
                 val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
-                AirgapIntroContent(remainTime, isMembershipFlow, ::handleShowMore) {
+                AirgapIntroContent(remainTime, isMembershipFlow, signerTag, ::handleShowMore) {
                     findNavController().navigate(AirgapIntroFragmentDirections.actionAirgapIntroFragmentToAddAirgapSignerFragment())
                 }
             }
@@ -72,6 +74,7 @@ class AirgapIntroFragment : MembershipFragment() {
 private fun AirgapIntroContent(
     remainTime: Int = 0,
     isMembershipFlow: Boolean = true,
+    signerTag: SignerTag? = null,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
 ) {
@@ -82,8 +85,15 @@ private fun AirgapIntroContent(
                     .padding(innerPadding)
                     .navigationBarsPadding()
             ) {
+                val bgResId = when(signerTag) {
+                    SignerTag.SEEDSIGNER -> R.drawable.bg_airgap_seedsigner_intro
+                    SignerTag.JADE -> R.drawable.bg_airgap_jade_intro
+                    SignerTag.PASSPORT -> R.drawable.bg_airgap_passport_intro
+                    SignerTag.KEYSTONE -> R.drawable.bg_airgap_keystone_intro
+                    else -> R.drawable.bg_airgap_other_intro
+                }
                 NcImageAppBar(
-                    backgroundRes = R.drawable.bg_airgap_intro,
+                    backgroundRes = bgResId,
                     title = if (isMembershipFlow) stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime

@@ -24,6 +24,7 @@ import android.content.Intent
 import android.os.Bundle
 import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.model.SatsCardStatus
+import com.nunchuk.android.utils.parcelable
 
 data class SatsCardArgs (val status: SatsCardStatus, val hasWallet: Boolean, val isShowUnseal: Boolean) : ActivityArgs {
     override fun buildIntent(activityContext: Context): Intent {
@@ -40,7 +41,7 @@ data class SatsCardArgs (val status: SatsCardStatus, val hasWallet: Boolean, val
         private const val EXTRA_SHOW_UNSEAL_SLOT = "EXTRA_SHOW_UNSEAL_SLOT"
 
         fun deserializeBundle(arguments: Bundle) = SatsCardArgs(
-            arguments.getParcelable(EXTRA_SATSCARD_STATUS)!!,
+            arguments.parcelable(EXTRA_SATSCARD_STATUS)!!,
             arguments.getBoolean(EXTRA_HAS_WALLET),
             arguments.getBoolean(EXTRA_SHOW_UNSEAL_SLOT),
         )

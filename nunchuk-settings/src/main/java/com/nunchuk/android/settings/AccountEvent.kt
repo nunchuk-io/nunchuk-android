@@ -24,7 +24,8 @@ import com.nunchuk.android.core.account.AccountInfo
 data class AccountState(
     val account: AccountInfo = AccountInfo(),
     val syncProgress: Int = 0,
-    val finishedSync: Boolean = false
+    val finishedSync: Boolean = false,
+    val localCurrency: String = ""
 ) {
     fun isSyncing() = syncProgress in 1..99
 }

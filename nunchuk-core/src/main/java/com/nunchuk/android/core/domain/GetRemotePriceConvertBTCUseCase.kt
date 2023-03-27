@@ -19,23 +19,18 @@
 
 package com.nunchuk.android.core.domain
 
-import com.nunchuk.android.core.data.model.PriceBTCResponse
 import com.nunchuk.android.core.repository.BtcPriceRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface GetRemotePriceConvertBTCUseCase {
-    fun execute(): Flow<PriceBTCResponse?>
-}
+class GetRemotePriceConvertBTCUseCase @Inject constructor(
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
+    private val priceRepository: BtcPriceRepository,
+) : UseCase<Unit, Unit>(ioDispatcher) {
 
-internal class GetRemotePriceConvertBTCUseCaseImpl @Inject constructor(
-    private val btcPriceRepository: BtcPriceRepository,
-) : GetRemotePriceConvertBTCUseCase {
-
-    override fun execute() = btcPriceRepository.getRemotePrice().map {
-        it.btc
-    }.flowOn(Dispatchers.IO)
+    override suspend fun execute(parameters: Unit) {
+        return priceRepository.getRemotePrice()
+    }
 }

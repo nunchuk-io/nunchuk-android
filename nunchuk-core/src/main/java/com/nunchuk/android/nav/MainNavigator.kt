@@ -28,7 +28,6 @@ interface MainNavigator {
         deviceId: String? = null,
         bottomNavViewPosition: Int? = null,
         messages: ArrayList<String>? = null,
-        isNewDevice: Boolean = false,
         isClearTask: Boolean = false
     )
     fun returnToMainScreen()
