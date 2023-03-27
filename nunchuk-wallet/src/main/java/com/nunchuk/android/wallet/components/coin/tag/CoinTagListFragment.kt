@@ -8,7 +8,16 @@ import android.view.ViewGroup
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -31,7 +40,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.*
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.clearFragmentResult
+import androidx.fragment.app.setFragmentResultListener
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
@@ -91,9 +104,15 @@ class CoinTagListFragment : Fragment() {
                 is CoinTagListEvent.Loading -> showOrHideLoading(loading = event.show)
                 is CoinTagListEvent.AddCoinToTagSuccess -> {
                     handleTagInfoChange()
-                    showSuccess(message = if (event.numsCoin > 1) getString(R.string.nc_coins_updated) else getString(R.string.nc_coin_updated))
+                    showSuccess(
+                        message = if (event.numsCoin > 1) getString(R.string.nc_coins_updated) else getString(
+                            R.string.nc_coin_updated
+                        )
+                    )
                     findNavController().popBackStack()
                 }
+
+                CoinTagListEvent.CreateTagSuccess -> coinListViewModel.refresh()
             }
         }
 
@@ -140,6 +159,7 @@ fun CoinTagListScreen(
         tagFlow = tagFlow,
         coinTagInputHolder = state.coinTagInputHolder,
         selectedCoinTags = state.selectedCoinTags,
+        enableSaveButton = viewModel.enableButtonSave(),
         onSaveClick = {
             viewModel.addCoinTag()
         },
@@ -164,7 +184,8 @@ fun CoinTagListScreenContent(
     tags: List<CoinTagAddition> = emptyList(),
     coinTagInputHolder: CoinTag? = null,
     tagFlow: Int = TagFlow.NONE,
-    selectedCoinTags: List<Int> = emptyList(),
+    selectedCoinTags: Set<Int> = hashSetOf(),
+    enableSaveButton: Boolean = false,
     onSaveClick: () -> Unit = {},
     onValueChange: (value: String) -> Unit = {},
     onDoneClick: () -> Unit = {},
@@ -251,7 +272,7 @@ fun CoinTagListScreenContent(
                 }
                 if (tagFlow == TagFlow.ADD) {
                     NcPrimaryDarkButton(
-                        enabled = selectedCoinTags.isNotEmpty(),
+                        enabled = enableSaveButton,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),

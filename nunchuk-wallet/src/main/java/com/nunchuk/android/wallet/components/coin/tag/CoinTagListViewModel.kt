@@ -8,8 +8,14 @@ import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.CoinTagAddition
 import com.nunchuk.android.usecase.coin.AddToCoinTagUseCase
 import com.nunchuk.android.usecase.coin.CreateCoinTagUseCase
+import com.nunchuk.android.usecase.coin.RemoveCoinFromTagUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -17,7 +23,8 @@ import javax.inject.Inject
 class CoinTagListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val createCoinTagUseCase: CreateCoinTagUseCase,
-    private val addToCoinTagUseCase: AddToCoinTagUseCase
+    private val addToCoinTagUseCase: AddToCoinTagUseCase,
+    private val removeCoinFromTagUseCase: RemoveCoinFromTagUseCase
 ) : ViewModel() {
     val args = CoinTagListFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
@@ -28,6 +35,10 @@ class CoinTagListViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     private val hexColorUsedList = hashSetOf<String>()
+
+    init {
+        setPreSelectedTags()
+    }
 
     private fun getNextAvailableHexColor(): String {
         val hexColor = CoinTagColorUtil.hexColors.firstOrNull {
@@ -45,17 +56,62 @@ class CoinTagListViewModel @Inject constructor(
     }
 
     fun addCoinTag() = viewModelScope.launch {
-        val result = addToCoinTagUseCase(
-            AddToCoinTagUseCase.Param(
-                walletId = args.walletId,
-                tagIds = _state.value.selectedCoinTags,
-                coins = args.coins.toList()
+        val selectedTags = _state.value.selectedCoinTags
+        val preSelectedTags = _state.value.preSelectedCoinTags
+        val deletedTags = preSelectedTags.subtract(selectedTags)
+
+        val addResultDefer = async {
+            addToCoinTagUseCase(
+                AddToCoinTagUseCase.Param(
+                    walletId = args.walletId,
+                    tagIds = selectedTags.toList(),
+                    coins = args.coins.toList()
+                )
             )
-        )
-        if (result.isSuccess) {
-            _event.emit(CoinTagListEvent.AddCoinToTagSuccess(_state.value.selectedCoinTags.size))
+        }
+        val deleteResultDefer = async {
+            removeCoinFromTagUseCase(
+                RemoveCoinFromTagUseCase.Param(
+                    walletId = args.walletId,
+                    tagIds = deletedTags.toList(),
+                    coins = args.coins.toList()
+                )
+            )
+        }
+        val addResult = addResultDefer.await()
+        val deleteResult = deleteResultDefer.await()
+        if (addResult.isSuccess && deleteResult.isSuccess) {
+            _event.emit(CoinTagListEvent.AddCoinToTagSuccess(args.coins.size))
         } else {
-            _event.emit(CoinTagListEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+            val message = if (addResult.isFailure) {
+                addResult.exceptionOrNull()?.message.orUnknownError()
+            } else {
+                deleteResult.exceptionOrNull()?.message.orUnknownError()
+            }
+            _event.emit(CoinTagListEvent.Error(message))
+        }
+    }
+
+    fun enableButtonSave(): Boolean {
+        val selectedTags = _state.value.selectedCoinTags
+        val preSelectedTags = _state.value.preSelectedCoinTags
+        val addedTags = selectedTags.subtract(preSelectedTags)
+        val deletedTags = preSelectedTags.subtract(selectedTags)
+        return addedTags.isNotEmpty() || deletedTags.isNotEmpty()
+    }
+
+    private fun setPreSelectedTags() {
+        val preSelectedTags = hashSetOf<Int>()
+        args.coins.forEach { output ->
+            output.tags.forEach {
+                preSelectedTags.add(it)
+            }
+        }
+        _state.update {
+            it.copy(
+                preSelectedCoinTags = preSelectedTags,
+                selectedCoinTags = preSelectedTags
+            )
         }
     }
 
@@ -78,7 +134,7 @@ class CoinTagListViewModel @Inject constructor(
     }
 
     fun onCheckedChange(id: Int, checked: Boolean) {
-        val selectedCoinTags = _state.value.selectedCoinTags.toMutableList()
+        val selectedCoinTags = _state.value.selectedCoinTags.toMutableSet()
         if (checked) {
             selectedCoinTags.add(id)
         } else {
@@ -107,6 +163,7 @@ class CoinTagListViewModel @Inject constructor(
                 tags.add(CoinTagAddition(coinTag = newCoinTag))
                 hexColorUsedList.add(newCoinTag.color)
                 _state.update { it.copy(coinTagInputHolder = null, tags = tags) }
+                _event.emit(CoinTagListEvent.CreateTagSuccess)
             }
         } else {
             _event.emit(CoinTagListEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))

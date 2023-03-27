@@ -12,15 +12,17 @@ class RemoveCoinFromTagUseCase @Inject constructor(
     private val nunchukNativeSdk: NunchukNativeSdk,
 ) : UseCase<RemoveCoinFromTagUseCase.Param, Unit>(ioDispatcher) {
     override suspend fun execute(parameters: Param) {
-        parameters.coins.forEach {
-            nunchukNativeSdk.removeFromCoinTag(
-                walletId = parameters.walletId,
-                txId = it.txid,
-                tagId = parameters.tagId,
-                vout = it.vout
-            )
+        parameters.coins.forEach { output ->
+            parameters.tagIds.forEach { tagId ->
+                nunchukNativeSdk.removeFromCoinTag(
+                    walletId = parameters.walletId,
+                    txId = output.txid,
+                    tagId = tagId,
+                    vout = output.vout
+                )
+            }
         }
     }
 
-    class Param(val walletId: String, val tagId: Int, val coins: List<UnspentOutput>)
+    class Param(val walletId: String, val tagIds: List<Int>, val coins: List<UnspentOutput>)
 }

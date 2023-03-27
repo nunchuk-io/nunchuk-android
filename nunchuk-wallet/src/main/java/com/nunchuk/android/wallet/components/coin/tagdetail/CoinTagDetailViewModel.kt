@@ -82,7 +82,7 @@ class CoinTagDetailViewModel @Inject constructor(
         val result = removeCoinFromTagUseCase(
             RemoveCoinFromTagUseCase.Param(
                 walletId = args.walletId,
-                tagId = args.coinTag.id,
+                tagIds = listOf(args.coinTag.id),
                 coins = coins
             )
         )
