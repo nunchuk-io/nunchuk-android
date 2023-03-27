@@ -51,7 +51,7 @@ class CoinSearchFragmentViewModel @Inject constructor(
         mutex.withLock {
             val lowCaseQuery = query.lowercase()
             val queryTagIds = allTags.asSequence().filter { it.value.name.lowercase().contains(lowCaseQuery) }.map { it.key }.toSet()
-            val coins = allCoins.filter { it.tags.intersect(queryTagIds).isNotEmpty() }
+            val coins = allCoins.filter { it.tags.any { tag -> queryTagIds.contains(tag) } }
             _state.update { it.copy(coins = coins) }
         }
     }

@@ -571,4 +571,16 @@
     <string name="nc_select_coins">Select coins</string>
     <string name="nc_coin_updated">Coin updated</string>
     <string name="nc_view_all">View all</string>
+    <string name="nc_apply">Apply</string>
+    <string name="nc_all_tags">All tags</string>
+    <string name="nc_collections">Collections</string>
+    <string name="nc_all_collections">All collections</string>
+    <string name="nc_amount">Amount</string>
+    <string name="nc_minimum_amount">Minimum amount</string>
+    <string name="nc_maximum_amount">Maximum amount</string>
+    <string name="nc_transaction_switch_to_usd">Switch to USD</string>
+    <string name="nc_transaction_switch_to_btc">Switch to BTC</string>
+    <string name="nc_from">From</string>
+    <string name="nc_to">To</string>
+    <string name="nc_include_locked_coins">Include locked coins</string>
 </resources>

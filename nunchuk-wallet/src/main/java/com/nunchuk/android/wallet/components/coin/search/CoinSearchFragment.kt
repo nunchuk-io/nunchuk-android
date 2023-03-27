@@ -15,22 +15,28 @@ import androidx.compose.material.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.navigation.navGraphViewModels
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.wallet.CoinNavigationDirections
+import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.base.BaseCoinListFragment
 import com.nunchuk.android.wallet.components.coin.component.CoinListBottomBar
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarSelectMode
 import com.nunchuk.android.wallet.components.coin.component.PreviewCoinCard
 import com.nunchuk.android.wallet.components.coin.detail.component.TagHorizontalList
+import com.nunchuk.android.wallet.components.coin.filter.CoinFilterViewModel
 import com.nunchuk.android.wallet.components.coin.list.CoinListMode
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -38,23 +44,33 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class CoinSearchFragmentFragment : BaseCoinListFragment() {
-    private val args: CoinSearchFragmentFragmentArgs by navArgs()
+class CoinSearchFragment : BaseCoinListFragment() {
+    private val args: CoinSearchFragmentArgs by navArgs()
     private val viewModel: CoinSearchFragmentViewModel by viewModels()
+    private val coinFilterViewModel: CoinFilterViewModel by navGraphViewModels(R.id.coin_search_navigation)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 CoinSearchFragmentScreen(
                     viewModel = viewModel,
                     coinListViewModel = coinListViewModel,
                     onFilterClicked = {
-
+                        findNavController().navigate(
+                            CoinSearchFragmentDirections.actionCoinSearchFragmentFragmentToCoinFilterFragment()
+                        )
                     },
                     onViewCoinDetail = {
-
+                        findNavController().navigate(
+                            CoinNavigationDirections.actionGlobalCoinDetailFragment(
+                                walletId = args.walletId,
+                                txId = it.txid,
+                                vout = it.vout
+                            )
+                        )
                     },
                     onShowSelectedCoinMoreOption = {
                         showSelectCoinOptions()

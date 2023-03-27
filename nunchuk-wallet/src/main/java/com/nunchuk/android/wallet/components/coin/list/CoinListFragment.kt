@@ -58,7 +58,7 @@ class CoinListFragment : BaseCoinListFragment() {
                     args = args,
                     onViewCoinDetail = {
                         findNavController().navigate(
-                            CoinListFragmentDirections.actionCoinListFragmentToCoinDetailFragment(
+                            CoinNavigationDirections.actionGlobalCoinDetailFragment(
                                 walletId = args.walletId,
                                 txId = it.txid,
                                 vout = it.vout
@@ -76,7 +76,7 @@ class CoinListFragment : BaseCoinListFragment() {
                     },
                     enableSearchMode = {
                         findNavController().navigate(
-                            CoinListFragmentDirections.actionCoinListFragmentToCoinSearchFragmentFragment(
+                            CoinListFragmentDirections.actionCoinListFragmentToCoinSearchNavigation(
                                 walletId = args.walletId,
                             )
                         )

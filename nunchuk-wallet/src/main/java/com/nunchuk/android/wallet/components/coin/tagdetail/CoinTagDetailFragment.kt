@@ -45,6 +45,7 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.wallet.CoinNavigationDirections
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.component.PreviewCoinCard
 import com.nunchuk.android.wallet.components.coin.list.CoinListType
@@ -72,7 +73,7 @@ class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
                     viewModel = viewModel,
                     onViewCoinDetail = {
                         findNavController().navigate(
-                            CoinTagDetailFragmentDirections.actionCoinTagDetailFragmentToCoinDetailFragment(
+                            CoinNavigationDirections.actionGlobalCoinDetailFragment(
                                 walletId = args.walletId,
                                 txId = it.txid,
                                 vout = it.vout
