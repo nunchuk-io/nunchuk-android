@@ -58,7 +58,9 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.util.formatRoundDecimal
+import com.nunchuk.android.core.util.LOCAL_CURRENCY
+import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
+import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.*
@@ -250,7 +252,7 @@ private fun CosigningPolicyContent(
                             Text(
                                 modifier = Modifier.weight(1.0f),
                                 textAlign = TextAlign.End,
-                                text = "${spendingPolicy.limit.formatRoundDecimal()} ${spendingPolicy.currencyUnit.name}/${
+                                text = "${spendingPolicy.limit.formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)} ${spendingPolicy.currencyUnit}/${
                                     spendingPolicy.timeUnit.name.lowercase()
                                         .capitalize(Locale.current)
                                 }",
@@ -371,6 +373,6 @@ private fun CosigningPolicyScreenPreview() {
         isAutoBroadcast = true,
         keyPolicy = KeyPolicy(),
         isUpdateFlow = true,
-        spendingPolicy = SpendingPolicy(5000.0, SpendingTimeUnit.DAILY, SpendingCurrencyUnit.USD)
+        spendingPolicy = SpendingPolicy(5000.0, SpendingTimeUnit.DAILY, LOCAL_CURRENCY)
     )
 }

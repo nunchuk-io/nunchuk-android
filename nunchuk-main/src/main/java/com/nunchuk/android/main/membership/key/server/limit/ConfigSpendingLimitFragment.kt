@@ -57,6 +57,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.fixAfterDecimal
 import com.nunchuk.android.core.util.formatRoundDecimal
 import com.nunchuk.android.core.util.roundDecimal
@@ -125,7 +126,7 @@ class ConfigSpendingLimitFragment : MembershipFragment(), BottomSheetOptionListe
                 SheetOption(
                     type = OFFSET + it.ordinal,
                     label = it.toLabel(requireContext()),
-                    isSelected = it == viewModel.state.value.currencyUnit
+                    isSelected = it.toLabel(requireContext()) == viewModel.state.value.currencyUnit
                 )
             }
         ).show(childFragmentManager, "BottomSheetOption")
@@ -147,7 +148,7 @@ class ConfigSpendingLimitFragment : MembershipFragment(), BottomSheetOptionListe
         super.onOptionClicked(option)
         if (option.type >= OFFSET) {
             val type = SpendingCurrencyUnit.values()[option.type - OFFSET]
-            viewModel.setCurrencyUnit(type)
+            viewModel.setCurrencyUnit(type.toLabel(requireContext()))
         } else {
             val type = SpendingTimeUnit.values()[option.type]
             viewModel.setTimeUnit(type)
@@ -186,7 +187,7 @@ private fun ConfigSpendingLimitScreen(
 @Composable
 private fun ConfigSpendingLimitContent(
     remainTime: Int = 0,
-    currencyUnit: SpendingCurrencyUnit = SpendingCurrencyUnit.USD,
+    currencyUnit: String = LOCAL_CURRENCY,
     timeUnit: SpendingTimeUnit = SpendingTimeUnit.DAILY,
     onContinueClicked: (value: Double) -> Unit = {},
     onShowTimeUnitOption: () -> Unit = {},
@@ -265,7 +266,7 @@ private fun ConfigSpendingLimitContent(
                     ) {
                         Text(
                             modifier = Modifier.padding(end = 16.dp),
-                            text = currencyUnit.toLabel(LocalContext.current),
+                            text = currencyUnit,
                         )
                         Icon(
                             painter = painterResource(id = R.drawable.ic_arrow),

@@ -151,7 +151,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             response.data.key?.policies ?: throw NullPointerException("Can not find key policy")
         val spendingLimit = policy.spendingLimit?.let {
             SpendingPolicy(limit = it.limit,
-                currencyUnit = runCatching { SpendingCurrencyUnit.valueOf(it.currency) }.getOrElse { SpendingCurrencyUnit.USD },
+                currencyUnit = it.currency,
                 timeUnit = runCatching { SpendingTimeUnit.valueOf(it.interval) }.getOrElse { SpendingTimeUnit.DAILY })
         }
         return KeyPolicy(
