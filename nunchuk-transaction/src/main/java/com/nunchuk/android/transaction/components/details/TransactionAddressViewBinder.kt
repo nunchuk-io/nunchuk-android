@@ -3,7 +3,7 @@ package com.nunchuk.android.transaction.components.details
 import android.view.ViewGroup
 import androidx.core.view.get
 import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getUSDAmount
+import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.model.TxOutput
 import com.nunchuk.android.transaction.databinding.ItemTransactionAddressBinding
 import com.nunchuk.android.widget.util.AbsViewBinder
@@ -25,6 +25,6 @@ class TransactionAddressViewBinder(
         }
         binding.sendAddressLabel.text = model.first
         binding.sendAddressBTC.text = model.second.getBTCAmount()
-        binding.sendAddressUSD.text = model.second.getUSDAmount()
+        binding.sendAddressUSD.text = model.second.getCurrencyAmount()
     }
 }
