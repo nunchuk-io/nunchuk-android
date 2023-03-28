@@ -43,143 +43,143 @@ import com.nunchuk.android.wallet.components.coin.util.MaxLengthTransformation
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class EditTagNameBottomSheetFragment : BaseComposeBottomSheet() {
+class EditTagNameBottomSheetFragment : BaseComposeBottomSheet()
 
-    private val viewModel by viewModels<EditTagNameBottomSheetViewModel>()
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
-    ): View {
-        return ComposeView(requireContext()).apply {
-            setContent {
-                NunchukTheme {
-                    EditTagNameBottomSheetScreen(viewModel)
-                }
-            }
-        }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        flowObserver(viewModel.event) { event ->
-            when (event) {
-                EditTagNameBottomSheetEvent.UpdateTagNameSuccess -> {
-                    setFragmentResult(
-                        REQUEST_KEY,
-                        bundleOf(EXTRA_TAG_NAME to viewModel.getCoinTagName())
-                    )
-                    dismissAllowingStateLoss()
-                }
-            }
-        }
-    }
-
-    companion object {
-        const val REQUEST_KEY = "EditTagNameBottomSheetFragment"
-        const val EXTRA_TAG_NAME = "tag_name"
-    }
-}
-
-
-@Composable
-private fun EditTagNameBottomSheetScreen(
-    viewModel: EditTagNameBottomSheetViewModel
-) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-
-    EditTagNameBottomSheetScreenContent(
-        coinTag = state.coinTag,
-        errorMsg = state.errorMsg,
-        onSaveClick = {
-            viewModel.onSaveClick()
-        },
-        onValueChange = {
-            viewModel.updateTagName(it)
-        })
-}
-
-@Composable
-private fun EditTagNameBottomSheetScreenContent(
-    coinTag: CoinTag = CoinTag(),
-    errorMsg: String = "",
-    onSaveClick: () -> Unit = {},
-    onValueChange: (String) -> Unit = {}
-) {
-    Column(
-        modifier = Modifier
-            .background(
-                color = MaterialTheme.colors.surface,
-                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-            )
-            .padding(horizontal = 12.dp, vertical = 24.dp)
-    ) {
-
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            Text(
-                text = stringResource(id = R.string.nc_text_save),
-                modifier = Modifier
-                    .padding(start = 12.dp)
-                    .clickable {
-                        if (coinTag.name.isBlank() ||
-                            coinTag.name.isBlank().not() && coinTag.name.contains(" ").not()
-                        ) {
-                            onSaveClick()
-                        }
-                    },
-                style = NunchukTheme.typography.title,
-                textDecoration = TextDecoration.Underline,
-            )
-
-        }
-
-        Text(
-            text = stringResource(id = R.string.nc_tag_name),
-            style = NunchukTheme.typography.title,
-            modifier = Modifier.padding(top = 14.dp)
-        )
-        Column() {
-            BasicTextField(
-                value = coinTag.name,
-                onValueChange = onValueChange,
-                visualTransformation = MaxLengthTransformation(
-                    CoinTagListFragment.LIMIT_TAG_NAME,
-                    "#"
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .padding(top = 8.dp)
-            )
-        }
-        if (errorMsg.isBlank().not()) {
-            Row(
-                modifier = Modifier.padding(top = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .padding(2.dp),
-                    painter = painterResource(id = R.drawable.ic_error_outline),
-                    contentDescription = "Error icon",
-                    tint = colorResource(id = R.color.nc_orange_color)
-                )
-                Text(
-                    text = errorMsg, style = NunchukTheme.typography.bodySmall.copy(
-                        color = colorResource(
-                            id = R.color.nc_orange_color
-                        )
-                    )
-                )
-            }
-        }
-    }
-}
-
-@Preview
-@Composable
-fun EditTagNameBottomSheetScreenContentPreview() {
-    NunchukTheme {
-        EditTagNameBottomSheetScreenContent(coinTag = CoinTag(name = "#aaa"))
-    }
-}
+//    private val viewModel by viewModels<EditTagNameBottomSheetViewModel>()
+//
+//    override fun onCreateView(
+//        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
+//    ): View {
+//        return ComposeView(requireContext()).apply {
+//            setContent {
+//                NunchukTheme {
+//                    EditTagNameBottomSheetScreen(viewModel)
+//                }
+//            }
+//        }
+//    }
+//
+//    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+//        super.onViewCreated(view, savedInstanceState)
+//        flowObserver(viewModel.event) { event ->
+//            when (event) {
+//                EditTagNameBottomSheetEvent.UpdateTagNameSuccess -> {
+//                    setFragmentResult(
+//                        REQUEST_KEY,
+//                        bundleOf(EXTRA_TAG_NAME to viewModel.getCoinTagName())
+//                    )
+//                    dismissAllowingStateLoss()
+//                }
+//            }
+//        }
+//    }
+//
+//    companion object {
+//        const val REQUEST_KEY = "EditTagNameBottomSheetFragment"
+//        const val EXTRA_TAG_NAME = "tag_name"
+//    }
+//}
+//
+//
+//@Composable
+//private fun EditTagNameBottomSheetScreen(
+//    viewModel: EditTagNameBottomSheetViewModel
+//) {
+//    val state by viewModel.state.collectAsStateWithLifecycle()
+//
+//    EditTagNameBottomSheetScreenContent(
+//        coinTag = state.coinTag,
+//        errorMsg = state.errorMsg,
+//        onSaveClick = {
+//            viewModel.onSaveClick()
+//        },
+//        onValueChange = {
+//            viewModel.updateTagName(it)
+//        })
+//}
+//
+//@Composable
+//private fun EditTagNameBottomSheetScreenContent(
+//    coinTag: CoinTag = CoinTag(),
+//    errorMsg: String = "",
+//    onSaveClick: () -> Unit = {},
+//    onValueChange: (String) -> Unit = {}
+//) {
+//    Column(
+//        modifier = Modifier
+//            .background(
+//                color = MaterialTheme.colors.surface,
+//                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+//            )
+//            .padding(horizontal = 12.dp, vertical = 24.dp)
+//    ) {
+//
+//        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+//            Text(
+//                text = stringResource(id = R.string.nc_text_save),
+//                modifier = Modifier
+//                    .padding(start = 12.dp)
+//                    .clickable {
+//                        if (coinTag.name.isBlank() ||
+//                            coinTag.name.isBlank().not() && coinTag.name.contains(" ").not()
+//                        ) {
+//                            onSaveClick()
+//                        }
+//                    },
+//                style = NunchukTheme.typography.title,
+//                textDecoration = TextDecoration.Underline,
+//            )
+//
+//        }
+//
+//        Text(
+//            text = stringResource(id = R.string.nc_tag_name),
+//            style = NunchukTheme.typography.title,
+//            modifier = Modifier.padding(top = 14.dp)
+//        )
+//        Column() {
+//            BasicTextField(
+//                value = coinTag.name,
+//                onValueChange = onValueChange,
+//                visualTransformation = MaxLengthTransformation(
+//                    CoinTagListFragment.LIMIT_TAG_NAME,
+//                    "#"
+//                ),
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(200.dp)
+//                    .padding(top = 8.dp)
+//            )
+//        }
+//        if (errorMsg.isBlank().not()) {
+//            Row(
+//                modifier = Modifier.padding(top = 4.dp),
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                Icon(
+//                    modifier = Modifier
+//                        .size(16.dp)
+//                        .padding(2.dp),
+//                    painter = painterResource(id = R.drawable.ic_error_outline),
+//                    contentDescription = "Error icon",
+//                    tint = colorResource(id = R.color.nc_orange_color)
+//                )
+//                Text(
+//                    text = errorMsg, style = NunchukTheme.typography.bodySmall.copy(
+//                        color = colorResource(
+//                            id = R.color.nc_orange_color
+//                        )
+//                    )
+//                )
+//            }
+//        }
+//    }
+//}
+//
+//@Preview
+//@Composable
+//fun EditTagNameBottomSheetScreenContentPreview() {
+//    NunchukTheme {
+//        EditTagNameBottomSheetScreenContent(coinTag = CoinTag(name = "#aaa"))
+//    }
+//}

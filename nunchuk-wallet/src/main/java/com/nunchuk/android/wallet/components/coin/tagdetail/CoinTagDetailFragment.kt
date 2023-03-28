@@ -38,6 +38,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
@@ -86,6 +87,17 @@ class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
                                 coinTag = it
                             )
                         )
+                        val bottomSheet = EditTagNameBottomSheet.show(
+                            walletId = args.walletId,
+                            coinTag = it,
+                            fragmentManager = childFragmentManager
+                        )
+
+                        bottomSheet.listener = {
+                            viewModel.updateTagName(it)
+                            showTagUpdated()
+                            handleTagInfoChange()
+                        }
                     }, onEditTagColorClick = {
                         findNavController().navigate(
                             CoinTagDetailFragmentDirections.actionCoinTagDetailFragmentToCoinTagSelectColorBottomSheetFragment(
@@ -147,16 +159,6 @@ class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
             bundle.getString(CoinTagSelectColorBottomSheetFragment.EXTRA_SELECT_COLOR)
                 ?.let {
                     viewModel.updateColor(it)
-                } ?: run {
-                clearFragmentResult(CoinTagSelectColorBottomSheetFragment.REQUEST_KEY)
-            }
-        }
-
-        setFragmentResultListener(EditTagNameBottomSheetFragment.REQUEST_KEY) { _, bundle ->
-            bundle.getString(EditTagNameBottomSheetFragment.EXTRA_TAG_NAME)
-                ?.let {
-                    viewModel.updateTagName(it)
-                    showTagUpdated()
                 } ?: run {
                 clearFragmentResult(CoinTagSelectColorBottomSheetFragment.REQUEST_KEY)
             }
