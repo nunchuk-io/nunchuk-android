@@ -583,4 +583,5 @@
     <string name="nc_from">From</string>
     <string name="nc_to">To</string>
     <string name="nc_include_locked_coins">Include locked coins</string>
+    <string name="nc_tags_selected">%1$d tags selected</string>
 </resources>

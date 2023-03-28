@@ -1,6 +1,9 @@
 package com.nunchuk.android.wallet.components.coin.filter
 
 import androidx.lifecycle.ViewModel
+import com.nunchuk.android.model.CoinTag
+import com.nunchuk.android.model.CoinTagAddition
+import com.nunchuk.android.model.UnspentOutput
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +24,12 @@ class CoinFilterViewModel @Inject constructor(
     fun onApplyFilter() {
 
     }
+
 }
 
 sealed class CoinFilterEvent
 
-data class CoinFilterUiState(val filters: List<CoinFilter> = emptyList())
+data class CoinFilterUiState(
+    val filters: List<CoinFilter> = emptyList(),
+    val selectTags: Set<Int> = emptySet(),
+)
