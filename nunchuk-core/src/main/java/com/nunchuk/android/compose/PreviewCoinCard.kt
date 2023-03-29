@@ -1,4 +1,4 @@
-package com.nunchuk.android.wallet.components.coin.component
+package com.nunchuk.android.compose
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -9,7 +9,6 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -17,9 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.nunchuk.android.compose.CoinTagGroupView
-import com.nunchuk.android.compose.NcColor
-import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.R
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
@@ -27,22 +24,25 @@ import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.formatByHour
 import com.nunchuk.android.utils.simpleDateFormat
-import com.nunchuk.android.wallet.R
 import java.util.*
+
+const val MODE_VIEW_ONLY = 1
+const val MODE_VIEW_DETAIL = 2
+const val MODE_SELECT = 3
 
 @Composable
 fun PreviewCoinCard(
+    modifier: Modifier = Modifier,
     output: UnspentOutput,
     tags: Map<Int, CoinTag>,
-    selectable: Boolean = false,
+    mode: Int = MODE_VIEW_DETAIL,
     isSelected: Boolean = false,
     onViewCoinDetail: (output: UnspentOutput) -> Unit = {},
     onSelectCoin: (output: UnspentOutput, isSelected: Boolean) -> Unit = { _, _ -> }
 ) {
-    Box(modifier = Modifier
-        .background(color = Color.White)
+    Box(modifier = modifier
         .run {
-        if (selectable.not()) {
+        if (mode == MODE_VIEW_DETAIL) {
             this.clickable { onViewCoinDetail(output) }
         } else {
             this
@@ -61,7 +61,7 @@ fun PreviewCoinCard(
                         output.amount.getBTCAmount(),
                     style = NunchukTheme.typography.title
                 )
-                if (output.isChange) {
+                if (output.isChange && mode != MODE_VIEW_ONLY) {
                     Text(
                         modifier = Modifier
                             .padding(start = 4.dp)
@@ -79,7 +79,7 @@ fun PreviewCoinCard(
                         style = NunchukTheme.typography.titleSmall.copy(fontSize = 10.sp)
                     )
                 }
-                if (output.isLocked) {
+                if (output.isLocked && mode != MODE_VIEW_ONLY) {
                     Icon(
                         modifier = Modifier
                             .padding(start = 4.dp)
@@ -94,7 +94,7 @@ fun PreviewCoinCard(
                         contentDescription = "Lock"
                     )
                 }
-                if (output.scheduleTime > 0L) {
+                if (output.scheduleTime > 0L && mode != MODE_VIEW_ONLY) {
                     Icon(
                         modifier = Modifier
                             .padding(start = 4.dp)
@@ -139,7 +139,7 @@ fun PreviewCoinCard(
                 )
             }
         }
-        if (selectable) {
+        if (mode == MODE_SELECT) {
             Checkbox(modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 8.dp),
@@ -147,7 +147,7 @@ fun PreviewCoinCard(
                 onCheckedChange = { select ->
                     onSelectCoin(output, select)
                 })
-        } else {
+        } else if (mode == MODE_VIEW_DETAIL) {
             IconButton(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -206,14 +206,14 @@ fun PreviewCoinCardPreview3() {
             output = UnspentOutput(
                 amount = Amount(1000000L),
                 isLocked = false,
-                scheduleTime = System.currentTimeMillis(),
-                time = System.currentTimeMillis(),
+                scheduleTime = System.currentTimeMillis() / 1000,
+                time = System.currentTimeMillis() / 1000,
                 tags = setOf(),
                 memo = "",
                 status = TransactionStatus.PENDING_CONFIRMATION
             ),
             tags = emptyMap(),
-            selectable = true,
+            mode = MODE_SELECT,
             isSelected = true
         )
     }

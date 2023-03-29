@@ -1,7 +1,7 @@
 package com.nunchuk.android.wallet.components.coin.list
 
 enum class CoinListMode {
-    NONE, SELECT, SEARCH
+    NONE, SELECT, TRANSACTION_SELECT
 }
 
 enum class CoinListType {

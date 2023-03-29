@@ -11,6 +11,7 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.list.CoinListEvent
+import com.nunchuk.android.wallet.components.coin.list.CoinListMode
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -50,15 +51,20 @@ class CoinActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val KEY_SCREEN = "screen"
         private const val KEY_TX_ID = "txId"
         private const val KEY_VOUT = "vout"
+        private const val KEY_MODE = "mode"
 
         fun buildIntent(
             context: Context,
             walletId: String,
             txId: String = "",
+            isTransactionSelect: Boolean = false,
         ) = Intent(context, CoinActivity::class.java).apply {
             putExtra(KEY_WALLET_ID, walletId)
             putExtra(KEY_TX_ID, txId)
             putExtra(KEY_SCREEN, CoinScreen.SELECTION_VIEW)
+            if (isTransactionSelect) {
+                putExtra(KEY_MODE, CoinListMode.TRANSACTION_SELECT)
+            }
         }
 
         fun buildIntent(

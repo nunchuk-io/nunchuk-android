@@ -19,9 +19,7 @@
 
 package com.nunchuk.android.transaction.components.send.fee
 
-import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.EstimateFeeRates
-import com.nunchuk.android.model.defaultRate
+import com.nunchuk.android.model.*
 
 sealed class EstimatedFeeEvent {
     class Loading(val isLoading: Boolean) : EstimatedFeeEvent()
@@ -40,5 +38,7 @@ data class EstimatedFeeState(
     val subtractFeeFromAmount: Boolean = false,
     val manualFeeDetails: Boolean = false,
     val estimateFeeRates: EstimateFeeRates = EstimateFeeRates(),
+    val allTags: Map<Int, CoinTag> = emptyMap(),
+    val inputs: List<UnspentOutput> = emptyList(),
     val manualFeeRate: Int = estimateFeeRates.defaultRate
 )

@@ -151,6 +151,7 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         context: Context,
         walletId: String,
         txId: String = "",
+        isTransactionSelect: Boolean = false,
     )
 
     fun openCoinDetail(

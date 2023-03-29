@@ -25,13 +25,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.util.fromSATtoBTC
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.wallet.CoinNavigationDirections
 import com.nunchuk.android.wallet.R
@@ -39,13 +41,16 @@ import com.nunchuk.android.wallet.components.coin.base.BaseCoinListFragment
 import com.nunchuk.android.wallet.components.coin.component.CoinListBottomBar
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarNoneMode
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarSelectMode
-import com.nunchuk.android.wallet.components.coin.component.PreviewCoinCard
 import com.nunchuk.android.wallet.components.coin.tag.TagFlow
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class CoinListFragment : BaseCoinListFragment() {
     private val args: CoinListFragmentArgs by navArgs()
+
+    @Inject
+    lateinit var navigator: NunchukNavigator
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -66,7 +71,13 @@ class CoinListFragment : BaseCoinListFragment() {
                         )
                     },
                     onSendBtc = {
-
+                        navigator.openInputAmountScreen(
+                            activityContext = requireActivity(),
+                            walletId = args.walletId,
+                            inputs = coinListViewModel.getSelectedCoins(),
+                            availableAmount = coinListViewModel.getSelectedCoins()
+                                .sumOf { it.amount.value }.toDouble().fromSATtoBTC()
+                        )
                     },
                     onShowSelectedCoinMoreOption = {
                         showSelectCoinOptions()
@@ -177,7 +188,7 @@ private fun CoinListScreen(
     }
 
     CoinListContent(
-        mode = state.mode,
+        mode = if (args.mode == CoinListMode.TRANSACTION_SELECT) args.mode else state.mode,
         type = args.listType,
         coins = filterCoins,
         tags = state.tags,
@@ -217,21 +228,27 @@ private fun CoinListContent(
                 .statusBarsPadding()
                 .navigationBarsPadding(),
             topBar = {
-                if (mode == CoinListMode.NONE) {
-                    CoinListTopBarNoneMode(
-                        enableSelectMode = enableSelectMode,
-                        onShowMoreOptions = onShowMoreOptions,
-                        isShowMore = type == CoinListType.ALL,
-                        title = if (type == CoinListType.ALL)
-                            stringResource(R.string.nc_coins)
-                        else stringResource(R.string.nc_locked_coin)
-                    )
-                } else if (mode == CoinListMode.SELECT) {
-                    CoinListTopBarSelectMode(
-                        isSelectAll = coins.size == selectedCoin.size,
-                        onSelectOrUnselectAll = onSelectOrUnselectAll,
-                        onSelectDone = onSelectDone
-                    )
+                when (mode) {
+                    CoinListMode.NONE -> {
+                        CoinListTopBarNoneMode(
+                            enableSelectMode = enableSelectMode,
+                            onShowMoreOptions = onShowMoreOptions,
+                            isShowMore = type == CoinListType.ALL,
+                            title = if (type == CoinListType.ALL)
+                                stringResource(R.string.nc_coins)
+                            else stringResource(R.string.nc_locked_coin)
+                        )
+                    }
+                    CoinListMode.SELECT -> {
+                        CoinListTopBarSelectMode(
+                            isSelectAll = coins.size == selectedCoin.size,
+                            onSelectOrUnselectAll = onSelectOrUnselectAll,
+                            onSelectDone = onSelectDone
+                        )
+                    }
+                    CoinListMode.TRANSACTION_SELECT -> (
+                            NcTopAppBar(title = "")
+                            )
                 }
             }, floatingActionButton = {
                 if (mode == CoinListMode.NONE) {
@@ -252,18 +269,22 @@ private fun CoinListContent(
                             output = coin,
                             onSelectCoin = onSelectCoin,
                             isSelected = selectedCoin.contains(coin),
-                            selectable = mode == CoinListMode.SELECT,
+                            mode = if (mode == CoinListMode.SELECT || mode == CoinListMode.TRANSACTION_SELECT) MODE_SELECT else MODE_VIEW_DETAIL,
                             onViewCoinDetail = onViewCoinDetail,
                             tags = tags,
                         )
                     }
                 }
-                if (mode == CoinListMode.SELECT && selectedCoin.isNotEmpty()) {
-                    CoinListBottomBar(
-                        selectedCoin = selectedCoin,
-                        onSendBtc = onSendBtc,
-                        onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption,
-                    )
+                if (selectedCoin.isNotEmpty()) {
+                    if (mode == CoinListMode.SELECT) {
+                        CoinListBottomBar(
+                            selectedCoin = selectedCoin,
+                            onSendBtc = onSendBtc,
+                            onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption,
+                        )
+                    } else if (mode == CoinListMode.TRANSACTION_SELECT) {
+
+                    }
                 }
             }
         }

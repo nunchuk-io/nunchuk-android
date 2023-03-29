@@ -25,7 +25,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.navigation.navGraphViewModels
+import com.nunchuk.android.compose.MODE_SELECT
+import com.nunchuk.android.compose.MODE_VIEW_DETAIL
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.PreviewCoinCard
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
@@ -34,7 +37,6 @@ import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.base.BaseCoinListFragment
 import com.nunchuk.android.wallet.components.coin.component.CoinListBottomBar
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarSelectMode
-import com.nunchuk.android.wallet.components.coin.component.PreviewCoinCard
 import com.nunchuk.android.wallet.components.coin.detail.component.TagHorizontalList
 import com.nunchuk.android.wallet.components.coin.filter.CoinFilterViewModel
 import com.nunchuk.android.wallet.components.coin.list.CoinListMode
@@ -198,7 +200,7 @@ private fun CoinSearchFragmentContent(
                                 output = coin,
                                 onSelectCoin = onSelectCoin,
                                 isSelected = selectedCoins.contains(coin),
-                                selectable = mode == CoinListMode.SELECT,
+                                mode = if (mode == CoinListMode.SELECT) MODE_SELECT else MODE_VIEW_DETAIL,
                                 onViewCoinDetail = onViewCoinDetail,
                                 tags = tags,
                             )

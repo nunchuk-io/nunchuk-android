@@ -21,17 +21,16 @@ package com.nunchuk.android.transaction.components.send.fee
 
 import android.app.Activity
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.nfc.SweepType
-import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getCurrencyAmount
-import com.nunchuk.android.core.util.pureBTC
-import com.nunchuk.android.core.util.toAmount
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeCompletedEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeErrorEvent
@@ -41,6 +40,7 @@ import com.nunchuk.android.utils.safeManualFee
 import com.nunchuk.android.utils.textChanges
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
@@ -54,6 +54,10 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 
     private val viewModel: EstimatedFeeViewModel by viewModels()
 
+    private val coinSelectLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+
+    }
+
     override fun initializeBinding() = ActivityTransactionEstimateFeeBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,12 +65,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 
         setLightStatusBar()
 
-        viewModel.init(
-            walletId = args.walletId,
-            address = args.address,
-            sendAmount = args.outputAmount,
-            slots = args.slots
-        )
+        viewModel.init(args)
         setupViews()
         observeEvent()
     }
@@ -78,14 +77,23 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 
     @OptIn(FlowPreview::class)
     private fun setupViews() {
+        binding.tvCustomize.setUnderline()
         binding.toolbarTitle.text = args.sweepType.toTitle(this)
         val subtractFeeFromAmount = args.subtractFeeFromAmount
         binding.subtractFeeCheckBox.isChecked = subtractFeeFromAmount
         binding.subtractFeeCheckBox.isEnabled = !subtractFeeFromAmount
         viewModel.handleSubtractFeeSwitch(subtractFeeFromAmount)
 
-        binding.subtractFeeCheckBox.setOnCheckedChangeListener { _, isChecked -> viewModel.handleSubtractFeeSwitch(isChecked) }
-        binding.manualFeeCheckBox.setOnCheckedChangeListener { _, isChecked -> handleManualFeeSwitch(isChecked) }
+        binding.subtractFeeCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.handleSubtractFeeSwitch(
+                isChecked
+            )
+        }
+        binding.manualFeeCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            handleManualFeeSwitch(
+                isChecked
+            )
+        }
         binding.feeRateInput.textChanges()
             .onEach { binding.btnContinue.tag = true }
             .debounce(500)
@@ -108,6 +116,15 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         }
 
         bindSubtotal(args.outputAmount)
+
+        binding.tvCustomize.setOnDebounceClickListener {
+            navigator.openCoinList(
+                launcher = coinSelectLauncher,
+                context = this,
+                walletId = args.walletId,
+                isTransactionSelect = true
+            )
+        }
     }
 
     private fun handleManualFeeSwitch(isChecked: Boolean) {
@@ -132,6 +149,9 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 
         binding.manualFeeDetails.isVisible = state.manualFeeDetails
         bindEstimateFeeRates(state.estimateFeeRates)
+        binding.composeCoinSelection.setContent {
+            TransactionCoinSelection(inputs = state.inputs, allTags = state.allTags)
+        }
     }
 
     private fun bindEstimateFeeRates(estimateFeeRates: EstimateFeeRates) {
@@ -158,7 +178,11 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         NCToastMessage(this).showError(event.message)
     }
 
-    private fun openTransactionConfirmScreen(estimatedFee: Double, subtractFeeFromAmount: Boolean, manualFeeRate: Int) {
+    private fun openTransactionConfirmScreen(
+        estimatedFee: Double,
+        subtractFeeFromAmount: Boolean,
+        manualFeeRate: Int
+    ) {
         navigator.openTransactionConfirmScreen(
             activityContext = this,
             walletId = args.walletId,
@@ -189,7 +213,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             sweepType: SweepType = SweepType.NONE,
             slots: List<SatsCardSlot>,
             masterSignerId: String = "",
-            magicalPhrase: String = ""
+            magicalPhrase: String = "",
+            inputs: List<UnspentOutput> = emptyList()
         ) {
             activityContext.startActivity(
                 EstimatedFeeArgs(
@@ -202,7 +227,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                     sweepType = sweepType,
                     slots = slots,
                     masterSignerId = masterSignerId,
-                    magicalPhrase = magicalPhrase
+                    magicalPhrase = magicalPhrase,
+                    inputs = inputs
                 ).buildIntent(activityContext)
             )
         }

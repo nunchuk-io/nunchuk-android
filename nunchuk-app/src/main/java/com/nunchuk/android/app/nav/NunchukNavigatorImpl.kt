@@ -108,12 +108,14 @@ internal class NunchukNavigatorImpl @Inject constructor(
         launcher: ActivityResultLauncher<Intent>?,
         context: Context,
         walletId: String,
-        txId: String
+        txId: String,
+        isTransactionSelect: Boolean
     ) {
         val intent = CoinActivity.buildIntent(
             context = context,
             walletId = walletId,
             txId = txId,
+            isTransactionSelect = isTransactionSelect
         )
         launcher?.launch(intent) ?: context.startActivity(intent)
     }

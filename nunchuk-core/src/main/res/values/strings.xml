@@ -584,4 +584,9 @@
     <string name="nc_to">To</string>
     <string name="nc_include_locked_coins">Include locked coins</string>
     <string name="nc_tags_selected">%1$d tags selected</string>
+    <string name="nc_send_amount_too_large">The send amount must be less than or equal to the total amount you selected</string>
+    <string name="nc_fee_settings">Fee settings</string>
+    <string name="nc_coin_selection">Coin selection</string>
+    <string name="nc_customize">Customize</string>
+    <string name="nc_customize_transaction">Customize transaction</string>
 </resources>

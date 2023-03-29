@@ -23,6 +23,7 @@ import android.content.Context
 import android.os.Bundle
 import android.util.TypedValue
 import androidx.activity.viewModels
+import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
 import androidx.core.widget.doOnTextChanged
 import com.journeyapps.barcodescanner.ScanContract
@@ -31,11 +32,11 @@ import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.*
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.*
 import com.nunchuk.android.transaction.databinding.ActivityTransactionInputAmountBinding
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
@@ -86,6 +87,11 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         binding.btnContinue.setOnDebounceClickListener {
             viewModel.handleContinueEvent()
         }
+
+        if (args.inputs.isNotEmpty()) {
+            binding.amountBTC.setTextColor(ContextCompat.getColor(this, R.color.nc_slime_dark))
+            binding.amountUSD.setTextColor(ContextCompat.getColor(this, R.color.nc_slime_dark))
+        }
         binding.amountBTC.text = args.availableAmount.getBTCAmount()
         binding.amountUSD.text = "(${args.availableAmount.getCurrencyAmount()})"
         binding.mainCurrencyLabel.text = handleTextCurrency()
@@ -125,7 +131,8 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             availableAmount = args.availableAmount,
             address = viewModel.getAddress(),
             privateNote = viewModel.getPrivateNote(),
-            subtractFeeFromAmount = subtractFeeFromAmount
+            subtractFeeFromAmount = subtractFeeFromAmount,
+            inputs = args.inputs
         )
     }
 
@@ -161,7 +168,13 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                 } else "")
             }
             is AcceptAmountEvent -> openAddReceiptScreen(event.amount)
-            InsufficientFundsEvent -> NCToastMessage(this).showError(getString(R.string.nc_transaction_insufficient_funds))
+            InsufficientFundsEvent -> {
+                if (args.inputs.isNotEmpty()) {
+                    NCToastMessage(this).showError(getString(R.string.nc_send_amount_too_large))
+                } else {
+                    NCToastMessage(this).showError(getString(R.string.nc_transaction_insufficient_funds))
+                }
+            }
             is ParseBtcUriSuccess -> {
                 if (event.btcUri.amount.value > 0 || viewModel.getAmountBtc() > 0.0) {
                     viewModel.handleContinueEvent()
@@ -175,12 +188,13 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
 
     companion object {
 
-        fun start(activityContext: Context, roomId: String = "", walletId: String, availableAmount: Double) {
+        fun start(activityContext: Context, roomId: String = "", walletId: String, availableAmount: Double, inputs: List<UnspentOutput> = emptyList()) {
             activityContext.startActivity(
                 InputAmountArgs(
                     roomId = roomId,
                     walletId = walletId,
-                    availableAmount = availableAmount
+                    availableAmount = availableAmount,
+                    inputs = inputs
                 ).buildIntent(activityContext)
             )
         }

@@ -35,6 +35,7 @@ import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.Est
 import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
+import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -45,7 +46,8 @@ import javax.inject.Inject
 class EstimatedFeeViewModel @Inject constructor(
     private val estimateFeeUseCase: EstimateFeeUseCase,
     private val draftTransactionUseCase: DraftTransactionUseCase,
-    private val draftSatsCardTransactionUseCase: DraftSatsCardTransactionUseCase
+    private val draftSatsCardTransactionUseCase: DraftSatsCardTransactionUseCase,
+    private val getAllTagsUseCase: GetAllTagsUseCase,
 ) : NunchukViewModel<EstimatedFeeState, EstimatedFeeEvent>() {
 
     private var walletId: String = ""
@@ -56,15 +58,25 @@ class EstimatedFeeViewModel @Inject constructor(
 
     override val initialState = EstimatedFeeState()
 
-    fun init(walletId: String, address: String, sendAmount: Double, slots: List<SatsCardSlot>) {
-        this.walletId = walletId
-        this.address = address
-        this.sendAmount = sendAmount
+    fun init(args: EstimatedFeeArgs) {
+        this.walletId = args.walletId
+        this.address = args.address
+        this.sendAmount = args.outputAmount
         this.slots.apply {
             clear()
             addAll(slots)
         }
+        updateState { copy(inputs = args.inputs) }
         getEstimateFeeRates()
+        getAllTags()
+    }
+
+    private fun getAllTags() {
+        viewModelScope.launch {
+            getAllTagsUseCase(walletId).onSuccess {
+                updateState { copy(allTags = it.associateBy { it.id }) }
+            }
+        }
     }
 
     fun getEstimateFeeRates() {

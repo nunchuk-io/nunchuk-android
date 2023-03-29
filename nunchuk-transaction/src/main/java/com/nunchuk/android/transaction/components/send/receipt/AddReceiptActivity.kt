@@ -34,6 +34,7 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.share.satscard.SweepSatscardViewModel
 import com.nunchuk.android.share.satscard.observerSweepSatscard
@@ -281,10 +282,11 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             address = address,
             privateNote = privateNote,
             subtractFeeFromAmount = subtractFeeFromAmount,
-            slots = args.slots,
             sweepType = args.sweepType,
+            slots = args.slots,
             masterSignerId = args.masterSignerId,
-            magicalPhrase = args.magicalPhrase
+            magicalPhrase = args.magicalPhrase,
+            inputs = args.inputs
         )
     }
 
@@ -302,7 +304,8 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             slots: List<SatsCardSlot> = emptyList(),
             sweepType: SweepType = SweepType.NONE,
             masterSignerId: String = "",
-            magicalPhrase: String = ""
+            magicalPhrase: String = "",
+            inputs: List<UnspentOutput> = emptyList(),
         ) {
             activityContext.startActivity(
                 AddReceiptArgs(
@@ -315,7 +318,8 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                     privateNote = privateNote,
                     sweepType = sweepType,
                     masterSignerId = masterSignerId,
-                    magicalPhrase = magicalPhrase
+                    magicalPhrase = magicalPhrase,
+                    inputs = inputs,
                 ).buildIntent(activityContext)
             )
         }

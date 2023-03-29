@@ -34,6 +34,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.compose.CoinStatusBadge
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.sheet.BottomSheetOption
@@ -49,7 +50,6 @@ import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.component.CoinBadge
-import com.nunchuk.android.wallet.components.coin.component.CoinStatusBadge
 import com.nunchuk.android.wallet.components.coin.detail.component.CoinTransactionCard
 import com.nunchuk.android.wallet.components.coin.detail.component.TagHorizontalList
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel

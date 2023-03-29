@@ -1,4 +1,4 @@
-package com.nunchuk.android.wallet.components.coin.component
+package com.nunchuk.android.compose
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding

@@ -54,7 +54,6 @@ import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.R
-import com.nunchuk.android.wallet.components.coin.CoinActivity
 import com.nunchuk.android.wallet.components.config.WalletConfigAction
 import com.nunchuk.android.wallet.components.config.WalletConfigActivity
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.*
@@ -229,7 +228,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                     activityContext = requireActivity(),
                     roomId = roomWallet.roomId,
                     walletId = roomWallet.walletId,
-                    availableAmount = event.walletExtended.wallet.balance.pureBTC()
+                    availableAmount = event.walletExtended.wallet.balance.pureBTC(),
                 )
             } else {
                 navigator.openRoomDetailActivity(
@@ -242,7 +241,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             navigator.openInputAmountScreen(
                 activityContext = requireActivity(),
                 walletId = args.walletId,
-                availableAmount = event.walletExtended.wallet.balance.pureBTC()
+                availableAmount = event.walletExtended.wallet.balance.pureBTC(),
             )
         }
     }
