@@ -31,11 +31,13 @@ import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeCompletedEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeErrorEvent
 import com.nunchuk.android.transaction.components.utils.toTitle
 import com.nunchuk.android.transaction.databinding.ActivityTransactionEstimateFeeBinding
+import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.utils.safeManualFee
 import com.nunchuk.android.utils.textChanges
 import com.nunchuk.android.widget.NCToastMessage
@@ -57,7 +59,10 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     private val coinSelectLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         val data = it.data
         if (it.resultCode == Activity.RESULT_OK && data != null) {
-            val selectedCoins = data
+            val selectedCoins = data.parcelableArrayList<UnspentOutput>(GlobalResultKey.EXTRA_COINS).orEmpty()
+            if (selectedCoins.isNotEmpty()) {
+                viewModel.updateNewInputs(selectedCoins)
+            }
         }
     }
 
