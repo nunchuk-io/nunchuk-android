@@ -22,10 +22,7 @@ package com.nunchuk.android.nav
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
-import com.nunchuk.android.model.KeyPolicy
-import com.nunchuk.android.model.RecoverWalletData
-import com.nunchuk.android.model.RoomWalletData
-import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.*
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 
@@ -151,7 +148,8 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         context: Context,
         walletId: String,
         txId: String = "",
-        isTransactionSelect: Boolean = false,
+        inputs: List<UnspentOutput> = emptyList(),
+        amount: Double = 0.0,
     )
 
     fun openCoinDetail(

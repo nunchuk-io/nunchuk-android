@@ -1,5 +1,7 @@
 package com.nunchuk.android.wallet.components.coin.list
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -40,6 +42,7 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.wallet.CoinNavigationDirections
 import com.nunchuk.android.wallet.R
@@ -51,6 +54,7 @@ import com.nunchuk.android.wallet.components.coin.component.CoinListBottomBar
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarNoneMode
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarSelectMode
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragment
+import com.nunchuk.android.wallet.components.coin.component.SelectCoinCreateTransactionBottomBar
 import com.nunchuk.android.wallet.components.coin.tag.TagFlow
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -69,14 +73,11 @@ class CoinListFragment : BaseCoinListFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 CoinListScreen(
-                    viewModel = coinListViewModel,
-                    args = args,
+                    viewModel = coinListViewModel, args = args,
                     onViewCoinDetail = {
                         findNavController().navigate(
                             CoinNavigationDirections.actionGlobalCoinDetailFragment(
-                                walletId = args.walletId,
-                                txId = it.txid,
-                                vout = it.vout
+                                walletId = args.walletId, txId = it.txid, vout = it.vout
                             )
                         )
                     },
@@ -101,9 +102,22 @@ class CoinListFragment : BaseCoinListFragment() {
                                 walletId = args.walletId,
                             )
                         )
-                    }
+                    },
+                    onUseCoinClicked = {
+                        requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
+                            putParcelableArrayListExtra(GlobalResultKey.EXTRA_COINS, ArrayList(coinListViewModel.getSelectedCoins()))
+                        })
+                        requireActivity().finish()
+                    },
                 )
             }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        args.inputs?.let { inputs ->
+            coinListViewModel.setSelectedCoin(inputs)
         }
     }
 
@@ -120,9 +134,7 @@ class CoinListFragment : BaseCoinListFragment() {
         when (option.type) {
             SheetOptionType.TYPE_VIEW_TAG -> findNavController().navigate(
                 CoinNavigationDirections.actionGlobalCoinTagListFragment(
-                    walletId = args.walletId,
-                    tagFlow = TagFlow.VIEW,
-                    coins = emptyArray()
+                    walletId = args.walletId, tagFlow = TagFlow.VIEW, coins = emptyArray()
                 )
             )
 
@@ -139,7 +151,7 @@ class CoinListFragment : BaseCoinListFragment() {
             SheetOptionType.TYPE_VIEW_LOCKED_COIN -> findNavController().navigate(
                 CoinListFragmentDirections.actionCoinListFragmentSelf(
                     walletId = args.walletId,
-                    listType = CoinListType.LOCKED
+                    listType = CoinListType.LOCKED,
                 )
             )
 
@@ -203,8 +215,7 @@ class CoinListFragment : BaseCoinListFragment() {
         BottomSheetOption.newInstance(
             listOf(
                 SheetOption(
-                    type = SheetOptionType.TYPE_VIEW_TAG,
-                    label = getString(R.string.nc_view_tag)
+                    type = SheetOptionType.TYPE_VIEW_TAG, label = getString(R.string.nc_view_tag)
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_VIEW_COLLECTION,
@@ -238,6 +249,7 @@ private fun CoinListScreen(
     onSendBtc: () -> Unit = {},
     onShowMoreOptions: () -> Unit = {},
     enableSearchMode: () -> Unit = {},
+    onUseCoinClicked: () -> Unit = {},
     args: CoinListFragmentArgs,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -250,7 +262,7 @@ private fun CoinListScreen(
     }
 
     CoinListContent(
-        mode = if (args.mode == CoinListMode.TRANSACTION_SELECT) args.mode else state.mode,
+        mode = if (args.inputs != null && args.inputs.isNotEmpty()) CoinListMode.TRANSACTION_SELECT else state.mode,
         type = args.listType,
         coins = filterCoins,
         tags = state.tags,
@@ -264,6 +276,8 @@ private fun CoinListScreen(
         onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption,
         onSendBtc = onSendBtc,
         onShowMoreOptions = onShowMoreOptions,
+        onUseCoinClicked = onUseCoinClicked,
+        amount = args.amount ?: Amount()
     )
 }
 
@@ -271,6 +285,7 @@ private fun CoinListScreen(
 private fun CoinListContent(
     mode: CoinListMode = CoinListMode.NONE,
     type: CoinListType = CoinListType.ALL,
+    amount: Amount = Amount(),
     coins: List<UnspentOutput> = emptyList(),
     tags: Map<Int, CoinTag> = emptyMap(),
     selectedCoin: Set<UnspentOutput> = emptySet(),
@@ -280,6 +295,7 @@ private fun CoinListContent(
     onSelectDone: () -> Unit = {},
     onViewCoinDetail: (output: UnspentOutput) -> Unit = {},
     onSendBtc: () -> Unit = {},
+    onUseCoinClicked: () -> Unit = {},
     onShowSelectedCoinMoreOption: () -> Unit = {},
     onShowMoreOptions: () -> Unit = {},
     onSelectCoin: (output: UnspentOutput, isSelected: Boolean) -> Unit = { _, _ -> }
@@ -310,20 +326,18 @@ private fun CoinListContent(
                         )
                     }
 
-                    CoinListMode.TRANSACTION_SELECT -> (
-                            NcTopAppBar(title = "")
-                            )
+                CoinListMode.TRANSACTION_SELECT -> (NcTopAppBar(title = ""))
+            }
+        }, floatingActionButton = {
+            if (mode == CoinListMode.NONE) {
+                FloatingActionButton(onClick = enableSearchMode) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_search_white),
+                        contentDescription = "Search"
+                    )
                 }
-            }, floatingActionButton = {
-                if (mode == CoinListMode.NONE) {
-                    FloatingActionButton(onClick = enableSearchMode) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_search_white),
-                            contentDescription = "Search"
-                        )
-                    }
-                }
-            }) { innerPadding ->
+            }
+        }) { innerPadding ->
             Column(modifier = Modifier.padding(innerPadding)) {
                 LazyColumn(
                     modifier = Modifier.weight(1f)
@@ -347,7 +361,11 @@ private fun CoinListContent(
                             onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption,
                         )
                     } else if (mode == CoinListMode.TRANSACTION_SELECT) {
-
+                        SelectCoinCreateTransactionBottomBar(
+                            selectedCoin = selectedCoin,
+                            onUseCoinClicked = onUseCoinClicked,
+                            amount = amount
+                        )
                     }
                 }
             }

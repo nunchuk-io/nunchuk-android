@@ -55,7 +55,10 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     private val viewModel: EstimatedFeeViewModel by viewModels()
 
     private val coinSelectLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-
+        val data = it.data
+        if (it.resultCode == Activity.RESULT_OK && data != null) {
+            val selectedCoins = data
+        }
     }
 
     override fun initializeBinding() = ActivityTransactionEstimateFeeBinding.inflate(layoutInflater)
@@ -122,7 +125,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                 launcher = coinSelectLauncher,
                 context = this,
                 walletId = args.walletId,
-                isTransactionSelect = true
+                inputs = viewModel.getSelectedCoins(),
+                amount = args.outputAmount
             )
         }
     }
@@ -149,8 +153,11 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 
         binding.manualFeeDetails.isVisible = state.manualFeeDetails
         bindEstimateFeeRates(state.estimateFeeRates)
-        binding.composeCoinSelection.setContent {
-            TransactionCoinSelection(inputs = state.inputs, allTags = state.allTags)
+        val inputs = state.allCoins.filter { coin -> state.inputs.any { input -> input.first == coin.txid && input.second == coin.vout } }
+        if (inputs.isNotEmpty()) {
+            binding.composeCoinSelection.setContent {
+                TransactionCoinSelection(inputs = inputs, allTags = state.allTags)
+            }
         }
     }
 

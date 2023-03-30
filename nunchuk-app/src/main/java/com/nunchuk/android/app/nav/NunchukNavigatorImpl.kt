@@ -44,6 +44,7 @@ import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.AppNavigator
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.nav.SettingNavigatorDelegate
@@ -109,13 +110,15 @@ internal class NunchukNavigatorImpl @Inject constructor(
         context: Context,
         walletId: String,
         txId: String,
-        isTransactionSelect: Boolean
+        inputs: List<UnspentOutput>,
+        amount: Double
     ) {
         val intent = CoinActivity.buildIntent(
             context = context,
             walletId = walletId,
             txId = txId,
-            isTransactionSelect = isTransactionSelect
+            inputs = inputs,
+            amount = amount
         )
         launcher?.launch(intent) ?: context.startActivity(intent)
     }

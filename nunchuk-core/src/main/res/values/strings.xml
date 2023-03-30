@@ -604,4 +604,7 @@
     <string name="nc_delete_collection">Delete collection</string>
     <string name="nc_collection_updated">Collection updated</string>
     <string name="nc_update_collection_setting">Update collection settings</string>
+    <string name="nc_use_selected_coins">Use selected coins</string>
+    <string name="nc_please_select_at_least">Please select at least %1$s</string>
+    <string name="nc_selected">%1$s selected</string>
 </resources>

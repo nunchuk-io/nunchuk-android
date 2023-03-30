@@ -148,6 +148,12 @@ class CoinListViewModel @Inject constructor(
         }
     }
 
+    fun setSelectedCoin(coins: Array<UnspentOutput>) {
+        _state.update {
+            it.copy(selectedCoins = coins.toSet())
+        }
+    }
+
     fun resetSelect() {
         _state.update { it.copy(selectedCoins = emptySet(), mode = CoinListMode.NONE) }
     }

@@ -39,6 +39,7 @@ data class EstimatedFeeState(
     val manualFeeDetails: Boolean = false,
     val estimateFeeRates: EstimateFeeRates = EstimateFeeRates(),
     val allTags: Map<Int, CoinTag> = emptyMap(),
-    val inputs: List<UnspentOutput> = emptyList(),
+    val allCoins: List<UnspentOutput> = emptyList(),
+    val inputs: List<TxInput> = emptyList(),
     val manualFeeRate: Int = estimateFeeRates.defaultRate
 )

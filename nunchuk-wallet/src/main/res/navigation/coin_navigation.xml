@@ -30,9 +30,16 @@
             app:argType="com.nunchuk.android.wallet.components.coin.list.CoinListType" />
 
         <argument
-            android:name="mode"
-            android:defaultValue="NONE"
-            app:argType="com.nunchuk.android.wallet.components.coin.list.CoinListMode" />
+            android:name="inputs"
+            app:argType="com.nunchuk.android.model.UnspentOutput[]"
+            app:nullable="true"
+            android:defaultValue="@null" />
+
+        <argument
+            android:name="amount"
+            app:argType="com.nunchuk.android.model.Amount"
+            app:nullable="true"
+            android:defaultValue="@null" />
 
         <action
             android:id="@+id/action_coinListFragment_self"
