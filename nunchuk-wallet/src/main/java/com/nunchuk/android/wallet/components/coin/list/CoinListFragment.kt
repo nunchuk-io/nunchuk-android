@@ -21,11 +21,17 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.fragment.app.clearFragmentResult
+import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.*
+import com.nunchuk.android.compose.MODE_SELECT
+import com.nunchuk.android.compose.MODE_VIEW_DETAIL
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.PreviewCoinCard
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
@@ -38,9 +44,13 @@ import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.wallet.CoinNavigationDirections
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.base.BaseCoinListFragment
+import com.nunchuk.android.wallet.components.coin.collection.CoinCollectionBottomSheetFragment
+import com.nunchuk.android.wallet.components.coin.collection.CoinCollectionListFragment
+import com.nunchuk.android.wallet.components.coin.collection.CollectionFlow
 import com.nunchuk.android.wallet.components.coin.component.CoinListBottomBar
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarNoneMode
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarSelectMode
+import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragment
 import com.nunchuk.android.wallet.components.coin.tag.TagFlow
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -97,6 +107,14 @@ class CoinListFragment : BaseCoinListFragment() {
         }
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setFragmentResultListener(CoinCollectionListFragment.REQUEST_KEY) { _, _ ->
+            findNavController().popBackStack()
+            clearFragmentResult(CoinTagSelectColorBottomSheetFragment.REQUEST_KEY)
+        }
+    }
+
     override fun onOptionClicked(option: SheetOption) {
         super.onOptionClicked(option)
         when (option.type) {
@@ -107,15 +125,40 @@ class CoinListFragment : BaseCoinListFragment() {
                     coins = emptyArray()
                 )
             )
-            SheetOptionType.TYPE_VIEW_COLLECTION -> Unit
+
+            SheetOptionType.TYPE_VIEW_COLLECTION -> {
+                findNavController().navigate(
+                    CoinNavigationDirections.actionGlobalCoinCollectionListFragment(
+                        walletId = args.walletId,
+                        collectionFlow = CollectionFlow.VIEW,
+                        coins = emptyArray()
+                    )
+                )
+            }
+
             SheetOptionType.TYPE_VIEW_LOCKED_COIN -> findNavController().navigate(
                 CoinListFragmentDirections.actionCoinListFragmentSelf(
                     walletId = args.walletId,
                     listType = CoinListType.LOCKED
                 )
             )
+
             SheetOptionType.TYPE_REMOVE_COIN_FROM_TAG -> {
-                coinListViewModel.removeCoin(args.walletId, args.tagId)
+                coinListViewModel.removeCoinFromTag(args.walletId, args.tagId)
+            }
+
+            SheetOptionType.TYPE_REMOVE_COIN_FROM_COLLECTION -> {
+                coinListViewModel.removeCoinFromCollection(args.walletId, args.tagId)
+            }
+
+            SheetOptionType.TYPE_MOVE_COIN_TO_COLLECTION -> {
+                findNavController().navigate(
+                    CoinNavigationDirections.actionGlobalCoinCollectionListFragment(
+                        walletId = walletId,
+                        collectionFlow = CollectionFlow.MOVE,
+                        coins = getSelectedCoins().toTypedArray()
+                    )
+                )
             }
         }
     }
@@ -123,18 +166,37 @@ class CoinListFragment : BaseCoinListFragment() {
     override fun showSelectCoinOptions() {
         if (args.tagId > 0) {
             showRemoveCoinFromTag()
+        } else if (args.collectionId > 0) {
+            showOptionCoinFromCollection()
         } else {
             super.showSelectCoinOptions()
         }
     }
 
     private fun showRemoveCoinFromTag() {
-        BottomSheetOption.newInstance(listOf(
-            SheetOption(
-                type = SheetOptionType.TYPE_REMOVE_COIN_FROM_TAG,
-                label = getString(R.string.nc_remove_coin_from_this_tag)
-            ),
-        )).show(childFragmentManager, "BottomSheetOption")
+        BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_REMOVE_COIN_FROM_TAG,
+                    label = getString(R.string.nc_remove_coin_from_this_tag)
+                ),
+            )
+        ).show(childFragmentManager, "BottomSheetOption")
+    }
+
+    private fun showOptionCoinFromCollection() {
+        BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_REMOVE_COIN_FROM_COLLECTION,
+                    label = getString(R.string.nc_remove_coin_from_this_collection)
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_MOVE_COIN_TO_COLLECTION,
+                    label = getString(R.string.nc_move_coin_to_another_collection)
+                )
+            )
+        ).show(childFragmentManager, "BottomSheetOption")
     }
 
     private fun showMoreOptions() {
@@ -239,6 +301,7 @@ private fun CoinListContent(
                             else stringResource(R.string.nc_locked_coin)
                         )
                     }
+
                     CoinListMode.SELECT -> {
                         CoinListTopBarSelectMode(
                             isSelectAll = coins.size == selectedCoin.size,
@@ -246,6 +309,7 @@ private fun CoinListContent(
                             onSelectDone = onSelectDone
                         )
                     }
+
                     CoinListMode.TRANSACTION_SELECT -> (
                             NcTopAppBar(title = "")
                             )

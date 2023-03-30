@@ -1,17 +1,29 @@
-package com.nunchuk.android.wallet.components.coin.tagdetail
+package com.nunchuk.android.wallet.components.coin.collectiondetail
 
 import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.*
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -19,13 +31,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.*
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.clearFragmentResult
+import androidx.fragment.app.setFragmentResultListener
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
@@ -39,37 +58,41 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.CoinNavigationDirections
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.components.coin.collection.CoinCollectionBottomSheetFragment
+import com.nunchuk.android.wallet.components.coin.collection.CollectionFlow
 import com.nunchuk.android.wallet.components.coin.list.CoinListType
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
-import com.nunchuk.android.wallet.components.coin.tag.CoinTagColorUtil
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragment
-import com.nunchuk.android.wallet.util.hexToColor
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import de.charlex.compose.RevealDirection
 import de.charlex.compose.RevealSwipe
 
 @AndroidEntryPoint
-class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
-    private val viewModel: CoinTagDetailViewModel by viewModels()
+class CoinCollectionDetailFragment : Fragment(), BottomSheetOptionListener {
+    private val viewModel: CoinCollectionDetailViewModel by viewModels()
     private val coinListViewModel: CoinListViewModel by activityViewModels()
-    private val args: CoinTagDetailFragmentArgs by navArgs()
+    private val args: CoinCollectionDetailFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                CoinTagDetailScreen(
+                CoinCollectionDetailScreen(
                     viewModel = viewModel,
                     onViewCoinDetail = {
                         findNavController().navigate(
@@ -79,49 +102,28 @@ class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
                                 vout = it.vout
                             )
                         )
-                    }, onEditTagNameClick = {
-                        findNavController().navigate(
-                            CoinTagDetailFragmentDirections.actionCoinTagDetailFragmentToEditTagNameBottomSheetFragment(
-                                walletId = args.walletId,
-                                coinTag = it
-                            )
-                        )
-                        val bottomSheet = EditTagNameBottomSheetFragment.show(
-                            walletId = args.walletId,
-                            coinTag = it,
-                            fragmentManager = childFragmentManager
-                        )
-
-                        bottomSheet.listener = {
-                            viewModel.updateTagName(it)
-                            showTagUpdated()
-                            handleTagInfoChange()
-                        }
-                    }, onEditTagColorClick = {
-                        findNavController().navigate(
-                            CoinTagDetailFragmentDirections.actionCoinTagDetailFragmentToCoinTagSelectColorBottomSheetFragment(
-                                selectedColor = it
-                            )
-                        )
                     }, onShowMoreOptions = {
-                        showDeleteTagOption()
+                        showDeleteCollectionOption()
                     },
                     onRemoveCoin = { coin ->
                         NCWarningDialog(requireActivity()).showDialog(
                             title = getString(R.string.nc_confirmation),
                             message = getString(
                                 R.string.nc_remove_coin_confirmation,
-                                args.coinTag.name
+                                args.coinCollection.name
                             ), onYesClick = {
                                 viewModel.removeCoin(listOf(coin))
                             })
                     },
+                    onEditCollectionNameClick = {
+                        showCoinCollectionSetting()
+                    },
                     enableSelectMode = {
                         findNavController().navigate(
-                            CoinTagDetailFragmentDirections.actionCoinTagDetailFragmentToCoinListFragment(
+                            CoinCollectionDetailFragmentDirections.actionCoinCollectionDetailFragmentToCoinListFragment(
                                 walletId = args.walletId,
                                 listType = CoinListType.ALL,
-                                tagId = args.coinTag.id
+                                collectionId = args.coinCollection.id
                             )
                         )
                     }
@@ -134,19 +136,15 @@ class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) { event ->
             when (event) {
-                is CoinTagDetailEvent.Error -> showError(message = event.message)
-                is CoinTagDetailEvent.Loading -> showOrHideLoading(loading = event.show)
-                CoinTagDetailEvent.DeleteTagSuccess -> {
+                is CoinCollectionDetailEvent.Error -> showError(message = event.message)
+                is CoinCollectionDetailEvent.Loading -> showOrHideLoading(loading = event.show)
+                CoinCollectionDetailEvent.DeleteCollectionSuccess -> {
                     NcToastManager.scheduleShowMessage(message = getString(R.string.nc_tag_deleted))
                     handleTagInfoChange()
                     findNavController().popBackStack()
                 }
 
-                CoinTagDetailEvent.UpdateTagColorSuccess -> {
-                    handleTagInfoChange()
-                    showTagUpdated()
-                }
-                CoinTagDetailEvent.RemoveCoinSuccess -> handleTagInfoChange()
+                CoinCollectionDetailEvent.RemoveCoinSuccess -> handleTagInfoChange()
             }
         }
 
@@ -154,10 +152,12 @@ class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
             viewModel.getListCoinByTag(state.coins, state.tags)
         }
 
-        setFragmentResultListener(CoinTagSelectColorBottomSheetFragment.REQUEST_KEY) { _, bundle ->
-            bundle.getString(CoinTagSelectColorBottomSheetFragment.EXTRA_SELECT_COLOR)
+        setFragmentResultListener(CoinCollectionBottomSheetFragment.REQUEST_KEY) { _, bundle ->
+            bundle.parcelable<CoinCollection>(CoinCollectionBottomSheetFragment.EXTRA_COIN_COLLECTION)
                 ?.let {
-                    viewModel.updateColor(it)
+                    viewModel.updateCoinCollection(it)
+                    showCollectionUpdated()
+                    handleTagInfoChange()
                 } ?: run {
                 clearFragmentResult(CoinTagSelectColorBottomSheetFragment.REQUEST_KEY)
             }
@@ -169,68 +169,88 @@ class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
         requireActivity().setResult(Activity.RESULT_OK)
     }
 
-    private fun showTagUpdated() {
-        showSuccess(message = getString(R.string.nc_tag_updated))
+    private fun showCollectionUpdated() {
+        showSuccess(message = getString(R.string.nc_collection_updated))
     }
 
-    private fun showDeleteTagOption() {
+    private fun showDeleteCollectionOption() {
         (childFragmentManager.findFragmentByTag("BottomSheetOption") as? DialogFragment)?.dismiss()
         val dialog = BottomSheetOption.newInstance(
             listOf(
                 SheetOption(
-                    SheetOptionType.TYPE_DELETE_TAG,
-                    R.drawable.ic_delete_red,
-                    R.string.nc_delete_tag,
-                    isDeleted = true
+                    SheetOptionType.TYPE_VIEW_COLLECTION_SETTING,
+                    R.drawable.ic_settings_dark,
+                    R.string.nc_view_collection_settings,
                 ),
+                SheetOption(
+                    SheetOptionType.TYPE_DELETE_COLLECTION,
+                    R.drawable.ic_delete_red,
+                    R.string.nc_delete_collection,
+                    isDeleted = true
+                )
             )
         )
         dialog.show(childFragmentManager, "BottomSheetOption")
     }
 
     override fun onOptionClicked(option: SheetOption) {
-        if (viewModel.getNumCoins() > 0) {
-            NCWarningDialog(requireActivity()).showDialog(
-                title = getString(R.string.nc_confirmation),
-                message = getString(
-                    R.string.nc_delete_tag_confirmation,
-                    viewModel.getNumCoins().toString()
-                ), onYesClick = {
-                    viewModel.deleteCoinTag()
-                })
-        } else {
-            viewModel.deleteCoinTag()
+        when (option.type) {
+            SheetOptionType.TYPE_VIEW_COLLECTION_SETTING -> {
+                showCoinCollectionSetting()
+            }
+
+            SheetOptionType.TYPE_DELETE_COLLECTION -> {
+                if (viewModel.getNumCoins() > 0) {
+                    NCWarningDialog(requireActivity()).showDialog(
+                        title = getString(R.string.nc_confirmation),
+                        message = getString(
+                            R.string.nc_delete_collection_confirmation,
+                            viewModel.getNumCoins().toString()
+                        ), onYesClick = {
+                            viewModel.deleteCoinCollection()
+                        })
+                } else {
+                    viewModel.deleteCoinCollection()
+                }
+            }
         }
+
+    }
+
+    private fun showCoinCollectionSetting() {
+        findNavController().navigate(
+            CoinNavigationDirections.actionGlobalCoinCollectionBottomSheetFragment(
+                walletId = args.walletId,
+                coinCollection = viewModel.getCoinCollection(),
+                flow = CollectionFlow.VIEW,
+            )
+        )
     }
 
     companion object {
-        const val REQUEST_KEY = "CoinTagDetailFragment"
+        const val REQUEST_KEY = "CoinCollectionDetailFragment"
     }
 }
 
 @Composable
-private fun CoinTagDetailScreen(
-    viewModel: CoinTagDetailViewModel = viewModel(),
+private fun CoinCollectionDetailScreen(
+    viewModel: CoinCollectionDetailViewModel = viewModel(),
     onViewCoinDetail: (output: UnspentOutput) -> Unit = {},
-    onEditTagNameClick: (CoinTag) -> Unit = {},
-    onEditTagColorClick: (String) -> Unit = {},
+    onEditCollectionNameClick: (CoinCollection) -> Unit = {},
     onShowMoreOptions: () -> Unit = {},
     onRemoveCoin: (UnspentOutput) -> Unit = {},
     enableSelectMode: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val coinTag = state.coinTag ?: return
+    val coinCollection = state.coinCollection ?: return
 
-    CoinTagDetailContent(
+    CoinCollectionDetailContent(
         coins = state.coins,
         tags = state.tags,
-        coinTag = coinTag,
+        coinCollection = coinCollection,
         onViewCoinDetail = onViewCoinDetail,
         onEditTagNameClick = {
-            onEditTagNameClick(coinTag)
-        },
-        onEditTagColorClick = {
-            onEditTagColorClick(coinTag.color)
+            onEditCollectionNameClick(coinCollection)
         },
         onShowMoreOptions = onShowMoreOptions,
         onRemoveCoin = onRemoveCoin,
@@ -239,10 +259,10 @@ private fun CoinTagDetailScreen(
 }
 
 @Composable
-private fun CoinTagDetailContent(
+private fun CoinCollectionDetailContent(
     coins: List<UnspentOutput> = emptyList(),
     tags: Map<Int, CoinTag> = emptyMap(),
-    coinTag: CoinTag = CoinTag(),
+    coinCollection: CoinCollection = CoinCollection(),
     onViewCoinDetail: (output: UnspentOutput) -> Unit = {},
     enableSelectMode: () -> Unit = {},
     onShowMoreOptions: () -> Unit = {},
@@ -259,12 +279,12 @@ private fun CoinTagDetailContent(
             ) {
                 Column(
                     modifier = Modifier
-                        .background(colorResource(id = R.color.nc_denim_tint_color))
+                        .background(colorResource(id = R.color.nc_beeswax_tint))
                         .statusBarsPadding()
                 ) {
                     NcTopAppBar(
                         title = "",
-                        backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
+                        backgroundColor = colorResource(id = R.color.nc_beeswax_tint),
                         textStyle = NunchukTheme.typography.titleLarge,
                         isBack = true,
                         isDisableElevation = true,
@@ -292,35 +312,48 @@ private fun CoinTagDetailContent(
                         item {
                             Column(
                                 Modifier
-                                    .background(color = colorResource(id = R.color.nc_denim_tint_color))
+                                    .background(color = colorResource(id = R.color.nc_beeswax_tint))
                                     .padding(vertical = 24.dp)
                                     .fillMaxWidth(),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(96.dp, 96.dp)
-                                        .clip(CircleShape)
-                                        .background(color = coinTag.color.hexToColor()),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_select_color),
+                                ConstraintLayout {
+                                    val (avatar, editAvatar) = createRefs()
+                                    Box(
+                                        modifier = Modifier
+                                            .size(80.dp, 80.dp)
+                                            .clip(CircleShape)
+                                            .background(color = colorResource(id = R.color.nc_beeswax_light))
+                                            .constrainAs(avatar) {},
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = coinCollection.name.shorten(),
+                                            style = NunchukTheme.typography.heading
+                                        )
+                                    }
+                                    Image(
+                                        painter = painterResource(id = R.drawable.ic_capture_avatar_circle),
                                         contentDescription = "",
                                         modifier = Modifier
                                             .size(width = 36.dp, height = 36.dp)
                                             .clickable {
                                                 onEditTagColorClick()
                                             }
+                                            .constrainAs(editAvatar) {
+                                                end.linkTo(avatar.end)
+                                                bottom.linkTo(avatar.bottom)
+                                            }
                                     )
                                 }
+
 
                                 Row(
                                     modifier = Modifier.padding(top = 16.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = coinTag.name,
+                                        text = coinCollection.name,
                                         style = NunchukTheme.typography.heading
                                     )
                                     Icon(
@@ -392,7 +425,7 @@ private fun SwipeDismissPreviewCoinCard(
 
 @Preview
 @Composable
-private fun CoinTagDetailScreenPreview() {
+private fun CoinCollectionDetailScreenPreview() {
     val coin = UnspentOutput(
         amount = Amount(1000000L),
         isLocked = true,
@@ -402,7 +435,7 @@ private fun CoinTagDetailScreenPreview() {
         memo = "Send to Bob on Silk Road",
         status = TransactionStatus.PENDING_CONFIRMATION
     )
-    CoinTagDetailContent(
+    CoinCollectionDetailContent(
         coins = listOf(
             coin.copy(vout = 1),
             coin.copy(vout = 2),
@@ -410,9 +443,8 @@ private fun CoinTagDetailScreenPreview() {
             coin.copy(vout = 4),
             coin.copy(vout = 5)
         ),
-        coinTag = CoinTag(
-            name = "#aaa",
-            color = CoinTagColorUtil.hexColors.first()
+        coinCollection = CoinCollection(
+            name = "Unfiltered coins"
         )
 
     )

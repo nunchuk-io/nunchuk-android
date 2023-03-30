@@ -19,6 +19,8 @@ class CoinListViewModel @Inject constructor(
     private val unLockCoinUseCase: UnLockCoinUseCase,
     private val getAllTagsUseCase: GetAllTagsUseCase,
     private val removeCoinFromTagUseCase: RemoveCoinFromTagUseCase,
+    private val removeCoinFromCollectionUseCase: RemoveCoinFromCollectionUseCase,
+    private val getAllCollectionsUseCase: GetAllCollectionsUseCase,
 ) : ViewModel() {
     private val walletId = savedStateHandle.get<String>("wallet_id").orEmpty()
     private val _state = MutableStateFlow(CoinListUiState())
@@ -34,6 +36,7 @@ class CoinListViewModel @Inject constructor(
     fun refresh() {
         getAllCoins()
         getAllTags()
+        getAllCollections()
         _state.update { it.copy(selectedCoins = emptySet(), mode = CoinListMode.NONE) }
     }
 
@@ -59,6 +62,16 @@ class CoinListViewModel @Inject constructor(
         }
     }
 
+    private fun getAllCollections() {
+        viewModelScope.launch {
+            getAllCollectionsUseCase(walletId).onSuccess { collections ->
+                _state.update { state ->
+                    state.copy(collections = collections.associateBy { it.id })
+                }
+            }
+        }
+    }
+
     fun onLockCoin(walletId: String, selectedCoins: List<UnspentOutput>) {
         viewModelScope.launch {
             selectedCoins.asSequence().filter { it.isLocked.not() }.forEach {
@@ -79,7 +92,7 @@ class CoinListViewModel @Inject constructor(
         }
     }
 
-    fun removeCoin(walletId: String, tagId: Int) = viewModelScope.launch {
+    fun removeCoinFromTag(walletId: String, tagId: Int) = viewModelScope.launch {
         val result = removeCoinFromTagUseCase(
             RemoveCoinFromTagUseCase.Param(
                 walletId = walletId,
@@ -88,7 +101,22 @@ class CoinListViewModel @Inject constructor(
             )
         )
         if (result.isSuccess) {
-            _event.emit(CoinListEvent.RemoveCoinSuccess)
+            _event.emit(CoinListEvent.RemoveCoinFromTagSuccess)
+        } else {
+            _event.emit(CoinListEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+        }
+    }
+
+    fun removeCoinFromCollection(walletId: String, collectionId: Int) = viewModelScope.launch {
+        val result = removeCoinFromCollectionUseCase(
+            RemoveCoinFromCollectionUseCase.Param(
+                walletId = walletId,
+                collectionIds = listOf(collectionId),
+                coins = _state.value.selectedCoins.toList()
+            )
+        )
+        if (result.isSuccess) {
+            _event.emit(CoinListEvent.RemoveCoinFromCollectionSuccess)
         } else {
             _event.emit(CoinListEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
         }
@@ -132,5 +160,6 @@ sealed class CoinListEvent {
     data class Error(val message: String) : CoinListEvent()
     object CoinLocked : CoinListEvent()
     object CoinUnlocked : CoinListEvent()
-    object RemoveCoinSuccess : CoinListEvent()
+    object RemoveCoinFromTagSuccess : CoinListEvent()
+    object RemoveCoinFromCollectionSuccess : CoinListEvent()
 }

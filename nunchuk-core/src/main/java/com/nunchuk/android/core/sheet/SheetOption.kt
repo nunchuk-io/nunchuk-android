@@ -105,4 +105,8 @@ object SheetOptionType {
     const val TYPE_SHOW_OUTPOINT = 50
     const val TYPE_DELETE_TAG = 51
     const val TYPE_REMOVE_COIN_FROM_TAG = 52
+    const val TYPE_DELETE_COLLECTION = 53
+    const val TYPE_VIEW_COLLECTION_SETTING = 54
+    const val TYPE_REMOVE_COIN_FROM_COLLECTION = 55
+    const val TYPE_MOVE_COIN_TO_COLLECTION = 56
 }

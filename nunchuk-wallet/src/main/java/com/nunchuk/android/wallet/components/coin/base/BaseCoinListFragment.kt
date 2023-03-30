@@ -16,6 +16,7 @@ import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.wallet.CoinNavigationDirections
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.components.coin.collection.CollectionFlow
 import com.nunchuk.android.wallet.components.coin.list.CoinListEvent
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import com.nunchuk.android.wallet.components.coin.tag.TagFlow
@@ -40,9 +41,15 @@ abstract class BaseCoinListFragment : Fragment(), BottomSheetOptionListener {
                             resetSelect()
                         }
                         is CoinListEvent.Error -> showError(event.message)
-                        CoinListEvent.RemoveCoinSuccess -> {
+                        CoinListEvent.RemoveCoinFromTagSuccess -> {
                             coinListViewModel.refresh()
                             showSuccess(getString(R.string.nc_tag_updated))
+                            requireActivity().onBackPressedDispatcher.onBackPressed()
+                        }
+
+                        CoinListEvent.RemoveCoinFromCollectionSuccess -> {
+                            coinListViewModel.refresh()
+                            showSuccess(getString(R.string.nc_collection_updated))
                             requireActivity().onBackPressedDispatcher.onBackPressed()
                         }
                     }
@@ -60,7 +67,13 @@ abstract class BaseCoinListFragment : Fragment(), BottomSheetOptionListener {
                 walletId,
                 getSelectedCoins()
             )
-            SheetOptionType.TYPE_ADD_COLLECTION -> Unit
+            SheetOptionType.TYPE_ADD_COLLECTION -> findNavController().navigate(
+                CoinNavigationDirections.actionGlobalCoinCollectionListFragment(
+                    walletId = walletId,
+                    collectionFlow = CollectionFlow.ADD,
+                    coins = getSelectedCoins().toTypedArray()
+                )
+            )
             SheetOptionType.TYPE_ADD_TAG -> findNavController().navigate(
                 CoinNavigationDirections.actionGlobalCoinTagListFragment(
                     walletId = walletId,

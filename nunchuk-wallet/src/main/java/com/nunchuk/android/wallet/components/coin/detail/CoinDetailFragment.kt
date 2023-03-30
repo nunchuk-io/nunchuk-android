@@ -44,13 +44,16 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getBtcFormatDate
 import com.nunchuk.android.core.util.openExternalLink
+import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.components.coin.collection.CollectionFlow
 import com.nunchuk.android.wallet.components.coin.component.CoinBadge
 import com.nunchuk.android.wallet.components.coin.detail.component.CoinTransactionCard
+import com.nunchuk.android.wallet.components.coin.detail.component.CollectionHorizontalList
 import com.nunchuk.android.wallet.components.coin.detail.component.TagHorizontalList
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import com.nunchuk.android.wallet.components.coin.tag.TagFlow
@@ -110,11 +113,28 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
                             )
                         )
                     },
+                    onUpdateCollection = {
+                        findNavController().navigate(
+                            CoinDetailFragmentDirections.actionCoinDetailFragmentToCoinCollectionListFragment(
+                                walletId = args.walletId,
+                                collectionFlow = CollectionFlow.ADD,
+                                coins = arrayOf(it)
+                            )
+                        )
+                    },
                     onViewTagDetail = {
                         findNavController().navigate(
                             CoinDetailFragmentDirections.actionCoinDetailFragmentToCoinTagDetailFragment(
                                 walletId = args.walletId,
                                 coinTag = it
+                            )
+                        )
+                    },
+                    onViewCollectionDetail = {
+                        findNavController().navigate(
+                            CoinDetailFragmentDirections.actionCoinDetailFragmentToCoinCollectionDetailFragment(
+                                walletId = args.walletId,
+                                coinCollection = it
                             )
                         )
                     },
@@ -160,7 +180,9 @@ private fun CoinDetailScreen(
     onShowMore: () -> Unit = {},
     onViewTransactionDetail: () -> Unit = {},
     onUpdateTag: (output: UnspentOutput) -> Unit,
+    onUpdateCollection: (output: UnspentOutput) -> Unit,
     onViewTagDetail: (tag: CoinTag) -> Unit = {},
+    onViewCollectionDetail: (collection: CoinCollection) -> Unit = {},
     onNoteClick: (note: String) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -175,8 +197,11 @@ private fun CoinDetailScreen(
         onShowMore = onShowMore,
         onViewTransactionDetail = onViewTransactionDetail,
         onUpdateTag = onUpdateTag,
+        onUpdateCollection = onUpdateCollection,
+        coinCollections = coinListState.collections,
         coinTags = coinListState.tags,
         onViewTagDetail = onViewTagDetail,
+        onViewCollectionDetail = onViewCollectionDetail,
         onNoteClick = onNoteClick
     )
 }
@@ -185,11 +210,14 @@ private fun CoinDetailScreen(
 private fun CoinDetailContent(
     output: UnspentOutput = UnspentOutput(),
     coinTags: Map<Int, CoinTag> = emptyMap(),
+    coinCollections: Map<Int, CoinCollection> = emptyMap(),
     transaction: Transaction = Transaction(),
     onShowMore: () -> Unit = {},
     onViewTransactionDetail: () -> Unit = {},
     onUpdateTag: (output: UnspentOutput) -> Unit = {},
+    onUpdateCollection: (output: UnspentOutput) -> Unit = {},
     onViewTagDetail: (tag: CoinTag) -> Unit = {},
+    onViewCollectionDetail: (collection: CoinCollection) -> Unit = {},
     onNoteClick: (note: String) -> Unit = {},
 ) {
     val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
@@ -281,6 +309,14 @@ private fun CoinDetailContent(
                     onUpdateTag = onUpdateTag,
                     coinTags = coinTags,
                     onViewTagDetail = onViewTagDetail
+                )
+
+                CollectionHorizontalList(
+                    modifier = Modifier.padding(top = 8.dp),
+                    output = output,
+                    onUpdateCollection = onUpdateCollection,
+                    coinCollections = coinCollections,
+                    onViewCollectionDetail = onViewCollectionDetail
                 )
             }
         }
