@@ -28,7 +28,6 @@
             android:name="list_type"
             android:defaultValue="ALL"
             app:argType="com.nunchuk.android.wallet.components.coin.list.CoinListType" />
-
         <argument
             android:name="inputs"
             app:argType="com.nunchuk.android.model.UnspentOutput[]"

@@ -22,7 +22,7 @@ import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
-import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.type.CoinStatus
 import com.nunchuk.android.utils.formatByHour
 import com.nunchuk.android.utils.simpleDateFormat
 import java.util.*
@@ -174,7 +174,7 @@ fun PreviewCoinCardPreview() {
                 time = System.currentTimeMillis(),
                 tags = setOf(1, 2, 3, 4),
                 memo = "Send to Bob on Silk Road",
-                status = TransactionStatus.PENDING_CONFIRMATION
+                status = CoinStatus.OUTGOING_PENDING_CONFIRMATION
             ),
             tags = emptyMap()
         )
@@ -193,7 +193,7 @@ fun PreviewCoinCardPreview2() {
                 time = System.currentTimeMillis(),
                 tags = setOf(),
                 memo = "",
-                status = TransactionStatus.PENDING_CONFIRMATION
+                status = CoinStatus.OUTGOING_PENDING_CONFIRMATION
             ),
             tags = emptyMap()
         )
@@ -212,7 +212,7 @@ fun PreviewCoinCardPreview3() {
                 time = System.currentTimeMillis() / 1000,
                 tags = setOf(),
                 memo = "",
-                status = TransactionStatus.PENDING_CONFIRMATION
+                status = CoinStatus.OUTGOING_PENDING_CONFIRMATION
             ),
             tags = emptyMap(),
             mode = MODE_SELECT,

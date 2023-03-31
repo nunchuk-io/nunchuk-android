@@ -19,7 +19,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.UnspentOutput
-import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.type.CoinStatus
 import com.nunchuk.android.wallet.R
 
 @Composable
@@ -76,7 +76,7 @@ fun CoinListBottomBarPreview() {
                     time = System.currentTimeMillis(),
                     tags = setOf(),
                     memo = "Send to Bob on Silk Road",
-                    status = TransactionStatus.PENDING_CONFIRMATION
+                    status = CoinStatus.OUTGOING_PENDING_CONFIRMATION
                 )
             )
         )

@@ -29,11 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.MODE_SELECT
-import com.nunchuk.android.compose.MODE_VIEW_DETAIL
-import com.nunchuk.android.compose.NcTopAppBar
-import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.PreviewCoinCard
+import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
@@ -43,18 +39,17 @@ import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.result.GlobalResultKey
-import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.type.CoinStatus
 import com.nunchuk.android.wallet.CoinNavigationDirections
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.base.BaseCoinListFragment
-import com.nunchuk.android.wallet.components.coin.collection.CoinCollectionBottomSheetFragment
 import com.nunchuk.android.wallet.components.coin.collection.CoinCollectionListFragment
 import com.nunchuk.android.wallet.components.coin.collection.CollectionFlow
 import com.nunchuk.android.wallet.components.coin.component.CoinListBottomBar
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarNoneMode
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarSelectMode
-import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragment
 import com.nunchuk.android.wallet.components.coin.component.SelectCoinCreateTransactionBottomBar
+import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragment
 import com.nunchuk.android.wallet.components.coin.tag.TagFlow
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -119,10 +114,6 @@ class CoinListFragment : BaseCoinListFragment() {
         args.inputs?.let { inputs ->
             coinListViewModel.setSelectedCoin(inputs)
         }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         setFragmentResultListener(CoinCollectionListFragment.REQUEST_KEY) { _, _ ->
             findNavController().popBackStack()
             clearFragmentResult(CoinTagSelectColorBottomSheetFragment.REQUEST_KEY)
@@ -383,7 +374,7 @@ private fun CoinListScreenPreview() {
         time = System.currentTimeMillis(),
         tags = setOf(),
         memo = "Send to Bob on Silk Road",
-        status = TransactionStatus.PENDING_CONFIRMATION
+        status = CoinStatus.OUTGOING_PENDING_CONFIRMATION
     )
     CoinListContent(
         coins = listOf(

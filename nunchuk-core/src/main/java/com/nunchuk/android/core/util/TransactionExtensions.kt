@@ -23,6 +23,7 @@ import android.content.Context
 import androidx.core.content.ContextCompat
 import com.nunchuk.android.core.R
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.type.CoinStatus
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.type.TransactionStatus.*
 
@@ -76,20 +77,20 @@ fun Transaction.formatAddress(context: Context) : String {
 
 fun Transaction.hasChangeIndex() = outputs.isNotEmpty() && changeIndex >= 0 && changeIndex < outputs.size
 
-fun TransactionStatus.toName(context: Context) : String {
+fun CoinStatus.toName(context: Context) : String {
     return when(this) {
-        PENDING_CONFIRMATION -> context.getString(R.string.nc_pending_conf)
-        PENDING_SIGNATURES -> context.getString(R.string.nc_pending_sig)
-        READY_TO_BROADCAST -> context.getString(R.string.nc_pending_broadcast)
+        CoinStatus.INCOMING_PENDING_CONFIRMATION, CoinStatus.OUTGOING_PENDING_CONFIRMATION -> context.getString(R.string.nc_pending_conf)
+        CoinStatus.OUTGOING_PENDING_SIGNATURES -> context.getString(R.string.nc_pending_sig)
+        CoinStatus.OUTGOING_PENDING_BROADCAST -> context.getString(R.string.nc_pending_broadcast)
         else -> ""
     }
 }
 
-fun TransactionStatus.toColor(context: Context) : Int {
+fun CoinStatus.toColor(context: Context) : Int {
     return when(this) {
-        PENDING_CONFIRMATION -> ContextCompat.getColor(context, R.color.nc_lavender_tint_color)
-        PENDING_SIGNATURES -> ContextCompat.getColor(context, R.color.nc_red_tint_color)
-        READY_TO_BROADCAST -> ContextCompat.getColor(context, R.color.nc_beeswax_tint)
+        CoinStatus.INCOMING_PENDING_CONFIRMATION, CoinStatus.OUTGOING_PENDING_CONFIRMATION -> ContextCompat.getColor(context, R.color.nc_lavender_tint_color)
+        CoinStatus.OUTGOING_PENDING_SIGNATURES -> ContextCompat.getColor(context, R.color.nc_red_tint_color)
+        CoinStatus.OUTGOING_PENDING_BROADCAST -> ContextCompat.getColor(context, R.color.nc_beeswax_tint)
         else -> ContextCompat.getColor(context, R.color.nc_beeswax_tint)
     }
 }

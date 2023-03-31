@@ -45,7 +45,7 @@ import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
-import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.type.CoinStatus
 import com.nunchuk.android.wallet.CoinNavigationDirections
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.list.CoinListType
@@ -400,7 +400,7 @@ private fun CoinTagDetailScreenPreview() {
         time = System.currentTimeMillis(),
         tags = setOf(),
         memo = "Send to Bob on Silk Road",
-        status = TransactionStatus.PENDING_CONFIRMATION
+        status = CoinStatus.OUTGOING_PENDING_CONFIRMATION
     )
     CoinTagDetailContent(
         coins = listOf(
