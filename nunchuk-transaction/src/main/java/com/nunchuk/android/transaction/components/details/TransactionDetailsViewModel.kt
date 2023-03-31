@@ -444,7 +444,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     fun handleSignSoftwareKey(signer: SignerModel) {
         viewModelScope.launch {
             val fingerPrint = signer.fingerPrint
-            val device = masterSigners.first { it.device.masterFingerprint == fingerPrint }.device
+            val device =
+                masterSigners.firstOrNull { it.device.masterFingerprint == fingerPrint }?.device ?: return@launch
             if (device.needPassPhraseSent) {
                 setEvent(PromptInputPassphrase {
                     viewModelScope.launch {
