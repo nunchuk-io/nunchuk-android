@@ -72,8 +72,10 @@ class EstimatedFeeViewModel @Inject constructor(
             addAll(args.inputs)
         }
         getEstimateFeeRates()
-        getAllTags()
-        getAllCoins()
+        if (slots.isEmpty()) {
+            getAllTags()
+            getAllCoins()
+        }
     }
 
     fun updateNewInputs(inputs: List<UnspentOutput>) {

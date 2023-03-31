@@ -30,6 +30,7 @@ data class TransactionDetailsState(
     val transaction: Transaction = Transaction(),
     val serverTransaction: ServerTransaction? = null,
     val signers: List<SignerModel> = emptyList(),
-    val coins : List<UnspentOutput> = emptyList(),
+    val coins: List<UnspentOutput> = emptyList(),
     val tags: Map<Int, CoinTag> = emptyMap(),
+    val isShowInputCoin: Boolean = false,
 )

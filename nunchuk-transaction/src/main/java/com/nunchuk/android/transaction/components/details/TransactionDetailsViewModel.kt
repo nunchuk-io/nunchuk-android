@@ -698,6 +698,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
         return transaction.signers[fingerPrint] == true
     }
 
+    fun toggleShowInputCoin() = updateState { copy(isShowInputCoin = getState().isShowInputCoin.not()) }
+
+    fun convertInputs(inputs: List<TxInput>) = inputs.mapNotNull { txInput -> allCoins.find { it.txid == txInput.first && it.vout == txInput.second } }
+
     companion object {
         private const val INVALID_NUMBER_OF_SIGNED = -1
         private const val KEY_CURRENT_SIGNER = "current_signer"

@@ -27,21 +27,23 @@ import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.manager.AssistedWalletManager
-import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.*
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
-import com.nunchuk.android.model.SatsCardSlot
-import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.*
 import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
+import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.room.transaction.InitRoomTransactionUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -53,8 +55,11 @@ class TransactionConfirmViewModel @Inject constructor(
     private val draftSatsCardTransactionUseCase: DraftSatsCardTransactionUseCase,
     private val sessionHolder: SessionHolder,
     private val assistedWalletManager: AssistedWalletManager,
+    private val getAllTagsUseCase: GetAllTagsUseCase,
     private val inheritanceClaimCreateTransactionUseCase: InheritanceClaimCreateTransactionUseCase
 ) : NunchukViewModel<Unit, TransactionConfirmEvent>() {
+    private val _state = MutableStateFlow(TransactionConfirmUiState())
+    val uiState = _state.asStateFlow()
 
     private var manualFeeRate: Int = -1
     private lateinit var walletId: String
@@ -62,6 +67,7 @@ class TransactionConfirmViewModel @Inject constructor(
     private var sendAmount: Double = 0.0
     private var subtractFeeFromAmount: Boolean = false
     private val slots = mutableListOf<SatsCardSlot>()
+    private val inputs = mutableListOf<UnspentOutput>()
     private lateinit var privateNote: String
     private var masterSignerId: String = ""
     private var magicalPhrase: String = ""
@@ -78,6 +84,7 @@ class TransactionConfirmViewModel @Inject constructor(
         slots: List<SatsCardSlot>,
         masterSignerId: String,
         magicalPhrase: String,
+        inputs: List<UnspentOutput> = emptyList(),
     ) {
         this.walletId = walletId
         this.address = address
@@ -89,9 +96,24 @@ class TransactionConfirmViewModel @Inject constructor(
             clear()
             addAll(slots)
         }
+        this.inputs.apply {
+            clear()
+            addAll(inputs)
+        }
         this.masterSignerId = masterSignerId
         this.magicalPhrase = magicalPhrase
         if (isInheritanceClaimingFlow().not()) draftTransaction()
+        if (inputs.isNotEmpty()) {
+            getAllTags()
+        }
+    }
+
+    private fun getAllTags() {
+        viewModelScope.launch {
+            getAllTagsUseCase(walletId).onSuccess { tags ->
+                _state.update { it.copy(allTags = tags.associateBy { tag -> tag.id }) }
+            }
+        }
     }
 
     private fun initRoomTransaction() {
@@ -128,7 +150,8 @@ class TransactionConfirmViewModel @Inject constructor(
                 walletId = walletId,
                 outputs = mapOf(address to sendAmount.toAmount()),
                 subtractFeeFromAmount = subtractFeeFromAmount,
-                feeRate = manualFeeRate.toManualFeeRate()
+                feeRate = manualFeeRate.toManualFeeRate(),
+                inputs = inputs.map { TxInput(it.txid, it.vout) }
             )) {
                 is Success -> onDraftTransactionSuccess(result.data)
                 is Error -> event(CreateTxErrorEvent(result.exception.message.orEmpty()))
@@ -185,6 +208,7 @@ class TransactionConfirmViewModel @Inject constructor(
                 CreateTransactionUseCase.Param(
                     walletId = walletId,
                     outputs = mapOf(address to sendAmount.toAmount()),
+                    inputs = inputs,
                     subtractFeeFromAmount = subtractFeeFromAmount,
                     feeRate = manualFeeRate.toManualFeeRate(),
                     memo = privateNote,
@@ -221,5 +245,7 @@ class TransactionConfirmViewModel @Inject constructor(
     }
 
 }
+
+data class TransactionConfirmUiState(val allTags: Map<Int, CoinTag> = emptyMap())
 
 internal fun Int.toManualFeeRate() = if (this > 0) toAmount() else Amount(-1)

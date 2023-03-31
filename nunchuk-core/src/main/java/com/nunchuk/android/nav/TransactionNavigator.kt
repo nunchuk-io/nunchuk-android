@@ -101,6 +101,7 @@ interface TransactionNavigator {
         slots: List<SatsCardSlot> = emptyList(),
         masterSignerId: String = "",
         magicalPhrase: String = "",
+        inputs: List<UnspentOutput> = emptyList(),
     )
 
     /**

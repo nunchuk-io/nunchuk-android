@@ -410,6 +410,34 @@
                     app:layout_constraintTop_toBottomOf="@+id/privateNote"
                     tools:text="Want a bipartisan way to boost #travel &amp; grow the #economy? Pass the #JOLTAct;" />
 
+                <com.nunchuk.android.widget.NCFontTextView
+                    android:id="@+id/tv_show_input_coin"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/nc_padding_16"
+                    android:background="@color/nc_whisper_color"
+                    android:padding="@dimen/nc_padding_16"
+                    android:text="@string/nc_show_input_coins"
+                    android:textColor="@color/nc_primary_dark_color"
+                    android:textSize="@dimen/nc_text_size_14"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/noteContent" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/switch_show_input_coin"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/nc_padding_16"
+                    app:layout_constraintBottom_toBottomOf="@id/tv_show_input_coin"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/tv_show_input_coin" />
+
+                <androidx.compose.ui.platform.ComposeView
+                    android:id="@+id/input_coin"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_show_input_coin" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <androidx.constraintlayout.widget.ConstraintLayout

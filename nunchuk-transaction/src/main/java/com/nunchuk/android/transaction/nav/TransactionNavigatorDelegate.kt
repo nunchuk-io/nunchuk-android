@@ -152,7 +152,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         sweepType: SweepType,
         slots: List<SatsCardSlot>,
         masterSignerId: String,
-        magicalPhrase: String
+        magicalPhrase: String,
+        inputs: List<UnspentOutput>
     ) {
         TransactionConfirmActivity.start(
             activityContext = activityContext,
@@ -167,7 +168,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             sweepType = sweepType,
             slots = slots,
             masterSignerId = masterSignerId,
-            magicalPhrase = magicalPhrase
+            magicalPhrase = magicalPhrase,
+            inputs = inputs
         )
     }
 

@@ -52,6 +52,7 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeArgs
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.schedule.ScheduleBroadcastTransactionActivity
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmCoinList
 import com.nunchuk.android.transaction.databinding.ActivityTransactionDetailsBinding
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
@@ -283,6 +284,9 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 )
             }
         }
+        binding.switchShowInputCoin.setOnDebounceClickListener {
+            viewModel.toggleShowInputCoin()
+        }
     }
 
     private fun handleMenuMore() {
@@ -315,6 +319,18 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
         handleServerTransaction(state.transaction, state.serverTransaction)
         handleManageCoin(state.coins)
         hideLoading()
+        handleShowInputCoin(state)
+    }
+
+    private fun handleShowInputCoin(state: TransactionDetailsState) {
+        binding.switchShowInputCoin.isChecked = state.isShowInputCoin
+        binding.inputCoin.isVisible = state.isShowInputCoin
+        if (state.isShowInputCoin) {
+            val coins = viewModel.convertInputs(state.transaction.inputs)
+            binding.inputCoin.setContent {
+                TransactionConfirmCoinList(inputs = coins, allTags = state.tags)
+            }
+        }
     }
 
     private fun handleManageCoin(coins: List<UnspentOutput>) {
@@ -471,7 +487,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
             binding.tags.isVisible = changeOutput != null && changeOutput.tags.isNotEmpty()
             if (changeOutput != null && changeOutput.tags.isNotEmpty()) {
                 binding.tags.setContent {
-                    CoinTagGroupView(tagIds =  changeOutput.tags, tags = viewModel.allTags())
+                    CoinTagGroupView(tagIds = changeOutput.tags, tags = viewModel.allTags())
                 }
             }
         }

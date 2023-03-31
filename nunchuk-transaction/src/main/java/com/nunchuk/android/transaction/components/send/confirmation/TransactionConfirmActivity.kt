@@ -24,6 +24,7 @@ import android.nfc.tech.IsoDep
 import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseNfcActivity
@@ -33,6 +34,7 @@ import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.share.satscard.SweepSatscardViewModel
 import com.nunchuk.android.share.satscard.observerSweepSatscard
 import com.nunchuk.android.transaction.R
@@ -76,7 +78,8 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             manualFeeRate = args.manualFeeRate,
             slots = args.slots,
             masterSignerId = args.masterSignerId,
-            magicalPhrase = args.magicalPhrase
+            magicalPhrase = args.magicalPhrase,
+            inputs = args.inputs
         )
     }
 
@@ -85,8 +88,20 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
         observerSweepSatscard(sweepSatscardViewModel, nfcViewModel) { args.walletId }
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_SATSCARD_SWEEP_SLOT }) {
             sweepSatscardViewModel.init(args.address, args.manualFeeRate)
-            sweepSatscardViewModel.handleSweepBalance(IsoDep.get(it.tag), nfcViewModel.inputCvc.orEmpty(), args.slots.toList(), args.sweepType)
+            sweepSatscardViewModel.handleSweepBalance(
+                IsoDep.get(it.tag),
+                nfcViewModel.inputCvc.orEmpty(),
+                args.slots.toList(),
+                args.sweepType
+            )
             nfcViewModel.clearScanInfo()
+        }
+        flowObserver(viewModel.uiState) { uiState ->
+            if (args.inputs.isNotEmpty()) {
+                binding.composeCoin.setContent {
+                    TransactionConfirmCoinList(args.inputs, uiState.allTags)
+                }
+            }
         }
     }
 
@@ -112,6 +127,8 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
         binding.sendAddressUSD.text = sendAmount.getCurrencyAmount()
         binding.totalAmountBTC.text = totalAmount.getBTCAmount()
         binding.totalAmountUSD.text = totalAmount.getCurrencyAmount()
+        binding.noteContent.isVisible = args.privateNote.isNotEmpty()
+        binding.privateNote.isVisible = args.privateNote.isNotEmpty()
         binding.noteContent.text = args.privateNote
 
         binding.btnConfirm.setOnClickListener {
@@ -125,12 +142,19 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
+        binding.inputCoin.isVisible = args.inputs.isNotEmpty()
+        binding.composeCoin.isVisible = args.inputs.isNotEmpty()
     }
 
     private fun handleEvent(event: TransactionConfirmEvent) {
         when (event) {
             is CreateTxErrorEvent -> showCreateTransactionError(event.message)
-            is CreateTxSuccessEvent -> openTransactionDetailScreen(event.transaction.txId, args.walletId, sessionHolder.getActiveRoomIdSafe(), viewModel.isInheritanceClaimingFlow())
+            is CreateTxSuccessEvent -> openTransactionDetailScreen(
+                event.transaction.txId,
+                args.walletId,
+                sessionHolder.getActiveRoomIdSafe(),
+                viewModel.isInheritanceClaimingFlow()
+            )
             is UpdateChangeAddress -> bindChangAddress(event.address, event.amount)
             LoadingEvent -> showLoading()
             is InitRoomTransactionError -> showCreateTransactionError(event.message)
@@ -176,7 +200,8 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             sweepType: SweepType = SweepType.NONE,
             slots: List<SatsCardSlot> = emptyList(),
             masterSignerId: String,
-            magicalPhrase: String
+            magicalPhrase: String,
+            inputs: List<UnspentOutput> = emptyList(),
         ) {
             activityContext.startActivity(
                 TransactionConfirmArgs(
@@ -191,7 +216,8 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                     sweepType = sweepType,
                     slots = slots,
                     masterSignerId = masterSignerId,
-                    magicalPhrase = magicalPhrase
+                    magicalPhrase = magicalPhrase,
+                    inputs = inputs
                 ).buildIntent(activityContext)
             )
         }
