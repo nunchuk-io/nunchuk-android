@@ -162,6 +162,7 @@ fun CoinCollectionListScreen(
     CoinCollectionListScreenContent(
         collections = state.collections,
         collectionFlow = collectionFlow,
+        enableSaveButton = viewModel.enableButtonSave(),
         onCreateNewCollectionClick = onCreateNewCollectionClick,
         selectedCoinCollections = state.selectedCoinCollections,
         onCollectionClick = onCollectionClick,
@@ -179,6 +180,7 @@ fun CoinCollectionListScreenContent(
     collections: List<CoinCollectionAddition> = emptyList(),
     collectionFlow: Int = CollectionFlow.NONE,
     selectedCoinCollections: Set<Int> = hashSetOf(),
+    enableSaveButton: Boolean = false,
     onSaveClick: () -> Unit = {},
     onCreateNewCollectionClick: () -> Unit = {},
     onCollectionClick: (CoinCollectionAddition) -> Unit = {},
@@ -192,10 +194,10 @@ fun CoinCollectionListScreenContent(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                val title = when(collectionFlow) {
+                val title = when (collectionFlow) {
                     CollectionFlow.ADD -> stringResource(id = R.string.nc_add_to_a_collection)
                     CollectionFlow.VIEW -> stringResource(id = R.string.nc_collections)
-                    CollectionFlow.MOVE-> stringResource(id = R.string.nc_move_to_another_collection)
+                    CollectionFlow.MOVE -> stringResource(id = R.string.nc_move_to_another_collection)
                     else -> throw IllegalArgumentException("invalid flow")
                 }
                 NcTopAppBar(title = title,
@@ -244,7 +246,7 @@ fun CoinCollectionListScreenContent(
                 }
                 if (collectionFlow == CollectionFlow.ADD || collectionFlow == CollectionFlow.MOVE) {
                     NcPrimaryDarkButton(
-                        enabled = selectedCoinCollections.isNotEmpty(),
+                        enabled = enableSaveButton,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),

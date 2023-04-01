@@ -12,6 +12,7 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orFalse
+import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.BottomSheetCoinCollectionBinding
@@ -58,7 +59,7 @@ class CoinCollectionBottomSheetFragment : BaseBottomSheet<BottomSheetCoinCollect
                 R.string.nc_update_collection_setting
             )
         binding.createCollectionButton.text = buttonText
-
+        binding.avatarHolder.text = args.coinCollection?.name?.shorten()
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is CoinCollectionBottomSheetEvent.Error -> showError(message = event.message)

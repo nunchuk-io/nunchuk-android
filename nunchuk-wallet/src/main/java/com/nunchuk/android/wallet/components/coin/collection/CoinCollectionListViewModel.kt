@@ -67,6 +67,14 @@ class CoinCollectionListViewModel @Inject constructor(
         }
     }
 
+    fun enableButtonSave(): Boolean {
+        val selectedTags = _state.value.selectedCoinCollections
+        val preSelectedTags = _state.value.preSelectedCoinCollections
+        val addedTags = selectedTags.subtract(preSelectedTags)
+        val deletedTags = preSelectedTags.subtract(selectedTags)
+        return addedTags.isNotEmpty() || deletedTags.isNotEmpty()
+    }
+
     fun onCheckedChange(id: Int, checked: Boolean) {
         val selectedCoinTags = _state.value.selectedCoinCollections.toMutableSet()
         if (checked) {
