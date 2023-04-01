@@ -21,10 +21,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.TagItem
+import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.model.CoinTagAddition
 import com.nunchuk.android.wallet.R
-import com.nunchuk.android.wallet.components.coin.tag.TagFlow
-import com.nunchuk.android.wallet.components.coin.tag.TagItem
 
 @Composable
 fun SelectTagContent(

@@ -7,6 +7,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -19,7 +20,6 @@ import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.collection.CollectionFlow
 import com.nunchuk.android.wallet.components.coin.list.CoinListEvent
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
-import com.nunchuk.android.wallet.components.coin.tag.TagFlow
 import kotlinx.coroutines.launch
 
 abstract class BaseCoinListFragment : Fragment(), BottomSheetOptionListener {

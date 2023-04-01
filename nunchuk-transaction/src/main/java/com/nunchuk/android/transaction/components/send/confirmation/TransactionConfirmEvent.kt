@@ -20,13 +20,24 @@
 package com.nunchuk.android.transaction.components.send.confirmation
 
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.UnspentOutput
 
 sealed class TransactionConfirmEvent {
     object LoadingEvent : TransactionConfirmEvent()
     data class CreateTxSuccessEvent(val transaction: Transaction) : TransactionConfirmEvent()
+    data class AssignTagEvent(
+        val walletId: String,
+        val txId: String,
+        val output: UnspentOutput,
+        val tags: List<CoinTag>,
+    ) : TransactionConfirmEvent()
+
     data class CreateTxErrorEvent(val message: String) : TransactionConfirmEvent()
-    data class UpdateChangeAddress(val address: String, val amount: Amount) : TransactionConfirmEvent()
+    data class UpdateChangeAddress(val address: String, val amount: Amount) :
+        TransactionConfirmEvent()
+
     data class InitRoomTransactionError(val message: String) : TransactionConfirmEvent()
     data class InitRoomTransactionSuccess(val roomId: String) : TransactionConfirmEvent()
 }

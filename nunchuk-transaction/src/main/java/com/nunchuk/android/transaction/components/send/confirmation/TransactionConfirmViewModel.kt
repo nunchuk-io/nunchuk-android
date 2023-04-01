@@ -216,7 +216,27 @@ class TransactionConfirmViewModel @Inject constructor(
                 )
             )
             if (result.isSuccess) {
-                setEvent(CreateTxSuccessEvent(result.getOrThrow()))
+                val transaction = result.getOrThrow()
+                val commonTagMap = mutableMapOf<Int, Int>()
+                inputs.forEach { output ->
+                    output.tags.forEach {
+                        commonTagMap[it] = commonTagMap.getOrDefault(it, 0).inc()
+                    }
+                }
+                val commonTags = commonTagMap.filter { it.value == inputs.size }.map { it.key }
+                if (commonTags.isNotEmpty() && transaction.hasChangeIndex()) {
+                    val tags = commonTags.mapNotNull { tagId -> _state.value.allTags[tagId] }
+                    setEvent(
+                        AssignTagEvent(
+                            walletId = walletId,
+                            txId =  transaction.txId,
+                            output = UnspentOutput(txid = transaction.txId, transaction.changeIndex),
+                            tags = tags
+                        )
+                    )
+                } else {
+                    setEvent(CreateTxSuccessEvent(result.getOrThrow()))
+                }
             } else {
                 event(CreateTxErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
             }
@@ -243,7 +263,6 @@ class TransactionConfirmViewModel @Inject constructor(
     companion object {
         private const val WAITING_FOR_CONSUME_EVENT_SECONDS = 5L
     }
-
 }
 
 data class TransactionConfirmUiState(val allTags: Map<Int, CoinTag> = emptyMap())

@@ -30,6 +30,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.*
+import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
@@ -50,7 +51,6 @@ import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarNoneMo
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarSelectMode
 import com.nunchuk.android.wallet.components.coin.component.SelectCoinCreateTransactionBottomBar
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragment
-import com.nunchuk.android.wallet.components.coin.tag.TagFlow
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 

@@ -35,11 +35,12 @@ sealed class EstimatedFeeEvent {
 
 data class EstimatedFeeState(
     val estimatedFee: Amount = Amount.ZER0,
+    val enableSubtractFeeFromAmount: Boolean = true,
     val subtractFeeFromAmount: Boolean = false,
     val manualFeeDetails: Boolean = false,
     val estimateFeeRates: EstimateFeeRates = EstimateFeeRates(),
     val allTags: Map<Int, CoinTag> = emptyMap(),
     val allCoins: List<UnspentOutput> = emptyList(),
     val inputs: List<TxInput> = emptyList(),
-    val manualFeeRate: Int = estimateFeeRates.defaultRate
+    val manualFeeRate: Int = estimateFeeRates.defaultRate,
 )

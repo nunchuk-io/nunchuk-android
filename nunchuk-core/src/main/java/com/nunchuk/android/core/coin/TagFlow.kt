@@ -1,4 +1,4 @@
-package com.nunchuk.android.wallet.components.coin.tag
+package com.nunchuk.android.core.coin
 
 import androidx.annotation.IntDef
 

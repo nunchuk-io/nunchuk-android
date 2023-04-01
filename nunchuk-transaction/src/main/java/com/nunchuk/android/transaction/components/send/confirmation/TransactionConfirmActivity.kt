@@ -25,6 +25,8 @@ import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseNfcActivity
@@ -40,6 +42,7 @@ import com.nunchuk.android.share.satscard.observerSweepSatscard
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.amount.InputAmountActivity
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.*
+import com.nunchuk.android.transaction.components.send.confirmation.tag.AssignTagFragment
 import com.nunchuk.android.transaction.components.utils.openTransactionDetailScreen
 import com.nunchuk.android.transaction.components.utils.showCreateTransactionError
 import com.nunchuk.android.transaction.components.utils.toTitle
@@ -159,6 +162,23 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             LoadingEvent -> showLoading()
             is InitRoomTransactionError -> showCreateTransactionError(event.message)
             is InitRoomTransactionSuccess -> returnActiveRoom(event.roomId)
+            is AssignTagEvent -> {
+                hideLoading()
+                AssignTagFragment.newInstance(event.walletId, event.output, event.tags)
+                    .apply {
+                        lifecycle.addObserver(object : DefaultLifecycleObserver {
+                            override fun onDestroy(owner: LifecycleOwner) {
+                                openTransactionDetailScreen(
+                                    event.txId,
+                                    args.walletId,
+                                    sessionHolder.getActiveRoomIdSafe(),
+                                    viewModel.isInheritanceClaimingFlow()
+                                )
+                            }
+                        })
+                    }
+                    .show(supportFragmentManager, "AssignTagFragment")
+            }
         }
     }
 

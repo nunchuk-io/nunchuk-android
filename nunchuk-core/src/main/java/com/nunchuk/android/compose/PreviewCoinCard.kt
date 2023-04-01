@@ -51,7 +51,6 @@ fun PreviewCoinCard(
     }) {
         Column(
             modifier = Modifier
-                .background(color = Color.White)
                 .padding(horizontal = 16.dp, vertical = 12.dp)
                 .fillMaxWidth()
         ) {
@@ -129,7 +128,9 @@ fun PreviewCoinCard(
                     )
                 }
 
-                CoinStatusBadge(output)
+                if (mode != MODE_VIEW_ONLY) {
+                    CoinStatusBadge(output)
+                }
             }
 
             if (output.tags.isNotEmpty() || output.memo.isNotEmpty()) {
@@ -200,11 +201,13 @@ fun PreviewCoinCardPreview2() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = false)
 @Composable
 fun PreviewCoinCardPreview3() {
     NunchukTheme {
         PreviewCoinCard(
+            modifier = Modifier
+                .background(color = Color.White, shape = RoundedCornerShape(12.dp)),
             output = UnspentOutput(
                 amount = Amount(1000000L),
                 isLocked = false,

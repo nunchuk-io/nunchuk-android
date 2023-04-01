@@ -34,12 +34,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.TagItem
 import com.nunchuk.android.core.base.BaseComposeBottomSheet
+import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.model.CoinTagAddition
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
-import com.nunchuk.android.wallet.components.coin.tag.TagFlow
-import com.nunchuk.android.wallet.components.coin.tag.TagItem
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 

@@ -284,7 +284,7 @@ class TransactionDetailsActivity : BaseNfcActivity<ActivityTransactionDetailsBin
                 )
             }
         }
-        binding.switchShowInputCoin.setOnDebounceClickListener {
+        binding.switchShowInputCoin.setOnClickListener {
             viewModel.toggleShowInputCoin()
         }
     }

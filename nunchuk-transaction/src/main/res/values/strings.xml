@@ -58,4 +58,6 @@
     <string name="nc_schedule_broadcast_hint">The transaction must have enough signatures before it can be broadcast. If the wallet has been configured to automatically broadcast after co-signing, this action will override the policy.</string>
     <string name="nc_error_schedule_broadcast_out_of_range">Scheduled broadcast must happen within a year.</string>
     <string name="nc_schedule_broadcast_has_been_canceled">Scheduled broadcast has been canceled</string>
+    <string name="nc_dont_assign_any_tags">Don’t assign any tags</string>
+    <string name="nc_transaction_generate_change_coin_title">This transaction generates a change coin. Would you like the change coin to inherit the tags from the parent coin(s)?</string>
 </resources>

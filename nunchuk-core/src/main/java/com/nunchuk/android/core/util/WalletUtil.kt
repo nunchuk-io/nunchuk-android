@@ -75,3 +75,11 @@ fun String.toNumericValue(locale: Locale = Locale.US): Number = try {
 }
 
 fun AddressType.isTaproot() = this == AddressType.TAPROOT
+
+fun Iterable<Amount>.sum(): Amount {
+    val sum = Amount(0)
+    for (element in this) {
+        sum.plusAssign(element)
+    }
+    return sum
+}

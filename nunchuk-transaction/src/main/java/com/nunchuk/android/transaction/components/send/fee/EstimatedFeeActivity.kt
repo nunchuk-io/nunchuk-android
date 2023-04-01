@@ -90,7 +90,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         val subtractFeeFromAmount = args.subtractFeeFromAmount
         binding.subtractFeeCheckBox.isChecked = subtractFeeFromAmount
         binding.subtractFeeCheckBox.isEnabled = !subtractFeeFromAmount
-        viewModel.handleSubtractFeeSwitch(subtractFeeFromAmount)
+        viewModel.handleSubtractFeeSwitch(subtractFeeFromAmount, binding.subtractFeeCheckBox.isEnabled)
 
         binding.subtractFeeCheckBox.setOnCheckedChangeListener { _, isChecked ->
             viewModel.handleSubtractFeeSwitch(

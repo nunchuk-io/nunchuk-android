@@ -8,21 +8,11 @@ import android.view.ViewGroup
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Checkbox
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
@@ -40,30 +30,20 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.clearFragmentResult
-import androidx.fragment.app.setFragmentResultListener
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.NcPrimaryDarkButton
-import com.nunchuk.android.compose.NcTextField
-import com.nunchuk.android.compose.NcTopAppBar
-import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.core.util.showSuccess
+import com.nunchuk.android.compose.*
+import com.nunchuk.android.core.coin.TagFlow
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.CoinTagAddition
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagColorUtil.hexColors
 import com.nunchuk.android.wallet.components.coin.util.MaxLengthTransformation
-import com.nunchuk.android.wallet.util.hexToColor
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -346,61 +326,6 @@ fun InputTagItem(
             style = NunchukTheme.typography.title,
             textDecoration = TextDecoration.Underline
         )
-    }
-}
-
-@Preview
-@Composable
-fun TagItem(
-    id: Int = -1,
-    name: String = "",
-    color: String = "",
-    numCoins: Int = 0,
-    checked: Boolean = false,
-    tagFlow: Int = TagFlow.NONE,
-    onTagClick: () -> Unit = {},
-    onCheckedChange: ((Boolean) -> Unit) = {}
-) {
-    Row(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .clickable {
-                if (tagFlow == TagFlow.VIEW) {
-                    onTagClick()
-                }
-            },
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(48.dp, 48.dp)
-                .clip(CircleShape)
-                .background(color = color.hexToColor())
-        )
-        Column(
-            modifier = Modifier
-                .padding(start = 12.dp)
-                .weight(1f)
-        ) {
-            Text(
-                text = name,
-                style = NunchukTheme.typography.body
-            )
-            Text(
-                text = stringResource(id = R.string.nc_num_coins_data, numCoins.toString()),
-                modifier = Modifier.padding(top = 4.dp),
-                style = NunchukTheme.typography.bodySmall
-            )
-        }
-        if (tagFlow == TagFlow.VIEW) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_arrow),
-                contentDescription = ""
-            )
-        } else {
-            Checkbox(checked = checked, onCheckedChange = onCheckedChange)
-        }
     }
 }
 

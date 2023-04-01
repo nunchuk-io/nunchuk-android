@@ -37,6 +37,7 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.CoinStatusBadge
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -56,7 +57,6 @@ import com.nunchuk.android.wallet.components.coin.detail.component.CoinTransacti
 import com.nunchuk.android.wallet.components.coin.detail.component.CollectionHorizontalList
 import com.nunchuk.android.wallet.components.coin.detail.component.TagHorizontalList
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
-import com.nunchuk.android.wallet.components.coin.tag.TagFlow
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -277,7 +277,7 @@ private fun CoinDetailContent(
                         Text(
                             text = output.time.getBtcFormatDate(),
                             style = NunchukTheme.typography.bodySmall,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp)
                         )
                         CoinStatusBadge(output)
                     }

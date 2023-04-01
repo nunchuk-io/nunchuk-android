@@ -609,4 +609,7 @@
     <string name="nc_selected">%1$s selected</string>
     <string name="nc_input_coins">Input coins</string>
     <string name="nc_show_input_coins">Show input coins</string>
+    <string name="nc_tags_assigned">Tags assigned</string>
+    <string name="nc_assign_tags">Assign tags</string>
+    <string name="nc_tags_from_parent_coins">Tags from parent coin(s)</string>
 </resources>
