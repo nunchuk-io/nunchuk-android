@@ -247,13 +247,14 @@ private fun CoinListScreen(
 
     val filterCoins = when {
         args.tagId > 0 -> state.coins.filter { it.tags.contains(args.tagId) }
+        args.collectionId > 0 -> state.coins.filter { it.collection.contains(args.collectionId) }
         args.txId.isNotEmpty() -> state.coins.filter { it.txid == args.txId }
         args.listType == CoinListType.LOCKED -> state.coins.filter { it.isLocked }
         else -> state.coins
     }
 
     CoinListContent(
-        mode = if (args.inputs != null && args.inputs.isNotEmpty()) CoinListMode.TRANSACTION_SELECT else state.mode,
+        mode = if (!args.inputs.isNullOrEmpty()) CoinListMode.TRANSACTION_SELECT else state.mode,
         type = args.listType,
         coins = filterCoins,
         tags = state.tags,
