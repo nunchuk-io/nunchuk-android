@@ -8,7 +8,6 @@ import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinCollectionAddition
 import com.nunchuk.android.usecase.coin.AddToCoinCollectionUseCase
 import com.nunchuk.android.usecase.coin.RemoveCoinFromCollectionUseCase
-import com.nunchuk.android.wallet.components.coin.tag.CoinTagListEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -46,23 +45,37 @@ class CoinCollectionListViewModel @Inject constructor(
                 preSelectedCollections.add(it)
             }
         }
-        _state.update {
-            it.copy(
-                preSelectedCoinCollections = preSelectedCollections,
-                selectedCoinCollections = preSelectedCollections
-            )
+        if (args.collectionFlow != CollectionFlow.MOVE) {
+            _state.update {
+                it.copy(
+                    preSelectedCoinCollections = preSelectedCollections,
+                    selectedCoinCollections = preSelectedCollections
+                )
+            }
+        } else {
+            _state.update {
+                it.copy(
+                    preSelectedCoinCollections = preSelectedCollections,
+                    selectedCoinCollections = hashSetOf()
+                )
+            }
         }
     }
 
     fun updateCoins(allCoins: List<CoinCollection>, numberOfCoinByCollectionId: Map<Int, Int>) {
+        val preSelectedCoinCollections = _state.value.preSelectedCoinCollections
+        val collections = allCoins
+            .filter {
+                (args.collectionFlow == CollectionFlow.MOVE && preSelectedCoinCollections.contains(it.id)).not()
+            }.map { collection ->
+                CoinCollectionAddition(
+                    collection,
+                    numberOfCoinByCollectionId[collection.id] ?: 0
+                )
+            }
         _state.update {
             it.copy(
-                collections = allCoins.map { collection ->
-                    CoinCollectionAddition(
-                        collection,
-                        numberOfCoinByCollectionId[collection.id] ?: 0
-                    )
-                }
+                collections = collections
             )
         }
     }
@@ -94,7 +107,7 @@ class CoinCollectionListViewModel @Inject constructor(
             addToCoinCollectionUseCase(
                 AddToCoinCollectionUseCase.Param(
                     walletId = args.walletId,
-                     collectionIds =  selectedCollections.toList(),
+                    collectionIds = selectedCollections.toList(),
                     coins = args.coins.toList()
                 )
             )

@@ -48,6 +48,13 @@ fun CollectionHorizontalList(
             text = stringResource(R.string.nc_collections),
             style = NunchukTheme.typography.title
         )
+        if (output.collection.isNotEmpty()) {
+            Text(
+                modifier = Modifier.padding(start = 8.dp),
+                text = "(${output.collection.size})",
+                style = NunchukTheme.typography.bodySmall
+            )
+        }
         Spacer(modifier = Modifier.weight(1f))
         if (output.tags.isNotEmpty()) {
             Text(

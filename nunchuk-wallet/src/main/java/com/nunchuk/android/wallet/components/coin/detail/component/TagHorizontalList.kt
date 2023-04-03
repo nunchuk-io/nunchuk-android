@@ -45,6 +45,13 @@ fun TagHorizontalList(
             text = stringResource(R.string.nc_tags),
             style = NunchukTheme.typography.title
         )
+        if (output.tags.isNotEmpty()) {
+            Text(
+                modifier = Modifier.padding(start = 8.dp),
+                text = "(${output.tags.size})",
+                style = NunchukTheme.typography.bodySmall
+            )
+        }
         Spacer(modifier = Modifier.weight(1f))
         if (output.tags.isNotEmpty()) {
             Text(

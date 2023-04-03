@@ -563,7 +563,9 @@
     <string name="nc_num_coins_data">%s coins</string>
     <string name="nc_tag_name">Tag name</string>
     <string name="nc_tag_name_already_exists">Tag name already exists.</string>
+    <string name="nc_collection_name_already_exists">Collection name already exists.</string>
     <string name="nc_tag_deleted">Tag deleted</string>
+    <string name="nc_collection_deleted">Collection deleted</string>
     <string name="nc_delete_tag">Delete tag</string>
     <string name="nc_tag_updated">Tag updated</string>
     <string name="nc_delete_tag_confirmation"><![CDATA[There are currently <b>%s</b> coins that have this tag. Are you sure you want to delete this tag?]]></string>

@@ -149,6 +149,12 @@ class CoinTagListViewModel @Inject constructor(
             _state.update { it.copy(coinTagInputHolder = null) }
             return@launch
         }
+        val existedTag =
+            _state.value.tags.firstOrNull { it.coinTag.name == "#${coinTagInputHolder.name}" }
+        if (existedTag != null) {
+            _event.emit(CoinTagListEvent.ExistedTagError)
+            return@launch
+        }
         _event.emit(CoinTagListEvent.Loading(true))
         val result = createCoinTagUseCase(
             CreateCoinTagUseCase.Param(

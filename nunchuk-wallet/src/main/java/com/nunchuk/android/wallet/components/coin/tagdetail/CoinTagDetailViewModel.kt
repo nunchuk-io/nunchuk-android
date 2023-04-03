@@ -57,6 +57,8 @@ class CoinTagDetailViewModel @Inject constructor(
 
     fun getNumCoins() = _state.value.coins.size
 
+    fun getTags() = _state.value.tags.values
+
     fun updateTagName(name: String) {
         val coinTag = _state.value.coinTag?.copy(name = name) ?: return
         _state.update { it.copy(coinTag = coinTag) }

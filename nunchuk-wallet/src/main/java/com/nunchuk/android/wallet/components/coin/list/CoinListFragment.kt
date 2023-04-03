@@ -151,7 +151,7 @@ class CoinListFragment : BaseCoinListFragment() {
             }
 
             SheetOptionType.TYPE_REMOVE_COIN_FROM_COLLECTION -> {
-                coinListViewModel.removeCoinFromCollection(args.walletId, args.tagId)
+                coinListViewModel.removeCoinFromCollection(args.walletId, args.collectionId)
             }
 
             SheetOptionType.TYPE_MOVE_COIN_TO_COLLECTION -> {

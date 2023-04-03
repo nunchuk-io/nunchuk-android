@@ -160,7 +160,7 @@ fun CoinCollectionListScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     CoinCollectionListScreenContent(
-        collections = state.collections,
+        collections = state.collections.sortedBy { it.collection.name },
         collectionFlow = collectionFlow,
         enableSaveButton = viewModel.enableButtonSave(),
         onCreateNewCollectionClick = onCreateNewCollectionClick,

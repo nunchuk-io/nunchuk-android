@@ -15,5 +15,6 @@ sealed class CoinTagListEvent {
     data class Error(val message: String) : CoinTagListEvent()
     data class AddCoinToTagSuccess(val numsCoin: Int) : CoinTagListEvent()
     object CreateTagSuccess : CoinTagListEvent()
+    object ExistedTagError : CoinTagListEvent()
 }
 

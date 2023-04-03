@@ -6,15 +6,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
-import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseBottomSheet
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.model.CoinTag
-import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragment
+import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragmentArgs
 import com.nunchuk.android.wallet.databinding.BottomSheetEditTagNameBinding
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -22,14 +24,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class EditTagNameBottomSheetFragment : BaseBottomSheet<BottomSheetEditTagNameBinding>() {
 
     private val viewModel: EditTagNameBottomSheetViewModel by viewModels()
-
-    private val coinTag: CoinTag
-        get() = arguments?.parcelable(ARG_COIN_TAG)!!
-
-    private val walletId: String
-        get() = arguments?.getString(ARG_WALLET_ID).orEmpty()
-
-    var listener: (String) -> Unit = {}
+    private val args: EditTagNameBottomSheetFragmentArgs by navArgs()
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -42,17 +37,20 @@ class EditTagNameBottomSheetFragment : BaseBottomSheet<BottomSheetEditTagNameBin
         super.onViewCreated(view, savedInstanceState)
         dialog?.setCanceledOnTouchOutside(false)
         setupViews()
-        viewModel.init(walletId, coinTag)
 
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is EditTagNameBottomSheetEvent.UpdateTagNameSuccess -> {
-                    listener(event.tagName)
+                    setFragmentResult(
+                        REQUEST_KEY,
+                        bundleOf(EXTRA_COIN_TAG_NAME to event.tagName)
+                    )
                     dismissAllowingStateLoss()
                 }
 
                 EditTagNameBottomSheetEvent.ExistingTagNameError -> {
                     binding.errorText.text = getString(R.string.nc_tag_name_already_exists)
+                    binding.errorText.isVisible = true
                 }
 
                 is EditTagNameBottomSheetEvent.Error -> showError(message = event.message)
@@ -61,14 +59,14 @@ class EditTagNameBottomSheetFragment : BaseBottomSheet<BottomSheetEditTagNameBin
     }
 
     private fun setupViews() {
-        binding.edtName.setText(coinTag.name)
+        binding.edtName.setText(args.coinTag.name)
         binding.closeBtn.setOnClickListener {
             cleanUp()
         }
         binding.saveBtn.setOnClickListener {
             save()
         }
-        binding.edtName.setText(coinTag.name)
+        binding.edtName.setText(args.coinTag.name)
         Selection.setSelection(binding.edtName.text, binding.edtName.text?.length ?: 0)
         binding.edtName.doAfterTextChanged {
             if (!it.toString().startsWith("#")) {
@@ -88,13 +86,7 @@ class EditTagNameBottomSheetFragment : BaseBottomSheet<BottomSheetEditTagNameBin
     }
 
     companion object {
-        private const val TAG = "EditTagNameBottomSheet"
-        private const val ARG_COIN_TAG = "ARG_COIN_TAG"
-        private const val ARG_WALLET_ID = "ARG_WALLET_ID"
-        fun show(coinTag: CoinTag, walletId: String, fragmentManager: FragmentManager) =
-            EditTagNameBottomSheetFragment().apply {
-                arguments = bundleOf(ARG_COIN_TAG to coinTag, ARG_WALLET_ID to walletId)
-                show(fragmentManager, TAG)
-            }
+        const val REQUEST_KEY = "EditTagNameBottomSheetFragment"
+        const val EXTRA_COIN_TAG_NAME = "EXTRA_COIN_TAG_NAME"
     }
 }

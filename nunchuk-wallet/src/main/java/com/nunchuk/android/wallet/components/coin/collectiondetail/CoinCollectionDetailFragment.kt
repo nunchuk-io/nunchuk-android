@@ -119,7 +119,7 @@ class CoinCollectionDetailFragment : Fragment(), BottomSheetOptionListener {
                 is CoinCollectionDetailEvent.Error -> showError(message = event.message)
                 is CoinCollectionDetailEvent.Loading -> showOrHideLoading(loading = event.show)
                 CoinCollectionDetailEvent.DeleteCollectionSuccess -> {
-                    NcToastManager.scheduleShowMessage(message = getString(R.string.nc_tag_deleted))
+                    NcToastManager.scheduleShowMessage(message = getString(R.string.nc_collection_deleted))
                     handleTagInfoChange()
                     findNavController().popBackStack()
                 }
@@ -396,6 +396,7 @@ private fun SwipeDismissPreviewCoinCard(
         onBackgroundEndClick = onDeleteCoin
     ) {
         PreviewCoinCard(
+            modifier = Modifier.background(Color.White),
             output = output,
             onViewCoinDetail = onViewCoinDetail,
             tags = tags,

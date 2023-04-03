@@ -79,20 +79,10 @@ class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
                         findNavController().navigate(
                             CoinTagDetailFragmentDirections.actionCoinTagDetailFragmentToEditTagNameBottomSheetFragment(
                                 walletId = args.walletId,
-                                coinTag = it
+                                coinTag = it,
+                                tags = viewModel.getTags().toTypedArray()
                             )
                         )
-                        val bottomSheet = EditTagNameBottomSheetFragment.show(
-                            walletId = args.walletId,
-                            coinTag = it,
-                            fragmentManager = childFragmentManager
-                        )
-
-                        bottomSheet.listener = {
-                            viewModel.updateTagName(it)
-                            showTagUpdated()
-                            handleTagInfoChange()
-                        }
                     }, onEditTagColorClick = {
                         findNavController().navigate(
                             CoinTagDetailFragmentDirections.actionCoinTagDetailFragmentToCoinTagSelectColorBottomSheetFragment(
@@ -156,6 +146,17 @@ class CoinTagDetailFragment : Fragment(), BottomSheetOptionListener {
                     viewModel.updateColor(it)
                 } ?: run {
                 clearFragmentResult(CoinTagSelectColorBottomSheetFragment.REQUEST_KEY)
+            }
+        }
+
+        setFragmentResultListener(EditTagNameBottomSheetFragment.REQUEST_KEY) { _, bundle ->
+            bundle.getString(EditTagNameBottomSheetFragment.EXTRA_COIN_TAG_NAME)
+                ?.let {
+                    viewModel.updateTagName(it)
+                    showTagUpdated()
+                    handleTagInfoChange()
+                } ?: run {
+                clearFragmentResult(EditTagNameBottomSheetFragment.REQUEST_KEY)
             }
         }
     }
@@ -379,6 +380,7 @@ private fun SwipeDismissPreviewCoinCard(
         onBackgroundEndClick = onDeleteCoin
     ) {
         PreviewCoinCard(
+            modifier = Modifier.background(Color.White),
             output = output,
             onViewCoinDetail = onViewCoinDetail,
             tags = tags,
