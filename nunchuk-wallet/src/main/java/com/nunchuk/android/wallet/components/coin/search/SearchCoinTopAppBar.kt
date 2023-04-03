@@ -1,9 +1,13 @@
 package com.nunchuk.android.wallet.components.coin.search
 
 import androidx.activity.OnBackPressedDispatcherOwner
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -17,10 +21,14 @@ import com.nunchuk.android.wallet.R
 fun SearchCoinTopAppBar(
     onBackPressOwner: OnBackPressedDispatcherOwner?,
     query: String,
+    isEmpty: Boolean = false,
     onQueryChange: (String) -> Unit,
     enableSelectMode: () -> Unit,
     onFilterClicked: () -> Unit
 ) {
+    val isShowClearSearch by remember(query) {
+        derivedStateOf { query.isNotEmpty() }
+    }
     TopAppBar(navigationIcon = {
         IconButton(onClick = { onBackPressOwner?.onBackPressedDispatcher?.onBackPressed() }) {
             Icon(
@@ -29,7 +37,7 @@ fun SearchCoinTopAppBar(
             )
         }
     }, actions = {
-        if (query.isNotEmpty()) {
+        AnimatedVisibility(visible = isShowClearSearch) {
             IconButton(onClick = { onQueryChange("") }) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_close),
@@ -37,11 +45,13 @@ fun SearchCoinTopAppBar(
                 )
             }
         }
-        Text(
-            modifier = Modifier.clickable { enableSelectMode() },
-            text = stringResource(R.string.nc_select),
-            style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
-        )
+        AnimatedVisibility(visible = isEmpty.not()) {
+            Text(
+                modifier = Modifier.clickable { enableSelectMode() },
+                text = stringResource(R.string.nc_select),
+                style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
+            )
+        }
         IconButton(onClick = onFilterClicked) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_filter),

@@ -1,6 +1,5 @@
 package com.nunchuk.android.wallet.components.coin.filter
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -26,16 +25,20 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.findNavController
 import androidx.navigation.navGraphViewModels
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.components.coin.filter.tag.FilterByTagFragment
+import com.nunchuk.android.wallet.components.coin.filter.tag.FilterByTagFragmentArgs
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -51,7 +54,9 @@ class CoinFilterFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 CoinFilterScreen(viewModel, onOpenSelectTagScreen = {
-
+                    findNavController().navigate(
+                        CoinFilterFragmentDirections.actionCoinFilterFragmentToFilterByTagFragment(viewModel.state.value.selectTags.toIntArray())
+                    )
                 })
             }
         }
@@ -59,7 +64,10 @@ class CoinFilterFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        view.setBackgroundColor(Color.TRANSPARENT)
+        setFragmentResultListener(FilterByTagFragment.REQUEST_KEY) { key, bundle ->
+            val args = FilterByTagFragmentArgs.fromBundle(bundle)
+            viewModel.setSelectedTags(args.tagIds)
+        }
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle).collect { event ->
 
@@ -77,12 +85,14 @@ private fun CoinFilterScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     CoinFilterContent(
+        state = state,
         onOpenSelectTagScreen = onOpenSelectTagScreen
     )
 }
 
 @Composable
 private fun CoinFilterContent(
+    state: CoinFilterUiState = CoinFilterUiState(),
     onApplyFilter: () -> Unit = {},
     onMinimumAmountChange: (String) -> Unit = {},
     onMaximumAmountChange: (String) -> Unit = {},
@@ -92,7 +102,6 @@ private fun CoinFilterContent(
     onSelectSort: (Boolean) -> Unit = {},
     onOpenSelectTagScreen: () -> Unit = {},
     filters: List<CoinFilter> = listOf(
-        CoinFilter.Tag(),
         CoinFilter.Collection(),
         CoinFilter.Amount(),
         CoinFilter.Date(),
@@ -116,44 +125,44 @@ private fun CoinFilterContent(
                     )
             ) {
                 LazyColumn(modifier = Modifier.weight(1.0f)) {
+                    item {
+                        FilterRow(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            title = stringResource(id = R.string.nc_tags),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .padding(top = 12.dp)
+                                    .clickable(onClick = onOpenSelectTagScreen)
+                                    .border(
+                                        width = 1.dp,
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = NcColor.border,
+                                    )
+                                    .padding(12.dp)
+                            ) {
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .align(Alignment.CenterStart),
+                                    text = if (state.selectTags.isEmpty()) stringResource(R.string.nc_all_tags)
+                                    else stringResource(
+                                        R.string.nc_tags_selected, state.selectTags.size
+                                    ),
+                                    style = NunchukTheme.typography.body
+                                )
+                                Icon(
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .align(Alignment.CenterEnd),
+                                    painter = painterResource(id = R.drawable.ic_arrow_expand),
+                                    contentDescription = "Arrow Expand"
+                                )
+                            }
+                        }
+                    }
                     filters.forEach { filter ->
                         when (filter) {
-                            is CoinFilter.Tag -> item {
-                                FilterRow(
-                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                    title = stringResource(id = R.string.nc_tags),
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .padding(top = 12.dp)
-                                            .clickable(onClick = onOpenSelectTagScreen)
-                                            .border(
-                                                width = 1.dp,
-                                                shape = RoundedCornerShape(8.dp),
-                                                color = NcColor.border,
-                                            )
-                                            .padding(12.dp)
-                                    ) {
-                                        Text(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .align(Alignment.CenterStart),
-                                            text = if (filter.ids.isEmpty()) stringResource(R.string.nc_all_tags)
-                                            else stringResource(
-                                                R.string.nc_tags_selected, filter.ids.size
-                                            ),
-                                            style = NunchukTheme.typography.body
-                                        )
-                                        Icon(
-                                            modifier = Modifier
-                                                .size(24.dp)
-                                                .align(Alignment.CenterEnd),
-                                            painter = painterResource(id = R.drawable.ic_arrow_expand),
-                                            contentDescription = "Arrow Expand"
-                                        )
-                                    }
-                                }
-                            }
                             is CoinFilter.Collection -> item {
                                 FilterRow(
                                     modifier = Modifier.padding(horizontal = 16.dp),

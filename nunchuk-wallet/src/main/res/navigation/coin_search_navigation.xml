@@ -23,6 +23,23 @@
     <fragment
         android:id="@+id/coinFilterFragment"
         android:name="com.nunchuk.android.wallet.components.coin.filter.CoinFilterFragment"
-        android:label="CoinFilterFragment" />
+        android:label="CoinFilterFragment" >
+        <action
+            android:id="@+id/action_coinFilterFragment_to_filterByTagFragment"
+            app:destination="@id/filterByTagFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+    </fragment>
+    <fragment
+        android:id="@+id/filterByTagFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.filter.tag.FilterByTagFragment"
+        android:label="FilterByTagFragment" >
+
+        <argument
+            android:name="tagIds"
+            app:argType="integer[]" />
+    </fragment>
 
 </navigation>

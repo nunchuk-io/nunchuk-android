@@ -15,7 +15,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class CoinSearchFragmentViewModel @Inject constructor(
+class CoinSearchViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
     private val _event = MutableSharedFlow<CoinSearchFragmentEvent>()
@@ -49,10 +49,16 @@ class CoinSearchFragmentViewModel @Inject constructor(
 
     suspend fun handleSearch(query: String) = withContext(ioDispatcher) {
         mutex.withLock {
-            val lowCaseQuery = query.lowercase()
-            val queryTagIds = allTags.asSequence().filter { it.value.name.lowercase().contains(lowCaseQuery) }.map { it.key }.toSet()
-            val coins = allCoins.filter { it.tags.any { tag -> queryTagIds.contains(tag) } }
-            _state.update { it.copy(coins = coins) }
+            if (query.isEmpty()) {
+                _state.update { it.copy(coins = emptyList()) }
+            } else {
+                val lowCaseQuery = query.lowercase()
+                val queryTagIds =
+                    allTags.asSequence().filter { it.value.name.lowercase().contains(lowCaseQuery) }
+                        .map { it.key }.toSet()
+                val coins = allCoins.filter { it.tags.any { tag -> queryTagIds.contains(tag) } }
+                _state.update { it.copy(coins = coins) }
+            }
         }
     }
 

@@ -48,7 +48,7 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class CoinSearchFragment : BaseCoinListFragment() {
     private val args: CoinSearchFragmentArgs by navArgs()
-    private val viewModel: CoinSearchFragmentViewModel by viewModels()
+    private val viewModel: CoinSearchViewModel by viewModels()
     private val coinFilterViewModel: CoinFilterViewModel by navGraphViewModels(R.id.coin_search_navigation)
 
     override fun onCreateView(
@@ -109,7 +109,7 @@ class CoinSearchFragment : BaseCoinListFragment() {
 
 @Composable
 private fun CoinSearchFragmentScreen(
-    viewModel: CoinSearchFragmentViewModel = viewModel(),
+    viewModel: CoinSearchViewModel = viewModel(),
     coinListViewModel: CoinListViewModel = viewModel(),
     onFilterClicked: () -> Unit = {},
     onViewCoinDetail: (output: UnspentOutput) -> Unit = {},
@@ -171,6 +171,7 @@ private fun CoinSearchFragmentContent(
                     SearchCoinTopAppBar(
                         onBackPressOwner = onBackPressOwner,
                         query = query,
+                        isEmpty = coins.isEmpty(),
                         onQueryChange = {
                             query = it
                         },
