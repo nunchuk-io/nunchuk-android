@@ -429,6 +429,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return response.data.token.token
     }
 
+    override suspend fun verifiedPKeyToken(targetAction: String, address: String, signature: String): String? {
+        val response = membershipApi.verifiedPKeyToken(
+            targetAction, VerifiedPKeyTokenRequest(address = address, signature = signature)
+        )
+        return response.data.token.token
+    }
+
     override suspend fun calculateRequiredSignaturesSecurityQuestions(
         walletId: String, questions: List<QuestionsAndAnswer>
     ): CalculateRequiredSignatures {

@@ -41,6 +41,15 @@
                 app:wss_title="@string/nc_protect_wallet_with_account_password" />
 
             <com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingItemView
+                android:id="@+id/passphrase_option"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                tools:visibility="visible"
+                app:wss_desc="@string/nc_protect_wallet_with_account_passphrase_desc"
+                app:wss_title="@string/nc_protect_wallet_with_account_passphrase" />
+
+            <com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingItemView
                 android:id="@+id/pin_option"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

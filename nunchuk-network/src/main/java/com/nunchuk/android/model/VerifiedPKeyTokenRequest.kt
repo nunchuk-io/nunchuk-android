@@ -17,34 +17,13 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.api.key
+package com.nunchuk.android.model
 
-import com.nunchuk.android.core.network.Data
-import com.nunchuk.android.model.MembershipSubscription
-import com.nunchuk.android.model.VerifiedPKeyTokenRequest
-import com.nunchuk.android.model.VerifiedPasswordTokenRequest
-import com.nunchuk.android.model.VerifiedPasswordTokenResponse
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.Path
+import com.google.gson.annotations.SerializedName
 
-interface MembershipApi {
-    @GET("/v1.1/subscriptions/current")
-    suspend fun getCurrentSubscription(): Data<MembershipSubscription>
-
-    @GET("/v1.1/subscriptions/testnet")
-    suspend fun getTestnetCurrentSubscription(): Data<MembershipSubscription>
-
-    @POST("/v1.1/passport/verified-password-token/{target_action}")
-    suspend fun verifiedPasswordToken(
-        @Path("target_action") targetAction: String,
-        @Body payload: VerifiedPasswordTokenRequest
-    ): Data<VerifiedPasswordTokenResponse>
-
-    @POST("/v1.1/passport/verified-pkey-token/{target_action}")
-    suspend fun verifiedPKeyToken(
-        @Path("target_action") targetAction: String,
-        @Body payload: VerifiedPKeyTokenRequest
-    ): Data<VerifiedPasswordTokenResponse>
-}
+data class VerifiedPKeyTokenRequest(
+    @SerializedName("address")
+    val address: String? = null,
+    @SerializedName("signature")
+    val signature: String? = null
+)

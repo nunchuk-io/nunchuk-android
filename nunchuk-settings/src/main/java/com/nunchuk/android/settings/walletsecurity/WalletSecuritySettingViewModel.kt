@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.CheckWalletPinUseCase
 import com.nunchuk.android.core.domain.GetWalletPinUseCase
+import com.nunchuk.android.core.domain.membership.VerifiedPKeyTokenUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
@@ -21,6 +22,7 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
     private val getWalletPinUseCase: GetWalletPinUseCase,
     private val checkWalletPinUseCase: CheckWalletPinUseCase,
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
+    private val verifiedPKeyTokenUseCase: VerifiedPKeyTokenUseCase,
 ) : NunchukViewModel<WalletSecuritySettingState, WalletSecuritySettingEvent>() {
 
     override val initialState = WalletSecuritySettingState()
@@ -52,6 +54,11 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
     fun updateProtectWalletPassword(data: Boolean) = viewModelScope.launch {
         val walletSecuritySetting = getState().walletSecuritySetting
         updateSetting(walletSecuritySetting.copy(protectWalletPassword = data))
+    }
+
+    fun updateProtectWalletPassphrase(data: Boolean) = viewModelScope.launch {
+        val walletSecuritySetting = getState().walletSecuritySetting
+        updateSetting(walletSecuritySetting.copy(protectWalletPassphrase = data))
     }
 
     fun updateProtectWalletPin(data: Boolean) = viewModelScope.launch {
@@ -106,6 +113,25 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
                 }
             } else {
                 if (isHideWalletDetailFlow.not()) updateProtectWalletPassword(true) else updateHideWalletDetail(true)
+                event(WalletSecuritySettingEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+
+    fun confirmPassphrase(passphrase: String, isHideWalletDetailFlow: Boolean = false) =
+        viewModelScope.launch {
+            if (passphrase.isBlank() && isHideWalletDetailFlow.not()) {
+                updateProtectWalletPassphrase(true)
+                return@launch
+            }
+            val result = verifiedPKeyTokenUseCase(passphrase)
+            if (result.isSuccess) {
+                if (isHideWalletDetailFlow) {
+                    event(WalletSecuritySettingEvent.CheckPassphraseSuccess)
+                } else {
+                    updateProtectWalletPassphrase(false)
+                }
+            } else {
+                if (isHideWalletDetailFlow.not()) updateProtectWalletPassphrase(true) else updateHideWalletDetail(true)
                 event(WalletSecuritySettingEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))
             }
         }

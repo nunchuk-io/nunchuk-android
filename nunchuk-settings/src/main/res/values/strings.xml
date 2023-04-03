@@ -65,6 +65,8 @@
     <string name="nc_hide_wallet_details_desc">Hide your wallet balance, transaction amounts and addresses by default.</string>
     <string name="nc_protect_wallet_with_account_password">Protect wallets with account password</string>
     <string name="nc_protect_wallet_with_account_password_desc">Re-enter your account password for each wallet access.</string>
+    <string name="nc_protect_wallet_with_account_passphrase">Protect wallets with account passphrase</string>
+    <string name="nc_protect_wallet_with_account_passphrase_desc">Re-enter your account passphrase for each wallet access.</string>
     <string name="nc_protect_wallet_with_pin">Protect wallets with a PIN (advanced)</string>
     <string name="nc_protect_wallet_with_pin_desc">Require a PIN for each wallet access.</string>
     <string name="nc_create_a_wallet_pin">Create a wallet PIN</string>
@@ -83,4 +85,6 @@
     <string name="nc_create_a_wallet_pin_desc">[B]Please make sure to remember your PIN.[/B] If you forget your PIN and have not backed up your wallets, you might not be able to access them again.</string>
     <string name="nc_local_currency">Local currency</string>
     <string name="nc_local_currency_updated">Local currency updated</string>
+    <string name="nc_re_enter_your_passphrase">Re-enter your passphrase</string>
+    <string name="nc_re_enter_your_passphrase_dialog_desc">For security, please re-enter your passphrase.</string>
 </resources>
