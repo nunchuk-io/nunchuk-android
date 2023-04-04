@@ -14,21 +14,26 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.flowWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.findNavController
 import androidx.navigation.navGraphViewModels
@@ -36,12 +41,15 @@ import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.CurrencyFormatter
+import com.nunchuk.android.core.util.MAX_FRACTION_DIGITS
+import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.wallet.R
+import com.nunchuk.android.wallet.components.coin.filter.collection.FilterByCollectionFragment
+import com.nunchuk.android.wallet.components.coin.filter.collection.FilterByCollectionFragmentArgs
 import com.nunchuk.android.wallet.components.coin.filter.tag.FilterByTagFragment
 import com.nunchuk.android.wallet.components.coin.filter.tag.FilterByTagFragmentArgs
-import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class CoinFilterFragment : Fragment() {
@@ -53,25 +61,37 @@ class CoinFilterFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                CoinFilterScreen(viewModel, onOpenSelectTagScreen = {
-                    findNavController().navigate(
-                        CoinFilterFragmentDirections.actionCoinFilterFragmentToFilterByTagFragment(viewModel.state.value.selectTags.toIntArray())
-                    )
-                })
+                CoinFilterScreen(
+                    viewModel,
+                    onOpenSelectTagScreen = {
+                        findNavController().navigate(
+                            CoinFilterFragmentDirections.actionCoinFilterFragmentToFilterByTagFragment(
+                                viewModel.state.value.selectTags.toIntArray()
+                            )
+                        )
+                    },
+                    onOpenSelectCollectionScreen = {
+                        findNavController().navigate(
+                            CoinFilterFragmentDirections.actionCoinFilterFragmentToFilterByCollectionFragment(
+                                viewModel.state.value.selectCollections.toIntArray()
+                            )
+                        )
+                    },
+                )
             }
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setFragmentResultListener(FilterByTagFragment.REQUEST_KEY) { key, bundle ->
+        setFragmentResultListener(FilterByTagFragment.REQUEST_KEY) { _, bundle ->
             val args = FilterByTagFragmentArgs.fromBundle(bundle)
             viewModel.setSelectedTags(args.tagIds)
         }
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle).collect { event ->
 
-            }
+        setFragmentResultListener(FilterByCollectionFragment.REQUEST_KEY) { _, bundle ->
+            val args = FilterByCollectionFragmentArgs.fromBundle(bundle)
+            viewModel.setSelectedCollection(args.collectionIds)
         }
     }
 }
@@ -79,14 +99,15 @@ class CoinFilterFragment : Fragment() {
 @Composable
 private fun CoinFilterScreen(
     viewModel: CoinFilterViewModel = viewModel(),
-    coinListViewModel: CoinListViewModel = viewModel(),
     onOpenSelectTagScreen: () -> Unit,
+    onOpenSelectCollectionScreen: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     CoinFilterContent(
         state = state,
-        onOpenSelectTagScreen = onOpenSelectTagScreen
+        onOpenSelectTagScreen = onOpenSelectTagScreen,
+        onOpenSelectCollectionScreen = onOpenSelectCollectionScreen,
     )
 }
 
@@ -94,21 +115,24 @@ private fun CoinFilterScreen(
 private fun CoinFilterContent(
     state: CoinFilterUiState = CoinFilterUiState(),
     onApplyFilter: () -> Unit = {},
-    onMinimumAmountChange: (String) -> Unit = {},
-    onMaximumAmountChange: (String) -> Unit = {},
     onSwitchBtcAndCurrency: (Boolean) -> Unit = {},
     onShowLockedCoin: (Boolean) -> Unit = {},
     onShowUnlockedCoin: (Boolean) -> Unit = {},
     onSelectSort: (Boolean) -> Unit = {},
     onOpenSelectTagScreen: () -> Unit = {},
+    onOpenSelectCollectionScreen: () -> Unit = {},
     filters: List<CoinFilter> = listOf(
-        CoinFilter.Collection(),
-        CoinFilter.Amount(),
         CoinFilter.Date(),
         CoinFilter.LockCoin(),
         CoinFilter.Sort()
     ),
 ) {
+    var min by rememberSaveable {
+        mutableStateOf("")
+    }
+    var max by rememberSaveable {
+        mutableStateOf("")
+    }
     NunchukTheme {
         Column(
             modifier = Modifier
@@ -161,67 +185,76 @@ private fun CoinFilterContent(
                             }
                         }
                     }
+                    item {
+                        FilterRow(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            title = stringResource(id = R.string.nc_collections),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .padding(top = 12.dp)
+                                    .clickable(onClick = onOpenSelectCollectionScreen)
+                                    .border(
+                                        width = 1.dp,
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = NcColor.border,
+                                    )
+                                    .padding(12.dp)
+                            ) {
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .align(Alignment.CenterStart),
+                                    text = if (state.selectCollections.isEmpty())
+                                        stringResource(R.string.nc_all_collections)
+                                    else stringResource(
+                                        R.string.nc_collections_selected,
+                                        state.selectCollections.size
+                                    ),
+                                    style = NunchukTheme.typography.body
+                                )
+                                Icon(
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .align(Alignment.CenterEnd),
+                                    painter = painterResource(id = R.drawable.ic_arrow_expand),
+                                    contentDescription = "Arrow Expand"
+                                )
+                            }
+                        }
+                    }
+                    item {
+                        FilterRow(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            title = stringResource(id = R.string.nc_amount),
+                        ) {
+                            NcTextField(modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                title = stringResource(R.string.nc_minimum_amount),
+                                value = min,
+                                onValueChange = { value: String ->
+                                    min = CurrencyFormatter.format(value, MAX_FRACTION_DIGITS)
+                                },
+                                visualTransformation = NumberCommaTransformation(),
+                                rightContent = {
+                                    SwitchAmount(true, onSwitchBtcAndCurrency)
+                                })
+                            NcTextField(modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                title = stringResource(R.string.nc_maximum_amount),
+                                value = max,
+                                onValueChange = { value: String -> max = CurrencyFormatter.format(value) },
+                                rightContent = {
+                                    SwitchAmount(false, onSwitchBtcAndCurrency)
+                                })
+                        }
+                    }
                     filters.forEach { filter ->
                         when (filter) {
-                            is CoinFilter.Collection -> item {
-                                FilterRow(
-                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                    title = stringResource(id = R.string.nc_collections),
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .padding(top = 12.dp)
-                                            .border(
-                                                width = 1.dp,
-                                                shape = RoundedCornerShape(8.dp),
-                                                color = NcColor.border,
-                                            )
-                                            .padding(12.dp)
-                                    ) {
-                                        Text(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .align(Alignment.CenterStart),
-                                            text = stringResource(R.string.nc_all_collections),
-                                            style = NunchukTheme.typography.body
-                                        )
-                                        Icon(
-                                            modifier = Modifier
-                                                .size(24.dp)
-                                                .align(Alignment.CenterEnd),
-                                            painter = painterResource(id = R.drawable.ic_arrow_expand),
-                                            contentDescription = "Arrow Expand"
-                                        )
-                                    }
-                                }
-                            }
-                            is CoinFilter.Amount -> item {
-                                FilterRow(
-                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                    title = stringResource(id = R.string.nc_amount),
-                                ) {
-                                    NcTextField(modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = 16.dp),
-                                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                                        title = stringResource(R.string.nc_minimum_amount),
-                                        value = "",
-                                        onValueChange = onMinimumAmountChange,
-                                        rightContent = {
-                                            SwitchAmount(true, onSwitchBtcAndCurrency)
-                                        })
-                                    NcTextField(modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = 16.dp),
-                                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                                        title = stringResource(R.string.nc_maximum_amount),
-                                        value = "",
-                                        onValueChange = onMaximumAmountChange,
-                                        rightContent = {
-                                            SwitchAmount(false, onSwitchBtcAndCurrency)
-                                        })
-                                }
-                            }
                             is CoinFilter.Date -> item {
                                 FilterRow(
                                     modifier = Modifier.padding(horizontal = 16.dp),
@@ -375,6 +408,25 @@ fun FilterRow(modifier: Modifier, title: String, content: @Composable ColumnScop
         Text(text = title, style = NunchukTheme.typography.title)
         content()
         Divider(modifier = Modifier.padding(top = 24.dp))
+    }
+}
+
+class NumberCommaTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val formatValue = text.text.toDoubleOrNull()?.formatDecimalWithoutZero() ?: ""
+        val value = if (text.text.endsWith(".")) "${formatValue}." else formatValue
+        return TransformedText(
+            text = AnnotatedString(value),
+            offsetMapping = object : OffsetMapping {
+                override fun originalToTransformed(offset: Int): Int {
+                    return value.length
+                }
+
+                override fun transformedToOriginal(offset: Int): Int {
+                    return text.length
+                }
+            }
+        )
     }
 }
 

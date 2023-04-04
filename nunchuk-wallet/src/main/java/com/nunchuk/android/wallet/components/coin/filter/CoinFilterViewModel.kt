@@ -22,6 +22,10 @@ class CoinFilterViewModel @Inject constructor(
     fun setSelectedTags(tagIds: IntArray) {
         _state.update { it.copy(selectTags = tagIds.toSet()) }
     }
+
+    fun setSelectedCollection(collectionIds: IntArray) {
+        _state.update { it.copy(selectCollections = collectionIds.toSet()) }
+    }
 }
 
 sealed class CoinFilterEvent
@@ -29,4 +33,6 @@ sealed class CoinFilterEvent
 data class CoinFilterUiState(
     val filters: List<CoinFilter> = emptyList(),
     val selectTags: Set<Int> = emptySet(),
+    val selectCollections: Set<Int> = emptySet(),
+    val isBtc: Boolean = true,
 )

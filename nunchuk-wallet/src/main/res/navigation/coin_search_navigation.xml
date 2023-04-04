@@ -31,6 +31,13 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+        <action
+            android:id="@+id/action_coinFilterFragment_to_filterByCollectionFragment"
+            app:destination="@id/filterByCollectionFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
     </fragment>
     <fragment
         android:id="@+id/filterByTagFragment"
@@ -41,5 +48,15 @@
             android:name="tagIds"
             app:argType="integer[]" />
     </fragment>
+    <fragment
+        android:id="@+id/filterByCollectionFragment"
+        android:name="com.nunchuk.android.wallet.components.coin.filter.collection.FilterByCollectionFragment"
+        android:label="FilterByCollectionFragment" >
+
+        <argument
+            android:name="collectionIds"
+            app:argType="integer[]" />
+    </fragment>
+
 
 </navigation>

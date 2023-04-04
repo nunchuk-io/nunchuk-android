@@ -16,7 +16,9 @@ import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -245,12 +247,16 @@ private fun CoinListScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    val filterCoins = when {
-        args.tagId > 0 -> state.coins.filter { it.tags.contains(args.tagId) }
-        args.collectionId > 0 -> state.coins.filter { it.collection.contains(args.collectionId) }
-        args.txId.isNotEmpty() -> state.coins.filter { it.txid == args.txId }
-        args.listType == CoinListType.LOCKED -> state.coins.filter { it.isLocked }
-        else -> state.coins
+    val filterCoins by remember {
+        derivedStateOf {
+            when {
+                args.tagId > 0 -> state.coins.filter { it.tags.contains(args.tagId) }
+                args.collectionId > 0 -> state.coins.filter { it.collection.contains(args.collectionId) }
+                args.txId.isNotEmpty() -> state.coins.filter { it.txid == args.txId }
+                args.listType == CoinListType.LOCKED -> state.coins.filter { it.isLocked }
+                else -> state.coins
+            }
+        }
     }
 
     CoinListContent(

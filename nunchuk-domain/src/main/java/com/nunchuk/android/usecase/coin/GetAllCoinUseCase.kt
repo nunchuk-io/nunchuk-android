@@ -12,6 +12,6 @@ class GetAllCoinUseCase @Inject constructor(
     private val nunchukNativeSdk: NunchukNativeSdk,
 ) : UseCase<String, List<UnspentOutput>>(ioDispatcher) {
     override suspend fun execute(parameters: String): List<UnspentOutput> {
-        return nunchukNativeSdk.getUnspentOutputs(parameters).sortedByDescending { it.time }
+        return nunchukNativeSdk.getUnspentOutputs(parameters).sortedWith(compareByDescending<UnspentOutput> { it.amount.value }.thenBy { it.time })
     }
 }
