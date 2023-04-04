@@ -3,6 +3,8 @@ package com.nunchuk.android.wallet.components.coin.list
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.usecase.coin.*
@@ -21,6 +23,7 @@ class CoinListViewModel @Inject constructor(
     private val removeCoinFromTagUseCase: RemoveCoinFromTagUseCase,
     private val removeCoinFromCollectionUseCase: RemoveCoinFromCollectionUseCase,
     private val getAllCollectionsUseCase: GetAllCollectionsUseCase,
+    private val pushEventManager: PushEventManager
 ) : ViewModel() {
     private val walletId = savedStateHandle.get<String>("wallet_id").orEmpty()
     private val _state = MutableStateFlow(CoinListUiState())
@@ -31,6 +34,11 @@ class CoinListViewModel @Inject constructor(
 
     init {
         refresh()
+        viewModelScope.launch {
+            pushEventManager.event.filter { it is PushEvent.TransactionCreatedEvent }.collect {
+                refresh()
+            }
+        }
     }
 
     fun refresh() {

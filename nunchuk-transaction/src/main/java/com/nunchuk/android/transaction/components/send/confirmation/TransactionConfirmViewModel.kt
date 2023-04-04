@@ -23,6 +23,8 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.membership.InheritanceClaimCreateTransactionUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.toAmount
@@ -56,7 +58,8 @@ class TransactionConfirmViewModel @Inject constructor(
     private val sessionHolder: SessionHolder,
     private val assistedWalletManager: AssistedWalletManager,
     private val getAllTagsUseCase: GetAllTagsUseCase,
-    private val inheritanceClaimCreateTransactionUseCase: InheritanceClaimCreateTransactionUseCase
+    private val inheritanceClaimCreateTransactionUseCase: InheritanceClaimCreateTransactionUseCase,
+    private val pushEventManager: PushEventManager,
 ) : NunchukViewModel<Unit, TransactionConfirmEvent>() {
     private val _state = MutableStateFlow(TransactionConfirmUiState())
     val uiState = _state.asStateFlow()
@@ -187,21 +190,21 @@ class TransactionConfirmViewModel @Inject constructor(
         }
     }
 
-    fun handleConfirmEvent() {
+    fun handleConfirmEvent(isQuickCreateTransaction: Boolean = false) {
         if (sessionHolder.hasActiveRoom()) {
             initRoomTransaction()
         } else {
             if (isInheritanceClaimingFlow()) {
                 createInheritanceTransaction()
             } else {
-                createNewTransaction()
+                createNewTransaction(isQuickCreateTransaction)
             }
         }
     }
 
     fun isInheritanceClaimingFlow() = masterSignerId.isNotBlank() && magicalPhrase.isNotBlank()
 
-    private fun createNewTransaction() {
+    private fun createNewTransaction(isQuickCreateTransaction: Boolean) {
         viewModelScope.launch {
             event(LoadingEvent)
             val result = createTransactionUseCase(
@@ -224,7 +227,7 @@ class TransactionConfirmViewModel @Inject constructor(
                     }
                 }
                 val commonTags = commonTagMap.filter { it.value == inputs.size }.map { it.key }
-                if (commonTags.isNotEmpty() && transaction.hasChangeIndex()) {
+                if (commonTags.isNotEmpty() && transaction.hasChangeIndex() && !isQuickCreateTransaction) {
                     val tags = commonTags.mapNotNull { tagId -> _state.value.allTags[tagId] }
                     setEvent(
                         AssignTagEvent(
@@ -237,6 +240,7 @@ class TransactionConfirmViewModel @Inject constructor(
                 } else {
                     setEvent(CreateTxSuccessEvent(result.getOrThrow()))
                 }
+                pushEventManager.push(PushEvent.TransactionCreatedEvent)
             } else {
                 event(CreateTxErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
             }

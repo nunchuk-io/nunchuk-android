@@ -238,11 +238,12 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                 privateNote = state.privateNote,
                 subtractFeeFromAmount = subtractFeeFromAmount,
                 slots = args.slots,
+                inputs = args.inputs,
                 manualFeeRate = manualFeeRate,
                 masterSignerId = args.masterSignerId,
                 magicalPhrase = args.magicalPhrase
             )
-            transactionConfirmViewModel.handleConfirmEvent()
+            transactionConfirmViewModel.handleConfirmEvent(true)
         }
     }
 

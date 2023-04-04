@@ -9,5 +9,5 @@ data class CoinListUiState(
     val coins: List<UnspentOutput> = emptyList(),
     val tags: Map<Int, CoinTag> = emptyMap(),
     val collections: Map<Int, CoinCollection> = emptyMap(),
-    val selectedCoins: Set<UnspentOutput> = setOf()
+    val selectedCoins: Set<UnspentOutput> = setOf(),
 )
