@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Checkbox
 import androidx.compose.material.Icon
+import androidx.compose.material.RadioButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -310,7 +311,13 @@ fun CollectionItem(
                 painter = painterResource(id = R.drawable.ic_arrow), contentDescription = ""
             )
         } else {
-            Checkbox(checked = checked, onCheckedChange = onCheckedChange)
+            if (collectionFlow != CollectionFlow.MOVE) {
+                Checkbox(checked = checked, onCheckedChange = onCheckedChange)
+            } else {
+                RadioButton(selected = checked, onClick = {
+                    onCheckedChange(true)
+                })
+            }
         }
     }
 }

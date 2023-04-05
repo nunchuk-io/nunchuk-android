@@ -66,7 +66,9 @@ class CoinCollectionListViewModel @Inject constructor(
         val preSelectedCoinCollections = _state.value.preSelectedCoinCollections
         val collections = allCoins
             .filter {
-                (args.collectionFlow == CollectionFlow.MOVE && preSelectedCoinCollections.contains(it.id)).not()
+                (args.collectionFlow == CollectionFlow.MOVE && preSelectedCoinCollections.contains(
+                    it.id
+                )).not()
             }.map { collection ->
                 CoinCollectionAddition(
                     collection,
@@ -90,10 +92,15 @@ class CoinCollectionListViewModel @Inject constructor(
 
     fun onCheckedChange(id: Int, checked: Boolean) {
         val selectedCoinTags = _state.value.selectedCoinCollections.toMutableSet()
-        if (checked) {
+        if (args.collectionFlow == CollectionFlow.MOVE) {
+            selectedCoinTags.clear()
             selectedCoinTags.add(id)
         } else {
-            selectedCoinTags.remove(id)
+            if (checked) {
+                selectedCoinTags.add(id)
+            } else {
+                selectedCoinTags.remove(id)
+            }
         }
         _state.update { it.copy(selectedCoinCollections = selectedCoinTags) }
     }

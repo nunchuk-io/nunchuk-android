@@ -31,7 +31,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.*
+import com.nunchuk.android.compose.MODE_SELECT
+import com.nunchuk.android.compose.MODE_VIEW_DETAIL
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.PreviewCoinCard
 import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
@@ -53,6 +57,7 @@ import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarNoneMo
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarSelectMode
 import com.nunchuk.android.wallet.components.coin.component.SelectCoinCreateTransactionBottomBar
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragment
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -102,7 +107,10 @@ class CoinListFragment : BaseCoinListFragment() {
                     },
                     onUseCoinClicked = {
                         requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
-                            putParcelableArrayListExtra(GlobalResultKey.EXTRA_COINS, ArrayList(coinListViewModel.getSelectedCoins()))
+                            putParcelableArrayListExtra(
+                                GlobalResultKey.EXTRA_COINS,
+                                ArrayList(coinListViewModel.getSelectedCoins())
+                            )
                         })
                         requireActivity().finish()
                     },
@@ -141,12 +149,20 @@ class CoinListFragment : BaseCoinListFragment() {
                 )
             }
 
-            SheetOptionType.TYPE_VIEW_LOCKED_COIN -> findNavController().navigate(
-                CoinListFragmentDirections.actionCoinListFragmentSelf(
-                    walletId = args.walletId,
-                    listType = CoinListType.LOCKED,
-                )
-            )
+            SheetOptionType.TYPE_VIEW_LOCKED_COIN -> {
+                if (coinListViewModel.getLockedCoins().isEmpty()) {
+                    NCInfoDialog(requireActivity()).showDialog(
+                        message = getString(R.string.nc_locked_coins_empty_state),
+                    ).show()
+                } else {
+                    findNavController().navigate(
+                        CoinListFragmentDirections.actionCoinListFragmentSelf(
+                            walletId = args.walletId,
+                            listType = CoinListType.LOCKED,
+                        )
+                    )
+                }
+            }
 
             SheetOptionType.TYPE_REMOVE_COIN_FROM_TAG -> {
                 coinListViewModel.removeCoinFromTag(args.walletId, args.tagId)
@@ -324,18 +340,18 @@ private fun CoinListContent(
                         )
                     }
 
-                CoinListMode.TRANSACTION_SELECT -> (NcTopAppBar(title = ""))
-            }
-        }, floatingActionButton = {
-            if (mode == CoinListMode.NONE) {
-                FloatingActionButton(onClick = enableSearchMode) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_search_white),
-                        contentDescription = "Search"
-                    )
+                    CoinListMode.TRANSACTION_SELECT -> (NcTopAppBar(title = ""))
                 }
-            }
-        }) { innerPadding ->
+            }, floatingActionButton = {
+                if (mode == CoinListMode.NONE) {
+                    FloatingActionButton(onClick = enableSearchMode) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_search_white),
+                            contentDescription = "Search"
+                        )
+                    }
+                }
+            }) { innerPadding ->
             Column(modifier = Modifier.padding(innerPadding)) {
                 LazyColumn(
                     modifier = Modifier.weight(1f)

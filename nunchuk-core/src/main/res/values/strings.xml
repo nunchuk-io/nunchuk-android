@@ -616,4 +616,7 @@
     <string name="nc_assign_tags">Assign tags</string>
     <string name="nc_tags_from_parent_coins">Tags from parent coin(s)</string>
     <string name="nc_collections_selected">%1$d collections selected</string>
+    <string name="nc_collections_empty_state">Coins that have been added to this collection will appear here.</string>
+    <string name="nc_tags_empty_state">Coins that have been labeled with this tag will appear here.</string>
+    <string name="nc_locked_coins_empty_state">There are currently no locked coins.</string>
 </resources>

@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -283,6 +284,7 @@ private fun CoinCollectionDetailContent(
                         },
                     )
                 }
+
                 Column {
                     LazyColumn(
                         modifier = Modifier
@@ -327,14 +329,14 @@ private fun CoinCollectionDetailContent(
                                     )
                                 }
 
-
                                 Row(
                                     modifier = Modifier.padding(top = 16.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
                                         text = coinCollection.name,
-                                        style = NunchukTheme.typography.heading
+                                        style = NunchukTheme.typography.heading,
+                                        textAlign = TextAlign.Center
                                     )
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_edit),
@@ -357,14 +359,29 @@ private fun CoinCollectionDetailContent(
                                 )
                             }
                         }
-                        items(coins) { coin ->
-                            SwipeDismissPreviewCoinCard(
-                                output = coin,
-                                tags = tags,
-                                onViewCoinDetail = onViewCoinDetail,
-                                onDeleteCoin = {
-                                    onRemoveCoin(coin)
-                                })
+                        if (coins.isEmpty()) {
+                            item {
+                                Text(
+                                    text = stringResource(id = R.string.nc_collections_empty_state),
+                                    modifier = Modifier.padding(
+                                        top = 32.dp,
+                                        start = 16.dp,
+                                        end = 16.dp
+                                    ),
+                                    textAlign = TextAlign.Center,
+                                    style = NunchukTheme.typography.body
+                                )
+                            }
+                        } else {
+                            items(coins) { coin ->
+                                SwipeDismissPreviewCoinCard(
+                                    output = coin,
+                                    tags = tags,
+                                    onViewCoinDetail = onViewCoinDetail,
+                                    onDeleteCoin = {
+                                        onRemoveCoin(coin)
+                                    })
+                            }
                         }
                     }
                 }

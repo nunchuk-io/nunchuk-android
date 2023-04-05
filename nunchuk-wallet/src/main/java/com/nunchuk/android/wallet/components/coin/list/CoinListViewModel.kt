@@ -167,6 +167,8 @@ class CoinListViewModel @Inject constructor(
     }
 
     fun getSelectedCoins() = _state.value.selectedCoins.toList()
+
+    fun getLockedCoins() = _state.value.coins.filter { it.isLocked }
 }
 
 sealed class CoinListEvent {
