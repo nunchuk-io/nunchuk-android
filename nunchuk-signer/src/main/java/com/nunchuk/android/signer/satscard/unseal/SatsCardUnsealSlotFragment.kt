@@ -118,7 +118,7 @@ class SatsCardUnsealSlotFragment : BaseFragment<FragmentUnsealSlotBinding>(), Bo
         val dialog = BottomSheetOption.newInstance(
             listOf(
                 SheetOption(SheetOptionType.TYPE_SWEEP_TO_WALLET, R.drawable.ic_wallet_info, R.string.nc_sweep_to_a_wallet),
-                SheetOption(SheetOptionType.TYPE_SWEEP_TO_EXTERNAL_ADDRESS, R.drawable.ic_sending_bitcoin, R.string.nc_sweep_to_an_address),
+                SheetOption(SheetOptionType.TYPE_SWEEP_TO_EXTERNAL_ADDRESS, R.drawable.ic_sending_bitcoin, R.string.nc_withdraw_to_an_address),
             )
         )
         dialog.show(childFragmentManager, "BottomSheetOption")

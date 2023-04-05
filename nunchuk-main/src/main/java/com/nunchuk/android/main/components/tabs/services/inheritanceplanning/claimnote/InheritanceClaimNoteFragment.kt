@@ -124,7 +124,7 @@ class InheritanceClaimNoteFragment : MembershipFragment(), BottomSheetOptionList
                 SheetOption(
                     SheetOptionType.TYPE_SWEEP_TO_EXTERNAL_ADDRESS,
                     R.drawable.ic_sending_bitcoin,
-                    R.string.nc_sweep_to_an_address
+                    R.string.nc_withdraw_to_an_address
                 ),
             )
         )

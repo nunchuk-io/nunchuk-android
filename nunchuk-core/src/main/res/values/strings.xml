@@ -95,7 +95,7 @@
     <string name="nc_satscard_sweeped">Your SATSCARD has been swept</string>
     <string name="nc_confirm_and_sweep">Confirm and sweep balance</string>
     <string name="nc_sweep_to_a_wallet">Sweep to a wallet</string>
-    <string name="nc_sweep_to_an_address">Sweep to an address</string>
+    <string name="nc_withdraw_to_an_address">Withdraw to an address</string>
     <string name="nc_transaction_view_blockchain">View on blockchain explorer</string>
     <string name="nc_enter_recipient_address">Enter recipient’s address</string>
     <string name="nc_slot_ready_deposit">Your slot is ready for deposit</string>
@@ -289,6 +289,7 @@
     <string name="nc_setup_inheritance_plan_intro_desc">The Nunchuk inheritance plan allows you to safely pass along your bitcoin to your loved ones, while not affecting the security of your day-to-day wallet usage.\n\nBefore we begin, here are some definitions.</string>
     <string name="nc_magical_phrase_desc">Your inheritance plan is uniquely identified by a Magic Phrase. The phrase can be used to look up your plan later.\n\n[B]Make note of this Magic Phrase[/B]. You will need to share it with the Beneficiary or Trustee.</string>
     <string name="nc_magical_phrase">Magic Phrase</string>
+    <string name="nc_a_magical_phrase">A Magic Phrase</string>
     <string name="nc_a_backup_password">A Backup Password</string>
     <string name="nc_give_app_permission">Please give app the permission to use this feature</string>
     <string name="nc_start">Start</string>

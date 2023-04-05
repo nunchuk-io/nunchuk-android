@@ -121,7 +121,7 @@ private fun InheritancePlanOverviewContent(
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 1,
-                    label = stringResource(R.string.nc_magical_phrase),
+                    label = stringResource(R.string.nc_a_magical_phrase),
                 )
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
