@@ -280,6 +280,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                 Utils.maskValue(getString(R.string.nc_assisted), state.hideWalletDetailLocal)
         }
         updateFabIcon(state.hideWalletDetailLocal)
+        binding.ivViewCoin.isEnabled = state.isHasCoin
     }
 
     private fun setupViews() {
