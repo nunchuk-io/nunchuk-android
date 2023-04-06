@@ -270,11 +270,13 @@ private fun CoinCollectionDetailContent(
                         isBack = true,
                         isDisableElevation = true,
                         actions = {
-                            Text(
-                                modifier = Modifier.clickable { enableSelectMode() },
-                                text = stringResource(R.string.nc_select),
-                                style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
-                            )
+                            if (coins.isEmpty().not()) {
+                                Text(
+                                    modifier = Modifier.clickable { enableSelectMode() },
+                                    text = stringResource(R.string.nc_select),
+                                    style = NunchukTheme.typography.title.copy(textDecoration = TextDecoration.Underline)
+                                )
+                            }
                             IconButton(onClick = onShowMoreOptions) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_more),
