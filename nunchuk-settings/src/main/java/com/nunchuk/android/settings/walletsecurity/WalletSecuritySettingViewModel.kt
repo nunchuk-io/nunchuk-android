@@ -3,6 +3,7 @@ package com.nunchuk.android.settings.walletsecurity
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.CheckWalletPinUseCase
+import com.nunchuk.android.core.domain.CreateOrUpdateWalletPinUseCase
 import com.nunchuk.android.core.domain.GetWalletPinUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPKeyTokenUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTargetAction
@@ -23,6 +24,7 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
     private val checkWalletPinUseCase: CheckWalletPinUseCase,
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
     private val verifiedPKeyTokenUseCase: VerifiedPKeyTokenUseCase,
+    private val createOrUpdateWalletPinUseCase: CreateOrUpdateWalletPinUseCase
 ) : NunchukViewModel<WalletSecuritySettingState, WalletSecuritySettingEvent>() {
 
     override val initialState = WalletSecuritySettingState()
@@ -47,7 +49,8 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
 
     fun updateHideWalletDetail(forceUpdate: Boolean = false) = viewModelScope.launch {
         val walletSecuritySetting = getState().walletSecuritySetting
-        val hideWalletDetail = if (forceUpdate) true else walletSecuritySetting.hideWalletDetail.not()
+        val hideWalletDetail =
+            if (forceUpdate) true else walletSecuritySetting.hideWalletDetail.not()
         updateSetting(walletSecuritySetting.copy(hideWalletDetail = hideWalletDetail))
     }
 
@@ -64,6 +67,9 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
     fun updateProtectWalletPin(data: Boolean) = viewModelScope.launch {
         val walletSecuritySetting = getState().walletSecuritySetting
         updateSetting(walletSecuritySetting.copy(protectWalletPin = data))
+        if (data.not()) {
+            createOrUpdateWalletPinUseCase("")
+        }
     }
 
     fun getWalletSecuritySetting() = getState().walletSecuritySetting
