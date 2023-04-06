@@ -10,7 +10,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.toColor
 import com.nunchuk.android.core.util.toName
 import com.nunchuk.android.model.UnspentOutput
@@ -19,11 +18,6 @@ import com.nunchuk.android.model.UnspentOutput
 fun CoinStatusBadge(output: UnspentOutput) {
     val name = output.status.toName(LocalContext.current)
     if (name.isNotEmpty()) {
-        val label = if (output.isReceive) {
-            "Incoming ($name)"
-        } else {
-            "Outgoing ($name)"
-        }
         Text(
             modifier = Modifier
                 .padding(start = 4.dp)
@@ -32,7 +26,7 @@ fun CoinStatusBadge(output: UnspentOutput) {
                     shape = RoundedCornerShape(20.dp)
                 )
                 .padding(horizontal = 8.dp),
-            text = label,
+            text = name,
             style = NunchukTheme.typography.caption.copy(fontSize = 10.sp),
         )
     }
