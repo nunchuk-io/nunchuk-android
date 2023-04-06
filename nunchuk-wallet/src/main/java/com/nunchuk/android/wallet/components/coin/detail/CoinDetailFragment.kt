@@ -45,6 +45,7 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getBtcFormatDate
 import com.nunchuk.android.core.util.openExternalLink
+import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.Transaction
@@ -55,6 +56,7 @@ import com.nunchuk.android.wallet.components.coin.collection.CollectionFlow
 import com.nunchuk.android.wallet.components.coin.component.CoinBadge
 import com.nunchuk.android.wallet.components.coin.detail.component.CoinTransactionCard
 import com.nunchuk.android.wallet.components.coin.detail.component.CollectionHorizontalList
+import com.nunchuk.android.wallet.components.coin.detail.component.LockCoinRow
 import com.nunchuk.android.wallet.components.coin.detail.component.TagHorizontalList
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -69,12 +71,13 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
     private val coinViewModel: CoinListViewModel by activityViewModels()
     private val args by navArgs<CoinDetailFragmentArgs>()
 
-    private val transactionDetailLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        if (it.resultCode == Activity.RESULT_OK) {
-            viewModel.getTransactionDetail()
-            coinViewModel.refresh()
+    private val transactionDetailLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                viewModel.getTransactionDetail()
+                coinViewModel.refresh()
+            }
         }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -166,7 +169,10 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
         super.onViewCreated(view, savedInstanceState)
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle).collect { event ->
-
+                when (event) {
+                    CoinDetailEvent.LockOrUnlockSuccess -> coinViewModel.refresh()
+                    is CoinDetailEvent.ShowError -> showError(event.message)
+                }
             }
         }
     }
@@ -202,7 +208,8 @@ private fun CoinDetailScreen(
         coinTags = coinListState.tags,
         onViewTagDetail = onViewTagDetail,
         onViewCollectionDetail = onViewCollectionDetail,
-        onNoteClick = onNoteClick
+        onNoteClick = onNoteClick,
+        onLockOrUnlock = viewModel::lockCoin
     )
 }
 
@@ -219,6 +226,7 @@ private fun CoinDetailContent(
     onViewTagDetail: (tag: CoinTag) -> Unit = {},
     onViewCollectionDetail: (collection: CoinCollection) -> Unit = {},
     onNoteClick: (note: String) -> Unit = {},
+    onLockOrUnlock: (isLocked: Boolean) -> Unit = {},
 ) {
     val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
     NunchukTheme {
@@ -302,6 +310,8 @@ private fun CoinDetailContent(
 
                     CoinTransactionCard(transaction, onNoteClick)
                 }
+
+                LockCoinRow(output = output, onLockCoin = onLockOrUnlock)
 
                 TagHorizontalList(
                     modifier = Modifier.padding(top = 8.dp),

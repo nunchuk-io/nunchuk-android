@@ -23,7 +23,7 @@ fun LockCoinRow(
     onLockCoin: (isLocked: Boolean) -> Unit
 ) {
     Row(
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
+        modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(

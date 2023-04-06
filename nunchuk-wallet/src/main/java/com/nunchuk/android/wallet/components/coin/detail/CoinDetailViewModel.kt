@@ -4,13 +4,18 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.usecase.GetTransactionUseCase
+import com.nunchuk.android.usecase.coin.LockCoinUseCase
+import com.nunchuk.android.usecase.coin.UnLockCoinUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class CoinDetailViewModel @Inject constructor(
     private val getTransactionUseCase: GetTransactionUseCase,
+    private val lockCoinUseCase: LockCoinUseCase,
+    private val unLockCoinUseCase: UnLockCoinUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val args: CoinDetailFragmentArgs =
@@ -32,6 +37,25 @@ class CoinDetailViewModel @Inject constructor(
             }
             .launchIn(viewModelScope)
     }
+
+    fun lockCoin(isLocked: Boolean) {
+        viewModelScope.launch {
+            val result = if (isLocked) lockCoinUseCase(
+                LockCoinUseCase.Params(args.walletId, args.txId, args.vout)
+            )
+            else unLockCoinUseCase(
+                UnLockCoinUseCase.Params(args.walletId, args.txId, args.vout)
+            )
+            result.onSuccess {
+                _event.emit(CoinDetailEvent.LockOrUnlockSuccess)
+            }.onFailure {
+                _event.emit(CoinDetailEvent.ShowError(it.message.orEmpty()))
+            }
+        }
+    }
 }
 
-sealed class CoinDetailEvent
+sealed class CoinDetailEvent {
+    data class ShowError(val message: String) : CoinDetailEvent()
+    object LockOrUnlockSuccess : CoinDetailEvent()
+}
