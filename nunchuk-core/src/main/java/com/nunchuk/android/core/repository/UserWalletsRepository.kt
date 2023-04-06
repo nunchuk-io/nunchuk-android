@@ -263,6 +263,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun getServerWallet(): WalletServerSync {
         val result = userWalletApiManager.walletApi.getServerWallet()
+        val assistedKeys = mutableSetOf<String>()
         val partition = result.data.wallets.partition { it.status == WALLET_ACTIVE_STATUS }
         var deleteCount = 0
         if (partition.second.isNotEmpty()) {
@@ -296,6 +297,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             if (nunchukNativeSdk.hasWallet(walletServer.localId.orEmpty()).not()) {
                 isNeedReload = true
                 walletServer.signerServerDtos.forEach {
+                    assistedKeys.add(it.xfp.orEmpty())
                     if (it.tapsigner != null) {
                         nunchukNativeSdk.addTapSigner(
                             cardId = it.tapsigner.cardId,
@@ -366,6 +368,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 }
         }
         val planWalletCreated = hashMapOf<String, String>()
+        ncDataStore.setAssistedKey(assistedKeys)
         result.data.wallets.forEach { planWalletCreated[it.slug.orEmpty()] = it.localId.orEmpty() }
         return WalletServerSync(
             planWalletCreated = planWalletCreated,
@@ -380,6 +383,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             walletLocalId, UpdateWalletPayload(name = name)
         )
         return SeverWallet(response.data.wallet.id.orEmpty())
+    }
+
+    override suspend fun updateServerKey(xfp: String, name: String): Boolean {
+        return userWalletApiManager.walletApi.updateKeyName(xfp, UpdateKeyPayload(name)).isSuccess
     }
 
     override suspend fun getServerTransaction(
@@ -1041,6 +1048,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     )
                 )
             }
+    }
+
+    override fun assistedKeys(): Flow<Set<String>> {
+        return ncDataStore.assistedKeys
     }
 
     private fun InheritanceDto.toInheritance(): Inheritance {

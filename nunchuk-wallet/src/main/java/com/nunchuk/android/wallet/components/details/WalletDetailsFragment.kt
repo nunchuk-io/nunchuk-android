@@ -281,6 +281,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         }
         updateFabIcon(state.hideWalletDetailLocal)
         binding.ivViewCoin.isEnabled = state.isHasCoin
+        binding.ivViewCoin.alpha = if (state.isHasCoin) 1.0f else 0.7f
     }
 
     private fun setupViews() {

@@ -50,6 +50,7 @@ interface PremiumWalletRepository {
 
     suspend fun getServerWallet(): WalletServerSync
     suspend fun updateServerWallet(walletLocalId: String, name: String): SeverWallet
+    suspend fun updateServerKey(xfp: String, name: String): Boolean
     suspend fun createServerTransaction(walletId: String, psbt: String, note: String?)
     suspend fun updateServerTransaction(walletId: String, txId: String, note: String?)
     suspend fun signServerTransaction(
@@ -214,4 +215,6 @@ interface PremiumWalletRepository {
     )
 
     suspend fun getAssistedWalletConfig() : AssistedWalletConfig
+
+    fun assistedKeys() : Flow<Set<String>>
 }

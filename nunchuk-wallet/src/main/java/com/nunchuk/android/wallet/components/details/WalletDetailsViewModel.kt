@@ -111,11 +111,11 @@ internal class WalletDetailsViewModel @Inject constructor(
                 getTransactionHistory()
             }
         }
-//        viewModelScope.launch {
-//            getAllCoinUseCase(args.walletId).onSuccess { coins ->
-//                updateState { copy(isHasCoin = coins.isNotEmpty()) }
-//            }
-//        }
+        viewModelScope.launch {
+            getAllCoinUseCase(args.walletId).onSuccess { coins ->
+                updateState { copy(isHasCoin = coins.isNotEmpty()) }
+            }
+        }
     }
 
     // well, don't do this, you know why

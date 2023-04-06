@@ -68,7 +68,7 @@
     <string name="nc_new_fee_rate">New fee rate</string>
     <string name="nc_replace_by_fee_success">Replace-by-Fee successfully</string>
     <string name="nc_none">None</string>
-    <string name="nc_private_note_updated">Private note has been updated</string>
+    <string name="nc_private_note_updated">Transaction note has been updated</string>
     <string name="nc_all_slot_used_up">All %1$d slots on your SATSCARD have been used up</string>
     <string name="nc_setup_satscard">Set up SATSCARD</string>
     <string name="nc_satscard">SATSCARD</string>

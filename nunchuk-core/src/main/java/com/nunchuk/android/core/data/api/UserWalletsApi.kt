@@ -263,4 +263,10 @@ internal interface UserWalletsApi {
 
     @GET("/v1.1/user-wallets/configs")
     suspend fun getAssistedWalletConfig(): Data<AssistedWalletConfigResponse>
+
+    @GET("/v1.1/user-wallets/wallet-keys/{xfp}")
+    suspend fun updateKeyName(
+        @Path("xfp") xfp: String,
+        @Body payload: UpdateKeyPayload
+    ): Data<Unit>
 }

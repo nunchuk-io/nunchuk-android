@@ -52,16 +52,7 @@ class NcDataStore @Inject constructor(
     private val hideUpsellBannerKey = booleanPreferencesKey("hide_upsell_banner")
     private val syncRoomSuccessKey = booleanPreferencesKey("sync_room_success")
     private val qrDensityKey = intPreferencesKey("qr_density")
-
-    /**
-     * Assisted wallet local id
-     */
-    private val assistedWalletLocalIdKey = stringSetPreferencesKey("assisted_wallet_local_id_set")
-
-    /**
-     * Plan of current assisted wallet
-     */
-    private val assistedWalletPlanKey = stringPreferencesKey("assisted_wallet_plan")
+    private val assistedKeysPreferenceKey = stringSetPreferencesKey("assisted_key")
 
     /**
      * Current membership plan key
@@ -130,7 +121,10 @@ class NcDataStore @Inject constructor(
 
     val walletSecuritySetting: Flow<WalletSecuritySetting>
         get() = context.dataStore.data.map {
-            gson.fromJson(it[getWalletSecuritySettingKey()].orEmpty(), WalletSecuritySetting::class.java)
+            gson.fromJson(
+                it[getWalletSecuritySettingKey()].orEmpty(),
+                WalletSecuritySetting::class.java
+            )
         }
 
     val localCurrencyFlow: Flow<String>
@@ -198,6 +192,17 @@ class NcDataStore @Inject constructor(
         }
     }
 
+    suspend fun setAssistedKey(keys: Set<String>) {
+        context.dataStore.edit {
+            it[assistedKeysPreferenceKey] = keys
+        }
+    }
+
+    val assistedKeys: Flow<Set<String>>
+        get() = context.dataStore.data.map {
+            it[assistedKeysPreferenceKey] ?: emptySet()
+        }
+
     suspend fun clear() {
         context.dataStore.edit {
             it.remove(syncEnableKey)
@@ -205,6 +210,7 @@ class NcDataStore @Inject constructor(
             it.remove(membershipPlanKey)
             it.remove(hideUpsellBannerKey)
             it.remove(syncRoomSuccessKey)
+            it.remove(assistedKeysPreferenceKey)
         }
     }
 }
