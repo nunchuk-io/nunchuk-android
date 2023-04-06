@@ -486,7 +486,7 @@
     <string name="nc_upload_file">Upload file</string>
     <string name="nc_force_refresh">Force refresh (advanced)</string>
     <string name="nc_force_refresh_success">The wallet has been refreshed</string>
-    <string name="nc_force_refresh_desc">Are you sure you want to perform a force refresh? This process will clear this wallet’s existing data (including notes and pending transactions) and attempt to re-sync it with the blockchain.</string>
+    <string name="nc_force_refresh_desc">Are you sure you want to perform a force refresh?</string>
     <string name="nc_photo_was_uploaded">A photo was uploaded.</string>
     <string name="nc_video_was_uploaded">A video was uploaded.</string>
     <string name="nc_attachment_was_uploaded">An attachment was uploaded.</string>
