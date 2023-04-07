@@ -48,6 +48,7 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.SERVER_KEY_NAME
+import com.nunchuk.android.utils.isServerMasterSigner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -296,36 +297,36 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             )
             if (nunchukNativeSdk.hasWallet(walletServer.localId.orEmpty()).not()) {
                 isNeedReload = true
-                walletServer.signerServerDtos.forEach {
-                    assistedKeys.add(it.xfp.orEmpty())
-                    if (it.tapsigner != null) {
+                walletServer.signerServerDtos.forEach { signer ->
+                    if (signer.tapsigner != null) {
                         nunchukNativeSdk.addTapSigner(
-                            cardId = it.tapsigner.cardId,
-                            name = it.name.orEmpty(),
-                            xfp = it.xfp.orEmpty(),
-                            version = it.tapsigner.version,
-                            brithHeight = it.tapsigner.birthHeight,
-                            isTestNet = it.tapsigner.isTestnet
+                            cardId = signer.tapsigner.cardId,
+                            name = signer.name.orEmpty(),
+                            xfp = signer.xfp.orEmpty(),
+                            version = signer.tapsigner.version,
+                            brithHeight = signer.tapsigner.birthHeight,
+                            isTestNet = signer.tapsigner.isTestnet
                         )
                     } else {
+                        val type = nunchukNativeSdk.signerTypeFromStr(signer.type.orEmpty())
                         if (nunchukNativeSdk.hasSigner(
                                 SingleSigner(
-                                    name = it.name.orEmpty(),
-                                    xpub = it.xpub.orEmpty(),
-                                    publicKey = it.pubkey.orEmpty(),
-                                    derivationPath = it.derivationPath.orEmpty(),
-                                    masterFingerprint = it.xfp.orEmpty(),
+                                    name = signer.name.orEmpty(),
+                                    xpub = signer.xpub.orEmpty(),
+                                    publicKey = signer.pubkey.orEmpty(),
+                                    derivationPath = signer.derivationPath.orEmpty(),
+                                    masterFingerprint = signer.xfp.orEmpty(),
                                 )
                             ).not()
                         ) {
                             nunchukNativeSdk.createSigner(
-                                name = it.name.orEmpty(),
-                                xpub = it.xpub.orEmpty(),
-                                publicKey = it.pubkey.orEmpty(),
-                                derivationPath = it.derivationPath.orEmpty(),
-                                masterFingerprint = it.xfp.orEmpty(),
-                                type = nunchukNativeSdk.signerTypeFromStr(it.type.orEmpty()),
-                                tags = it.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() }
+                                name = signer.name.orEmpty(),
+                                xpub = signer.xpub.orEmpty(),
+                                publicKey = signer.pubkey.orEmpty(),
+                                derivationPath = signer.derivationPath.orEmpty(),
+                                masterFingerprint = signer.xfp.orEmpty(),
+                                type = type,
+                                tags = signer.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() }
                             )
                         }
                     }
@@ -339,6 +340,31 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 nunchukNativeSdk.createWallet2(wallet)
             }
 
+            walletServer.signerServerDtos.forEach { signer ->
+                val type = nunchukNativeSdk.signerTypeFromStr(signer.type.orEmpty())
+                val tags = signer.tags.orEmpty().mapNotNull { it.toSignerTag() }
+                if (type != SignerType.SERVER) {
+                    assistedKeys.add(signer.xfp.orEmpty())
+                    if (type.isServerMasterSigner) {
+                        val masterSigner =
+                            nunchukNativeSdk.getMasterSigner(signer.xfp.orEmpty())
+                        val isChange = masterSigner.name != signer.name || masterSigner.tags != tags
+                        if (isChange) {
+                            nunchukNativeSdk.updateMasterSigner(masterSigner.copy(name = signer.name.orEmpty(), tags = tags))
+                        }
+                    } else {
+                        val remoteSigner = nunchukNativeSdk.getRemoteSigner(
+                            signer.xfp.orEmpty(),
+                            signer.derivationPath.orEmpty()
+                        )
+                        val isChange = remoteSigner.name != signer.name || remoteSigner.tags != tags
+                        if (isChange) {
+                            nunchukNativeSdk.updateRemoteSigner(remoteSigner.copy(name = signer.name.orEmpty(), tags = tags))
+                        }
+                    }
+                }
+            }
+
             val wallet = nunchukNativeSdk.getWallet(walletServer.localId.orEmpty())
             if (wallet.name != walletServer.name || wallet.description != walletServer.description) {
                 nunchukNativeSdk.updateWallet(
@@ -348,24 +374,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     )
                 )
             }
-
-            val signers = HashMap<String, SingleSigner>(wallet.signers.size)
-            wallet.signers.associateByTo(signers) { it.masterFingerprint }
-
-            walletServer.signerServerDtos.filter { it.tags.isNullOrEmpty().not() }
-                .forEach { serverSigner ->
-                    signers[serverSigner.xfp]?.let { localSigner ->
-                        if (localSigner.hasMasterSigner) {
-                            val masterSigner =
-                                nunchukNativeSdk.getMasterSigner(localSigner.masterSignerId)
-                            val tags = serverSigner.tags.orEmpty().mapNotNull { it.toSignerTag() }
-                            if (tags.isNotEmpty()) {
-                                masterSigner.tags = tags
-                                nunchukNativeSdk.updateMasterSigner(masterSigner)
-                            }
-                        }
-                    }
-                }
         }
         val planWalletCreated = hashMapOf<String, String>()
         ncDataStore.setAssistedKey(assistedKeys)
@@ -847,7 +855,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         } else {
             val libTx = nunchukNativeSdk.importPsbt(walletId, transaction.psbt.orEmpty())
             if (libTx.psbt != transaction.psbt) {
-                userWalletApiManager.walletApi.syncTransaction(walletId, transactionId, SyncTransactionRequest(psbt = libTx.psbt))
+                userWalletApiManager.walletApi.syncTransaction(
+                    walletId,
+                    transactionId,
+                    SyncTransactionRequest(psbt = libTx.psbt)
+                )
             }
             libTx
         }
@@ -1052,6 +1064,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override fun assistedKeys(): Flow<Set<String>> {
         return ncDataStore.assistedKeys
+    }
+
+    override suspend fun updateServerKeyName(xfp: String, name: String) {
+        val response = userWalletApiManager.walletApi.updateKeyName(xfp, UpdateKeyPayload(name))
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
     }
 
     private fun InheritanceDto.toInheritance(): Inheritance {

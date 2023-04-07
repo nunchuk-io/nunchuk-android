@@ -214,6 +214,8 @@ interface PremiumWalletRepository {
         walletId: String
     )
 
+    suspend fun updateServerKeyName(xfp: String, name: String)
+
     suspend fun getAssistedWalletConfig() : AssistedWalletConfig
 
     fun assistedKeys() : Flow<Set<String>>
