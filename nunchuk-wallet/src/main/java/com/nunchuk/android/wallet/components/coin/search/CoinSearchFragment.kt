@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.fragment.app.clearFragmentResult
+import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
@@ -24,32 +26,37 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import androidx.navigation.navGraphViewModels
 import com.nunchuk.android.compose.MODE_SELECT
 import com.nunchuk.android.compose.MODE_VIEW_DETAIL
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.PreviewCoinCard
+import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.fromSATtoBTC
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.wallet.CoinNavigationDirections
-import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.base.BaseCoinListFragment
 import com.nunchuk.android.wallet.components.coin.component.CoinListBottomBar
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarSelectMode
 import com.nunchuk.android.wallet.components.coin.detail.component.TagHorizontalList
-import com.nunchuk.android.wallet.components.coin.filter.CoinFilterViewModel
+import com.nunchuk.android.wallet.components.coin.filter.CoinFilterFragment
+import com.nunchuk.android.wallet.components.coin.filter.CoinFilterFragmentArgs
 import com.nunchuk.android.wallet.components.coin.list.CoinListMode
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class CoinSearchFragment : BaseCoinListFragment() {
+    @Inject
+    lateinit var navigator: NunchukNavigator
+
     private val args: CoinSearchFragmentArgs by navArgs()
     private val viewModel: CoinSearchViewModel by viewModels()
-    private val coinFilterViewModel: CoinFilterViewModel by navGraphViewModels(R.id.coin_search_navigation)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -62,7 +69,9 @@ class CoinSearchFragment : BaseCoinListFragment() {
                     coinListViewModel = coinListViewModel,
                     onFilterClicked = {
                         findNavController().navigate(
-                            CoinSearchFragmentDirections.actionCoinSearchFragmentFragmentToCoinFilterFragment()
+                            CoinSearchFragmentDirections.actionCoinSearchFragmentFragmentToCoinFilterFragment(
+                                viewModel.filter.value
+                            )
                         )
                     },
                     onViewCoinDetail = {
@@ -78,7 +87,22 @@ class CoinSearchFragment : BaseCoinListFragment() {
                         showSelectCoinOptions()
                     },
                     onSendBtc = {
-
+                        navigator.openInputAmountScreen(
+                            activityContext = requireActivity(),
+                            walletId = args.walletId,
+                            inputs = viewModel.getSelectedCoins(),
+                            availableAmount = viewModel.getSelectedCoins()
+                                .sumOf { it.amount.value }.toDouble().fromSATtoBTC()
+                        )
+                    },
+                    onViewAll = {
+                        findNavController().navigate(
+                            CoinNavigationDirections.actionGlobalCoinTagListFragment(
+                                args.walletId,
+                                TagFlow.NONE,
+                                emptyArray()
+                            )
+                        )
                     }
                 )
             }
@@ -94,15 +118,22 @@ class CoinSearchFragment : BaseCoinListFragment() {
                 }
         }
 
+        setFragmentResultListener(CoinFilterFragment.REQUEST_KEY) { _, bundle ->
+            val filter = CoinFilterFragmentArgs.fromBundle(bundle)
+            viewModel.updateFilter(filter.filter)
+            clearFragmentResult(CoinFilterFragment.REQUEST_KEY)
+        }
+
         flowObserver(coinListViewModel.state) { state ->
-            viewModel.update(state.coins, state.tags)
+            viewModel.update(state.coins, state.tags, state.collections)
         }
     }
 
     override val walletId: String
         get() = args.walletId
 
-    override fun getSelectedCoins(): List<UnspentOutput> = viewModel.state.value.selectedCoins.toList()
+    override fun getSelectedCoins(): List<UnspentOutput> =
+        viewModel.state.value.selectedCoins.toList()
 
     override fun resetSelect() = viewModel.resetSelect()
 }
@@ -114,6 +145,7 @@ private fun CoinSearchFragmentScreen(
     onFilterClicked: () -> Unit = {},
     onViewCoinDetail: (output: UnspentOutput) -> Unit = {},
     onSendBtc: () -> Unit = {},
+    onViewAll: () -> Unit,
     onShowSelectedCoinMoreOption: () -> Unit = {},
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -132,6 +164,7 @@ private fun CoinSearchFragmentScreen(
         onSelectDone = viewModel::onSelectDone,
         onSelectOrUnselectAll = viewModel::onSelectOrUnselectAll,
         onSendBtc = onSendBtc,
+        onViewAll = onViewAll,
         onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption
     )
 }
@@ -151,6 +184,7 @@ private fun CoinSearchFragmentContent(
     onSelectOrUnselectAll: (isSelect: Boolean) -> Unit = {},
     onSelectDone: () -> Unit = {},
     onSendBtc: () -> Unit = {},
+    onViewAll: () -> Unit = {},
     onShowSelectedCoinMoreOption: () -> Unit = {},
 ) {
     val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
@@ -189,9 +223,7 @@ private fun CoinSearchFragmentContent(
         ) { innerPadding ->
             Column(modifier = Modifier.padding(innerPadding)) {
                 if (query.isBlank()) {
-                    TagHorizontalList(tags = tags.values.toList()) {
-
-                    }
+                    TagHorizontalList(tags = tags.values.toList(), onViewAll = onViewAll)
                 } else {
                     LazyColumn(
                         modifier = Modifier.weight(1f)

@@ -619,4 +619,11 @@
     <string name="nc_collections_empty_state">Coins that have been added to this collection will appear here.</string>
     <string name="nc_tags_empty_state">Coins that have been labeled with this tag will appear here.</string>
     <string name="nc_locked_coins_empty_state">There are currently no locked coins.</string>
+    <string name="nc_show_locked_coins">Show locked coins</string>
+    <string name="nc_show_unlocked_coins">Show unlocked coins</string>
+    <string name="nc_sort_in_descending_order">Sort in descending order</string>
+    <string name="nc_sort_in_ascending_order">Sort in ascending order</string>
+    <string name="nc_transaction_switch_to_currency_data">Switch to %s</string>
+    <string name="nc_clear_all">Clear all</string>
+    <string name="nc_filters">Filters</string>
 </resources>

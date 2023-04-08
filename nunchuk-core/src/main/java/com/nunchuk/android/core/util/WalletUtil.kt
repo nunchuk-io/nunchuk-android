@@ -40,6 +40,11 @@ fun Amount.getBTCAmount() = when (CURRENT_DISPLAY_UNIT_TYPE) {
     else -> "${NativeSdkProvider.instance.nativeSdk.valueFromAmount(this)} BTC"
 }
 
+fun Double.getBtcSat() =  when (CURRENT_DISPLAY_UNIT_TYPE) {
+    SAT -> this.roundToLong()
+    else -> (this * BTC_SATOSHI_EXCHANGE_RATE).roundToLong()
+}
+
 fun Amount.getCurrencyAmount(): String {
     return "${getDisplayCurrency()}${fromBTCToCurrency().formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"
 }

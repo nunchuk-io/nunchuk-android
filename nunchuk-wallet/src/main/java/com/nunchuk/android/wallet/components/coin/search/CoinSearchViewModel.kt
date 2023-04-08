@@ -1,14 +1,22 @@
 package com.nunchuk.android.wallet.components.coin.search
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.util.fromCurrencyToBTC
+import com.nunchuk.android.core.util.getBtcSat
+import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.wallet.components.coin.filter.CoinFilterUiState
 import com.nunchuk.android.wallet.components.coin.list.CoinListMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -16,7 +24,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CoinSearchViewModel @Inject constructor(
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<CoinSearchFragmentEvent>()
     val event = _event.asSharedFlow()
@@ -26,12 +35,26 @@ class CoinSearchViewModel @Inject constructor(
 
     private val allCoins = mutableListOf<UnspentOutput>()
     private val allTags = hashMapOf<Int, CoinTag>()
+    private val allCollections = hashMapOf<Int, CoinCollection>()
 
     val queryState = mutableStateOf("")
 
     private val mutex = Mutex()
 
-    suspend fun update(coins: List<UnspentOutput>, tags: Map<Int, CoinTag>) {
+    val filter = savedStateHandle.getStateFlow(KEY_FILTER, CoinFilterUiState())
+
+    fun updateFilter(filter: CoinFilterUiState) {
+        savedStateHandle[KEY_FILTER] = filter
+        viewModelScope.launch {
+            handleSearch(queryState.value)
+        }
+    }
+
+    suspend fun update(
+        coins: List<UnspentOutput>,
+        tags: Map<Int, CoinTag>,
+        collections: Map<Int, CoinCollection>
+    ) {
         mutex.withLock {
             allCoins.apply {
                 clear()
@@ -40,6 +63,10 @@ class CoinSearchViewModel @Inject constructor(
             allTags.apply {
                 clear()
                 putAll(tags)
+            }
+            allCollections.apply {
+                clear()
+                putAll(collections)
             }
         }
         if (queryState.value.isNotEmpty()) {
@@ -52,11 +79,55 @@ class CoinSearchViewModel @Inject constructor(
             if (query.isEmpty()) {
                 _state.update { it.copy(coins = emptyList()) }
             } else {
+                val filter = filter.value
+                val endTimeInSeconds =
+                    if (filter.endTime > 0L) filter.endTime / 1000L else Long.MAX_VALUE
+                val startTimeInSeconds = filter.startTime / 1000L
                 val lowCaseQuery = query.lowercase()
+
+                val comparator = if (filter.isDescending)
+                    compareByDescending<UnspentOutput> { it.amount.value }.thenBy { it.time }
+                else compareBy<UnspentOutput> { it.amount.value }.thenBy { it.time }
+
+                val minValue = filter.min.toDoubleOrNull() ?: 0.0
+                val minSat =
+                    if (filter.isMinBtc) minValue.getBtcSat() else minValue.fromCurrencyToBTC()
+                        .toAmount().value
+
+                val maxValue = filter.max.toDoubleOrNull() ?: Long.MAX_VALUE.toDouble()
+                val maxSat =
+                    if (filter.isMinBtc) maxValue.getBtcSat() else maxValue.fromCurrencyToBTC()
+                        .toAmount().value
+
                 val queryTagIds =
-                    allTags.asSequence().filter { it.value.name.lowercase().contains(lowCaseQuery) }
+                    allTags.asSequence()
+                        .filter { filter.selectTags.isEmpty() || filter.selectTags.contains(it.key) }
+                        .filter { it.value.name.lowercase().contains(lowCaseQuery) }
                         .map { it.key }.toSet()
-                val coins = allCoins.filter { it.tags.any { tag -> queryTagIds.contains(tag) } }
+
+                val queryCollectionIds =
+                    allCollections.asSequence()
+                        .filter {
+                            filter.selectCollections.isEmpty() || filter.selectCollections.contains(
+                                it.key
+                            )
+                        }
+                        .filter { it.value.name.lowercase().contains(lowCaseQuery) }
+                        .map { it.key }.toSet()
+                val coins = allCoins
+                    .asSequence()
+                    .filter {
+                        it.tags.any { tag ->
+                            queryTagIds.contains(tag)
+                        } || it.collection.any { collection ->
+                            queryCollectionIds.contains(collection)
+                        }
+                    }
+                    .filter { it.amount.value in minSat..maxSat }
+                    .filter { it.isLocked == filter.showLockedCoin || it.isLocked.not() == filter.showUnlockedCoin }
+                    .filter { it.time in startTimeInSeconds..endTimeInSeconds }
+                    .sortedWith(comparator)
+                    .toList()
                 _state.update { it.copy(coins = coins) }
             }
         }
@@ -90,6 +161,12 @@ class CoinSearchViewModel @Inject constructor(
 
     fun resetSelect() {
         _state.update { it.copy(selectedCoins = emptySet(), mode = CoinListMode.NONE) }
+    }
+
+    fun getSelectedCoins() = _state.value.selectedCoins.toList()
+
+    companion object {
+        private const val KEY_FILTER = "filter"
     }
 }
 

@@ -47,7 +47,7 @@ class CoinDetailViewModel @Inject constructor(
                 UnLockCoinUseCase.Params(args.walletId, args.txId, args.vout)
             )
             result.onSuccess {
-                _event.emit(CoinDetailEvent.LockOrUnlockSuccess)
+                _event.emit(CoinDetailEvent.LockOrUnlockSuccess(isLocked))
             }.onFailure {
                 _event.emit(CoinDetailEvent.ShowError(it.message.orEmpty()))
             }
@@ -57,5 +57,5 @@ class CoinDetailViewModel @Inject constructor(
 
 sealed class CoinDetailEvent {
     data class ShowError(val message: String) : CoinDetailEvent()
-    object LockOrUnlockSuccess : CoinDetailEvent()
+    data class LockOrUnlockSuccess(val isLocked: Boolean) : CoinDetailEvent()
 }

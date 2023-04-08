@@ -350,6 +350,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                             nunchukNativeSdk.getMasterSigner(signer.xfp.orEmpty())
                         val isChange = masterSigner.name != signer.name || masterSigner.tags != tags
                         if (isChange) {
+                            isNeedReload = true
                             nunchukNativeSdk.updateMasterSigner(masterSigner.copy(name = signer.name.orEmpty(), tags = tags))
                         }
                     } else {
@@ -359,6 +360,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         )
                         val isChange = remoteSigner.name != signer.name || remoteSigner.tags != tags
                         if (isChange) {
+                            isNeedReload = true
                             nunchukNativeSdk.updateRemoteSigner(remoteSigner.copy(name = signer.name.orEmpty(), tags = tags))
                         }
                     }

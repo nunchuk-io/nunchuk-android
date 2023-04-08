@@ -31,11 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.MODE_SELECT
-import com.nunchuk.android.compose.MODE_VIEW_DETAIL
-import com.nunchuk.android.compose.NcTopAppBar
-import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.PreviewCoinCard
+import com.nunchuk.android.compose.*
 import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
@@ -340,7 +336,7 @@ private fun CoinListContent(
                         )
                     }
 
-                    CoinListMode.TRANSACTION_SELECT -> (NcTopAppBar(title = ""))
+                    CoinListMode.TRANSACTION_SELECT -> NcTopAppBar(title = "")
                 }
             }, floatingActionButton = {
                 if (mode == CoinListMode.NONE) {

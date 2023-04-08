@@ -42,10 +42,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getBtcFormatDate
-import com.nunchuk.android.core.util.openExternalLink
-import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.*
 import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.Transaction
@@ -170,7 +167,12 @@ class CoinDetailFragment : Fragment(), BottomSheetOptionListener {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle).collect { event ->
                 when (event) {
-                    CoinDetailEvent.LockOrUnlockSuccess -> coinViewModel.refresh()
+                    is CoinDetailEvent.LockOrUnlockSuccess -> {
+                        if (event.isLocked) {
+                            showSuccess(getString(R.string.nc_coin_locked))
+                        }
+                        coinViewModel.refresh()
+                    }
                     is CoinDetailEvent.ShowError -> showError(event.message)
                 }
             }
