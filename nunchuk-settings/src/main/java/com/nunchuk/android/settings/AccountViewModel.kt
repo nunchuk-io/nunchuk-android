@@ -44,7 +44,6 @@ import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
 import java.io.ByteArrayOutputStream
@@ -94,9 +93,7 @@ internal class AccountViewModel @Inject constructor(
     fun getCurrentAccountInfo() = accountManager.getAccount()
 
     fun getCurrentUser() {
-        if (signInModeHolder.getCurrentMode().isGuestMode()) {
-            event(AccountEvent.GetUserProfileGuestEvent)
-        } else {
+        if (signInModeHolder.getCurrentMode().isGuestMode().not()) {
             viewModelScope.launch {
                 getUserProfileUseCase.execute()
                     .flowOn(Dispatchers.IO)
