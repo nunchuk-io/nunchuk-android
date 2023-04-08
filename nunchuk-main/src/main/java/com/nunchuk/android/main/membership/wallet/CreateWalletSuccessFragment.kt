@@ -24,6 +24,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -109,7 +111,9 @@ fun CreateWalletSuccessScreenContent(
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
+                    .fillMaxSize()
                     .navigationBarsPadding()
+                    .verticalScroll(rememberScrollState())
             ) {
                 NcImageAppBar(
                     backgroundRes = R.drawable.nc_bg_wallet_done,

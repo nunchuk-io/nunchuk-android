@@ -98,6 +98,7 @@ fun KeyRecoveryIntroScreenContent(
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
+                    .fillMaxSize()
                     .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
             ) {

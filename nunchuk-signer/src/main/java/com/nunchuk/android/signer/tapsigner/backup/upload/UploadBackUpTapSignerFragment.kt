@@ -24,7 +24,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
@@ -134,7 +136,9 @@ private fun UploadBackUpTapSignerContent(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .navigationBarsPadding(),
+                .fillMaxSize()
+                .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
         ) {
             NcImageAppBar(
                 backgroundRes = R.drawable.nc_bg_upload_back_up_tapsinger,
