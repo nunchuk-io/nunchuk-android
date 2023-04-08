@@ -270,6 +270,7 @@ private fun CoinDetailContent(
             Column(
                 modifier = Modifier
                     .navigationBarsPadding()
+                    .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(innerPadding)
             ) {
