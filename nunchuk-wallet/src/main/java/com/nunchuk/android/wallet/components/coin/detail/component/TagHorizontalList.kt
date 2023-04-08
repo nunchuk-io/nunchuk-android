@@ -112,7 +112,7 @@ fun TagHorizontalList(
             modifier = Modifier
                 .size(24.dp),
             painter = painterResource(id = R.drawable.ic_coin_tag),
-            contentDescription = "Lock icon"
+            contentDescription = "Coin Tag"
         )
         Text(
             modifier = Modifier.padding(start = 8.dp),

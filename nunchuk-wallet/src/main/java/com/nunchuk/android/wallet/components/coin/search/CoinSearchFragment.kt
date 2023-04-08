@@ -33,13 +33,16 @@ import com.nunchuk.android.compose.PreviewCoinCard
 import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.fromSATtoBTC
+import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.wallet.CoinNavigationDirections
 import com.nunchuk.android.wallet.components.coin.base.BaseCoinListFragment
+import com.nunchuk.android.wallet.components.coin.collection.CollectionFlow
 import com.nunchuk.android.wallet.components.coin.component.CoinListBottomBar
 import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarSelectMode
+import com.nunchuk.android.wallet.components.coin.detail.component.CollectionHorizontalList
 import com.nunchuk.android.wallet.components.coin.detail.component.TagHorizontalList
 import com.nunchuk.android.wallet.components.coin.filter.CoinFilterFragment
 import com.nunchuk.android.wallet.components.coin.filter.CoinFilterFragmentArgs
@@ -95,11 +98,20 @@ class CoinSearchFragment : BaseCoinListFragment() {
                                 .sumOf { it.amount.value }.toDouble().fromSATtoBTC()
                         )
                     },
-                    onViewAll = {
+                    onViewAllTags = {
                         findNavController().navigate(
                             CoinNavigationDirections.actionGlobalCoinTagListFragment(
                                 args.walletId,
                                 TagFlow.NONE,
+                                emptyArray()
+                            )
+                        )
+                    },
+                    onViewAllCollections = {
+                        findNavController().navigate(
+                            CoinNavigationDirections.actionGlobalCoinCollectionListFragment(
+                                args.walletId,
+                                CollectionFlow.VIEW,
                                 emptyArray()
                             )
                         )
@@ -145,13 +157,15 @@ private fun CoinSearchFragmentScreen(
     onFilterClicked: () -> Unit = {},
     onViewCoinDetail: (output: UnspentOutput) -> Unit = {},
     onSendBtc: () -> Unit = {},
-    onViewAll: () -> Unit,
+    onViewAllTags: () -> Unit,
+    onViewAllCollections: () -> Unit = {},
     onShowSelectedCoinMoreOption: () -> Unit = {},
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     val coinListUiState by coinListViewModel.state.collectAsStateWithLifecycle()
     CoinSearchFragmentContent(
         tags = coinListUiState.tags,
+        collections = coinListUiState.collections,
         coins = uiState.coins,
         mode = uiState.mode,
         queryState = viewModel.queryState,
@@ -164,7 +178,8 @@ private fun CoinSearchFragmentScreen(
         onSelectDone = viewModel::onSelectDone,
         onSelectOrUnselectAll = viewModel::onSelectOrUnselectAll,
         onSendBtc = onSendBtc,
-        onViewAll = onViewAll,
+        onViewAllTags = onViewAllTags,
+        onViewAllCollections = onViewAllCollections,
         onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption
     )
 }
@@ -176,6 +191,7 @@ private fun CoinSearchFragmentContent(
     queryState: MutableState<String> = mutableStateOf(""),
     handleSearch: suspend (query: String) -> Unit = {},
     tags: Map<Int, CoinTag> = emptyMap(),
+    collections: Map<Int, CoinCollection> = emptyMap(),
     coins: List<UnspentOutput> = emptyList(),
     mode: CoinListMode = CoinListMode.NONE,
     selectedCoins: Set<UnspentOutput> = emptySet(),
@@ -184,7 +200,8 @@ private fun CoinSearchFragmentContent(
     onSelectOrUnselectAll: (isSelect: Boolean) -> Unit = {},
     onSelectDone: () -> Unit = {},
     onSendBtc: () -> Unit = {},
-    onViewAll: () -> Unit = {},
+    onViewAllTags: () -> Unit = {},
+    onViewAllCollections: () -> Unit = {},
     onShowSelectedCoinMoreOption: () -> Unit = {},
 ) {
     val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
@@ -223,7 +240,11 @@ private fun CoinSearchFragmentContent(
         ) { innerPadding ->
             Column(modifier = Modifier.padding(innerPadding)) {
                 if (query.isBlank()) {
-                    TagHorizontalList(tags = tags.values.toList(), onViewAll = onViewAll)
+                    TagHorizontalList(tags = tags.values.toList(), onViewAll = onViewAllTags)
+                    CollectionHorizontalList(
+                        collections = collections.values.toList(),
+                        onViewAll = onViewAllCollections
+                    )
                 } else {
                     LazyColumn(
                         modifier = Modifier.weight(1f)
@@ -255,7 +276,5 @@ private fun CoinSearchFragmentContent(
 @Preview
 @Composable
 private fun CoinSearchFragmentScreenPreview() {
-    CoinSearchFragmentContent(
-
-    )
+    CoinSearchFragmentContent()
 }
