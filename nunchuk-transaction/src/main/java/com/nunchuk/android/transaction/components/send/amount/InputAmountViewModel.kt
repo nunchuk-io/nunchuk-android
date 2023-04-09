@@ -27,22 +27,36 @@ import com.nunchuk.android.core.util.*
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.SwapCurrencyEvent
 import com.nunchuk.android.transaction.components.utils.privateNote
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
+import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 internal class InputAmountViewModel @Inject constructor(
-    private val parseBtcUriUseCase: ParseBtcUriUseCase
+    private val parseBtcUriUseCase: ParseBtcUriUseCase,
+    private val getAllCoinUseCase: GetAllCoinUseCase,
 ) : NunchukViewModel<InputAmountState, InputAmountEvent>() {
 
     private var availableAmount: Double = 0.0
+    private var hasLockedCoin: Boolean = false
 
     override val initialState = InputAmountState()
 
-    fun init(availableAmount: Double) {
+    fun init(availableAmount: Double, walletId: String) {
         updateState { initialState }
         this.availableAmount = availableAmount
+        checkLockedCoin(walletId)
+    }
+
+    private fun checkLockedCoin(walletId: String) {
+        viewModelScope.launch {
+            setEvent(InputAmountEvent.Loading(true))
+            getAllCoinUseCase(walletId).onSuccess {
+                hasLockedCoin = it.any { coin -> coin.isLocked }
+            }
+            setEvent(InputAmountEvent.Loading(false))
+        }
     }
 
     fun parseBtcUri(content: String) {
@@ -77,9 +91,9 @@ internal class InputAmountViewModel @Inject constructor(
         updateState { copy(useBtc = !useBtc) }
         val currentState = getState()
         if (!currentState.useBtc) {
-            event(SwapCurrencyEvent(currentState.amountUSD))
+            setEvent(SwapCurrencyEvent(currentState.amountUSD))
         } else {
-            event(SwapCurrencyEvent(currentState.amountBTC))
+            setEvent(SwapCurrencyEvent(currentState.amountBTC))
         }
     }
 
@@ -107,9 +121,9 @@ internal class InputAmountViewModel @Inject constructor(
     fun handleContinueEvent() {
         val amount = getState().amountBTC
         if (amount <= 0 || amount > availableAmount) {
-            event(InputAmountEvent.InsufficientFundsEvent)
+            setEvent(InputAmountEvent.InsufficientFundsEvent)
         } else {
-            event(InputAmountEvent.AcceptAmountEvent(amount))
+            setEvent(InputAmountEvent.AcceptAmountEvent(amount))
         }
     }
 
@@ -118,4 +132,6 @@ internal class InputAmountViewModel @Inject constructor(
     fun getPrivateNote(): String = getState().privateNote
 
     fun getAmountBtc(): Double = getState().amountBTC
+
+    fun isHasLockedCoin() = hasLockedCoin
 }

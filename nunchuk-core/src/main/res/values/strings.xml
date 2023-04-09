@@ -627,4 +627,5 @@
     <string name="nc_clear_all">Clear all</string>
     <string name="nc_filters">Filters</string>
     <string name="nc_selected_coins">Selected coins</string>
+    <string name="nc_locked_coin_can_not_used">Locked coins cannot be used to create a transaction. Please update and try again.</string>
 </resources>

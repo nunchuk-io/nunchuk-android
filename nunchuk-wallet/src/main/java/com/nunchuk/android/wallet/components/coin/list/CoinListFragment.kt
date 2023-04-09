@@ -73,13 +73,19 @@ class CoinListFragment : BaseCoinListFragment() {
                         )
                     },
                     onSendBtc = {
-                        navigator.openInputAmountScreen(
-                            activityContext = requireActivity(),
-                            walletId = args.walletId,
-                            inputs = coinListViewModel.getSelectedCoins(),
-                            availableAmount = coinListViewModel.getSelectedCoins()
-                                .sumOf { it.amount.value }.toDouble().fromSATtoBTC()
-                        )
+                        val selectedCoins = coinListViewModel.getSelectedCoins()
+                        if (selectedCoins.any { it.isLocked }) {
+                            NCInfoDialog(requireActivity())
+                                .showDialog(message = getString(R.string.nc_locked_coin_can_not_used))
+                        } else {
+                            navigator.openInputAmountScreen(
+                                activityContext = requireActivity(),
+                                walletId = args.walletId,
+                                inputs = coinListViewModel.getSelectedCoins(),
+                                availableAmount = coinListViewModel.getSelectedCoins()
+                                    .sumOf { it.amount.value }.toDouble().fromSATtoBTC()
+                            )
+                        }
                     },
                     onShowSelectedCoinMoreOption = {
                         showSelectCoinOptions()

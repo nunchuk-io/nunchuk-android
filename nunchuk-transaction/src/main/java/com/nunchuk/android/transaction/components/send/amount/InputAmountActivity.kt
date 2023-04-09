@@ -36,6 +36,7 @@ import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.*
 import com.nunchuk.android.transaction.databinding.ActivityTransactionInputAmountBinding
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
@@ -62,7 +63,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         setLightStatusBar()
         setupViews()
         observeEvent()
-        viewModel.init(args.availableAmount)
+        viewModel.init(args.availableAmount, args.walletId)
     }
 
     private fun observeEvent() {
@@ -82,7 +83,14 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         }
         binding.mainCurrency.setText("")
         binding.mainCurrency.requestFocus()
-        binding.btnSendAll.setOnClickListener { openAddReceiptScreen(args.availableAmount, true) }
+        binding.btnSendAll.setOnClickListener {
+            if (viewModel.isHasLockedCoin()) {
+                NCInfoDialog(this)
+                    .showDialog(message = getString(R.string.nc_locked_coin_can_not_used))
+            } else {
+                openAddReceiptScreen(args.availableAmount, true)
+            }
+        }
         binding.btnSwitch.setOnClickListener { viewModel.switchCurrency() }
         binding.btnContinue.setOnDebounceClickListener {
             viewModel.handleContinueEvent()
@@ -183,6 +191,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                 }
             }
             is ShowError -> NCToastMessage(this).showError(event.message)
+            is Loading -> showOrHideLoading(event.isLoading)
         }
     }
 
