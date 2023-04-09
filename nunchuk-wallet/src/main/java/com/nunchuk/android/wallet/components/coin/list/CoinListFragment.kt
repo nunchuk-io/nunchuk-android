@@ -6,19 +6,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.animation.*
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -48,10 +44,7 @@ import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.base.BaseCoinListFragment
 import com.nunchuk.android.wallet.components.coin.collection.CoinCollectionListFragment
 import com.nunchuk.android.wallet.components.coin.collection.CollectionFlow
-import com.nunchuk.android.wallet.components.coin.component.CoinListBottomBar
-import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarNoneMode
-import com.nunchuk.android.wallet.components.coin.component.CoinListTopBarSelectMode
-import com.nunchuk.android.wallet.components.coin.component.SelectCoinCreateTransactionBottomBar
+import com.nunchuk.android.wallet.components.coin.component.*
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragment
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -301,7 +294,7 @@ private fun CoinListContent(
     selectedCoin: Set<UnspentOutput> = emptySet(),
     enableSelectMode: () -> Unit = {},
     enableSearchMode: () -> Unit = {},
-    onSelectOrUnselectAll: (isSelect: Boolean) -> Unit = {},
+    onSelectOrUnselectAll: (isSelect: Boolean, coins: List<UnspentOutput>) -> Unit = { _, _ -> },
     onSelectDone: () -> Unit = {},
     onViewCoinDetail: (output: UnspentOutput) -> Unit = {},
     onSendBtc: () -> Unit = {},
@@ -310,6 +303,8 @@ private fun CoinListContent(
     onShowMoreOptions: () -> Unit = {},
     onSelectCoin: (output: UnspentOutput, isSelected: Boolean) -> Unit = { _, _ -> }
 ) {
+    var selectedTransactionCoinVisible by remember { mutableStateOf(false) }
+    var previewSelectedCoins by remember { mutableStateOf(emptyList<UnspentOutput>()) }
     NunchukTheme {
         Scaffold(
             modifier = Modifier
@@ -331,7 +326,12 @@ private fun CoinListContent(
                     CoinListMode.SELECT -> {
                         CoinListTopBarSelectMode(
                             isSelectAll = coins.size == selectedCoin.size,
-                            onSelectOrUnselectAll = onSelectOrUnselectAll,
+                            onSelectOrUnselectAll = { isSelect ->
+                                onSelectOrUnselectAll(
+                                    isSelect,
+                                    coins
+                                )
+                            },
                             onSelectDone = onSelectDone
                         )
                     }
@@ -349,34 +349,52 @@ private fun CoinListContent(
                 }
             }) { innerPadding ->
             Column(modifier = Modifier.padding(innerPadding)) {
-                LazyColumn(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    items(coins) { coin ->
-                        PreviewCoinCard(
-                            output = coin,
+                Box(modifier = Modifier.weight(1f)) {
+                    LazyColumn {
+                        items(coins) { coin ->
+                            PreviewCoinCard(
+                                output = coin,
+                                onSelectCoin = onSelectCoin,
+                                isSelected = selectedCoin.contains(coin),
+                                mode = if (mode == CoinListMode.SELECT || mode == CoinListMode.TRANSACTION_SELECT) MODE_SELECT else MODE_VIEW_DETAIL,
+                                onViewCoinDetail = onViewCoinDetail,
+                                tags = tags,
+                            )
+                        }
+                    }
+                    androidx.compose.animation.AnimatedVisibility(
+                        modifier = Modifier.align(
+                            Alignment.BottomCenter
+                        ), visible = selectedTransactionCoinVisible,
+                        enter = slideInVertically() + fadeIn() + expandVertically(expandFrom = Alignment.Bottom),
+                        exit = slideOutVertically() + fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top)
+                    ) {
+                        ViewSelectedCoinList(
+                            allTags = tags,
+                            selectedCoin = selectedCoin,
+                            coins = previewSelectedCoins,
                             onSelectCoin = onSelectCoin,
-                            isSelected = selectedCoin.contains(coin),
-                            mode = if (mode == CoinListMode.SELECT || mode == CoinListMode.TRANSACTION_SELECT) MODE_SELECT else MODE_VIEW_DETAIL,
-                            onViewCoinDetail = onViewCoinDetail,
-                            tags = tags,
+                            onSelectOrUnselectAll = onSelectOrUnselectAll
                         )
                     }
                 }
-                if (selectedCoin.isNotEmpty()) {
-                    if (mode == CoinListMode.SELECT) {
-                        CoinListBottomBar(
-                            selectedCoin = selectedCoin,
-                            onSendBtc = onSendBtc,
-                            onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption,
-                        )
-                    } else if (mode == CoinListMode.TRANSACTION_SELECT) {
-                        SelectCoinCreateTransactionBottomBar(
-                            selectedCoin = selectedCoin,
-                            onUseCoinClicked = onUseCoinClicked,
-                            amount = amount
-                        )
-                    }
+                if (mode == CoinListMode.SELECT && selectedCoin.isNotEmpty()) {
+                    CoinListBottomBar(
+                        selectedCoin = selectedCoin,
+                        onSendBtc = onSendBtc,
+                        onShowSelectedCoinMoreOption = onShowSelectedCoinMoreOption,
+                    )
+                } else if ((mode == CoinListMode.TRANSACTION_SELECT && selectedCoin.isNotEmpty()) || selectedTransactionCoinVisible) {
+                    SelectCoinCreateTransactionBottomBar(
+                        isExpand = selectedTransactionCoinVisible,
+                        selectedCoin = selectedCoin,
+                        onUseCoinClicked = onUseCoinClicked,
+                        amount = amount,
+                        onViewSelectedTransactionCoin = {
+                            selectedTransactionCoinVisible = !selectedTransactionCoinVisible
+                            previewSelectedCoins = selectedCoin.toList()
+                        }
+                    )
                 }
             }
         }

@@ -626,4 +626,5 @@
     <string name="nc_transaction_switch_to_currency_data">Switch to %s</string>
     <string name="nc_clear_all">Clear all</string>
     <string name="nc_filters">Filters</string>
+    <string name="nc_selected_coins">Selected coins</string>
 </resources>

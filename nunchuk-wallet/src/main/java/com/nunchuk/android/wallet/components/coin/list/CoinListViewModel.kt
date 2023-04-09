@@ -134,10 +134,10 @@ class CoinListViewModel @Inject constructor(
         _state.update { it.copy(mode = CoinListMode.SELECT) }
     }
 
-    fun onSelectOrUnselectAll(isSelect: Boolean) {
+    fun onSelectOrUnselectAll(isSelect: Boolean, coins: List<UnspentOutput>) {
         _state.update {
             it.copy(
-                selectedCoins = if (isSelect) state.value.coins.toSet() else emptySet()
+                selectedCoins = if (isSelect) coins.toSet() else emptySet()
             )
         }
     }
