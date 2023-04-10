@@ -43,10 +43,12 @@ internal class InputAmountViewModel @Inject constructor(
 
     override val initialState = InputAmountState()
 
-    fun init(availableAmount: Double, walletId: String) {
+    fun init(availableAmount: Double, walletId: String, isFromSelectedCoin: Boolean) {
         updateState { initialState }
         this.availableAmount = availableAmount
-        checkLockedCoin(walletId)
+        if (!isFromSelectedCoin) {
+            checkLockedCoin(walletId)
+        }
     }
 
     private fun checkLockedCoin(walletId: String) {

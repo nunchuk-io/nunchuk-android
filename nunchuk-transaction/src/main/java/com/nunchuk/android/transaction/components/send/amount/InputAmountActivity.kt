@@ -63,7 +63,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         setLightStatusBar()
         setupViews()
         observeEvent()
-        viewModel.init(args.availableAmount, args.walletId)
+        viewModel.init(args.availableAmount, args.walletId, args.inputs.isNotEmpty())
     }
 
     private fun observeEvent() {
@@ -84,7 +84,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         binding.mainCurrency.setText("")
         binding.mainCurrency.requestFocus()
         binding.btnSendAll.setOnClickListener {
-            if (viewModel.isHasLockedCoin()) {
+            if ((args.inputs.isNotEmpty() && args.inputs.any { it.isLocked }) || (args.inputs.isEmpty() && viewModel.isHasLockedCoin())) {
                 NCInfoDialog(this)
                     .showDialog(message = getString(R.string.nc_locked_coin_can_not_used))
             } else {
