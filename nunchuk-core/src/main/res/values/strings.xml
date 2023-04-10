@@ -242,7 +242,7 @@
     <string name="nc_minutes">Minutes</string>
     <string name="nc_take_me_my_wallet">Take me to my wallet</string>
     <string name="nc_create_wallet_success">Congratulations! Your wallet has been created</string>
-    <string name="nc_create_wallet_success_desc">For security, please keep the keys physically distributed as much as possible. Avoid storing two of them in the same location.</string>
+    <string name="nc_create_wallet_success_desc">For best security, please keep your keys stored in physically distributed locations.</string>
     <string name="nc_create_my_own_question">Create my own question</string>
     <string name="nc_cosigning_policies">Platform key co-signing policies</string>
     <string name="nc_co_signing_delay">Co-signing delay</string>
