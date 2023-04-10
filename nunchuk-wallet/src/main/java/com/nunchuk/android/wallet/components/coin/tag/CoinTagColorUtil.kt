@@ -2,23 +2,23 @@ package com.nunchuk.android.wallet.components.coin.tag
 
 object CoinTagColorUtil {
 
-    val coinTagColors = arrayListOf<CoinTagColor>()
+    private val coinTagColors = arrayListOf<CoinTagColor>()
     val hexColors = arrayListOf<String>()
 
     init {
         hexColors.apply {
-            add("#CF4018")
-            add("#FAA077")
-            add("#A66800")
-            add("#FDD95C")
-            add("#1C652D")
             add("#9EC063")
-            add("#B4DCFF")
             add("#2F466C")
+            add("#FAA077")
+            add("#1C652D")
+            add("#B4DCFF")
             add("#7E519B")
-            add("#D38FFF")
-            add("#FFFFFF")
+            add("#FDD95C")
             add("#595959")
+            add("#D38FFF")
+            add("#CF4018")
+            add("#FFFFFF")
+            add("#A66800")
         }
         getCoinTagColors()
     }
